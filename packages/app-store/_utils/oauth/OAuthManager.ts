@@ -60,6 +60,7 @@ type CredentialSyncVariables = {
 };
 
 type CurrentTokenObject = z.infer<typeof OAuth2UniversalSchema>;
+type GetCurrentTokenObject = () => Promise<CurrentTokenObject>;
 /**
  * Manages OAuth2.0 tokens for an app and resourceOwner
  * If expiry_date or expires_in isn't provided in token then it is considered expired immediately(if credential sync is not enabled)
@@ -67,14 +68,14 @@ type CurrentTokenObject = z.infer<typeof OAuth2UniversalSchema>;
  */
 export class OAuthManager {
   protected currentTokenObject: CurrentTokenObject | null;
-  private getCurrentTokenObject: (() => Promise<CurrentTokenObject>) | null;
+  private getCurrentTokenObject: GetCurrentTokenObject | null;
   private resourceOwner: ResourceOwner;
   private appSlug: string;
   private fetchNewTokenObject: FetchNewTokenObject;
   private updateTokenObject: UpdateTokenObject;
   private isTokenObjectUnusable: isTokenObjectUnusable;
   private isAccessTokenUnusable: isAccessTokenUnusable;
-  private isTokenExpired: IsTokenExpired;
+  private isTokenExpiring: IsTokenExpired;
   private invalidateTokenObject: InvalidateTokenObject;
   private expireAccessToken: ExpireAccessToken;
   private credentialSyncVariables: CredentialSyncVariables;
@@ -94,18 +95,22 @@ export class OAuthManager {
     expireAccessToken,
     credentialSyncVariables,
     autoCheckTokenExpiryOnRequest = true,
-    isTokenExpired = (token: z.infer<typeof OAuth2TokenResponseInDbWhenExistsSchema>) => {
-      const isExpired = getExpiryDate() <= Date.now();
+    isTokenExpiring = (token: z.infer<typeof OAuth2TokenResponseInDbWhenExistsSchema>) => {
+      // TODO: Make it configurable later
+      // 5 seconds before expiry so that we can refresh the token before any request is made with the expired token
+      const expireThreshold = 5000;
+      const isGoingToExpire = getExpiryDate() - expireThreshold <= Date.now();
       log.debug(
-        "isTokenExpired",
+        "isTokenExpiring",
         safeStringify({
-          isExpired,
+          isGoingToExpire,
           expiry_date: token.expiry_date,
           expires_in: token.expires_in,
           currentTime: Date.now(),
+          expireThreshold,
         })
       );
-      return isExpired;
+      return isGoingToExpire;
       function isRelativeToEpoch(relativeTimeInSeconds: number) {
         return relativeTimeInSeconds > 1000000000; // If it is more than 2001-09-09 it can be considered relative to epoch. Also, that is more than 30 years in future which couldn't possibly be relative to current time
       }
@@ -145,9 +150,9 @@ export class OAuthManager {
     /**
      * The current token object.
      */
-    currentTokenObject?: z.infer<typeof OAuth2UniversalSchema>;
+    currentTokenObject?: CurrentTokenObject;
 
-    getCurrentTokenObject?: () => Promise<z.infer<typeof OAuth2UniversalSchema>>;
+    getCurrentTokenObject?: GetCurrentTokenObject;
     /**
      * The unique identifier of the app that the token is for. It is required to do credential syncing in self-hosting
      */
@@ -183,7 +188,7 @@ export class OAuthManager {
     /**
      * If there is a different way to check if the token is expired(and not the standard way of checking expiry_date)
      */
-    isTokenExpired?: IsTokenExpired;
+    isTokenExpiring?: IsTokenExpired;
   }) {
     if (!getCurrentTokenObject && !currentTokenObject) {
       throw new Error("One of getCurrentTokenObject or currentTokenObject is required");
@@ -195,7 +200,7 @@ export class OAuthManager {
     this.fetchNewTokenObject = fetchNewTokenObject;
     this.isTokenObjectUnusable = isTokenObjectUnusable;
     this.isAccessTokenUnusable = isAccessTokenUnusable;
-    this.isTokenExpired = isTokenExpired;
+    this.isTokenExpiring = isTokenExpiring;
     this.invalidateTokenObject = invalidateTokenObject;
     this.expireAccessToken = expireAccessToken;
     this.credentialSyncVariables = credentialSyncVariables;
@@ -220,6 +225,11 @@ export class OAuthManager {
     return !response.ok || response.status < 200 || response.status >= 300;
   }
 
+  /**
+   * Gets the current token object as is if not expired.
+   * If expired, it refreshes the token and returns the new token object.
+   * It also calls the `updateTokenObject` to update the token object in the database if it is changed.
+   */
   public async getTokenObjectOrFetch() {
     const myLog = log.getSubLogger({
       prefix: [`getTokenObjectOrFetch:appSlug=${this.appSlug}`],
@@ -232,7 +242,7 @@ export class OAuthManager {
     } else {
       throw new Error("Neither currentTokenObject nor getCurrentTokenObject is set");
     }
-    const isExpired = await this.isTokenExpired(currentTokenObject);
+    const isExpired = await this.isTokenExpiring(currentTokenObject);
     myLog.debug(
       "getTokenObjectOrFetch called",
       safeStringify({
@@ -251,7 +261,9 @@ export class OAuthManager {
         // It also allows any other properties set to be retained.
         // Let's not use normalizedCurrentTokenObject here as `normalizeToken` could possible be not idempotent
         ...currentTokenObject,
-        ...this.normalizeNewlyReceivedToken(await this.refreshOAuthToken()),
+        ...this.normalizeNewlyReceivedToken(
+          await this.refreshOAuthToken({ refreshToken: currentTokenObject.refresh_token ?? null })
+        ),
       };
       myLog.debug("Token is expired. So, returning new token object");
       this.currentTokenObject = token;
@@ -374,7 +386,8 @@ export class OAuthManager {
     if (this.autoCheckTokenExpiryOnRequest) {
       await this.getTokenObjectOrFetch();
     }
-    // `getTokenObjectOrFetch` has been called or `currentTokenObject` is set through constructor
+    // Either `getTokenObjectOrFetch` has been called through autoCheckTokenExpiryOnRequest or through a direct call to it outside OAuthManager
+    // In both cases, `currentTokenObject` is set
     this.assertCurrentTokenObjectIsSet();
     const headers = {
       Authorization: `Bearer ${this.currentTokenObject.access_token}`,
@@ -445,11 +458,9 @@ export class OAuthManager {
   }
 
   // TODO: On regenerating access_token successfully, we should call makeTokenObjectValid(to counter invalidateTokenObject). This should fix stale banner in UI to reconnect when the connection is working
-  private async refreshOAuthToken() {
+  private async refreshOAuthToken({ refreshToken }: { refreshToken: string | null }) {
     const myLog = log.getSubLogger({ prefix: ["refreshOAuthToken"] });
     let response;
-    this.assertCurrentTokenObjectIsSet();
-    const refreshToken = this.currentTokenObject.refresh_token ?? null;
     if (this.resourceOwner.id && this.useCredentialSync) {
       if (
         !this.credentialSyncVariables.CREDENTIAL_SYNC_SECRET ||

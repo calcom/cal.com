@@ -189,6 +189,49 @@ describe("Credential Sync Disabled", () => {
             expiry_date: 0,
           });
         });
+
+        test("`fetchNewTokenObject` is called if token is about to expire. Also, `updateTokenObject` is called with currentTokenObject and newTokenObject merged", async () => {
+          const userId = 1;
+          const invalidateTokenObject = vi.fn();
+          const expireAccessToken = vi.fn();
+          const updateTokenObject = vi.fn();
+          const currentTokenObject = getDummyTokenObject({
+            refresh_token: "REFRESH_TOKEN",
+            expiry_date: Date.now() - 2 * 1000,
+          });
+          const newTokenObjectInResponse = getDummyTokenObject();
+          const fetchNewTokenObject = vi
+            .fn()
+            .mockResolvedValue(generateJsonResponse({ json: newTokenObjectInResponse }));
+
+          const auth1 = new OAuthManager({
+            credentialSyncVariables: useCredentialSyncVariables,
+            resourceOwner: {
+              type: "user",
+              id: userId,
+            },
+            appSlug: "demo-app",
+            currentTokenObject: currentTokenObject,
+            fetchNewTokenObject,
+            isTokenObjectUnusable: async () => {
+              return null;
+            },
+            isAccessTokenUnusable: async () => {
+              return null;
+            },
+            invalidateTokenObject: invalidateTokenObject,
+            updateTokenObject: updateTokenObject,
+            expireAccessToken: expireAccessToken,
+          });
+          await auth1.getTokenObjectOrFetch();
+          expect(fetchNewTokenObject).toHaveBeenCalledWith({ refreshToken: "REFRESH_TOKEN" });
+          expect(updateTokenObject).toHaveBeenCalledWith({
+            ...currentTokenObject,
+            ...newTokenObjectInResponse,
+            // Consider the token as expired as newTokenObjectInResponse didn't have expiry
+            expiry_date: 0,
+          });
+        });
       });
 
       describe("checking using expires_in", () => {
@@ -285,7 +328,7 @@ describe("Credential Sync Disabled", () => {
               appSlug: "demo-app",
               currentTokenObject: getDummyTokenObject({
                 refresh_token: "REFRESH_TOKEN",
-                expires_in: Date.now() / 1000 + 5,
+                expires_in: Date.now() / 1000 + 10,
               }),
               fetchNewTokenObject,
               isTokenObjectUnusable: async () => {
@@ -451,7 +494,7 @@ describe("Credential Sync Disabled", () => {
           id: userId,
         },
         appSlug: "demo-app",
-        isTokenExpired: async () => {
+        isTokenExpiring: async () => {
           return false;
         },
         isAccessTokenUnusable: async () => {

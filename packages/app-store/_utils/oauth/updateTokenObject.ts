@@ -29,6 +29,11 @@ export const updateTokenObject = async ({
   });
 };
 
+/**
+ * OAuthManager helper to update the token object in db.
+ *
+ * It ensures that the token goes in DB. For JWT flow, it also creates a delegation user credential if not present
+ */
 export const updateTokenObjectInDb = async (
   args: {
     tokenObject: z.infer<typeof OAuth2UniversalSchemaWithCalcomBackwardCompatibility>;
@@ -70,7 +75,8 @@ export const updateTokenObjectInDb = async (
         key: tokenObject as Prisma.InputJsonValue,
       },
     });
-    // If no delegation-credential is found, create one
+
+    // If no delegation-credential is updated, create one
     if (updated.count === 0) {
       log.debug("No delegation-credential found. Creating one");
       await CredentialRepository.createDelegationCredential({

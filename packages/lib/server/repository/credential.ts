@@ -179,6 +179,7 @@ export class CredentialRepository {
 
     if (delegationUserCredentials.length > 1) {
       // Instead of crashing use the first one and log for observability
+      // TODO: Plan to add a unique constraint on userId and delegationCredentialId
       log.error(`DelegationCredential: Multiple delegation user credentials found - this should not happen`, {
         userId,
         delegationCredentialId,
