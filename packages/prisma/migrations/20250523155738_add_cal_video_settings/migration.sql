@@ -10,8 +10,5 @@ CREATE TABLE "CalVideoSettings" (
     CONSTRAINT "CalVideoSettings_pkey" PRIMARY KEY ("eventTypeId")
 );
 
--- CreateIndex
-CREATE INDEX "CalVideoSettings_eventTypeId_idx" ON "CalVideoSettings"("eventTypeId");
-
 -- AddForeignKey
 ALTER TABLE "CalVideoSettings" ADD CONSTRAINT "CalVideoSettings_eventTypeId_fkey" FOREIGN KEY ("eventTypeId") REFERENCES "EventType"("id") ON DELETE CASCADE ON UPDATE CASCADE;
