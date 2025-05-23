@@ -12,14 +12,14 @@ export const routingFormsRouter = router({
   findTeamMembersMatchingAttributeLogicOfRoute: authedProcedure
     .input(ZFindTeamMembersMatchingAttributeLogicOfRouteInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const { default: handler } = await import("./findTeamMembersMatchingAttributeLogicOfRoute.handler");
-      return handler({ ctx, input });
+      const handler = await import("./findTeamMembersMatchingAttributeLogicOfRoute.handler.js");
+      return handler.default({ ctx, input });
     }),
 
   public: router({
     response: publicProcedure.input(ZResponseInputSchema).mutation(async ({ ctx, input }) => {
-      const { default: handler } = await import("./response.handler");
-      return handler({ ctx, input });
+      const handler = await import("./response.handler.js");
+      return handler.default({ ctx, input });
     }),
   }),
 });

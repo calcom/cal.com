@@ -162,7 +162,7 @@ async function _onFormSubmission(
 
   if (typeof window === "undefined") {
     try {
-      const tasker: Tasker = await (await import("@calcom/features/tasker")).default;
+      const tasker: Tasker = await (await import("@calcom/features/tasker.js")).default;
       const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
         const scheduledAt = dayjs().add(15, "minute").toDate();
 
@@ -216,7 +216,7 @@ export const sendResponseEmail = async (
 ) => {
   try {
     if (typeof window === "undefined") {
-      const { default: ResponseEmail } = await import("../emails/templates/response-email");
+      const { default: ResponseEmail } = await import("../emails/templates/response-email.js");
       const email = new ResponseEmail({ form: form, toAddresses, orderedResponses });
       await email.sendEmail();
     }
