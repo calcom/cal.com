@@ -69,7 +69,7 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import type { DestinationCalendar, User } from "@calcom/prisma/client";
+import type { DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, CreationSource, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import {
@@ -1948,7 +1948,15 @@ async function handler(
     if (!booking.user) booking.user = organizerUser;
     const payment = await handlePayment({
       evt,
-      selectedEventType: eventType,
+      selectedEventType: {
+        ...eventType,
+        metadata: eventType.metadata
+          ? {
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
+          : {},
+      },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
       bookerName: fullName,
