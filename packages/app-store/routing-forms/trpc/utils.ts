@@ -162,7 +162,7 @@ async function _onFormSubmission(
 
   if (typeof window === "undefined") {
     try {
-      const tasker: Tasker = await (await import("@calcom/features/tasker.js")).default;
+      const tasker: Tasker = await (await import("@calcom/features/tasker")).default;
       const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
         const scheduledAt = dayjs().add(15, "minute").toDate();
 
