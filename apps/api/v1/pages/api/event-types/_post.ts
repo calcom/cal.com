@@ -265,14 +265,17 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isSystemWideAdmin, body } = req;
+  const { userId: ctxUserId, isSystemWideAdmin, body } = req;
 
   const {
     hosts = [],
     bookingLimits,
     durationLimits,
+    locations,
     /** FIXME: Adding event-type children from API not supported for now  */
     children: _,
+    // if userId is not passed, we will use the userId from the context
+    userId = ctxUserId,
     ...parsedBody
   } = schemaEventTypeCreateBodyParams.parse(body || {});
 
@@ -282,6 +285,7 @@ async function postHandler(req: NextApiRequest) {
     users: !!parsedBody.teamId ? undefined : { connect: { id: userId } },
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
+    locations: locations === null ? Prisma.DbNull : locations,
   };
 
   await checkPermissions(req);
@@ -291,8 +295,8 @@ async function postHandler(req: NextApiRequest) {
     await checkUserMembership(req);
   }
 
-  if (isSystemWideAdmin && parsedBody.userId && !parsedBody.teamId) {
-    data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
+  if (isSystemWideAdmin && userId && !parsedBody.teamId && parsedBody.teamId !== null) {
+    data = { ...parsedBody, users: { connect: { id: userId } } };
   }
 
   await checkTeamEventEditPermission(req, parsedBody);

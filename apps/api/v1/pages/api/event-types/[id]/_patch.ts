@@ -210,6 +210,7 @@ export async function patchHandler(req: NextApiRequest) {
     hosts = [],
     bookingLimits,
     durationLimits,
+    locations,
     /** FIXME: Updating event-type children from API not supported for now  */
     children: _,
     ...parsedBody
@@ -217,8 +218,10 @@ export async function patchHandler(req: NextApiRequest) {
 
   const data: Prisma.EventTypeUpdateArgs["data"] = {
     ...parsedBody,
+    teamId: parsedBody.teamId === null ? undefined : parsedBody.teamId,
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
+    locations: locations === null ? Prisma.DbNull : locations,
   };
 
   if (hosts) {
