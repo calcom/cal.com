@@ -6,7 +6,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { User as UserType } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -27,7 +27,7 @@ const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
 
-const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+const teamSelect = {
   id: true,
   name: true,
   slug: true,
@@ -36,9 +36,9 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   organizationSettings: true,
   isOrganization: true,
   isPlatform: true,
-});
+} satisfies Prisma.TeamSelect;
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   id: true,
   username: true,
   name: true,
@@ -77,7 +77,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   lastActiveAt: true,
   identityProvider: true,
   teams: true,
-});
+} satisfies Prisma.UserSelect;
 
 type UserPayload = Prisma.UserGetPayload<{ select: typeof userSelect }> & {
   profile: UserProfile;

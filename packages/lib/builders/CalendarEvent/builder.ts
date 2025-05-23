@@ -6,7 +6,7 @@ import { getRescheduleLink } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { CalendarEventClass } from "./class";
@@ -14,7 +14,7 @@ import { CalendarEventClass } from "./class";
 const log = logger.getSubLogger({ prefix: ["builders", "CalendarEvent", "builder"] });
 const translator = short();
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   id: true,
   email: true,
   name: true,
@@ -24,7 +24,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   bufferTime: true,
   destinationCalendar: true,
   locale: true,
-});
+} satisfies Prisma.UserSelect;
 
 // Single source of truth for user type
 type User = Prisma.UserGetPayload<{ select: typeof userSelect }>;

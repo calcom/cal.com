@@ -160,7 +160,7 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
   });
 }
 
-const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+const teamSelect = {
   id: true,
   name: true,
   slug: true,
@@ -170,7 +170,7 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   isOrganization: true,
   organizationSettings: true,
   isPlatform: true,
-});
+} satisfies Prisma.TeamSelect;
 
 export class TeamRepository {
   static async findById({ id }: { id: number }) {

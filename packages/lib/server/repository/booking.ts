@@ -1,7 +1,7 @@
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -186,7 +186,7 @@ export class BookingRepository {
       },
     };
 
-    const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
+    const bookingsSelect = {
       id: true,
       uid: true,
       userId: true,
@@ -214,7 +214,7 @@ export class BookingRepository {
           },
         },
       }),
-    });
+    } satisfies Prisma.BookingSelect;
 
     const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
       where: {

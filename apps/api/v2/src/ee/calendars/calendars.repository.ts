@@ -2,9 +2,9 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
-const credentialForCalendarRepositorySelect = Prisma.validator<Prisma.CredentialSelect>()({
+const credentialForCalendarRepositorySelect = {
   id: true,
   appId: true,
   type: true,
@@ -17,7 +17,7 @@ const credentialForCalendarRepositorySelect = Prisma.validator<Prisma.Credential
   teamId: true,
   key: true,
   invalid: true,
-});
+} satisfies Prisma.CredentialSelect;
 
 @Injectable()
 export class CalendarsRepository {

@@ -2,7 +2,7 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -16,7 +16,7 @@ type ListMembersHandlerOptions = {
   input: TListMembersInputSchema;
 };
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   username: true,
   email: true,
   name: true,
@@ -25,7 +25,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   bio: true,
   disableImpersonation: true,
   lastActiveAt: true,
-});
+} satisfies Prisma.UserSelect;
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
   const { cursor, limit, teamId, searchTerm } = input;

@@ -14,7 +14,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { User as UserType } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
@@ -28,7 +28,7 @@ import {
 } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   id: true,
   avatarUrl: true,
   username: true,
@@ -47,10 +47,10 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
     },
   },
   defaultScheduleId: true,
-});
+} satisfies Prisma.UserSelect;
 
 const getPublicEventSelect = (fetchAllUsers: boolean) => {
-  return Prisma.validator<Prisma.EventTypeSelect>()({
+  return {
     id: true,
     title: true,
     description: true,
@@ -150,7 +150,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
-  });
+  } satisfies Prisma.EventTypeSelect;
 };
 
 export async function isCurrentlyAvailable({
@@ -531,7 +531,7 @@ export const getPublicEvent = async (
   };
 };
 
-const eventData = Prisma.validator<Prisma.EventTypeSelect>()(getPublicEventSelect(true));
+const eventData = getPublicEventSelect(true) satisfies Prisma.EventTypeSelect;
 
 type Event = Prisma.EventTypeGetPayload<{ select: typeof eventData }>;
 

@@ -1,6 +1,6 @@
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 import stripe from "./server";
 
@@ -23,10 +23,10 @@ export async function getStripeCustomerIdFromUserId(userId: number) {
 
   return customerId;
 }
-const userType = Prisma.validator<Prisma.UserSelect>()({
+const userType = {
   email: true,
   metadata: true,
-});
+} satisfies Prisma.UserSelect;
 
 type UserType = Prisma.UserGetPayload<{ select: typeof userType }>;
 

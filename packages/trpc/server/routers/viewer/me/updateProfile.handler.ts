@@ -216,7 +216,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
+  const updatedUserSelect = {
     select: {
       id: true,
       username: true,
@@ -234,7 +234,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         },
       },
     },
-  });
+  } satisfies Prisma.UserDefaultArgs;
 
   let updatedUser: Prisma.UserGetPayload<typeof updatedUserSelect>;
 

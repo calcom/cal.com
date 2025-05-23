@@ -6,7 +6,7 @@ import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import {
@@ -39,7 +39,7 @@ export async function getTeamWithMembers(args: {
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  const userSelect = {
     username: true,
     email: true,
     name: true,
@@ -71,7 +71,7 @@ export async function getTeamWithMembers(args: {
         },
       },
     },
-  });
+  } satisfies Prisma.UserSelect;
   let lookupBy;
 
   if (id) {
