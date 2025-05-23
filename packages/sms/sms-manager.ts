@@ -134,7 +134,7 @@ export default abstract class SMSManager {
 
   async sendSMSToAttendees() {
     const smsToSend: Promise<unknown>[] = [];
-    console.log("sendSMSToAttendees", this.calEvent);
+
     if (!(await this.isSMSNotificationEnabled())) return;
 
     for (const attendee of this.calEvent.attendees) {
