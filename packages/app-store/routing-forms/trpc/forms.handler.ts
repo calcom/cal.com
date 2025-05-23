@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
