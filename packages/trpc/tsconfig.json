@@ -33,7 +33,7 @@
     "declarationMap": false,
     "resolveJsonModule": true,
     "declarationDir": "types/server",
-    "module": "NodeNext",
-    "moduleResolution": "nodenext"
+    "module": "CommonJS",
+    "moduleResolution": "node"
   }
 }
