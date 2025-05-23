@@ -1599,6 +1599,7 @@
   "team_url": "Team URL",
   "team_members": "Team members",
   "more": "More",
+  "and_count_more": "and {{count}} more",
   "more_page_footer": "We view the mobile application as an extension of the web application. If you are performing any complicated actions, please refer back to the web application.",
   "workflow_example_1": "Send SMS reminder 24 hours before event starts to attendee",
   "workflow_example_2": "Send custom SMS when event is rescheduled to attendee",
@@ -1779,6 +1780,7 @@
   "number_sms_notifications": "Phone number (SMS notifications)",
   "attendee_email_variable": "Attendee email",
   "attendee_email_info": "The person booking's email",
+  "booking_uid": "Booking UID",
   "kbar_search_placeholder": "Type a command or search...",
   "invalid_credential": "It looks like permissions expired or were revoked for {{appName}}.",
   "invalid_credential_action": "Reinstall app",
@@ -3220,5 +3222,7 @@
   "requires_credits": "Requires credits",
   "requires_credits_tooltip": "You need enough credits in your account to use this feature",
   "available_credits": "Available credits",
+  "members_affected_by_disabling_delegation_credential": "Affected members",
+  "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

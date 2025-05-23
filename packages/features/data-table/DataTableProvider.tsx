@@ -74,6 +74,7 @@ interface DataTableProviderProps {
   children: React.ReactNode;
   ctaContainerClassName?: string;
   defaultPageSize?: number;
+  segments?: FilterSegmentOutput[];
 }
 
 export function DataTableProvider({
@@ -82,6 +83,7 @@ export function DataTableProvider({
   useSegments = useSegmentsNoop,
   defaultPageSize = DEFAULT_PAGE_SIZE,
   ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
+  segments: providedSegments,
 }: DataTableProviderProps) {
   const filterToOpen = useRef<string | undefined>(undefined);
   const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
@@ -182,6 +184,7 @@ export function DataTableProvider({
       setPageSize,
       setPageIndex,
       setSearchTerm,
+      segments: providedSegments,
     }
   );
 
