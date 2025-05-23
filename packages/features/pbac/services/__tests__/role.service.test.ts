@@ -37,6 +37,7 @@ describe("RoleService", () => {
         name: "Test Role",
         teamId: 1,
         permissions: ["eventType.create"] as PermissionString[],
+        type: RoleType.CUSTOM,
       };
 
       const createdRole: Role = {
@@ -57,12 +58,7 @@ describe("RoleService", () => {
       expect(result.id).toBe("new-role");
       expect(result.name).toBe(roleData.name);
       expect(result.permissions).toHaveLength(1);
-      expect(mockRepository.create).toHaveBeenCalledWith({
-        name: roleData.name,
-        teamId: roleData.teamId,
-        type: RoleType.CUSTOM,
-        permissions: roleData.permissions,
-      });
+      expect(mockRepository.create).toHaveBeenCalledWith(roleData);
     });
 
     it("should throw error if role name already exists", async () => {
@@ -70,6 +66,7 @@ describe("RoleService", () => {
         name: "Test Role",
         teamId: 1,
         permissions: ["eventType.create"] as PermissionString[],
+        type: RoleType.CUSTOM,
       };
 
       mockRepository.findByName.mockResolvedValueOnce({
@@ -242,17 +239,31 @@ describe("RoleService", () => {
         updatedAt: new Date(),
       };
 
-      mockRepository.findById.mockResolvedValueOnce(role);
-      mockRepository.transaction.mockImplementationOnce((callback) => callback(mockRepository));
+      const mockTrx = {
+        updateTable: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue(undefined),
+      };
 
-      await service.assignRoleToMember(roleId, membershipId);
+      mockRepository.findById.mockResolvedValueOnce(role);
+      mockRepository.transaction.mockImplementationOnce((callback) => callback(mockRepository, mockTrx));
+
+      const result = await service.assignRoleToMember(roleId, membershipId);
+      expect(result).toEqual(role);
       expect(mockRepository.findById).toHaveBeenCalledWith(roleId);
+      expect(mockTrx.updateTable).toHaveBeenCalledWith("Membership");
+      expect(mockTrx.set).toHaveBeenCalledWith({ customRoleId: roleId });
+      expect(mockTrx.where).toHaveBeenCalledWith("id", "=", membershipId);
+      expect(mockTrx.execute).toHaveBeenCalled();
     });
 
     it("should throw error if role does not exist", async () => {
       mockRepository.findById.mockResolvedValueOnce(null);
+      mockRepository.transaction.mockImplementationOnce((callback) => callback(mockRepository, {}));
 
       await expect(service.assignRoleToMember(roleId, membershipId)).rejects.toThrow("Role not found");
+      expect(mockRepository.findById).toHaveBeenCalledWith(roleId);
     });
   });
 });

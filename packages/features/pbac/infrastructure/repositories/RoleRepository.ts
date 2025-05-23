@@ -98,7 +98,7 @@ export class RoleRepository implements IRoleRepository {
           name: data.name,
           description: data.description || null,
           teamId: data.teamId || null,
-          type: RoleType.CUSTOM,
+          type: data.type || RoleType.CUSTOM,
           createdAt: new Date(),
           updatedAt: new Date(),
         })
@@ -159,7 +159,12 @@ export class RoleRepository implements IRoleRepository {
     });
   }
 
-  async transaction<T>(callback: (repository: IRoleRepository) => Promise<T>): Promise<T> {
-    return kysely.transaction().execute((trx) => callback(this));
+  async transaction<T>(callback: (repository: IRoleRepository, trx: any) => Promise<T>): Promise<T> {
+    return kysely.transaction().execute(async (trx) => {
+      // Create a new repository instance with the transaction connection
+      const transactionRepo = new RoleRepository();
+      // Pass both the repository and the transaction connection
+      return callback(transactionRepo, trx);
+    });
   }
 }

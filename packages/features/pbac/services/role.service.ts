@@ -27,8 +27,9 @@ export class RoleService {
     }
 
     // Validate permissions
-    if (!this.permissionService.validatePermissions(data.permissions)) {
-      throw new Error("Invalid permissions provided");
+    const validationResult = this.permissionService.validatePermissions(data.permissions);
+    if (!validationResult.isValid) {
+      throw new Error(validationResult.error || "Invalid permissions provided");
     }
 
     return this.repository.create(data);
@@ -39,18 +40,18 @@ export class RoleService {
   }
 
   async assignRoleToMember(roleId: string, membershipId: number) {
-    // This would be handled by a MembershipService in a full DDD implementation
-    // For now, we'll keep the existing implementation
-    return this.repository.transaction(async (repo) => {
+    return this.repository.transaction(async (repo, trx) => {
       const role = await repo.findById(roleId);
       if (!role) throw new Error("Role not found");
 
       // TODO: Move this to a MembershipRepository
-      await kysely
+      await trx
         .updateTable("Membership")
         .set({ customRoleId: roleId })
         .where("id", "=", membershipId)
         .execute();
+
+      return role;
     });
   }
 
@@ -102,8 +103,9 @@ export class RoleService {
     }
 
     // Validate permissions
-    if (!this.permissionService.validatePermissions(data.permissions)) {
-      throw new Error("Invalid permissions provided");
+    const validationResult = this.permissionService.validatePermissions(data.permissions);
+    if (!validationResult.isValid) {
+      throw new Error(validationResult.error || "Invalid permissions provided");
     }
 
     return this.repository.updatePermissions(data.roleId, data.permissions);

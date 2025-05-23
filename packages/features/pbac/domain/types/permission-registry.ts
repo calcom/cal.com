@@ -2,7 +2,7 @@ export enum Resource {
   All = "*",
   EventType = "eventType",
   Team = "team",
-  Organization = "org",
+  Organization = "organization",
   Booking = "booking",
   Insights = "insights",
 }

@@ -27,5 +27,5 @@ export interface PermissionPattern {
 
 export interface PermissionValidationResult {
   isValid: boolean;
-  error?: string;
+  error?: string | null;
 }

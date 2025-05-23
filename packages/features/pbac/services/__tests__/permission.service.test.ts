@@ -21,7 +21,13 @@ describe("PermissionService", () => {
     it("should reject an invalid permission", () => {
       const result = service.validatePermission("invalid.action" as PermissionString);
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe("Invalid permission format");
+      expect(result.error).toBe("Invalid permission: invalid.action");
+    });
+
+    it("should reject a malformed permission", () => {
+      const result = service.validatePermission("invalid-format" as PermissionString);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe("Invalid permission format: invalid-format");
     });
   });
 
@@ -41,11 +47,18 @@ describe("PermissionService", () => {
       const permissions = [
         "eventType.create",
         "invalid.action",
-        "organization.billing",
+        "organization.manageBilling",
       ] as PermissionString[];
       const result = service.validatePermissions(permissions);
       expect(result.isValid).toBe(false);
       expect(result.error).toBe("Invalid permission: invalid.action");
+    });
+
+    it("should reject if any permission is malformed", () => {
+      const permissions = ["eventType.create", "invalid-format", "team.invite"] as PermissionString[];
+      const result = service.validatePermissions(permissions);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe("Invalid permission format: invalid-format");
     });
   });
 

@@ -25,6 +25,7 @@ export interface CreateRoleData {
   description?: string;
   teamId?: number;
   permissions: PermissionString[];
+  type?: RoleType;
 }
 
 export interface UpdateRolePermissionsData {

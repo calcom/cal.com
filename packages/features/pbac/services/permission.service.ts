@@ -15,9 +15,15 @@ export class PermissionService {
       const isValid = !!PERMISSION_REGISTRY[permissionObj.resource]?.[permissionObj.action];
       return {
         isValid,
-        error: isValid ? undefined : `Invalid permission: ${permission}`,
+        error: isValid ? null : `Invalid permission: ${permission}`,
       };
     } catch (error) {
+      if (error instanceof Error) {
+        return {
+          isValid: false,
+          error: error.message,
+        };
+      }
       return {
         isValid: false,
         error: `Invalid permission format: ${permission}`,
@@ -32,7 +38,7 @@ export class PermissionService {
         return result;
       }
     }
-    return { isValid: true };
+    return { isValid: true, error: null };
   }
 
   permissionMatches(pattern: PermissionPattern, permission: Permission): boolean {
