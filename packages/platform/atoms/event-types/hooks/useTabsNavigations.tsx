@@ -118,6 +118,14 @@ export const useTabsNavigations = ({
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
         }`,
         "data-testid": "assignment",
+        badge:
+          eventType.hosts?.length === 0
+            ? {
+                text: t("add_host"),
+                variant: "orange",
+                startIcon: "info",
+              }
+            : undefined,
       });
     }
     const showInstant = !(isManagedEventType || isChildrenManagedEventType);

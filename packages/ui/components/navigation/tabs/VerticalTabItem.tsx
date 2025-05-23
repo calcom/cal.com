@@ -5,8 +5,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 import classNames from "@calcom/ui/classNames";
 
-import { Icon } from "../../icon";
+import { Badge } from "../../badge";
 import type { IconName } from "../../icon";
+import { Icon } from "../../icon";
 
 export type VerticalTabItemProps = {
   name: string;
@@ -28,6 +29,11 @@ export type VerticalTabItemProps = {
   onClick?: (name: string) => void;
   isActive?: boolean;
   "data-testid"?: string;
+  badge?: {
+    text: string;
+    variant?: "default" | "warning" | "error";
+    startIcon?: string;
+  };
 };
 
 const VerticalTabItem = ({
@@ -38,6 +44,7 @@ const VerticalTabItem = ({
   disableChevron,
   linkShallow,
   linkScroll,
+  badge,
   ...props
 }: VerticalTabItemProps) => {
   const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
@@ -80,6 +87,11 @@ const VerticalTabItem = ({
               <span className="flex items-center gap-2">
                 {t(name)}
                 {props.isExternalLink ? <Icon name="external-link" data-testid="external-link" /> : null}
+                {badge && (
+                  <Badge variant={badge.variant} startIcon={badge.startIcon}>
+                    {badge.text}
+                  </Badge>
+                )}
               </span>
               {info && (
                 // TODO: I don't think having apps-info as a data-test-id is right here as this is meant to be dumb component.
