@@ -184,6 +184,10 @@ const nextConfig = {
     "superagent", // Dependencies of akismet
     "formidable", // Dependencies of akismet
   ],
+  env: {
+    // set by Taurify
+    TAURI_PLATFORM: process.env.TAURI_PLATFORM,
+  },
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     optimizePackageImports: ["@calcom/ui"],
