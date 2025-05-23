@@ -189,7 +189,15 @@ const createNewSeat = async (
 
     const payment = await handlePayment({
       evt,
-      selectedEventType: eventType,
+      selectedEventType: {
+        ...eventType,
+        metadata: eventType.metadata
+          ? {
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
+          : {},
+      },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking: seatedBooking,
       bookerName: fullName,
