@@ -7,6 +7,7 @@ import type { UseFormReturn } from "react-hook-form";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { Prisma, EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { eventTypeMetaDataSchemaWithoutApps } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Switch } from "@calcom/ui/components/form";
@@ -99,15 +100,17 @@ const useLockedFieldsManager = ({
 }) => {
   const { setValue, getValues } = formMethods;
   const [fieldStates, setFieldStates] = useState<Record<string, boolean>>({});
+
+  const metadata = eventTypeMetaDataSchemaWithoutApps.parse(eventType.metadata);
+
   const unlockedFields =
-    (eventType.metadata?.managedEventConfig?.unlockedFields !== undefined &&
-      eventType.metadata?.managedEventConfig?.unlockedFields) ||
+    (metadata?.managedEventConfig?.unlockedFields !== undefined &&
+      metadata?.managedEventConfig?.unlockedFields) ||
     {};
 
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   const isChildrenManagedEventType =
-    eventType.metadata?.managedEventConfig !== undefined &&
-    eventType.schedulingType !== SchedulingType.MANAGED;
+    metadata?.managedEventConfig !== undefined && eventType.schedulingType !== SchedulingType.MANAGED;
 
   const setUnlockedFields = (fieldName: string, val: boolean | undefined) => {
     const path = "metadata.managedEventConfig.unlockedFields";
@@ -173,7 +176,7 @@ const useLockedFieldsManager = ({
     return {
       disabled:
         !isManagedEventType &&
-        eventType.metadata?.managedEventConfig !== undefined &&
+        metadata?.managedEventConfig !== undefined &&
         unlockedFields[fieldName as keyof Omit<Prisma.EventTypeSelect, "id">] === undefined,
       LockedIcon: useShouldLockIndicator(fieldName, options),
       isLocked,
@@ -201,7 +204,7 @@ const useLockedFieldsManager = ({
     return {
       disabled:
         !isManagedEventType &&
-        eventType.metadata?.managedEventConfig !== undefined &&
+        metadata?.managedEventConfig !== undefined &&
         unlockedFields[fieldName as keyof Omit<Prisma.EventTypeSelect, "id">] === undefined,
       LockedIcon: useShouldLockIndicator(fieldName, options),
       isLocked: fieldStates[fieldName],
