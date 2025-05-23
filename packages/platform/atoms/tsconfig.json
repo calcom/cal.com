@@ -2,6 +2,7 @@
   "extends": "@calcom/tsconfig/react-library.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "moduleResolution": "node",
     "paths": {
       "~/*": ["/*"],
       "@/*": ["./src/*"],
