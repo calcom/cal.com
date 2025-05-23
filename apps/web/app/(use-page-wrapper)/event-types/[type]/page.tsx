@@ -33,7 +33,10 @@ export const generateMetadata = async () => {
 const getCachedEventType = unstable_cache(
   async (
     eventTypeId: number,
-    user: { id: number; organization?: { isOrgAdmin?: boolean }; profile?: { organizationId?: number } }
+    user: {
+      id: number;
+      organization?: { id?: number; isOrgAdmin?: boolean };
+    }
   ) => {
     const prisma = (await import("@calcom/prisma")).default;
 
@@ -43,7 +46,7 @@ const getCachedEventType = unstable_cache(
       prisma,
       isTrpcCall: false,
       isUserOrganizationAdmin: !!user?.organization?.isOrgAdmin,
-      currentOrganizationId: user.profile?.organizationId ?? null,
+      currentOrganizationId: user.organization?.id ?? null,
     });
   },
   ["viewer.eventTypes.get"],
@@ -64,10 +67,10 @@ const ServerPage = async ({ params }: PageProps) => {
   const user = {
     id: session.user.id,
     organization: session.user.org
-      ? { isOrgAdmin: session.user.org.role === "ADMIN" || session.user.org.role === "OWNER" }
-      : undefined,
-    profile: session.user.profile?.organizationId
-      ? { organizationId: session.user.profile.organizationId }
+      ? {
+          id: session.user.org.id,
+          isOrgAdmin: session.user.org.role === "ADMIN" || session.user.org.role === "OWNER",
+        }
       : undefined,
   };
   console.log(user);
