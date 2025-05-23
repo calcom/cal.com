@@ -1527,6 +1527,16 @@
             }
           },
           {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "eventTypeIds",
             "required": false,
             "in": "query",
@@ -5443,6 +5453,16 @@
             }
           },
           {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "eventTypeIds",
             "required": false,
             "in": "query",
@@ -6820,6 +6840,16 @@
             }
           },
           {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "eventTypeIds",
             "required": false,
             "in": "query",
@@ -7251,7 +7281,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBooking",
         "summary": "Reassign a booking to auto-selected host",
-        "description": "The provided authorization header refers to the owner of the booking.",
+        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -7302,7 +7332,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
         "summary": "Reassign a booking to a specific host",
-        "description": "The provided authorization header refers to the owner of the booking.",
+        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -15029,6 +15059,7 @@
           },
           "address": {
             "type": "string",
+            "minLength": 1,
             "example": "123 Example St, City, Country"
           },
           "public": {

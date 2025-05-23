@@ -2,8 +2,8 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 const DisableTeamImpersonation = ({
   teamId,
@@ -26,7 +26,9 @@ const DisableTeamImpersonation = ({
       await utils.viewer.teams.getMembershipbyUser.invalidate();
     },
   });
-  const [allowImpersonation, setAllowImpersonation] = useState(!query.data?.disableImpersonation ?? true);
+  const [allowImpersonation, setAllowImpersonation] = useState(
+    query.data ? !query.data.disableImpersonation : true
+  );
   if (query.isPending) return <></>;
 
   return (

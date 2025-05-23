@@ -290,7 +290,8 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to auto-selected host",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
@@ -311,7 +312,8 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to a specific host",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
