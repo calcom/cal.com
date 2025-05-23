@@ -1044,7 +1044,7 @@ export async function login(
   const signInLocator = loginLocator.locator('[type="submit"]');
 
   //login
-  await page.goto("/");
+  await page.goto("/auth/login");
   await page.waitForSelector("text=Welcome back");
 
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
