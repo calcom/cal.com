@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { prisma } from "@calcom/prisma";
-import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyData } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,7 +21,7 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
   const { calendarsToLoad, dateFrom, dateTo } = input;
 
   if (!dateFrom || !dateTo) {
-    return [] as EventBusyDate[];
+    return [] as EventBusyData[];
   }
 
   // get all unique credentialIds from calendarsToLoad
@@ -88,7 +88,10 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
     credentials,
     dateFrom,
     dateTo,
-    composedSelectedCalendars
+    composedSelectedCalendars,
+    undefined,
+    undefined,
+    true
   );
 
   // Convert to users timezone
@@ -104,7 +107,7 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
       ...busyTime,
       start: busyTimeStartDate,
       end: busyTimeEndDate,
-    } as EventBusyDate;
+    } as EventBusyData;
   });
 
   return calendarBusyTimesConverted;
