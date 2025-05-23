@@ -11,7 +11,10 @@ export const tenantToDatabaseUrl = {
 };
 
 export const getTenantFromHost = (host: string) => {
-  if (host.startsWith("app.cal.local")) {
+  // TODO: Use an env variable for this
+  const EU_DOMAIN = "cal.eu";
+  // Check if host is exactly 'cal.eu' or ends with '.cal.eu'
+  if (host === EU_DOMAIN || host.endsWith(`.${EU_DOMAIN}`)) {
     return Tenant.EU;
   }
   return Tenant.US;
