@@ -73,7 +73,6 @@ const ServerPage = async ({ params }: PageProps) => {
         }
       : undefined,
   };
-  console.log(user);
 
   const data = await getCachedEventType(eventTypeId, user);
   if (!data?.eventType) {
