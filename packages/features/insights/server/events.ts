@@ -68,6 +68,20 @@ type DateRangeParams = {
   timeView: TimeViewType;
 };
 
+export interface DateRange {
+  startDate: string;
+  endDate: string;
+  formattedDate: string;
+}
+
+interface GetDateRangesParams {
+  startDate: string;
+  endDate: string;
+  timeZone: string;
+  timeView: "day" | "week" | "month" | "year";
+  weekStart: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
+}
+
 class EventsInsights {
   static countGroupedByStatusForRanges = async (
     whereConditional: Prisma.BookingTimeStatusWhereInput,
@@ -302,60 +316,36 @@ class EventsInsights {
     return result;
   };
 
-  static getDateRanges = ({ startDate, endDate, timeZone, timeView }: DateRangeParams) => {
+  static getDateRanges({
+    startDate,
+    endDate,
+    timeZone,
+    timeView,
+    weekStart,
+  }: GetDateRangesParams): DateRange[] {
     if (!["day", "week", "month", "year"].includes(timeView)) {
       return [];
     }
 
     const ranges: { startDate: string; endDate: string; formattedDate: string }[] = [];
-    // Work in the target timezone
-    let currentDate = dayjs(startDate).tz(timeZone);
-    const tzEndDate = dayjs(endDate).tz(timeZone);
-    const dateFormat = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
-
-    while (currentDate.isBefore(tzEndDate)) {
-      let periodStart = currentDate.startOf(timeView);
-      let periodEnd = currentDate.endOf(timeView);
-
-      // For week view, ensure we start on Monday and end on Sunday
-      if (timeView === "week") {
-        periodStart = currentDate.day(1); // Monday
-        periodEnd = periodStart.add(6, "day").endOf("day"); // Sunday
-      }
-
-      // Don't go beyond the requested date range
-      if (periodStart.isBefore(dayjs(startDate).tz(timeZone))) {
-        periodStart = dayjs(startDate).tz(timeZone);
-      }
-      if (periodEnd.isAfter(tzEndDate)) {
-        periodEnd = dayjs(endDate).tz(timeZone);
-      }
-
-      ranges.push({
-        startDate: periodStart.utc().toISOString(),
-        endDate: periodEnd.utc().toISOString(),
-        formattedDate:
-          timeView === "week"
-            ? `${periodStart.format("MMM D")} - ${periodEnd.format("MMM D, YYYY")}`
-            : timeView === "year"
-            ? periodStart.format("YYYY")
-            : periodStart.format(dateFormat),
-      });
-
-      // Move to next period
-      if (timeView === "day") {
-        currentDate = currentDate.add(1, "day");
-      } else if (timeView === "week") {
-        currentDate = currentDate.add(1, "week");
-      } else if (timeView === "month") {
-        currentDate = currentDate.add(1, "month");
-      } else if (timeView === "year") {
-        currentDate = currentDate.add(1, "year").startOf("year");
-      }
-    }
 
     return ranges;
-  };
+  }
+
+  private static formatPeriod(start: dayjs.Dayjs, end: dayjs.Dayjs, timeView: string): string {
+    switch (timeView) {
+      case "day":
+        return start.format("MMM D, YYYY");
+      case "week":
+        return `${start.format("MMM D")} - ${end.format("MMM D, YYYY")}`;
+      case "month":
+        return start.format("MMM YYYY");
+      case "year":
+        return start.format("YYYY");
+      default:
+        return "";
+    }
+  }
 
   static getCsvData = async (
     props: RawDataInput & {

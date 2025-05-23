@@ -468,6 +468,11 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
+      console.log("💡 TEST", {
+        startDate,
+        endDate,
+      });
+
       if (!teamId && !selfUserId) {
         return [];
       }
@@ -475,14 +480,8 @@ export const insightsRouter = router({
       let timeView = inputTimeView;
 
       // Adjust the timeView if the range is less than 14 days
-      if (timeView === "week" && endDate.diff(startDate, "day") < 14) {
+      if (timeView === "week" && dayjs(endDate).diff(dayjs(startDate), "day") < 14) {
         timeView = "day";
-      }
-
-      // Align startDate to the Monday of the week if timeView is 'week'
-      if (timeView === "week") {
-        startDate = startDate.day(1); // Set startDate to Monday
-        endDate = endDate.day(1).add(6, "day").endOf("day"); // Set endDate to Sunday of the same week
       }
 
       const r = await buildBaseWhereCondition({
@@ -501,7 +500,13 @@ export const insightsRouter = router({
       const { whereCondition: whereConditional } = r;
 
       // Get date ranges directly instead of using timeline
-      const dateRanges = EventsInsights.getDateRanges(startDate, endDate, ctx.user.timeZone, timeView);
+      const dateRanges = EventsInsights.getDateRanges({
+        startDate,
+        endDate,
+        timeView,
+        timeZone: ctx.user.timeZone,
+        weekStart: ctx.user.weekStart,
+      });
       if (!dateRanges.length) {
         return [];
       }
@@ -703,6 +708,8 @@ export const insightsRouter = router({
         insightsDb: ctx.insightsDb,
       },
     });
+
+    console.log("💡 TEST", ctx.user);
 
     const timeView = EventsInsights.getTimeView("week", startDate, endDate);
     const dateRanges = EventsInsights.getDateRanges(startDate, endDate, "week");

@@ -8,13 +8,39 @@ describe("EventsInsights", () => {
       const timeZone = "UTC";
 
       it("should handle daily ranges", () => {
+        console.log("\n=== Daily Ranges Test (UTC) ===");
         const startDate = "2025-05-01T00:00:00.000Z"; // Beginning of May 1st UTC
         const endDate = "2025-05-03T23:59:59.999Z"; // End of May 3rd UTC
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: day");
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "day",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 3");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          console.log(`\nRange ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log(
+            "- Duration (hours):",
+            (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / (1000 * 60 * 60)
+          );
         });
 
         expect(ranges).toHaveLength(3);
@@ -36,13 +62,43 @@ describe("EventsInsights", () => {
       });
 
       it("should handle weekly ranges starting mid-week", () => {
+        console.log("\n=== Weekly Ranges Test (UTC) ===");
         const startDate = "2025-05-01T00:00:00.000Z"; // Thursday
         const endDate = "2025-05-25T23:59:59.999Z";
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: week");
+        console.log(
+          "- Start day of week:",
+          new Date(startDate).toLocaleDateString("en-US", { weekday: "long" })
+        );
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "week",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 4");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          console.log(`\nWeek ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log(
+            "- Duration (days):",
+            (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / (1000 * 60 * 60 * 24)
+          );
         });
 
         expect(ranges).toHaveLength(4);
@@ -64,13 +120,39 @@ describe("EventsInsights", () => {
       });
 
       it("should handle monthly ranges", () => {
+        console.log("\n=== Monthly Ranges Test (UTC) ===");
         const startDate = "2025-05-15T00:00:00.000Z";
         const endDate = "2025-07-15T23:59:59.999Z";
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: month");
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "month",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 3");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          console.log(`\nMonth ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log(
+            "- Duration (days):",
+            (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / (1000 * 60 * 60 * 24)
+          );
         });
 
         expect(ranges).toHaveLength(3);
@@ -92,13 +174,39 @@ describe("EventsInsights", () => {
       });
 
       it("should handle yearly ranges", () => {
+        console.log("\n=== Yearly Ranges Test (UTC) ===");
         const startDate = "2025-06-15T00:00:00.000Z";
         const endDate = "2027-03-15T23:59:59.999Z";
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: year");
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "year",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 3");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          console.log(`\nYear ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log(
+            "- Duration (days):",
+            (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / (1000 * 60 * 60 * 24)
+          );
         });
 
         expect(ranges).toHaveLength(3);
@@ -120,13 +228,39 @@ describe("EventsInsights", () => {
       });
 
       it("should handle same day ranges", () => {
+        console.log("\n=== Same Day Ranges Test (UTC) ===");
         const startDate = "2025-05-01T00:00:00.000Z";
         const endDate = "2025-05-01T23:59:59.999Z";
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: day");
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "day",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 1");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          console.log(`\nRange ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log(
+            "- Duration (hours):",
+            (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / (1000 * 60 * 60)
+          );
         });
 
         expect(ranges).toHaveLength(1);
@@ -142,13 +276,39 @@ describe("EventsInsights", () => {
       const timeZone = "Europe/Paris";
 
       it("should handle daily ranges across DST", () => {
+        console.log("\n=== DST Daily Ranges Test (Europe/Paris) ===");
         const startDate = "2025-03-29T23:00:00.000Z"; // March 30th 00:00 Paris time
         const endDate = "2025-03-31T21:59:59.999Z"; // April 1st 23:59:59 Paris time
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: day");
+        console.log("- Note: DST begins on Sunday, March 30, 2025, at 3:00 AM local time");
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "day",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 3");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          const duration = new Date(range.endDate).getTime() - new Date(range.startDate).getTime();
+          console.log(`\nRange ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log("- Duration (hours):", duration / (1000 * 60 * 60));
+          console.log("- Is DST affected:", duration < 24 * 60 * 60 * 1000);
         });
 
         expect(ranges).toHaveLength(3);
@@ -169,13 +329,39 @@ describe("EventsInsights", () => {
       });
 
       it("should handle weekly ranges", () => {
+        console.log("\n=== Weekly Ranges Test (Europe/Paris) ===");
         const startDate = "2025-05-15T22:00:00.000Z"; // May 16th 00:00 Paris time
         const endDate = "2025-05-29T21:59:59.999Z"; // May 29th 23:59:59 Paris time
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: week");
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "week",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 2");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          console.log(`\nWeek ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log(
+            "- Duration (days):",
+            (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / (1000 * 60 * 60 * 24)
+          );
         });
 
         expect(ranges).toHaveLength(2);
@@ -192,13 +378,39 @@ describe("EventsInsights", () => {
       });
 
       it("should handle monthly ranges", () => {
+        console.log("\n=== Monthly Ranges Test (Europe/Paris) ===");
         const startDate = "2025-05-31T22:00:00.000Z"; // June 1st 00:00 Paris time
         const endDate = "2025-07-31T21:59:59.999Z"; // July 31st 23:59:59 Paris time
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: month");
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "month",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 2");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          console.log(`\nMonth ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log(
+            "- Duration (days):",
+            (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / (1000 * 60 * 60 * 24)
+          );
         });
 
         expect(ranges).toHaveLength(2);
@@ -219,13 +431,39 @@ describe("EventsInsights", () => {
       const timeZone = "Asia/Seoul";
 
       it("should handle daily ranges", () => {
+        console.log("\n=== Daily Ranges Test (Asia/Seoul) ===");
         const startDate = "2025-05-14T15:00:00.000Z"; // May 15th 00:00 Seoul time
         const endDate = "2025-05-16T14:59:59.999Z"; // May 16th 23:59:59 Seoul time
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: day");
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "day",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 2");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          console.log(`\nRange ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log(
+            "- Duration (hours):",
+            (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / (1000 * 60 * 60)
+          );
         });
 
         expect(ranges).toHaveLength(2);
@@ -242,13 +480,43 @@ describe("EventsInsights", () => {
       });
 
       it("should handle weekly ranges", () => {
+        console.log("\n=== Weekly Ranges Test (Asia/Seoul) ===");
         const startDate = "2025-05-11T15:00:00.000Z"; // May 12th 00:00 Seoul time (Monday)
         const endDate = "2025-05-25T14:59:59.999Z"; // May 25th 23:59:59 Seoul time (Sunday)
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: week");
+        console.log(
+          "- Start day of week:",
+          new Date(startDate).toLocaleDateString("en-US", { weekday: "long" })
+        );
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "week",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 2");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          console.log(`\nWeek ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log(
+            "- Duration (days):",
+            (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / (1000 * 60 * 60 * 24)
+          );
         });
 
         expect(ranges).toHaveLength(2);
@@ -265,13 +533,39 @@ describe("EventsInsights", () => {
       });
 
       it("should handle monthly ranges", () => {
+        console.log("\n=== Monthly Ranges Test (Asia/Seoul) ===");
         const startDate = "2025-04-30T15:00:00.000Z"; // May 1st 00:00 Seoul time
         const endDate = "2025-06-30T14:59:59.999Z"; // June 30th 23:59:59 Seoul time
+        console.log("Input parameters:");
+        console.log("- Start date:", startDate);
+        console.log("- End date:", endDate);
+        console.log("- Timezone:", timeZone);
+        console.log("- Time view: month");
+
         const ranges = EventsInsights.getDateRanges({
           startDate,
           endDate,
           timeZone,
           timeView: "month",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        console.log("\nResults:");
+        console.log("Expected length: 2");
+        console.log("Actual length:", ranges.length);
+        console.log("Generated ranges:");
+        ranges.forEach((range, index) => {
+          console.log(`\nMonth ${index + 1}:`);
+          console.log("- Start:", range.startDate);
+          console.log("- End:", range.endDate);
+          console.log("- Formatted:", range.formattedDate);
+          console.log(
+            "- Duration (days):",
+            (new Date(range.endDate).getTime() - new Date(range.startDate).getTime()) / (1000 * 60 * 60 * 24)
+          );
         });
 
         expect(ranges).toHaveLength(2);
@@ -289,9 +583,16 @@ describe("EventsInsights", () => {
     });
 
     it("should return empty array for invalid timeView", () => {
+      console.log("\n=== Invalid TimeView Test ===");
       const startDate = "2025-05-01T00:00:00.000Z";
       const endDate = "2025-05-03T23:59:59.999Z";
       const timeZone = "UTC";
+      console.log("Input parameters:");
+      console.log("- Start date:", startDate);
+      console.log("- End date:", endDate);
+      console.log("- Timezone:", timeZone);
+      console.log("- Time view: invalid");
+
       const ranges = EventsInsights.getDateRanges({
         startDate,
         endDate,
@@ -299,6 +600,15 @@ describe("EventsInsights", () => {
         // @ts-expect-error - Testing invalid timeView value
         timeView: "invalid",
       });
+
+      if (!ranges) {
+        throw new Error("Expected ranges to be defined");
+      }
+
+      console.log("\nResults:");
+      console.log("Expected length: 0");
+      console.log("Actual length:", ranges.length);
+      console.log("Generated ranges:", ranges);
 
       expect(ranges).toEqual([]);
     });
