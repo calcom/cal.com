@@ -90,6 +90,7 @@ function EventTypeSingleLayout({
     team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
   }/${formMethods.getValues("slug")}`;
   const isManagedEvent = formMethods.getValues("schedulingType") === SchedulingType.MANAGED ? "_managed" : "";
+  const formHosts = formMethods.getValues("hosts");
 
   const [Shell] = useMemo(() => {
     return isPlatform ? [PlatformShell] : [WebShell];
@@ -269,8 +270,7 @@ function EventTypeSingleLayout({
             data-testid="update-eventtype"
             form="event-type-form"
             onClick={() => {
-              const formHosts = formMethods.getValues("hosts");
-              if (eventType.hosts?.length === 0 && (!formHosts || formHosts.length === 0)) {
+              if (formHosts.length === 0) {
                 setNoHostDialogOpen(true);
               }
             }}>
