@@ -1,7 +1,6 @@
-import type { Prisma, SelectedCalendar } from "@prisma/client";
-
 import { DailyLocationType } from "@calcom/app-store/locations";
 import slugify from "@calcom/lib/slugify";
+import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
@@ -140,7 +139,7 @@ export const dynamicEvent = {
   title: "Group Meeting",
   eventName: "Group Meeting",
   description: "Join us for a meeting with multiple people",
-  descriptionAsSafeHTML: "",
+  descriptionAsSafeHTML: "Join us for a meeting with multiple people",
   position: 0,
   ...commons,
   metadata: eventTypeMetaDataSchemaWithTypedApps.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
