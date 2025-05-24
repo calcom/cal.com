@@ -1,6 +1,6 @@
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
-export const eventTypeSelect = {
+export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   teamId: true,
   schedulingType: true,
@@ -70,4 +70,4 @@ export const eventTypeSelect = {
   maxLeadThreshold: true,
   useEventLevelSelectedCalendars: true,
   customReplyToEmail: true,
-} satisfies Prisma.EventTypeSelect;
+});
