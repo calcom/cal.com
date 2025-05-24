@@ -1,6 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
@@ -262,7 +263,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://cal.com/testuser");
+      await page.fill("[name=externalRedirectUrl]", `${WEBAPP_URL}/free`);
       await saveCurrentForm(page);
 
       const { fields } = await addAllTypesOfFieldsAndSaveForm(formId, page, {
@@ -576,7 +577,7 @@ test.describe("Routing Forms", () => {
       routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("External Redirect");
-      expect(route).toBe("https://cal.com/testuser");
+      expect(route).toBe(`${WEBAPP_URL}/free`);
       await page.click('[data-testid="close-results-button"]');
 
       // Multiselect(Legacy)
@@ -925,7 +926,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://cal.com/testuser");
+      await page.fill("[name=externalRedirectUrl]", `${WEBAPP_URL}/free`);
       await saveCurrentForm(page);
       return {
         formId,
