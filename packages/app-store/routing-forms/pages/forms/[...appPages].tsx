@@ -32,7 +32,7 @@ import type { SetNewFormDialogState, NewFormDialogState } from "../../components
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "../../types/types";
-import { getServerSideProps } from "./getServerSideProps";
+import type { getServerSideProps } from "./getServerSideProps";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();
@@ -332,5 +332,3 @@ export default function RoutingForms({
     </LicenseRequired>
   );
 }
-
-export { getServerSideProps };

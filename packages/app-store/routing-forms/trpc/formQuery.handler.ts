@@ -1,4 +1,4 @@
-import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

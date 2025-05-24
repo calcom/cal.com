@@ -6,6 +6,7 @@ import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { loadTranslations } from "@calcom/lib/server/i18n";
+import { withPrismaPage } from "@calcom/prisma/store/withPrismaPage";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
@@ -93,4 +94,4 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   );
 };
 
-export default ServerPage;
+export default withPrismaPage(ServerPage);

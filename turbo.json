@@ -90,7 +90,8 @@
         "NODE_ENV",
         "OPENAI_API_KEY",
         "SENDGRID_API_KEY",
-        "DATABASE_URL"
+        "DATABASE_URL",
+        "DATABASE_URL_EU"
       ]
     },
     "@calcom/website#build": {
@@ -99,6 +100,7 @@
       "env": [
         "CSP_POLICY",
         "DATABASE_URL",
+        "DATABASE_URL_EU",
         "DATOCMS_API_TOKEN",
         "DATOCMS_GRAPHQL_ENDPOINT",
         "DATOCMS_WEBHOOK_SECRET",
@@ -284,6 +286,7 @@
     "DATABASE_CHUNK_SIZE",
     "DATABASE_DIRECT_URL",
     "DATABASE_URL",
+    "DATABASE_URL_EU",
     "DEBUG",
     "DUB_API_KEY",
     "NEXT_PUBLIC_DUB_PROGRAM_ID",

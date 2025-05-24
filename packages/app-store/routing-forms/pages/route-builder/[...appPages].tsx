@@ -12,7 +12,7 @@ import { Toaster } from "sonner";
 import type { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
+import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils.shared";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
 import { SchedulingType } from "@calcom/prisma/client";
@@ -32,11 +32,10 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import { routingFormAppComponents } from "../../appComponents";
 import DynamicAppComponent from "../../components/DynamicAppComponent";
-import SingleForm, {
-  getServerSidePropsForSingleFormView as getServerSideProps,
-} from "../../components/SingleForm";
+import SingleForm from "../../components/SingleForm";
 import { EmptyState } from "../../components/_components/EmptyState";
 import { RoutingSkeleton } from "../../components/_components/RoutingSkeleton";
+import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import {
   withRaqbSettingsAndWidgets,
   ConfigFor,
@@ -1443,5 +1442,3 @@ export default function RouteBuilder({
     </>
   );
 }
-
-export { getServerSideProps };
