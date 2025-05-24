@@ -6,6 +6,7 @@ import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentU
 import classNames from "@calcom/ui/classNames";
 
 import { Badge } from "../../badge";
+import type { BadgeProps } from "../../badge";
 import type { IconName } from "../../icon";
 import { Icon } from "../../icon";
 
@@ -31,7 +32,7 @@ export type VerticalTabItemProps = {
   "data-testid"?: string;
   badge?: {
     text: string;
-    variant?: "default" | "warning" | "error";
+    variant?: BadgeProps["variant"];
     startIcon?: IconName;
   };
 };
