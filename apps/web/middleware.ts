@@ -39,10 +39,6 @@ export function checkStaticFiles(pathname: string) {
 }
 
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
-  // Set the x-pathname header for all requests
-  const response = NextResponse.next();
-  response.headers.set("x-pathname", req.nextUrl.pathname);
-
   const postCheckResult = checkPostMethod(req);
   if (postCheckResult) return postCheckResult;
 
@@ -106,9 +102,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       headers: requestHeaders,
     },
   });
-
-  // Ensure x-pathname is set on the response even after NextResponse.next()
-  res.headers.set("x-pathname", req.nextUrl.pathname);
 
   if (url.pathname.startsWith("/auth/logout")) {
     res.cookies.delete("next-auth.session-token");
@@ -186,8 +179,6 @@ export const config = {
     // API routes
     "/api/auth/signup",
     "/api/trpc/:path*",
-    // Add a catch-all matcher to ensure x-pathname is set for all routes
-    "/:path*",
   ],
 };
 
