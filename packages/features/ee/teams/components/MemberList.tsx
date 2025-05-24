@@ -19,10 +19,10 @@ import type { Dispatch, SetStateAction } from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
-  DataTable,
   DataTableProvider,
   DataTableToolbar,
   DataTableFilters,
+  DataTableWrapper,
   DataTableSelectionBar,
   useDataTable,
   useFetchMoreOnBottomReached,
@@ -305,7 +305,6 @@ function MemberListContent(props: Props) {
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
-            className="translate-y-[2px]"
           />
         ),
         cell: ({ row }) => (
@@ -660,18 +659,27 @@ function MemberListContent(props: Props) {
 
   return (
     <>
-      <DataTable
+      <DataTableWrapper
         testId="team-member-list-container"
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
         enableColumnResizing={true}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar.Root>
-          <div className="flex w-full gap-2">
+        paginationMode="infinite"
+        hasNextPage={hasNextPage}
+        fetchNextPage={fetchNextPage}
+        isFetching={isFetching}
+        totalRowCount={totalRowCount}
+        ToolbarLeft={
+          <>
             <DataTableToolbar.SearchBar />
-            <DataTableFilters.AddFilterButton table={table} />
             <DataTableFilters.ColumnVisibilityButton table={table} />
+            <DataTableFilters.FilterBar table={table} />
+          </>
+        }
+        ToolbarRight={
+          <>
+            <DataTableFilters.ClearFiltersButton />
             {isAdminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"
@@ -682,12 +690,8 @@ function MemberListContent(props: Props) {
                 {t("add")}
               </DataTableToolbar.CTA>
             )}
-          </div>
-          <div className="flex gap-2 justify-self-start">
-            <DataTableFilters.ActiveFilters table={table} />
-          </div>
-        </DataTableToolbar.Root>
-
+          </>
+        }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="!bottom-[7.3rem] md:!bottom-32">
             <DynamicLink table={table} domain={domain} />
@@ -715,7 +719,7 @@ function MemberListContent(props: Props) {
             />
           </DataTableSelectionBar.Root>
         )}
-      </DataTable>
+      </DataTableWrapper>
       {state.deleteMember.showModal && (
         <Dialog
           open={true}
