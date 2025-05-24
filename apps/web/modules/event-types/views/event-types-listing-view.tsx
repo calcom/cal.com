@@ -223,10 +223,7 @@ const Item = ({
                 </Badge>
               )}
             </div>
-            <EventTypeDescription
-              eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
-              shortenDescription
-            />
+            <EventTypeDescription eventType={type} shortenDescription />
           </Link>
         )}
       </div>
