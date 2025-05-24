@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
+import React from "react";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
@@ -691,8 +692,8 @@ export default function Signup({
               />
             </div>
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
-              {FEATURES.map((feature) => (
-                <>
+              {FEATURES.map((feature, index) => (
+                <React.Fragment key={index}>
                   <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
                     <div className="text-emphasis items-center">
                       <Icon name={feature.icon} className="mb-1 h-4 w-4" />
@@ -709,7 +710,7 @@ export default function Signup({
                       </p>
                     </div>
                   </div>
-                </>
+                </React.Fragment>
               ))}
             </div>
           </div>
