@@ -15,6 +15,24 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     email: {
       ...BasicConfig.widgets.text,
     },
+    radio: {
+      ...BasicConfig.widgets.multiselect,
+    },
+    url: {
+      ...BasicConfig.widgets.text,
+    },
+    address: {
+      ...BasicConfig.widgets.text,
+    },
+    multiemail: {
+      ...BasicConfig.widgets.text,
+    },
+    checkbox: {
+      ...BasicConfig.widgets.multiselect,
+    },
+    boolean: {
+      ...BasicConfig.widgets.text,
+    },
   };
   return widgetsWithoutFactory;
 }
