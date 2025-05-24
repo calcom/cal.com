@@ -91,7 +91,7 @@ const NoAvailabilityDialog = ({
             <DialogClose color="secondary" onClick={closeDialog} data-testid="cancel_dialog_button">
               {t("cancel")}
             </DialogClose>
-            {!noFutureAvailability && (
+            {!noFutureAvailability && eventTypeId && (
               <Button
                 color="primary"
                 href={`/event-types/${eventTypeId}?tabName=team`}

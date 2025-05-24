@@ -1909,7 +1909,7 @@
   "add_host": "Add host",
   "no_host_assigned": "No hosts have been assigned",
   "admin_no_hosts_assigned": "No host has been assigned to this event type",
-  "admin_no_hosts_assigned_description": "No one will be able book this event type without a designated host.",
+  "admin_no_hosts_assigned_description": "No one will be able to book this event type without a designated host.",
   "no_host_assigned_description": "No one will be able book this event type without a host.",
   "hosts_description": "Everyone selected takes turns. Only one person will be assigned per booking.",
   "no_host_inline_banner": "You must add at least one host to use Round Robin.",

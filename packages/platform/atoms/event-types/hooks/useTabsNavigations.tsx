@@ -41,7 +41,7 @@ export const useTabsNavigations = ({
   const watchChildrenCount = formMethods.watch("children").length;
   const availability = formMethods.watch("availability");
   const appsMetadata = formMethods.getValues("metadata")?.apps;
-  const formHosts = formMethods.getValues("hosts");
+  const formHosts = formMethods.watch("hosts");
 
   const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType,

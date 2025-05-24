@@ -8,7 +8,21 @@ import { PeriodType } from "@calcom/prisma/enums";
 import { DatePicker } from "../DatePicker";
 
 vi.mock("zustand/shallow", () => ({
-  shallow: (a: any, b: any) => a === b,
+  shallow: (a: any, b: any) => {
+    if (a === b) return true;
+    if (typeof a !== "object" || typeof b !== "object") return false;
+    if (a === null || b === null) return false;
+
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+
+    if (keysA.length !== keysB.length) return false;
+
+    return keysA.every((key) => {
+      if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
+      return a[key] === b[key];
+    });
+  },
 }));
 
 vi.mock("@calcom/features/bookings/Booker/store", () => ({

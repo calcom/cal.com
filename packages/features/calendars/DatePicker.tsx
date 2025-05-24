@@ -271,15 +271,19 @@ const Days = ({
           )}
         </div>
       ))}
-      {!props.isLoading && !isBookingInPast && includedDates && includedDates?.length === 0 && (
-        <NoAvailabilityDialog
-          eventTypeId={eventTypeId}
-          month={month}
-          nextMonthButton={nextMonthButton}
-          browsingDate={browsingDate}
-          periodData={periodData}
-        />
-      )}
+      {!props.isLoading &&
+        !isBookingInPast &&
+        includedDates &&
+        includedDates?.length === 0 &&
+        eventTypeId && (
+          <NoAvailabilityDialog
+            eventTypeId={eventTypeId}
+            month={month}
+            nextMonthButton={nextMonthButton}
+            browsingDate={browsingDate}
+            periodData={periodData}
+          />
+        )}
     </>
   );
 };
