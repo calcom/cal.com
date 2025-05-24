@@ -5,10 +5,11 @@ import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma, { baseEventTypeSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,

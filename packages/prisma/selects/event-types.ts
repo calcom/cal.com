@@ -1,6 +1,6 @@
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
-export const baseEventTypeSelect = {
+export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   title: true,
   description: true,
@@ -15,9 +15,10 @@ export const baseEventTypeSelect = {
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
   canSendCalVideoTranscriptionEmails: true,
-} satisfies Prisma.EventTypeSelect;
+  seatsPerTimeSlot: true,
+});
 
-export const bookEventTypeSelect = {
+export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   title: true,
   slug: true,
@@ -74,9 +75,9 @@ export const bookEventTypeSelect = {
       },
     },
   },
-} satisfies Prisma.EventTypeSelect;
+});
 
-export const availiblityPageEventTypeSelect = {
+export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   title: true,
   availability: true,
@@ -131,4 +132,4 @@ export const availiblityPageEventTypeSelect = {
       },
     },
   },
-} satisfies Prisma.EventTypeSelect;
+});
