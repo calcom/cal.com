@@ -130,7 +130,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
   z.object({
-    apps: z.unknown().optional(),
+    apps: z.record(z.string(), z.any()).optional(),
   })
 );
 
