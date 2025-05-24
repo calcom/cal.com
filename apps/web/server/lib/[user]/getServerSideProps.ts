@@ -67,6 +67,7 @@ type UserPageProps = {
     | "currency"
     | "recurringEvent"
     | "seatsPerTimeSlot"
+    | "schedulingType"
   >)[];
   isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;
