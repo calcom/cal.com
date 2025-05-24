@@ -32,7 +32,7 @@ export type VerticalTabItemProps = {
   badge?: {
     text: string;
     variant?: "default" | "warning" | "error";
-    startIcon?: string;
+    startIcon?: IconName;
   };
 };
 

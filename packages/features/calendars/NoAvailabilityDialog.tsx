@@ -1,11 +1,10 @@
-import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { calculatePeriodLimits, isTimeViolatingFutureLimit } from "@calcom/lib/isOutOfBounds";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { PeriodData } from "@calcom/types/Event";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
@@ -66,10 +65,11 @@ const NoAvailabilityDialog = ({
 }) => {
   const { t } = useLocale();
   const [isOpenDialog, setIsOpenDialog] = useState(true);
+  const { data: user } = useMeQuery();
+  const isAdmin = user?.isTeamAdminOrOwner;
+
   const noFutureAvailability = useNoFutureAvailability(browsingDate, periodData);
   const description = useDescription(noFutureAvailability, periodData);
-  const { data: session } = useSession();
-  const isAdmin = session?.user?.role === UserPermissionRole.USER;
 
   const closeDialog = () => {
     setIsOpenDialog(false);
@@ -88,14 +88,14 @@ const NoAvailabilityDialog = ({
           description={t("admin_no_hosts_assigned_description")}
           preventCloseOnOutsideClick={false}>
           <DialogFooter>
-            <DialogClose color="secondary" onClick={closeDialog} data-testid="close_dialog_button">
+            <DialogClose color="secondary" onClick={closeDialog} data-testid="cancel_dialog_button">
               {t("cancel")}
             </DialogClose>
             {!noFutureAvailability && (
               <Button
                 color="primary"
                 href={`/event-types/${eventTypeId}?tabName=team`}
-                data-testid="view_next_month">
+                data-testid="view_event_type_settings_team">
                 {t("add_host")}
               </Button>
             )}

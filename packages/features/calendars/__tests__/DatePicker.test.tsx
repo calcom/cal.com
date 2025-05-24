@@ -1,30 +1,78 @@
 import { render } from "@testing-library/react";
+import React from "react";
+import { vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { PeriodType } from "@calcom/prisma/enums";
 
 import { DatePicker } from "../DatePicker";
 
+vi.mock("zustand/shallow", () => ({
+  shallow: (a: any, b: any) => a === b,
+}));
+
+vi.mock("@calcom/features/bookings/Booker/store", () => ({
+  useBookerStore: (selector: any) => {
+    const state = {
+      selectedDatesAndTimes: {},
+      bookingData: null,
+    };
+    return selector(state);
+  },
+}));
+
+vi.mock("@calcom/lib/hooks/useLocale", () => ({
+  useLocale: () => ({
+    t: (key: string) => key,
+    i18n: {
+      language: "en",
+    },
+  }),
+}));
+
+vi.mock("@calcom/trpc/react/hooks/useMeQuery", () => ({
+  default: () => ({
+    data: {
+      isTeamAdminOrOwner: false,
+    },
+  }),
+}));
+
+vi.mock("@trpc/react-query", () => ({
+  createTRPCReact: () => ({
+    useContext: () => ({
+      viewer: {
+        me: {
+          get: {
+            useQuery: () => ({
+              data: {
+                isTeamAdminOrOwner: false,
+              },
+            }),
+          },
+        },
+      },
+    }),
+  }),
+}));
+
 const noop = () => {
   /* noop */
+};
+
+const defaultPeriodData = {
+  periodType: PeriodType.UNLIMITED,
+  periodDays: null,
+  periodCountCalendarDays: false,
+  periodStartDate: null,
+  periodEndDate: null,
 };
 
 describe("Tests for DatePicker Component", () => {
   test("Should render correctly with default date", async () => {
     const testDate = dayjs("2024-02-20");
     const { getByTestId } = render(
-      <DatePicker
-        onChange={noop}
-        browsingDate={testDate}
-        locale="en"
-        periodData={{
-          periodType: PeriodType.UNLIMITED,
-          periodDays: null,
-          periodCountCalendarDays: false,
-          periodStartDate: null,
-          periodEndDate: null,
-        }}
-      />
+      <DatePicker onChange={noop} browsingDate={testDate} locale="en" periodData={defaultPeriodData} />
     );
 
     const selectedMonthLabel = getByTestId("selected-month-label");
@@ -35,7 +83,13 @@ describe("Tests for DatePicker Component", () => {
     const testDate = dayjs("2024-02-20");
     const minDate = dayjs("2025-02-10");
     const { getByTestId } = render(
-      <DatePicker onChange={noop} browsingDate={testDate} minDate={minDate.toDate()} locale="en" />
+      <DatePicker
+        onChange={noop}
+        browsingDate={testDate}
+        minDate={minDate.toDate()}
+        locale="en"
+        periodData={defaultPeriodData}
+      />
     );
 
     const selectedMonthLabel = getByTestId("selected-month-label");
@@ -46,7 +100,13 @@ describe("Tests for DatePicker Component", () => {
     const testDate = dayjs("2025-03-20");
     const minDate = dayjs("2025-02-10");
     const { getByTestId } = render(
-      <DatePicker onChange={noop} browsingDate={testDate} minDate={minDate} locale="en" />
+      <DatePicker
+        onChange={noop}
+        browsingDate={testDate}
+        minDate={minDate.toDate()}
+        locale="en"
+        periodData={defaultPeriodData}
+      />
     );
 
     const selectedMonthLabel = getByTestId("selected-month-label");
