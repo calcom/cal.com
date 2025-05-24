@@ -23,6 +23,12 @@ export const isValidRoutingFormFieldType = (type: string): type is RoutingFormFi
     RoutingFormFieldType.MULTI_SELECT,
     RoutingFormFieldType.PHONE,
     RoutingFormFieldType.EMAIL,
+    RoutingFormFieldType.URL,
+    RoutingFormFieldType.ADDRESS,
+    RoutingFormFieldType.MULTI_EMAIL,
+    RoutingFormFieldType.RADIO,
+    RoutingFormFieldType.CHECKBOX,
+    RoutingFormFieldType.BOOLEAN,
   ].includes(type as RoutingFormFieldType);
 };
 
