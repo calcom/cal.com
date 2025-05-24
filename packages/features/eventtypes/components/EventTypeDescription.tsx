@@ -16,7 +16,9 @@ import { Badge } from "@calcom/ui/components/badge";
 export type EventTypeDescriptionProps = {
   eventType: Pick<
     EventType,
-    Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata" | "seatsPerTimeSlot"
+    | Exclude<keyof typeof baseEventTypeSelect, "recurringEvent" | "description">
+    | "metadata"
+    | "seatsPerTimeSlot"
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
@@ -49,7 +51,7 @@ export const EventTypeDescription = ({
   return (
     <>
       <div className={classNames("text-subtle", className)}>
-        {eventType.description && (
+        {eventType.descriptionAsSafeHTML && (
           <div
             className={classNames(
               "text-subtle line-clamp-3 break-words py-1 text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
