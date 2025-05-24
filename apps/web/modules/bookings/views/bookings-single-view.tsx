@@ -26,7 +26,7 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
-import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
+import { CalendarLinkType, getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
@@ -607,7 +607,7 @@ export default function Success(props: PageProps) {
                                     </span>
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
-                                  {!bookingInfo.eventType?.hideOrganizerEmail && (
+                                  {!eventType.hideOrganizerEmail && (
                                     <p className="text-default">
                                       {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
                                     </p>
@@ -615,12 +615,8 @@ export default function Success(props: PageProps) {
                                 </div>
                               )}
                               {bookingInfo?.attendees.map((attendee) => {
-                                // For collective events, if hideOrganizerEmail is enabled, only show email for the main attendee (not team members)
                                 const isMainAttendee = attendee.email === email;
-                                const shouldHideEmail =
-                                  eventType.schedulingType === SchedulingType.COLLECTIVE &&
-                                  eventType.hideOrganizerEmail &&
-                                  !isMainAttendee;
+                                const shouldHideEmail = eventType.hideOrganizerEmail && !isMainAttendee;
 
                                 return (
                                   <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
