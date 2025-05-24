@@ -20,6 +20,72 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
 import { BookingRepository as BookingRepo } from "./server/repository/booking";
 
+const processBookingsToBusyTimes = (
+  bookings: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+    eventType: Pick<EventType, "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"> | null;
+    _count?: {
+      seatsReferences: number;
+    };
+  })[],
+  rescheduleUid: string | null | undefined,
+  eventTypeId: number | undefined,
+  beforeEventBuffer: number | undefined,
+  afterEventBuffer: number | undefined
+) => {
+  const bookingSeatCountMap: { [x: string]: number } = {};
+  return {
+    busyTimes: bookings.reduce((aggregate: EventBusyDetails[], booking) => {
+      const { id, startTime, endTime, eventType, title, ...rest } = booking;
+
+      const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
+      const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
+
+      if (rest._count?.seatsReferences) {
+        const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
+        bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
+        bookingSeatCountMap[bookedAt]++;
+        // Seat references on the current event are non-blocking until the event is fully booked.
+        if (
+          // there are still seats available.
+          bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
+          // and this is the seated event, other event types should be blocked.
+          eventTypeId === eventType?.id
+        ) {
+          // then we ONLY add the before/after buffer times as busy times.
+          if (minutesToBlockBeforeEvent) {
+            aggregate.push({
+              start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
+              end: dayjs(startTime).toDate(), // The event starts after the buffer
+            });
+          }
+          if (minutesToBlockAfterEvent) {
+            aggregate.push({
+              start: dayjs(endTime).toDate(), // The event ends before the buffer
+              end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
+            });
+          }
+          return aggregate;
+        }
+        // if it does get blocked at this point; we remove the bookingSeatCountMap entry
+        // doing this allows using the map later to remove the ranges from calendar busy times.
+        delete bookingSeatCountMap[bookedAt];
+      }
+      // rescheduling the same booking to the same time should be possible. Why?
+      if (rest.uid === rescheduleUid) {
+        return aggregate;
+      }
+      aggregate.push({
+        start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
+        end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
+        title,
+        source: `eventType-${eventType?.id}-booking-${id}`,
+      });
+      return aggregate;
+    }, []),
+    bookingSeatCountMap,
+  };
+};
+
 const _getBusyTimes = async (params: {
   credentials: CredentialForCalendarService[];
   userId: number;
@@ -107,65 +173,45 @@ const _getBusyTimes = async (params: {
   // to avoid potential side effects.
   let bookings = params.currentBookings;
 
+  const promises = [];
+  let bookingsPromise;
+
   if (!bookings) {
-    bookings = await BookingRepo.findAllExistingBookingsForEventTypeBetween({
+    bookingsPromise = BookingRepo.findAllExistingBookingsForEventTypeBetween({
       userIdAndEmailMap: new Map([[userId, userEmail]]),
       eventTypeId,
       startDate: startTimeAdjustedWithMaxBuffer,
       endDate: endTimeAdjustedWithMaxBuffer,
       seatedEvent,
     });
+    promises.push(bookingsPromise);
   }
 
-  const bookingSeatCountMap: { [x: string]: number } = {};
-  const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
-    const { id, startTime, endTime, eventType, title, ...rest } = booking;
+  let calendarBusyTimesPromise;
+  if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
+    calendarBusyTimesPromise = getBusyCalendarTimes(
+      credentials,
+      startTime,
+      endTime,
+      selectedCalendars,
+      shouldServeCache
+    );
+    promises.push(calendarBusyTimesPromise);
+  }
 
-    const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
-    const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
+  await Promise.all(promises);
 
-    if (rest._count?.seatsReferences) {
-      const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
-      bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
-      bookingSeatCountMap[bookedAt]++;
-      // Seat references on the current event are non-blocking until the event is fully booked.
-      if (
-        // there are still seats available.
-        bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
-        // and this is the seated event, other event types should be blocked.
-        eventTypeId === eventType?.id
-      ) {
-        // then we ONLY add the before/after buffer times as busy times.
-        if (minutesToBlockBeforeEvent) {
-          aggregate.push({
-            start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
-            end: dayjs(startTime).toDate(), // The event starts after the buffer
-          });
-        }
-        if (minutesToBlockAfterEvent) {
-          aggregate.push({
-            start: dayjs(endTime).toDate(), // The event ends before the buffer
-            end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
-          });
-        }
-        return aggregate;
-      }
-      // if it does get blocked at this point; we remove the bookingSeatCountMap entry
-      // doing this allows using the map later to remove the ranges from calendar busy times.
-      delete bookingSeatCountMap[bookedAt];
-    }
-    // rescheduling the same booking to the same time should be possible. Why?
-    if (rest.uid === rescheduleUid) {
-      return aggregate;
-    }
-    aggregate.push({
-      start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
-      end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
-      title,
-      source: `eventType-${eventType?.id}-booking-${id}`,
-    });
-    return aggregate;
-  }, []);
+  if (bookingsPromise) {
+    bookings = await bookingsPromise;
+  }
+
+  const { busyTimes, bookingSeatCountMap } = processBookingsToBusyTimes(
+    bookings || [],
+    rescheduleUid,
+    eventTypeId,
+    beforeEventBuffer,
+    afterEventBuffer
+  );
 
   logger.debug(
     `Busy Time from Cal Bookings ${JSON.stringify({
@@ -176,15 +222,10 @@ const _getBusyTimes = async (params: {
   );
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
-  if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
+
+  if (credentials?.length > 0 && !bypassBusyCalendarTimes && calendarBusyTimesPromise) {
     const startConnectedCalendarsGet = performance.now();
-    const calendarBusyTimes = await getBusyCalendarTimes(
-      credentials,
-      startTime,
-      endTime,
-      selectedCalendars,
-      shouldServeCache
-    );
+    const calendarBusyTimes = await calendarBusyTimesPromise;
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
       `Connected Calendars get took ${
@@ -204,7 +245,7 @@ const _getBusyTimes = async (params: {
     });
 
     if (rescheduleUid) {
-      const originalRescheduleBooking = bookings.find((booking) => booking.uid === rescheduleUid);
+      const originalRescheduleBooking = bookings?.find((booking) => booking.uid === rescheduleUid);
       // calendar busy time from original rescheduled booking should not be blocked
       if (originalRescheduleBooking) {
         openSeatsDateRanges.push({
