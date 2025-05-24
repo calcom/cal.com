@@ -1909,6 +1909,8 @@
   "add_host": "Add host",
   "no_host_assigned": "No hosts have been assigned",
   "no_host_assigned_description": "No one will be able book this event type without a host.",
+  "hosts_description": "Everyone selected takes turns. Only one person will be assigned per booking.",
+  "no_host_inline_banner": "You must add at least one host to use Round Robin.",
   "upgrade_to_enable_feature": "You need to create a team to enable this feature. Click here to create a team.",
   "orgs_upgrade_to_enable_feature": "You need to upgrade to our enterprise plan to enable this feature.",
   "new_attendee": "New Attendee",

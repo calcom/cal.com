@@ -41,6 +41,7 @@ export const useTabsNavigations = ({
   const watchChildrenCount = formMethods.watch("children").length;
   const availability = formMethods.watch("availability");
   const appsMetadata = formMethods.getValues("metadata")?.apps;
+  const formHosts = formMethods.getValues("hosts");
 
   const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType,
@@ -119,7 +120,7 @@ export const useTabsNavigations = ({
         }`,
         "data-testid": "assignment",
         badge:
-          eventType.hosts?.length === 0
+          !formHosts || formHosts.length === 0
             ? {
                 text: t("add_host"),
                 variant: "orange",
@@ -174,6 +175,7 @@ export const useTabsNavigations = ({
     watchSchedulingType,
     watchChildrenCount,
     activeWebhooksNumber,
+    formHosts,
   ]);
 
   return { tabsNavigation: EventTypeTabs };

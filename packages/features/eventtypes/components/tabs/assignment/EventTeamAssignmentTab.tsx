@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 
@@ -14,20 +14,19 @@ import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/e
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
-  FormValues,
-  TeamMember,
   EventTypeSetupProps,
+  FormValues,
   Host,
   SelectClassNames,
   SettingsToggleClassNames,
+  TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
@@ -323,17 +322,23 @@ const RoundRobinHosts = ({
           customClassNames?.container
         )}>
         <Label className={classNames("mb-1 text-sm font-semibold", customClassNames?.label)}>
-          {t("round_robin_hosts")}
+          {t("hosts")}
         </Label>
         <p
           className={classNames(
             "text-subtle max-w-full break-words text-sm leading-tight",
             customClassNames?.description
           )}>
-          {t("round_robin_helper")}
+          {t("hosts_description")}
         </p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
+        {(!value || value.length === 0) && (
+          <div className="bg-attention text-attention mb-6 flex w-full items-center rounded-md p-3">
+            <Icon name="info" className={classNames("me-2 h-4 w-4")} data-testid="icon-component" />
+            <p className="text-sm font-semibold">{t("no_host_inline_banner")}</p>
+          </div>
+        )}
         <>
           <Controller<FormValues>
             name="isRRWeightsEnabled"
@@ -541,18 +546,6 @@ const Hosts = ({
           ),
           ROUND_ROBIN: (
             <>
-              <FixedHosts
-                teamId={teamId}
-                teamMembers={teamMembers}
-                value={value}
-                onChange={(changeValue) => {
-                  onChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
-                }}
-                assignAllTeamMembers={assignAllTeamMembers}
-                setAssignAllTeamMembers={setAssignAllTeamMembers}
-                isRoundRobinEvent={true}
-                customClassNames={customClassNames?.fixedHosts}
-              />
               <RoundRobinHosts
                 orgId={orgId}
                 teamId={teamId}
@@ -566,6 +559,18 @@ const Hosts = ({
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 customClassNames={customClassNames?.roundRobinHosts}
                 isSegmentApplicable={isSegmentApplicable}
+              />
+              <FixedHosts
+                teamId={teamId}
+                teamMembers={teamMembers}
+                value={value}
+                onChange={(changeValue) => {
+                  onChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
+                }}
+                assignAllTeamMembers={assignAllTeamMembers}
+                setAssignAllTeamMembers={setAssignAllTeamMembers}
+                isRoundRobinEvent={true}
+                customClassNames={customClassNames?.fixedHosts}
               />
             </>
           ),
