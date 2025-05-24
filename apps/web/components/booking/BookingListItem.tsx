@@ -87,7 +87,9 @@ function buildParsedBooking(booking: BookingItemProps) {
       >)
     : null;
 
-  const bookingMetadata = bookingMetadataSchema.parse(booking.metadata ?? null);
+  const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
+  const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
+
   return {
     ...booking,
     eventType: bookingEventType,

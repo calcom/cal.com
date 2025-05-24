@@ -58,7 +58,7 @@ import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { CreationSource, WatchlistSeverity, WatchlistType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
@@ -3277,6 +3277,126 @@ describe("handleNewBooking", () => {
         },
         timeout
       );
+    });
+  });
+
+  describe("Returning original booking", () => {
+    test("Return the original booking if a request is made twice by the same attendee when a booking requires confirmation", async () => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          user: organizer.username,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            requiresConfirmation: true,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+      });
+
+      await createBookingScenario(scenarioData);
+
+      const response = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      const secondResponse = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      expect(secondResponse.id).toEqual(response.id);
+    });
+    test("Return the original booking if request is made by the same attendee for a round robin event", async () => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          user: organizer.username,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            requiresConfirmation: true,
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+      });
+
+      await createBookingScenario(scenarioData);
+
+      const response = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      const secondResponse = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      expect(secondResponse.id).toEqual(response.id);
     });
   });
 

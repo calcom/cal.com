@@ -1,10 +1,15 @@
 import { useSearchParams } from "next/navigation";
 
+import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
+
+import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
 
 export type UseScheduleWithCacheArgs = {
   username?: string | null;
@@ -21,6 +26,8 @@ export type UseScheduleWithCacheArgs = {
   isTeamEvent?: boolean;
   orgSlug?: string;
   teamMemberEmail?: string | null;
+  useApiV2?: boolean;
+  enabled?: boolean;
 };
 
 export const useSchedule = ({
@@ -38,7 +45,11 @@ export const useSchedule = ({
   isTeamEvent,
   orgSlug,
   teamMemberEmail,
+  useApiV2 = false,
+  enabled: enabledProp = true,
 }: UseScheduleWithCacheArgs) => {
+  const bookerState = useBookerStore((state) => state.state);
+
   const [startTime, endTime] = useTimesForSchedule({
     month,
     monthCount,
@@ -56,11 +67,13 @@ export const useSchedule = ({
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
   const email = searchParams?.get("email");
-
+  // We allow skipping the schedule fetch as a requirement for prerendering in iframe through embed as when the pre-rendered iframe is connected, then we would fetch the availability, which would be upto-date
+  // Also, a reuse through Headless Router could completely change the availability as different team members are selected and thus it is unnecessary to fetch the schedule
+  const skipGetSchedule = searchParams?.get("cal.skipSlotsFetch") === "true";
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
-
+  const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "";
   const input = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
@@ -83,6 +96,9 @@ export const useSchedule = ({
     _shouldServeCache,
     routingFormResponseId,
     email,
+    // Ensures that connectVersion causes a refresh of the data
+    ...(embedConnectVersion ? { embedConnectVersion } : {}),
+    _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
   };
 
   const options = {
@@ -98,19 +114,57 @@ export const useSchedule = ({
     // It allows long sitting users to get latest available slots
     refetchInterval: PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS * 1000,
     enabled:
+      !skipGetSchedule &&
       Boolean(username) &&
       Boolean(month) &&
       Boolean(timezone) &&
       // Should only wait for one or the other, not both.
-      (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),
+      (Boolean(eventSlug) || Boolean(eventId) || eventId === 0) &&
+      enabledProp,
   };
 
-  let schedule;
-  if (isTeamEvent) {
-    schedule = trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options);
-  } else {
-    schedule = trpc.viewer.slots.getSchedule.useQuery(input, options);
+  const isCallingApiV2Slots = useApiV2 && Boolean(isTeamEvent) && options.enabled;
+
+  // API V2 query for team events
+  const teamScheduleV2 = useApiV2AvailableSlots({
+    ...input,
+    enabled: isCallingApiV2Slots,
+    duration: input.duration ? Number(input.duration) : undefined,
+    routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
+    teamMemberEmail: input.teamMemberEmail ?? undefined,
+    eventTypeId: eventId ?? undefined,
+  });
+
+  const schedule = isTeamEvent
+    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(input, {
+        ...options,
+        // Only enable if we're not using API V2 or if API V2 failed
+        enabled: options.enabled && (!isCallingApiV2Slots || !!teamScheduleV2.failureReason),
+      })
+    : trpc.viewer.slots.getSchedule.useQuery(input, options);
+
+  if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
+    updateEmbedBookerState({
+      bookerState,
+      slotsQuery: teamScheduleV2,
+    });
+
+    return {
+      ...teamScheduleV2,
+      /**
+       * Invalidates the request and resends it regardless of any other configuration including staleTime
+       */
+      invalidate: () => {
+        return teamScheduleV2.refetch();
+      },
+    };
   }
+
+  updateEmbedBookerState({
+    bookerState,
+    slotsQuery: schedule,
+  });
+
   return {
     ...schedule,
     /**

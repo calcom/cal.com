@@ -14,7 +14,7 @@ import {
 import { SlotFormat } from "@calcom/platform-enums";
 
 export class GetAvailableSlotsInput_2024_09_04 {
-  @IsDateString()
+  @IsDateString({ strict: true })
   @ApiProperty({
     type: String,
     description: `
@@ -29,7 +29,7 @@ export class GetAvailableSlotsInput_2024_09_04 {
   })
   start!: string;
 
-  @IsDateString()
+  @IsDateString({ strict: true })
   @ApiProperty({
     type: String,
     description: `

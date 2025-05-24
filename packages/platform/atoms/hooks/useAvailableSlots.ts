@@ -15,7 +15,7 @@ export const QUERY_KEY = "get-available-slots";
 export const useAvailableSlots = ({
   enabled,
   ...rest
-}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean; isTeamEvent?: boolean; teamId?: number }) => {
+}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean }) => {
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
@@ -28,7 +28,7 @@ export const useAvailableSlots = ({
       rest.usernameList,
       rest.routedTeamMemberIds,
       rest.skipContactOwner,
-      rest.shouldServeCache,
+      rest._shouldServeCache,
       rest.teamMemberEmail,
     ],
     queryFn: () => {

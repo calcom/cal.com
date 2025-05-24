@@ -98,6 +98,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
       parentId?: number | null;
       rrResetInterval: RRResetInterval | null;
     } | null;
+    includeNoShowInRRCalculation: boolean;
   };
   routingFormResponse: RoutingFormResponse | null;
 }) => {

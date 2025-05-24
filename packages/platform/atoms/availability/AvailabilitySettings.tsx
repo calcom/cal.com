@@ -12,7 +12,8 @@ import type {
   EventTypes,
 } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
+import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
+import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
 } from "@calcom/features/schedules/components/Schedule";
@@ -410,7 +411,7 @@ export function AvailabilitySettings({
                     "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
-                  <div className="flex flex-row items-center pt-5">
+                  <div className="flex flex-row items-center pt-16">
                     <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
                     {allowDelete && (

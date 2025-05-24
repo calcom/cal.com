@@ -69,4 +69,31 @@ export type KnownConfig = {
   "cal.embed.pageType"?: EmbedPageType;
 };
 
-export {};
+export type EmbedBookerState =
+  | "initializing"
+  | "slotsPending"
+  | "slotsLoading"
+  /**
+   * When slots have loaded
+   * Even when slots aren't requested, due to cal.skipSlotFetch, then also this state is achieved
+   */
+  | "slotsDone"
+  | "slotsLoadingError";
+
+export type SlotsStatus = "loading" | "success" | "error";
+export type SlotsQuery = {
+  isPending?: boolean;
+  isError?: boolean;
+  isSuccess?: boolean;
+  isLoading?: boolean;
+};
+
+/**
+ * All types of config that are critical to be processed as soon as possible are provided as query params to the iframe
+ */
+export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
+  // TODO: iframeAttrs shouldn't be part of it as that configures the iframe element and not the iframed app.
+  iframeAttrs?: Record<string, string> & {
+    id?: string;
+  };
+} & KnownConfig;

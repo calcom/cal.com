@@ -34,6 +34,9 @@ After creating a “managed user” you will receive the user ID, an access and 
 #### What is it not?
 It's important to clarify that a "managed user" is completely independent of a regular user account on cal.com, meaning you don't need your users to register on cal.com web application.
 
+❗Managed users do not get a public cal.com page like normal cal.com users do aka if you create a managed user the managed user won't have cal.com/managed-user page, because the point of platform solution is to integrate scheduling into your platform,
+so instead the managed user public page will be at your-platform.com/managed-user and there you fetch event types of the managed user using our api or react hooks and display them.
+
 ### Create managed users via our API
 
 We now need the OAuth client’s “client ID” and “client secret” that you can find in [https://app.cal.com/settings/organizations/platform/oauth-clients](https://app.cal.com/settings/organizations/platform/oauth-clients).

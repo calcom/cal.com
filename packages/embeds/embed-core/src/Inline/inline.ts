@@ -22,7 +22,10 @@ export class Inline extends EmbedElement {
         this.toggleLoader(false);
         slotEl.style.visibility = "hidden";
         errorEl.style.display = "block";
-        const errorString = getErrorString(this.dataset.errorCode);
+        const errorString = getErrorString({
+          errorCode: this.dataset.errorCode,
+          errorMessage: this.dataset.message,
+        });
         errorEl.innerText = errorString;
       }
     }

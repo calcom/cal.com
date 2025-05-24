@@ -3,19 +3,20 @@ import { Prisma } from "@prisma/client";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails";
-import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -276,12 +277,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    const credentials = await getUsersCredentials(user);
+    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
     const userWithCredentials = {
       ...user,
       credentials,
     };
-    const allCredentials = await getAllCredentials(userWithCredentials, {
+    const allCredentials = await getAllCredentialsIncludeServiceAccountKey(userWithCredentials, {
       ...booking.eventType,
       metadata: booking.eventType?.metadata as EventTypeMetadata,
     });

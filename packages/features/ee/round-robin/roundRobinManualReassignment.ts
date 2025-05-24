@@ -19,12 +19,12 @@ import {
   deleteScheduledEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getEventName } from "@calcom/lib/event";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -169,7 +169,7 @@ export const roundRobinManualReassignment = async ({
       host: newUser.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
-      eventDuration: eventType.length,
+      eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
       t: newUserT,
     });
 
@@ -282,7 +282,7 @@ export const roundRobinManualReassignment = async ({
     include: { user: { select: { email: true } } },
   });
 
-  const newUserWithCredentials = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const newUserWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user: { ...newUser, credentials },
   });
 
@@ -423,6 +423,8 @@ async function handleWorkflowsUpdate({
           template: true,
           workflow: {
             select: {
+              userId: true,
+              teamId: true,
               trigger: true,
               time: true,
               timeUnit: true,
@@ -468,6 +470,8 @@ async function handleWorkflowsUpdate({
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
         verifiedAt: workflowStep.verifiedAt,
+        userId: workflow.userId,
+        teamId: workflow.teamId,
       });
     }
 

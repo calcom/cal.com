@@ -1,0 +1,176 @@
+<html>
+
+<head>
+  <title>Embed Playground - Routing Form</title>
+  <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
+  <!-- <script src="./src/embed.ts" type="module"></script> -->
+  <script>
+    const url = new URL(document.URL);
+    window.only = url.searchParams.get("only")
+    window.calOrigin = url.searchParams.get("calOrigin") || "http://localhost:3000";
+    window.calLink = url.searchParams.get("calLink");
+
+    if (!location.search.includes("nonResponsive")) {
+      document.write('<meta name="viewport" content="width=device-width"/>');
+    }
+
+    (function addParamsAutomatically() {
+      const newSearchParams = new URLSearchParams(location.search);
+      let paramsChanged = false;
+      if (!newSearchParams.has("only")) {
+        newSearchParams.set("only", "ns:routingFormPrerender");
+        paramsChanged = true;
+      }
+
+      if (!newSearchParams.has("calOrigin")) {
+        newSearchParams.set("calOrigin", "http://acme.cal.local:3000");
+        paramsChanged = true;
+      }
+
+      if (!newSearchParams.has("cal.embed.logging")) {
+        newSearchParams.set("cal.embed.logging", "1");
+        paramsChanged = true;
+      }
+
+      if (paramsChanged) {
+        location.href = "?" + newSearchParams.toString();
+      }
+  })();
+
+  </script>
+  <script>
+    function embedSnippet() {
+      (function (C, A, L) {
+        let p = function (a, ar) {
+          a.q.push(ar);
+        };
+        let d = C.document;
+        C.Cal =
+          C.Cal ||
+          function () {
+            let cal = C.Cal;
+            let ar = arguments;
+            if (!cal.loaded) {
+              cal.ns = {};
+              cal.q = cal.q || [];
+              d.head.appendChild(d.createElement("script")).src = A;
+              cal.loaded = true;
+            }
+            if (ar[0] === L) {
+              const api = function () {
+                p(api, arguments);
+              };
+              const namespace = ar[1];
+              api.q = api.q || [];
+              if (typeof namespace === "string") {
+                // Make sure that even after re-execution of the snippet, the namespace is not overridden
+                cal.ns[namespace] = cal.ns[namespace] || api;
+                p(cal.ns[namespace], ar);
+                p(cal, ['initNamespace', namespace])
+              } else p(cal, ar);
+              return;
+            }
+            p(cal, ar);
+          };
+      })(window, window.calOrigin + "/embed/embed.js", "init");
+    }
+    embedSnippet();
+  </script>
+
+  <style>
+    body {
+      background: linear-gradient(90deg,
+          rgba(120, 116, 186, 1) 0%,
+          rgba(221, 221, 255, 1) 41%,
+          rgba(148, 232, 249, 1) 100%);
+    }
+
+    .inline-embed-container {
+      /* border: 1px solid black; */
+      margin-bottom: 5px;
+      border-bottom: 1px solid;
+    }
+
+    .loader {
+      color: green;
+    }
+
+    * {
+      --cal-brand-color: gray;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div id="cal-booking-place-routingFormPrerender">
+      <a href="?only=ns:routingFormPrerender">Routing Form Prerender Demo</a>
+      <p>1. As soon as you start typing in the form, the form will prerender the booking page(where redirect is supposed to happen)</p>
+      <p>2. Clicking on submit will open the prerendered/being prerendered iframe in the modal</p>
+      <p>3. Changing the form response and clicking submit, will re-submit the response and reopen the modal with the updated data(update slots call, updated prefill fields)</p>
+      <p>4. Clicking submit again without changing the form response will just re-show the hidden modal(as long as threshold of 1 min since last time the modal was shown is met). But, in case of an error it iframe always tries to rerender. Trying adding an invalid email to see the error</p>
+      <form id="cal-booking-place-routingFormPrerender-form">
+        <input type="text" name="name" placeholder="John Doe" />
+        <input type="email" name="email" placeholder="john@example.com" />
+        <select name="skills" placeholder="JavaScript, Node.js">
+          <option value="JavaScript">JavaScript</option>
+          <option value="Sales">Sales</option>
+        </select>
+      </form>
+      <button id="cal-booking-place-routingFormPrerender-submit" data-cal-namespace="routingFormPrerender" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots", "guests":["guest1@example.com", "guest2@example.com"]}'>Submit</button>
+      <script>
+        document.getElementById("cal-booking-place-routingFormPrerender-form").addEventListener("input", function prerender(e) {
+          if (prerender.initiated) return;
+          prerender.initiated = true;
+          console.log("Playground: prerender initiated");
+          Cal.ns.routingFormPrerender("prerender", {
+            calLink: "team/insights-team/team-javascript",
+            type: "modal",
+            pageType: "user.event.booking.slots",
+          });
+        });
+
+        requestAnimationFrame(function updateSubmitButtonLink() {
+          const seededFormAcmeId = "948ae412-d995-4865-885a-48302588de03";
+          const form = document.getElementById("cal-booking-place-routingFormPrerender-form");
+          const name = form.querySelector("input[name='name']").value;
+          const email = form.querySelector("input[name='email']").value;
+          const skills = form.querySelector("select[name='skills']").value;
+          if (name && email) {
+            document.getElementById("cal-booking-place-routingFormPrerender-submit").setAttribute("data-cal-link", `router?form=${seededFormAcmeId}&email=${email}&name=${name}&Location=London&Department=Engineering&Manager=John Doe&Rating=5&skills=${skills}&Email=${email}`);
+          }
+          requestAnimationFrame(updateSubmitButtonLink);
+        });
+      </script>
+    </div>
+    <div id="cal-booking-place-routingFormWithoutPrerender">
+    <a href="?only=ns:routingFormWithoutPrerender">Routing Form Without Prerender Demo</a>
+    <form id="cal-booking-place-routingFormWithoutPrerender-form">
+      <input type="text" name="name" placeholder="John Doe" />
+      <input type="email" name="email" placeholder="john@example.com" />
+      <select name="skills" placeholder="JavaScript, Node.js">
+        <option value="JavaScript">JavaScript</option>
+        <option value="Sales">Sales</option>
+      </select>
+    </form>
+    <button id="cal-booking-place-routingFormWithoutPrerender-submit" data-cal-namespace="routingFormWithoutPrerender" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots", "guests":["guest1@example.com", "guest2@example.com"]}'>Submit</button>
+    <script>
+      requestAnimationFrame(function updateSubmitButtonLink() {
+        const seededFormAcmeId = "948ae412-d995-4865-885a-48302588de03";
+        const form = document.getElementById("cal-booking-place-routingFormWithoutPrerender-form");
+        const name = form.querySelector("input[name='name']").value;
+        const email = form.querySelector("input[name='email']").value;
+        const skills = form.querySelector("select[name='skills']").value;
+        if (name && email) {
+          document.getElementById("cal-booking-place-routingFormWithoutPrerender-submit").setAttribute("data-cal-link", `router?form=${seededFormAcmeId}&email=${email}&name=${name}&Location=London&Department=Engineering&Manager=John Doe&Rating=5&skills=${skills}&Email=${email}`);
+        }
+        requestAnimationFrame(updateSubmitButtonLink);
+      });
+    </script>
+    </div>
+  </div>
+  <script type="module" src="./playground.ts"></script>
+  </script>
+</body>
+
+</html>

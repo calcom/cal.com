@@ -10,6 +10,7 @@ import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType } from "./originalRescheduledBookingUtils";
@@ -50,7 +51,7 @@ const hasDateRangeForBooking = (
   return dateRangeForBooking;
 };
 
-export async function ensureAvailableUsers(
+const _ensureAvailableUsers = async (
   eventType: Omit<getEventTypeResponse, "users"> & {
     users: IsFixedAwareUser[];
   },
@@ -58,7 +59,7 @@ export async function ensureAvailableUsers(
   loggerWithEventDetails: Logger<unknown>,
   shouldServeCache?: boolean
   // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
-): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> {
+): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> => {
   const availableUsers: IsFixedAwareUser[] = [];
 
   const startDateTimeUtc = getDateTimeInUtc(input.dateFrom, input.timeZone);
@@ -162,4 +163,6 @@ export async function ensureAvailableUsers(
   }
   // make sure TypeScript understands availableUsers is at least one.
   return availableUsers.length === 1 ? [availableUsers[0]] : [availableUsers[0], ...availableUsers.slice(1)];
-}
+};
+
+export const ensureAvailableUsers = withReporting(_ensureAvailableUsers, "ensureAvailableUsers");

@@ -112,7 +112,7 @@ export class TeamsMembershipsController {
 
   @Roles("TEAM_ADMIN")
   @Patch("/:membershipId")
-  @ApiOperation({ summary: "Create a membership" })
+  @ApiOperation({ summary: "Update membership" })
   async updateTeamMembership(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,

@@ -10,6 +10,7 @@ import {
   DelegationCredentialUpdateSchema,
   DelegationCredentialDeleteSchema,
   DelegationCredentialToggleEnabledSchema,
+  DelegationCredentialGetAffectedMembersForDisableSchema,
 } from "./schema";
 
 const checkDelegationCredentialFeature = async ({
@@ -44,14 +45,6 @@ const checkDelegationCredentialFeature = async ({
 };
 
 export const delegationCredentialRouter = router({
-  check: authedOrgAdminProcedure.query(async (opts) => {
-    return await checkDelegationCredentialFeature({
-      ctx: opts.ctx,
-      next: async () => ({
-        hasDelegationCredential: true,
-      }),
-    });
-  }),
   list: authedOrgAdminProcedure.use(checkDelegationCredentialFeature).query(async (opts) => {
     const handler = await import("./list.handler").then((mod) => mod.default);
     return handler(opts);
@@ -75,6 +68,13 @@ export const delegationCredentialRouter = router({
     .input(DelegationCredentialToggleEnabledSchema)
     .mutation(async (opts) => {
       const handler = await import("./toggleEnabled.handler").then((mod) => mod.default);
+      return handler(opts);
+    }),
+  getAffectedMembersForDisable: authedOrgAdminProcedure
+    .use(checkDelegationCredentialFeature)
+    .input(DelegationCredentialGetAffectedMembersForDisableSchema)
+    .query(async (opts) => {
+      const handler = await import("./getAffectedMembersForDisable.handler").then((mod) => mod.default);
       return handler(opts);
     }),
   delete: authedOrgAdminProcedure

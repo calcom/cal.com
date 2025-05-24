@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { prisma } from "@calcom/prisma";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -54,7 +54,7 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
     },
   });
 
-  const { credentials } = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const { credentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user: {
       ...user,
       credentials: nonDelegationCredentials,

@@ -12,7 +12,9 @@ import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
 // eslint-disable-next-line @typescript-eslint/ban-types
 export default function useTheme(themeToSet: "system" | (string & {}) | undefined | null, getOnly = false) {
   if (typeof window !== "undefined") {
-    themeToSet = themeToSet || localStorage.getItem("app-theme") || "system";
+    const themeFromLocalStorage =
+      typeof window !== "undefined" && window.localStorage ? localStorage.getItem("app-theme") : null;
+    themeToSet = themeToSet ?? themeFromLocalStorage ?? "system";
   }
   const { resolvedTheme, setTheme, forcedTheme, theme: activeTheme } = useNextTheme();
   const embedTheme = useEmbedTheme();

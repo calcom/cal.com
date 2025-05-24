@@ -1053,7 +1053,7 @@ export const getOptions = ({
               dub.track.lead({
                 clickId,
                 eventName: "Sign Up",
-                customerId: user.id.toString(),
+                externalId: user.id.toString(),
                 customerName: user.name,
                 customerEmail: user.email,
                 customerAvatar: user.image,

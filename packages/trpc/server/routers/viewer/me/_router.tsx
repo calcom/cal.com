@@ -18,6 +18,10 @@ export const meRouter = router({
     return handler({ ctx });
   }),
   get,
+  getUserTimePreferences: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./getUserTimePreferences.handler")).getUserTimePreferencesHandler;
+    return handler({ ctx });
+  }),
   getUserTopBanners: authedProcedure.query(async ({ ctx }) => {
     const handler = (await import("./getUserTopBanners.handler")).getUserTopBannersHandler;
     return handler({ ctx });

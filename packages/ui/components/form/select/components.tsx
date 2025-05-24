@@ -3,7 +3,7 @@ import { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/ui/classNames";
 
-import { UpgradeTeamsBadge } from "../../badge";
+import { CreditsBadge, UpgradeTeamsBadge } from "../../badge";
 import { Icon } from "../../icon";
 import type { SelectProps } from "./types";
 
@@ -31,6 +31,8 @@ type ExtendedOption = {
   value: string | number;
   label: string;
   needsTeamsUpgrade?: boolean;
+  needsCredits?: boolean;
+  creditsTeamId?: number;
 };
 
 export const OptionComponent = <
@@ -49,6 +51,8 @@ export const OptionComponent = <
         </span>
         {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (
           <UpgradeTeamsBadge checkForActiveStatus={true} />
+        ) : (props.data as unknown as ExtendedOption).needsCredits ? (
+          <CreditsBadge teamId={(props.data as unknown as ExtendedOption).creditsTeamId} />
         ) : (
           <></>
         )}

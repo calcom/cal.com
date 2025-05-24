@@ -7,12 +7,12 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
@@ -55,6 +55,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     id: true,
     title: true,
     description: true,
+    interfaceLanguage: true,
     eventName: true,
     slug: true,
     isInstantEvent: true,
@@ -527,6 +528,7 @@ export const getPublicEvent = async (
     assignAllTeamMembers: event.assignAllTeamMembers,
     disableCancelling: event.disableCancelling,
     disableRescheduling: event.disableRescheduling,
+    interfaceLanguage: event.interfaceLanguage,
   };
 };
 

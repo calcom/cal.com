@@ -194,6 +194,15 @@ async function main() {
     });
   }
 
+  const insightsTeamMembers = await prisma.membership.findMany({
+    where: {
+      teamId: insightsTeam.id,
+    },
+    include: {
+      user: true,
+    },
+  });
+
   // Create event types for the team
   let teamEvents = await prisma.eventType.findMany({
     where: {
@@ -207,6 +216,7 @@ async function main() {
       length: true,
       teamId: true,
       userId: true,
+      assignAllTeamMembers: true,
     },
   });
 
@@ -242,6 +252,7 @@ async function main() {
         },
       ],
     });
+
     teamEvents = await prisma.eventType.findMany({
       where: {
         teamId: insightsTeam.id,
@@ -254,20 +265,32 @@ async function main() {
         length: true,
         teamId: true,
         userId: true,
+        assignAllTeamMembers: true,
       },
     });
+
+    // After creating or fetching teamEvents and insightsTeamMembers
+    // Create Host records for all team members for each event with assignAllTeamMembers true
+    const assignAllTeamMembersEvents = teamEvents.filter((event) => (event as any).assignAllTeamMembers);
+    if (assignAllTeamMembersEvents.length > 0 && insightsTeamMembers.length > 0) {
+      const hostRecords = assignAllTeamMembersEvents.flatMap((event) =>
+        insightsTeamMembers.map((member) => ({
+          userId: member.user.id,
+          eventTypeId: event.id,
+          isFixed: false,
+        }))
+      );
+      if (hostRecords.length > 0) {
+        await prisma.host.createMany({
+          data: hostRecords,
+          skipDuplicates: true,
+        });
+      }
+    }
   }
 
   const javascriptEventId = teamEvents.find((event) => event.slug === "team-javascript")?.id;
   const salesEventId = teamEvents.find((event) => event.slug === "team-sales")?.id;
-  const insightsMembers = await prisma.membership.findMany({
-    where: {
-      teamId: insightsTeam.id,
-    },
-    include: {
-      user: true,
-    },
-  });
 
   // Create bookings for the team events
   const baseBooking = {
@@ -276,7 +299,7 @@ async function main() {
     description: "Team Meeting Should be changed in shuffle",
     startTime: dayjs().toISOString(),
     endTime: dayjs().toISOString(),
-    userId: insightsMembers[0].user.id, // Use first org member as default
+    userId: insightsTeamMembers[0].user.id, // Use first org member as default
   };
 
   // Create past bookings -2y, -1y, -0y
@@ -287,7 +310,7 @@ async function main() {
           { ...baseBooking },
           dayjs().get("y") - 2,
           teamEvents,
-          insightsMembers.map((m) => m.user.id)
+          insightsTeamMembers.map((m) => m.user.id)
         )
       ),
     ],
@@ -300,7 +323,7 @@ async function main() {
           { ...baseBooking },
           dayjs().get("y") - 1,
           teamEvents,
-          insightsMembers.map((m) => m.user.id)
+          insightsTeamMembers.map((m) => m.user.id)
         )
       ),
     ],
@@ -313,7 +336,7 @@ async function main() {
           { ...baseBooking },
           dayjs().get("y"),
           teamEvents,
-          insightsMembers.map((m) => m.user.id)
+          insightsTeamMembers.map((m) => m.user.id)
         )
       ),
     ],
@@ -331,7 +354,7 @@ async function main() {
   }
   const seededForm = await seedRoutingForms(
     insightsTeam.id,
-    owner?.user.id ?? insightsMembers[0].user.id,
+    owner?.user.id ?? insightsTeamMembers[0].user.id,
     attributes
   );
 

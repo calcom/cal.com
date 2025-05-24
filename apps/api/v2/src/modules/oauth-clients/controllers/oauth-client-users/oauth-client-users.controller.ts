@@ -177,7 +177,7 @@ export class OAuthClientUsersController {
     const { id } = await this.validateManagedUserOwnership(oAuthClientId, userId);
 
     const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
-      await this.tokensRepository.createOAuthTokens(oAuthClientId, id, true);
+      await this.tokensRepository.forceRefreshOAuthTokens(oAuthClientId, id);
 
     return {
       status: SUCCESS_STATUS,

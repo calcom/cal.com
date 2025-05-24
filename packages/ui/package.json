@@ -112,6 +112,6 @@
     "fs-extra": "^11.2.0",
     "lucide-static": "^0.424.0",
     "node-html-parser": "^6.1.13",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.3"
   }
 }

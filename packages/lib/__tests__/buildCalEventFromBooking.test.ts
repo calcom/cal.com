@@ -4,14 +4,14 @@ import dayjs from "@calcom/dayjs";
 
 import { buildCalEventFromBooking } from "../buildCalEventFromBooking";
 import { parseRecurringEvent } from "../isRecurringEvent";
-import { getTranslation } from "../server";
+import { getTranslation } from "../server/i18n";
 
 // Mock dependencies
 vi.mock("../isRecurringEvent", () => ({
   parseRecurringEvent: vi.fn(),
 }));
 
-vi.mock("../server", () => ({
+vi.mock("../server/i18n", () => ({
   getTranslation: vi.fn(),
 }));
 

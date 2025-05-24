@@ -2,6 +2,7 @@ import type { DateRange } from "@calcom/lib/date-ranges";
 import { intersect } from "@calcom/lib/date-ranges";
 import { SchedulingType } from "@calcom/prisma/enums";
 
+import { filterRedundantDateRanges } from "./getAggregatedAvailability/date-range-utils/filterRedundantDateRanges";
 import { mergeOverlappingDateRanges } from "./getAggregatedAvailability/date-range-utils/mergeOverlappingDateRanges";
 
 function uniqueAndSortedDateRanges(ranges: DateRange[]): DateRange[] {
@@ -48,6 +49,8 @@ export const getAggregatedAvailability = (
     );
   }
   const availability = intersect(dateRangesToIntersect);
-  // we no longer merge overlapping date ranges, rr-hosts need to be individually available here.
-  return uniqueAndSortedDateRanges(availability);
+
+  const uniqueRanges = uniqueAndSortedDateRanges(availability);
+
+  return filterRedundantDateRanges(uniqueRanges);
 };

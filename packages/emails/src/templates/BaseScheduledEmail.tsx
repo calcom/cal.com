@@ -68,6 +68,11 @@ export const BaseScheduledEmail = (
           : props.callToAction || <ManageLink attendee={props.attendee} calEvent={props.calEvent} />
       }
       subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}>
+      {props.calEvent.rejectionReason && (
+        <>
+          <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
+        </>
+      )}
       {props.calEvent.cancellationReason && (
         <Info
           label={t(
@@ -99,6 +104,9 @@ export const BaseScheduledEmail = (
             <Info label={t("reason")} description={props.reassigned.reason} withSpacer />
           )}
         </>
+      )}
+      {props.calEvent.rescheduledBy && (
+        <Info label={t("rescheduled_by")} description={props.calEvent.rescheduledBy} withSpacer />
       )}
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
       <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />

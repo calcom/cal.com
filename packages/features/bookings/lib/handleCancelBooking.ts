@@ -12,12 +12,13 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import EventManager from "@calcom/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -36,7 +37,7 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
@@ -466,7 +467,7 @@ async function handler(input: CancelBookingInput) {
 
     const bookingToDeleteEventTypeMetadata = bookingToDeleteEventTypeMetadataParsed.data;
 
-    const credentials = await getAllCredentials(bookingToDelete.user, {
+    const credentials = await getAllCredentialsIncludeServiceAccountKey(bookingToDelete.user, {
       ...bookingToDelete.eventType,
       metadata: bookingToDeleteEventTypeMetadata,
     });

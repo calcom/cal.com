@@ -26,15 +26,24 @@ export const useSegments: UseSegments = ({
   setPageSize,
   setPageIndex,
   setSearchTerm,
+  segments: providedSegments,
 }) => {
-  const { data: rawSegments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery({
-    tableIdentifier,
-  });
+  const { data: rawSegments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery(
+    {
+      tableIdentifier,
+    },
+    {
+      enabled: !providedSegments, // Only fetch if segments are not provided
+    }
+  );
 
   // Recalculate date ranges based on the current timestamp
   const segments = useMemo(() => {
-    if (!rawSegments) return [];
-    return rawSegments.map((segment) => ({
+    const segmentsSource = providedSegments || rawSegments;
+
+    if (!segmentsSource) return [];
+
+    return segmentsSource.map((segment) => ({
       ...segment,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {
@@ -46,7 +55,7 @@ export const useSegments: UseSegments = ({
         return filter;
       }),
     }));
-  }, [rawSegments]);
+  }, [rawSegments, providedSegments]);
 
   const selectedSegment = useMemo(
     () => segments?.find((segment) => segment.id === segmentId),

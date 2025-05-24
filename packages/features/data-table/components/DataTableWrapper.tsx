@@ -1,6 +1,6 @@
 "use client";
 
-import type { VisibilityState } from "@tanstack/react-table";
+import type { Row, VisibilityState } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useEffect, useRef } from "react";
@@ -22,6 +22,7 @@ type BaseDataTableWrapperProps<TData> = Omit<
   EmptyView?: React.ReactNode;
   LoaderView?: React.ReactNode;
   tableContainerRef?: React.RefObject<HTMLDivElement>;
+  onRowMouseclick?: (row: Row<TData>) => void;
 };
 
 type InfinitePaginationProps<TData> = BaseDataTableWrapperProps<TData> & {
@@ -61,6 +62,7 @@ export function DataTableWrapper<TData>({
   children,
   tableContainerRef: externalRef,
   paginationMode,
+  onRowMouseclick,
 }: DataTableWrapperProps<TData>) {
   const internalRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = externalRef || internalRef;
@@ -130,13 +132,15 @@ export function DataTableWrapper<TData>({
           headerClassName={headerClassName}
           rowClassName={rowClassName}
           paginationMode={paginationMode}
+          onRowMouseclick={onRowMouseclick}
+          hasWrapperContext={true}
           onScroll={
             paginationMode === "infinite"
               ? (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) =>
                   fetchMoreOnBottomReached(e.target as HTMLDivElement)
               : undefined
           }>
-          <div style={{ gridArea: "footer", marginTop: "1rem" }}>
+          <div style={{ gridArea: "footer" }} className="px-3 py-2">
             <DataTablePagination<TData>
               table={table}
               totalRowCount={totalRowCount}
