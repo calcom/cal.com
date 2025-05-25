@@ -4,6 +4,7 @@ import { v4 } from "uuid";
 
 import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -24,6 +25,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const webhookData: Prisma.WebhookCreateInput = {
     id: v4(),
     ...input,
+    delayMinutes: input.eventTriggers.includes(WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT)
+      ? input.delayMinutes ?? 10 // Default to 10 if not specified
+      : null, // Set to null for other triggers
   };
   if (input.platform && user.role !== "ADMIN") {
     throw new TRPCError({ code: "UNAUTHORIZED" });

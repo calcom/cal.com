@@ -44,6 +44,12 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
 export async function triggerFormSubmittedNoEventWebhook(payload: string): Promise<void> {
   const { webhook, responseId, form, redirect, responses } =
     ZTriggerFormSubmittedNoEventWebhookPayloadSchema.parse(JSON.parse(payload));
+
+  const webhookWithDelay = await prisma.webhook.findUnique({
+    where: { id: webhook.id },
+    select: { delayMinutes: true },
+  });
+
   const bookingFromResponse = await prisma.booking.findFirst({
     where: {
       routedFromRoutingFormReponse: {
@@ -111,6 +117,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       responseId,
       responses,
     },
+    delayMinutes: webhookWithDelay?.delayMinutes ?? 10,
   }).catch((e) => {
     console.error(`Error executing FORM_SUBMITTED_NO_EVENT webhook`, webhook, e);
   });
