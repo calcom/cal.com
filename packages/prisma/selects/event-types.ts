@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
 export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
@@ -15,6 +15,7 @@ export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
   canSendCalVideoTranscriptionEmails: true,
+  seatsPerTimeSlot: true,
 });
 
 export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
