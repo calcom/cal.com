@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { excludeOrRequireEmailSchema } from "@calcom/features/form-builder/schema";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 
 import { routingFormAppDataSchemas } from "./appDataSchemas";
@@ -7,7 +8,7 @@ import { routingFormAppDataSchemas } from "./appDataSchemas";
 export const zodNonRouterField = z.object({
   id: z.string(),
   label: z.string(),
-  identifier: z.string().optional(),
+  name: z.string().optional(),
   placeholder: z.string().optional(),
   type: z.string(),
   /**
@@ -27,6 +28,26 @@ export const zodNonRouterField = z.object({
       })
     )
     .optional(),
+  disableOnPrefill: z.boolean().default(false).optional(),
+  /**
+   * It is the minimum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @default 0
+   * @requires supportsLengthCheck  ̰= true
+   */
+  minLength: z.number().optional(),
+
+  /**
+   * It is the maximum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true` ̰.
+   * @requires supportsLengthCheck = true
+   */
+  maxLength: z.number().optional(),
+
+  // Emails that needs to be excluded
+  excludeEmails: excludeOrRequireEmailSchema.optional(),
+  // Emails that need to be required
+  requireEmails: excludeOrRequireEmailSchema.optional(),
 });
 
 export const zodRouterField = zodNonRouterField.extend({

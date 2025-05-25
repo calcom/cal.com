@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
+import { v4 as uuidv4 } from "uuid";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -134,6 +135,31 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   } as UptoDateForm;
 
   const handleSubmit = (data: RoutingFormWithResponseCount) => {
+    const fieldsWithIds = data.fields?.map((field) => {
+      // For routing forms, options require an id.
+      if (field.options) {
+        field.options = field.options.map((option) => {
+          if (!option.id) {
+            return {
+              ...option,
+              id: uuidv4(),
+            };
+          }
+          return option;
+        });
+      }
+      // For routing forms, fields require an id.
+      if (!field.id) {
+        return {
+          ...field,
+          name: field.name,
+          id: uuidv4(),
+        };
+      }
+      return field;
+    });
+
+    data.fields = fieldsWithIds;
     mutation.mutate({
       ...data,
     });
