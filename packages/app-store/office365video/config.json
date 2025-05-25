@@ -22,6 +22,7 @@
     }
   },
   "dirName": "office365video",
+  "dependencies": ["office365-calendar"],
   "concurrentMeetings": true,
   "isOAuth": true
 }

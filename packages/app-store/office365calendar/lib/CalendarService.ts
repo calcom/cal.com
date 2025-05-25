@@ -1,8 +1,9 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
+import { MSTeamsLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { getLocation, getRichDescription, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialConfigurationError,
@@ -256,7 +257,13 @@ export default class Office365CalendarService implements Calendar {
         body: JSON.stringify(this.translateEvent(formattedEvent)),
       });
 
-      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+      const responseJson = await handleErrorsJson<
+        NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
+      >(response);
+
+      if (responseJson?.onlineMeeting?.joinUrl) {
+        responseJson.url = responseJson?.onlineMeeting?.joinUrl;
+      }
 
       return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
@@ -268,12 +275,28 @@ export default class Office365CalendarService implements Calendar {
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
+      let rescheduledEvent: Event | undefined;
+      if (event.location === MSTeamsLocationType) {
+        // Extract the existing body content to preserve the meeting blob, otherwise it breaks and converts it into non-onlineMeeting
+        const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
+          method: "GET",
+        });
+
+        rescheduledEvent = await handleErrorsJson<Event>(response);
+      }
+
       const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
         method: "PATCH",
-        body: JSON.stringify(this.translateEvent(event)),
+        body: JSON.stringify(this.translateEvent(event, rescheduledEvent)),
       });
 
-      const responseJson = await handleErrorsJson<NewCalendarEventType & { iCalUId: string }>(response);
+      const responseJson = await handleErrorsJson<
+        NewCalendarEventType & { iCalUId: string; onlineMeeting?: { joinUrl?: string } }
+      >(response);
+
+      if (responseJson?.onlineMeeting?.joinUrl) {
+        responseJson.url = responseJson?.onlineMeeting?.joinUrl;
+      }
 
       return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
@@ -403,12 +426,30 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  private translateEvent = (event: CalendarEvent) => {
+  private translateEvent = (event: CalendarEvent, rescheduledEvent?: Event) => {
+    const isOnlineMeeting = event.location === MSTeamsLocationType;
+    const isRescheduledOnlineMeeting = rescheduledEvent ? rescheduledEvent.isOnlineMeeting : false;
+    const existingBody =
+      rescheduledEvent?.body?.contentType === "html" ? rescheduledEvent.body.content : undefined;
+
+    let content = "";
+    if (isOnlineMeeting) {
+      if (isRescheduledOnlineMeeting && existingBody) {
+        content = `
+        ${getRichDescriptionHTML(event)}<hr>
+        ${existingBody}`.trim();
+      } else {
+        content = getRichDescriptionHTML(event);
+      }
+    } else {
+      content = getRichDescription(event);
+    }
+
     const office365Event: Event = {
       subject: event.title,
       body: {
-        contentType: "text",
-        content: getRichDescription(event),
+        contentType: isOnlineMeeting ? "html" : "text",
+        content,
       },
       start: {
         dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
@@ -457,6 +498,17 @@ export default class Office365CalendarService implements Calendar {
     };
     if (event.hideCalendarEventDetails) {
       office365Event.sensitivity = "private";
+    }
+    if (isOnlineMeeting) {
+      office365Event.isOnlineMeeting = true;
+      office365Event.allowNewTimeProposals = true;
+      office365Event.onlineMeetingProvider = "teamsForBusiness";
+      // MSTeams sets location as 'Microsoft Teams Meeting' by default, if location is undefined.
+      // For backward compatibility, setting explicitly.
+      office365Event.location =
+        rescheduledEvent && !isRescheduledOnlineMeeting
+          ? { displayName: "Microsoft Teams Meeting" }
+          : undefined;
     }
     return office365Event;
   };
