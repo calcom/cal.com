@@ -181,7 +181,13 @@ const organizationAdminKeys = [
   "delegation_credential",
 ];
 
-const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
+const useTabs = ({
+  isDelegationCredentialEnabled,
+  isPbacEnabled,
+}: {
+  isDelegationCredentialEnabled: boolean;
+  isPbacEnabled: boolean;
+}) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
@@ -214,6 +220,14 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
           newArray.push({
             name: "delegation_credential",
             href: "/settings/organizations/delegation-credential",
+          });
+        }
+
+        // Add pbac menu item only if feature flag is enabled
+        if (isPbacEnabled) {
+          newArray.push({
+            name: "roles_and_permissions",
+            href: "/settings/organizations/roles",
           });
         }
 
@@ -462,8 +476,15 @@ const SettingsSidebarContainer = ({
     feature: "delegation-credential",
   });
 
+  const isPbacEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: session.data?.user?.org?.id,
+    feature: "pbac",
+  });
+
   const tabsWithPermissions = useTabs({
     isDelegationCredentialEnabled,
+    isPbacEnabled,
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
