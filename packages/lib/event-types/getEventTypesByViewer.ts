@@ -9,6 +9,7 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { presentEventType } from "@calcom/lib/server/repository/eventType.presenter";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -241,6 +242,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
           const team = {
             ...membership.team,
+            eventTypes: membership.team.eventTypes.map(presentEventType),
             metadata: teamMetadataSchema.parse(membership.team.metadata),
           };
 
