@@ -1,6 +1,6 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
-import { canCreateEntity, canEditEntity } from "@calcom/lib/entityPermissionUtils";
+import { canCreateEntity, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import prisma from "@calcom/prisma";
 
 export async function isFormCreateEditAllowed({
