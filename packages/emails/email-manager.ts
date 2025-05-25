@@ -257,12 +257,14 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
 
 const _sendRescheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  hostEmailDisabled?: boolean,
+  attendeeEmailDisabled?: boolean
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
-  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+  if (!hostEmailDisabled && !eventTypeDisableHostEmail(eventTypeMetadata)) {
     emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
 
     if (calendarEvent.team) {
@@ -274,7 +276,7 @@ const _sendRescheduledEmailsAndSMS = async (
     }
   }
 
-  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+  if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
       ...calendarEvent.attendees.map((attendee) => {
         return sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, attendee));

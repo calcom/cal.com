@@ -1697,6 +1697,22 @@ async function handler(
         }
       } else {
         if (!isDryRun) {
+          let isHostConfirmationEmailsDisabled = false;
+          let isAttendeeConfirmationEmailDisabled = false;
+
+          isHostConfirmationEmailsDisabled =
+            eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+          isAttendeeConfirmationEmailDisabled =
+            eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
+
+          if (isHostConfirmationEmailsDisabled) {
+            isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+          }
+
+          if (isAttendeeConfirmationEmailDisabled) {
+            isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          }
+
           // send normal rescheduled emails (non round robin event, where organizers stay the same)
           await sendRescheduledEmailsAndSMS(
             {
@@ -1705,7 +1721,9 @@ async function handler(
               additionalNotes, // Resets back to the additionalNote input and not the override value
               cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
             },
-            eventType?.metadata
+            eventType?.metadata,
+            isHostConfirmationEmailsDisabled,
+            isAttendeeConfirmationEmailDisabled
           );
         }
       }
