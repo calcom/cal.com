@@ -7,7 +7,7 @@ export const ZResponseInputSchema = z.object({
     z.object({
       label: z.string(),
       identifier: z.string().optional(),
-      value: z.union([z.string(), z.number(), z.array(z.string())]),
+      value: z.union([z.string(), z.number(), z.array(z.string()), z.boolean()]),
     })
   ),
   // TODO: There could be existing forms loaded that will not send chosenRouteId. Make it required later.

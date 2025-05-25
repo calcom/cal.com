@@ -32,6 +32,12 @@ const {
   Button,
   ButtonGroup,
   Provider,
+  AddressWidget,
+  URLWidget,
+  MultiEmailWidget,
+  RadioWidget,
+  CheckboxWidget,
+  CheckboxGroupWidget,
 } = widgetsComponents;
 
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
@@ -75,6 +81,23 @@ const EmailFactory = (props: WidgetProps | undefined) => {
     />
   );
 };
+const URLFactory = (props: WidgetProps | undefined) => renderComponent(props, URLWidget);
+
+const AddressFactory = (props: WidgetProps | undefined) => renderComponent(props, AddressWidget);
+
+const MultiEmailFactory = (props: WidgetProps | undefined) => renderComponent(props, MultiEmailWidget);
+
+const RadioFactory = (props: SelectWidgetProps | undefined) => renderComponent(props, RadioWidget);
+
+const CheckboxFactory = (props: WidgetProps | undefined) => renderComponent(props, CheckboxWidget);
+
+const CheckboxGroupFactory = (
+  props:
+    | (SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      })
+    | undefined
+) => renderComponent(props, CheckboxGroupWidget);
 
 // react-query-builder types have missing type property on Widget
 //TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
@@ -110,6 +133,30 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
     email: {
       ...widgets.text,
       factory: EmailFactory,
+    },
+    address: {
+      ...widgets.address,
+      factory: AddressFactory,
+    },
+    url: {
+      ...widgets.url,
+      factory: URLFactory,
+    },
+    multiemail: {
+      ...widgets.multiemail,
+      factory: MultiEmailFactory,
+    },
+    radio: {
+      ...widgets.radio,
+      factory: RadioFactory,
+    },
+    boolean: {
+      ...widgets.checkbox,
+      factory: CheckboxFactory,
+    },
+    checkbox: {
+      ...widgets.checkbox,
+      factory: CheckboxGroupFactory,
     },
   };
   return widgetsWithFactory;

@@ -107,6 +107,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]);
+
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
       showToast(t("form_updated_successfully"), "success");
@@ -122,6 +123,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
       utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
     },
   });
+
   const uptoDateForm = {
     ...hookForm.getValues(),
     routes: hookForm.watch("routes"),
@@ -134,8 +136,17 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   } as UptoDateForm;
 
   const handleSubmit = (data: RoutingFormWithResponseCount) => {
-    mutation.mutate({
+    // We need to remove the undefined values from the fields array
+    const fields = data.fields.map((field) =>
+      Object.fromEntries(Object.entries(field).filter(([_, v]) => v !== undefined))
+    );
+    const dataUpdated = {
       ...data,
+      fields,
+    };
+
+    mutation.mutate({
+      ...dataUpdated,
     });
   };
 

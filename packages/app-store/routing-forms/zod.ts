@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { fieldSchema } from "@calcom/features/form-builder/schema";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 
 import { routingFormAppDataSchemas } from "./appDataSchemas";
@@ -20,10 +21,11 @@ export const zodNonRouterField = z.object({
     .array(
       z.object({
         label: z.string(),
+        value: z.string().optional(),
         // To keep backwards compatibility with the options generated from legacy selectText, we allow saving null as id
         // It helps in differentiating whether the routing logic should consider the option.label as value or option.id as value.
         // This is important for legacy routes which has option.label saved in conditions and it must keep matching with the value of the option
-        id: z.string().or(z.null()),
+        id: z.string().or(z.null()).optional(),
       })
     )
     .optional(),
@@ -34,22 +36,24 @@ export const zodRouterField = zodNonRouterField.extend({
 });
 
 // This ordering is important - If routerId is present then it should be in the parsed object. Moving zodNonRouterField to first position doesn't do that
-export const zodField = z.union([zodRouterField, zodNonRouterField]);
+export const zodField = z.union([zodRouterField, zodNonRouterField, fieldSchema]);
 export const zodFields = z.array(zodField).optional();
 
 export const zodNonRouterFieldView = zodNonRouterField;
 export const zodRouterFieldView = zodRouterField.extend({
   routerField: zodNonRouterFieldView,
   router: z.object({
-    name: z.string(),
+    // name and label both are added as optional for backwards compatibility
+    name: z.string().optional(),
     description: z.string(),
     id: z.string(),
+    label: z.string().optional(),
   }),
 });
 /**
  * Has some additional fields that are not supposed to be saved to DB but are required for the UI
  */
-export const zodFieldView = z.union([zodNonRouterFieldView, zodRouterFieldView]);
+export const zodFieldView = z.union([zodNonRouterFieldView, zodRouterFieldView, fieldSchema]);
 
 export const zodFieldsView = z.array(zodFieldView).optional();
 

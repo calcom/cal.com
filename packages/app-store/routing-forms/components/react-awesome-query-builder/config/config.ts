@@ -52,6 +52,46 @@ function getTypes(configFor: ConfigFor) {
         },
       },
     },
+    address: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    url: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    multiemail: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    radio: {
+      ...BasicConfig.types.select,
+      widgets: {
+        ...BasicConfig.types.select.widgets,
+      },
+    },
+    boolean: {
+      ...BasicConfig.types.boolean,
+      widgets: {
+        ...BasicConfig.types.boolean.widgets,
+      },
+    },
+    checkbox: {
+      ...BasicConfig.types.multiselect,
+      widgets: {
+        ...BasicConfig.types.multiselect.widgets,
+        multiselect: {
+          ...BasicConfig.types.multiselect.widgets.multiselect,
+          operators: [...multiSelectOperators],
+        },
+      },
+    },
   };
   return types;
 }
