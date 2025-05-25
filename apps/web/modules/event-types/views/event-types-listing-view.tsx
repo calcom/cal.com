@@ -203,7 +203,11 @@ const Item = ({
             <EventTypeDescription eventType={type} shortenDescription />
           </div>
         ) : (
-          <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
+          <Link
+            href={`/event-types/${type.id}?tabName=${
+              type.teamId && type.hosts.length === 0 ? "team" : "setup"
+            }`}
+            title={type.title}>
             <div>
               <span
                 className="text-default font-semibold ltr:mr-1 rtl:ml-1"

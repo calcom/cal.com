@@ -22,6 +22,8 @@ export type EventTypeDescriptionProps = {
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
+    teamId?: number | null;
+    hosts?: Array<unknown>;
   };
   className?: string;
   shortenDescription?: boolean;
@@ -132,6 +134,13 @@ export const EventTypeDescription = ({
             <li>
               <Badge variant="gray" startIcon="user">
                 <p>{t("event_type_seats", { numberOfSeats: eventType.seatsPerTimeSlot })} </p>
+              </Badge>
+            </li>
+          ) : null}
+          {!!eventType.teamId && eventType.hosts?.length === 0 ? (
+            <li>
+              <Badge variant="orange" startIcon="info">
+                <p>{t("add_host")}</p>
               </Badge>
             </li>
           ) : null}

@@ -116,6 +116,7 @@ const Day = ({
 };
 
 const Days = ({
+  eventTypeId,
   minDate,
   excludedDates = [],
   browsingDate,
@@ -131,6 +132,7 @@ const Days = ({
   periodData,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
+  eventTypeId?: number;
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
   browsingDate: Dayjs;
   weekStart: number;
@@ -269,19 +271,25 @@ const Days = ({
           )}
         </div>
       ))}
-      {!props.isLoading && !isBookingInPast && includedDates && includedDates?.length === 0 && (
-        <NoAvailabilityDialog
-          month={month}
-          nextMonthButton={nextMonthButton}
-          browsingDate={browsingDate}
-          periodData={periodData}
-        />
-      )}
+      {!props.isLoading &&
+        !isBookingInPast &&
+        includedDates &&
+        includedDates?.length === 0 &&
+        eventTypeId && (
+          <NoAvailabilityDialog
+            eventTypeId={eventTypeId}
+            month={month}
+            nextMonthButton={nextMonthButton}
+            browsingDate={browsingDate}
+            periodData={periodData}
+          />
+        )}
     </>
   );
 };
 
 const DatePicker = ({
+  eventTypeId,
   weekStart = 0,
   className,
   locale,
@@ -392,6 +400,7 @@ const DatePicker = ({
       </div>
       <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
+          eventTypeId={eventTypeId}
           customClassName={{
             datePickerDate: customClassNames?.datePickersDates,
             datePickerDateActive: customClassNames?.datePickerDatesActive,
