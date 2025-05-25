@@ -17,7 +17,7 @@ Build and test complex workflows in a matter of minutes, then deploy them via ph
 
 ## Preset Functions
 
-Ease of use functions like book a meeting at Cal.com, Call transfer, voicemail detection, etc...
+Ease of use functions like book a meeting at [Cal.com](https://cal.com), Call transfer, voicemail detection, etc...
 
 ## Humanlike Voice Experience
 

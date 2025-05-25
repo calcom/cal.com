@@ -14,7 +14,7 @@ If you run it on localhost, check out the [additional information](https://githu
 3. Click **Start a Zapier Integration**
 4. Create Integration
    - Name: Cal.com
-   - Description: Cal.com is a scheduling infrastructure for absolutely everyone.
+   - Description: [Cal.com](https://cal.com) is a scheduling infrastructure for absolutely everyone.
    - Intended Audience: Private
    - Role: choose whatever is appropriate
    - Category: Calendar
@@ -29,7 +29,7 @@ If you run it on localhost, check out the [additional information](https://githu
    - Test: GET `<baseUrl>`/api/integrations/zapier/listBookings
    - URL Params
      - apiKey: {{bundle.authData.apiKey}}
-4. Test your authentication —> First you have to install Zapier in the Cal.com App Store and generate an API key, use this API key to test your authentication (only zapier Api key works)
+4. Test your authentication —> First you have to install Zapier in the [Cal.com](https://cal.com)App Store and generate an API key, use this API key to test your authentication (only zapier Api key works)
 
 ## Triggers
 
