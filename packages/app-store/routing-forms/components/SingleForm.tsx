@@ -157,7 +157,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             />
             <div
               className={classNames(
-                "bg-default flex-1",
+                "bg-default max-h-[calc(100vh-100px)] flex-1 overflow-y-auto",
                 isDesktop && "grid gap-8",
                 isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
                 isDesktop && !isTestPreviewOpen && "grid-cols-1",
