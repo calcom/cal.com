@@ -800,7 +800,7 @@ async function handler(
 
         const userIdsSet = new Set(users.map((user) => user.id));
         const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
-          memberId: eventTypeWithUsers.users[0].id ?? null,
+          memberId: eventTypeWithUsers.users[0]?.id ?? null,
           teamId: eventType.teamId,
         });
         const newLuckyUser = await getLuckyUser({
