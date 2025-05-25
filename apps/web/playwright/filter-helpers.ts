@@ -2,9 +2,9 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 /**
- * Select a filter from the filter dropdown
+ * Add a filter from the filter dropdown
  */
-export async function selectFilter(page: Page, columnId: string) {
+export async function addFilter(page: Page, columnId: string) {
   await page.getByTestId("add-filter-button").click();
   await page.getByTestId(`add-filter-item-${columnId}`).click();
 }
@@ -19,7 +19,7 @@ export async function openFilter(page: Page, columnId: string) {
 export async function applySelectFilter(page: Page, columnId: string, value: string) {
   const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
   if (!(await existingFilter.isVisible())) {
-    await selectFilter(page, columnId);
+    await addFilter(page, columnId);
   }
   await openFilter(page, columnId);
   await selectOptionValue(page, columnId, value);
@@ -33,7 +33,7 @@ export async function selectOptionValue(page: Page, columnId: string, value: str
 export async function applyTextFilter(page: Page, columnId: string, operator: string, operand?: string) {
   const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
   if (!(await existingFilter.isVisible())) {
-    await selectFilter(page, columnId);
+    await addFilter(page, columnId);
   }
   await openFilter(page, columnId);
 
@@ -55,7 +55,7 @@ export async function applyTextFilter(page: Page, columnId: string, operator: st
 export async function applyNumberFilter(page: Page, columnId: string, operator: string, operand: number) {
   const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
   if (!(await existingFilter.isVisible())) {
-    await selectFilter(page, columnId);
+    await addFilter(page, columnId);
   }
   await openFilter(page, columnId);
 
