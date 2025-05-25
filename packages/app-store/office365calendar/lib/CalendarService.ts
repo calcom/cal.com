@@ -13,6 +13,7 @@ import {
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
@@ -563,15 +564,12 @@ export default class Office365CalendarService implements Calendar {
           }
         : { error: undefined };
 
-    let error: string | undefined;
-
     if (!otherCalendarsWithSameSubscription.length) {
       try {
         subscriptionProps = await this.startWatchingCalendarInMicrosoft({ calendarId });
-      } catch (err) {
-        this.log.error(`Failed to watch calendar ${calendarId}`, err);
-        error = err instanceof Error ? err.message : "Unknown error";
-        subscriptionProps = { error };
+      } catch (error) {
+        this.log.error(`Failed to watch calendar ${calendarId}`, safeStringify(error));
+        throw error;
       }
     } else {
       this.log.info(
@@ -586,7 +584,6 @@ export default class Office365CalendarService implements Calendar {
         externalId: calendarId,
         outlookSubscriptionId: subscriptionProps.id,
         outlookSubscriptionExpiration: subscriptionProps.expiration,
-        error,
       },
       eventTypeIds
     );
