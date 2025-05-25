@@ -14,7 +14,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -131,6 +131,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           name: true,
           slug: true,
           parentId: true,
+          rrTimestampBasis: true,
           parent: {
             select: {
               slug: true,
@@ -199,6 +200,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     disableGuests: guestsField?.hidden ?? false,
     seatsPerTimeSlot,
+    maxLeadThreshold:
+      eventType.team?.rrTimestampBasis && eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+        ? null
+        : rest.maxLeadThreshold,
   };
   data.locations = locations ?? undefined;
 

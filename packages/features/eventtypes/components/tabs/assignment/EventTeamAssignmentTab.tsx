@@ -23,12 +23,13 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
 import WeightDescription from "../../WeightDescription";
@@ -715,14 +716,35 @@ export const EventTeamAssignmentTab = ({
                         </strong>
                         <p>{t("rr_distribution_method_availability_description")}</p>
                       </RadioArea.Item>
-                      <RadioArea.Item
-                        value="loadBalancing"
-                        checked={value !== null}
-                        className="text-sm"
-                        classNames={{ container: "w-full" }}>
-                        <strong className="mb-1 block">{t("rr_distribution_method_balanced_title")}</strong>
-                        <p>{t("rr_distribution_method_balanced_description")}</p>
-                      </RadioArea.Item>
+                      {!!(
+                        eventType.team?.rrTimestampBasis &&
+                        eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+                      ) ? (
+                        <Tooltip content={t("rr_load_balancing_disabled")}>
+                          <div className="w-full">
+                            <RadioArea.Item
+                              value="loadBalancing"
+                              checked={value !== null}
+                              className="text-sm"
+                              disabled={true}
+                              classNames={{ container: "w-full" }}>
+                              <strong className="mb-1">{t("rr_distribution_method_balanced_title")}</strong>
+                              <p>{t("rr_distribution_method_balanced_description")}</p>
+                            </RadioArea.Item>
+                          </div>
+                        </Tooltip>
+                      ) : (
+                        <div className="w-full">
+                          <RadioArea.Item
+                            value="loadBalancing"
+                            checked={value !== null}
+                            className="text-sm"
+                            classNames={{ container: "w-full" }}>
+                            <strong className="mb-1">{t("rr_distribution_method_balanced_title")}</strong>
+                            <p>{t("rr_distribution_method_balanced_description")}</p>
+                          </RadioArea.Item>
+                        </div>
+                      )}
                     </RadioArea.Group>
                   )}
                 />
