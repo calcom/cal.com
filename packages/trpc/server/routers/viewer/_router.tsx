@@ -86,5 +86,6 @@ export const viewerRouter = mergeRouters(
     credits: creditsRouter,
     ooo: oooRouter,
     travelSchedules: travelSchedulesRouter,
+    googleSheets: router({}),
   })
 );

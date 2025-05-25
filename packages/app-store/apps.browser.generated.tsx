@@ -11,6 +11,7 @@ export const InstallAppButtonMap = {
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
+  googlesheets: dynamic(() => import("./googlesheets/components/AppSettingsInterface")),
   "general-app-settings": dynamic(() =>
     import("./templates/general-app-settings/components/AppSettingsInterface")
   ),
@@ -26,6 +27,7 @@ export const EventTypeAddonMap = {
   fathom: dynamic(() => import("./fathom/components/EventTypeAppCardInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppCardInterface")),
+  googlesheets: dynamic(() => import("./googlesheets/components/EventTypeAppCardInterface")),
   gtm: dynamic(() => import("./gtm/components/EventTypeAppCardInterface")),
   hitpay: dynamic(() => import("./hitpay/components/EventTypeAppCardInterface")),
   hubspot: dynamic(() => import("./hubspot/components/EventTypeAppCardInterface")),

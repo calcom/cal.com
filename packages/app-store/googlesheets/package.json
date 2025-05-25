@@ -1,0 +1,14 @@
+{
+  "name": "@calcom/googlesheets",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Send booking data to Google Sheets",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@googleapis/sheets": "^5.0.5"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
