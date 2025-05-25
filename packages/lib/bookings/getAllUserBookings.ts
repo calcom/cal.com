@@ -28,6 +28,7 @@ type GetOptions = {
     eventTypeIds?: number[] | undefined;
     attendeeEmail?: string | TextFilterValue;
     attendeeName?: string | TextFilterValue;
+    bookingUid?: string | undefined;
   };
   sort?: SortOptions;
 };
