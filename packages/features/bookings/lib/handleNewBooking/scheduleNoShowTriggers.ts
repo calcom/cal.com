@@ -63,7 +63,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
           },
-          { scheduledAt }
+          { scheduledAt, referenceUid: booking.uid }
         );
       }
       return Promise.resolve();
