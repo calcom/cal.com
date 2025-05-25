@@ -8,7 +8,7 @@ import NoPlatformPlan from "@calcom/web/components/settings/platform/dashboard/N
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@calcom/web/components/settings/platform/pricing/platform-pricing/index";
 
-const PlatformMembersView = (props: UserListTableProps) => {
+const PlatformMembersView = (props: Omit<UserListTableProps, "facetedTeamValues" | "attributes">) => {
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, isPaidUser, userBillingData, userOrgId } =
     useGetUserAttributes();
   const currentOrg = props.org;
@@ -33,7 +33,7 @@ const PlatformMembersView = (props: UserListTableProps) => {
       />
     );
 
-  return !isPlatformUser ? (
+  return isPlatformUser ? (
     <div>{canLoggedInUserSeeMembers && <UserListTable {...props} />}</div>
   ) : (
     <NoPlatformPlan />
