@@ -147,6 +147,8 @@ describe("handleChildrenEventTypes", () => {
           userId: 4,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
+          useBookerTimezone: false,
+          restrictionScheduleId: null,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -202,6 +204,8 @@ describe("handleChildrenEventTypes", () => {
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          useBookerTimezone: false,
+          restrictionScheduleId: null,
           hashedLink: {
             deleteMany: {},
           },
@@ -315,6 +319,8 @@ describe("handleChildrenEventTypes", () => {
           workflows: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
+          useBookerTimezone: false,
+          restrictionScheduleId: null,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -369,6 +375,7 @@ describe("handleChildrenEventTypes", () => {
           hashedLink: {
             deleteMany: {},
           },
+          useBookerTimezone: false,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
         },
@@ -465,6 +472,8 @@ describe("handleChildrenEventTypes", () => {
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          useBookerTimezone: false,
+          restrictionScheduleId: null,
           parentId: 1,
           userId: 5,
           users: {
@@ -488,6 +497,8 @@ describe("handleChildrenEventTypes", () => {
           customReplyToEmail: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          useBookerTimezone: false,
+          restrictionScheduleId: null,
           hashedLink: {
             deleteMany: {},
           },
