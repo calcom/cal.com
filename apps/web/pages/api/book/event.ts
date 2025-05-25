@@ -8,6 +8,10 @@ import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken"
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
 
+export const config = {
+  maxDuration: 60, // 60 seconds
+};
+
 async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
 
