@@ -490,6 +490,7 @@ describe("Event types Endpoints", () => {
         requiresBookerEmailVerification: false,
         hideCalendarNotes: false,
         hideCalendarEventDetails: false,
+        hideOrganizerEmail: false,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -529,6 +530,7 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(createdEventType.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(createdEventType.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(createdEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
           );
@@ -610,6 +612,7 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
       expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
+      expect(fetchedEventType.hideOrganizerEmail).toEqual(eventType.hideOrganizerEmail);
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
       );
@@ -1009,6 +1012,7 @@ describe("Event types Endpoints", () => {
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
+        hideOrganizerEmail: true,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -1073,6 +1077,7 @@ describe("Event types Endpoints", () => {
           );
           expect(updatedEventType.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(updatedEventType.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(updatedEventType.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(updatedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
             body.lockTimeZoneToggleOnBookingPage
           );
@@ -1093,6 +1098,7 @@ describe("Event types Endpoints", () => {
           eventType.requiresBookerEmailVerification = updatedEventType.requiresBookerEmailVerification;
           eventType.hideCalendarNotes = updatedEventType.hideCalendarNotes;
           eventType.hideCalendarEventDetails = updatedEventType.hideCalendarEventDetails;
+          eventType.hideOrganizerEmail = updatedEventType.hideOrganizerEmail;
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
           eventType.color = updatedEventType.color;
           eventType.bookingFields = updatedEventType.bookingFields;
@@ -1163,6 +1169,7 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
       expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
+      expect(fetchedEventType.hideOrganizerEmail).toEqual(eventType.hideOrganizerEmail);
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
       );
@@ -1204,6 +1211,7 @@ describe("Event types Endpoints", () => {
       );
       expect(fetchedEventType.hideCalendarNotes).toEqual(eventType.hideCalendarNotes);
       expect(fetchedEventType.hideCalendarEventDetails).toEqual(eventType.hideCalendarEventDetails);
+      expect(fetchedEventType.hideOrganizerEmail).toEqual(eventType.hideOrganizerEmail);
       expect(fetchedEventType.lockTimeZoneToggleOnBookingPage).toEqual(
         eventType.lockTimeZoneToggleOnBookingPage
       );
@@ -1420,7 +1428,6 @@ describe("Event types Endpoints", () => {
           {
             name: "location",
             type: "radioInput",
-            label: "",
             sources: [{ id: "default", type: "default", label: "Default" }],
             editable: "system",
             required: false,
@@ -1550,7 +1557,6 @@ describe("Event types Endpoints", () => {
           {
             name: "location",
             type: "radioInput",
-            label: "",
             sources: [{ id: "default", type: "default", label: "Default" }],
             editable: "system",
             required: false,
@@ -1773,6 +1779,68 @@ describe("Event types Endpoints", () => {
             },
           ]);
         });
+    });
+
+    describe("creating event type with input of another event type output", () => {
+      let firstCreatedEventType: EventTypeOutput_2024_06_14;
+      let secondCreatedEventType: EventTypeOutput_2024_06_14;
+
+      it("should create first event type", async () => {
+        const body: CreateEventTypeInput_2024_06_14 = {
+          title: "first created coding class",
+          slug: "first-created-coding-class",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "address",
+              address: "via volturno 10, Roma",
+              public: true,
+            },
+          ],
+        };
+
+        return request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const createdEventType = responseBody.data;
+            expect(createdEventType).toHaveProperty("id");
+            expect(createdEventType.title).toEqual(body.title);
+            expect(createdEventType.locations).toEqual(body.locations);
+            firstCreatedEventType = responseBody.data;
+          });
+      });
+
+      it("should create second event type using first as input", async () => {
+        const body = {
+          ...firstCreatedEventType,
+          title: "second created coding class",
+          slug: "second-created-coding-class",
+        };
+
+        return request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const createdEventType = responseBody.data;
+            expect(createdEventType).toHaveProperty("id");
+            expect(createdEventType.title).toEqual(body.title);
+            secondCreatedEventType = responseBody.data;
+
+            const { id, title, slug, ...restFirst } = firstCreatedEventType;
+            const { id: id2, title: title2, slug: slug2, ...restSecond } = secondCreatedEventType;
+            expect(restFirst).toEqual(restSecond);
+            expect(id2).not.toEqual(id);
+            expect(title2).not.toEqual(title);
+            expect(slug2).not.toEqual(slug);
+          });
+      });
     });
 
     afterAll(async () => {

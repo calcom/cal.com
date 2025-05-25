@@ -15,6 +15,7 @@ import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -51,7 +52,7 @@ import {
   APPLE_CALENDAR,
   CREDENTIAL_CALENDARS,
 } from "@calcom/platform-constants";
-import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
+import { ApiResponse, CalendarBusyTimesInput, CreateCalendarCredentialsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/calendars",
@@ -135,6 +136,7 @@ export class CalendarsController {
     name: "calendar",
   })
   @UseGuards(ApiAuthGuard)
+  @ApiAuthGuardOnlyAllow(["API_KEY", "ACCESS_TOKEN"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
@@ -150,7 +152,7 @@ export class CalendarsController {
     @Headers("Authorization") authorization: string,
     @Param("calendar") calendar: string,
     @Query("redir") redir?: string | null,
-    @Query("isDryRun", ParseBoolPipe) isDryRun?: boolean
+    @Query("isDryRun", new ParseBoolPipe({ optional: true })) isDryRun?: boolean
   ): Promise<ApiResponse<{ authUrl: string }>> {
     switch (calendar) {
       case OFFICE_365_CALENDAR:
@@ -173,7 +175,7 @@ export class CalendarsController {
   @Get("/:calendar/save")
   @HttpCode(HttpStatus.OK)
   @Redirect(undefined, 301)
-  @ApiOperation({ summary: "Save an oAuth calendar credentials" })
+  @ApiOperation({ summary: "Save Google or Outlook calendar credentials" })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
@@ -221,11 +223,11 @@ export class CalendarsController {
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/:calendar/credentials")
-  @ApiOperation({ summary: "Sync credentials" })
+  @ApiOperation({ summary: "Save Apple calendar credentials" })
   async syncCredentials(
     @GetUser() user: User,
     @Param("calendar") calendar: string,
-    @Body() body: { username: string; password: string }
+    @Body() body: CreateCalendarCredentialsInput
   ): Promise<{ status: string }> {
     const { username, password } = body;
 
