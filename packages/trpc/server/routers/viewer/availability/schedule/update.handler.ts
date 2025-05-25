@@ -1,12 +1,12 @@
-import { transformScheduleToAvailabilityForAtom } from "@calcom/lib";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
+import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
-import { setupDefaultSchedule } from "../util";
+import { setupDefaultSchedule, updateHostsWithNewDefaultSchedule } from "../util";
 import type { TUpdateInputSchema } from "./update.schema";
 
 type User = NonNullable<TrpcSessionUser>;
@@ -61,6 +61,10 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
 
   let updatedUser;
   if (input.isDefault) {
+    if (user?.defaultScheduleId) {
+      await updateHostsWithNewDefaultSchedule(user.id, user.defaultScheduleId, input.scheduleId);
+    }
+
     const setupDefault = await setupDefaultSchedule(user.id, input.scheduleId, prisma);
     updatedUser = setupDefault;
   }

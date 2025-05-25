@@ -95,7 +95,7 @@ describe("NoAvailabilityOverlay", () => {
     expect(defaultProps.nextMonthButton).toHaveBeenCalled();
   });
 
-  test("Displays 'View next month' and close buttons, without description, when browsing current date with rolling 30-day period", () => {
+  test("Displays 'View next month' and close buttons, without description, when browsing current date with rolling 32-day period", () => {
     render(
       <NoAvailabilityDialog
         {...defaultProps}
@@ -103,7 +103,8 @@ describe("NoAvailabilityOverlay", () => {
         periodData={{
           ...defaultProps.periodData,
           periodType: "ROLLING",
-          periodDays: 30,
+          // 32 days means that next month would atleast have 1 day available, so future limit violation isn't there and no description is shown
+          periodDays: 32,
         }}
       />
     );

@@ -12,13 +12,24 @@ import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary
 
 export type Props = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
-function Type({ slug, user, booking, isEmbed, isBrandingHidden, entity, eventTypeId, duration }: Props) {
+function Type({
+  slug,
+  user,
+  booking,
+  isEmbed,
+  isBrandingHidden,
+  entity,
+  eventTypeId,
+  duration,
+  eventData,
+}: Props) {
   return (
     <BookingPageErrorBoundary>
       <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
         <Booker
           username={user}
           eventSlug={slug}
+          eventData={eventData}
           bookingData={booking}
           hideBranding={isBrandingHidden}
           isTeamEvent
