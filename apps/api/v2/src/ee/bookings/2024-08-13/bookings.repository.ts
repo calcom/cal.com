@@ -54,6 +54,18 @@ export class BookingsRepository_2024_08_13 {
       where: {
         uid: bookingUid,
       },
+      include: {
+        user: {
+          include: {
+            credentials: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+        eventType: true,
+      },
     });
   }
 
@@ -166,6 +178,17 @@ export class BookingsRepository_2024_08_13 {
       include: {
         attendees: true,
         user: true,
+      },
+    });
+  }
+
+  async updateBooking(bookingUid: string, body: Prisma.BookingUpdateInput) {
+    return this.dbWrite.prisma.booking.update({
+      where: {
+        uid: bookingUid,
+      },
+      data: {
+        location: body.location as string,
       },
     });
   }
