@@ -779,4 +779,37 @@ export class BookingRepository {
       ...managedBookings,
     ];
   }
+
+  static async getValidBookingFromEventTypeForAttendee({
+    eventTypeId,
+    bookerEmail,
+    bookerPhoneNumber,
+    startTime,
+    filterForUnconfirmed,
+  }: {
+    eventTypeId: number;
+    bookerEmail?: string;
+    bookerPhoneNumber?: string;
+    startTime: Date;
+    filterForUnconfirmed?: boolean;
+  }) {
+    return await prisma.booking.findFirst({
+      where: {
+        eventTypeId,
+        attendees: {
+          some: {
+            email: bookerEmail,
+            phoneNumber: bookerPhoneNumber,
+          },
+        },
+        startTime,
+        status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
+      },
+      include: {
+        attendees: true,
+        references: true,
+        user: true,
+      },
+    });
+  }
 }
