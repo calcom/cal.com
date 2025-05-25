@@ -1,5 +1,4 @@
-import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
-import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
@@ -8,7 +7,7 @@ import { z } from "zod";
 
 import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import getEventTypeById from "@calcom/lib/event-types/getEventTypeById";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -32,9 +31,23 @@ export const generateMetadata = async () => {
 };
 
 const getCachedEventType = unstable_cache(
-  async (eventTypeId: number, headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-    const caller = await createRouterCaller(eventTypesRouter, await getTRPCContext(headers, cookies));
-    return await caller.get({ id: eventTypeId });
+  async (
+    eventTypeId: number,
+    user: {
+      id: number;
+      organization?: { id: number; isOrgAdmin: boolean };
+    }
+  ) => {
+    const prisma = (await import("@calcom/prisma")).default;
+
+    return await getEventTypeById({
+      eventTypeId,
+      userId: user.id,
+      prisma,
+      isTrpcCall: false,
+      isUserOrganizationAdmin: !!user?.organization?.isOrgAdmin,
+      currentOrganizationId: user.organization?.id ?? null,
+    });
   },
   ["viewer.eventTypes.get"],
   { revalidate: 3600 } // Cache for 1 hour
@@ -51,10 +64,17 @@ const ServerPage = async ({ params }: PageProps) => {
     throw new Error("Invalid Event Type id");
   }
   const eventTypeId = parsed.data.type;
-  const _headers = await headers();
-  const _cookies = await cookies();
+  const user = {
+    id: session.user.id,
+    organization: session.user.org
+      ? {
+          id: session.user.org.id,
+          isOrgAdmin: session.user.org.role === "ADMIN" || session.user.org.role === "OWNER",
+        }
+      : undefined,
+  };
 
-  const data = await getCachedEventType(eventTypeId, _headers, _cookies);
+  const data = await getCachedEventType(eventTypeId, user);
   if (!data?.eventType) {
     throw new Error("This event type does not exist");
   }
