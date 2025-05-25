@@ -28,7 +28,7 @@ export async function sendSmsOrFallbackEmail(props: {
   };
 }) {
   const { userId, teamId } = props.twilioData;
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+  const { CreditService } = await import("@calcom/features/ee/billing/credit-service.js");
 
   const creditService = new CreditService();
 
@@ -75,7 +75,7 @@ export async function scheduleSmsOrFallbackEmail(props: {
   };
 }) {
   const { userId, teamId } = props.twilioData;
-  const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+  const { CreditService } = await import("@calcom/features/ee/billing/credit-service.js");
   const creditService = new CreditService();
 
   const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });

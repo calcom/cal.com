@@ -229,7 +229,7 @@ export const workflowsRouter = router({
   getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.getWorkflowActionOptions) {
       UNSTABLE_HANDLER_CACHE.getWorkflowActionOptions = await import(
-        "./getWorkflowActionOptions.handler"
+        "./getWorkflowActionOptions.handler.js"
       ).then((mod) => mod.getWorkflowActionOptionsHandler);
     }
 

@@ -30,7 +30,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const isFormCreateEditAllowed = (await import("../lib/isFormCreateEditAllowed")).isFormCreateEditAllowed;
+  const isFormCreateEditAllowed = (await import("../lib/isFormCreateEditAllowed.js")).isFormCreateEditAllowed;
   if (!(await isFormCreateEditAllowed({ userId: user.id, formId, targetTeamId: null }))) {
     return {
       redirect: {
@@ -97,7 +97,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       : null,
   };
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const { UserRepository } = await import("@calcom/lib/server/repository/user.js");
 
   const formWithUserInfoProfile = {
     ...form,

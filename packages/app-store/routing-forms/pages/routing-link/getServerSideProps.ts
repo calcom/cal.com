@@ -66,7 +66,7 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const { UserRepository } = await import("@calcom/lib/server/repository/user.js");
   const formWithUserProfile = {
     ...form,
     user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),

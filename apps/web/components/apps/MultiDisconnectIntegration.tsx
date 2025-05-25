@@ -71,7 +71,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
           <DropdownMenuLabel>
             <div className="w-48 text-left text-xs">{t("disconnect_app_from")}</div>
           </DropdownMenuLabel>
-          {credentials.map((cred) => (
+          {credentials.map((cred: Credentials[number]) => (
             <DropdownMenuItem key={cred.id}>
               <DropdownItem
                 type="button"

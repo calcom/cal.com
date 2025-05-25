@@ -98,7 +98,7 @@ export const scheduleRouter = router({
     .input(ZBulkUpdateToDefaultAvailabilityInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { bulkUpdateToDefaultAvailabilityHandler } = await import(
-        "./bulkUpdateDefaultAvailability.handler"
+        "./bulkUpdateDefaultAvailability.handler.js"
       );
 
       return bulkUpdateToDefaultAvailabilityHandler({
