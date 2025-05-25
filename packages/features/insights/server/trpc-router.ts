@@ -15,7 +15,7 @@ import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { EventsInsights } from "./events";
+import { EventsInsights, type GetDateRangesParams } from "./events";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
 
@@ -459,19 +459,19 @@ export const insightsRouter = router({
         eventTypeId,
         memberUserId,
         isAll,
-        startDate: startDateString,
-        endDate: endDateString,
+        startDate,
+        endDate,
         timeView: inputTimeView,
         userId: selfUserId,
       } = input;
-
-      // Convert to UTC without shifting the time zone
-      let startDate = dayjs.utc(startDateString).startOf("day");
-      let endDate = dayjs.utc(endDateString).endOf("day");
-
       if (selfUserId && ctx.user?.id !== selfUserId) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+
+      console.log("💡 TEST", {
+        startDate,
+        endDate,
+      });
 
       if (!teamId && !selfUserId) {
         return [];
@@ -480,14 +480,8 @@ export const insightsRouter = router({
       let timeView = inputTimeView;
 
       // Adjust the timeView if the range is less than 14 days
-      if (timeView === "week" && endDate.diff(startDate, "day") < 14) {
+      if (timeView === "week" && dayjs(endDate).diff(dayjs(startDate), "day") < 14) {
         timeView = "day";
-      }
-
-      // Align startDate to the Monday of the week if timeView is 'week'
-      if (timeView === "week") {
-        startDate = startDate.day(1); // Set startDate to Monday
-        endDate = endDate.day(1).add(6, "day").endOf("day"); // Set endDate to Sunday of the same week
       }
 
       const r = await buildBaseWhereCondition({
@@ -504,37 +498,27 @@ export const insightsRouter = router({
       });
 
       const { whereCondition: whereConditional } = r;
-      const timeline = await EventsInsights.getTimeLine(timeView, startDate, endDate);
 
-      if (!timeline) {
+      // Get date ranges directly instead of using timeline
+      const dateRanges = EventsInsights.getDateRanges({
+        startDate,
+        endDate,
+        timeView,
+        timeZone: ctx.user.timeZone,
+        weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
+      });
+      if (!dateRanges.length) {
         return [];
       }
 
-      const dateFormat: string = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
-
-      // Align date ranges consistently with weeks starting on Monday
-      const dateRanges = timeline.map((date) => {
-        let startOfRange = dayjs.utc(date).startOf(timeView);
-        let endOfRange = dayjs.utc(date).endOf(timeView);
-
-        if (timeView === "week") {
-          startOfRange = dayjs.utc(date).day(1); // Start at Monday in UTC
-          endOfRange = startOfRange.add(6, "day").endOf("day"); // End at Sunday in UTC
-        }
-
-        return {
-          startDate: startOfRange.toISOString(),
-          endDate: endOfRange.toISOString(),
-          formattedDate: startOfRange.format(dateFormat), // Align formatted date for consistency
-        };
-      });
       // Fetch counts grouped by status for the entire range
       const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
         whereConditional,
-        startDate,
-        endDate,
+        dayjs(startDate),
+        dayjs(endDate),
         timeView
       );
+
       const result = dateRanges.map(({ formattedDate }) => {
         const EventData = {
           Month: formattedDate,
@@ -691,15 +675,7 @@ export const insightsRouter = router({
     return result;
   }),
   averageEventDuration: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const {
-      teamId,
-      startDate: startDateString,
-      endDate: endDateString,
-      memberUserId,
-      userId,
-      eventTypeId,
-      isAll,
-    } = input;
+    const { teamId, startDate, endDate, memberUserId, userId, eventTypeId, isAll } = input;
 
     if (userId && ctx.user?.id !== userId) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -708,9 +684,6 @@ export const insightsRouter = router({
     if (!teamId && !userId) {
       return [];
     }
-
-    const startDate = dayjs.utc(startDateString).startOf("day");
-    const endDate = dayjs.utc(endDateString).endOf("day");
 
     const { whereCondition: whereConditional } = await buildBaseWhereCondition({
       teamId,
@@ -725,10 +698,16 @@ export const insightsRouter = router({
       },
     });
 
-    const timeView = EventsInsights.getTimeView("week", startDate, endDate);
-    const timeLine = await EventsInsights.getTimeLine("week", startDate, endDate);
+    const timeView = EventsInsights.getTimeView("week", dayjs(startDate), dayjs(endDate));
+    const dateRanges = EventsInsights.getDateRanges({
+      startDate,
+      endDate,
+      timeView,
+      timeZone: ctx.user.timeZone,
+      weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
+    });
 
-    if (!timeLine) {
+    if (!dateRanges.length) {
       return [];
     }
 
@@ -742,16 +721,17 @@ export const insightsRouter = router({
       where: {
         ...whereConditional,
         createdAt: {
-          gte: startDate.toDate(),
-          lte: endDate.toDate(),
+          gte: startDate,
+          lte: endDate,
         },
       },
     });
 
     const resultMap = new Map<string, { totalDuration: number; count: number }>();
 
-    for (const date of timeLine) {
-      resultMap.set(dayjs(date).startOf(startOfEndOf).format("ll"), { totalDuration: 0, count: 0 });
+    // Initialize the map with all date ranges
+    for (const range of dateRanges) {
+      resultMap.set(dayjs(range.startDate).format("ll"), { totalDuration: 0, count: 0 });
     }
 
     for (const booking of allBookings) {

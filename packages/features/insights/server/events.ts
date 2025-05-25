@@ -61,6 +61,20 @@ function buildSqlCondition(condition: any): string {
   }
 }
 
+export interface DateRange {
+  startDate: string;
+  endDate: string;
+  formattedDate: string;
+}
+
+export interface GetDateRangesParams {
+  startDate: string;
+  endDate: string;
+  timeZone: string;
+  timeView: "day" | "week" | "month" | "year";
+  weekStart: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
+}
+
 class EventsInsights {
   static countGroupedByStatusForRanges = async (
     whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput,
@@ -269,32 +283,6 @@ class EventsInsights {
     return csat;
   };
 
-  static getTimeLine = async (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
-    let resultTimeLine: string[] = [];
-
-    if (timeView) {
-      switch (timeView) {
-        case "day":
-          resultTimeLine = this.getDailyTimeline(startDate, endDate);
-          break;
-        case "week":
-          resultTimeLine = this.getWeekTimeline(startDate, endDate);
-          break;
-        case "month":
-          resultTimeLine = this.getMonthTimeline(startDate, endDate);
-          break;
-        case "year":
-          resultTimeLine = this.getYearTimeline(startDate, endDate);
-          break;
-        default:
-          resultTimeLine = this.getWeekTimeline(startDate, endDate);
-          break;
-      }
-    }
-
-    return resultTimeLine;
-  };
-
   static getTimeView = (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
     let resultTimeView = timeView;
 
@@ -306,59 +294,6 @@ class EventsInsights {
 
     return resultTimeView;
   };
-
-  static getDailyTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
-    const now = dayjs();
-    const endOfDay = now.endOf("day");
-    let pivotDate = dayjs(startDate);
-    const dates: string[] = [];
-    while ((pivotDate.isBefore(endDate) || pivotDate.isSame(endDate)) && pivotDate.isBefore(endOfDay)) {
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-      pivotDate = pivotDate.add(1, "day");
-    }
-    return dates;
-  }
-
-  static getWeekTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
-    let pivotDate = dayjs(endDate);
-    const dates: string[] = [];
-
-    // Add the endDate as the last date in the timeline
-    dates.push(pivotDate.format("YYYY-MM-DD"));
-
-    // Move backwards in 6-day increments until reaching or passing the startDate
-    while (pivotDate.isAfter(startDate)) {
-      pivotDate = pivotDate.subtract(7, "day");
-      if (pivotDate.isBefore(startDate)) {
-        break;
-      }
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-    }
-
-    // Reverse the array to have the timeline in ascending order
-    return dates.reverse();
-  }
-
-  static getMonthTimeline(startDate: Dayjs, endDate: Dayjs) {
-    let pivotDate = dayjs(startDate);
-    const dates = [];
-    while (pivotDate.isBefore(endDate)) {
-      pivotDate = pivotDate.set("month", pivotDate.get("month") + 1);
-
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-    }
-    return dates;
-  }
-
-  static getYearTimeline(startDate: Dayjs, endDate: Dayjs) {
-    const pivotDate = dayjs(startDate);
-    const dates = [];
-    while (pivotDate.isBefore(endDate)) {
-      pivotDate.set("year", pivotDate.get("year") + 1);
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-    }
-    return dates;
-  }
 
   static getPercentage = (actualMetric: number, previousMetric: number) => {
     const differenceActualVsPrevious = actualMetric - previousMetric;
@@ -373,6 +308,81 @@ class EventsInsights {
 
     return result;
   };
+
+  static getDateRanges({
+    startDate: _startDate,
+    endDate: _endDate,
+    timeZone,
+    timeView,
+    weekStart,
+  }: GetDateRangesParams): DateRange[] {
+    if (!["day", "week", "month", "year"].includes(timeView)) {
+      return [];
+    }
+
+    const startDate = dayjs(_startDate).tz(timeZone);
+    const endDate = dayjs(_endDate).tz(timeZone);
+    const ranges: DateRange[] = [];
+    let currentStartDate = startDate;
+
+    while (currentStartDate.isBefore(endDate)) {
+      let currentEndDate = currentStartDate.endOf(timeView).tz(timeZone);
+
+      // Adjust week boundaries based on weekStart parameter
+      if (timeView === "week") {
+        const weekStartNum =
+          {
+            Sunday: 0,
+            Monday: 1,
+            Tuesday: 2,
+            Wednesday: 3,
+            Thursday: 4,
+            Friday: 5,
+            Saturday: 6,
+          }[weekStart] ?? 0;
+
+        currentEndDate = currentEndDate.add(weekStartNum, "day");
+        if (currentEndDate.subtract(7, "day").isAfter(currentStartDate)) {
+          currentEndDate = currentEndDate.subtract(7, "day");
+        }
+      }
+
+      if (currentEndDate.isAfter(endDate)) {
+        currentEndDate = endDate;
+        ranges.push({
+          startDate: currentStartDate.toISOString(),
+          endDate: currentEndDate.toISOString(),
+          formattedDate: this.formatPeriod(currentStartDate, currentEndDate, timeView),
+        });
+        break;
+      }
+
+      ranges.push({
+        startDate: currentStartDate.toISOString(),
+        endDate: currentEndDate.toISOString(),
+        formattedDate: this.formatPeriod(currentStartDate, currentEndDate, timeView),
+      });
+
+      currentStartDate = currentEndDate.add(1, "day").startOf("day").tz(timeZone);
+    }
+
+    return ranges;
+  }
+
+  private static formatPeriod(start: dayjs.Dayjs, end: dayjs.Dayjs, timeView: string): string {
+    switch (timeView) {
+      case "day":
+        return start.format("MMM D, YYYY");
+      case "week":
+        return `${start.format("MMM D")} - ${end.format("MMM D, YYYY")}`;
+      case "month":
+        return start.format("MMM YYYY");
+      case "year":
+        return start.format("YYYY");
+      default:
+        return "";
+    }
+  }
 
   static getCsvData = async (
     props: RawDataInput & {
