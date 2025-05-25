@@ -374,33 +374,9 @@ export const deleteWebhookScheduledTriggers = withReporting(
   "deleteWebhookScheduledTriggers"
 );
 
-export async function updateTriggerForExistingBookings(
-  webhook: Webhook,
-  existingEventTriggers: WebhookTriggerEvents[],
-  updatedEventTriggers: WebhookTriggerEvents[]
-) {
-  const addedEventTriggers = updatedEventTriggers.filter(
-    (trigger) => !existingEventTriggers.includes(trigger) && SCHEDULING_TRIGGER.includes(trigger)
-  );
-  const removedEventTriggers = existingEventTriggers.filter(
-    (trigger) => !updatedEventTriggers.includes(trigger) && SCHEDULING_TRIGGER.includes(trigger)
-  );
-
-  const addedNoShowTriggers = updatedEventTriggers.filter(
-    (trigger) => !existingEventTriggers.includes(trigger) && NO_SHOW_TRIGGERS.includes(trigger)
-  );
-  const removedNoShowTriggers = existingEventTriggers.filter(
-    (trigger) => !updatedEventTriggers.includes(trigger) && NO_SHOW_TRIGGERS.includes(trigger)
-  );
-
-  if (
-    addedEventTriggers.length === 0 &&
-    removedEventTriggers.length === 0 &&
-    addedNoShowTriggers.length === 0 &&
-    removedNoShowTriggers.length === 0
-  )
-    return;
-
+async function fetchBookingsFromWebhook(
+  webhook: Pick<Webhook, "id" | "userId" | "teamId" | "eventTypeId">
+): Promise<Booking[]> {
   const currentTime = new Date();
   const where: Prisma.BookingWhereInput = {
     AND: [{ status: BookingStatus.ACCEPTED }],
@@ -489,6 +465,38 @@ export async function updateTriggerForExistingBookings(
       });
     }
   }
+
+  return bookings;
+}
+
+export async function updateTriggerForExistingBookings(
+  webhook: Webhook,
+  existingEventTriggers: WebhookTriggerEvents[],
+  updatedEventTriggers: WebhookTriggerEvents[]
+) {
+  const addedEventTriggers = updatedEventTriggers.filter(
+    (trigger) => !existingEventTriggers.includes(trigger) && SCHEDULING_TRIGGER.includes(trigger)
+  );
+  const removedEventTriggers = existingEventTriggers.filter(
+    (trigger) => !updatedEventTriggers.includes(trigger) && SCHEDULING_TRIGGER.includes(trigger)
+  );
+
+  const addedNoShowTriggers = updatedEventTriggers.filter(
+    (trigger) => !existingEventTriggers.includes(trigger) && NO_SHOW_TRIGGERS.includes(trigger)
+  );
+  const removedNoShowTriggers = existingEventTriggers.filter(
+    (trigger) => !updatedEventTriggers.includes(trigger) && NO_SHOW_TRIGGERS.includes(trigger)
+  );
+
+  if (
+    addedEventTriggers.length === 0 &&
+    removedEventTriggers.length === 0 &&
+    addedNoShowTriggers.length === 0 &&
+    removedNoShowTriggers.length === 0
+  )
+    return;
+
+  const bookings = await fetchBookingsFromWebhook(webhook);
 
   if (bookings.length === 0) return;
 
@@ -582,11 +590,11 @@ export async function listOOOEntries(
 export async function cancelNoShowTasksForBooking({
   bookingUid,
   triggerEvent,
-  webhookId,
+  webhook,
 }: {
   bookingUid?: string;
   triggerEvent?: WebhookTriggerEvents;
-  webhookId?: string;
+  webhook?: Pick<Webhook, "id" | "userId" | "teamId" | "eventTypeId">;
 }) {
   if (bookingUid) {
     if (triggerEvent && !NO_SHOW_TRIGGERS.includes(triggerEvent)) return;
@@ -602,16 +610,20 @@ export async function cancelNoShowTasksForBooking({
         },
       });
     }
-  } else if (webhookId) {
-    const shouldContain = `"webhookId":"${webhookId}"`;
+  } else if (webhook) {
+    const bookings = await fetchBookingsFromWebhook(webhook);
 
-    await prisma.task.deleteMany({
-      where: {
-        payload: {
-          contains: shouldContain,
+    if (bookings.length === 0) return;
+
+    const promises = bookings.map(async (booking) => {
+      return await prisma.task.deleteMany({
+        where: {
+          referenceUid: booking.uid,
         },
-      },
+      });
     });
+
+    await Promise.all(promises);
   }
 }
 
