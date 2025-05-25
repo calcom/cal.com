@@ -17,7 +17,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformBilling, User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import { DateTime } from "luxon";
 import * as request from "supertest";
@@ -48,6 +47,7 @@ import {
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { slugify } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
+import { PlatformBilling, User } from "@calcom/prisma/client";
 import { Team } from "@calcom/prisma/client";
 
 describe("Organizations Organizations Endpoints", () => {

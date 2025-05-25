@@ -38,7 +38,7 @@ import {
   ParseBoolPipe,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
-import { User } from "@prisma/client";
+import { User } from "@calcom/prisma/client";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { z } from "zod";

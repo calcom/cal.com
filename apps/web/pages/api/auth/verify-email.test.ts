@@ -2,14 +2,32 @@ import { organizationScenarios } from "@calcom/lib/server/repository/__mocks__/o
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import { moveUserToMatchingOrg } from "./verify-email";
 
+// TODO: This test passes but coverage is very low.
 vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler");
 vi.mock("@calcom/lib/server/repository/organization");
+vi.mock("@calcom/prisma", () => {
+  return {
+    prisma: vi.fn(),
+  };
+});
+
+vi.mock("@calcom/features/ee/billing/stripe-billling-service", () => {
+  return {
+    StripeBillingService: vi.fn(),
+  };
+});
+
+vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler", () => {
+  return {
+    inviteMembersWithNoInviterPermissionCheck: vi.fn(),
+  };
+});
 
 describe("moveUserToMatchingOrg", () => {
   const email = "test@example.com";

@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 
 import kysely from "@calcom/kysely";
 import db from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import type { AppFlags } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";

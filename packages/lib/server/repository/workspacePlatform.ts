@@ -1,6 +1,5 @@
-import { Prisma } from "@prisma/client";
-
 import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import type { TServiceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 

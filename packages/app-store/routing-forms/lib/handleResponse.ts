@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
@@ -7,6 +6,7 @@ import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeam
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";

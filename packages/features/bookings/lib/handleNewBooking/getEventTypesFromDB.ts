@@ -26,7 +26,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           credentials: {
             select: credentialForCalendarServiceSelect,
           },
-          ...userSelect.select,
+          ...userSelect,
         },
       },
       slug: true,
@@ -130,7 +130,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
               credentials: {
                 select: credentialForCalendarServiceSelect,
               },
-              ...userSelect.select,
+              ...userSelect,
             },
           },
           schedule: {

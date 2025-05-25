@@ -1,4 +1,4 @@
-import type { User } from "@prisma/client";
+import type { User } from "@calcom/prisma/client";
 
 import { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaClient } from "@calcom/prisma";

@@ -1,14 +1,14 @@
-import type { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { _EventTypeModel } from "@calcom/prisma/zod";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
+import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
 interface handleChildrenEventTypesProps {
   eventTypeId: number;
@@ -114,8 +114,8 @@ export default async function handleChildrenEventTypes({
     };
 
   // bookingFields is expected to be filled by the _EventTypeModel but is null at create event
-  const _ManagedEventTypeModel = _EventTypeModel.extend({
-    bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+  const _ManagedEventTypeModel = EventTypeSchema.extend({
+    bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
   });
 
   const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps);
@@ -160,9 +160,14 @@ export default async function handleChildrenEventTypes({
       newUserIds.map((userId) => {
         return prisma.eventType.create({
           data: {
-            profileId: profileId ?? null,
             ...managedEventTypeValues,
-            ...unlockedEventTypeValues,
+            ...{
+              ...unlockedEventTypeValues,
+              // pre-genned as allowed null
+              locations: Array.isArray(unlockedEventTypeValues.locations)
+                ? unlockedEventTypeValues.locations
+                : undefined,
+            },
             bookingLimits:
               (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
             recurringEvent:
@@ -187,6 +192,7 @@ export default async function handleChildrenEventTypes({
             rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
             useEventLevelSelectedCalendars: false,
+            profileId: profileId ?? null,
           },
         });
       })

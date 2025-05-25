@@ -10,7 +10,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
 import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
@@ -22,6 +21,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { User } from "@calcom/prisma/client";
 
 const expectedSlotsUTC = {
   slots: {

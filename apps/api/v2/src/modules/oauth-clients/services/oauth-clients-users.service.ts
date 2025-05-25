@@ -8,9 +8,10 @@ import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-us
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
-import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
+import { User, PlatformOAuthClient } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 
 @Injectable()
 export class OAuthClientUsersService {

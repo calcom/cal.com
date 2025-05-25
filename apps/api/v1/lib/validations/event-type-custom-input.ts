@@ -1,10 +1,10 @@
-import { _EventTypeCustomInputModel as EventTypeCustomInput } from "@calcom/prisma/zod";
+import { EventTypeCustomInputSchema } from "@calcom/prisma/zod/modelSchema/EventTypeCustomInputSchema";
 
-export const schemaEventTypeCustomInputBaseBodyParams = EventTypeCustomInput.omit({
+export const schemaEventTypeCustomInputBaseBodyParams = EventTypeCustomInputSchema.omit({
   id: true,
 });
 
-export const schemaEventTypeCustomInputPublic = EventTypeCustomInput.omit({});
+export const schemaEventTypeCustomInputPublic = EventTypeCustomInputSchema.omit({});
 
 export const schemaEventTypeCustomInputBodyParams = schemaEventTypeCustomInputBaseBodyParams.strict();
 

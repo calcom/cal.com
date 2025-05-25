@@ -44,7 +44,8 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { PeriodType, Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
+import { PeriodType } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
@@ -63,7 +64,7 @@ type GetAvailabilityUserWithoutDelegationCredentials = Omit<GetAvailabilityUser,
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
-const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
+const selectSelectedSlots = {
   select: {
     id: true,
     slotUtcStartDate: true,
@@ -73,7 +74,7 @@ const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()(
     eventTypeId: true,
     uid: true,
   },
-});
+} satisfies Prisma.SelectedSlotsDefaultArgs;
 
 type SelectedSlots = Prisma.SelectedSlotsGetPayload<typeof selectSelectedSlots>;
 

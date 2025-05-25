@@ -1,8 +1,7 @@
-import type { Prisma } from "@prisma/client";
-
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 export async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
