@@ -692,7 +692,7 @@ export default function Signup({
             </div>
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
               {FEATURES.map((feature) => (
-                <>
+                <div key={feature.title}>
                   <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
                     <div className="text-emphasis items-center">
                       <Icon name={feature.icon} className="mb-1 h-4 w-4" />
@@ -709,7 +709,7 @@ export default function Signup({
                       </p>
                     </div>
                   </div>
-                </>
+                </div>
               ))}
             </div>
           </div>
