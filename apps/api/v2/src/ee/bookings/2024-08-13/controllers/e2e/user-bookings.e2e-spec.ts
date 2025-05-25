@@ -2223,6 +2223,67 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(400);
       });
+
+      it("should update booking location via PATCH", async () => {
+        // 1. Create a booking with initial address location
+        const initialBookingBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+          eventTypeId: eventTypeWithAllLocationsId,
+          attendee: {
+            name: "Mr Proper",
+            email: "mr_proper@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: {
+            type: "address",
+          },
+        };
+
+        const bookingResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(initialBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+        const createdBooking = bookingResponseBody.data;
+        expect(createdBooking).toHaveProperty("id");
+        expect(createdBooking).toHaveProperty("uid");
+
+        if (!responseDataIsBooking(createdBooking)) {
+          throw new Error("Unexpected response data type");
+        }
+
+        // 2. Update the location to attendee phone
+        const newLocation = {
+          type: "attendeePhone",
+          phone: "+12345678901",
+        };
+
+        const patchResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${createdBooking.uid}`)
+          .send({ location: newLocation })
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        // 3. Assert the response
+        expect(patchResponse.body.status).toBe(SUCCESS_STATUS);
+        expect(patchResponse.body.data.bookingUid).toBe(createdBooking.uid);
+        expect(patchResponse.body.data.location).toBe("+12345678901"); // Should be stored as optionValue
+
+        // 4. Verify the update by fetching the booking
+        const getResponse = await request(app.getHttpServer())
+          .get(`/v2/bookings/${createdBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        // Location should be stored as a string using optionValue
+        expect(getResponse.body.data.location).toBe("+12345678901");
+
+        // Clean up
+        await bookingsRepositoryFixture.deleteById(createdBooking.id);
+      });
     });
 
     describe("rescheduling booking with invalid booking responses", () => {
