@@ -107,7 +107,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
                     <ToggleGroup
                       isFullWidth
                       id="billingPeriod"
-                      defaultValue={value}
+                      value={value}
                       onValueChange={(e) => onChange(e)}
                       options={[
                         {
@@ -157,7 +157,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
                   <ToggleGroup
                     isFullWidth
                     id="bookingType"
-                    defaultValue={value}
+                    value={value}
                     onValueChange={(e) => onChange(e)}
                     options={[
                       {

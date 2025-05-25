@@ -6,6 +6,8 @@ import classNames from "@calcom/ui/classNames";
 import { Tooltip } from "../../tooltip/Tooltip";
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
+  value: string;
+  onValueChange: (value: string) => void;
   options: {
     value: string;
     label: string | ReactNode;
@@ -35,21 +37,50 @@ const OptionalTooltipWrapper = ({
   return <>{children}</>;
 };
 
+/**
+ * ToggleGroup Component
+ *
+ * @param props - Component props
+ * @param props.value - Current selected value (required)
+ * @param props.options - Available options to display
+ * @param props.onValueChange - Callback when selection changes
+ * @example
+ * <ToggleGroup
+ *   value={currentLayout}
+ *   onValueChange={handleLayoutChange}
+ *   options={[
+ *     { value: "month", label: "Month" },
+ *     { value: "week", label: "Week" }
+ *   ]}
+ * />
+ */
 export const ToggleGroup = ({
   options,
   onValueChange,
   isFullWidth,
   orientation = "horizontal",
   customClassNames,
+  value,
   ...props
 }: ToggleGroupProps & { customClassNames?: string }) => {
+  if (value === undefined) {
+    console.error(
+      "ToggleGroup: 'value' prop is required. You may have mistakenly used 'defaultValue' instead."
+    );
+  }
+  const handleValueChange = (newValue: string) => {
+    if (!newValue || newValue === value) return;
+    onValueChange(newValue);
+  };
+
   return (
     <>
       <RadixToggleGroup.Root
         type="single"
         {...props}
         orientation={orientation}
-        onValueChange={onValueChange}
+        onValueChange={handleValueChange}
+        value={value}
         style={{
           // @ts-expect-error --toggle-group-shadow is not a valid CSS property but can be a variable
           "--toggle-group-shadow":
@@ -64,13 +95,17 @@ export const ToggleGroup = ({
           customClassNames
         )}>
         {options.map((option) => (
-          <OptionalTooltipWrapper key={option.value} tooltipText={option.tooltip}>
+          <OptionalTooltipWrapper
+            key={option.value}
+            //Tooltip displays only if option is not currently selected
+            tooltipText={option.value !== value ? option.tooltip : undefined}>
             <RadixToggleGroup.Item
               disabled={option.disabled}
               value={option.value}
               data-testid={option.dataTestId ?? `toggle-group-item-${option.value}`}
               className={classNames(
                 "aria-checked:bg-default aria-checked:border-subtle rounded-lg border border-transparent p-1.5 text-sm leading-none transition aria-checked:shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]",
+                option.value === value && "cursor-default", // Option shouldn't look clickable when already selected
                 option.disabled
                   ? "text-gray-400 hover:cursor-not-allowed"
                   : "text-default [&[aria-checked='false']]:hover:text-emphasis",
