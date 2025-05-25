@@ -37,7 +37,13 @@ import { STEPS } from "~/apps/installation/[[...step]]/constants";
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
   Pick<
     EventTypeModel,
-    "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position" | "destinationCalendar"
+    | "metadata"
+    | "schedulingType"
+    | "slug"
+    | "requiresConfirmation"
+    | "position"
+    | "destinationCalendar"
+    | "calVideoSettings"
   > & {
     selected: boolean;
     locations: LocationFormValues["locations"];
