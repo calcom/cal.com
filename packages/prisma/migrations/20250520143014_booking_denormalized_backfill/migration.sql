@@ -47,8 +47,8 @@ BEGIN
                 SELECT 1 FROM "BookingDenormalized" bd WHERE bd.id = b.id
             )
             ON CONFLICT (id) DO NOTHING;
-        END IF;
 
-        PERFORM pg_sleep(sleep_interval);  -- Using the declared sleep_interval
+            PERFORM pg_sleep(sleep_interval);  -- Using the declared sleep_interval
+        END IF;
     END LOOP;
 END $$;
