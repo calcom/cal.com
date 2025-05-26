@@ -244,6 +244,21 @@ const operators: Operators = {
     cardinality: 0,
     jsonLogic: "none",
   },
+  is_checked: {
+    label: "Is checked",
+    labelForFormat: "IS CHECKED",
+    cardinality: 0,
+    reversedOp: "is_not_empty",
+    jsonLogic: "!",
+  },
+  is_not_checked: {
+    isNotOp: true,
+    label: "Is not checked",
+    labelForFormat: "IS NOT CHECKED",
+    cardinality: 0,
+    reversedOp: "is_empty",
+    jsonLogic: "!!",
+  },
 };
 
 const widgets: WidgetsWithoutFactory = {
@@ -285,6 +300,14 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Values",
     valuePlaceholder: "Select values",
+    toJS: (val: any) => val,
+  },
+  boolean: {
+    type: "boolean",
+    jsType: "boolean",
+    valueSrc: "value" as const,
+    valueLabel: "Boolean",
+    valuePlaceholder: "Select boolean",
     toJS: (val: any) => val,
   },
 };
@@ -352,20 +375,6 @@ const types: Types = {
           "is_not_null",
         ],
       },
-      //   slider: {
-      //     operators: [
-      //       "equal",
-      //       "not_equal",
-      //       "less",
-      //       "less_or_equal",
-      //       "greater",
-      //       "greater_or_equal",
-      //       // "is_empty",
-      //       // "is_not_empty",
-      //       "is_null",
-      //       "is_not_null",
-      //     ],
-      //   },
     },
   },
   select: {
@@ -393,65 +402,15 @@ const types: Types = {
       },
     },
   },
-  //   "!group": {
-  //     defaultOperator: "some",
-  //     mainWidget: "number",
-  //     widgets: {
-  //       number: {
-  //         widgetProps: {
-  //           min: 0,
-  //         },
-  //         operators: [
-  //           // w/o operand
-  //           "some",
-  //           "all",
-  //           "none",
-
-  //           // w/ operand - count
-  //           "equal",
-  //           "not_equal",
-  //           "less",
-  //           "less_or_equal",
-  //           "greater",
-  //           "greater_or_equal",
-  //           "between",
-  //           "not_between",
-  //         ],
-  //         opProps: {
-  //           equal: {
-  //             label: "Count ==",
-  //           },
-  //           not_equal: {
-  //             label: "Count !=",
-  //           },
-  //           less: {
-  //             label: "Count <",
-  //           },
-  //           less_or_equal: {
-  //             label: "Count <=",
-  //           },
-  //           greater: {
-  //             label: "Count >",
-  //           },
-  //           greater_or_equal: {
-  //             label: "Count >=",
-  //           },
-  //           between: {
-  //             label: "Count between",
-  //           },
-  //           not_between: {
-  //             label: "Count not between",
-  //           },
-  //         },
-  //       },
-  //     },
-  //   },
-  //   case_value: {
-  //     mainWidget: "case_value",
-  //     widgets: {
-  //       case_value: {},
-  //     },
-  //   },
+  boolean: {
+    defaultOperator: "equal",
+    mainWidget: "boolean",
+    widgets: {
+      boolean: {
+        operators: ["is_checked", "is_not_checked"],
+      },
+    },
+  },
 };
 
 const settings: Settings = {
