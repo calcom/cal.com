@@ -70,9 +70,7 @@ export const ComplexExample: React.FC = () => (
       <div className="flex flex-col items-center gap-2">
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <button className="cursor-pointer">
-              <Button variant="icon" color="secondary" StartIcon="calendar" />
-            </button>
+            <Button variant="icon" color="secondary" StartIcon="calendar" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownItem>Rename</DropdownItem>

@@ -4,7 +4,14 @@ import { useQueryState } from "nuqs";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/badge";
+import { Button } from "@calcom/ui/button";
 import classNames from "@calcom/ui/classNames";
+import {
+  Dropdown,
+  DropdownMenuContent,
+  DropdownItem,
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
 
 import { roleParsers } from "./searchParams";
 
@@ -41,7 +48,7 @@ interface RolesListProps {
 
 export function RolesList({ roles, permissions, initialSelectedRole, initialSheetOpen }: RolesListProps) {
   const { t } = useLocale();
-  const [isOpen, setIsOpen] = useQueryState("role-sheet", {
+  const [, setIsOpen] = useQueryState("role-sheet", {
     ...roleParsers["role-sheet"],
     defaultValue: initialSheetOpen ?? false,
   });
@@ -49,8 +56,6 @@ export function RolesList({ roles, permissions, initialSelectedRole, initialShee
     ...roleParsers.role,
     defaultValue: initialSelectedRole?.id ?? "",
   });
-
-  const selectedRole = roles.find((role) => role.id === selectedRoleId);
 
   return (
     <div className="mt-4">
@@ -77,6 +82,7 @@ export function RolesList({ roles, permissions, initialSelectedRole, initialShee
                 }
               }}
               canUpdate={permissions.canUpdate}
+              permissions={permissions}
             />
           ))}
         </div>
@@ -89,7 +95,20 @@ export function RolesList({ roles, permissions, initialSelectedRole, initialShee
   );
 }
 
-function RoleItem({ role, onClick, canUpdate }: { role: Role; onClick: () => void; canUpdate: boolean }) {
+function RoleItem({
+  role,
+  onClick,
+  canUpdate,
+  permissions,
+}: {
+  role: Role;
+  onClick: () => void;
+  canUpdate: boolean;
+  permissions: Permissions;
+}) {
+  const { t } = useLocale();
+  const showDropdown = role.type !== "SYSTEM" && (permissions.canUpdate || permissions.canDelete);
+
   return (
     <div
       className={classNames(
@@ -97,17 +116,41 @@ function RoleItem({ role, onClick, canUpdate }: { role: Role; onClick: () => voi
         canUpdate && role.type !== "SYSTEM" && "hover:bg-subtle cursor-pointer"
       )}
       onClick={onClick}>
-      <div className="flex items-center gap-3 truncate">
+      <div className="flex w-full items-center gap-3 truncate">
         {/* Icon */}
         <div className="flex items-center justify-center">
           <div className="h-3 w-3 rounded-full bg-red-500" />
         </div>
         {/* Role Name */}
-        <div className="text-deafult w-20 truncate text-sm font-semibold leading-none">
+        <div className="text-deafult w-24 truncate text-sm font-semibold leading-none">
           <span>{role.name}</span>
         </div>
 
-        <Badge variant="grayWithoutHover">{role.type === "SYSTEM" ? "default_role" : "custom_role"}</Badge>
+        <Badge variant={role.type === "SYSTEM" ? "grayWithoutHover" : "green"}>
+          {role.type === "SYSTEM" ? "default_role" : "custom_role"}
+        </Badge>
+
+        {showDropdown && (
+          <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
+            <Dropdown>
+              <DropdownMenuTrigger asChild>
+                <Button variant="icon" color="secondary" StartIcon="ellipsis" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="flex flex-col">
+                {permissions.canUpdate && (
+                  <DropdownItem StartIcon="pencil" onClick={onClick}>
+                    {t("edit")}
+                  </DropdownItem>
+                )}
+                {permissions.canDelete && (
+                  <DropdownItem StartIcon="trash" color="destructive">
+                    {t("delete")}
+                  </DropdownItem>
+                )}
+              </DropdownMenuContent>
+            </Dropdown>
+          </div>
+        )}
       </div>
     </div>
   );
