@@ -639,4 +639,31 @@ describe("EventsInsights", () => {
       });
     });
   });
+
+  describe("getTimeView", () => {
+    it("should return year for ranges over 365 days", () => {
+      const result = EventsInsights.getTimeView("2024-01-01T00:00:00.000Z", "2025-02-01T00:00:00.000Z");
+      expect(result).toBe("year");
+    });
+
+    it("should return month for ranges between 90 and 365 days", () => {
+      const result = EventsInsights.getTimeView("2024-01-01T00:00:00.000Z", "2024-05-01T00:00:00.000Z");
+      expect(result).toBe("month");
+    });
+
+    it("should return week for ranges between 14 and 90 days", () => {
+      const result = EventsInsights.getTimeView("2024-01-01T00:00:00.000Z", "2024-02-01T00:00:00.000Z");
+      expect(result).toBe("week");
+    });
+
+    it("should return day for ranges under 14 days", () => {
+      const result = EventsInsights.getTimeView("2024-01-01T00:00:00.000Z", "2024-01-10T00:00:00.000Z");
+      expect(result).toBe("day");
+    });
+
+    it("should handle same day range", () => {
+      const result = EventsInsights.getTimeView("2024-01-01T00:00:00.000Z", "2024-01-01T23:59:59.999Z");
+      expect(result).toBe("day");
+    });
+  });
 });

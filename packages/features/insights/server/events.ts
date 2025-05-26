@@ -283,8 +283,8 @@ class EventsInsights {
     return csat;
   };
 
-  static getTimeView = (startDate: Dayjs, endDate: Dayjs) => {
-    const diff = endDate.diff(startDate, "day");
+  static getTimeView = (startDate: string, endDate: string) => {
+    const diff = dayjs(endDate).diff(dayjs(startDate), "day");
     if (diff > 365) {
       return "year";
     } else if (diff > 90) {

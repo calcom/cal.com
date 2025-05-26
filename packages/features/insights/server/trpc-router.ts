@@ -334,8 +334,8 @@ export const insightsRouter = router({
     const baseWhereCondition = {
       ...whereConditional,
       createdAt: {
-        gte: dayjs(startDate).startOf("day").toDate(),
-        lte: dayjs(endDate).endOf("day").toDate(),
+        gte: startDate,
+        lte: endDate,
       },
     };
 
@@ -457,7 +457,7 @@ export const insightsRouter = router({
       return [];
     }
 
-    const timeView = EventsInsights.getTimeView(dayjs(startDate), dayjs(endDate));
+    const timeView = EventsInsights.getTimeView(startDate, endDate);
     const r = await buildBaseWhereCondition({
       teamId,
       eventTypeId: eventTypeId ?? undefined,
@@ -549,8 +549,8 @@ export const insightsRouter = router({
     bookingWhere = {
       ...bookingWhere,
       createdAt: {
-        gte: dayjs(startDate).toISOString(),
-        lte: dayjs(endDate).toISOString(),
+        gte: startDate,
+        lte: endDate,
       },
     };
 
@@ -671,7 +671,7 @@ export const insightsRouter = router({
       },
     });
 
-    const timeView = EventsInsights.getTimeView(dayjs(startDate), dayjs(endDate));
+    const timeView = EventsInsights.getTimeView(startDate, endDate);
     const dateRanges = EventsInsights.getDateRanges({
       startDate,
       endDate,
@@ -751,8 +751,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
         status: "CANCELLED",
       };
@@ -834,8 +834,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
       };
 
@@ -915,8 +915,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
       };
 
@@ -1170,8 +1170,8 @@ export const insightsRouter = router({
     bookingWhere = {
       ...bookingWhere,
       createdAt: {
-        gte: dayjs(startDate).startOf("day").toDate(),
-        lte: dayjs(endDate).endOf("day").toDate(),
+        gte: startDate,
+        lte: endDate,
       },
       ratingFeedback: { not: null },
     };
@@ -1286,8 +1286,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
         noShowHost: true,
       };
@@ -1364,8 +1364,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
         rating: { not: null },
       };
@@ -1442,8 +1442,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
         rating: { not: null },
       };
