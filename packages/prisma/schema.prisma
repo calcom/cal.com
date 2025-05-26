@@ -69,23 +69,24 @@ model Host {
 }
 
 model EventType {
-  id          Int     @id @default(autoincrement())
+  id                Int     @id @default(autoincrement())
   /// @zod.min(1)
-  title       String
+  title             String
   /// @zod.custom(imports.eventTypeSlug)
-  slug        String
-  description String?
-  position    Int     @default(0)
+  slug              String
+  description       String?
+  interfaceLanguage String?
+  position          Int     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
-  locations   Json?
+  locations         Json?
   /// @zod.min(1)
-  length      Int
-  offsetStart Int     @default(0)
-  hidden      Boolean @default(false)
-  hosts       Host[]
-  users       User[]  @relation("user_eventtype")
-  owner       User?   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int?
+  length            Int
+  offsetStart       Int     @default(0)
+  hidden            Boolean @default(false)
+  hosts             Host[]
+  users             User[]  @relation("user_eventtype")
+  owner             User?   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?
 
   profileId Int?
   profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
@@ -169,8 +170,12 @@ model EventType {
   isRRWeightsEnabled                      Boolean                   @default(false)
   fieldTranslations                       EventTypeTranslation[]
   maxLeadThreshold                        Int?
+  includeNoShowInRRCalculation            Boolean                   @default(false)
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
+  hideOrganizerEmail                      Boolean                   @default(false)
+  /// @zod.custom(imports.emailSchema)
+  customReplyToEmail                      String?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -208,11 +213,13 @@ model Credential {
   paymentStatus     String?
   billingCycleStart Int?
 
-  destinationCalendars DestinationCalendar[]
-  selectedCalendars    SelectedCalendar[]
-  invalid              Boolean?              @default(false)
-  CalendarCache        CalendarCache[]
-  references           BookingReference[]
+  destinationCalendars   DestinationCalendar[]
+  selectedCalendars      SelectedCalendar[]
+  invalid                Boolean?              @default(false)
+  CalendarCache          CalendarCache[]
+  references             BookingReference[]
+  delegationCredentialId String?
+  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([appId])
@@ -384,6 +391,8 @@ model User {
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]     @relation("CreatedOrganizationOnboardings")
   filterSegments                 FilterSegment[]
+  creditBalance                  CreditBalance?
+  whitelistWorkflows             Boolean                      @default(false)
 
   @@unique([email])
   @@unique([email, username])
@@ -492,6 +501,7 @@ model Team {
   // Available for Organization only
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
+  roles                  Role[] // Added for Role relation
 
   features TeamFeatures[]
 
@@ -499,6 +509,7 @@ model Team {
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean                 @default(false)
   internalNotePresets          InternalNotePreset[]
+  creditBalance                CreditBalance?
   organizationOnboarding       OrganizationOnboarding?
 
   // note(Lauris): if a Team has parentId it is a team, if parentId is null it is an organization, but if parentId is null and managedOrganization is set,
@@ -509,6 +520,36 @@ model Team {
 
   @@unique([slug, parentId])
   @@index([parentId])
+}
+
+model CreditBalance {
+  id                String             @id @default(uuid())
+  team              Team?              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId            Int?               @unique
+  // user credit balances will be supported in the future
+  user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?               @unique
+  additionalCredits Int                @default(0)
+  limitReachedAt    DateTime?
+  warningSentAt     DateTime?
+  expenseLogs       CreditExpenseLog[]
+}
+
+model CreditExpenseLog {
+  id              String        @id @default(uuid())
+  creditBalanceId String
+  creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
+  bookingUid      String?
+  booking         Booking?      @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  credits         Int?
+  creditType      CreditType
+  date            DateTime
+  smsSid          String?
+}
+
+enum CreditType {
+  MONTHLY
+  ADDITIONAL
 }
 
 model OrganizationSettings {
@@ -530,6 +571,7 @@ model OrganizationSettings {
   isAdminAPIEnabled                   Boolean    @default(false)
   allowSEOIndexing                    Boolean    @default(false)
   orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
+  disablePhoneOnlySMSNotifications    Boolean    @default(false)
 }
 
 enum MembershipRole {
@@ -544,16 +586,21 @@ model Membership {
   userId               Int
   accepted             Boolean           @default(false)
   role                 MembershipRole
+  customRoleId         String?
+  customRole           Role?             @relation(fields: [customRoleId], references: [id])
   team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
   AttributeToUser      AttributeToUser[]
+  createdAt            DateTime?         @default(now())
+  updatedAt            DateTime?         @updatedAt
 
   @@unique([userId, teamId])
   @@index([teamId])
   @@index([userId])
   @@index([accepted])
   @@index([role])
+  @@index([customRoleId])
 }
 
 model VerificationToken {
@@ -642,17 +689,17 @@ enum BookingStatus {
 }
 
 model Booking {
-  id                           Int                            @id @default(autoincrement())
-  uid                          String                         @unique
+  id                           Int                               @id @default(autoincrement())
+  uid                          String                            @unique
   // (optional) UID based on slot start/end time & email against duplicates
-  idempotencyKey               String?                        @unique
-  user                         User?                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idempotencyKey               String?                           @unique
+  user                         User?                             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                       Int?
   // User's email at the time of booking
   /// @zod.custom(imports.emailSchema)
   userPrimaryEmail             String?
   references                   BookingReference[]
-  eventType                    EventType?                     @relation(fields: [eventTypeId], references: [id])
+  eventType                    EventType?                        @relation(fields: [eventTypeId], references: [id])
   eventTypeId                  Int?
   title                        String
   description                  String?
@@ -663,17 +710,17 @@ model Booking {
   endTime                      DateTime
   attendees                    Attendee[]
   location                     String?
-  createdAt                    DateTime                       @default(now())
-  updatedAt                    DateTime?                      @updatedAt
-  status                       BookingStatus                  @default(ACCEPTED)
-  paid                         Boolean                        @default(false)
+  createdAt                    DateTime                          @default(now())
+  updatedAt                    DateTime?                         @updatedAt
+  status                       BookingStatus                     @default(ACCEPTED)
+  paid                         Boolean                           @default(false)
   payment                      Payment[]
-  destinationCalendar          DestinationCalendar?           @relation(fields: [destinationCalendarId], references: [id])
+  destinationCalendar          DestinationCalendar?              @relation(fields: [destinationCalendarId], references: [id])
   destinationCalendarId        Int?
   cancellationReason           String?
   rejectionReason              String?
   reassignReason               String?
-  reassignBy                   User?                          @relation("reassignByUser", fields: [reassignById], references: [id])
+  reassignBy                   User?                             @relation("reassignByUser", fields: [reassignById], references: [id])
   reassignById                 Int?
   dynamicEventSlugRef          String?
   dynamicGroupSlugRef          String?
@@ -686,15 +733,15 @@ model Booking {
   seatsReferences              BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata                     Json?
-  isRecorded                   Boolean                        @default(false)
-  iCalUID                      String?                        @default("")
-  iCalSequence                 Int                            @default(0)
+  isRecorded                   Boolean                           @default(false)
+  iCalUID                      String?                           @default("")
+  iCalSequence                 Int                               @default(0)
   instantMeetingToken          InstantMeetingToken?
   rating                       Int?
   ratingFeedback               String?
-  noShowHost                   Boolean?                       @default(false)
+  noShowHost                   Boolean?                          @default(false)
   scheduledTriggers            WebhookScheduledTriggers[]
-  oneTimePassword              String?                        @unique @default(uuid())
+  oneTimePassword              String?                           @unique @default(uuid())
   /// @zod.email()
   cancelledBy                  String?
   /// @zod.email()
@@ -705,6 +752,8 @@ model Booking {
   internalNote                 BookingInternalNote[]
   creationSource               CreationSource?
   tracking                     Tracking?
+  routingFormResponses         RoutingFormResponseDenormalized[]
+  expenseLogs                  CreditExpenseLog[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -761,24 +810,31 @@ model Availability {
 }
 
 model SelectedCalendar {
-  id                               String                @id @default(uuid())
-  user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                           Int
-  integration                      String
-  externalId                       String
-  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId                     Int?
+  id                       String      @id @default(uuid())
+  user                     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   Int
+  integration              String
+  externalId               String
+  credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId             Int?
   // Used to identify a watched calendar channel in Google Calendar
-  googleChannelId                  String?
-  googleChannelKind                String?
-  googleChannelResourceId          String?
-  googleChannelResourceUri         String?
-  googleChannelExpiration          String?
-  delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
-  delegationCredentialId           String?
+  googleChannelId          String?
+  googleChannelKind        String?
+  googleChannelResourceId  String?
+  googleChannelResourceUri String?
+  googleChannelExpiration  String?
+
+  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  delegationCredentialId String?
+
+  // Deprecated and unused: Use delegationCredential instead
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
   error                            String?
+  lastErrorAt                      DateTime?
+  watchAttempts                    Int                   @default(0)
+  unwatchAttempts                  Int                   @default(0)
+  maxAttempts                      Int                   @default(3)
 
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
@@ -789,9 +845,12 @@ model SelectedCalendar {
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
   @@index([userId])
-  @@index([integration])
   @@index([externalId])
   @@index([eventTypeId])
+  @@index([credentialId])
+  // Composite indices to optimize calendar-cache queries
+  @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
+  @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
 }
 
 enum EventTypeCustomInputType {
@@ -1061,20 +1120,41 @@ model App_RoutingForms_Form {
 }
 
 model App_RoutingForms_FormResponse {
-  id                 Int                   @id @default(autoincrement())
-  formFillerId       String                @default(cuid())
-  form               App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId             String
-  response           Json
-  createdAt          DateTime              @default(now())
-  routedToBookingUid String?               @unique
+  id           Int                   @id @default(autoincrement())
+  formFillerId String                @default(cuid())
+  form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId       String
+  response     Json
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime?             @updatedAt
+
+  routedToBookingUid        String?                           @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
-  routedToBooking    Booking?              @relation(fields: [routedToBookingUid], references: [uid])
-  chosenRouteId      String?
+  routedToBooking           Booking?                          @relation(fields: [routedToBookingUid], references: [uid])
+  chosenRouteId             String?
+  routingFormResponseFields RoutingFormResponseField[]
+  routingFormResponses      RoutingFormResponseDenormalized[]
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+  @@index([routedToBookingUid])
+}
+
+model RoutingFormResponseField {
+  id               Int                             @id @default(autoincrement())
+  responseId       Int
+  fieldId          String
+  valueString      String?
+  valueNumber      Decimal?
+  valueStringArray String[]
+  response         App_RoutingForms_FormResponse   @relation(fields: [responseId], references: [id], map: "RoutingFormResponseField_response_fkey", onDelete: Cascade)
+  denormalized     RoutingFormResponseDenormalized @relation("DenormalizedResponseToFields", fields: [responseId], references: [id], onDelete: Cascade)
+
+  @@index([responseId])
+  @@index([fieldId])
+  @@index([valueNumber])
+  @@index([valueStringArray], type: Gin)
 }
 
 view RoutingFormResponse {
@@ -1104,6 +1184,46 @@ view RoutingFormResponse {
   utm_campaign                     String?
   utm_term                         String?
   utm_content                      String?
+}
+
+model RoutingFormResponseDenormalized {
+  id                      Int                           @id
+  formId                  String
+  formName                String
+  formTeamId              Int?
+  formUserId              Int
+  booking                 Booking?                      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  bookingUid              String?
+  bookingId               Int?
+  bookingStatus           BookingStatus?
+  bookingStatusOrder      Int?
+  bookingCreatedAt        DateTime?                     @db.Timestamp(3)
+  bookingStartTime        DateTime?                     @db.Timestamp(3)
+  bookingEndTime          DateTime?                     @db.Timestamp(3)
+  bookingUserId           Int?
+  bookingUserName         String?
+  bookingUserEmail        String?
+  bookingUserAvatarUrl    String?
+  bookingAssignmentReason String?
+  eventTypeId             Int?
+  eventTypeParentId       Int?
+  eventTypeSchedulingType String?
+  createdAt               DateTime                      @db.Timestamp(3)
+  utm_source              String?
+  utm_medium              String?
+  utm_campaign            String?
+  utm_term                String?
+  utm_content             String?
+  response                App_RoutingForms_FormResponse @relation(fields: [id], references: [id], onDelete: Cascade)
+  fields                  RoutingFormResponseField[]    @relation("DenormalizedResponseToFields")
+
+  @@index([formId])
+  @@index([formTeamId])
+  @@index([formUserId])
+  @@index([formId, createdAt])
+  @@index([bookingId])
+  @@index([bookingUserId])
+  @@index([eventTypeId, eventTypeParentId])
 }
 
 model Feedback {
@@ -1457,6 +1577,72 @@ view BookingTimeStatus {
   isTeamBooking  Boolean
 }
 
+model BookingDenormalized {
+  id             Int           @id @unique
+  uid            String
+  eventTypeId    Int?
+  title          String
+  description    String?
+  startTime      DateTime
+  endTime        DateTime
+  createdAt      DateTime
+  updatedAt      DateTime?
+  location       String?
+  paid           Boolean
+  status         BookingStatus
+  rescheduled    Boolean?
+  userId         Int?
+  teamId         Int?
+  eventLength    Int?
+  eventParentId  Int?
+  userEmail      String?
+  userName       String?
+  userUsername   String?
+  ratingFeedback String?
+  rating         Int?
+  noShowHost     Boolean?
+  isTeamBooking  Boolean
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([eventTypeId])
+  @@index([eventParentId])
+  @@index([teamId])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([status])
+  @@index([teamId, isTeamBooking])
+  @@index([userId, isTeamBooking])
+}
+
+view BookingTimeStatusDenormalized {
+  id             Int           @id @unique
+  uid            String
+  eventTypeId    Int?
+  title          String
+  description    String?
+  startTime      DateTime
+  endTime        DateTime
+  createdAt      DateTime
+  updatedAt      DateTime?
+  location       String?
+  paid           Boolean
+  status         BookingStatus
+  rescheduled    Boolean?
+  userId         Int?
+  teamId         Int?
+  eventLength    Int?
+  eventParentId  Int?
+  userEmail      String?
+  userName       String?
+  userUsername   String?
+  ratingFeedback String?
+  rating         Int?
+  noShowHost     Boolean?
+  isTeamBooking  Boolean
+  timeStatus     String? // this is the addition on top of BookingDenormalized
+}
+
 model CalendarCache {
   // To be made required in a followup
   id String? @default(uuid())
@@ -1466,10 +1652,12 @@ model CalendarCache {
   value        Json
   expiresAt    DateTime
   credentialId Int
+  userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
   @@id([credentialId, key])
   @@unique([credentialId, key])
+  @@index([userId, key])
 }
 
 enum RedirectType {
@@ -1697,6 +1885,7 @@ model PlatformBilling {
 
   customerId     String
   subscriptionId String?
+  priceId        String?
   plan           String  @default("none")
 
   billingCycleStart Int?
@@ -1824,6 +2013,10 @@ model DelegationCredential {
   /// @zod.custom(imports.serviceAccountKeySchema)
   serviceAccountKey   Json
   enabled             Boolean               @default(false)
+  // lastEnabledAt is set when the delegation credential is enabled
+  lastEnabledAt       DateTime?
+  // lastDisabledAt is set when the delegation credential is disabled. So, lastDisabledAt could be earlier then lastEnabledAt if the delegation credential was enabled -> then disabled -> then enabled again.
+  lastDisabledAt      DateTime?
   organizationId      Int
   organization        Team                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   domain              String
@@ -1832,12 +2025,15 @@ model DelegationCredential {
   bookingReferences   BookingReference[]
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
+  credentials         Credential[]
 
   // Should be fair to assume that one domain can be only on one workspace platform at a time. So, one can't have two different workspace platforms for the same domain
   // Because we don't know which domain the organization might have, we couldn't make "domain" unique here as that would prevent an actual owner of the domain to be unable to use that domain if it is used by someone else.
   @@unique([organizationId, domain])
+  @@index([enabled])
 }
 
+// Deprecated and probably unused - Use DelegationCredential instead
 model DomainWideDelegation {
   id                  String                @id @default(uuid())
   workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
@@ -2066,4 +2262,55 @@ model BookingInternalNote {
 
   @@unique([bookingId, notePresetId])
   @@index([bookingId])
+}
+
+enum WorkflowContactType {
+  PHONE
+  EMAIL
+}
+
+model WorkflowOptOutContact {
+  id        Int                 @id @default(autoincrement())
+  type      WorkflowContactType
+  value     String
+  optedOut  Boolean
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([type, value])
+}
+
+enum RoleType {
+  SYSTEM
+  CUSTOM
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  teamId      Int? // null for global roles
+  team        Team?            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  permissions RolePermission[]
+  memberships Membership[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  type        RoleType         @default(CUSTOM)
+
+  @@unique([name, teamId])
+  @@index([teamId])
+}
+
+model RolePermission {
+  id        String   @id @default(cuid())
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  resource  String
+  action    String
+  createdAt DateTime @default(now())
+
+  @@unique([roleId, resource, action])
+  @@index([roleId])
+  // TODO: come back to this with indexs.
+  @@index([action])
 }

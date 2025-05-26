@@ -1,15 +1,20 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
+import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
+import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
 import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -82,7 +87,8 @@ export class BookingsController_2024_08_13 {
 
   constructor(
     private readonly bookingsService: BookingsService_2024_08_13,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly bookingReferencesService: BookingReferencesService_2024_08_13
   ) {}
 
   @Post("/")
@@ -100,9 +106,13 @@ export class BookingsController_2024_08_13 {
 
       The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.
 
-      Finally, there are 2 ways to book an event type:
+      Finally, there are 2 ways to book an event type belonging to an individual user:
       1. Provide \`eventTypeId\` in the request body.
       2. Provide \`eventTypeSlug\` and \`username\` and optionally \`organizationSlug\` if the user with the username is within an organization.
+
+      And 2 ways to book and event type belonging to a team:
+      1. Provide \`eventTypeId\` in the request body.
+      2. Provide \`eventTypeSlug\` and \`teamSlug\` and optionally \`organizationSlug\` if the team with the teamSlug is within an organization.
       `,
   })
   @ApiBody({
@@ -172,7 +182,7 @@ export class BookingsController_2024_08_13 {
   ): Promise<GetBookingsOutput_2024_08_13> {
     const profile = this.usersService.getUserMainProfile(user);
 
-    const bookings = await this.bookingsService.getBookings(queryParams, {
+    const { bookings, pagination } = await this.bookingsService.getBookings(queryParams, {
       email: user.email,
       id: user.id,
       orgId: profile?.organizationId,
@@ -181,6 +191,7 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 
@@ -256,7 +267,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Mark a booking absence - provided authorization header refers to owner of the booking.",
+    summary: "Mark a booking absence",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
@@ -277,8 +289,9 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Automatically reassign booking to a new host automatically - provided authorization header refers to person who reassigned the booking.",
+    summary: "Reassign a booking to auto-selected host",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
@@ -298,8 +311,9 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Reassign a booking to a specific user specified by the :userId - provided authorization header refers to person who reassigned the booking.",
+    summary: "Reassign a booking to a specific host",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
@@ -326,8 +340,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Confirm booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+    summary: "Confirm a booking",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async confirmBooking(
     @Param("bookingUid") bookingUid: string,
@@ -347,8 +361,8 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary:
-      "Decline booking that requires a confirmation - provided authorization header refers to owner of the booking.",
+    summary: "Decline a booking",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
   async declineBooking(
     @Param("bookingUid") bookingUid: string,
@@ -379,6 +393,32 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: calendarLinks,
+    };
+  }
+
+  @Get("/:bookingUid/references")
+  @PlatformPlan("SCALE")
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @Permissions([BOOKING_READ])
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get 'Booking References' for a booking",
+  })
+  @HttpCode(HttpStatus.OK)
+  async getBookingReferences(
+    @Param("bookingUid") bookingUid: string,
+    @GetUser("id") userId: number,
+    @Query() filter: BookingReferencesFilterInput_2024_08_13
+  ): Promise<BookingReferencesOutput_2024_08_13> {
+    const bookingReferences = await this.bookingReferencesService.getBookingReferences(
+      bookingUid,
+      userId,
+      filter
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: bookingReferences,
     };
   }
 }

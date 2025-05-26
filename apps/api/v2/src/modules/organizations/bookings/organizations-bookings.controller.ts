@@ -1,5 +1,11 @@
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
@@ -8,15 +14,12 @@ import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.g
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { OrganizationsUsersService } from "@/modules/organizations/users/index/services/organizations-users-service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, HttpCode } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
-
-import { GetOrganizationsBookingsInput } from "./inputs/get-org-bookings.input";
+import { GetBookingsOutput_2024_08_13, GetOrganizationsBookingsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/bookings",
@@ -24,11 +27,11 @@ import { GetOrganizationsBookingsInput } from "./inputs/get-org-bookings.input";
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Bookings")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
 export class OrganizationsBookingsController {
-  constructor(
-    private readonly bookingsService: BookingsService_2024_08_13,
-    private readonly orgUsersService: OrganizationsUsersService
-  ) {}
+  constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
 
   @Get("/")
   @ApiOperation({ summary: "Get Organization Bookings" })
@@ -42,7 +45,7 @@ export class OrganizationsBookingsController {
   ): Promise<GetBookingsOutput_2024_08_13> {
     const { userIds, ...restParams } = queryParams;
 
-    const bookings = await this.bookingsService.getBookings(
+    const { bookings, pagination } = await this.bookingsService.getBookings(
       { ...restParams },
       { email: user.email, id: user.id, orgId },
       userIds
@@ -51,6 +54,7 @@ export class OrganizationsBookingsController {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 }

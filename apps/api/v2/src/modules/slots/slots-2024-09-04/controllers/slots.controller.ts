@@ -60,8 +60,8 @@ export class SlotsController_2024_09_04 {
   @ApiOperation({
     summary: "Find out when is an event type ready to be booked.",
     description: `
-      There are 4 ways to get available slots:
-      
+      There are 4 ways to get available slots for event type of an individual user:
+
       1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
 
       2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'
@@ -70,11 +70,19 @@ export class SlotsController_2024_09_04 {
 
       4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.
 
+      And 3 ways to get available slots for team event type:
+
+      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
+
+      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'
+
+      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'
+
       All of them require "start" and "end" query parameters which define the time range for which available slots should be checked.
       Optional parameters are:
       - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.
       - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.
-      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use "range" as value.
+      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use "range" as value.
       `,
   })
   @ApiQuery({
@@ -91,7 +99,7 @@ export class SlotsController_2024_09_04 {
     example: "60",
   })
   @ApiQuery({
-    name: "slotFormat",
+    name: "format",
     required: false,
     description:
       "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
@@ -101,9 +109,9 @@ export class SlotsController_2024_09_04 {
     name: "usernames",
     required: false,
     description: `The usernames for which available slots should be checked separated by a comma.
-    
+
     Checking slots by usernames is used mainly for dynamic events where there is no specific event but we just want to know when 2 or more people are available.
-    
+
     Must contain at least 2 usernames.`,
     example: "alice,bob",
   })
@@ -117,19 +125,28 @@ export class SlotsController_2024_09_04 {
     name: "eventTypeSlug",
     required: false,
     description:
-      "The slug of the event type for which available slots should be checked. If slug is provided then username must be provided too and if relevant organizationSlug too.",
+      "The slug of the event type for which available slots should be checked. If slug is provided then username or teamSlug must be provided too and if relevant organizationSlug too.",
     example: "event-type-slug",
   })
   @ApiQuery({
     name: "username",
     required: false,
-    description: "The username of the user to get event types for.",
+    description:
+      "The username of the user who owns event type with eventTypeSlug - used when slots are checked for individual user event type.",
     example: "bob",
+  })
+  @ApiQuery({
+    name: "teamSlug",
+    required: false,
+    description:
+      "The slug of the team who owns event type with eventTypeSlug - used when slots are checked for team event type.",
+    example: "team-slug",
   })
   @ApiQuery({
     name: "organizationSlug",
     required: false,
-    description: "The slug of the organization to which user with username belongs.",
+    description:
+      "The slug of the organization to which user with username belongs or team with teamSlug belongs.",
     example: "org-slug",
   })
   @ApiQuery({
@@ -137,9 +154,9 @@ export class SlotsController_2024_09_04 {
     required: true,
     description: `
     Time until which available slots should be checked.
-    
+
     Must be in UTC timezone as ISO 8601 datestring.
-    
+
     You can pass date without hours which defaults to end of day or specify hours:
     2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z.`,
     example: "2050-09-06",
@@ -149,9 +166,9 @@ export class SlotsController_2024_09_04 {
     required: true,
     description: `
       Time starting from which available slots should be checked.
-    
+
       Must be in UTC timezone as ISO 8601 datestring.
-      
+
       You can pass date without hours which defaults to start of day or specify hours:
       2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.`,
     example: "2050-09-05",
@@ -283,6 +300,9 @@ export class SlotsController_2024_09_04 {
   }
 
   @Delete("/reservations/:uid")
+  @ApiOperation({
+    summary: "Delete a reserved slot",
+  })
   @HttpCode(HttpStatus.OK)
   @DocsResponse({
     status: 200,

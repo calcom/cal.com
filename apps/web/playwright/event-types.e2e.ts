@@ -387,6 +387,178 @@ test.describe("Event Types tests", () => {
         await unCheckDisplayLocation(page);
       });
     });
+
+    test("Should not allow enabling both recurring event and offer seats at the same time", async ({
+      page,
+    }) => {
+      const nonce = randomString(3);
+      const eventTitle = `Conflict event ${nonce}`;
+      await createNewEventType(page, { eventTitle });
+      await page.goto("/event-types");
+      await page.click(`text=${eventTitle}`);
+
+      // Go to Advanced tab and enable offerSeats
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      const offerSeatsToggle = page.locator("[data-testid=offer-seats-toggle]");
+      await offerSeatsToggle.click();
+
+      // Try enabling recurring - should be disabled
+      await page.click("[data-testid=vertical-tab-recurring]");
+      const recurringEventToggle = page.locator("[data-testid=recurring-event-check]");
+      await expect(recurringEventToggle).toBeDisabled();
+
+      // Go back and disable offerSeats
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await offerSeatsToggle.click(); // turn it off
+
+      // Enable recurring now
+      await page.click("[data-testid=vertical-tab-recurring]");
+      await recurringEventToggle.click();
+      await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeVisible();
+
+      // After enabling recurring, offerSeats should now be disabled
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await expect(offerSeatsToggle).toBeDisabled();
+    });
+  });
+
+  test.describe("Interface Language Tests", () => {
+    test.use({
+      locale: "en",
+    });
+
+    test("by default the Interface language has 'Visitor's browser language' selected", async ({
+      page,
+      users,
+    }) => {
+      await test.step("should create a en user", async () => {
+        const user = await users.create({
+          locale: "en",
+        });
+        await user.apiLogin();
+        await page.goto("/event-types");
+        await page.waitForSelector('[data-testid="event-types"]');
+      });
+      await test.step("should open first eventType and check Interface Language", async () => {
+        await gotoFirstEventType(page);
+        const interfaceLanguageValue = page
+          .getByTestId("event-interface-language")
+          .locator('div[class$="-singleValue"]');
+        await expect(interfaceLanguageValue).toHaveText("Visitor's browser language");
+      });
+    });
+
+    test("user can change the interface language to any other language and the booking page should be rendered in that language", async ({
+      page,
+      users,
+    }) => {
+      await test.step("should create a en user", async () => {
+        const user = await users.create({
+          locale: "en",
+        });
+        await user.apiLogin();
+        await page.goto("/event-types");
+        await page.waitForSelector('[data-testid="event-types"]');
+      });
+
+      await test.step("should open first eventType and change Interface Language to Deutsche", async () => {
+        await gotoFirstEventType(page);
+        await page.getByTestId("event-interface-language").click();
+        await page.locator(`text="Deutsch"`).click();
+        await saveEventType(page);
+      });
+
+      await test.step("should open corresponding booking page and ensure language rendered is Deutsche", async () => {
+        await gotoBookingPage(page);
+        //expect the slot selection page to be rendered in 'Deutsch'
+        await expect(page.locator(`text="So"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Mo"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Di"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Mi"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Do"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Fr"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Sa"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="12 Std"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="24 Std"`).nth(0)).toBeVisible();
+
+        await selectFirstAvailableTimeSlotNextMonth(page);
+        //expect the booking inputs page to be rendered in 'Deutsch'
+        await expect(page.locator(`text="Ihr Name"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="E-Mail Adresse"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Zusätzliche Notizen"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="+ Weitere Gäste"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Zurück"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Bestätigen"`).nth(0)).toBeVisible();
+      });
+
+      await test.step("should be able to book successfully and ensure success page is rendered in Deutsche", async () => {
+        await bookTimeSlot(page);
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator(`text="Dieser Termin ist geplant"`).nth(0)).toBeVisible();
+      });
+    });
+
+    test("user locale setting is overridden by event type language setting for booking page", async ({
+      page,
+      users,
+    }) => {
+      await test.step("should create a de user and ensure app is rendered in de", async () => {
+        const user = await users.create({
+          locale: "de",
+        });
+        await user.apiLogin();
+        await page.goto("/event-types");
+        await page.waitForSelector('[data-testid="event-types"]');
+        {
+          const locator = page.getByText("Ereignistypen", { exact: true }).first(); // "general"
+          await expect(locator).toBeVisible();
+        }
+      });
+
+      await test.step("should open first eventType and change Interface Language to Español", async () => {
+        await page.goto("/event-types");
+        await page.waitForSelector('[data-testid="event-types"]');
+        await gotoFirstEventType(page);
+        await page.getByTestId("event-interface-language").click();
+        await page.getByTestId("select-option-es").click();
+        await saveEventType(page);
+      });
+
+      await test.step("should go to booking page and verify the Interface language is Español", async () => {
+        await gotoBookingPage(page);
+        //expect the slot selection page to be rendered in 'Español'
+        await expect(page.locator(`text="dom"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="lun"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="mar"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="mié"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="jue"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="vie"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="sáb"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="12 h"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="24hs"`).nth(0)).toBeVisible();
+
+        await selectFirstAvailableTimeSlotNextMonth(page);
+        //expect the booking inputs page to be rendered in 'Español'
+        await expect(page.locator(`text="Tu Nombre"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Email"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Notas Adicionales"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Añadir invitados"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Atrás"`).nth(0)).toBeVisible();
+        await expect(page.locator(`text="Confirmar"`).nth(0)).toBeVisible();
+
+        await bookTimeSlot(page);
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      });
+
+      await test.step("ensure other components of the App is still rendered in de and not affected by setting eventType Interface Language to Español", async () => {
+        await page.goto("/event-types");
+        await page.waitForSelector('[data-testid="event-types"]');
+        {
+          const locator = page.getByText("Ereignistypen", { exact: true }).first(); // "general"
+          await expect(locator).toBeVisible();
+        }
+      });
+    });
   });
 });
 
