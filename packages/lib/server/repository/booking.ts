@@ -374,6 +374,7 @@ export class BookingRepository {
         isRecorded: true,
         eventType: {
           select: {
+            id: true,
             hideOrganizerEmail: true,
             calVideoSettings: {
               select: {

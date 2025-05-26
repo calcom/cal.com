@@ -12,6 +12,7 @@ import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
@@ -40,6 +41,31 @@ const shouldEnableRecordButton = ({
   }
 
   return !calVideoSettings.disableRecordingForGuests;
+};
+
+const checkIfUserIsHost = async ({
+  booking,
+  sessionUserId,
+}: {
+  booking: {
+    user: { id: number } | null;
+    eventTypeId: number | undefined;
+  };
+  sessionUserId?: number;
+}) => {
+  if (!sessionUserId) return false;
+
+  if (!booking.eventTypeId) {
+    return booking.user?.id === sessionUserId;
+  }
+
+  const eventType = await EventTypeRepository.findByIdWithUserAccess({
+    id: booking.eventTypeId,
+    userId: sessionUserId,
+  });
+
+  // If eventType exists, it means user is either owner, host or user
+  return !eventType;
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
@@ -131,10 +157,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   const sessionUserId = !!session?.user?.impersonatedBy ? session.user.impersonatedBy.id : session?.user.id;
-  const isAttendee = sessionUserId !== bookingObj.user?.id;
+  const isOrganizer = await checkIfUserIsHost({
+    booking: {
+      eventTypeId: bookingObj.eventType?.id,
+      user: bookingObj.user,
+    },
+    sessionUserId,
+  });
+
+  console.log("isOrganizer", isOrganizer);
 
   // set meetingPassword for guests
-  if (isAttendee) {
+  if (!isOrganizer) {
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken({
       meetingToken: videoReferencePassword,
       userId: sessionUserId,
@@ -193,9 +227,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       displayLogInOverlay,
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
       showRecordingButton,
-      rediectAttendeeToOnExit: isAttendee
-        ? bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit
-        : undefined,
+      rediectAttendeeToOnExit: isOrganizer
+        ? undefined
+        : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
     },
   };
 }

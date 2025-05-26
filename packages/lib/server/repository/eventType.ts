@@ -453,6 +453,15 @@ export class EventTypeRepository {
     });
   }
 
+  static async findByIdWithUserAccess({ id, userId }: { id: number; userId: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+        OR: [{ userId }, { hosts: { some: { userId } } }, { users: { some: { id: userId } } }],
+      },
+    });
+  }
+
   static async findById({ id, userId }: { id: number; userId: number }) {
     const userSelect = Prisma.validator<Prisma.UserSelect>()({
       name: true,
