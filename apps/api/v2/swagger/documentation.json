@@ -20990,6 +20990,7 @@
         "properties": {
           "isActiveOnAllEventTypes": {
             "type": "boolean",
+            "default": false,
             "description": "Whether the workflow is active for all event types associated with the team/user",
             "example": false
           },
@@ -21004,10 +21005,7 @@
               "type": "number"
             }
           }
-        },
-        "required": [
-          "isActiveOnAllEventTypes"
-        ]
+        }
       },
       "WorkflowTriggerOffsetOutputDto": {
         "type": "object",
@@ -21290,6 +21288,7 @@
         "properties": {
           "isActiveOnAllEventTypes": {
             "type": "boolean",
+            "default": false,
             "description": "Whether the workflow is active for all the event-types",
             "example": false
           },
@@ -21309,31 +21308,7 @@
           "isActiveOnAllEventTypes"
         ]
       },
-      "WorkflowTriggerOffsetDto": {
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "number",
-            "description": "Time value for offset before/after event trigger",
-            "example": 24
-          },
-          "unit": {
-            "enum": [
-              "HOUR",
-              "MINUTE",
-              "DAY"
-            ],
-            "type": "string",
-            "description": "Unit for the offset time",
-            "example": "HOUR"
-          }
-        },
-        "required": [
-          "value",
-          "unit"
-        ]
-      },
-      "WorkflowTriggerDto": {
+      "BaseWorkflowTriggerDto": {
         "type": "object",
         "properties": {
           "type": {
@@ -21345,16 +21320,7 @@
               "RESCHEDULE_EVENT"
             ],
             "type": "string",
-            "description": "Trigger type for the workflow",
-            "example": "BEFORE_EVENT"
-          },
-          "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
-              }
-            ]
+            "description": "Trigger type for the workflow"
           }
         },
         "required": [
@@ -21490,7 +21456,7 @@
             "description": "Trigger configuration for the workflow",
             "allOf": [
               {
-                "$ref": "#/components/schemas/WorkflowTriggerDto"
+                "$ref": "#/components/schemas/BaseWorkflowTriggerDto"
               }
             ]
           },
@@ -21525,22 +21491,20 @@
               }
             ]
           },
-          "trigger": {
-            "description": "Trigger configuration for the workflow",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/WorkflowTriggerDto"
-              }
-            ]
-          },
           "steps": {
             "description": "Steps to execute as part of the workflow",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/WorkflowStepDto"
             }
+          },
+          "trigger": {
+            "type": "object"
           }
-        }
+        },
+        "required": [
+          "trigger"
+        ]
       },
       "StripConnectOutputDto": {
         "type": "object",

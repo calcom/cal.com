@@ -1,15 +1,28 @@
-import {
-  StepAction,
-  RecipientType,
-  TemplateType,
-  WorkflowTimeUnit,
-  WorkflowTriggerType,
-} from "@/modules/workflows/inputs/create-workflow.input";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsArray, IsEnum, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+
+import {
+  EMAIL_HOST,
+  HOST,
+  RECIPIENT_TYPES,
+  RecipientType,
+  REMINDER,
+  STEP_ACTIONS,
+  StepAction,
+  TEMPLATES,
+  TemplateType,
+} from "../inputs/workflow-step.input";
+import {
+  BEFORE_EVENT,
+  HOUR,
+  TIME_UNITS,
+  TimeUnitType,
+  WORKFLOW_TRIGGER_TYPES,
+  WorkflowTriggerType,
+} from "../inputs/workflow-trigger.input";
 
 export class WorkflowMessageOutputDto {
   @ApiProperty({
@@ -43,14 +56,12 @@ export class WorkflowStepOutputDto {
   @Expose()
   stepNumber!: number;
 
-  @ApiProperty({ description: "Action to perform", example: StepAction.EMAIL_HOST, enum: StepAction })
+  @ApiProperty({ description: "Action to perform", example: EMAIL_HOST, enum: STEP_ACTIONS })
   @Expose()
-  @IsEnum(StepAction)
   action!: StepAction;
 
-  @ApiProperty({ description: "Intended recipient type", example: RecipientType.HOST, enum: RecipientType })
+  @ApiProperty({ description: "Intended recipient type", example: HOST, enum: RECIPIENT_TYPES })
   @Expose()
-  @IsEnum(RecipientType)
   recipient!: RecipientType;
 
   @ApiPropertyOptional({ description: "Verified Email  if action is EMAIL_ADDRESS", example: 31214 })
@@ -63,9 +74,8 @@ export class WorkflowStepOutputDto {
   @Expose()
   phone?: string;
 
-  @ApiProperty({ description: "Template type used", example: TemplateType.REMINDER, enum: TemplateType })
+  @ApiProperty({ description: "Template type used", example: REMINDER, enum: TEMPLATES })
   @Expose()
-  @IsEnum(TemplateType)
   template!: TemplateType;
 
   @ApiPropertyOptional({
@@ -93,22 +103,20 @@ export class WorkflowTriggerOffsetOutputDto {
 
   @ApiProperty({
     description: "Unit for the offset time",
-    example: WorkflowTimeUnit.HOUR,
-    enum: WorkflowTimeUnit,
+    example: HOUR,
+    enum: TIME_UNITS,
   })
   @Expose()
-  @IsEnum(WorkflowTimeUnit)
-  unit!: WorkflowTimeUnit;
+  unit!: TimeUnitType;
 }
 
 export class WorkflowTriggerOutputDto {
   @ApiProperty({
     description: "Trigger type for the workflow",
-    example: WorkflowTriggerType.BEFORE_EVENT,
-    enum: WorkflowTriggerType,
+    example: BEFORE_EVENT,
+    enum: WORKFLOW_TRIGGER_TYPES,
   })
   @Expose()
-  @IsEnum(WorkflowTriggerType)
   type!: WorkflowTriggerType;
 
   @ApiPropertyOptional({
@@ -127,7 +135,7 @@ export class WorkflowActivationOutputDto {
     example: false,
   })
   @Expose()
-  isActiveOnAllEventTypes!: boolean;
+  isActiveOnAllEventTypes?: boolean = false;
 
   @ApiPropertyOptional({
     description: "List of Event Type IDs the workflow is specifically active on (if not active on all)",

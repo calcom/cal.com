@@ -2,22 +2,51 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
 import {
   CreateWorkflowDto,
-  RecipientType,
-  StepAction,
-  TemplateType,
   UpdateWorkflowDto,
-  UpdateWorkflowStepDto,
   WorkflowActivationDto,
-  WorkflowMessageDto,
-  WorkflowTimeUnit,
-  WorkflowTriggerDto,
-  WorkflowTriggerType,
+  TriggerDtoType,
+  UpdateWorkflowStepDto,
+  UpdateEmailAttendeeWorkflowStepDto,
+  UpdateEmailAddressWorkflowStepDto,
+  UpdateEmailHostWorkflowStepDto,
 } from "@/modules/workflows/inputs/create-workflow.input";
 import { WorkflowOutput, WorkflowStepOutputDto } from "@/modules/workflows/outputs/workflow.output";
 import { WorkflowsRepository, WorkflowType } from "@/modules/workflows/workflows.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { TUpdateInputSchema } from "@calcom/platform-libraries/workflows";
+
+import {
+  ATTENDEE,
+  EMAIL,
+  EMAIL_ADDRESS,
+  EMAIL_ATTENDEE,
+  EMAIL_HOST,
+  HOST,
+  HtmlWorkflowMessageDto,
+  PHONE_NUMBER,
+  RecipientType,
+  SMS_ATTENDEE,
+  SMS_NUMBER,
+  StepAction,
+  StepActionsType,
+  TemplateType,
+  TextWorkflowMessageDto,
+  WHATSAPP_ATTENDEE,
+  WHATSAPP_NUMBER,
+  WorkflowPhoneNumberStepDto,
+  WorkflowPhoneWhatsAppNumberStepDto,
+} from "../inputs/workflow-step.input";
+import {
+  AFTER_EVENT,
+  BEFORE_EVENT,
+  EVENT_CANCELLED,
+  HOUR,
+  OnAfterEventTriggerDto,
+  OnBeforeEventTriggerDto,
+  TimeUnitType,
+  WorkflowTriggerType,
+} from "../inputs/workflow-trigger.input";
 
 @Injectable()
 export class TeamWorkflowsService {
@@ -54,6 +83,7 @@ export class TeamWorkflowsService {
     if (!createdWorkflow) {
       throw new BadRequestException(`Could not create Workflow in team ${teamId}`);
     }
+
     return this.toDto(createdWorkflow);
   }
 
@@ -94,71 +124,70 @@ export class TeamWorkflowsService {
       activeOnEventTypeIds: workflow.activeOn?.map((relation) => relation.eventTypeId) ?? [],
     };
 
-    const trigger: WorkflowTriggerDto = {
-      type: workflow.trigger as WorkflowTriggerType,
-      offset:
-        workflow.time !== null && workflow.timeUnit !== null
-          ? { value: workflow.time, unit: workflow.timeUnit as WorkflowTimeUnit }
-          : undefined,
-    };
+    const trigger: TriggerDtoType =
+      workflow.trigger === BEFORE_EVENT.toUpperCase() || workflow.trigger === AFTER_EVENT.toUpperCase()
+        ? {
+            type: workflow.trigger.toLowerCase() as typeof BEFORE_EVENT | typeof AFTER_EVENT,
+            offset: {
+              value: workflow.time ?? 1,
+              unit: (workflow.timeUnit?.toLowerCase() ?? HOUR) as TimeUnitType,
+            },
+          }
+        : { type: workflow.trigger.toLowerCase() as typeof EVENT_CANCELLED };
 
     const steps: WorkflowStepOutputDto[] = workflow.steps.map((step) => {
-      const message: WorkflowMessageDto = {
-        subject: step.emailSubject ?? "",
-
-        text: "",
-        html: "",
-      };
-
       let recipient: RecipientType;
       let email = "";
       let phone = "";
-
-      switch (step.action as StepAction) {
-        case StepAction.EMAIL_HOST:
-          recipient = RecipientType.HOST;
-          message.html = step.reminderBody ?? "";
+      let text;
+      let html;
+      switch (step.action.toLowerCase() as StepAction) {
+        case EMAIL_HOST:
+          recipient = HOST;
+          html = step.reminderBody ?? "";
           break;
-        case StepAction.EMAIL_ATTENDEE:
-          message.html = step.reminderBody ?? "";
-          recipient = RecipientType.ATTENDEE;
+        case EMAIL_ATTENDEE:
+          html = step.reminderBody ?? "";
+          recipient = ATTENDEE;
           break;
-        case StepAction.SMS_ATTENDEE:
-          message.text = step.reminderBody ?? "";
-          recipient = RecipientType.ATTENDEE;
+        case SMS_ATTENDEE:
+          text = step.reminderBody ?? "";
+          recipient = ATTENDEE;
           break;
-        case StepAction.WHATSAPP_ATTENDEE:
-          message.text = step.reminderBody ?? "";
-
-          recipient = RecipientType.ATTENDEE;
+        case WHATSAPP_ATTENDEE:
+          text = step.reminderBody ?? "";
+          recipient = ATTENDEE;
           break;
-        case StepAction.EMAIL_ADDRESS:
-          message.html = step.reminderBody ?? "";
-          recipient = RecipientType.EMAIL;
+        case EMAIL_ADDRESS:
+          html = step.reminderBody ?? "";
+          recipient = EMAIL;
           email = step.sendTo ?? "";
           break;
-        case StepAction.SMS_NUMBER:
-        case StepAction.WHATSAPP_NUMBER:
-          message.text = step.reminderBody ?? "";
-          recipient =
-            step.action === StepAction.SMS_NUMBER ? RecipientType.PHONE_NUMBER : RecipientType.PHONE_NUMBER;
+        case SMS_NUMBER:
+        case WHATSAPP_NUMBER:
+          text = step.reminderBody ?? "";
+          recipient = PHONE_NUMBER;
           phone = step.sendTo ?? "";
           break;
         default:
-          recipient = RecipientType.ATTENDEE;
+          recipient = ATTENDEE;
       }
 
       return {
         id: step.id,
         stepNumber: step.stepNumber,
-        action: step.action as StepAction,
+        action: step.action.toLowerCase() as StepAction,
         recipient: recipient,
         email,
         phone,
-        template: step.template as TemplateType,
+        template: step.template?.toLowerCase() as TemplateType,
         includeCalendarEvent: step.includeCalendarEvent,
         sender: step.sender ?? "Default Sender",
-        message: message,
+        message: {
+          subject: step.emailSubject ?? "",
+          text,
+          html,
+        },
       };
     });
 
@@ -182,22 +211,29 @@ export class TeamWorkflowsService {
           updateDto.steps.map(async (stepDto: UpdateWorkflowStepDto, index: number) => {
             let reminderBody: string | null = null;
             let sendTo: string | null = null;
+            const html = stepDto.message instanceof HtmlWorkflowMessageDto ? stepDto.message.html : null;
+            const text = stepDto.message instanceof TextWorkflowMessageDto ? stepDto.message.text : null;
+            const includeCalendarEvent =
+              stepDto instanceof UpdateEmailAddressWorkflowStepDto ||
+              stepDto instanceof UpdateEmailAttendeeWorkflowStepDto ||
+              stepDto instanceof UpdateEmailHostWorkflowStepDto
+                ? stepDto.includeCalendarEvent
+                : false;
 
             switch (stepDto.action) {
-              case StepAction.EMAIL_HOST:
-              case StepAction.EMAIL_ATTENDEE:
-              case StepAction.EMAIL_ADDRESS:
-                reminderBody = stepDto.message.html ?? null;
+              case EMAIL_HOST:
+              case EMAIL_ATTENDEE:
+              case EMAIL_ADDRESS:
+                reminderBody = html ?? null;
                 break;
-              case StepAction.SMS_ATTENDEE:
-              case StepAction.SMS_NUMBER:
-              case StepAction.WHATSAPP_ATTENDEE:
-              case StepAction.WHATSAPP_NUMBER:
-                reminderBody = stepDto.message.text ?? null;
+              case SMS_ATTENDEE:
+              case SMS_NUMBER:
+              case WHATSAPP_ATTENDEE:
+              case WHATSAPP_NUMBER:
+                reminderBody = text ?? null;
                 break;
             }
-
-            if (stepDto.action === StepAction.EMAIL_ADDRESS) {
+            if (stepDto.action === EMAIL_ADDRESS) {
               if (stepDto.verifiedEmailId) {
                 const emailResource = await this.teamsVerifiedResourcesRepository.getTeamVerifiedEmailById(
                   stepDto.verifiedEmailId,
@@ -208,27 +244,29 @@ export class TeamWorkflowsService {
                 }
                 sendTo = emailResource.email;
               }
-            } else if (
-              stepDto.action === StepAction.SMS_NUMBER ||
-              stepDto.action === StepAction.WHATSAPP_NUMBER
-            ) {
-              if (stepDto.verifiedPhoneId) {
-                const phoneResource =
-                  await this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumberById(
-                    stepDto.verifiedPhoneId,
-                    teamId
-                  );
+            } else if (stepDto.action === SMS_NUMBER || stepDto.action === WHATSAPP_NUMBER) {
+              if (
+                stepDto instanceof WorkflowPhoneNumberStepDto ||
+                stepDto instanceof WorkflowPhoneWhatsAppNumberStepDto
+              ) {
+                if (stepDto.verifiedPhoneId) {
+                  const phoneResource =
+                    await this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumberById(
+                      stepDto.verifiedPhoneId,
+                      teamId
+                    );
 
-                if (!phoneResource?.phoneNumber) {
-                  throw new BadRequestException("Invalid Verified Phone Id.");
+                  if (!phoneResource?.phoneNumber) {
+                    throw new BadRequestException("Invalid Verified Phone Id.");
+                  }
+
+                  sendTo = phoneResource.phoneNumber;
                 }
-
-                sendTo = phoneResource.phoneNumber;
               }
             }
 
-            const actionForZod = stepDto.action;
-            const templateForZod = stepDto.template;
+            const actionForZod = stepDto.action.toUpperCase() as unknown as Uppercase<StepActionsType>;
+            const templateForZod = stepDto.template as unknown as Uppercase<TemplateType>;
 
             return {
               id: stepDto.id ?? -(index + 1),
@@ -242,14 +280,20 @@ export class TeamWorkflowsService {
               numberRequired: null,
               sender: stepDto.sender ?? null,
               senderName: stepDto.sender ?? null,
-              includeCalendarEvent: stepDto.includeCalendarEvent ?? false,
+              includeCalendarEvent: includeCalendarEvent,
             };
           })
         )
       : currentData.steps.map((step) => ({ ...step, senderName: step.sender }));
 
-    const triggerForZod = updateDto?.trigger?.type ?? currentData.trigger;
-    const timeUnitForZod = updateDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null;
+    const triggerForZod =
+      (updateDto?.trigger?.type?.toUpperCase() as unknown as Uppercase<WorkflowTriggerType>) ??
+      currentData.trigger;
+    const timeUnitForZod =
+      updateDto.trigger instanceof OnBeforeEventTriggerDto ||
+      updateDto.trigger instanceof OnAfterEventTriggerDto
+        ? updateDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null
+        : undefined;
 
     const updateData: TUpdateInputSchema = {
       id: workflowIdToUse,
@@ -260,8 +304,12 @@ export class TeamWorkflowsService {
         [],
       steps: mappedSteps,
       trigger: triggerForZod,
-      time: updateDto?.trigger?.offset?.value ?? currentData?.time ?? null,
-      timeUnit: timeUnitForZod,
+      time:
+        updateDto.trigger instanceof OnBeforeEventTriggerDto ||
+        updateDto.trigger instanceof OnAfterEventTriggerDto
+          ? updateDto?.trigger?.offset?.value ?? currentData?.time ?? null
+          : null,
+      timeUnit: (timeUnitForZod?.toUpperCase() as unknown as Uppercase<TimeUnitType>) ?? null,
       isActiveOnAll: updateDto?.activation?.isActiveOnAllEventTypes ?? currentData.isActiveOnAll ?? false,
     } as const satisfies TUpdateInputSchema;
 

@@ -4,14 +4,18 @@ import { AppModule } from "@/app.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
+import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
 import {
-  CreateWorkflowDto,
-  WorkflowTriggerType,
-  WorkflowTimeUnit,
-  RecipientType,
-  StepAction,
-  TemplateType,
-} from "@/modules/workflows/inputs/create-workflow.input";
+  EMAIL_ATTENDEE,
+  ATTENDEE,
+  REMINDER,
+  SMS_NUMBER,
+  PHONE_NUMBER,
+  EMAIL_ADDRESS,
+  EMAIL,
+  WorkflowEmailAttendeeStepDto,
+} from "@/modules/workflows/inputs/workflow-step.input";
+import { BEFORE_EVENT, DAY } from "@/modules/workflows/inputs/workflow-trigger.input";
 // Adjust path if needed
 import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
 import { INestApplication } from "@nestjs/common";
@@ -59,10 +63,10 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       activeOnEventTypeIds: [],
     },
     trigger: {
-      type: WorkflowTriggerType.BEFORE_EVENT,
+      type: BEFORE_EVENT,
       offset: {
         value: 1,
-        unit: WorkflowTimeUnit.DAY,
+        unit: DAY,
       },
     },
     steps: [],
@@ -158,34 +162,32 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         activeOnEventTypeIds: [],
       },
       trigger: {
-        type: WorkflowTriggerType.BEFORE_EVENT,
+        type: BEFORE_EVENT,
         offset: {
           value: 1,
-          unit: WorkflowTimeUnit.DAY,
+          unit: DAY,
         },
       },
       steps: [
         {
           stepNumber: 1,
-          action: StepAction.EMAIL_ATTENDEE,
-          recipient: RecipientType.ATTENDEE,
-          template: TemplateType.REMINDER,
+          action: "email_attendee",
+          recipient: ATTENDEE,
+          template: REMINDER,
           sender: "CalcomE2EStep1",
           includeCalendarEvent: true,
           message: {
             subject: "Upcoming: {EVENT_NAME}",
             html: "<p>Reminder for your event {EVENT_NAME}.</p>",
-            text: "Reminder for your event {EVENT_NAME}.",
           },
         },
         {
           stepNumber: 2,
-          action: StepAction.SMS_NUMBER,
-          recipient: RecipientType.PHONE_NUMBER,
-          template: TemplateType.REMINDER,
+          action: "sms_number",
+          recipient: PHONE_NUMBER,
+          template: REMINDER,
           verifiedPhoneId: verifiedPhoneId,
           sender: "CalcomE2EStep2",
-          includeCalendarEvent: false,
           message: {
             subject: "Upcoming: {EVENT_NAME}",
             text: "Reminder for your event {EVENT_NAME}.",
@@ -193,9 +195,9 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
         },
         {
           stepNumber: 3,
-          action: StepAction.EMAIL_ADDRESS,
-          recipient: RecipientType.EMAIL,
-          template: TemplateType.REMINDER,
+          action: "email_address",
+          recipient: EMAIL,
+          template: REMINDER,
           verifiedEmailId: verifiedEmailId,
           sender: "CalcomE2EStep3",
           includeCalendarEvent: true,
@@ -329,9 +331,10 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     it("should update an existing workflow, update the first step and discard other steps", async () => {
       const step1 = createdWorkflow.steps.find((step) => step.stepNumber === 1);
       expect(step1).toBeDefined();
+      console.log("STEP", [{ ...step1, sender: "updatedSender" } as WorkflowEmailAttendeeStepDto]);
       const partialUpdateDto: Partial<CreateWorkflowDto> = {
         name: updatedName,
-        steps: step1 ? [{ ...step1, sender: "updatedSender" }] : [],
+        steps: step1 ? [{ ...step1, sender: "updatedSender" } as WorkflowEmailAttendeeStepDto] : [],
       };
       expect(createdWorkflowId).toBeDefined();
       expect(createdWorkflow).toBeDefined();
@@ -355,7 +358,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     it("should return 404 for updating a non-existent workflow ID", async () => {
       const partialUpdateDto: Partial<CreateWorkflowDto> = {
         name: updatedName,
-        steps: [{ ...createdWorkflow.steps[0], sender: "updatedSender" }],
+        steps: [{ ...createdWorkflow.steps[0], sender: "updatedSender" } as WorkflowEmailAttendeeStepDto],
       };
       return request(app.getHttpServer())
         .patch(`${basePath}/999999`)
@@ -367,7 +370,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     it("should return 401 if not authenticated", async () => {
       const partialUpdateDto: Partial<CreateWorkflowDto> = {
         name: updatedName,
-        steps: [{ ...createdWorkflow.steps[0], sender: "updatedSender" }],
+        steps: [{ ...createdWorkflow.steps[0], sender: "updatedSender" } as WorkflowEmailAttendeeStepDto],
       };
       expect(createdWorkflowId).toBeDefined();
       return request(app.getHttpServer())

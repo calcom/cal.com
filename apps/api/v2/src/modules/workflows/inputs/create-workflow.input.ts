@@ -1,8 +1,7 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsBoolean,
-  IsEnum,
   ArrayMinSize,
   IsNumber,
   IsOptional,
@@ -11,41 +10,36 @@ import {
   ValidateIf,
 } from "class-validator";
 
-export enum WorkflowTriggerType {
-  BEFORE_EVENT = "BEFORE_EVENT",
-  EVENT_CANCELLED = "EVENT_CANCELLED",
-  NEW_EVENT = "NEW_EVENT",
-  AFTER_EVENT = "AFTER_EVENT",
-  RESCHEDULE_EVENT = "RESCHEDULE_EVENT",
-}
-
-export enum WorkflowTimeUnit {
-  HOUR = "HOUR",
-  MINUTE = "MINUTE",
-  DAY = "DAY",
-}
-
-export enum RecipientType {
-  HOST = "HOST",
-  ATTENDEE = "ATTENDEE",
-  EMAIL = "EMAIL",
-  PHONE_NUMBER = "PHONE_NUMBER",
-}
-
-export enum StepAction {
-  EMAIL_HOST = "EMAIL_HOST",
-  EMAIL_ATTENDEE = "EMAIL_ATTENDEE",
-  EMAIL_ADDRESS = "EMAIL_ADDRESS",
-  SMS_ATTENDEE = "SMS_ATTENDEE",
-  SMS_NUMBER = "SMS_NUMBER",
-  WHATSAPP_ATTENDEE = "WHATSAPP_ATTENDEE",
-  WHATSAPP_NUMBER = "WHATSAPP_NUMBER",
-}
-
-export enum TemplateType {
-  REMINDER = "REMINDER",
-  CUSTOM = "CUSTOM",
-}
+import {
+  BaseWorkflowStepDto,
+  EMAIL_ADDRESS,
+  EMAIL_ATTENDEE,
+  EMAIL_HOST,
+  SMS_ATTENDEE,
+  SMS_NUMBER,
+  WHATSAPP_ATTENDEE,
+  WHATSAPP_NUMBER,
+  WorkflowEmailAddressStepDto,
+  WorkflowEmailAttendeeStepDto,
+  WorkflowEmailHostStepDto,
+  WorkflowPhoneAttendeeStepDto,
+  WorkflowPhoneNumberStepDto,
+  WorkflowPhoneWhatsAppAttendeeStepDto,
+  WorkflowPhoneWhatsAppNumberStepDto,
+} from "./workflow-step.input";
+import {
+  AFTER_EVENT,
+  BaseWorkflowTriggerDto,
+  BEFORE_EVENT,
+  EVENT_CANCELLED,
+  NEW_EVENT,
+  OnAfterEventTriggerDto,
+  OnBeforeEventTriggerDto,
+  OnCancelTriggerDto,
+  OnCreationTriggerDto,
+  OnRescheduleTriggerDto,
+  RESCHEDULE_EVENT,
+} from "./workflow-trigger.input";
 
 export class WorkflowActivationDto {
   @ApiProperty({
@@ -54,154 +48,28 @@ export class WorkflowActivationDto {
     type: Boolean,
   })
   @IsBoolean()
-  isActiveOnAllEventTypes!: boolean;
+  isActiveOnAllEventTypes = false;
 
   @ApiPropertyOptional({
     description: "List of active calendar IDs the workflow applies to, required if isActiveOnAll is false",
     example: [698191],
     type: [Number],
   })
-  @ValidateIf((o) => !Boolean(o.isActiveOnAll))
+  @ValidateIf((o) => !Boolean(o.isActiveOnAllEventTypes))
   @IsOptional()
   @IsNumber({}, { each: true })
-  activeOnEventTypeIds?: number[] = [];
+  activeOnEventTypeIds: number[] = [];
 }
 
-export class WorkflowTriggerOffsetDto {
-  @ApiProperty({ description: "Time value for offset before/after event trigger", example: 24, type: Number })
-  @IsNumber()
-  value!: number;
-
-  @ApiProperty({ description: "Unit for the offset time", example: "HOUR", enum: WorkflowTimeUnit })
-  @IsEnum(WorkflowTimeUnit)
-  unit!: WorkflowTimeUnit;
-}
-
-export class WorkflowTriggerDto {
-  @ApiProperty({
-    description: "Trigger type for the workflow",
-    example: "BEFORE_EVENT",
-    enum: WorkflowTriggerType,
-  })
-  @IsEnum(WorkflowTriggerType)
-  type!: WorkflowTriggerType;
-
-  @ApiPropertyOptional({
-    description: "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
-    type: WorkflowTriggerOffsetDto,
-    required: false,
-  })
-  @ValidateIf((o) =>
-    Boolean(
-      o.type && (o.type === WorkflowTriggerType.BEFORE_EVENT || o.type === WorkflowTriggerType.AFTER_EVENT)
-    )
-  )
-  @ValidateNested()
-  @Type(() => WorkflowTriggerOffsetDto)
-  @IsOptional()
-  offset?: WorkflowTriggerOffsetDto;
-}
-
-export class WorkflowMessageDto {
-  @ApiProperty({
-    description: "Subject of the message",
-    example: "Reminder: Your Meeting {EVENT_NAME} - {EVENT_DATE_ddd, MMM D, YYYY h:mma} with Cal.com",
-  })
-  @IsString()
-  subject!: string;
-
-  @ApiProperty({
-    description: "HTML content of the message (used for Emails)",
-    example:
-      "<p>This is a reminder from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here  {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.</p>",
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  html?: string;
-
-  @ApiProperty({
-    description: "Text content of the message (used for SMS)",
-    example:
-      "This is a reminder message from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.",
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  text?: string;
-}
-
-export class WorkflowStepDto {
-  @ApiProperty({ description: "Step number in the workflow sequence", example: 1 })
-  @IsNumber()
-  stepNumber!: number;
-
-  @ApiProperty({ description: "Action to perform", example: "EMAIL_HOST", enum: StepAction })
-  @IsEnum(StepAction)
-  action!: StepAction;
-
-  @ApiProperty({ description: "Recipient type", example: "ATTENDEE", enum: RecipientType })
-  @IsEnum(RecipientType)
-  recipient!: RecipientType;
-
-  @ApiPropertyOptional({
-    description: "Email address if recipient is EMAIL, required for action EMAIL_ADDRESS",
-    example: "31214",
-    required: false,
-    externalDocs: {
-      url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-an-email-for-an-org-team",
-    },
-  })
-  @ValidateIf((o) => Boolean(o.action && o.action === StepAction.EMAIL_ADDRESS))
-  @IsNumber()
-  verifiedEmailId?: number;
-
-  @ApiPropertyOptional({
-    description:
-      "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
-    example: "3243434",
-    required: false,
-    externalDocs: {
-      url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team",
-    },
-  })
-  @ValidateIf((o) =>
-    Boolean(o.action && (o.action === StepAction.SMS_NUMBER || o.action === StepAction.WHATSAPP_NUMBER))
-  )
-  @IsNumber()
-  verifiedPhoneId?: number;
-
-  @ApiProperty({ description: "Template type for the step", example: "REMINDER", enum: TemplateType })
-  @IsEnum(TemplateType)
-  template!: TemplateType;
-
-  @ApiPropertyOptional({
-    description:
-      "Whether to include a calendar event in the notification, can be included with actions EMAIL_HOST, EMAIL_ATTENDEE, EMAIL_ADDRESS ",
-    example: true,
-  })
-  @ValidateIf((o) =>
-    Boolean(
-      o.action &&
-        (o.action === StepAction.EMAIL_HOST ||
-          o.action === StepAction.EMAIL_ADDRESS ||
-          o.action === StepAction.EMAIL_ATTENDEE)
-    )
-  )
-  @IsBoolean()
-  includeCalendarEvent = false;
-
-  @ApiProperty({ description: "Displayed sender name.", type: String })
-  @IsString()
-  sender!: string;
-
-  @ApiProperty({ description: "Message content for this step", type: WorkflowMessageDto })
-  @ValidateNested()
-  @Type(() => WorkflowMessageDto)
-  message!: WorkflowMessageDto;
-}
-
-export class UpdateWorkflowStepDto extends WorkflowStepDto {
+export type UpdateWorkflowStepDto =
+  | UpdateEmailAttendeeWorkflowStepDto
+  | UpdateEmailAddressWorkflowStepDto
+  | UpdateEmailHostWorkflowStepDto
+  | UpdateWhatsAppAttendeePhoneWorkflowStepDto
+  | UpdatePhoneWhatsAppNumberWorkflowStepDto
+  | UpdatePhoneAttendeeWorkflowStepDto
+  | UpdatePhoneNumberWorkflowStepDto;
+export class UpdateEmailAttendeeWorkflowStepDto extends WorkflowEmailAttendeeStepDto {
   @ApiProperty({
     description:
       "Unique identifier of the step you want to update, if adding a new step do not provide this id",
@@ -211,6 +79,69 @@ export class UpdateWorkflowStepDto extends WorkflowStepDto {
   id?: number;
 }
 
+export class UpdateEmailAddressWorkflowStepDto extends WorkflowEmailAddressStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+
+export class UpdateEmailHostWorkflowStepDto extends WorkflowEmailHostStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+
+export class UpdatePhoneWhatsAppNumberWorkflowStepDto extends WorkflowPhoneWhatsAppNumberStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+export class UpdatePhoneAttendeeWorkflowStepDto extends WorkflowPhoneAttendeeStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+export class UpdatePhoneNumberWorkflowStepDto extends WorkflowPhoneNumberStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWhatsAppAttendeeStepDto {
+  @ApiProperty({
+    description:
+      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+    example: 67244,
+  })
+  @IsNumber()
+  id?: number;
+}
+
+export type TriggerDtoType =
+  | OnAfterEventTriggerDto
+  | OnBeforeEventTriggerDto
+  | OnCreationTriggerDto
+  | OnRescheduleTriggerDto
+  | OnCancelTriggerDto;
 export class CreateWorkflowDto {
   @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
@@ -221,16 +152,66 @@ export class CreateWorkflowDto {
   @Type(() => WorkflowActivationDto)
   activation!: WorkflowActivationDto;
 
-  @ApiProperty({ description: "Trigger configuration for the workflow", type: WorkflowTriggerDto })
+  @ApiProperty({ description: "Trigger configuration for the workflow", type: BaseWorkflowTriggerDto })
   @ValidateNested()
-  @Type(() => WorkflowTriggerDto)
-  trigger!: WorkflowTriggerDto;
+  @Type(() => BaseWorkflowTriggerDto, {
+    discriminator: {
+      property: "type",
+      subTypes: [
+        { value: OnBeforeEventTriggerDto, name: BEFORE_EVENT },
+        { value: OnAfterEventTriggerDto, name: AFTER_EVENT },
+        { value: OnCancelTriggerDto, name: EVENT_CANCELLED },
+        { value: OnCreationTriggerDto, name: NEW_EVENT },
+        { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
+      ],
+    },
+  })
+  trigger!:
+    | OnAfterEventTriggerDto
+    | OnBeforeEventTriggerDto
+    | OnCreationTriggerDto
+    | OnRescheduleTriggerDto
+    | OnCancelTriggerDto;
 
-  @ApiProperty({ description: "Steps to execute as part of the workflow", type: [WorkflowStepDto] })
+  @ApiProperty({
+    description: "Steps to execute as part of the workflow",
+    items: {
+      oneOf: [
+        { $ref: getSchemaPath(WorkflowEmailAddressStepDto) },
+        { $ref: getSchemaPath(WorkflowEmailAttendeeStepDto) },
+        { $ref: getSchemaPath(WorkflowEmailHostStepDto) },
+        { $ref: getSchemaPath(WorkflowPhoneWhatsAppAttendeeStepDto) },
+        { $ref: getSchemaPath(WorkflowPhoneWhatsAppNumberStepDto) },
+        { $ref: getSchemaPath(WorkflowPhoneNumberStepDto) },
+        { $ref: getSchemaPath(WorkflowPhoneAttendeeStepDto) },
+      ],
+    },
+  })
   @ValidateNested({ each: true })
   @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })
-  @Type(() => WorkflowStepDto)
-  steps!: WorkflowStepDto[];
+  @Type(() => BaseWorkflowStepDto, {
+    discriminator: {
+      property: "action",
+      subTypes: [
+        { value: WorkflowEmailAddressStepDto, name: EMAIL_ADDRESS },
+        { value: WorkflowEmailAttendeeStepDto, name: EMAIL_ATTENDEE },
+        { value: WorkflowEmailHostStepDto, name: EMAIL_HOST },
+        { value: WorkflowPhoneWhatsAppAttendeeStepDto, name: WHATSAPP_ATTENDEE },
+        { value: WorkflowPhoneWhatsAppNumberStepDto, name: WHATSAPP_NUMBER },
+        { value: WorkflowPhoneNumberStepDto, name: SMS_NUMBER },
+        { value: WorkflowPhoneAttendeeStepDto, name: SMS_ATTENDEE },
+      ],
+    },
+  })
+  steps!: (
+    | WorkflowEmailAddressStepDto
+    | WorkflowEmailAttendeeStepDto
+    | WorkflowEmailHostStepDto
+    | WorkflowPhoneWhatsAppAttendeeStepDto
+    | WorkflowPhoneWhatsAppNumberStepDto
+    | WorkflowPhoneNumberStepDto
+    | WorkflowPhoneAttendeeStepDto
+  )[];
 }
 
 export class UpdateWorkflowDto {
@@ -245,16 +226,63 @@ export class UpdateWorkflowDto {
   @IsOptional()
   activation?: WorkflowActivationDto;
 
-  @ApiProperty({ description: "Trigger configuration for the workflow", type: WorkflowTriggerDto })
-  @ValidateNested()
-  @IsOptional()
-  @Type(() => WorkflowTriggerDto)
-  trigger?: WorkflowTriggerDto;
+  @Type(() => BaseWorkflowTriggerDto, {
+    discriminator: {
+      property: "type",
+      subTypes: [
+        { value: OnBeforeEventTriggerDto, name: BEFORE_EVENT },
+        { value: OnAfterEventTriggerDto, name: AFTER_EVENT },
+        { value: OnCancelTriggerDto, name: EVENT_CANCELLED },
+        { value: OnCreationTriggerDto, name: NEW_EVENT },
+        { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
+      ],
+    },
+  })
+  trigger!:
+    | OnAfterEventTriggerDto
+    | OnBeforeEventTriggerDto
+    | OnCreationTriggerDto
+    | OnRescheduleTriggerDto
+    | OnCancelTriggerDto;
 
-  @ApiProperty({ description: "Steps to execute as part of the workflow", type: [WorkflowStepDto] })
+  @ApiProperty({
+    description: "Steps to execute as part of the workflow",
+    items: {
+      oneOf: [
+        { $ref: getSchemaPath(UpdateEmailAddressWorkflowStepDto) },
+        { $ref: getSchemaPath(UpdateEmailAttendeeWorkflowStepDto) },
+        { $ref: getSchemaPath(UpdateEmailHostWorkflowStepDto) },
+        { $ref: getSchemaPath(UpdatePhoneAttendeeWorkflowStepDto) },
+        { $ref: getSchemaPath(UpdatePhoneWhatsAppNumberWorkflowStepDto) },
+        { $ref: getSchemaPath(UpdateWhatsAppAttendeePhoneWorkflowStepDto) },
+        { $ref: getSchemaPath(UpdatePhoneNumberWorkflowStepDto) },
+      ],
+    },
+  })
   @ValidateNested({ each: true })
   @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })
   @IsOptional()
-  @Type(() => UpdateWorkflowStepDto)
-  steps?: UpdateWorkflowStepDto[];
+  @Type(() => BaseWorkflowStepDto, {
+    discriminator: {
+      property: "action",
+      subTypes: [
+        { value: UpdateEmailAddressWorkflowStepDto, name: EMAIL_ADDRESS },
+        { value: UpdateEmailAttendeeWorkflowStepDto, name: EMAIL_ATTENDEE },
+        { value: UpdateEmailHostWorkflowStepDto, name: EMAIL_HOST },
+        { value: UpdateWhatsAppAttendeePhoneWorkflowStepDto, name: WHATSAPP_ATTENDEE },
+        { value: UpdatePhoneWhatsAppNumberWorkflowStepDto, name: WHATSAPP_NUMBER },
+        { value: UpdatePhoneNumberWorkflowStepDto, name: SMS_NUMBER },
+        { value: UpdatePhoneAttendeeWorkflowStepDto, name: SMS_ATTENDEE },
+      ],
+    },
+  })
+  steps?: (
+    | UpdateEmailAddressWorkflowStepDto
+    | UpdateEmailAttendeeWorkflowStepDto
+    | UpdateEmailHostWorkflowStepDto
+    | UpdatePhoneAttendeeWorkflowStepDto
+    | UpdatePhoneWhatsAppNumberWorkflowStepDto
+    | UpdateWhatsAppAttendeePhoneWorkflowStepDto
+    | UpdatePhoneNumberWorkflowStepDto
+  )[];
 }
