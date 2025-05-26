@@ -147,7 +147,6 @@ export const BookerPlatformWrapper = (
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
 
-  // we need these two hooks useEventType and useTeamEventType for calendar
   const { isSuccess, isError, isPending, data } = useEventType(username, props.eventSlug, props.isTeamEvent);
   const {
     isSuccess: isTeamSuccess,
