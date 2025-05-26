@@ -208,6 +208,10 @@ export class BillingService implements OnModuleDestroy {
         await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, false);
       }
     }
+
+    if (!subscriptionId || !customerId) {
+      this.logger.log(`SubscriptionId: ${subscriptionId} or customerId: ${customerId} missing`);
+    }
   }
 
   async handleStripeCheckoutEvents(event: Stripe.Event) {
