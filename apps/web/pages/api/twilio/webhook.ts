@@ -76,7 +76,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const creditService = new CreditService();
 
   if (countryCode === "US" || countryCode === "CA") {
-    // SMS to US and CA are free on a team plan
+    // SMS to US and CA are free for teams
     let teamIdToCharge = parsedTeamId;
 
     if (!teamIdToCharge && parsedUserId) {
@@ -92,15 +92,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       teamIdToCharge = teamMembership?.teamId;
     }
 
-    await creditService.chargeCredits({
-      teamId: teamIdToCharge,
-      userId: !teamIdToCharge ? parsedUserId : undefined,
-      bookingUid: parsedBookingUid,
-      smsSid,
-      credits: 0,
-    });
+    if (teamIdToCharge) {
+      await creditService.chargeCredits({
+        teamId: teamIdToCharge,
+        bookingUid: parsedBookingUid,
+        smsSid,
+        credits: 0,
+      });
 
-    return res.status(200).send(`SMS to US and CA are free on a team plan. Credits set to 0`);
+      return res.status(200).send(`SMS to US and CA are free for teams. Credits set to 0`);
+    }
   }
 
   let orgId;
