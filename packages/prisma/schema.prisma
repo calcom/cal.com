@@ -844,6 +844,10 @@ model SelectedCalendar {
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
   error                            String?
+  lastErrorAt                      DateTime?
+  watchAttempts                    Int                   @default(0)
+  unwatchAttempts                  Int                   @default(0)
+  maxAttempts                      Int                   @default(3)
 
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
@@ -854,10 +858,12 @@ model SelectedCalendar {
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
   @@index([userId])
-  @@index([integration])
   @@index([externalId])
   @@index([eventTypeId])
   @@index([credentialId])
+  // Composite indices to optimize calendar-cache queries
+  @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
+  @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
 }
 
 enum EventTypeCustomInputType {
