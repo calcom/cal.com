@@ -458,7 +458,6 @@ export const insightsRouter = router({
     }
 
     const timeView = EventsInsights.getTimeView(dayjs(startDate), dayjs(endDate));
-
     const r = await buildBaseWhereCondition({
       teamId,
       eventTypeId: eventTypeId ?? undefined,
