@@ -19,10 +19,12 @@ export const useSheetsService = (credentials: any[]): SheetsServiceHook => {
   const [spreadsheets, setSpreadsheets] = useState<SpreadsheetFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Get the tRPC hooks - use type assertion to avoid type leakage
-  const utils = trpc.useContext();
+  // Use type assertion for all trpc methods to avoid type leakage
+  const trpcAny = trpc as any;
+  const utils = trpcAny.useContext();
 
-  const googleSheetsRouter = trpc.viewer.googleSheets as any;
+  // Use type assertion for the entire chain to prevent type leakage
+  const googleSheetsRouter = trpcAny.viewer.googleSheets;
 
   const listSpreadsheetsQuery = googleSheetsRouter.listSpreadsheets.useQuery(
     { credentialId: credentialId || 0 },
