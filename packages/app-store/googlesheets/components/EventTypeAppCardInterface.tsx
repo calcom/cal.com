@@ -50,7 +50,8 @@ export const EventTypeAppCard = ({ eventType, app }: EventTypeAppCardComponentPr
     name: String(sheet.name || ""),
   }));
 
-  const updateEventTypeMutation = (trpc.viewer as any).eventTypes.update.useMutation({
+  const trpcAny = trpc as any;
+  const updateEventTypeMutation = trpcAny.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
       showToast(t("event_type_updated_successfully"), "success");
     },
