@@ -489,7 +489,7 @@ export const insightsRouter = router({
       whereConditional,
       dayjs(startDate),
       dayjs(endDate),
-      timeView
+      dateRanges
     );
 
     const result = dateRanges.map(({ formattedDate }) => {

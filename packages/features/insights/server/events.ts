@@ -80,16 +80,15 @@ class EventsInsights {
     whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput,
     startDate: Dayjs,
     endDate: Dayjs,
-    timeView: "week" | "month" | "year" | "day"
+    dateRanges: DateRange[]
   ): Promise<AggregateResult> => {
-    // Determine the date truncation and date range based on timeView
     const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD HH:mm:ss");
     const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD HH:mm:ss");
     const whereClause = buildSqlCondition(whereConditional);
 
     const data = await prisma.$queryRaw<
       {
-        periodStart: Date;
+        date: Date;
         bookingsCount: number;
         timeStatus: string;
         noShowHost: boolean;
@@ -97,14 +96,14 @@ class EventsInsights {
       }[]
     >`
     SELECT
-      "periodStart",
+      DATE("createdAt") as "date",
       CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
       CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
       "timeStatus",
       "noShowHost"
     FROM (
       SELECT
-        DATE_TRUNC(${timeView}, "createdAt") AS "periodStart",
+        "createdAt",
         "a"."noShow" AS "isNoShowGuest",
         "timeStatus",
         "noShowHost"
@@ -115,41 +114,46 @@ class EventsInsights {
       WHERE
         "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
         AND ${Prisma.raw(whereClause)}
-    ) AS truncated_dates
+    ) AS bookings
     GROUP BY
-      "periodStart",
+      DATE("createdAt"),
       "timeStatus",
       "noShowHost"
     ORDER BY
-      "periodStart";
+      "date";
   `;
 
     const aggregate: AggregateResult = {};
-    data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
-      const formattedDate = dayjs(periodStart).format("MMM D, YYYY");
 
-      if (dayjs(periodStart).isAfter(endDate)) {
-        return;
-      }
+    // Initialize all date ranges with zero counts
+    dateRanges.forEach(({ startDate, endDate, formattedDate }) => {
+      aggregate[formattedDate] = {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        noShowHost: 0,
+        noShowGuests: 0,
+        _all: 0,
+        uncompleted: 0,
+      };
+    });
 
-      // Ensure the date entry exists in the aggregate object
-      if (!aggregate[formattedDate]) {
-        aggregate[formattedDate] = {
-          completed: 0,
-          rescheduled: 0,
-          cancelled: 0,
-          noShowHost: 0,
-          _all: 0,
-          uncompleted: 0,
-          noShowGuests: 0,
-        };
-      }
+    // Process the raw data
+    data.forEach(({ date, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
+      // Find which date range this date belongs to
+      const dateRange = dateRanges.find((range) =>
+        dayjs(date).isBetween(range.startDate, range.endDate, null, "[]")
+      );
+
+      if (!dateRange) return;
+
+      const formattedDate = dateRange.formattedDate;
+      const statusKey = timeStatus as keyof StatusAggregate;
 
       // Add to the specific status count
-      const statusKey = timeStatus as keyof StatusAggregate;
       aggregate[formattedDate][statusKey] += Number(bookingsCount);
 
-      // Always add to the total count (_all)
+      // Add to the total count (_all)
       aggregate[formattedDate]["_all"] += Number(bookingsCount);
 
       // Track no-show host counts separately
@@ -159,41 +163,6 @@ class EventsInsights {
 
       // Track no-show guests explicitly
       aggregate[formattedDate]["noShowGuests"] += noShowGuests;
-    });
-
-    // Generate a complete list of expected date labels based on the timeline
-    let current = dayjs(startDate);
-    const expectedDates: string[] = [];
-
-    while (current.isBefore(endDate) || current.isSame(endDate)) {
-      const formattedDate = current.format("MMM D, YYYY");
-      expectedDates.push(formattedDate);
-
-      // Increment based on the selected timeView
-      if (timeView === "day") {
-        current = current.add(1, "day");
-      } else if (timeView === "week") {
-        current = current.add(1, "week");
-      } else if (timeView === "month") {
-        current = current.add(1, "month");
-      } else if (timeView === "year") {
-        current = current.add(1, "year");
-      }
-    }
-
-    // Fill in any missing dates with zero counts
-    expectedDates.forEach((label) => {
-      if (!aggregate[label]) {
-        aggregate[label] = {
-          completed: 0,
-          rescheduled: 0,
-          cancelled: 0,
-          noShowHost: 0,
-          noShowGuests: 0,
-          _all: 0,
-          uncompleted: 0,
-        };
-      }
     });
 
     return aggregate;
