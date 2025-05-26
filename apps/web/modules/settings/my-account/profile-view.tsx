@@ -11,7 +11,6 @@ import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import ScheduleTimezoneUpdateDialog from "@calcom/features/settings/ScheduleTimezoneUpdateDialog";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
@@ -101,11 +100,6 @@ const ProfileView = () => {
       utils.viewer.me.invalidate();
       utils.viewer.me.shouldVerifyEmail.invalidate();
 
-      if (tempFormValues?.timeZone && tempFormValues.timeZone !== user?.timeZone) {
-        setPendingTimezone(tempFormValues.timeZone);
-        setShowScheduleTimezoneDialog(true);
-      }
-
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
         showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
       } else {
@@ -158,8 +152,6 @@ const ProfileView = () => {
   const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
   const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] = useState("");
   const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<undefined | string>(undefined);
-  const [showScheduleTimezoneDialog, setShowScheduleTimezoneDialog] = useState(false);
-  const [pendingTimezone, setPendingTimezone] = useState<string | null>(null);
 
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
@@ -481,15 +473,6 @@ const ProfileView = () => {
           onCancel={() => setNewlyAddedSecondaryEmail(undefined)}
         />
       )}
-
-      <ScheduleTimezoneUpdateDialog
-        open={showScheduleTimezoneDialog}
-        onOpenChange={setShowScheduleTimezoneDialog}
-        timeZone={pendingTimezone || ""}
-        onConfirm={() => {
-          setPendingTimezone(null);
-        }}
-      />
     </>
   );
 };
