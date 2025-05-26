@@ -1,4 +1,4 @@
-import { ApiProperty as DocsProperty, ApiHideProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiHideProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsString, IsNumber, IsBoolean, IsOptional, IsUrl } from "class-validator";
 
 // note(Lauris): We will gradually expose more properties if any customer needs them.
@@ -6,7 +6,7 @@ import { IsString, IsNumber, IsBoolean, IsOptional, IsUrl } from "class-validato
 
 export class EventTypeLocation_2024_04_15 {
   @IsString()
-  @DocsProperty({ example: "link" })
+  @ApiProperty({ example: "link" })
   type!: string;
 
   @IsOptional()
@@ -16,7 +16,7 @@ export class EventTypeLocation_2024_04_15 {
 
   @IsOptional()
   @IsUrl()
-  @DocsProperty({ example: "https://masterchief.com/argentina/flan/video/9129412" })
+  @ApiPropertyOptional({ example: "https://masterchief.com/argentina/flan/video/9129412" })
   link?: string;
 
   @IsOptional()

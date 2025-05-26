@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Monobot CX",
+  "slug": "monobot",
+  "type": "monobot_automation",
+  "logo": "icon.svg",
+  "url": "https://monobot.ai/?ref=cal.com",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Monobot CX",
+  "email": "contact@monobot.ai",
+  "description": "Crafting your personalized AI-driven assistant is easy and fast.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

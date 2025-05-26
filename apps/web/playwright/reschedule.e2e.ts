@@ -50,6 +50,53 @@ test.describe("Reschedule Tests", async () => {
     await booking.delete();
   });
 
+  test("Should not show reschedule and request reschedule option if booking in past and disallowed", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
+      status: BookingStatus.ACCEPTED,
+      startTime: dayjs().subtract(2, "day").toDate(),
+      endTime: dayjs().subtract(2, "day").add(30, "minutes").toDate(),
+    });
+
+    await prisma.eventType.update({
+      where: {
+        id: user.eventTypes[0].id,
+      },
+      data: {
+        allowReschedulingPastBookings: true,
+      },
+    });
+
+    await user.apiLogin();
+    await page.goto("/bookings/past");
+
+    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+
+    await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
+
+    await prisma.eventType.update({
+      where: {
+        id: user.eventTypes[0].id,
+      },
+      data: {
+        allowReschedulingPastBookings: false,
+      },
+    });
+
+    await page.reload();
+
+    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+
+    await expect(page.locator('[data-testid="reschedule"]')).toBeHidden();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeHidden();
+  });
+
   test("Should display former time when rescheduling availability", async ({ page, users, bookings }) => {
     const user = await users.create();
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

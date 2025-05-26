@@ -7,9 +7,8 @@ export type PageProps = inferSSRProps<typeof getServerSidePropsForMembers>;
 
 export const getServerSidePropsForMembers = async function getServerSidePropsForMembers({
   req,
-  res,
 }: GetServerSidePropsContext) {
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   if (!session || !session.user) {
     return {

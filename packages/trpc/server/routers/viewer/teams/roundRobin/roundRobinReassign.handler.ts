@@ -1,6 +1,6 @@
 import { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -23,7 +23,11 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
     throw new TRPCError({ code: "FORBIDDEN", message: "You do not have permission" });
   }
 
-  return await roundRobinReassignment({ bookingId, orgId: ctx.user.organizationId });
+  return await roundRobinReassignment({
+    bookingId,
+    orgId: ctx.user.organizationId,
+    reassignedById: ctx.user.id,
+  });
 };
 
 export default roundRobinReassignHandler;

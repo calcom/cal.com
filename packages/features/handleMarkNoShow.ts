@@ -8,6 +8,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
@@ -82,7 +83,12 @@ const handleMarkNoShow = async ({
   noShowHost,
   userId,
   locale,
-}: TNoShowInputSchema & { userId?: number; locale?: string }) => {
+  platformClientParams,
+}: TNoShowInputSchema & {
+  userId?: number;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+}) => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
 
@@ -94,13 +100,17 @@ const handleMarkNoShow = async ({
 
       const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
 
-      const { webhooks, bookingId } = await getWebhooksService(bookingUid);
+      const { webhooks, bookingId } = await getWebhooksService(
+        bookingUid,
+        platformClientParams?.platformClientId
+      );
 
       await webhooks.sendPayload({
         ...payload,
         /** We send webhook message pre-translated, on client we already handle this */
         bookingUid,
         bookingId,
+        ...(platformClientParams ? platformClientParams : {}),
       });
 
       responsePayload.setAttendees(payload.attendees);
@@ -179,7 +189,7 @@ const updateAttendees = async (
     .map((x) => ({ email: x.email, noShow: x.noShow }));
 };
 
-const getWebhooksService = async (bookingUid: string) => {
+const getWebhooksService = async (bookingUid: string, platformClientId?: string) => {
   const booking = await prisma.booking.findUnique({
     where: { uid: bookingUid },
     select: {
@@ -204,6 +214,7 @@ const getWebhooksService = async (bookingUid: string) => {
     eventTypeId: booking?.eventType?.id,
     orgId,
     triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+    oAuthClientId: platformClientId,
   });
 
   return { webhooks, bookingId: booking?.id };

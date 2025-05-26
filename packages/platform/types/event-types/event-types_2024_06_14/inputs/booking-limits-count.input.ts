@@ -49,6 +49,7 @@ export class BaseBookingLimitsCount_2024_06_14 {
 
   @IsOptional()
   @IsBoolean()
+  @ApiPropertyOptional({ type: Boolean, default: false })
   disabled?: boolean = false;
 }
 
@@ -60,8 +61,9 @@ class BookingLimitsCountValidator implements ValidatorConstraintInterface {
     invalidLimit?: string;
     comparedLimit?: string;
   } = {};
+
   validate(value: BookingLimitsCount_2024_06_14) {
-    if (!value) return false;
+    if (!value || typeof value !== "object") return false;
     if ("disabled" in value) {
       return true;
     }
@@ -95,16 +97,16 @@ class BookingLimitsCountValidator implements ValidatorConstraintInterface {
   defaultMessage() {
     const { invalidLimit, comparedLimit } = this.errorDetails;
     if (invalidLimit && comparedLimit) {
-      return `Invalid booking limits: The number of bookings for ${invalidLimit} cannot exceed the number of bookings for ${comparedLimit}.`;
+      return `Invalid bookingLimitsCount: The number of bookings for ${invalidLimit} cannot exceed the number of bookings for ${comparedLimit}.`;
     }
-    return `Invalid booking limits count structure`;
+    return `Invalid bookingLimitsCount`;
   }
 }
 
-export function ValidateBookingLimistsCount(validationOptions?: ValidationOptions) {
+export function ValidateBookingLimitsCount(validationOptions?: ValidationOptions) {
   return function (object: any, propertyName: string) {
     registerDecorator({
-      name: "ValidateBookingLimistsCount",
+      name: "ValidateBookingLimitsCount",
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,

@@ -1,3 +1,4 @@
+import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -5,6 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -12,19 +14,15 @@ import { RedirectType } from "@calcom/prisma/enums";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
-
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
 
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
@@ -37,6 +35,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
           users: {
             select: {
               username: true,
+              profiles: {
+                select: {
+                  id: true,
+                  organizationId: true,
+                  username: true,
+                },
+              },
             },
           },
           team: {
@@ -61,13 +66,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   if (!hashedLink) {
     return notFound;
   }
+  const username = hashedLink.eventType.users[0]?.username;
+  const profileUsername = hashedLink.eventType.users[0]?.profiles[0]?.username;
 
   if (hashedLink.eventType.team) {
     name = hashedLink.eventType.team.slug || "";
     hideBranding = hashedLink.eventType.team.hideBranding;
   } else {
-    const username = hashedLink.eventType.users[0]?.username;
-
     if (!username) {
       return notFound;
     }
@@ -85,8 +90,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       }
     }
 
+    name = profileUsername || username;
+
     const [user] = await UserRepository.findUsersByUsername({
-      usernameList: [username],
+      usernameList: [name],
       orgSlug: org,
     });
 
@@ -94,7 +101,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       return notFound;
     }
 
-    name = username;
     hideBranding = user.hideBranding;
   }
 
@@ -105,15 +111,16 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
 
-  // We use this to both prefetch the query on the server,
-  // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
-    username: name,
-    eventSlug: slug,
-    isTeamEvent,
-    org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-  });
+  const eventData = await EventRepository.getPublicEvent(
+    {
+      username: name,
+      eventSlug: slug,
+      isTeamEvent,
+      org,
+      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    },
+    session?.user?.id
+  );
 
   if (!eventData) {
     return notFound;
@@ -121,6 +128,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      eventData,
       entity: eventData.entity,
       duration: getMultipleDurationValue(
         eventData.metadata?.multipleDuration,
@@ -131,7 +139,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       booking,
       user: name,
       slug,
-      trpcState: ssr.dehydrate(),
       isBrandingHidden: hideBranding,
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.

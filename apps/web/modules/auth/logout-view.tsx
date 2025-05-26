@@ -2,20 +2,19 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import type { ParsedUrlQuery } from "querystring";
 import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
-import type { getServerSideProps } from "@server/lib/auth/logout/getServerSideProps";
-
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = {
+  query: ParsedUrlQuery;
+};
 
 export function Logout(props: PageProps) {
   const [btnLoading, setBtnLoading] = useState<boolean>(false);
@@ -42,7 +41,7 @@ export function Logout(props: PageProps) {
   };
 
   return (
-    <AuthContainer title={t("logged_out")} description={t("youve_been_logged_out")} showLogo>
+    <AuthContainer showLogo>
       <div className="mb-4">
         <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
           <Icon name="check" className="h-6 w-6 text-green-600" />

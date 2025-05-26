@@ -1,5 +1,5 @@
 import type { Table } from "@tanstack/react-table";
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import type { UserTableUser } from "@calcom/features/users/components/UserTable/types";
 import { generateCsvRawForMembersTable, generateHeaderFromReactTable } from "@calcom/lib/csvUtils";
@@ -53,18 +53,7 @@ function createMockTable(data: UserTableUser[]): Table<UserTableUser> {
 }
 
 describe("generate Csv for Org Users Table", () => {
-  beforeAll(() => {
-    vi.stubGlobal("window", {
-      location: {
-        origin: "https://acme.cal.com",
-      },
-    });
-  });
-
-  afterAll(() => {
-    vi.unstubAllGlobals();
-  });
-
+  const orgDomain = "https://acme.cal.com";
   const mockAttributeIds = ["attr1", "attr2"];
   const mockUser: UserTableUser = {
     id: 1,
@@ -78,10 +67,13 @@ describe("generate Csv for Org Users Table", () => {
     completedOnboarding: true,
     teams: [],
     attributes: [],
+    lastActiveAt: "",
+    createdAt: null,
+    updatedAt: null,
   };
 
   it("should throw if no headers", () => {
-    expect(() => generateCsvRawForMembersTable([], [], mockAttributeIds)).toThrow();
+    expect(() => generateCsvRawForMembersTable([], [], mockAttributeIds, orgDomain)).toThrow();
   });
 
   it("should generate correct CSV headers", () => {
@@ -89,7 +81,8 @@ describe("generate Csv for Org Users Table", () => {
     const csv = generateCsvRawForMembersTable(
       generateHeaderFromReactTable(mockTable) ?? [],
       [],
-      mockAttributeIds
+      mockAttributeIds,
+      orgDomain
     );
     const headers = csv?.split("\n")[0];
     expect(headers).toBe("Members,Link,Role,Teams,Attribute 1,Attribute 2");
@@ -100,7 +93,17 @@ describe("generate Csv for Org Users Table", () => {
       {
         ...mockUser,
         teams: [{ id: 1, name: "Team1", slug: "team1" }],
-        attributes: [{ id: "1", attributeId: "attr1", value: "value1", slug: "slug1" }],
+        attributes: [
+          {
+            id: "1",
+            attributeId: "attr1",
+            value: "value1",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
+        ],
       },
     ];
 
@@ -108,7 +111,8 @@ describe("generate Csv for Org Users Table", () => {
     const csv = generateCsvRawForMembersTable(
       generateHeaderFromReactTable(mockTable) ?? [],
       mockData,
-      mockAttributeIds
+      mockAttributeIds,
+      orgDomain
     );
 
     expect(csv).toMatchInlineSnapshot(`
@@ -123,8 +127,24 @@ describe("generate Csv for Org Users Table", () => {
         ...mockUser,
         teams: [{ id: 1, name: "Team1", slug: "team1" }],
         attributes: [
-          { id: "1", attributeId: "attr1", value: "value1", slug: "slug1" },
-          { id: "2", attributeId: "attr1", value: "value2", slug: "slug1" },
+          {
+            id: "1",
+            attributeId: "attr1",
+            value: "value1",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
+          {
+            id: "2",
+            attributeId: "attr1",
+            value: "value2",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
         ],
       },
     ];
@@ -133,7 +153,8 @@ describe("generate Csv for Org Users Table", () => {
     const csv = generateCsvRawForMembersTable(
       generateHeaderFromReactTable(mockTable) ?? [],
       mockData,
-      mockAttributeIds
+      mockAttributeIds,
+      orgDomain
     );
 
     expect(csv).toMatchInlineSnapshot(`
@@ -158,7 +179,8 @@ describe("generate Csv for Org Users Table", () => {
     const csv = generateCsvRawForMembersTable(
       generateHeaderFromReactTable(mockTable) ?? [],
       mockData,
-      mockAttributeIds
+      mockAttributeIds,
+      orgDomain
     );
 
     expect(csv).toMatchInlineSnapshot(`
@@ -172,7 +194,17 @@ describe("generate Csv for Org Users Table", () => {
       {
         ...mockUser,
         teams: [{ id: 1, name: "Team,1", slug: "team1" }],
-        attributes: [{ id: "1", attributeId: "attr1", value: "value,1", slug: "slug1" }],
+        attributes: [
+          {
+            id: "1",
+            attributeId: "attr1",
+            value: "value,1",
+            slug: "slug1",
+            contains: [],
+            weight: 0,
+            isGroup: false,
+          },
+        ],
       },
     ];
 
@@ -180,7 +212,8 @@ describe("generate Csv for Org Users Table", () => {
     const csv = generateCsvRawForMembersTable(
       generateHeaderFromReactTable(mockTable) ?? [],
       mockData,
-      mockAttributeIds
+      mockAttributeIds,
+      orgDomain
     );
 
     expect(csv).toMatchInlineSnapshot(`
@@ -202,7 +235,8 @@ describe("generate Csv for Org Users Table", () => {
     const csv = generateCsvRawForMembersTable(
       generateHeaderFromReactTable(mockTable) ?? [],
       mockData,
-      mockAttributeIds
+      mockAttributeIds,
+      orgDomain
     );
 
     expect(csv).toMatchInlineSnapshot(`
@@ -226,7 +260,8 @@ describe("generate Csv for Org Users Table", () => {
     const csv = generateCsvRawForMembersTable(
       generateHeaderFromReactTable(mockTable) ?? [],
       mockData,
-      mockAttributeIds
+      mockAttributeIds,
+      orgDomain
     );
 
     expect(csv).toMatchInlineSnapshot(`

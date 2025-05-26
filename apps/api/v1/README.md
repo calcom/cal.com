@@ -113,7 +113,7 @@ We use it in several ways, but mainly, we first import the auto-generated schema
 
 We have some shared validations which several resources require, like baseApiParams which parses apiKey in all requests, or querIdAsString or TransformParseInt which deal with the id's coming from req.query.
 
-- **[*]BaseBodyParams** that omits any values from the model that are too sensitive or we don't want to pick when creating a new resource like id, userId, etc.. (those are gotten from context or elswhere)
+- **[*]BaseBodyParams** that omits any values from the model that are too sensitive or we don't want to pick when creating a new resource like id, userId, etc.. (those are gotten from context or elsewhere)
 
 - **[*]Public** that also omits any values that we don't want to expose when returning the model as a response, which we parse against before returning all resources.
 
@@ -190,16 +190,6 @@ We make sure of this by not using next in dev, but next build && next start, if 
 See <https://github.com/vercel/next.js/blob/canary/packages/next/server/dev/hot-reloader.ts#L79>. Here in dev mode OPTIONS method is hardcoded to return only GET and OPTIONS as allowed method. Running in Production mode would cause this file to be not used. This is hot-reloading logic only.
 To remove this limitation, we need to ensure that on local endpoints are requested by swagger at /api/v1 and not /v1
 
-## Hosted api through cal.com
-
-> _❗ WARNING: This is still experimental and not fully implemented yet❗_
-
-Go to console.cal.com
-Add a deployment or go to an existing one.
-Activate API or Admin addon
-Provide your `DATABASE_URL`
-Now you can call api.cal.com?key=CALCOM_LICENSE_KEY, which will connect to your own databaseUrl.
-
 ## How to deploy
 
 We recommend deploying API in vercel.
@@ -218,7 +208,7 @@ Add this command: `./scripts/vercel-deploy.sh`
 
 See `scripts/vercel-deploy.sh` for more info on how the deployment is done.
 
-> _❗ IMORTANT: If you're forking the API repo you will need to update the URLs in both the main repo [`.gitmodules`](https://github.com/calcom/cal.com/blob/main/.gitmodules#L7) and this repo [`./scripts/vercel-deploy.sh`](https://github.com/calcom/api/blob/main/scripts/vercel-deploy.sh#L3) ❗_
+> _❗ IMPORTANT: If you're forking the API repo you will need to update the URLs in both the main repo [`.gitmodules`](https://github.com/calcom/cal.com/blob/main/.gitmodules#L7) and this repo [`./scripts/vercel-deploy.sh`](https://github.com/calcom/api/blob/main/scripts/vercel-deploy.sh#L3) ❗_
 
 ## Environment variables
 

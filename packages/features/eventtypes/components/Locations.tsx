@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
@@ -8,19 +7,50 @@ import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "reac
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
-import { useIsPlatform } from "@calcom/atoms/monorepo";
-import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import PhoneInput from "@calcom/features/components/phone-input";
+import type {
+  LocationFormValues,
+  EventTypeSetupProps,
+  CheckboxClassNames,
+} from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
-import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
+import type {
+  LocationSelectCustomClassNames,
+  SingleValueLocationOption,
+} from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Input, PhoneInput, Button, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Input } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
 export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
+
+type LocationInputCustomClassNames = {
+  addressInput?: string;
+  phoneInput?: string;
+};
+
+export type LocationCustomClassNames = {
+  container?: string;
+  locationSelect?: LocationSelectCustomClassNames;
+  removeLocationButton?: string;
+  removeLocationIcon?: string;
+  addLocationButton?: string;
+  organizerContactInput?: {
+    errorMessage?: string;
+    locationInput?: LocationInputCustomClassNames;
+    publicDisplayCheckbox?: CheckboxClassNames;
+  };
+};
 
 type LocationsProps = {
   team: { id: number } | null;
@@ -36,6 +66,7 @@ type LocationsProps = {
   eventType: TEventTypeLocation;
   locationOptions: TLocationOptions;
   prefillLocation?: SingleValueLocationOption;
+  customClassNames?: LocationCustomClassNames;
 };
 
 const getLocationFromType = (type: EventLocationType["type"], locationOptions: TLocationOptions) => {
@@ -84,6 +115,7 @@ const Locations: React.FC<LocationsProps> = ({
   team,
   eventType,
   prefillLocation,
+  customClassNames,
   ...props
 }) => {
   const { t } = useLocale();
@@ -135,8 +167,9 @@ const Locations: React.FC<LocationsProps> = ({
     eventLocationType: EventLocationType;
     defaultValue?: string;
     index: number;
+    customClassNames?: LocationInputCustomClassNames;
   }) => {
-    const { eventLocationType, index, ...remainingProps } = props;
+    const { eventLocationType, index, customClassNames, ...remainingProps } = props;
     if (eventLocationType?.organizerInputType === "text") {
       const { defaultValue, ...rest } = remainingProps;
 
@@ -154,7 +187,7 @@ const Locations: React.FC<LocationsProps> = ({
                 onChange={onChange}
                 value={value}
                 {...(disableLocationProp ? { disabled: true } : {})}
-                className="my-0"
+                className={classNames("my-0", customClassNames?.addressInput)}
                 {...rest}
               />
             );
@@ -175,6 +208,7 @@ const Locations: React.FC<LocationsProps> = ({
                 disabled={disableLocationProp}
                 placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
                 name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                className={customClassNames?.phoneInput}
                 value={value}
                 onChange={onChange}
                 {...rest}
@@ -213,8 +247,8 @@ const Locations: React.FC<LocationsProps> = ({
   const isPlatorm = useIsPlatform();
 
   return (
-    <div className="w-full">
-      <ul ref={animationRef} className="space-y-2">
+    <div className={classNames("w-full", customClassNames?.container)}>
+      <ul ref={animationRef} className={classNames("space-y-2")}>
         {locationFields.map((field, index) => {
           const eventLocationType = getEventLocationType(field.type);
           const defaultLocation = field;
@@ -230,7 +264,11 @@ const Locations: React.FC<LocationsProps> = ({
                   isDisabled={disableLocationProp}
                   defaultValue={option}
                   isSearchable={false}
-                  className="block min-w-0 flex-1 rounded-sm text-sm"
+                  className={classNames(
+                    "block min-w-0 flex-1 rounded-sm text-sm",
+                    customClassNames?.locationSelect?.selectWrapper
+                  )}
+                  customClassNames={customClassNames?.locationSelect}
                   menuPlacement="auto"
                   onChange={(e: SingleValueLocationOption) => {
                     setShowEmptyLocationSelect(false);
@@ -275,12 +313,18 @@ const Locations: React.FC<LocationsProps> = ({
                 {!(disableLocationProp && isChildrenManagedEventType) && (
                   <button
                     data-testid={`delete-locations.${index}.type`}
-                    className="min-h-9 block h-9 px-2"
+                    className={classNames("min-h-9 block h-9 px-2", customClassNames?.removeLocationButton)}
                     type="button"
                     onClick={() => remove(index)}
                     aria-label={t("remove")}>
                     <div className="h-4 w-4">
-                      <Icon name="x" className="border-l-1 hover:text-emphasis text-subtle h-4 w-4" />
+                      <Icon
+                        name="x"
+                        className={classNames(
+                          "border-l-1 hover:text-emphasis text-subtle h-4 w-4",
+                          customClassNames?.removeLocationIcon
+                        )}
+                      />
                     </div>
                   </button>
                 )}
@@ -302,23 +346,32 @@ const Locations: React.FC<LocationsProps> = ({
                         }
                         eventLocationType={eventLocationType}
                         index={index}
+                        customClassNames={customClassNames?.organizerContactInput?.locationInput}
                       />
                     </div>
                     <ErrorMessage
                       errors={formState.errors?.locations?.[index]}
                       name={eventLocationType.defaultValueVariable}
-                      className="text-error my-1 ml-6 text-sm"
+                      className={classNames(
+                        "text-error my-1 ml-6 text-sm",
+                        customClassNames?.organizerContactInput?.errorMessage
+                      )}
                       as="div"
                       id="location-error"
                     />
                   </div>
-                  <div className="ml-6">
+                  <div
+                    className={classNames(
+                      "ml-6",
+                      customClassNames?.organizerContactInput?.publicDisplayCheckbox?.container
+                    )}>
                     <CheckboxField
                       name={`locations[${index}].displayLocationPublicly`}
                       data-testid="display-location"
                       disabled={disableLocationProp}
                       defaultChecked={defaultLocation?.displayLocationPublicly}
                       description={t("display_location_label")}
+                      className={customClassNames?.organizerContactInput?.publicDisplayCheckbox?.checkbox}
                       onChange={(e) => {
                         const fieldValues = getValues("locations")[index];
                         updateLocationField(index, {
@@ -344,7 +397,11 @@ const Locations: React.FC<LocationsProps> = ({
               isDisabled={disableLocationProp}
               defaultValue={defaultValue}
               isSearchable={false}
-              className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+              className={classNames(
+                "block w-full min-w-0 flex-1 rounded-sm text-sm",
+                customClassNames?.locationSelect?.selectWrapper
+              )}
+              customClassNames={customClassNames?.locationSelect}
               menuPlacement="auto"
               onChange={(e: SingleValueLocationOption) => {
                 setShowEmptyLocationSelect(false);
@@ -386,14 +443,18 @@ const Locations: React.FC<LocationsProps> = ({
               <Icon name="check" className="h-3 w-3" />
             </div>
             <p className="text-default text-sm">
-              <Trans i18nKey="event_type_requires_google_calendar">
-                The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
-                Connect it
-                <Link className="cursor-pointer text-blue-500 underline" href="/apps/google-calendar">
-                  here
-                </Link>
-                .
-              </Trans>
+              <ServerTrans
+                t={t}
+                i18nKey="event_type_requires_google_calendar"
+                components={[
+                  <Link
+                    key="event_type_requires_google_calendar"
+                    className="cursor-pointer text-blue-500 underline"
+                    href="/apps/google-calendar">
+                    here
+                  </Link>,
+                ]}
+              />
             </p>
           </div>
         )}
@@ -413,6 +474,7 @@ const Locations: React.FC<LocationsProps> = ({
               StartIcon="plus"
               color="minimal"
               disabled={seatsEnabled}
+              className={classNames(customClassNames?.addLocationButton)}
               tooltip={seatsEnabled ? t("seats_option_doesnt_support_multi_location") : undefined}
               onClick={() => setShowEmptyLocationSelect(true)}>
               {t("add_location")}
@@ -422,13 +484,18 @@ const Locations: React.FC<LocationsProps> = ({
       </ul>
       {props.showAppStoreLink && !isPlatorm && (
         <p className="text-default mt-2 text-sm">
-          <Trans i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store">
-            Can&apos;t find the right conferencing app? Visit our
-            <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/conferencing">
-              App Store
-            </Link>
-            .
-          </Trans>
+          <ServerTrans
+            t={t}
+            i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store"
+            components={[
+              <Link
+                key="cant_find_the_right_conferencing_app_visit_our_app_store"
+                className="cursor-pointer text-blue-500 underline"
+                href="/apps/categories/conferencing">
+                App Store
+              </Link>,
+            ]}
+          />
         </p>
       )}
     </div>

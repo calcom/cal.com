@@ -1,4 +1,4 @@
-import { GetUserReturnType } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
@@ -26,27 +26,31 @@ export class IsOAuthClientWebhookGuard implements CanActivate {
     const request = context
       .switchToHttp()
       .getRequest<Request & { webhook: Webhook; oAuthClient: PlatformOAuthClient }>();
-    const user = request.user as GetUserReturnType;
+    const user = request.user as ApiAuthGuardUser;
     const webhookId = request.params.webhookId;
     const oAuthClientId = request.params.clientId;
     const organizationId = this.usersService.getUserMainOrgId(user);
 
     if (!user) {
-      throw new ForbiddenException("User not authenticated");
+      throw new ForbiddenException("IsOAuthClientWebhookGuard - User not authenticated");
     }
 
     if (!webhookId) {
-      throw new BadRequestException("webhookId parameter not specified in the request");
+      throw new BadRequestException(
+        "IsOAuthClientWebhookGuard - webhookId parameter not specified in the request"
+      );
     }
 
     if (!oAuthClientId) {
-      throw new BadRequestException("oAuthClientId parameter not specified in the request");
+      throw new BadRequestException(
+        "IsOAuthClientWebhookGuard - oAuthClientId parameter not specified in the request"
+      );
     }
 
     const oAuthClient = await this.oAuthClientRepository.getOAuthClient(oAuthClientId);
 
     if (!oAuthClient) {
-      throw new NotFoundException(`OAuthClient (${oAuthClientId}) not found`);
+      throw new NotFoundException(`IsOAuthClientWebhookGuard - OAuthClient (${oAuthClientId}) not found`);
     }
 
     const webhook = await this.webhooksService.getWebhookById(webhookId);
@@ -56,7 +60,7 @@ export class IsOAuthClientWebhookGuard implements CanActivate {
     }
 
     if (webhook.platformOAuthClientId !== oAuthClientId) {
-      throw new ForbiddenException("Webhook does not belong to this oAuthClient");
+      throw new ForbiddenException("IsOAuthClientWebhookGuard - Webhook does not belong to this oAuthClient");
     }
 
     request.webhook = webhook;

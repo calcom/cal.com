@@ -2,13 +2,12 @@ import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
-import { classNames } from "@calcom/lib";
-import { JOIN_COMMUNITY, ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
+import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
 import {
-  Avatar,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -16,23 +15,32 @@ import {
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Icon,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Icon } from "@calcom/ui/components/icon";
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
-import usePostHog from "../../ee/event-tracking/lib/posthog/userPostHog";
 import FreshChatProvider from "../../ee/support/lib/freshchat/FreshChatProvider";
+
+declare global {
+  interface Window {
+    Plain?: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      init: (config: any) => void;
+      open: () => void;
+    };
+  }
+}
 
 interface UserDropdownProps {
   small?: boolean;
 }
+
 export function UserDropdown({ small }: UserDropdownProps) {
   const { isPlatformUser } = useGetUserAttributes();
   const { t } = useLocale();
-  const { data: user } = useMeQuery();
+  const { data: user, isPending } = useMeQuery();
   const pathname = usePathname();
-  const posthog = usePostHog();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -46,23 +54,24 @@ export function UserDropdown({ small }: UserDropdownProps) {
       });
   });
 
-  const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const onHelpItemSelect = () => {
-    setHelpOpen(false);
+  const handleHelpClick = () => {
+    if (window.Plain) {
+      window.Plain.open();
+    }
     setMenuOpen(false);
   };
 
   // Prevent rendering dropdown if user isn't available.
   // We don't want to show nameless user.
-  if (!user) {
+  if (!user && !isPending) {
     return null;
   }
 
   return (
     <Dropdown open={menuOpen}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
+      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)} disabled={isPending}>
         <button
           data-testid="user-dropdown-trigger-button"
           className={classNames(
@@ -72,12 +81,12 @@ export function UserDropdown({ small }: UserDropdownProps) {
           <span
             className={classNames(
               small ? "h-4 w-4" : "h-5 w-5 ltr:mr-2 rtl:ml-2",
-              "relative flex-shrink-0 rounded-full "
+              "relative flex-shrink-0 rounded-full"
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={`${user.avatarUrl || user.avatar}`}
-              alt={user.username || "Nameless User"}
+              imageSrc={user?.avatarUrl ?? user?.avatar}
+              alt={user?.username ? `${user.username} Avatar` : "Nameless User Avatar"}
               className="overflow-hidden"
             />
             <span
@@ -90,8 +99,8 @@ export function UserDropdown({ small }: UserDropdownProps) {
           {!small && (
             <span className="flex flex-grow items-center gap-2">
               <span className="w-24 flex-shrink-0 text-sm leading-none">
-                <span className="text-emphasis block truncate font-medium">
-                  {user.name || "Nameless User"}
+                <span className="text-emphasis block truncate py-0.5 font-medium leading-normal">
+                  {isPending ? "Loading..." : user?.name ?? "Nameless User"}
                 </span>
               </span>
               <Icon
@@ -110,112 +119,88 @@ export function UserDropdown({ small }: UserDropdownProps) {
             align="start"
             onInteractOutside={() => {
               setMenuOpen(false);
-              setHelpOpen(false);
             }}
             className="group overflow-hidden rounded-md">
-            {helpOpen ? (
-              <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
-            ) : (
-              <>
-                {!isPlatformPages && (
-                  <>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        CustomStartIcon={
-                          <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
-                        }
-                        href="/settings/my-account/profile">
-                        {t("my_profile")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        CustomStartIcon={
-                          <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
-                        }
-                        href="/settings/my-account/general">
-                        {t("my_settings")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        CustomStartIcon={
-                          <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
-                        }
-                        href="/settings/my-account/out-of-office">
-                        {t("out_of_office")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-
-                <DropdownMenuItem>
-                  <DropdownItem
-                    StartIcon="messages-square"
-                    target="_blank"
-                    rel="noreferrer"
-                    href={JOIN_COMMUNITY}>
-                    {t("join_our_community")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem StartIcon="map" target="_blank" href={ROADMAP}>
-                    {t("visit_roadmap")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    StartIcon="circle-help"
-                    aria-hidden="true"
-                    onClick={() => setHelpOpen(true)}>
-                    {t("help")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                {!isPlatformPages && (
-                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+            <>
+              {!isPlatformPages && (
+                <>
+                  <DropdownMenuItem>
                     <DropdownItem
-                      StartIcon="download"
-                      target="_blank"
-                      rel="noreferrer"
-                      href={DESKTOP_APP_LINK}>
-                      {t("download_desktop_app")}
+                      type="button"
+                      CustomStartIcon={
+                        <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
+                      }
+                      href="/settings/my-account/profile">
+                      {t("my_profile")}
                     </DropdownItem>
                   </DropdownMenuItem>
-                )}
-
-                {!isPlatformPages && isPlatformUser && (
-                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                  <DropdownMenuItem>
                     <DropdownItem
-                      StartIcon="blocks"
-                      target="_blank"
-                      rel="noreferrer"
-                      href="/settings/platform">
-                      Platform
+                      type="button"
+                      CustomStartIcon={
+                        <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                      }
+                      href="/settings/my-account/general">
+                      {t("my_settings")}
                     </DropdownItem>
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      CustomStartIcon={
+                        <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
+                      }
+                      href="/settings/my-account/out-of-office">
+                      {t("out_of_office")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
 
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    StartIcon="log-out"
-                    aria-hidden="true"
-                    onClick={() => {
-                      posthog.capture("sign_out");
-                      posthog.reset();
-                      signOut({ callbackUrl: "/auth/logout" });
-                    }}>
-                    {t("sign_out")}
+              <DropdownMenuItem>
+                <DropdownItem StartIcon="map" target="_blank" href={ROADMAP}>
+                  {t("visit_roadmap")}
+                </DropdownItem>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <DropdownItem
+                  type="button"
+                  StartIcon="circle-help"
+                  aria-hidden="true"
+                  onClick={handleHelpClick}>
+                  {t("help")}
+                </DropdownItem>
+              </DropdownMenuItem>
+              {!isPlatformPages && (
+                <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                  <DropdownItem StartIcon="download" target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
+                    {t("download_desktop_app")}
                   </DropdownItem>
                 </DropdownMenuItem>
-              </>
-            )}
+              )}
+
+              {!isPlatformPages && isPlatformUser && (
+                <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                  <DropdownItem StartIcon="blocks" target="_blank" rel="noreferrer" href="/settings/platform">
+                    Platform
+                  </DropdownItem>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem>
+                <DropdownItem
+                  type="button"
+                  StartIcon="log-out"
+                  aria-hidden="true"
+                  onClick={() => {
+                    signOut({ callbackUrl: "/auth/logout" });
+                  }}>
+                  {t("sign_out")}
+                </DropdownItem>
+              </DropdownMenuItem>
+            </>
           </DropdownMenuContent>
         </FreshChatProvider>
       </DropdownMenuPortal>

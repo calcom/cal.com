@@ -1,3 +1,4 @@
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import defaultPrisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -19,6 +20,20 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
   const orgId = options.orgId ?? 0;
   const oAuthClientId = options.oAuthClientId ?? "";
 
+  const managedChildEventType = await prisma.eventType.findFirst({
+    where: {
+      id: eventTypeId,
+      parentId: {
+        not: null,
+      },
+    },
+    select: {
+      parentId: true,
+    },
+  });
+
+  const managedParentEventTypeId = managedChildEventType?.parentId ?? 0;
+
   // if we have userId and teamId it is a managed event type and should trigger for team and user
   const allWebhooks = await prisma.webhook.findMany({
     where: {
@@ -31,6 +46,9 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
         },
         {
           eventTypeId,
+        },
+        {
+          eventTypeId: managedParentEventTypeId,
         },
         {
           teamId: {
@@ -63,4 +81,4 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
   return allWebhooks;
 };
 
-export default getWebhooks;
+export default withReporting(getWebhooks, "getWebhooks");

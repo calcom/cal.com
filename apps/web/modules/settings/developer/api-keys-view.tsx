@@ -1,88 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  EmptyScreen,
-  Meta,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent } from "@calcom/ui/components/dialog";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
-const SkeletonLoader = ({
-  title,
-  description,
-  isAppDir,
-}: {
-  title: string;
-  description: string;
-  isAppDir?: boolean;
-}) => {
+export const apiKeyModalRef = {
+  current: null as null | ((show: boolean) => void),
+};
+export const apiKeyToEditRef = {
+  current: null as null | ((apiKey: (TApiKeys & { neverExpires?: boolean }) | undefined) => void),
+};
+
+export const NewApiKeyButton = () => {
+  const { t } = useLocale();
   return (
-    <SkeletonContainer>
-      {!isAppDir ? <Meta title={title} description={description} borderInShellHeader={true} /> : null}
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-      </div>
-    </SkeletonContainer>
+    <Button
+      color="secondary"
+      StartIcon="plus"
+      onClick={() => {
+        apiKeyModalRef.current?.(true);
+        apiKeyToEditRef.current?.(undefined);
+      }}>
+      {t("add")}
+    </Button>
   );
 };
 
-const ApiKeysView = ({ isAppDir }: { isAppDir?: boolean }) => {
-  const { t } = useLocale();
+type Props = {
+  apiKeys: RouterOutputs["viewer"]["apiKeys"]["list"];
+};
 
-  const { data, isPending } = trpc.viewer.apiKeys.list.useQuery();
+const ApiKeysView = ({ apiKeys: data }: Props) => {
+  const { t } = useLocale();
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | undefined>(
     undefined
   );
 
-  const NewApiKeyButton = () => {
-    return (
-      <Button
-        color="secondary"
-        StartIcon="plus"
-        onClick={() => {
-          setApiKeyToEdit(undefined);
-          setApiKeyModal(true);
-        }}>
-        {t("add")}
-      </Button>
-    );
-  };
-
-  if (isPending || !data) {
-    return (
-      <SkeletonLoader
-        isAppDir={isAppDir}
-        title={t("api_keys")}
-        description={t("create_first_api_key_description", { appName: APP_NAME })}
-      />
-    );
-  }
+  useEffect(() => {
+    apiKeyModalRef.current = setApiKeyModal;
+    apiKeyToEditRef.current = setApiKeyToEdit;
+    return () => {
+      apiKeyModalRef.current = null;
+      apiKeyToEditRef.current = null;
+    };
+  }, []);
 
   return (
-    <>
-      {!isAppDir ? (
-        <Meta
-          title={t("api_keys")}
-          description={t("create_first_api_key_description", { appName: APP_NAME })}
-          CTA={<NewApiKeyButton />}
-          borderInShellHeader={true}
-        />
-      ) : null}
+    <SettingsHeader
+      title={t("api_keys")}
+      description={t("create_first_api_key_description", { appName: APP_NAME })}
+      CTA={<NewApiKeyButton />}
+      borderInShellHeader={true}>
       <LicenseRequired>
         <div>
           {data?.length ? (
@@ -118,7 +99,7 @@ const ApiKeysView = ({ isAppDir }: { isAppDir?: boolean }) => {
           <ApiKeyDialogForm handleClose={() => setApiKeyModal(false)} defaultValues={apiKeyToEdit} />
         </DialogContent>
       </Dialog>
-    </>
+    </SettingsHeader>
   );
 };
 

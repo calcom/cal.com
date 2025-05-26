@@ -1,39 +1,36 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
+import { ZodError } from "zod";
 
-import { classNames } from "@calcom/lib";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
+import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
 import {
-  Badge,
-  BooleanToggleGroupField,
-  Button,
+  Switch,
   CheckboxField,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
+  SelectField,
   Form,
-  Icon,
   Input,
   InputField,
   Label,
-  SelectField,
-  showToast,
-  Editor,
-  Switch,
-} from "@calcom/ui";
+  BooleanToggleGroupField,
+} from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import { fieldSchema, type fieldsSchema } from "./schema";
+import { type fieldsSchema, excludeOrRequireEmailSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -248,7 +245,6 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        classNames={{ container: "p-2 hover:bg-subtle rounded transition" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
@@ -369,7 +365,7 @@ function Options({
     <div className={className}>
       <Label>{label}</Label>
       <div className="bg-muted rounded-md p-4">
-        <ul ref={animationRef}>
+        <ul ref={animationRef} className="flex flex-col gap-1">
           {value?.map((option, index) => (
             <li key={index}>
               <div className="flex items-center">
@@ -460,7 +456,7 @@ function FieldEditDialog({
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
-    resolver: zodResolver(fieldSchema),
+    //resolver: zodResolver(fieldSchema),
   });
   const formFieldType = fieldForm.getValues("type");
 
@@ -487,12 +483,9 @@ function FieldEditDialog({
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
-      <DialogContent
-        className="max-h-none p-0"
-        data-testid="edit-field-dialog"
-        forceOverlayWhenNoModal={true}>
+      <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
+          <div className="h-auto max-h-[85vh] overflow-auto">
             <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
@@ -574,10 +567,43 @@ function FieldEditDialog({
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
-                    {fieldType.value === "email" && fieldForm.getValues("name") === "email" && (
+                    {formFieldType === "email" && (
+                      <InputField
+                        {...fieldForm.register("requireEmails")}
+                        containerClassName="mt-6"
+                        onChange={(e) => {
+                          try {
+                            excludeOrRequireEmailSchema.parse(e.target.value);
+                            fieldForm.clearErrors("requireEmails");
+                          } catch (err) {
+                            if (err instanceof ZodError) {
+                              fieldForm.setError("requireEmails", {
+                                message: err.errors[0]?.message || "Invalid input",
+                              });
+                            }
+                          }
+                        }}
+                        label={t("require_emails_that_contain")}
+                        placeholder="gmail.com, hotmail.com, ..."
+                      />
+                    )}
+
+                    {formFieldType === "email" && (
                       <InputField
                         {...fieldForm.register("excludeEmails")}
                         containerClassName="mt-6"
+                        onChange={(e) => {
+                          try {
+                            excludeOrRequireEmailSchema.parse(e.target.value);
+                            fieldForm.clearErrors("excludeEmails");
+                          } catch (err) {
+                            if (err instanceof ZodError) {
+                              fieldForm.setError("excludeEmails", {
+                                message: err.errors[0]?.message || "Invalid input",
+                              });
+                            }
+                          }
+                        }}
                         label={t("exclude_emails_that_contain")}
                         placeholder="gmail.com, hotmail.com, ..."
                       />
@@ -615,7 +641,7 @@ function FieldEditDialog({
             })()}
           </div>
 
-          <DialogFooter className="relative rounded px-8" showDivider>
+          <DialogFooter className="relative">
             <DialogClose color="secondary">{t("cancel")}</DialogClose>
             <Button data-testid="field-add-save" type="submit">
               {isFieldEditMode ? t("save") : t("add")}
@@ -700,9 +726,10 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
+          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
-            __html: markdownToSafeHTMLClient(field.label || "") || t(field.defaultLabel || ""),
+            __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
           }}
         />
       );
@@ -740,7 +767,7 @@ function VariantFields({
   const fieldTypeConfigVariantsConfig = fieldTypesConfigMap[fieldForm.getValues("type")]?.variantsConfig;
 
   if (!fieldTypeConfigVariantsConfig) {
-    throw new Error("Coniguration Issue: FieldType doesn't have `variantsConfig`");
+    throw new Error("Configuration Issue: FieldType doesn't have `variantsConfig`");
   }
 
   const variantToggleLabel = t(fieldTypeConfigVariantsConfig.toggleLabel || "");
@@ -771,7 +798,7 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded transition" }}
+          classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (
@@ -811,7 +838,7 @@ function VariantFields({
               {!isSimpleVariant && (
                 <Label className="flex justify-between">
                   <span>{`Field ${index + 1}`}</span>
-                  <span className="text-muted">{`${fieldForm.getValues("name")}.${f.name}`}</span>
+                  <span className="text-muted">{f.name}</span>
                 </Label>
               )}
               <InputField

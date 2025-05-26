@@ -1,15 +1,17 @@
 import type { z } from "zod";
 
-import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import type { EventLocationType } from "@calcom/lib/location";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { BookerLayoutSettings, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
-import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -21,7 +23,7 @@ export type AvailabilityOption = {
 };
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type EventTypeApps = RouterOutputs["viewer"]["integrations"];
+export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
 export type Host = {
   isFixed: boolean;
   userId: number;
@@ -70,7 +72,9 @@ export type FormValues = {
   eventTitle: string;
   eventName: string;
   slug: string;
+  interfaceLanguage: string | null;
   isInstantEvent: boolean;
+  instantMeetingParameters: string[];
   instantMeetingExpiryTimeOffsetInSeconds: number;
   length: number;
   offsetStart: number;
@@ -79,6 +83,7 @@ export type FormValues = {
   lockTimeZoneToggleOnBookingPage: boolean;
   requiresConfirmation: boolean;
   requiresConfirmationWillBlockSlot: boolean;
+  requiresConfirmationForFreeEmail: boolean;
   requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
@@ -86,11 +91,14 @@ export type FormValues = {
   hideCalendarNotes: boolean;
   multiplePrivateLinks: string[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
+  customReplyToEmail: string | null;
   locations: EventLocation[];
   aiPhoneCallConfig: PhoneCallConfig;
   customInputs: CustomInputParsed[];
   schedule: number | null;
-
+  useEventLevelSelectedCalendars: boolean;
+  disabledCancelling: boolean;
+  disabledRescheduling: boolean;
   periodType: PeriodType;
   /**
    * Number of days(Applicable only for ROLLING period type)
@@ -118,7 +126,7 @@ export type FormValues = {
   beforeEventBuffer: number;
   afterEventBuffer: number;
   slotInterval: number | null;
-  metadata: z.infer<typeof EventTypeMetaDataSchema>;
+  metadata: z.infer<typeof eventTypeMetaDataSchemaWithTypedApps>;
   destinationCalendar: {
     integration: string;
     externalId: string;
@@ -135,6 +143,8 @@ export type FormValues = {
   multipleDurationEnabled: boolean;
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
+  assignRRMembersUsingSegment: boolean;
+  rrSegmentQueryValue: AttributesQueryValue | null;
   rescheduleWithSameRoundRobinHost: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;
@@ -161,4 +171,38 @@ export type TabMap = {
   webhooks?: React.ReactNode;
   workflows?: React.ReactNode;
   payments?: React.ReactNode;
+};
+
+export type SettingsToggleClassNames = {
+  container?: string;
+  label?: string;
+  description?: string;
+  children?: string;
+};
+
+export type InputClassNames = {
+  container?: string;
+  label?: string;
+  input?: string;
+  addOn?: string;
+};
+export type CheckboxClassNames = {
+  checkbox?: string;
+  description?: string;
+  container?: string;
+};
+export type SelectClassNames = {
+  innerClassNames?: {
+    input?: string;
+    option?: string;
+    control?: string;
+    singleValue?: string;
+    valueContainer?: string;
+    multiValue?: string;
+    menu?: string;
+    menuList?: string;
+  };
+  select?: string;
+  label?: string;
+  container?: string;
 };

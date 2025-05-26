@@ -1,15 +1,18 @@
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { APP_NAME, POWERED_BY_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-const PoweredByCal = ({ logoOnly }: { logoOnly?: boolean }) => {
+const PoweredByCal = ({
+  logoOnly,
+  hasValidLicense,
+}: {
+  logoOnly?: boolean;
+  hasValidLicense?: boolean | null;
+}) => {
   const { t } = useLocale();
-  const session = useSession();
   const isEmbed = useIsEmbed();
-  const hasValidLicense = session.data ? session.data.hasValidLicense : null;
 
   return (
     <div className={`p-2 text-center text-xs sm:text-right${isEmbed ? " max-w-3xl" : ""}`}>
@@ -18,8 +21,8 @@ const PoweredByCal = ({ logoOnly }: { logoOnly?: boolean }) => {
         {APP_NAME === "Cal.com" || !hasValidLicense ? (
           <>
             <img
-              className="relative -mt-px inline h-[10px] w-auto dark:invert"
-              src="/api/logo"
+              className="-mt-px inline h-[10px] w-auto dark:invert"
+              src={`${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/logo`}
               alt="Cal.com Logo"
             />
           </>

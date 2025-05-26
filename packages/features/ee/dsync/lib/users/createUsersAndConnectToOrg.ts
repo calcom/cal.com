@@ -1,31 +1,40 @@
-import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
-import slugify from "@calcom/lib/slugify";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { IdentityProvider } from "@calcom/prisma/enums";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 
+import {
+  deriveNameFromOrgUsername,
+  getOrgUsernameFromEmail,
+} from "../../../../auth/signup/utils/getOrgUsernameFromEmail";
 import dSyncUserSelect from "./dSyncUserSelect";
 
 type createUsersAndConnectToOrgPropsType = {
   emailsToCreate: string[];
-  organizationId: number;
   identityProvider: IdentityProvider;
   identityProviderId: string | null;
 };
 
-const createUsersAndConnectToOrg = async (
-  createUsersAndConnectToOrgProps: createUsersAndConnectToOrgPropsType
-) => {
-  const { emailsToCreate, organizationId, identityProvider, identityProviderId } =
-    createUsersAndConnectToOrgProps;
+export const createUsersAndConnectToOrg = async ({
+  createUsersAndConnectToOrgProps,
+  org,
+}: {
+  createUsersAndConnectToOrgProps: createUsersAndConnectToOrgPropsType;
+  org: {
+    id: number;
+    organizationSettings: {
+      orgAutoAcceptEmail: string | null;
+    } | null;
+  };
+}) => {
+  const { emailsToCreate, identityProvider, identityProviderId } = createUsersAndConnectToOrgProps;
+
   // As of Mar 2024 Prisma createMany does not support nested creates and returning created records
   await prisma.user.createMany({
     data: emailsToCreate.map((email) => {
-      const [emailUser, emailDomain] = email.split("@");
-      const username = slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
-      const name = username
-        .split("-")
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(" ");
+      const username = getOrgUsernameFromEmail(email, org.organizationSettings?.orgAutoAcceptEmail ?? null);
+      const name = deriveNameFromOrgUsername({ username });
       return {
         username,
         email,
@@ -33,12 +42,14 @@ const createUsersAndConnectToOrg = async (
         // Assume verified since coming from directory
         verified: true,
         emailVerified: new Date(),
-        invitedTo: organizationId,
-        organizationId,
+        invitedTo: org.id,
+        organizationId: org.id,
         identityProvider,
         identityProviderId,
+        creationSource: CreationSource.WEBAPP,
       };
     }),
+    skipDuplicates: true,
   });
 
   const users = await prisma.user.findMany({
@@ -49,17 +60,24 @@ const createUsersAndConnectToOrg = async (
     },
     select: dSyncUserSelect,
   });
-  // Assign created users to organization
-  for (const user of users) {
-    await createOrUpdateMemberships({
-      user,
-      team: {
-        id: organizationId,
-        isOrganization: true,
-        parentId: null, // orgs don't have a parentId
-      },
-    });
-  }
+
+  // Create profiles for new users
+  await ProfileRepository.createManyPromise({
+    users,
+    organizationId: org.id,
+    orgAutoAcceptEmail: org.organizationSettings?.orgAutoAcceptEmail ?? "",
+  });
+
+  // Create memberships for new members
+  await MembershipRepository.createMany(
+    users.map((user) => ({
+      userId: user.id,
+      teamId: org.id,
+      role: MembershipRole.MEMBER,
+      accepted: true,
+    }))
+  );
+
   return users;
 };
 

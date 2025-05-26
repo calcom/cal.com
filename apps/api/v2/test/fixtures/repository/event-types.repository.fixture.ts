@@ -38,6 +38,11 @@ export class EventTypesRepositoryFixture {
     return this.prismaWriteClient.eventType.create({
       data: {
         ...data,
+        users: {
+          connect: {
+            id: userId,
+          },
+        },
         owner: {
           connect: {
             id: userId,

@@ -47,7 +47,7 @@ type GetTeamOrOrgArg<TeamSelect extends Prisma.TeamSelect> = {
 const log = logger.getSubLogger({ prefix: ["repository", "team"] });
 
 /**
- * Get's the team or organization with the given slug or id reliably along with parsed metadata.
+ * Gets the team or organization with the given slug or id reliably along with parsed metadata.
  */
 async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   lookupBy,
@@ -250,6 +250,7 @@ export class TeamRepository {
     try {
       await prisma.membership.create({
         data: {
+          createdAt: new Date(),
           teamId: verificationToken.teamId,
           userId: userId,
           role: MembershipRole.MEMBER,
@@ -299,5 +300,22 @@ export class TeamRepository {
     const teamsBilling = await TeamBilling.findAndInitMany(teamIds);
     const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
     await Promise.allSettled(teamBillingPromises);
+  }
+
+  static async findTeamWithMembers(teamId: number) {
+    return await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        members: {
+          select: {
+            accepted: true,
+          },
+        },
+        id: true,
+        metadata: true,
+        parentId: true,
+        isOrganization: true,
+      },
+    });
   }
 }

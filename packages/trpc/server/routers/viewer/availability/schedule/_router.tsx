@@ -22,140 +22,74 @@ type ScheduleRouterHandlerCache = {
   bulkUpdateToDefaultAvailability?: typeof import("./bulkUpdateDefaultAvailability.handler").bulkUpdateToDefaultAvailabilityHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: ScheduleRouterHandlerCache = {};
-
 export const scheduleRouter = router({
   get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.get) {
-      UNSTABLE_HANDLER_CACHE.get = await import("./get.handler").then((mod) => mod.getHandler);
-    }
+    const { getHandler } = await import("./get.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.get) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.get({
+    return getHandler({
       ctx,
       input,
     });
   }),
 
   create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.create) {
-      UNSTABLE_HANDLER_CACHE.create = await import("./create.handler").then((mod) => mod.createHandler);
-    }
+    const { createHandler } = await import("./create.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.create) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.create({
+    return createHandler({
       ctx,
       input,
     });
   }),
 
   delete: authedProcedure.input(ZDeleteInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.delete) {
-      UNSTABLE_HANDLER_CACHE.delete = await import("./delete.handler").then((mod) => mod.deleteHandler);
-    }
+    const { deleteHandler } = await import("./delete.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.delete) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.delete({
+    return deleteHandler({
       ctx,
       input,
     });
   }),
 
   update: authedProcedure.input(ZUpdateInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      UNSTABLE_HANDLER_CACHE.update = await import("./update.handler").then((mod) => mod.updateHandler);
-    }
+    const { updateHandler } = await import("./update.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.update({
+    return updateHandler({
       ctx,
       input,
     });
   }),
 
   duplicate: authedProcedure.input(ZScheduleDuplicateSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.duplicate) {
-      UNSTABLE_HANDLER_CACHE.duplicate = await import("./duplicate.handler").then(
-        (mod) => mod.duplicateHandler
-      );
-    }
+    const { duplicateHandler } = await import("./duplicate.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.duplicate) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.duplicate({
+    return duplicateHandler({
       ctx,
       input,
     });
   }),
 
   getScheduleByUserId: authedProcedure.input(ZGetByUserIdInputSchema).query(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getScheduleByUserId) {
-      UNSTABLE_HANDLER_CACHE.getScheduleByUserId = await import("./getScheduleByUserId.handler").then(
-        (mod) => mod.getScheduleByUserIdHandler
-      );
-    }
+    const { getScheduleByUserIdHandler } = await import("./getScheduleByUserId.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getScheduleByUserId) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getScheduleByUserId({
+    return getScheduleByUserIdHandler({
       ctx,
       input,
     });
   }),
 
   getAllSchedulesByUserId: authedProcedure.input(ZGetAllByUserIdInputSchema).query(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getAllSchedulesByUserId) {
-      UNSTABLE_HANDLER_CACHE.getAllSchedulesByUserId = await import("./getAllSchedulesByUserId.handler").then(
-        (mod) => mod.getAllSchedulesByUserIdHandler
-      );
-    }
+    const { getAllSchedulesByUserIdHandler } = await import("./getAllSchedulesByUserId.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getAllSchedulesByUserId) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getAllSchedulesByUserId({
+    return getAllSchedulesByUserIdHandler({
       ctx,
       input,
     });
   }),
 
   getScheduleByEventSlug: authedProcedure.input(ZGetByEventSlugInputSchema).query(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug) {
-      UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug = await import(
-        "./getScheduleByEventTypeSlug.handler"
-      ).then((mod) => mod.getScheduleByEventSlugHandler);
-    }
+    const { getScheduleByEventSlugHandler } = await import("./getScheduleByEventTypeSlug.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug({
+    return getScheduleByEventSlugHandler({
       ctx,
       input,
     });
@@ -163,17 +97,11 @@ export const scheduleRouter = router({
   bulkUpdateToDefaultAvailability: authedProcedure
     .input(ZBulkUpdateToDefaultAvailabilityInputSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability) {
-        UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability = await import(
-          "./bulkUpdateDefaultAvailability.handler"
-        ).then((mod) => mod.bulkUpdateToDefaultAvailabilityHandler);
-      }
+      const { bulkUpdateToDefaultAvailabilityHandler } = await import(
+        "./bulkUpdateDefaultAvailability.handler"
+      );
 
-      if (!UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability({
+      return bulkUpdateToDefaultAvailabilityHandler({
         ctx,
         input,
       });

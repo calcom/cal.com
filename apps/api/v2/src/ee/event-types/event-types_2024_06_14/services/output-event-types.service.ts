@@ -2,15 +2,18 @@ import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, DestinationCalendar } from "@prisma/client";
 
 import {
-  EventTypeMetaDataSchema,
   userMetadata,
+  parseBookingLimit,
+  parseRecurringEvent,
+  getBookingFieldsWithSystemFields,
+} from "@calcom/platform-libraries";
+import {
+  EventTypeMetaDataSchema,
   transformLocationsInternalToApi,
   transformBookingFieldsInternalToApi,
-  parseRecurringEvent,
   InternalLocationSchema,
   SystemField,
   CustomField,
-  parseBookingLimit,
   transformIntervalLimitsInternalToApi,
   transformFutureBookingLimitsInternalToApi,
   transformRecurrenceInternalToApi,
@@ -21,7 +24,7 @@ import {
   transformSeatsInternalToApi,
   InternalLocation,
   BookingFieldSchema,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/event-types";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
@@ -84,11 +87,16 @@ type Input = Pick<
   | "destinationCalendar"
   | "useEventTypeDestinationCalendarEmail"
   | "hideCalendarEventDetails"
+  | "hideOrganizerEmail"
 >;
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  getResponseEventType(ownerId: number, databaseEventType: Input): EventTypeOutput_2024_06_14 {
+  getResponseEventType(
+    ownerId: number,
+    databaseEventType: Input,
+    isOrgTeamEvent: boolean
+  ): EventTypeOutput_2024_06_14 {
     const {
       id,
       length,
@@ -116,13 +124,15 @@ export class OutputEventTypesService_2024_06_14 {
       seatsShowAttendees,
       useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
+      hideOrganizerEmail,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
     const customName = databaseEventType?.eventName ?? undefined;
     const bookingFields = databaseEventType.bookingFields
       ? this.transformBookingFields(databaseEventType.bookingFields)
-      : [];
+      : this.getDefaultBookingFields(isOrgTeamEvent);
+
     const recurrence = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
     const users = this.transformUsers(databaseEventType.users || []);
@@ -189,16 +199,17 @@ export class OutputEventTypesService_2024_06_14 {
       destinationCalendar,
       useDestinationCalendarEmail: useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
+      hideOrganizerEmail,
     };
   }
 
-  transformLocations(locations: any) {
-    if (!locations) return [];
+  transformLocations(locationDb: any) {
+    if (!locationDb) return [];
 
     const knownLocations: InternalLocation[] = [];
     const unknownLocations: OutputUnknownLocation_2024_06_14[] = [];
 
-    for (const location of locations) {
+    for (const location of locationDb) {
       const result = InternalLocationSchema.safeParse(location);
       if (result.success) {
         knownLocations.push(result.data);
@@ -238,6 +249,18 @@ export class OutputEventTypesService_2024_06_14 {
     }
 
     return [...transformBookingFieldsInternalToApi(knownBookingFields), ...unknownBookingFields];
+  }
+
+  getDefaultBookingFields(isOrgTeamEvent: boolean) {
+    const defaultBookingFields = getBookingFieldsWithSystemFields({
+      disableGuests: false,
+      bookingFields: null,
+      customInputs: [],
+      metadata: null,
+      workflows: [],
+      isOrgTeamEvent,
+    });
+    return this.transformBookingFields(defaultBookingFields);
   }
 
   transformRecurringEvent(recurringEvent: any) {
@@ -297,6 +320,7 @@ export class OutputEventTypesService_2024_06_14 {
   transformEventTypeColor(eventTypeColor: any) {
     if (!eventTypeColor) return undefined;
     const parsedeventTypeColor = parseEventTypeColor(eventTypeColor);
+    if (!parsedeventTypeColor) return undefined;
     return transformEventTypeColorsInternalToApi(parsedeventTypeColor);
   }
 

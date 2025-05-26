@@ -1,18 +1,17 @@
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, it, vi } from "vitest";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { HeadSeo } from "@calcom/ui";
 
 import UserPage from "./users-public-view";
 
+vi.mock("@calcom/lib/constants", async () => {
+  return await vi.importActual("@calcom/lib/constants");
+});
+
 function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof UserPage>>) {
   return {
-    trpcState: {
-      mutations: [],
-      queries: [],
-    },
     themeBasis: "dark",
     safeBio: "My Bio",
     profile: {
@@ -47,11 +46,12 @@ function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof
       ...(props.entity ?? null),
     },
     eventTypes: [],
+    isOrgSEOIndexable: false,
   } satisfies React.ComponentProps<typeof UserPage>;
 }
 
 describe("UserPage Component", () => {
-  it("should render HeadSeo with correct props", () => {
+  it("should render with no throw", () => {
     const mockData = {
       props: mockedUserPageComponentProps({
         entity: {
@@ -69,34 +69,6 @@ describe("UserPage Component", () => {
       uid: "uid",
     });
 
-    render(<UserPage {...mockData.props} />);
-
-    const expectedDescription = mockData.props.markdownStrippedBio;
-    const expectedTitle = expectedDescription;
-    expect(HeadSeo).toHaveBeenCalledWith(
-      {
-        origin: `${mockData.props.entity.orgSlug}.cal.local`,
-        title: `${mockData.props.profile.name}`,
-        description: expectedDescription,
-        meeting: {
-          profile: {
-            name: mockData.props.profile.name,
-            image: mockData.props.users[0].avatarUrl,
-          },
-          title: expectedTitle,
-          users: [
-            {
-              name: mockData.props.users[0].name,
-              username: mockData.props.users[0].username,
-            },
-          ],
-        },
-        nextSeoProps: {
-          nofollow: !mockData.props.profile.allowSEOIndexing,
-          noindex: !mockData.props.profile.allowSEOIndexing,
-        },
-      },
-      {}
-    );
+    expect(() => render(<UserPage {...mockData.props} />)).not.toThrow();
   });
 });

@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
 

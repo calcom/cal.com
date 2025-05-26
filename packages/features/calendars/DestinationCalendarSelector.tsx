@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
+import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge, Icon, Select } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Select } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -15,7 +18,8 @@ interface Props {
   value: string | undefined;
   maxWidth?: number;
   hideAdvancedText?: boolean;
-  calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
+  calendarsQueryData?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
+  customClassNames?: SelectClassNames;
 }
 
 interface Option {
@@ -53,6 +57,7 @@ const DestinationCalendarSelector = ({
   hideAdvancedText,
   maxWidth,
   calendarsQueryData,
+  customClassNames,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const connectedCalendarsList = calendarsQueryData?.connectedCalendars;
@@ -157,8 +162,10 @@ const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
+          "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm",
+          customClassNames?.select
         )}
+        innerClassNames={customClassNames?.innerClassNames}
         onChange={(newValue) => {
           setSelectedOption(newValue);
           if (!newValue) {

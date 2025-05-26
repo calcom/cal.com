@@ -1,25 +1,24 @@
 import type { Table } from "@tanstack/react-table";
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 
-import classNames from "@calcom/lib/classNames";
+import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  Popover,
-  showToast,
-  PopoverContent,
-  PopoverTrigger,
-  Icon,
-} from "@calcom/ui";
+} from "@calcom/ui/components/command";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { User } from "./MemberList";
 
@@ -93,7 +92,9 @@ export function EventTypesList({ table, teamId }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button StartIcon="link">{t("add_to_event_type")}</Button>
+          <DataTableSelectionBar.Button icon="link" color="secondary">
+            {t("add_to_event_type")}
+          </DataTableSelectionBar.Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>
           <Command>
@@ -108,7 +109,7 @@ export function EventTypesList({ table, teamId }: Props) {
 
                     if (events.length === 0 || !teamId) return null;
                     return (
-                      <>
+                      <Fragment key={teamId}>
                         {events.map((event) => {
                           const hosts = event.hosts;
                           const areAllUsersHostForEventType = selectedUsers.every((user) =>
@@ -143,7 +144,7 @@ export function EventTypesList({ table, teamId }: Props) {
                             />
                           );
                         })}
-                      </>
+                      </Fragment>
                     );
                   })}
               </CommandGroup>

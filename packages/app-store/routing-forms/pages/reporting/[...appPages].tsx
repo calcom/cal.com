@@ -10,19 +10,22 @@ import type {
 } from "react-awesome-query-builder";
 import { Builder, Query, Utils as QbUtils } from "react-awesome-query-builder";
 
-import Shell from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { downloadAsCsv, sanitizeValue } from "@calcom/lib/csvUtils";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
+import { Button } from "@calcom/ui/components/button";
+import classNames from "@calcom/ui/classNames";
 
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import "../../components/react-awesome-query-builder/styles.css";
+import {
+  withRaqbSettingsAndWidgets,
+  ConfigFor,
+} from "../../components/react-awesome-query-builder/config/uiConfig";
 import type { JsonLogicQuery } from "../../jsonLogicToPrisma";
 import {
   getQueryBuilderConfigForFormFields,
@@ -250,7 +253,10 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
   return (
     <div className="cal-query-builder">
       <Query
-        {...(config as unknown as Config)}
+        {...withRaqbSettingsAndWidgets({
+          config,
+          configFor: ConfigFor.FormFields,
+        })}
         value={query.state.tree}
         onChange={(immutableTree, config) => {
           onChange(immutableTree, config as unknown as FormFieldsQueryBuilderConfigWithRaqbFields);
@@ -285,11 +291,3 @@ export default function ReporterWrapper({
     />
   );
 }
-
-ReporterWrapper.getLayout = (page: React.ReactElement) => {
-  return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
-      {page}
-    </Shell>
-  );
-};

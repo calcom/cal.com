@@ -30,6 +30,32 @@ export const expectedSlotsForSchedule = {
       },
     },
   },
+  IstMorningShift: {
+    interval: {
+      "1hr": {
+        allPossibleSlotsStartingAt430: [
+          "04:30:00.000Z",
+          "05:30:00.000Z",
+          "06:30:00.000Z",
+          "07:30:00.000Z",
+          "08:30:00.000Z",
+          "09:30:00.000Z",
+          "10:30:00.000Z",
+          "11:30:00.000Z",
+        ],
+        allPossibleSlotsStartingAt4: [
+          "04:00:00.000Z",
+          "05:00:00.000Z",
+          "06:00:00.000Z",
+          "07:00:00.000Z",
+          "08:00:00.000Z",
+          "09:00:00.000Z",
+          "10:00:00.000Z",
+          "11:00:00.000Z",
+        ],
+      },
+    },
+  },
 };
 
 declare global {

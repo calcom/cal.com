@@ -12,7 +12,7 @@ export enum UsageEvent {
   USER = "user",
 }
 
-interface ILicenseKeyService {
+export interface ILicenseKeyService {
   incrementUsage(usageEvent?: UsageEvent): Promise<any>;
   checkLicense(): Promise<boolean>;
 }

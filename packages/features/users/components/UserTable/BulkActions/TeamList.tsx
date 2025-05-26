@@ -2,23 +2,22 @@ import type { Table } from "@tanstack/react-table";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import classNames from "@calcom/lib/classNames";
+import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  Icon,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/command";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableUser } from "../types";
 
@@ -41,7 +40,7 @@ export function TeamListBulkAction({ table }: Props) {
         "success"
       );
       // Optimistically update the data from query trpc cache listMembers
-      // We may need to set this data instread of invalidating. Will see how performance handles it
+      // We may need to set this data instead of invalidating. Will see how performance handles it
       utils.viewer.organizations.listMembers.invalidate();
 
       // Clear the selected values
@@ -86,7 +85,9 @@ export function TeamListBulkAction({ table }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button StartIcon="users">{t("add_to_team")}</Button>
+          <DataTableSelectionBar.Button icon="users" color="secondary">
+            {t("add_to_team")}
+          </DataTableSelectionBar.Button>
         </PopoverTrigger>
         {/* We dont really use shadows much - but its needed here  */}
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>

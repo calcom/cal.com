@@ -3,19 +3,12 @@ import type { UseFormSetValue } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-  Button,
-  Label,
-  DateRangePicker,
-  TimezoneSelect,
-  SettingsToggle,
-  DatePicker,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Label, SettingsToggle, DateRangePicker, DatePicker } from "@calcom/ui/components/form";
 
 import type { FormValues } from "~/settings/my-account/general-view";
 
@@ -102,7 +95,7 @@ const TravelScheduleModal = ({
               <DateRangePicker
                 dates={{
                   startDate,
-                  endDate: endDate ?? startDate,
+                  endDate,
                 }}
                 onDatesChange={({ startDate: newStartDate, endDate: newEndDate }) => {
                   // If newStartDate does become undefined - we resort back to to-todays date
@@ -150,6 +143,7 @@ const TravelScheduleModal = ({
         <DialogFooter showDivider className="relative">
           <DialogClose />
           <Button
+            disabled={isNoEndDate ? !startDate : !startDate || !endDate}
             onClick={() => {
               createNewSchedule();
             }}>

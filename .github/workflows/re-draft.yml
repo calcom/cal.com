@@ -1,0 +1,104 @@
+name: Re-draft
+on:
+  workflow_run:
+    workflows:
+      - Changes Requested
+    types:
+      - completed
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  statuses: write
+
+jobs:
+  download-context:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Download artifact'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "context.json"
+            })[0];
+            
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/context.zip`, Buffer.from(download.data));
+            
+      - name: 'Unzip artifact'
+        run: unzip context.zip
+
+      - name: 'Return Parsed JSON'
+        uses: actions/github-script@v7
+        id: return-parsed-json
+        with:
+          script: |
+            let fs = require('fs');
+            let data = fs.readFileSync('./context.json');
+            return JSON.parse(data);
+
+    outputs:
+      pr_number: ${{fromJSON(steps.return-parsed-json.outputs.result).pr_number}}
+
+  re-draft:
+    needs:
+      - download-context
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      statuses: write
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This PR was rejected"
+      - name: Convert PR to draft when changes are requested
+        uses: actions/github-script@v7
+        with:
+          script: |
+            async function getPullRequestId() {
+              const pull_number = ${{ needs.download-context.outputs.pr_number }}; 
+              const pullRequest = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number,
+              });
+              if (!pullRequest.data.node_id) throw new Error(`pullRequestId no found for '${pull_number}'`);
+              return pullRequest.data.node_id;
+            }
+            const query = `
+              mutation($id: ID!) {
+                convertPullRequestToDraft(input: { pullRequestId: $id }) {
+                  pullRequest {
+                    id
+                    number
+                    isDraft
+                  }
+                }
+              }
+            `;
+            const pullRequestId = await getPullRequestId();
+            const variables = {
+              id: pullRequestId,
+            }
+            const response = await github.graphql(query, variables)
+            if (!response.convertPullRequestToDraft) {
+              throw new Error("Failed to convert pull request to draft");
+            }
+            console.info("Pull request successfully converted to draft.");
+            console.info(`Draft conversion response: ${JSON.stringify(response, null, 2)}`);

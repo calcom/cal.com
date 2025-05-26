@@ -2,13 +2,18 @@ import { AppConfig } from "@/config/type";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { getReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { UsersRepository } from "@/modules/users/users.repository";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
+  InternalServerErrorException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { Prisma, Credential } from "@prisma/client";
+import type { Prisma, Credential, User } from "@prisma/client";
 import Stripe from "stripe";
 import { z } from "zod";
 
@@ -18,26 +23,30 @@ import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
 
 import stringify = require("qs-stringify");
 
-type IntegrationOAuthCallbackState = {
+export type OAuthCallbackState = {
   accessToken: string;
-  returnTo: string;
-  onErrorReturnTo: string;
-  fromApp: boolean;
-  teamId?: number | null;
+  teamId?: string;
+  orgId?: string;
+  fromApp?: boolean;
+  returnTo?: string;
+  onErrorReturnTo?: string;
 };
 
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
   private redirectUri = `${this.config.get("api.url")}/stripe/save`;
+  private webAppUrl = this.config.get("app.baseUrl");
+  private environment = this.config.get("env.type");
+  private teamMonthlyPriceId = this.config.get("stripe.teamMonthlyPriceId");
 
   constructor(
     configService: ConfigService<AppConfig>,
     private readonly config: ConfigService,
     private readonly appsRepository: AppsRepository,
-    private readonly credentialRepository: CredentialsRepository,
-    private readonly tokensRepository: TokensRepository,
-    private readonly membershipRepository: MembershipsRepository
+    private readonly credentialsRepository: CredentialsRepository,
+    private readonly membershipRepository: MembershipsRepository,
+    private readonly usersRepository: UsersRepository
   ) {
     this.stripe = new Stripe(configService.get("stripe.apiKey", { infer: true }) ?? "", {
       apiVersion: "2020-08-27",
@@ -48,7 +57,7 @@ export class StripeService {
     return this.stripe;
   }
 
-  async getStripeRedirectUrl(state: string, userEmail?: string, userName?: string | null) {
+  async getStripeRedirectUrl(state: OAuthCallbackState, userEmail?: string, userName?: string | null) {
     const { client_id } = await this.getStripeAppKeys();
 
     const stripeConnectParams: Stripe.OAuthAuthorizeUrlParams = {
@@ -62,7 +71,7 @@ export class StripeService {
         country: process.env.NEXT_PUBLIC_IS_E2E ? "US" : undefined,
       },
       redirect_uri: this.redirectUri,
-      state: state,
+      state: JSON.stringify(state),
     };
 
     const params = z.record(z.any()).parse(stripeConnectParams);
@@ -88,10 +97,7 @@ export class StripeService {
     return { client_id, client_secret };
   }
 
-  async saveStripeAccount(state: string, code: string, accessToken: string): Promise<{ url: string }> {
-    const userId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
-    const oAuthCallbackState: IntegrationOAuthCallbackState = JSON.parse(state);
-
+  async saveStripeAccount(state: OAuthCallbackState, code: string, userId: number): Promise<{ url: string }> {
     if (!userId) {
       throw new UnauthorizedException("Invalid Access token.");
     }
@@ -107,17 +113,14 @@ export class StripeService {
       data["default_currency"] = account.default_currency;
     }
 
-    if (oAuthCallbackState.teamId) {
-      await this.checkIfUserHasAdminAccessToTeam(oAuthCallbackState.teamId, userId);
+    const existingCredentials = await this.credentialsRepository.findAllCredentialsByTypeAndUserId(
+      "stripe_payment",
+      userId
+    );
 
-      await this.appsRepository.createTeamAppCredential(
-        "stripe_payment",
-        data as unknown as Prisma.InputJsonObject,
-        oAuthCallbackState.teamId,
-        "stripe"
-      );
-
-      return { url: getReturnToValueFromQueryState(state) };
+    const credentialIdsToDelete = existingCredentials.map((item) => item.id);
+    if (credentialIdsToDelete.length > 0) {
+      await this.appsRepository.deleteAppCredentials(credentialIdsToDelete, userId);
     }
 
     await this.appsRepository.createAppCredential(
@@ -127,28 +130,16 @@ export class StripeService {
       "stripe"
     );
 
-    return { url: getReturnToValueFromQueryState(state) };
+    return { url: state.returnTo ?? "" };
   }
 
   async checkIfIndividualStripeAccountConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const stripeCredentials = await this.credentialRepository.getByTypeAndUserId("stripe_payment", userId);
+    const stripeCredentials = await this.credentialsRepository.findCredentialByTypeAndUserId(
+      "stripe_payment",
+      userId
+    );
 
     return await this.validateStripeCredentials(stripeCredentials);
-  }
-
-  async checkIfTeamStripeAccountConnected(teamId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const stripeCredentials = await this.credentialRepository.getByTypeAndTeamId("stripe_payment", teamId);
-
-    return await this.validateStripeCredentials(stripeCredentials);
-  }
-
-  async checkIfUserHasAdminAccessToTeam(teamId: number, userId: number) {
-    const teamMembership = await this.membershipRepository.findMembershipByTeamId(teamId, userId);
-    const hasAdminAccessToTeam = teamMembership?.role === "ADMIN" || teamMembership?.role === "OWNER";
-
-    if (!hasAdminAccessToTeam) {
-      throw new BadRequestException("You must be team owner or admin to do this");
-    }
   }
 
   async validateStripeCredentials(
@@ -175,5 +166,99 @@ export class StripeService {
     return {
       status: SUCCESS_STATUS,
     };
+  }
+
+  async generateTeamCheckoutSession(pendingPaymentTeamId: number, ownerId: number) {
+    const stripe = this.getStripe();
+    const customer = await this.getStripeCustomerIdFromUserId(ownerId);
+
+    if (!customer) {
+      throw new BadRequestException("Failed to create a customer on Stripe.");
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      customer,
+      mode: "subscription",
+      allow_promotion_codes: true,
+      success_url: `${this.webAppUrl}/api/teams/api/create?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${this.webAppUrl}/settings/my-account/profile`,
+      line_items: [
+        {
+          /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
+          price: this.teamMonthlyPriceId,
+          /**Initially it will be just the team owner */
+          quantity: 1,
+        },
+      ],
+      customer_update: {
+        address: "auto",
+      },
+      // Disabled when testing locally as usually developer doesn't setup Tax in Stripe Test mode
+      automatic_tax: {
+        enabled: this.environment === "production",
+      },
+      metadata: {
+        pendingPaymentTeamId,
+        ownerId,
+        dubCustomerId: ownerId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+      },
+    });
+
+    if (!session.url) {
+      throw new InternalServerErrorException({
+        message: "Failed generating a Stripe checkout session URL.",
+      });
+    }
+
+    return session;
+  }
+
+  async getStripeCustomerIdFromUserId(userId: number) {
+    const user = await this.usersRepository.findById(userId);
+
+    if (!user?.email) return null;
+    const customerId = await this.getStripeCustomerId(user);
+    if (!customerId) {
+      return this.createStripeCustomerId(user);
+    }
+
+    return customerId;
+  }
+
+  async getStripeCustomerId(user: Pick<User, "email" | "name" | "metadata">) {
+    if (user?.metadata && typeof user.metadata === "object" && "stripeCustomerId" in user.metadata) {
+      return (user?.metadata as Prisma.JsonObject).stripeCustomerId as string;
+    }
+    return null;
+  }
+
+  async createStripeCustomerId(user: Pick<User, "email" | "name" | "metadata">) {
+    let customerId: string;
+
+    const stripe = this.getStripe();
+    try {
+      const customersResponse = await stripe.customers.list({
+        email: user.email,
+        limit: 1,
+      });
+
+      customerId = customersResponse.data[0].id;
+    } catch (error) {
+      const customer = await stripe.customers.create({ email: user.email });
+      customerId = customer.id;
+    }
+
+    await this.usersRepository.updateByEmail(user.email, {
+      metadata: {
+        ...(user.metadata as Prisma.JsonObject),
+        stripeCustomerId: customerId,
+      },
+    });
+
+    return customerId;
+  }
+
+  async getSubscription(subscriptionId: string) {
+    return await this.stripe.subscriptions.retrieve(subscriptionId);
   }
 }

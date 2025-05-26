@@ -1,7 +1,10 @@
 import type { IncomingMessage } from "http";
+import { SessionProvider } from "next-auth/react";
 import type { AppContextType } from "next/dist/shared/lib/utils";
-import React, { useEffect } from "react";
+import React from "react";
+import CacheProvider from "react-inlinesvg/provider";
 
+import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
 import { trpc } from "@calcom/trpc/react";
 
 import type { AppProps } from "@lib/app-providers";
@@ -11,15 +14,16 @@ import "../styles/globals.css";
 function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/service-worker.js");
-    }
-  }, []);
-
-  const content = Component.PageWrapper ? <Component.PageWrapper {...props} /> : <Component {...pageProps} />;
-
-  return content;
+  return (
+    <SessionProvider session={pageProps.session ?? undefined}>
+      <WebPushProvider>
+        {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+        <CacheProvider>
+          {Component.PageWrapper ? <Component.PageWrapper {...props} /> : <Component {...pageProps} />}
+        </CacheProvider>
+      </WebPushProvider>
+    </SessionProvider>
+  );
 }
 
 declare global {

@@ -1,10 +1,11 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
-import { TRPCError } from "@calcom/trpc/server";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import { createFallbackRoute } from "../lib/createFallbackRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -13,7 +14,7 @@ import { isFormCreateEditAllowed } from "../lib/isFormCreateEditAllowed";
 import isRouter from "../lib/isRouter";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import type { SerializableForm } from "../types/types";
-import { zodFields, zodRouterRoute, zodRoutes, queryValueSaveValidationSchema } from "../zod";
+import { zodFields, zodRouterRoute, zodRoutes } from "../zod";
 import type { TFormMutationInputSchema } from "./formMutation.schema";
 
 interface FormMutationHandlerOptions {
@@ -22,58 +23,6 @@ interface FormMutationHandlerOptions {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TFormMutationInputSchema;
-}
-
-function throwIfInvalidQueryValueToBeSaved({
-  routes,
-}: {
-  routes: FormMutationHandlerOptions["input"]["routes"];
-}) {
-  if (!routes) {
-    return;
-  }
-  routes.forEach((route, routeIndex) => {
-    if (isRouter(route)) {
-      return;
-    }
-    // We use separate schema for queryValye here which is much more strict
-    // It allows that we are still lenient with schema while reading the queryValue but while saving it we are strict
-    const parsedFormFieldsQueryValue = queryValueSaveValidationSchema.safeParse(route.queryValue);
-    if (!parsedFormFieldsQueryValue.success) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Route ${routeIndex + 1} form fields: ${getErrorMessageFromZodError(
-          parsedFormFieldsQueryValue.error
-        )}`,
-      });
-    }
-
-    const parsedAttributesQueryValue = queryValueSaveValidationSchema.safeParse(route.attributesQueryValue);
-    if (!parsedAttributesQueryValue.success) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Route ${routeIndex + 1} attributes: ${getErrorMessageFromZodError(
-          parsedAttributesQueryValue.error
-        )}`,
-      });
-    }
-
-    const parsedFallbackAttributesQueryValue = queryValueSaveValidationSchema.safeParse(
-      route.fallbackAttributesQueryValue
-    );
-    if (!parsedFallbackAttributesQueryValue.success) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Route ${routeIndex + 1} fallback attributes: ${getErrorMessageFromZodError(
-          parsedFallbackAttributesQueryValue.error
-        )}`,
-      });
-    }
-  });
-
-  function getErrorMessageFromZodError(zodError: Zod.ZodError) {
-    return zodError.errors.map((err) => err.message).join(", ");
-  }
 }
 
 export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOptions) => {
@@ -86,16 +35,9 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       code: "FORBIDDEN",
     });
   }
-  let { routes: inputRoutes } = input;
 
-  // Ensures that wrong queryValue is not saved
-  // This is super useful when we make some wrong change in RAQB config accidentally and end up
-  // - Removing an operator support from a rule
-  // - Populating things wrong for any reason in RAQB
-  // It would just ensure that the wrong queryValue is not saved. Because it is impossible to fix it once saved. User would have to manually fix it then.
-  throwIfInvalidQueryValueToBeSaved({ routes: inputRoutes });
+  let { routes: inputRoutes, fields: inputFields } = input;
 
-  let { fields: inputFields } = input;
   inputFields = inputFields || [];
   inputRoutes = inputRoutes || [];
   type InputFields = typeof inputFields;
@@ -122,6 +64,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       settings: true,
       teamId: true,
       position: true,
+      updatedById: true,
     },
   });
 
@@ -204,6 +147,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       description,
       settings: settings === null ? Prisma.JsonNull : settings,
       routes: routes === null ? Prisma.JsonNull : routes,
+      updatedById: user.id,
     },
   });
 
@@ -328,6 +272,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
         },
         data: {
           fields: updatedConnectedFormFields,
+          updatedById: user.id,
         },
       });
     }

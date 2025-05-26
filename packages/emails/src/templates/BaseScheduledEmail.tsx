@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
 import { formatPrice } from "@calcom/lib/price";
@@ -68,6 +68,11 @@ export const BaseScheduledEmail = (
           : props.callToAction || <ManageLink attendee={props.attendee} calEvent={props.calEvent} />
       }
       subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}>
+      {props.calEvent.rejectionReason && (
+        <>
+          <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
+        </>
+      )}
       {props.calEvent.cancellationReason && (
         <Info
           label={t(
@@ -100,12 +105,15 @@ export const BaseScheduledEmail = (
           )}
         </>
       )}
+      {props.calEvent.rescheduledBy && (
+        <Info label={t("rescheduled_by")} description={props.calEvent.rescheduledBy} withSpacer />
+      )}
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
       <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
-      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
+      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer formatted />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
       <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
       {props.calEvent.paymentInfo?.amount && (

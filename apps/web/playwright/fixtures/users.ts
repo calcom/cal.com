@@ -29,6 +29,8 @@ export function hashPassword(password: string) {
 
 type UserFixture = ReturnType<typeof createUserFixture>;
 
+export type CreateUsersFixture = ReturnType<typeof createUsersFixture>;
+
 const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
   eventTypes: true,
   workflows: true,
@@ -84,7 +86,7 @@ const createTeamWorkflow = async (user: { id: number }, team: { id: number }) =>
   });
 };
 
-const createTeamEventType = async (
+export const createTeamEventType = async (
   user: { id: number },
   team: { id: number },
   scenario?: {
@@ -225,6 +227,7 @@ const createTeamAndAddUser = async (
   const { role = MembershipRole.OWNER, id: userId } = user;
   await prisma.membership.create({
     data: {
+      createdAt: new Date(),
       teamId: team.id,
       userId,
       role: role,
@@ -244,7 +247,7 @@ export const createUsersFixture = (
   const store = { users: [], trackedEmails: [], page, teams: [] } as {
     users: UserFixture[];
     trackedEmails: { email: string }[];
-    page: typeof page;
+    page: Page;
     teams: Team[];
   };
   return {
@@ -266,6 +269,7 @@ export const createUsersFixture = (
       opts?:
         | (CustomUserOpts & {
             organizationId?: number | null;
+            overrideDefaultEventTypes?: boolean;
           })
         | null,
       scenario: {
@@ -298,18 +302,20 @@ export const createUsersFixture = (
         },
       });
 
-      let defaultEventTypes: SupportedTestEventTypes[] = [
-        { title: "30 min", slug: "30-min", length: 30 },
-        { title: "Paid", slug: "paid", length: 30, price: 1000 },
-        { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
-        { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
-        {
-          title: "Multiple duration",
-          slug: "multiple-duration",
-          length: 30,
-          metadata: { multipleDuration: [30, 60, 90] },
-        },
-      ];
+      let defaultEventTypes: SupportedTestEventTypes[] = opts?.overrideDefaultEventTypes
+        ? []
+        : [
+            { title: "30 min", slug: "30-min", length: 30 },
+            { title: "Paid", slug: "paid", length: 30, price: 1000 },
+            { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
+            { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
+            {
+              title: "Multiple duration",
+              slug: "multiple-duration",
+              length: 30,
+              metadata: { multipleDuration: [30, 60, 90] },
+            },
+          ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
       for (const eventTypeData of defaultEventTypes) {
@@ -389,7 +395,7 @@ export const createUsersFixture = (
               },
               {
                 id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: "https://cal.com" },
+                action: { type: "externalRedirectUrl", value: "https://cal.com/peer" },
                 queryValue: {
                   id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
                   type: "group",
@@ -561,6 +567,7 @@ export const createUsersFixture = (
               // Add teammates to the team
               await prisma.membership.create({
                 data: {
+                  createdAt: new Date(),
                   teamId: team.id,
                   userId: teamUser.id,
                   role: MembershipRole.MEMBER,
@@ -844,7 +851,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       installStripePersonal({ page: store.page, ...params }),
     installStripeTeam: async (params: InstallStripeParamsUnion & { teamId: number }) =>
       installStripeTeam({ page: store.page, ...params }),
-    // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
+    // this is for development only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
       await prisma.user.update({
         where: { id: store.user.id },
@@ -878,7 +885,8 @@ type CustomUserOptsKeys =
   | "organizationId"
   | "twoFactorEnabled"
   | "disableImpersonation"
-  | "role";
+  | "role"
+  | "identityProvider";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
@@ -944,6 +952,7 @@ const createUser = (
             },
           }
         : undefined,
+    identityProvider: opts?.identityProvider,
   };
 
   function getOrganizationRelatedProps({
@@ -1036,6 +1045,8 @@ export async function login(
 
   //login
   await page.goto("/");
+  await page.waitForSelector("text=Welcome back");
+
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);

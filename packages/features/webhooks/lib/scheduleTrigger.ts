@@ -2,11 +2,12 @@ import type { Prisma, Webhook, Booking } from "@prisma/client";
 import { v4 } from "uuid";
 
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
-import { getHumanReadableLocationValue } from "@calcom/core/location";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getHumanReadableLocationValue } from "@calcom/lib/location";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server";
+import { withReporting } from "@calcom/lib/sentryWrapper";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -70,9 +71,32 @@ export async function addSubscription({
           },
           status: BookingStatus.ACCEPTED,
         },
+        include: {
+          eventType: {
+            select: {
+              bookingFields: true,
+            },
+          },
+          attendees: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
       });
 
-      for (const booking of bookings) {
+      const bookingsWithCalEventResponses = bookings.map((booking) => {
+        return {
+          ...booking,
+          ...getCalEventResponses({
+            bookingFields: booking.eventType?.bookingFields ?? null,
+            booking,
+          }),
+        };
+      });
+
+      for (const booking of bookingsWithCalEventResponses) {
         scheduleTrigger({
           booking,
           subscriberUrl: createSubscription.subscriberUrl,
@@ -246,12 +270,15 @@ export async function scheduleTrigger({
   subscriberUrl,
   subscriber,
   triggerEvent,
+  isDryRun = false,
 }: {
   booking: { id: number; endTime: Date; startTime: Date };
   subscriberUrl: string;
   subscriber: { id: string; appId: string | null };
   triggerEvent: WebhookTriggerEvents;
+  isDryRun?: boolean;
 }) {
+  if (isDryRun) return;
   try {
     const payload = JSON.stringify({ triggerEvent, ...booking });
 
@@ -278,13 +305,14 @@ export async function scheduleTrigger({
   }
 }
 
-export async function deleteWebhookScheduledTriggers({
+async function _deleteWebhookScheduledTriggers({
   booking,
   appId,
   triggerEvent,
   webhookId,
   userId,
   teamId,
+  isDryRun = false,
 }: {
   booking?: { id: number; uid: string };
   appId?: string | null;
@@ -292,7 +320,9 @@ export async function deleteWebhookScheduledTriggers({
   webhookId?: string;
   userId?: number;
   teamId?: number;
+  isDryRun?: boolean;
 }) {
+  if (isDryRun) return;
   try {
     if (appId && (userId || teamId)) {
       const where: Prisma.BookingWhereInput = {};
@@ -331,6 +361,11 @@ export async function deleteWebhookScheduledTriggers({
     console.error("Error deleting webhookScheduledTriggers ", error);
   }
 }
+
+export const deleteWebhookScheduledTriggers = withReporting(
+  _deleteWebhookScheduledTriggers,
+  "deleteWebhookScheduledTriggers"
+);
 
 export async function updateTriggerForExistingBookings(
   webhook: Webhook,

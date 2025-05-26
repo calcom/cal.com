@@ -15,7 +15,7 @@ describe("getValidRhfFieldName", () => {
     expect(getValidRhfFieldName("$hello.there")).toEqual("-hello-there");
   });
 
-  // So that user can freely add spaces and any other character iteratively and it get's converted to - and he can add more characters.
+  // So that user can freely add spaces and any other character iteratively and it gets converted to - and he can add more characters.
   // We don't really care about a hyphen in the end
   it("should not remove dashes from start and end.", () => {
     expect(getValidRhfFieldName("hello-there-")).toEqual("hello-there-");

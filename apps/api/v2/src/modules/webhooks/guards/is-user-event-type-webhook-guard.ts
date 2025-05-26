@@ -1,5 +1,5 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { GetUserReturnType } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
   BadRequestException,
@@ -23,21 +23,23 @@ export class IsUserEventTypeWebhookGuard implements CanActivate {
     const request = context
       .switchToHttp()
       .getRequest<Request & { webhook: Webhook } & { eventType: EventType }>();
-    const user = request.user as GetUserReturnType;
+    const user = request.user as ApiAuthGuardUser;
     const webhookId = request.params.webhookId;
     const eventTypeId = request.params.eventTypeId;
 
     if (!user) {
-      return false;
+      throw new ForbiddenException("IsUserEventTypeWebhookGuard - No user associated with the request.");
     }
 
     if (eventTypeId) {
       const eventType = await this.eventtypesRepository.getEventTypeById(parseInt(eventTypeId));
       if (!eventType) {
-        throw new NotFoundException(`Event type (${eventTypeId}) not found`);
+        throw new NotFoundException(`IsUserEventTypeWebhookGuard - Event type (${eventTypeId}) not found`);
       }
       if (eventType.userId !== user.id) {
-        throw new ForbiddenException(`User (${user.id}) is not the owner of event type (${eventTypeId})`);
+        throw new ForbiddenException(
+          `IsUserEventTypeWebhookGuard - User (${user.id}) is not the owner of event type (${eventTypeId})`
+        );
       }
       request.eventType = eventType;
     }
@@ -45,11 +47,13 @@ export class IsUserEventTypeWebhookGuard implements CanActivate {
     if (webhookId) {
       const webhook = await this.webhooksService.getWebhookById(webhookId);
       if (!webhook.eventTypeId) {
-        throw new BadRequestException(`Webhook (${webhookId}) is not associated with an event type`);
+        throw new BadRequestException(
+          `IsUserEventTypeWebhookGuard - Webhook (${webhookId}) is not associated with an event type`
+        );
       }
       if (webhook.eventTypeId !== parseInt(eventTypeId)) {
         throw new ForbiddenException(
-          `Webhook (${webhookId}) is not associated with event type (${eventTypeId})`
+          `IsUserEventTypeWebhookGuard - Webhook (${webhookId}) is not associated with event type (${eventTypeId})`
         );
       }
       request.webhook = webhook;

@@ -1,47 +1,67 @@
 import dayjs from "@calcom/dayjs";
 import { getSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSenderIdSupport";
-import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
+import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_ID } from "@calcom/lib/constants";
+import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-const handleSendingSMS = ({
+const handleSendingSMS = async ({
   reminderPhone,
   smsMessage,
   senderID,
   teamId,
+  bookingUid,
 }: {
   reminderPhone: string;
   smsMessage: string;
   senderID: string;
   teamId: number;
+  bookingUid?: string | null;
 }) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const team = await prisma.team.findUnique({
-        where: {
-          id: teamId,
-        },
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: {
+      parent: {
         select: {
-          parent: {
+          isOrganization: true,
+          organizationSettings: {
             select: {
-              isOrganization: true,
+              disablePhoneOnlySMSNotifications: true,
             },
           },
         },
-      });
-
-      if (!team?.parent?.isOrganization) return;
-
-      await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
-      const sms = twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
-      resolve(sms);
-    } catch (e) {
-      reject(console.error(`twilio.sendSMS failed`, e));
-    }
+      },
+    },
   });
+
+  if (!team?.parent?.isOrganization || team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications) {
+    return; // resolves implicitly (as undefined)
+  }
+
+  try {
+    await checkSMSRateLimit({
+      identifier: `handleSendingSMS:team:${teamId}`,
+      rateLimitingType: "sms",
+    });
+
+    const smsOrFallbackEmail = await sendSmsOrFallbackEmail({
+      twilioData: {
+        phoneNumber: reminderPhone,
+        body: smsMessage,
+        sender: senderID,
+        teamId,
+        bookingUid,
+      },
+    });
+
+    return smsOrFallbackEmail;
+  } catch (e) {
+    console.error("sendSmsOrFallbackEmail failed", e);
+    throw e; // propagate the error
+  }
 };
 
 export default abstract class SMSManager {
@@ -74,16 +94,16 @@ export default abstract class SMSManager {
 
   abstract getMessage(attendee: Person): string;
 
-  async sendSMSToAttendee(attendee: Person) {
+  async sendSMSToAttendee(attendee: Person, bookingUid?: string | null) {
     const teamId = this.teamId;
-    if (!this.isTeamEvent || !teamId) return;
-
     const attendeePhoneNumber = attendee.phoneNumber;
-    if (!attendeePhoneNumber) return;
+    const isPhoneOnlyBooking = attendeePhoneNumber && isSmsCalEmail(attendee.email);
+
+    if (!this.isTeamEvent || !teamId || !attendeePhoneNumber || !isPhoneOnlyBooking) return;
 
     const smsMessage = this.getMessage(attendee);
     const senderID = getSenderId(attendeePhoneNumber, SENDER_ID);
-    return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId });
+    return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId, bookingUid });
   }
 
   async sendSMSToAttendees() {
@@ -91,7 +111,7 @@ export default abstract class SMSManager {
     const smsToSend: Promise<unknown>[] = [];
 
     for (const attendee of this.calEvent.attendees) {
-      smsToSend.push(this.sendSMSToAttendee(attendee));
+      smsToSend.push(this.sendSMSToAttendee(attendee, this.calEvent.uid));
     }
 
     await Promise.all(smsToSend);

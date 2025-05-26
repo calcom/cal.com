@@ -1,9 +1,9 @@
 import type { z } from "zod";
 
-import { canAccessEntity } from "@calcom/lib/entityPermissionUtils";
+import { canAccessEntity } from "@calcom/lib/entityPermissionUtils.server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 

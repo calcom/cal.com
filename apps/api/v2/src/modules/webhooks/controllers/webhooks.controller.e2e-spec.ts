@@ -15,13 +15,14 @@ import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { Webhook } from "@calcom/prisma/client";
 
 describe("WebhooksController (e2e)", () => {
   let app: INestApplication;
-  const userEmail = "webhook-controller-e2e@api.com";
+  const userEmail = `webhooks-controller-user-${randomString()}@api.com`;
   let user: UserWithProfile;
   let otherUser: UserWithProfile;
 
@@ -47,8 +48,8 @@ describe("WebhooksController (e2e)", () => {
     });
 
     otherUser = await userRepositoryFixture.create({
-      email: "other-user-webhook-controller@api.com",
-      username: "other-user-webhook-controller@api.com",
+      email: `webhooks-controller-other-user-${randomString()}@api.com`,
+      username: `webhooks-controller-other-user-${randomString()}@api.com`,
     });
 
     otherWebhook = await webhookRepositoryFixture.create({
@@ -179,11 +180,11 @@ describe("WebhooksController (e2e)", () => {
       });
   });
 
-  it("/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not exist", () => {
+  it("/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not exist", () => {
     return request(app.getHttpServer()).delete(`/v2/webhooks/12993`).expect(404);
   });
 
-  it("/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not belong to user", () => {
+  it("/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not belong to user", () => {
     return request(app.getHttpServer()).delete(`/v2/webhooks/${otherWebhook.id}`).expect(403);
   });
 });

@@ -3,17 +3,17 @@ import classNames from "classnames";
 import TeamPill, { TeamRole } from "@calcom/ee/teams/components/TeamPill";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { UserAvatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
-  Button,
-  ButtonGroup,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Tooltip,
-  UserAvatar,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 interface Props {
   member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"][number];
@@ -37,7 +37,7 @@ export default function MemberListItem(props: Props) {
             <UserAvatar noOrganizationIndicator size="sm" user={user} className="h-10 w-10 rounded-full" />
 
             <div className="ms-3 inline-block overflow-hidden">
-              <div className="mb-1 flex">
+              <div className="mb-1 flex items-center">
                 <span className="text-default mr-1 text-sm font-bold leading-4">{name}</span>
 
                 {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}

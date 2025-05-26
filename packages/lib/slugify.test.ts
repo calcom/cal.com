@@ -22,7 +22,7 @@ describe("slugify", () => {
     expect(slugify("hello$there")).toEqual("hello-there");
   });
 
-  // So that user can freely add spaces and any other character iteratively and it get's converted to - later on.
+  // So that user can freely add spaces and any other character iteratively and it gets converted to - later on.
   it("should remove dashes from start and end.", () => {
     expect(slugify("hello-there-")).toEqual("hello-there");
     expect(slugify("hello-there_")).toEqual("hello-there");

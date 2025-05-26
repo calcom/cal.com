@@ -26,7 +26,6 @@ export const withPaidAppRedirect = async ({
     success_url: redirect_uri,
     cancel_url: redirect_uri,
     mode: appPaidMode === "subscription" ? "subscription" : "payment",
-    payment_method_types: ["card"],
     allow_promotion_codes: true,
     customer: stripeCustomerId,
     line_items: [

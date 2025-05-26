@@ -385,6 +385,13 @@ export default async function main() {
     });
   }
 
+  if (process.env.CLOSECOM_CLIENT_ID && process.env.CLOSECOM_CLIENT_SECRET) {
+    await createApp("closecom", "closecom", ["crm"], "closecom_crm", {
+      client_id: process.env.CLOSECOM_CLIENT_ID,
+      client_secret: process.env.CLOSECOM_CLIENT_SECRET,
+    });
+  }
+
   for (const [, app] of Object.entries(appStoreMetadata)) {
     if (app.isTemplate && process.argv[2] !== "seed-templates") {
       continue;

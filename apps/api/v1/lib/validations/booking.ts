@@ -8,7 +8,8 @@ import {
   _TeamModel,
   _UserModel,
 } from "@calcom/prisma/zod";
-import { extendedBookingCreateBody, iso8601 } from "@calcom/prisma/zod-utils";
+import { iso8601 } from "@calcom/prisma/zod-utils";
+import { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 
 import { schemaQueryUserId } from "./shared/queryUserId";
 
@@ -23,6 +24,7 @@ const schemaBookingBaseBodyParams = Booking.pick({
   status: true,
   rescheduledBy: true,
   cancelledBy: true,
+  createdAt: true,
 }).partial();
 
 export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(schemaQueryUserId.partial());
@@ -36,6 +38,23 @@ export const schemaBookingGetParams = z.object({
 });
 
 export type Status = z.infer<typeof schemaBookingGetParams>["status"];
+
+export const bookingCancelSchema = z.object({
+  id: z.number(),
+  allRemainingBookings: z.boolean().optional(),
+  cancelSubsequentBookings: z.boolean().optional(),
+  cancellationReason: z.string().optional().default("Not Provided"),
+  seatReferenceUid: z.string().optional(),
+  cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
+  internalNote: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      cancellationReason: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
+});
 
 const schemaBookingEditParams = z
   .object({
@@ -119,4 +138,5 @@ export const schemaBookingReadPublic = Booking.extend({
   fromReschedule: true,
   cancelledBy: true,
   rescheduledBy: true,
+  createdAt: true,
 });

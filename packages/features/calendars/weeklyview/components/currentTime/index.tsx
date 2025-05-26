@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
 
+import { useBookerTime } from "../../../../bookings/Booker/components/hooks/useBookerTime";
 import { useCalendarStore } from "../../state/store";
 
 function calculateMinutesFromStart(startHour: number, currentHour: number, currentMinute: number) {
@@ -19,7 +19,7 @@ export function CurrentTime() {
     startHour: state.startHour || 0,
     endHour: state.endHour || 23,
   }));
-  const { timeFormat, timezone } = useTimePreferences();
+  const { timeFormat, timezone } = useBookerTime();
 
   useEffect(() => {
     // Set the container scroll position based on the current time.
@@ -39,7 +39,7 @@ export function CurrentTime() {
     if (!currentTimeRef.current || scrolledIntoView) return;
     // Within a small timeout so element has time to render.
     setTimeout(() => {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Does't seem to cause any issue. Put it under condition if needed
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Doesn't seem to cause any issue. Put it under condition if needed
       currentTimeRef?.current?.scrollIntoView({ block: "center" });
       setScrolledIntoView(true);
     }, 100);

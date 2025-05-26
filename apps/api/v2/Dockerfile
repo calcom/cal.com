@@ -1,4 +1,4 @@
-FROM node:18-alpine as build
+FROM node:20-alpine AS build
 
 ARG DATABASE_DIRECT_URL
 ARG DATABASE_URL
@@ -6,6 +6,7 @@ ARG DATABASE_URL
 WORKDIR /calcom
 
 RUN set -eux;
+RUN ln -s /usr/lib/libssl.so.3 /lib/libssl.so.3
 
 ENV NODE_ENV="production"
 ENV NODE_OPTIONS="--max-old-space-size=8192"

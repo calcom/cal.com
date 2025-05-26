@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import {
   IsArray,
@@ -24,12 +24,17 @@ class Attendee {
   @Expose()
   name!: string;
 
+  @ApiProperty({ type: String, example: "john@example.com" })
+  @IsString()
+  @Expose()
+  email!: string;
+
   @ApiProperty({ type: String, example: "America/New_York" })
   @IsTimeZone()
   @Expose()
   timeZone!: string;
 
-  @ApiProperty({ enum: BookingLanguage, required: false, example: "en" })
+  @ApiPropertyOptional({ enum: BookingLanguage, example: "en" })
   @IsEnum(BookingLanguage)
   @Expose()
   @IsOptional()
@@ -39,6 +44,12 @@ class Attendee {
   @IsBoolean()
   @Expose()
   absent!: boolean;
+
+  @ApiPropertyOptional({ type: String, example: "+1234567890" })
+  @IsString()
+  @Expose()
+  @IsOptional()
+  phoneNumber?: string;
 }
 
 export class SeatedAttendee extends Attendee {
@@ -52,14 +63,23 @@ export class SeatedAttendee extends Attendee {
     description:
       "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
     example: { customField: "customValue" },
-    required: false,
+    required: true,
   })
   @IsObject()
   @Expose()
   bookingFieldsResponses!: Record<string, unknown>;
+
+  @ApiPropertyOptional({
+    type: Object,
+    example: { key: "value" },
+  })
+  @IsObject()
+  @IsOptional()
+  @Expose()
+  metadata?: Record<string, string>;
 }
 
-class Host {
+class BookingHost {
   @ApiProperty({ type: Number, example: 1 })
   @IsInt()
   @Expose()
@@ -69,6 +89,16 @@ class Host {
   @IsString()
   @Expose()
   name!: string;
+
+  @ApiProperty({ type: String, example: "jane100@example.com" })
+  @IsString()
+  @Expose()
+  email!: string;
+
+  @ApiProperty({ type: String, example: "jane100" })
+  @IsString()
+  @Expose()
+  username!: string;
 
   @ApiProperty({ type: String, example: "America/Los_Angeles" })
   @IsTimeZone()
@@ -109,30 +139,42 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   description!: string;
 
-  @ApiProperty({ type: [Host] })
+  @ApiProperty({ type: [BookingHost] })
   @ValidateNested({ each: true })
-  @Type(() => Host)
+  @Type(() => BookingHost)
   @Expose()
-  hosts!: Host[];
+  hosts!: BookingHost[];
 
   @ApiProperty({ enum: ["cancelled", "accepted", "rejected", "pending"], example: "accepted" })
   @IsEnum(["cancelled", "accepted", "rejected", "pending"])
   @Expose()
   status!: "cancelled" | "accepted" | "rejected" | "pending";
 
-  @ApiProperty({ type: String, required: false, example: "User requested cancellation" })
+  @ApiPropertyOptional({ type: String, example: "User requested cancellation" })
   @IsString()
   @IsOptional()
   @Expose()
   cancellationReason?: string;
 
-  @ApiProperty({ type: String, required: false, example: "User rescheduled the event" })
+  @ApiPropertyOptional({ type: String, example: "canceller@example.com" })
+  @IsEmail()
+  @IsOptional()
+  @Expose()
+  cancelledByEmail?: string;
+
+  @ApiPropertyOptional({ type: String, example: "User rescheduled the event" })
   @IsString()
   @IsOptional()
   @Expose()
   reschedulingReason?: string;
 
-  @ApiProperty({ type: String, required: false, example: "previous_uid_123" })
+  @ApiPropertyOptional({ type: String, example: "rescheduler@example.com" })
+  @IsEmail()
+  @IsOptional()
+  @Expose()
+  rescheduledByEmail?: string;
+
+  @ApiPropertyOptional({ type: String, example: "previous_uid_123" })
   @IsString()
   @IsOptional()
   @Expose()
@@ -168,9 +210,9 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   eventType!: EventType;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
-    required: false,
+
     description: "Deprecated - rely on 'location' field instead.",
     example: "https://example.com/recurring-meeting",
     deprecated: true,
@@ -180,8 +222,7 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   meetingUrl?: string;
 
-  @ApiProperty({ type: String, required: false, example: "https://example.com/meeting" })
-  @IsOptional()
+  @ApiProperty({ type: String, example: "https://example.com/meeting" })
   @Expose()
   location!: string;
 
@@ -189,6 +230,37 @@ class BaseBookingOutput_2024_08_13 {
   @IsBoolean()
   @Expose()
   absentHost!: boolean;
+
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @IsDateString()
+  @Expose()
+  createdAt!: string;
+
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @IsDateString()
+  @Expose()
+  updatedAt!: string | null;
+
+  @ApiPropertyOptional({
+    type: Object,
+    example: { key: "value" },
+  })
+  @IsObject()
+  @IsOptional()
+  @Expose()
+  metadata?: Record<string, string>;
+
+  @ApiPropertyOptional({ type: Number, example: 4 })
+  @IsInt()
+  @IsOptional()
+  @Expose()
+  rating?: number;
+
+  @ApiPropertyOptional({ type: String, example: "ics_uid_123", description: "UID of ICS event." })
+  @IsString()
+  @IsOptional()
+  @Expose()
+  icsUid?: string;
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
@@ -198,7 +270,10 @@ export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
   @Expose()
   attendees!: Attendee[];
 
-  @ApiProperty({ type: [String], required: false, example: ["guest1@example.com", "guest2@example.com"] })
+  @ApiPropertyOptional({
+    type: [String],
+    example: ["guest1@example.com", "guest2@example.com"],
+  })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
@@ -210,7 +285,6 @@ export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
     description:
       "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
     example: { customField: "customValue" },
-    required: false,
   })
   @IsObject()
   @Expose()
@@ -228,7 +302,6 @@ export class RecurringBookingOutput_2024_08_13 extends BookingOutput_2024_08_13 
     description:
       "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
     example: { customField: "customValue" },
-    required: false,
   })
   @IsObject()
   @Expose()

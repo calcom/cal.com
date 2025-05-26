@@ -7,10 +7,7 @@ import type {
   Operator as RAQBOperator,
 } from "react-awesome-query-builder";
 
-export type Conjunction = Omit<
-  RAQBConjunction,
-  "formatConj" | "sqlFormatConj" | "spelFormatConj" | "mongoConj"
->;
+export type Conjunction = RAQBConjunction;
 export type Conjunctions = Record<string, Conjunction>;
 export type Operator = RAQBOperator & {
   _jsonLogicIsExclamationOp?: boolean;
@@ -30,11 +27,19 @@ const conjunctions: Conjunctions = {
     label: "And",
     jsonLogicConj: "and",
     reversedConj: "OR",
+    formatConj: () => "",
+    sqlFormatConj: () => "",
+    spelFormatConj: () => "",
+    mongoConj: "",
   },
   OR: {
     label: "Or",
     jsonLogicConj: "or",
     reversedConj: "AND",
+    formatConj: () => "",
+    sqlFormatConj: () => "",
+    spelFormatConj: () => "",
+    mongoConj: "",
   },
 };
 
@@ -112,7 +117,13 @@ const operators: Operators = {
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
     reversedOp: "not_between",
-    jsonLogic: "<=",
+    jsonLogic: (field: any, op: any, vals: [any, any]) => {
+      const min = parseInt(vals[0], 10);
+      const max = parseInt(vals[1], 10);
+      return {
+        and: [{ ">=": [field, min] }, { "<=": [field, max] }],
+      };
+    },
   },
   not_between: {
     isNotOp: true,
@@ -121,6 +132,13 @@ const operators: Operators = {
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
     reversedOp: "between",
+    jsonLogic: (field: any, op: any, vals: [any, any]) => {
+      const min = parseInt(vals[0], 10);
+      const max = parseInt(vals[1], 10);
+      return {
+        or: [{ "<": [field, min] }, { ">": [field, max] }],
+      };
+    },
   },
   is_empty: {
     label: "Is empty",
@@ -175,7 +193,7 @@ const operators: Operators = {
   },
   select_not_any_in: {
     isNotOp: true,
-    label: "Not in",
+    label: "Not any in",
     labelForFormat: "NOT IN",
     reversedOp: "select_any_in",
   },
@@ -438,10 +456,12 @@ const settings: Settings = {
   setOpOnChangeField: ["keep" as const, "default" as const], // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
 };
 
-export default {
+const basicConfig = {
   conjunctions,
   operators,
   widgets,
   types,
   settings,
 };
+
+export default basicConfig;

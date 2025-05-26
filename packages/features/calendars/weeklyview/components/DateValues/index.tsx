@@ -1,8 +1,8 @@
 import React from "react";
 
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 type Props = {
   days: dayjs.Dayjs[];

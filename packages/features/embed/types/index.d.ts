@@ -9,6 +9,16 @@ type EmbedConfig = {
   theme?: Theme;
 };
 
+export type EmbedState = {
+  embedType: EmbedType | null;
+  embedTabName: string | null;
+  embedUrl: string | null;
+  eventId: string | null;
+  namespace: string | null;
+  date: string | null;
+  month: string | null;
+} | null;
+
 export type PreviewState = {
   inline: Brand<
     {
@@ -36,12 +46,13 @@ export type PreviewState = {
     "element-click"
   >;
   palette: {
-    brandColor: string;
+    brandColor: string | null;
+    darkBrandColor: string | null;
   };
   hideEventTypeDetails: boolean;
   layout: BookerLayouts;
 };
 
-export type EmbedFramework = "react" | "HTML";
+export type EmbedFramework = "react" | "react-atom" | "HTML";
 export type EmbedTabs = typeof tabs;
 export type EmbedTypes = ReturnType<typeof useEmbedTypes>;

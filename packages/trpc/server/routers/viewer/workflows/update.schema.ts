@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 import {
+  WORKFLOW_TEMPLATES,
   TIME_UNIT,
   WORKFLOW_ACTIONS,
-  WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
 } from "@calcom/features/ee/workflows/lib/constants";
 

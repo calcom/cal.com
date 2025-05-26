@@ -38,6 +38,18 @@ class BookingWindowBase {
   type!: BookingWindowPeriodInputType_2024_06_14;
 }
 
+const rollingDescription = `
+      Determines the behavior of the booking window:
+      - If **true**, the window is rolling. This means the number of available days will always be equal the specified 'value' 
+        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, 
+        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days 
+        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.
+      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the
+        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current 
+        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next 
+        3 calendar days (November 10–12).
+    `;
+
 // Separate classes for different value types
 export class BusinessDaysWindow_2024_06_14 extends BookingWindowBase {
   @IsNumber()
@@ -49,8 +61,7 @@ export class BusinessDaysWindow_2024_06_14 extends BookingWindowBase {
   @IsBoolean()
   @ApiPropertyOptional({
     example: true,
-    description:
-      "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date.",
+    description: rollingDescription,
   })
   rolling?: boolean;
 
@@ -69,8 +80,7 @@ export class CalendarDaysWindow_2024_06_14 extends BookingWindowBase {
   @IsBoolean()
   @ApiPropertyOptional({
     example: true,
-    description:
-      "If true, the window will be rolling aka from the moment that someone is trying to book this event. Otherwise it will be specified amount of days from the current date.",
+    description: rollingDescription,
   })
   rolling?: boolean;
 

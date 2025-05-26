@@ -1,6 +1,6 @@
 ### Obtaining Webex Client ID and Secret
 
-1. Create a [Webex](https://www.webex.com/) acount, if you don't already have one.
+1. Create a [Webex](https://www.webex.com/) account, if you don't already have one.
 2. Go to [Webex for Developers](https://developer.webex.com/) and sign into to your Webex account. (Note: If you're creating a new account, create it on [Webex](https://www.webex.com/), not on [Webex for Developers](https://developer.webex.com/))
 3. On the upper right, click the profile icon and go to ["My Webex Apps"](https://developer.webex.com/my-apps)
 4. Click on "Create a New App" and select ["Integration"](https://developer.webex.com/my-apps/new/integration)

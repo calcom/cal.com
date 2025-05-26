@@ -1,13 +1,14 @@
 "use client";
 
+import type { EmbedProps } from "app/WithEmbedSSR";
 import { useSearchParams } from "next/navigation";
 
-import { Booker } from "@calcom/atoms/monorepo";
+import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
+
+import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
 
 import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
 
@@ -23,51 +24,33 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-function Type({
-  slug,
-  user,
-  isEmbed,
-  booking,
-  isBrandingHidden,
-  isSEOIndexable,
-  rescheduleUid,
-  eventData,
-  orgBannerUrl,
-}: PageProps) {
+function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBannerUrl }: PageProps) {
   const searchParams = useSearchParams();
 
   return (
-    <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <BookerSeo
-        username={user}
-        eventSlug={slug}
-        rescheduleUid={rescheduleUid ?? undefined}
-        hideBranding={isBrandingHidden}
-        isSEOIndexable={isSEOIndexable ?? true}
-        entity={eventData.entity}
-        bookingData={booking}
-      />
-      <Booker
-        username={user}
-        eventSlug={slug}
-        bookingData={booking}
-        hideBranding={isBrandingHidden}
-        entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
-        durationConfig={eventData.metadata?.multipleDuration}
-        orgBannerUrl={orgBannerUrl}
-        /* TODO: Currently unused, evaluate it is needed-
-         *       Possible alternative approach is to have onDurationChange.
-         */
-        duration={getMultipleDurationValue(
-          eventData.metadata?.multipleDuration,
-          searchParams?.get("duration"),
-          eventData.length
-        )}
-      />
-    </main>
+    <BookingPageErrorBoundary>
+      <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
+        <Booker
+          username={user}
+          eventSlug={slug}
+          bookingData={booking}
+          hideBranding={isBrandingHidden}
+          eventData={eventData}
+          entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
+          durationConfig={eventData.metadata?.multipleDuration}
+          orgBannerUrl={orgBannerUrl}
+          /* TODO: Currently unused, evaluate it is needed-
+           *       Possible alternative approach is to have onDurationChange.
+           */
+          duration={getMultipleDurationValue(
+            eventData.metadata?.multipleDuration,
+            searchParams?.get("duration"),
+            eventData.length
+          )}
+        />
+      </main>
+    </BookingPageErrorBoundary>
   );
 }
-
-Type.isBookingPage = true;
 
 export default Type;

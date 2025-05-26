@@ -30,6 +30,8 @@ const loadConfig = (): AppConfig => {
     stripe: {
       apiKey: getEnv("STRIPE_API_KEY"),
       webhookSecret: getEnv("STRIPE_WEBHOOK_SECRET"),
+      teamMonthlyPriceId: getEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "set-team-monthly-price-in-your-env"),
+      isTeamBillingEnabled: getEnv("IS_TEAM_BILLING_ENABLED", true),
     },
     app: {
       baseUrl: getEnv("WEB_APP_URL", "https://app.cal.com"),

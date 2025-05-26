@@ -6,9 +6,11 @@ import { DestinationCalendarSettings } from "../DestinationCalendar";
 export const DestinationCalendarSettingsPlatformWrapper = ({
   statusLoader,
   classNames = "mx-5",
+  isDryRun = false,
 }: {
   statusLoader?: JSX.Element;
   classNames?: string;
+  isDryRun?: boolean;
 }) => {
   const calendars = useConnectedCalendars({});
   const { mutate: updateDestinationCalendars, isPending: isUpdatingCalendar } =
@@ -38,8 +40,14 @@ export const DestinationCalendarSettingsPlatformWrapper = ({
         value={calendars.data.destinationCalendar.externalId}
         hidePlaceholder
         hideAdvancedText
-        onChange={async ({ externalId, integration }) => {
-          await updateDestinationCalendars({ integration, externalId });
+        onChange={async ({ externalId, integration, delegationCredentialId }) => {
+          if (!isDryRun) {
+            await updateDestinationCalendars({
+              integration,
+              externalId,
+              delegationCredentialId,
+            });
+          }
         }}
         isPending={isUpdatingCalendar}
       />

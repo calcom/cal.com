@@ -1,6 +1,7 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -17,6 +18,22 @@ type TeamBookingsParamsBase = {
   shouldReturnCount?: boolean;
 };
 
+type TeamBookingsMultipleUsersParamsBase = {
+  users: { id: number; email: string }[];
+  teamId: number;
+  startDate: Date;
+  endDate: Date;
+  excludedUid?: string | null;
+  includeManagedEvents: boolean;
+  shouldReturnCount?: boolean;
+};
+
+type TeamBookingsMultipleUsersParamsWithCount = TeamBookingsMultipleUsersParamsBase & {
+  shouldReturnCount: true;
+};
+
+type TeamBookingsMultipleUsersParamsWithoutCount = TeamBookingsMultipleUsersParamsBase;
+
 type TeamBookingsParamsWithCount = TeamBookingsParamsBase & {
   shouldReturnCount: true;
 };
@@ -29,6 +46,7 @@ const buildWhereClauseForActiveBookings = ({
   endDate,
   users,
   virtualQueuesData,
+  includeNoShowInRRCalculation = false,
 }: {
   eventTypeId: number;
   startDate?: Date;
@@ -41,22 +59,18 @@ const buildWhereClauseForActiveBookings = ({
       selectedOptionIds: string | number | string[];
     };
   } | null;
+  includeNoShowInRRCalculation: boolean;
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
-      user: {
-        id: {
-          in: users.map((user) => user.id),
-        },
+      userId: {
+        in: users.map((user) => user.id),
       },
-      OR: [
-        {
-          noShowHost: false,
-        },
-        {
-          noShowHost: null,
-        },
-      ],
+      ...(!includeNoShowInRRCalculation
+        ? {
+            OR: [{ noShowHost: false }, { noShowHost: null }],
+          }
+        : {}),
     },
     {
       attendees: {
@@ -68,7 +82,7 @@ const buildWhereClauseForActiveBookings = ({
       },
     },
   ],
-  attendees: { some: { noShow: false } },
+  ...(!includeNoShowInRRCalculation ? { attendees: { some: { noShow: false } } } : {}),
   status: BookingStatus.ACCEPTED,
   eventTypeId,
   ...(startDate || endDate
@@ -140,28 +154,134 @@ export class BookingRepository {
     });
   }
 
-  static async groupByActiveBookingCounts({
-    users,
-    eventTypeId,
-    startDate,
-  }: {
-    users: { id: number; email: string }[];
-    eventTypeId: number;
-    startDate?: Date;
-  }) {
-    return await prisma.booking.groupBy({
-      by: ["userId"],
-      where: buildWhereClauseForActiveBookings({
-        users,
-        eventTypeId,
-        startDate,
-        virtualQueuesData: null,
-      }),
-      _count: {
-        _all: true,
+  static async findReschedulerByUid({ uid }: { uid: string }) {
+    return await prisma.booking.findFirst({
+      where: {
+        uid,
+      },
+      select: {
+        rescheduledBy: true,
+        uid: true,
       },
     });
   }
+
+  private static async _findAllExistingBookingsForEventTypeBetween({
+    eventTypeId,
+    seatedEvent = false,
+    startDate,
+    endDate,
+    userIdAndEmailMap,
+  }: {
+    startDate: Date;
+    endDate: Date;
+    eventTypeId?: number | null;
+    seatedEvent?: boolean;
+    userIdAndEmailMap: Map<number, string>;
+  }) {
+    const sharedQuery = {
+      startTime: { lte: endDate },
+      endTime: { gte: startDate },
+      status: {
+        in: [BookingStatus.ACCEPTED],
+      },
+    };
+
+    const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
+      id: true,
+      uid: true,
+      userId: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      attendees: true,
+      eventType: {
+        select: {
+          id: true,
+          onlyShowFirstAvailableSlot: true,
+          afterEventBuffer: true,
+          beforeEventBuffer: true,
+          seatsPerTimeSlot: true,
+          requiresConfirmationWillBlockSlot: true,
+          requiresConfirmation: true,
+          allowReschedulingPastBookings: true,
+          hideOrganizerEmail: true,
+        },
+      },
+      ...(seatedEvent && {
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
+        },
+      }),
+    });
+
+    const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
+      where: {
+        ...sharedQuery,
+        userId: {
+          in: Array.from(userIdAndEmailMap.keys()),
+        },
+      },
+      select: bookingsSelect,
+    });
+
+    const currentBookingsAllUsersQueryTwo = prisma.booking.findMany({
+      where: {
+        ...sharedQuery,
+        attendees: {
+          some: {
+            email: {
+              in: Array.from(userIdAndEmailMap.values()),
+            },
+          },
+        },
+      },
+      select: bookingsSelect,
+    });
+
+    const currentBookingsAllUsersQueryThree = eventTypeId
+      ? prisma.booking.findMany({
+          where: {
+            startTime: { lte: endDate },
+            endTime: { gte: startDate },
+            eventType: {
+              id: eventTypeId,
+              requiresConfirmation: true,
+              requiresConfirmationWillBlockSlot: true,
+            },
+            status: {
+              in: [BookingStatus.PENDING],
+            },
+          },
+          select: bookingsSelect,
+        })
+      : [];
+
+    const [resultOne, resultTwo, resultThree] = await Promise.all([
+      currentBookingsAllUsersQueryOne,
+      currentBookingsAllUsersQueryTwo,
+      currentBookingsAllUsersQueryThree,
+    ]);
+    // Prevent duplicate booking records when the organizer books his own event type.
+    //
+    // *Three is about PENDING, so will never overlap
+    // with the other two, which are about ACCEPTED. But ACCEPTED affects *One & *Two
+    // and WILL result in a duplicate booking if the organizer books himself.
+    const resultTwoWithOrganizersRemoved = resultTwo.filter((booking) => {
+      if (!booking.userId) return true;
+      const organizerEmail = userIdAndEmailMap.get(booking.userId);
+      return !booking.attendees.some((attendee) => attendee.email === organizerEmail);
+    });
+
+    return [...resultOne, ...resultTwoWithOrganizersRemoved, ...resultThree];
+  }
+
+  static findAllExistingBookingsForEventTypeBetween = withReporting(
+    BookingRepository._findAllExistingBookingsForEventTypeBetween,
+    "findAllExistingBookingsForEventTypeBetween"
+  );
 
   static async getAllBookingsForRoundRobin({
     users,
@@ -169,6 +289,7 @@ export class BookingRepository {
     startDate,
     endDate,
     virtualQueuesData,
+    includeNoShowInRRCalculation,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
@@ -181,6 +302,7 @@ export class BookingRepository {
         selectedOptionIds: string | number | string[];
       };
     } | null;
+    includeNoShowInRRCalculation: boolean;
   }) {
     const allBookings = await prisma.booking.findMany({
       where: buildWhereClauseForActiveBookings({
@@ -189,6 +311,7 @@ export class BookingRepository {
         endDate,
         users,
         virtualQueuesData,
+        includeNoShowInRRCalculation,
       }),
       select: {
         id: true,
@@ -227,7 +350,6 @@ export class BookingRepository {
         }
       });
     }
-    console.log(`queueBookings ${JSON.stringify(queueBookings.map((booking) => booking.id))}`);
     return queueBookings;
   }
 
@@ -250,6 +372,11 @@ export class BookingRepository {
         uid: true,
         description: true,
         isRecorded: true,
+        eventType: {
+          select: {
+            hideOrganizerEmail: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -269,6 +396,10 @@ export class BookingRepository {
           },
           where: {
             type: "daily_video",
+            deleted: null,
+          },
+          orderBy: {
+            id: "asc",
           },
         },
       },
@@ -332,6 +463,23 @@ export class BookingRepository {
                     accepted: true,
                     role: {
                       in: ["ADMIN", "OWNER"],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            eventType: {
+              parent: {
+                team: {
+                  members: {
+                    some: {
+                      userId,
+                      accepted: true,
+                      role: {
+                        in: ["ADMIN", "OWNER"],
+                      },
                     },
                   },
                 },
@@ -516,6 +664,151 @@ export class BookingRepository {
         payment: true,
         references: true,
         workflowReminders: true,
+      },
+    });
+  }
+
+  static async getAllAcceptedTeamBookingsOfUsers(
+    params: TeamBookingsMultipleUsersParamsWithCount
+  ): Promise<number>;
+
+  static async getAllAcceptedTeamBookingsOfUsers(
+    params: TeamBookingsMultipleUsersParamsWithoutCount
+  ): Promise<Array<Booking>>;
+
+  static async getAllAcceptedTeamBookingsOfUsers(params: TeamBookingsMultipleUsersParamsBase) {
+    const { users, teamId, startDate, endDate, excludedUid, shouldReturnCount, includeManagedEvents } =
+      params;
+
+    const baseWhere: Prisma.BookingWhereInput = {
+      status: BookingStatus.ACCEPTED,
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+      ...(excludedUid && {
+        uid: {
+          not: excludedUid,
+        },
+      }),
+    };
+
+    const userIds = users.map((user) => user.id);
+    const userEmails = users.map((user) => user.email);
+
+    const whereCollectiveRoundRobinOwner: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      userId: {
+        in: userIds,
+      },
+      eventType: {
+        teamId,
+      },
+    };
+
+    const whereCollectiveRoundRobinBookingsAttendee: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      attendees: {
+        some: {
+          email: {
+            in: userEmails,
+          },
+        },
+      },
+      eventType: {
+        teamId,
+      },
+    };
+
+    const whereManagedBookings: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      userId: {
+        in: userIds,
+      },
+      eventType: {
+        parent: {
+          teamId,
+        },
+      },
+    };
+
+    if (shouldReturnCount) {
+      const collectiveRoundRobinBookingsOwner = await prisma.booking.count({
+        where: whereCollectiveRoundRobinOwner,
+      });
+
+      const collectiveRoundRobinBookingsAttendee = await prisma.booking.count({
+        where: whereCollectiveRoundRobinBookingsAttendee,
+      });
+
+      let managedBookings = 0;
+
+      if (includeManagedEvents) {
+        managedBookings = await prisma.booking.count({
+          where: whereManagedBookings,
+        });
+      }
+
+      const totalNrOfBooking =
+        collectiveRoundRobinBookingsOwner + collectiveRoundRobinBookingsAttendee + managedBookings;
+
+      return totalNrOfBooking;
+    }
+
+    const collectiveRoundRobinBookingsOwner = await prisma.booking.findMany({
+      where: whereCollectiveRoundRobinOwner,
+    });
+
+    const collectiveRoundRobinBookingsAttendee = await prisma.booking.findMany({
+      where: whereCollectiveRoundRobinBookingsAttendee,
+    });
+
+    let managedBookings: typeof collectiveRoundRobinBookingsAttendee = [];
+
+    if (includeManagedEvents) {
+      managedBookings = await prisma.booking.findMany({
+        where: whereManagedBookings,
+      });
+    }
+
+    return [
+      ...collectiveRoundRobinBookingsOwner,
+      ...collectiveRoundRobinBookingsAttendee,
+      ...managedBookings,
+    ];
+  }
+
+  static async getValidBookingFromEventTypeForAttendee({
+    eventTypeId,
+    bookerEmail,
+    bookerPhoneNumber,
+    startTime,
+    filterForUnconfirmed,
+  }: {
+    eventTypeId: number;
+    bookerEmail?: string;
+    bookerPhoneNumber?: string;
+    startTime: Date;
+    filterForUnconfirmed?: boolean;
+  }) {
+    return await prisma.booking.findFirst({
+      where: {
+        eventTypeId,
+        attendees: {
+          some: {
+            email: bookerEmail,
+            phoneNumber: bookerPhoneNumber,
+          },
+        },
+        startTime,
+        status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
+      },
+      include: {
+        attendees: true,
+        references: true,
+        user: true,
       },
     });
   }

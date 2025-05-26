@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TListMembersSchema } from "./listPaginated.schema";
 
 type GetOptions = {
@@ -17,9 +17,12 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
   const getTotalUsers = await prisma.user.count();
 
   let searchFilters: Prisma.UserWhereInput = {};
+  const bothLockedAndUnlockedWhere = { OR: [{ locked: false }, { locked: true }] };
 
   if (searchTerm) {
     searchFilters = {
+      // To bypass the excludeLockedUsersExtension
+      AND: bothLockedAndUnlockedWhere,
       OR: [
         {
           email: {
@@ -31,14 +34,28 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
             contains: searchTerm.toLocaleLowerCase(),
           },
         },
+        {
+          profiles: {
+            some: {
+              username: {
+                contains: searchTerm.toLowerCase(),
+              },
+            },
+          },
+        },
       ],
     };
+  } else {
+    // To bypass the excludeLockedUsersExtension
+    searchFilters = bothLockedAndUnlockedWhere;
   }
 
   const users = await prisma.user.findMany({
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1, // We take +1 as itll be used for the next cursor
-    where: searchFilters,
+    where: {
+      ...searchFilters,
+    },
     orderBy: {
       id: "asc",
     },
@@ -50,6 +67,12 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
       name: true,
       timeZone: true,
       role: true,
+      profiles: {
+        select: {
+          username: true,
+        },
+      },
+      whitelistWorkflows: true,
     },
   });
 

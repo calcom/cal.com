@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Granola",
+  "slug": "granola",
+  "type": "granola_other",
+  "logo": "icon.svg",
+  "url": "https://go.cal.com/granola",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Granola inc",
+  "email": "hey@granola.so",
+  "description": "The AI notepad for people in back-to-back meetings for MacOS",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

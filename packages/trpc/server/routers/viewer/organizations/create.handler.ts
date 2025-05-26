@@ -19,7 +19,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import { BillingPeriod } from "./create.schema";
 import type { TCreateInputSchema } from "./create.schema";
 
@@ -80,6 +80,9 @@ const getIPAddress = async (url: string): Promise<string> => {
   });
 };
 
+/**
+ * TODO: To be removed. We need to reuse the logic from orgCreationUtils like in intentToCreateOrgHandler
+ */
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const {
     slug,
@@ -89,6 +92,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     pricePerSeat,
     isPlatform,
     billingPeriod: billingPeriodRaw,
+    creationSource,
   } = input;
 
   const loggedInUser = await prisma.user.findUnique({
@@ -99,6 +103,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       id: true,
       role: true,
       email: true,
+      completedOnboarding: true,
+      emailVerified: true,
       teams: {
         select: {
           team: {
@@ -106,6 +112,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
               slug: true,
               isOrganization: true,
               isPlatform: true,
+              name: true,
             },
           },
         },
@@ -131,7 +138,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     });
   }
 
-  if (isNotACompanyEmail(orgOwnerEmail)) {
+  if (isNotACompanyEmail(orgOwnerEmail) && !isPlatform) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Use company email to create an organization" });
   }
 
@@ -167,7 +174,10 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   });
 
   if (!!hasExistingPlatformOrOrgTeam?.team && isPlatform) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "User is already part of a team" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `You can't create a new team because you are already a part of ${hasExistingPlatformOrOrgTeam.team.name}`,
+    });
   }
 
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
@@ -198,7 +208,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
   }
 
-  const autoAcceptEmail = orgOwnerEmail.split("@")[1];
+  const autoAcceptEmail = isPlatform ? "UNUSED_FOR_PLATFORM" : orgOwnerEmail.split("@")[1];
 
   const orgData = {
     name,
@@ -210,6 +220,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     pricePerSeat: pricePerSeat ?? null,
     isPlatform,
     billingPeriod,
+    logoUrl: null,
+    bio: null,
+    paymentSubscriptionId: null,
   };
 
   // Create a new user and invite them as the owner of the organization
@@ -219,6 +232,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       owner: {
         email: orgOwnerEmail,
       },
+      creationSource,
     });
 
     orgOwner = data.orgOwner;

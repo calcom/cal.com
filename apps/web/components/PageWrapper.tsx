@@ -10,7 +10,7 @@ import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
-import { IconSprites } from "@calcom/ui";
+import { IconSprites } from "@calcom/ui/components/icon";
 
 import type { AppProps } from "@lib/app-providers";
 import AppProviders from "@lib/app-providers";
@@ -81,6 +81,9 @@ function PageWrapper(props: AppProps) {
       <Script
         nonce={nonce}
         id="page-status"
+        // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
+        // And we don't want it to error here anyways
+        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
 

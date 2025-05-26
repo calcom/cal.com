@@ -2,40 +2,40 @@
 
 import type { SetStateAction, Dispatch } from "react";
 import { useMemo, useState } from "react";
-import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 import type { Control } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
+import type {
+  BulkUpdatParams,
+  EventTypes,
+} from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
+import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
+import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
 } from "@calcom/features/schedules/components/Schedule";
 import TimeBlocksList from "@calcom/features/schedules/components/TimeBlocksList";
 import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
-import {
-  Button,
-  ConfirmationDialogContent,
-  EditableHeading,
-  Form,
-  SkeletonText,
-  Dialog,
-  DialogTrigger,
-  Label,
-  SelectSkeletonLoader,
-  Skeleton,
-  Switch,
-  TimezoneSelect as WebTimezoneSelect,
-  Tooltip,
-  VerticalDivider,
-} from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { VerticalDivider } from "@calcom/ui/components/divider";
+import { EditableHeading } from "@calcom/ui/components/editable-heading";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
@@ -91,7 +91,7 @@ type AvailabilitySettingsProps = {
     schedule: Availability[];
     timeBlocks?: { value: string }[];
   };
-  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   handleDelete: () => void;
   allowDelete?: boolean;
   allowSetToDefault?: boolean;
@@ -109,10 +109,13 @@ type AvailabilitySettingsProps = {
   bulkUpdateModalProps?: {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
-    save: ({ eventTypeIds }: { eventTypeIds: number[] }) => void;
+    save: (params: BulkUpdatParams) => void;
     isSaving: boolean;
+    eventTypes?: EventTypes;
+    isEventTypesFetching?: boolean;
+    handleBulkEditDialogToggle: () => void;
   };
-  connectedCalendars?: RouterOutputs["viewer"]["connectedCalendars"]["connectedCalendars"];
+  connectedCalendars?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
 };
 
 const DeleteDialogButton = ({
@@ -141,6 +144,7 @@ const DeleteDialogButton = ({
           className={buttonClassName}
           disabled={disabled}
           tooltip={disabled ? t("requires_at_least_one_schedule") : t("delete")}
+          tooltipSide="bottom"
         />
       </DialogTrigger>
 
@@ -200,18 +204,27 @@ const DateOverride = ({
   travelSchedules,
   weekStart,
   overridesModalClassNames,
+  handleSubmit,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
-  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
+  handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
+  const { getValues } = useFormContext();
   const excludedDates = useExcludedDates();
   const { t } = useLocale();
+
+  const handleAvailabilityUpdate = () => {
+    const updatedValues = getValues() as AvailabilityFormValues;
+    handleSubmit(updatedValues);
+  };
+
   return (
     <div className="border-subtle mb-6 rounded-md border p-6">
       <h3 className="text-emphasis font-medium leading-6">
@@ -233,12 +246,16 @@ const DateOverride = ({
           userTimeFormat={userTimeFormat}
           hour12={Boolean(userTimeFormat === 12)}
           travelSchedules={travelSchedules}
+          handleAvailabilityUpdate={handleAvailabilityUpdate}
         />
         <DateOverrideInputDialog
           className={overridesModalClassNames}
           workingHours={workingHours}
           excludedDates={excludedDates}
-          onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
+          onChange={(ranges) => {
+            ranges.forEach((range) => append({ ranges: [range] }));
+            handleAvailabilityUpdate();
+          }}
           userTimeFormat={userTimeFormat}
           weekStart={weekStart}
           Trigger={
@@ -395,13 +412,16 @@ export function AvailabilitySettings({
               setOpen={bulkUpdateModalProps.setIsOpen}
               bulkUpdateFunction={bulkUpdateModalProps?.save}
               description={t("default_schedules_bulk_description")}
+              eventTypes={bulkUpdateModalProps?.eventTypes}
+              isEventTypesFetching={bulkUpdateModalProps?.isEventTypesFetching}
+              handleBulkEditDialogToggle={bulkUpdateModalProps.handleBulkEditDialogToggle}
             />
           )}
 
           {allowDelete && (
             <>
               <DeleteDialogButton
-                buttonClassName={cn("hidden sm:inline", customClassNames?.deleteButtonClassname)}
+                buttonClassName={cn("hidden me-2 sm:inline", customClassNames?.deleteButtonClassname)}
                 disabled={schedule.isLastSchedule}
                 isPending={isDeleting}
                 handleDelete={handleDelete}
@@ -422,7 +442,7 @@ export function AvailabilitySettings({
                     "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
-                  <div className="flex flex-row items-center pt-5">
+                  <div className="flex flex-row items-center pt-16">
                     <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
                     {allowDelete && (
@@ -591,6 +611,7 @@ export function AvailabilitySettings({
               <DateOverride
                 workingHours={schedule.workingHours}
                 userTimeFormat={timeFormat}
+                handleSubmit={handleSubmit}
                 travelSchedules={travelSchedules}
                 weekStart={
                   ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
