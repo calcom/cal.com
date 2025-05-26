@@ -255,6 +255,11 @@ export type FilterSegmentOutput = {
   team: { id: number; name: string } | null;
 };
 
+export type FilterSegmentsListResponse = {
+  segments: FilterSegmentOutput[];
+  preferredSegmentId: number | null;
+};
+
 export type SegmentStorage = {
   [tableIdentifier: string]: {
     segmentId: number;

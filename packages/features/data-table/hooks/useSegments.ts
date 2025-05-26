@@ -5,7 +5,7 @@ import { useCallback, useMemo, useEffect } from "react";
 import { trpc } from "@calcom/trpc/react";
 
 import { recalculateDateRange } from "../lib/dateRange";
-import { ZSegmentStorage, type UseSegments } from "../lib/types";
+import { type UseSegments } from "../lib/types";
 import { isDateRangeFilterValue } from "../lib/utils";
 
 export const useSegments: UseSegments = ({
@@ -37,13 +37,29 @@ export const useSegments: UseSegments = ({
     }
   );
 
+  const { mutate: setPreference } = trpc.viewer.filterSegments.setPreference.useMutation();
+
   // Recalculate date ranges based on the current timestamp
   const segments = useMemo(() => {
-    const segmentsSource = providedSegments || rawSegments;
+    // If segments are provided directly, use those
+    if (providedSegments) {
+      return providedSegments.map((segment) => ({
+        ...segment,
+        activeFilters: segment.activeFilters.map((filter) => {
+          if (isDateRangeFilterValue(filter.v)) {
+            return {
+              ...filter,
+              v: recalculateDateRange(filter.v),
+            };
+          }
+          return filter;
+        }),
+      }));
+    }
 
-    if (!segmentsSource) return [];
+    if (!rawSegments?.segments) return [];
 
-    return segmentsSource.map((segment) => ({
+    return rawSegments.segments.map((segment) => ({
       ...segment,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {
@@ -77,13 +93,10 @@ export const useSegments: UseSegments = ({
   useEffect(() => {
     // this hook doesn't include segmentId in the dependency array
     // because we want to only run this once, when the component mounts
-    if (segmentId === -1) {
-      const segments = getSegmentsFromLocalStorage();
-      if (segments[tableIdentifier]) {
-        setSegmentId(segments[tableIdentifier].segmentId);
-      }
+    if (segmentId === -1 && rawSegments?.preferredSegmentId) {
+      setSegmentId(rawSegments.preferredSegmentId);
     }
-  }, [tableIdentifier, setSegmentId]);
+  }, [rawSegments, segmentId, setSegmentId]);
 
   useEffect(() => {
     if (selectedSegment) {
@@ -143,9 +156,12 @@ export const useSegments: UseSegments = ({
   const setAndPersistSegmentId = useCallback(
     (segmentId: number | null) => {
       setSegmentId(segmentId);
-      saveSegmentToLocalStorage({ tableIdentifier, segmentId });
+      setPreference({
+        tableIdentifier,
+        segmentId,
+      });
     },
-    [tableIdentifier, setSegmentId]
+    [tableIdentifier, setSegmentId, setPreference]
   );
 
   return {
@@ -157,28 +173,4 @@ export const useSegments: UseSegments = ({
   };
 };
 
-const LOCAL_STORAGE_KEY = "data-table:segments";
-
-function getSegmentsFromLocalStorage() {
-  try {
-    return ZSegmentStorage.parse(JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) ?? "{}"));
-  } catch {
-    return {};
-  }
-}
-
-function saveSegmentToLocalStorage({
-  tableIdentifier,
-  segmentId,
-}: {
-  tableIdentifier: string;
-  segmentId: number | null;
-}) {
-  const segments = getSegmentsFromLocalStorage();
-  if (segmentId) {
-    segments[tableIdentifier] = { segmentId };
-  } else {
-    delete segments[tableIdentifier];
-  }
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(segments));
-}
+// localStorage functions removed - now using backend API
