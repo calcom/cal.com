@@ -92,7 +92,7 @@ export const TestForm = ({
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
-  const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
+  const [_, setEventTypeUrlWithoutParams] = useState("");
   const searchParams = useCompatSearchParams();
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
   const [showResults, setShowResults] = useState(false);
@@ -110,7 +110,7 @@ export const TestForm = ({
     if (!requiredFields.length) return true;
 
     return requiredFields.every((field) => {
-      const fieldResponse = response[field.id];
+      const fieldResponse = response[field.name];
       if (!fieldResponse) return false;
 
       const value = fieldResponse.value;

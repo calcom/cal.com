@@ -27,8 +27,7 @@ import type {
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
-import type { fieldSchema } from "@calcom/features/form-builder/schema";
-import type { EditableSchema } from "@calcom/features/form-builder/schema";
+import type { EditableSchema, FormField } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
@@ -103,8 +102,6 @@ export type EventAdvancedTabCustomClassNames = {
   customReplyToEmail?: SettingsToggleClassNames;
   emailNotifications?: EmailNotificationToggleCustomClassNames;
 };
-
-type BookingField = z.infer<typeof fieldSchema>;
 
 export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
   user?: Partial<
@@ -584,7 +581,7 @@ export const EventAdvancedTab = ({
               },
             },
           }}
-          shouldConsiderRequired={(field: BookingField) => {
+          shouldConsiderRequired={(field: FormField) => {
             // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
             return field.name === "location" ? true : field.required;
           }}

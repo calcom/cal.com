@@ -1,15 +1,11 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
 
+import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import getFieldIdentifier from "../lib/getFieldIdentifier";
-import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
-import { getUIOptionsForSelect } from "../lib/selectOptions";
-import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
 import type { SerializableForm, FormResponse } from "../types/types";
-import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
 
 export type FormInputFieldsProps = {
   form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
@@ -25,12 +21,7 @@ export type FormInputFieldsProps = {
 };
 
 export default function FormInputFields(props: FormInputFieldsProps) {
-  const { form, response, setResponse, disabledFields = [] } = props;
-
-  const formFieldsQueryBuilderConfig = withRaqbSettingsAndWidgets({
-    config: getQueryBuilderConfigForFormFields(form),
-    configFor: ConfigFor.FormFields,
-  });
+  const { form, response, setResponse } = props;
 
   return (
     <>
@@ -42,43 +33,27 @@ export default function FormInputFields(props: FormInputFieldsProps) {
           // In that case, it could mistakenly be categorized as RouterLinkedField, so if routerField is nullish, we use the field itself
           field = routerField ?? field;
         }
-        const widget = formFieldsQueryBuilderConfig.widgets[field.type];
-        if (!("factory" in widget)) {
-          return null;
-        }
-        const Component = widget.factory;
 
-        const options = getUIOptionsForSelect(field);
-        const fieldIdentifier = getFieldIdentifier(field);
         return (
           <div key={field.id} className="block flex-col sm:flex ">
-            <div className="min-w-48 mb-2 flex-grow">
-              <label id="slug-label" htmlFor="slug" className="text-default flex text-sm font-medium">
-                {field.label}
-              </label>
-            </div>
-            <Component
-              value={response[field.id]?.value ?? ""}
-              placeholder={field.placeholder ?? ""}
-              // required property isn't accepted by query-builder types
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              /* @ts-ignore */
-              required={!!field.required}
-              listValues={options}
-              disabled={disabledFields?.includes(fieldIdentifier)}
-              data-testid={`form-field-${fieldIdentifier}`}
-              setValue={(value: number | string | string[]) => {
+            <ComponentForField
+              field={field}
+              // @ts-expect-error FIXME @hariombalhara
+              value={response[field.name ?? ""]?.value ?? undefined}
+              setValue={(val: any) => {
                 setResponse(() => {
                   return {
                     ...response,
-                    [field.id]: {
+                    [field.name ?? ""]: {
                       label: field.label,
                       identifier: field?.identifier,
-                      value: getFieldResponseForJsonLogic({ field, value }),
+                      fieldType: field.type,
+                      value: val,
                     },
                   };
                 });
               }}
+              readOnly={false}
             />
           </div>
         );

@@ -82,7 +82,19 @@ const baseFieldSchema = z.object({
    * It is the list of options that is valid for a certain type of fields.
    *
    */
-  options: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string(),
+        // Routing Form Backward compatibility
+        // To keep backwards compatibility with the options generated from legacy selectText, we allow saving null as id
+        // It helps in differentiating whether the routing logic should consider the option.label as value or option.id as value.
+        // This is important for legacy routes which has option.label saved in conditions and it must keep matching with the value of the option
+        id: z.string().or(z.null()).optional(),
+      })
+    )
+    .optional(),
   /**
    * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
    * This allows keeping a single source of truth in DB.
@@ -124,6 +136,13 @@ const baseFieldSchema = z.object({
   excludeEmails: excludeOrRequireEmailSchema.optional(),
   // Emails that need to be required
   requireEmails: excludeOrRequireEmailSchema.optional(),
+
+  id: z.string(),
+  identifier: z.string().optional(),
+  /**
+   * @deprecated in favour of `options`
+   */
+  selectText: z.string().optional(),
 });
 
 export const variantsConfigSchema = z.object({
@@ -144,6 +163,15 @@ export const variantsConfigSchema = z.object({
         .array(),
     })
   ),
+});
+
+export const routingFormAdditionalFieldsSchema = z.object({
+  id: z.string().optional(),
+  identifier: z.string().optional(),
+  /**
+   * @deprecated in favour of `options`
+   */
+  selectText: z.string().optional(),
 });
 
 export type ALL_VIEWS = "ALL_VIEWS";
@@ -229,43 +257,47 @@ export const fieldTypeConfigSchema = z
 /**
  * Main field Schema
  */
-export const fieldSchema = baseFieldSchema.merge(
-  z.object({
-    variant: z.string().optional(),
-    variantsConfig: variantsConfigSchema.optional(),
+export const fieldSchema = baseFieldSchema
+  .merge(
+    z.object({
+      variant: z.string().optional(),
+      variantsConfig: variantsConfigSchema.optional(),
 
-    views: z
-      .object({
-        label: z.string(),
-        id: z.string(),
-        description: z.string().optional(),
-      })
-      .array()
-      .optional(),
-
-    /**
-     * It is used to hide fields such as location when there are less than two options
-     */
-    hideWhenJustOneOption: z.boolean().default(false).optional(),
-
-    hidden: z.boolean().optional(),
-    editable: EditableSchema.default("user").optional(),
-    sources: z
-      .array(
-        z.object({
-          // Unique ID for the `type`. If type is workflow, it's the workflow ID
-          id: z.string(),
-          type: z.union([z.literal("user"), z.literal("system"), z.string()]),
+      views: z
+        .object({
           label: z.string(),
-          editUrl: z.string().optional(),
-          // Mark if a field is required by this source or not. This allows us to set `field.required` based on all the sources' fieldRequired value
-          fieldRequired: z.boolean().optional(),
+          id: z.string(),
+          description: z.string().optional(),
         })
-      )
-      .optional(),
-    disableOnPrefill: z.boolean().default(false).optional(),
-  })
-);
+        .array()
+        .optional(),
+
+      /**
+       * It is used to hide fields such as location when there are less than two options
+       */
+      hideWhenJustOneOption: z.boolean().default(false).optional(),
+
+      hidden: z.boolean().optional(),
+      editable: EditableSchema.default("user").optional(),
+      sources: z
+        .array(
+          z.object({
+            // Unique ID for the `type`. If type is workflow, it's the workflow ID
+            id: z.string(),
+            type: z.union([z.literal("user"), z.literal("system"), z.string()]),
+            label: z.string(),
+            editUrl: z.string().optional(),
+            // Mark if a field is required by this source or not. This allows us to set `field.required` based on all the sources' fieldRequired value
+            fieldRequired: z.boolean().optional(),
+          })
+        )
+        .optional(),
+      disableOnPrefill: z.boolean().default(false).optional(),
+    })
+  )
+  .merge(routingFormAdditionalFieldsSchema);
+
+export type FormField = z.infer<typeof fieldSchema>;
 
 export const fieldsSchema = z.array(fieldSchema);
 

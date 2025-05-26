@@ -100,14 +100,14 @@ async function _onFormSubmission(
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 
   for (const [fieldId, fieldResponse] of Object.entries(response)) {
-    const field = form.fields.find((f) => f.id === fieldId);
+    const field = form.fields.find((f) => f.name === fieldId);
     if (!field) {
       throw new Error(`Field with id ${fieldId} not found`);
     }
     // Use the label lowercased as the key to identify a field.
     // TODO: We seem to be using label from the response, Can we not use the field.label
     const key =
-      form.fields.find((f) => f.id === fieldId)?.identifier ||
+      form.fields.find((f) => f.name === fieldId)?.identifier ||
       (fieldResponse.label as keyof typeof fieldResponsesByIdentifier);
     fieldResponsesByIdentifier[key] = getFieldResponse({
       fieldResponseValue: fieldResponse.value,

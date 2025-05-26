@@ -54,7 +54,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     darkBrandColor: profile.darkBrandColor,
   });
 
-  const [response, setResponse] = usePrefilledResponse(form);
+  const [response, setResponse] = useState<FormResponse>({});
   const pageSearchParams = useCompatSearchParams();
   const isBookingDryRun = pageSearchParams?.get("cal.isBookingDryRun") === "true";
 
@@ -233,9 +233,10 @@ const usePrefilledResponse = (form: Props["form"]) => {
     // We only want to keep arrays if the field is a multi-select
     const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
 
-    prefillResponse[field.id] = {
+    prefillResponse[field.name] = {
       value: getFieldResponseForJsonLogic({ field, value }),
       label: field.label,
+      identifier: field?.identifier,
     };
   });
   const [response, setResponse] = useState<FormResponse>(prefillResponse);
