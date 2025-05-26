@@ -33,8 +33,19 @@ export function RoleSheet({ role, open }: RoleSheetProps) {
     defaultValue: open ?? false,
   });
 
+  const [, setSelectedRoleId] = useQueryState("role", {
+    ...roleParsers.role,
+  });
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      setSelectedRoleId("");
+    }
+  };
+
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetContent>
         <SheetHeader>
           <SheetTitle>{isEditing ? "Edit Role" : "Create Role"}</SheetTitle>
