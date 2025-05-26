@@ -1,17 +1,20 @@
-import prismock from "../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock, {
   defaultMockOAuthManager,
   setFullMockOAuthManagerRequest,
-} from "../../tests/__mocks__/OAuthManager";
+} from "../../../tests/__mocks__/OAuthManager";
+import "../__mocks__/features.repository";
+import "../__mocks__/getGoogleAppKeys";
 import {
-  adminMock,
   calendarMock,
+  adminMock,
+  setLastCreatedJWT,
   setCredentialsMock,
+  setLastCreatedOAuth2Client,
   freebusyQueryMock,
   calendarListMock,
-} from "./__mocks__/googleapis";
+} from "../__mocks__/googleapis";
 
-import { JWT } from "googleapis-common";
 import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
@@ -20,82 +23,17 @@ import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/date
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
-import CalendarService from "./CalendarService";
-import { getGoogleAppKeys } from "./getGoogleAppKeys";
+import CalendarService from "../CalendarService";
+import {
+  createMockJWTInstance,
+  createInMemoryDelegationCredentialForCalendarService,
+  defaultDelegatedCredential,
+  createCredentialForCalendarService,
+  createInMemoryCredential,
+} from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
-vi.stubEnv("GOOGLE_WEBHOOK_TOKEN", "test-webhook-token");
-
-interface MockJWT {
-  type: "jwt";
-  config: {
-    email: string;
-    key: string;
-    scopes: string[];
-    subject: string;
-  };
-  authorize: () => Promise<void>;
-}
-
-interface MockOAuth2Client {
-  type: "oauth2";
-  args: [string, string, string];
-  setCredentials: typeof setCredentialsMock;
-}
-
-let lastCreatedJWT: MockJWT | null = null;
-let lastCreatedOAuth2Client: MockOAuth2Client | null = null;
-
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(() => ({
-    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
-  })),
-}));
-
-vi.mock("./getGoogleAppKeys", () => ({
-  getGoogleAppKeys: vi.fn().mockResolvedValue({
-    client_id: "xxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com",
-    client_secret: "xxxxxxxxxxxxxxxxxx",
-    redirect_uris: ["http://localhost:3000/api/integrations/googlecalendar/callback"],
-  }),
-}));
-
-vi.mock("googleapis-common", async () => {
-  const actual = await vi.importActual("googleapis-common");
-  return {
-    ...actual,
-    OAuth2Client: vi.fn().mockImplementation((...args: [string, string, string]) => {
-      lastCreatedOAuth2Client = {
-        type: "oauth2",
-        args,
-        setCredentials: setCredentialsMock,
-      };
-      return lastCreatedOAuth2Client;
-    }),
-    JWT: vi.fn().mockImplementation((config: MockJWT["config"]) => {
-      lastCreatedJWT = {
-        type: "jwt",
-        config,
-        authorize: vi.fn().mockResolvedValue(undefined),
-      };
-      return lastCreatedJWT;
-    }),
-  };
-});
-vi.mock("@googleapis/admin", () => adminMock);
-vi.mock("@googleapis/calendar", () => calendarMock);
-
-async function expectCacheToBeNotSet({ credentialId }: { credentialId: number }) {
-  const caches = await prismock.calendarCache.findMany({
-    where: {
-      credentialId,
-    },
-  });
-
-  expect(caches).toHaveLength(0);
-}
 
 async function expectCacheToBeSet({
   credentialId,
@@ -117,98 +55,6 @@ async function expectCacheToBeSet({
   );
 }
 
-function createInMemoryCredential({
-  userId,
-  delegationCredentialId,
-  delegatedTo,
-}: {
-  userId: number;
-  delegationCredentialId: string | null;
-  delegatedTo: NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]>;
-}) {
-  return {
-    id: -1,
-    userId,
-    key: {
-      access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
-    },
-    invalid: false,
-    teamId: null,
-    team: null,
-    type: "google_calendar",
-    appId: "google-calendar",
-    delegatedToId: delegationCredentialId,
-    delegatedTo: delegatedTo.serviceAccountKey
-      ? {
-          serviceAccountKey: delegatedTo.serviceAccountKey,
-        }
-      : null,
-  };
-}
-
-async function createCredentialForCalendarService({
-  user = undefined,
-  delegatedTo = null,
-  delegationCredentialId = null,
-}: {
-  user?: { email: string | null };
-  delegatedTo?: NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]> | null;
-  delegationCredentialId?: string | null;
-} = {}): Promise<CredentialForCalendarServiceWithEmail> {
-  const defaultUser = await prismock.user.create({
-    data: {
-      email: user?.email ?? "",
-    },
-  });
-
-  const app = await prismock.app.create({
-    data: {
-      slug: "google-calendar",
-      dirName: "google-calendar",
-    },
-  });
-
-  const credential = {
-    ...getSampleCredential(),
-    ...(delegationCredentialId ? { delegationCredential: { connect: { id: delegationCredentialId } } } : {}),
-    key: {
-      ...googleTestCredentialKey,
-      expiry_date: Date.now() - 1000,
-    },
-  };
-
-  const credentialInDb = !delegatedTo
-    ? await prismock.credential.create({
-        data: {
-          ...credential,
-          user: {
-            connect: {
-              id: defaultUser.id,
-            },
-          },
-          app: {
-            connect: {
-              slug: app.slug,
-            },
-          },
-        },
-        include: {
-          user: true,
-        },
-      })
-    : createInMemoryCredential({
-        userId: defaultUser.id,
-        delegationCredentialId,
-        delegatedTo,
-      });
-
-  return {
-    ...credentialInDb,
-    user: user ? { email: user.email ?? "" } : null,
-    delegatedTo,
-  } as CredentialForCalendarServiceWithEmail;
-}
-
 async function createSelectedCalendarForDelegationCredential(data: {
   userId: number;
   credentialId: number | null;
@@ -228,61 +74,6 @@ async function createSelectedCalendarForDelegationCredential(data: {
     data: {
       ...data,
     },
-  });
-}
-
-async function createSelectedCalendarForRegularCredential(data: {
-  userId: number;
-  delegationCredentialId: null;
-  credentialId: number;
-  externalId: string;
-  integration: string;
-  googleChannelId: string | null;
-  googleChannelKind: string | null;
-  googleChannelResourceId: string | null;
-  googleChannelResourceUri: string | null;
-  googleChannelExpiration: string | null;
-}) {
-  if (!data.credentialId) {
-    throw new Error("credentialId is required");
-  }
-
-  if (data.credentialId < 0) {
-    throw new Error("credentialId cannot be negative");
-  }
-
-  return await prismock.selectedCalendar.create({
-    data: {
-      ...data,
-      delegationCredentialId: null,
-      credentialId: data.credentialId,
-    },
-  });
-}
-
-const defaultDelegatedCredential = {
-  serviceAccountKey: {
-    client_email: "service@example.com",
-    client_id: "service-client-id",
-    private_key: "service-private-key",
-  },
-} as const;
-
-async function createDelegationCredentialForCalendarService({
-  user,
-  delegatedTo,
-  delegationCredentialId,
-}: {
-  user?: { email: string } | null;
-  delegatedTo?: typeof defaultDelegatedCredential;
-  delegationCredentialId: string;
-}) {
-  return await createCredentialForCalendarService({
-    user: user || {
-      email: "service@example.com",
-    },
-    delegatedTo: delegatedTo || defaultDelegatedCredential,
-    delegationCredentialId,
   });
 }
 
@@ -315,67 +106,6 @@ async function createDelegationCredentialForCalendarCache({
     ...credentialInDb,
   };
 }
-
-const createMockJWTInstance = ({
-  email = "user@example.com",
-  authorizeError,
-}: {
-  email?: string;
-  authorizeError?: { response?: { data?: { error?: string } } } | Error;
-}) => {
-  const mockJWTInstance = {
-    type: "jwt" as const,
-    config: {
-      email: defaultDelegatedCredential.serviceAccountKey.client_email,
-      key: defaultDelegatedCredential.serviceAccountKey.private_key,
-      scopes: ["https://www.googleapis.com/auth/calendar"],
-      subject: email,
-    },
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    authorize: authorizeError ? vi.fn().mockRejectedValue(authorizeError) : vi.fn().mockResolvedValue(),
-    createScoped: vi.fn(),
-    getRequestMetadataAsync: vi.fn(),
-    fetchIdToken: vi.fn(),
-    hasUserScopes: vi.fn(),
-    getAccessToken: vi.fn(),
-    getRefreshToken: vi.fn(),
-    getTokenInfo: vi.fn(),
-    refreshAccessToken: vi.fn(),
-    revokeCredentials: vi.fn(),
-    revokeToken: vi.fn(),
-    verifyIdToken: vi.fn(),
-    on: vi.fn(),
-    setCredentials: vi.fn(),
-    getCredentials: vi.fn(),
-    hasAnyScopes: vi.fn(),
-    authorizeAsync: vi.fn(),
-    refreshTokenNoCache: vi.fn(),
-    createGToken: vi.fn(),
-  };
-
-  vi.mocked(JWT).mockImplementation(() => {
-    lastCreatedJWT = mockJWTInstance;
-    return mockJWTInstance as unknown as JWT;
-  });
-  return mockJWTInstance;
-};
-
-const googleTestCredentialKey = {
-  scope: "https://www.googleapis.com/auth/calendar.events",
-  token_type: "Bearer",
-  expiry_date: 1625097600000,
-  access_token: "",
-  refresh_token: "",
-};
-
-const getSampleCredential = () => {
-  return {
-    invalid: false,
-    key: googleTestCredentialKey,
-    type: "google_calendar",
-  };
-};
 
 const testSelectedCalendar = {
   userId: 1,
@@ -522,8 +252,8 @@ beforeEach(() => {
   calendarMock.calendar_v3.Calendar.mockClear();
   adminMock.admin_directory_v1.Admin.mockClear();
 
-  lastCreatedJWT = null;
-  lastCreatedOAuth2Client = null;
+  setLastCreatedJWT(null);
+  setLastCreatedOAuth2Client(null);
   createMockJWTInstance({});
 });
 
@@ -802,7 +532,7 @@ describe("Watching and unwatching calendar", () => {
 
   describe("Delegation Credential", () => {
     test("On watching a SelectedCalendar having delegationCredential, it should set googleChannelId and other props", async () => {
-      const delegationCredential1Member1 = await createDelegationCredentialForCalendarService({
+      const delegationCredential1Member1 = await createInMemoryDelegationCredentialForCalendarService({
         user: { email: "user1@example.com" },
         delegationCredentialId: "delegation-credential-id-1",
       });
@@ -1083,298 +813,6 @@ describe("Watching and unwatching calendar", () => {
       eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId.id,
       googleChannelProps
     );
-  });
-});
-
-test("`updateTokenObject` should update credential in DB as well as myGoogleAuth", async () => {
-  const credentialInDb = await createCredentialForCalendarService();
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let updateTokenObject: any;
-  oAuthManagerMock.OAuthManager = vi.fn().mockImplementation((arg) => {
-    updateTokenObject = arg.updateTokenObject;
-    return {
-      getTokenObjectOrFetch: vi.fn().mockImplementation(() => {
-        return {
-          token: {
-            access_token: "FAKE_ACCESS_TOKEN",
-          },
-        };
-      }),
-      request: vi.fn().mockResolvedValue({
-        json: [],
-      }),
-    };
-  });
-
-  const calendarService = new CalendarService(credentialInDb);
-  await calendarService.listCalendars();
-
-  const newTokenObject = {
-    access_token: "NEW_FAKE_ACCESS_TOKEN",
-  };
-
-  // Scenario: OAuthManager causes `updateTokenObject` to be called
-  await updateTokenObject(newTokenObject);
-
-  const newCredential = await prismock.credential.findFirst({
-    where: {
-      id: credentialInDb.id,
-    },
-  });
-
-  // Expect update in DB
-  expect(newCredential).toEqual(
-    expect.objectContaining({
-      key: newTokenObject,
-    })
-  );
-
-  // Expect update in myGoogleAuth credentials
-  expect(setCredentialsMock).toHaveBeenCalledWith(newTokenObject);
-});
-
-describe("Delegation Credential Error handling", () => {
-  test("handles clientId not added to Google Workspace Admin Console error", async () => {
-    const credentialWithDelegation = await createCredentialForCalendarService({
-      user: { email: "user@example.com" },
-      delegatedTo: defaultDelegatedCredential,
-    });
-
-    createMockJWTInstance({
-      authorizeError: {
-        response: {
-          data: {
-            error: "unauthorized_client",
-          },
-        },
-      },
-    });
-
-    const calendarService = new CalendarService(credentialWithDelegation);
-
-    await expect(calendarService.listCalendars()).rejects.toThrow(
-      "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
-    );
-  });
-
-  test("handles DelegationCredential authorization errors appropriately", async () => {
-    const credentialWithDelegation = await createCredentialForCalendarService({
-      user: { email: "user@example.com" },
-      delegatedTo: defaultDelegatedCredential,
-    });
-
-    createMockJWTInstance({
-      authorizeError: {
-        response: {
-          data: {
-            error: "unauthorized_client",
-          },
-        },
-      },
-    });
-
-    const calendarService = new CalendarService(credentialWithDelegation);
-
-    await expect(calendarService.listCalendars()).rejects.toThrow(
-      "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
-    );
-  });
-
-  test("handles invalid_grant error (user not in workspace) appropriately", async () => {
-    const credentialWithDelegation = await createCredentialForCalendarService({
-      user: { email: "user@example.com" },
-      delegatedTo: defaultDelegatedCredential,
-    });
-
-    createMockJWTInstance({
-      authorizeError: {
-        response: {
-          data: {
-            error: "invalid_grant",
-          },
-        },
-      },
-    });
-
-    const calendarService = new CalendarService(credentialWithDelegation);
-
-    await expect(calendarService.listCalendars()).rejects.toThrow(
-      `User ${credentialWithDelegation.user?.email} might not exist in Google Workspace`
-    );
-  });
-
-  test("handles general DelegationCredential authorization errors appropriately", async () => {
-    const credentialWithDelegation = await createCredentialForCalendarService({
-      user: { email: "user@example.com" },
-      delegatedTo: defaultDelegatedCredential,
-    });
-
-    createMockJWTInstance({
-      authorizeError: new Error("Some unexpected error"),
-    });
-
-    const calendarService = new CalendarService(credentialWithDelegation);
-
-    await expect(calendarService.listCalendars()).rejects.toThrow("Error authorizing delegation credential");
-  });
-
-  test("handles missing user email for DelegationCredential appropriately", async () => {
-    const credentialWithDelegation = await createCredentialForCalendarService({
-      user: { email: null },
-      delegatedTo: defaultDelegatedCredential,
-    });
-
-    const calendarService = new CalendarService(credentialWithDelegation);
-    const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
-
-    await calendarService.listCalendars();
-
-    expect(lastCreatedJWT).toBeNull();
-
-    const expectedOAuth2Client: MockOAuth2Client = {
-      type: "oauth2",
-      args: [client_id, client_secret, redirect_uris[0]],
-      setCredentials: setCredentialsMock,
-    };
-
-    expect(lastCreatedOAuth2Client).toEqual(expectedOAuth2Client);
-  });
-});
-
-describe("GoogleCalendarService credential handling", () => {
-  test("uses JWT auth with impersonation when Delegation credential is provided", async () => {
-    const credentialWithDelegation = await createCredentialForCalendarService({
-      user: { email: "user@example.com" },
-      delegatedTo: defaultDelegatedCredential,
-    });
-
-    const calendarService = new CalendarService(credentialWithDelegation);
-    await calendarService.listCalendars();
-
-    const expectedJWTConfig: MockJWT = {
-      type: "jwt",
-      config: {
-        email: defaultDelegatedCredential.serviceAccountKey.client_email,
-        key: defaultDelegatedCredential.serviceAccountKey.private_key,
-        scopes: ["https://www.googleapis.com/auth/calendar"],
-        subject: "user@example.com",
-      },
-      authorize: expect.any(Function) as () => Promise<void>,
-    };
-
-    expect(lastCreatedJWT).toEqual(expect.objectContaining(expectedJWTConfig));
-
-    expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith({
-      auth: lastCreatedJWT,
-    });
-  });
-
-  test("uses OAuth2 auth when no Delegation credential is provided", async () => {
-    const regularCredential = await createCredentialForCalendarService();
-    const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
-
-    const calendarService = new CalendarService(regularCredential);
-    await calendarService.listCalendars();
-
-    expect(lastCreatedJWT).toBeNull();
-
-    const expectedOAuth2Client: MockOAuth2Client = {
-      type: "oauth2",
-      args: [client_id, client_secret, redirect_uris[0]],
-      setCredentials: setCredentialsMock,
-    };
-
-    expect(lastCreatedOAuth2Client).toEqual(expectedOAuth2Client);
-
-    expect(setCredentialsMock).toHaveBeenCalledWith(regularCredential.key);
-
-    expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith({
-      auth: lastCreatedOAuth2Client,
-    });
-  });
-
-  test("handles DelegationCredential authorization errors appropriately", async () => {
-    const credentialWithDelegation = await createCredentialForCalendarService({
-      user: { email: "user@example.com" },
-      delegatedTo: defaultDelegatedCredential,
-    });
-
-    createMockJWTInstance({
-      authorizeError: {
-        response: {
-          data: {
-            error: "unauthorized_client",
-          },
-        },
-      },
-    });
-
-    const calendarService = new CalendarService(credentialWithDelegation);
-
-    await expect(calendarService.listCalendars()).rejects.toThrow(
-      "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
-    );
-  });
-
-  test("handles invalid_grant error (user not in workspace) appropriately", async () => {
-    const credentialWithDelegation = await createCredentialForCalendarService({
-      user: { email: "user@example.com" },
-      delegatedTo: defaultDelegatedCredential,
-    });
-
-    createMockJWTInstance({
-      authorizeError: {
-        response: {
-          data: {
-            error: "invalid_grant",
-          },
-        },
-      },
-    });
-
-    const calendarService = new CalendarService(credentialWithDelegation);
-
-    await expect(calendarService.listCalendars()).rejects.toThrow(
-      `User ${credentialWithDelegation.user?.email} might not exist in Google Workspace`
-    );
-  });
-
-  test("handles general DelegationCredential authorization errors appropriately", async () => {
-    const credentialWithDelegation = await createCredentialForCalendarService({
-      user: { email: "user@example.com" },
-      delegatedTo: defaultDelegatedCredential,
-    });
-
-    createMockJWTInstance({
-      authorizeError: new Error("Some unexpected error"),
-    });
-
-    const calendarService = new CalendarService(credentialWithDelegation);
-
-    await expect(calendarService.listCalendars()).rejects.toThrow("Error authorizing delegation credential");
-  });
-
-  test("handles missing user email for DelegationCredential appropriately", async () => {
-    const credentialWithDelegation = await createCredentialForCalendarService({
-      user: { email: null },
-      delegatedTo: defaultDelegatedCredential,
-    });
-
-    const calendarService = new CalendarService(credentialWithDelegation);
-    const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
-
-    await calendarService.listCalendars();
-
-    expect(lastCreatedJWT).toBeNull();
-
-    const expectedOAuth2Client: MockOAuth2Client = {
-      type: "oauth2",
-      args: [client_id, client_secret, redirect_uris[0]],
-      setCredentials: setCredentialsMock,
-    };
-
-    expect(lastCreatedOAuth2Client).toEqual(expectedOAuth2Client);
   });
 });
 
