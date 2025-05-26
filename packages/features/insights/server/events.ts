@@ -126,7 +126,7 @@ class EventsInsights {
     const aggregate: AggregateResult = {};
 
     // Initialize all date ranges with zero counts
-    dateRanges.forEach(({ startDate, endDate, formattedDate }) => {
+    dateRanges.forEach(({ formattedDate }) => {
       aggregate[formattedDate] = {
         completed: 0,
         rescheduled: 0,
