@@ -17,11 +17,6 @@ export const scanWorkflowBodySchema = z.object({
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
 
 export async function scanWorkflowBody(payload: string) {
-  if (!process.env.IFFY_API_KEY) {
-    log.info("IFFY_API_KEY not set, skipping scan");
-    return;
-  }
-
   const { workflowStepIds, userId } = scanWorkflowBodySchema.parse(JSON.parse(payload));
 
   const workflowSteps = await prisma.workflowStep.findMany({
@@ -45,66 +40,66 @@ export async function scanWorkflowBody(payload: string) {
     },
   });
 
-  for (const workflowStep of workflowSteps) {
-    if (!workflowStep.reminderBody) {
-      await prisma.workflowStep.update({
-        where: {
-          id: workflowStep.id,
-        },
-        data: {
-          verifiedAt: new Date(),
-        },
+  if (process.env.IFFY_API_KEY) {
+    for (const workflowStep of workflowSteps) {
+      if (!workflowStep.reminderBody) {
+        await prisma.workflowStep.update({
+          where: {
+            id: workflowStep.id,
+          },
+          data: {
+            verifiedAt: new Date(),
+          },
+        });
+        continue;
+      }
+
+      const timeFormat = getTimeFormatStringFromUserTimeFormat(workflowStep.workflow.user?.timeFormat);
+
+      // Determine if body is a template
+      const defaultTemplate = getTemplateBodyForAction({
+        action: workflowStep.action,
+        locale: workflowStep.workflow.user?.locale ?? "en",
+        t: await getTranslation(workflowStep.workflow.user?.locale ?? "en", "common"),
+        template: workflowStep.template,
+        timeFormat,
       });
-      continue;
-    }
 
-    const timeFormat = getTimeFormatStringFromUserTimeFormat(workflowStep.workflow.user?.timeFormat);
+      if (!defaultTemplate) {
+        log.error(`Template not found for action ${workflowStep.action}, template ${workflowStep.template}`);
+        continue;
+      }
 
-    // Determine if body is a template
-    const defaultTemplate = getTemplateBodyForAction({
-      action: workflowStep.action,
-      locale: workflowStep.workflow.user?.locale ?? "en",
-      t: await getTranslation(workflowStep.workflow.user?.locale ?? "en", "common"),
-      template: workflowStep.template,
-      timeFormat,
-    });
+      if (
+        compareReminderBodyToTemplate({ reminderBody: workflowStep.reminderBody, template: defaultTemplate })
+      ) {
+        await prisma.workflowStep.update({
+          where: {
+            id: workflowStep.id,
+          },
+          data: {
+            verifiedAt: new Date(),
+          },
+        });
+        continue;
+      }
 
-    if (!defaultTemplate) {
-      log.error(`Template not found for action ${workflowStep.action}, template ${workflowStep.template}`);
-      continue;
-    }
+      const isSpam = await iffyScanBody(workflowStep.reminderBody, workflowStep.id);
 
-    if (
-      compareReminderBodyToTemplate({ reminderBody: workflowStep.reminderBody, template: defaultTemplate })
-    ) {
-      await prisma.workflowStep.update({
-        where: {
-          id: workflowStep.id,
-        },
-        data: {
-          verifiedAt: new Date(),
-        },
-      });
-      continue;
-    }
+      if (isSpam) {
+        if (!workflowStep.workflow.user?.whitelistWorkflows) {
+          // We won't delete the workflow step incase it is flagged as a false positive
+          log.warn(`Workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`);
+          await lockUser("userId", userId.toString(), LockReason.SPAM_WORKFLOW_BODY);
 
-    const isSpam = await iffyScanBody(workflowStep.reminderBody, workflowStep.id);
-
-    if (isSpam) {
-      if (workflowStep.workflow.user?.whitelistWorkflows) {
+          // Return early if spam is detected
+          return;
+        }
         log.warn(
           `For whitelisted user, workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`
         );
-        return;
       }
 
-      // We won't delete the workflow step incase it is flagged as a false positive
-      log.warn(`Workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`);
-      await lockUser("userId", userId.toString(), LockReason.SPAM_WORKFLOW_BODY);
-
-      // Return early if spam is detected
-      return;
-    } else {
       await prisma.workflowStep.update({
         where: {
           id: workflowStep.id,
@@ -114,6 +109,20 @@ export async function scanWorkflowBody(payload: string) {
         },
       });
     }
+  }
+
+  if (!process.env.IFFY_API_KEY) {
+    log.info("IFFY_API_KEY not set, skipping scan");
+    await prisma.workflowStep.updateMany({
+      where: {
+        id: {
+          in: workflowStepIds,
+        },
+      },
+      data: {
+        verifiedAt: new Date(),
+      },
+    });
   }
 
   const workflow = await prisma.workflow.findFirst({
@@ -142,7 +151,10 @@ export async function scanWorkflowBody(payload: string) {
   await scheduleWorkflowNotifications({
     activeOn: workflow.activeOn.map((activeOn) => activeOn.eventTypeId) ?? [],
     isOrg,
-    workflowSteps,
+    workflowSteps: workflowSteps.map((step) => ({
+      ...step,
+      verifiedAt: new Date(),
+    })),
     time: workflow.time,
     timeUnit: workflow.timeUnit,
     trigger: workflow.trigger,
@@ -151,7 +163,7 @@ export async function scanWorkflowBody(payload: string) {
   });
 }
 
-const iffyScanBody = async (body: string, workflowStepId: number) => {
+export const iffyScanBody = async (body: string, workflowStepId: number) => {
   try {
     const response = await fetch("https://api.iffy.com/api/v1/moderate", {
       method: "POST",

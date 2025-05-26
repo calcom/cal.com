@@ -52,7 +52,9 @@ export const getCalendarsEventsWithTimezones = async (
       if (!isADelegationCredential) {
         // It was done to fix the secondary calendar connections from always checking the conflicts even if intentional no calendars are selected.
         // https://github.com/calcom/cal.com/issues/8929
-        log.error("No selected calendars for non DWD credential: Skipping getAvailability call");
+        log.error(
+          `No selected calendars for non DWD credential: Skipping getAvailability call for credential ${credential?.id}`
+        );
         return [];
       }
       // For delegation credential, we should allow getAvailability even without any selected calendars. It ensures that enabling Delegation Credential at Organization level always ensure one selected calendar for conflicts checking, without requiring any manual action from organization members
@@ -118,7 +120,9 @@ const getCalendarsEvents = async (
       if (!isADelegationCredential) {
         // It was done to fix the secondary calendar connections from always checking the conflicts even if intentional no calendars are selected.
         // https://github.com/calcom/cal.com/issues/8929
-        log.error("No selected calendars for non DWD credential: Skipping getAvailability call");
+        log.error(
+          `No selected calendars for non DWD credential: Skipping getAvailability call for credential ${credential?.id}`
+        );
         return [];
       }
       // For delegation credential, we should allow getAvailability even without any selected calendars. It ensures that enabling Delegation Credential at Organization level always ensure one selected calendar for conflicts checking, without requiring any manual action from organization members

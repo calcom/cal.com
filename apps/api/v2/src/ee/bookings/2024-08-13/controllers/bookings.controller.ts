@@ -182,7 +182,7 @@ export class BookingsController_2024_08_13 {
   ): Promise<GetBookingsOutput_2024_08_13> {
     const profile = this.usersService.getUserMainProfile(user);
 
-    const bookings = await this.bookingsService.getBookings(queryParams, {
+    const { bookings, pagination } = await this.bookingsService.getBookings(queryParams, {
       email: user.email,
       id: user.id,
       orgId: profile?.organizationId,
@@ -191,6 +191,7 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 
@@ -289,7 +290,8 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to auto-selected host",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
@@ -310,7 +312,8 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to a specific host",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,

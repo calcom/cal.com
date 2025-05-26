@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { CalendarSubscriptionRepository } from "@calcom/features/calendar-sync/calendarSubscription.repository";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -77,7 +78,8 @@ const handleCalendarsToUnwatch = async () => {
           // So we don't retry on next cron run
 
           // FIXME: There could actually be multiple calendars with the same externalId and thus we need to technically update error for all of them
-          await SelectedCalendarRepository.updateById(id, {
+          await SelectedCalendarRepository.setErrorInUnwatching({
+            id,
             error: "Missing credentialId",
           });
           log.error("no credentialId for SelectedCalendar: ", id);
@@ -97,13 +99,23 @@ const handleCalendarsToUnwatch = async () => {
           if (error instanceof Error) {
             errorMessage = error.message;
           }
-          await SelectedCalendarRepository.updateById(id, {
-            error: `Error unwatching calendar: ${errorMessage}`,
+          log.error(
+            `Error unwatching calendar ${externalId}`,
+            safeStringify({
+              selectedCalendarId: id,
+              error: errorMessage,
+            })
+          );
+          await SelectedCalendarRepository.setErrorInUnwatching({
+            id,
+            error: `${errorMessage}`,
           });
         }
       }
     )
   );
+
+  log.info(`Processed ${result.length} calendars for unwatching`);
 
   result.forEach(logRejected);
   return result;
@@ -127,9 +139,7 @@ const handleCalendarsToWatch = async () => {
       async ([externalId, { credentialId, eventTypeIds, id }]) => {
         if (!credentialId) {
           // So we don't retry on next cron run
-          await SelectedCalendarRepository.updateById(id, {
-            error: "Missing credentialId",
-          });
+          await SelectedCalendarRepository.setErrorInWatching({ id, error: "Missing credentialId" });
           log.error("no credentialId for SelectedCalendar: ", id);
           return;
         }
@@ -147,13 +157,22 @@ const handleCalendarsToWatch = async () => {
           if (error instanceof Error) {
             errorMessage = error.message;
           }
-          await SelectedCalendarRepository.updateById(id, {
-            error: `Error watching calendar: ${errorMessage}`,
+          log.error(
+            `Error watching calendar ${externalId}`,
+            safeStringify({
+              selectedCalendarId: id,
+              error: errorMessage,
+            })
+          );
+          await SelectedCalendarRepository.setErrorInWatching({
+            id,
+            error: `${errorMessage}`,
           });
         }
       }
     )
   );
+  log.info(`Processed ${result.length} calendars for watching`);
   result.forEach(logRejected);
   return result;
 };
