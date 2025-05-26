@@ -1,10 +1,6 @@
 "use client";
 
-import { useQueryState } from "nuqs";
-
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
-
-import { roleParsers } from "./searchParams";
 
 type Role = {
   id: string;
@@ -24,28 +20,14 @@ type Role = {
 interface RoleSheetProps {
   role?: Role;
   open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function RoleSheet({ role, open }: RoleSheetProps) {
+export function RoleSheet({ role, open, onOpenChange }: RoleSheetProps) {
   const isEditing = Boolean(role);
-  const [isOpen, setIsOpen] = useQueryState("role-sheet", {
-    ...roleParsers["role-sheet"],
-    defaultValue: open ?? false,
-  });
-
-  const [, setSelectedRoleId] = useQueryState("role", {
-    ...roleParsers.role,
-  });
-
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      setSelectedRoleId("");
-    }
-  };
 
   return (
-    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
           <SheetTitle>{isEditing ? "Edit Role" : "Create Role"}</SheetTitle>

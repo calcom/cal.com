@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 
+import { RoleSheet } from "./RoleSheet";
 import { roleParsers } from "./searchParams";
 
 type Role = {
@@ -48,7 +49,7 @@ interface RolesListProps {
 
 export function RolesList({ roles, permissions, initialSelectedRole, initialSheetOpen }: RolesListProps) {
   const { t } = useLocale();
-  const [, setIsOpen] = useQueryState("role-sheet", {
+  const [isOpen, setIsOpen] = useQueryState("role-sheet", {
     ...roleParsers["role-sheet"],
     defaultValue: initialSheetOpen ?? false,
   });
@@ -57,41 +58,54 @@ export function RolesList({ roles, permissions, initialSelectedRole, initialShee
     defaultValue: initialSelectedRole?.id ?? "",
   });
 
-  return (
-    <div className="mt-4">
-      <div className="bg-muted border-muted flex flex-col rounded-xl border p-[1px]">
-        {/* Roles list header */}
-        <div className="px-5 py-4">
-          <h2 className="text-default text-sm font-semibold leading-none">{t("role")}</h2>
-        </div>
-        {/* Role List Items */}
-        <div className="bg-default border-subtle divide-subtle flex flex-col divide-y rounded-[10px] border">
-          {roles.map((role) => (
-            <RoleItem
-              role={role}
-              key={role.id}
-              onClick={() => {
-                // Cant edit system roles
-                if (role.type === "SYSTEM") {
-                  return;
-                }
+  const selectedRole = roles.find((role) => role.id === selectedRoleId);
 
-                if (permissions.canUpdate) {
-                  setSelectedRoleId(role.id);
-                  setIsOpen(true);
-                }
-              }}
-              canUpdate={permissions.canUpdate}
-              permissions={permissions}
-            />
-          ))}
-        </div>
-        {/* Footer */}
-        <div className="px-5 py-4 ">
-          <p className="text-subtle text-sm font-medium leading-tight">{t("learn_more_permissions")}</p>
+  const handleSheetOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      setSelectedRoleId("");
+    }
+  };
+
+  return (
+    <>
+      <div className="mt-4">
+        <div className="bg-muted border-muted flex flex-col rounded-xl border p-[1px]">
+          {/* Roles list header */}
+          <div className="px-5 py-4">
+            <h2 className="text-default text-sm font-semibold leading-none">{t("role")}</h2>
+          </div>
+          {/* Role List Items */}
+          <div className="bg-default border-subtle divide-subtle flex flex-col divide-y rounded-[10px] border">
+            {roles.map((role) => (
+              <RoleItem
+                role={role}
+                key={role.id}
+                onClick={() => {
+                  // Cant edit system roles
+                  if (role.type === "SYSTEM") {
+                    return;
+                  }
+
+                  if (permissions.canUpdate) {
+                    setSelectedRoleId(role.id);
+                    setIsOpen(true);
+                  }
+                }}
+                canUpdate={permissions.canUpdate}
+                permissions={permissions}
+              />
+            ))}
+          </div>
+          {/* Footer */}
+          <div className="px-5 py-4 ">
+            <p className="text-subtle text-sm font-medium leading-tight">{t("learn_more_permissions")}</p>
+          </div>
         </div>
       </div>
-    </div>
+
+      <RoleSheet role={selectedRole} open={isOpen ?? false} onOpenChange={handleSheetOpenChange} />
+    </>
   );
 }
 
