@@ -1,7 +1,12 @@
 "use client";
 
+import { useQueryState } from "nuqs";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/badge";
+import classNames from "@calcom/ui/classNames";
+
+import { roleParsers } from "./searchParams";
 
 type Role = {
   id: string;
@@ -27,8 +32,26 @@ type Permissions = {
   canRead: boolean;
 };
 
-export function RolesList({ roles }: { roles: Roles; permissions: Permissions }) {
+interface RolesListProps {
+  roles: Roles;
+  permissions: Permissions;
+  initialSelectedRole?: Role;
+  initialSheetOpen?: boolean;
+}
+
+export function RolesList({ roles, permissions, initialSelectedRole, initialSheetOpen }: RolesListProps) {
   const { t } = useLocale();
+  const [isOpen, setIsOpen] = useQueryState("role-sheet", {
+    ...roleParsers["role-sheet"],
+    defaultValue: initialSheetOpen ?? false,
+  });
+  const [selectedRoleId, setSelectedRoleId] = useQueryState("role", {
+    ...roleParsers.role,
+    defaultValue: initialSelectedRole?.id ?? "",
+  });
+
+  const selectedRole = roles.find((role) => role.id === selectedRoleId);
+
   return (
     <div className="mt-4">
       <div className="bg-muted border-muted flex flex-col rounded-xl border p-[1px]">
@@ -39,7 +62,22 @@ export function RolesList({ roles }: { roles: Roles; permissions: Permissions })
         {/* Role List Items */}
         <div className="bg-default border-subtle divide-subtle flex flex-col divide-y rounded-[10px] border">
           {roles.map((role) => (
-            <RoleItem role={role} key={role.id} />
+            <RoleItem
+              role={role}
+              key={role.id}
+              onClick={() => {
+                // Cant edit system roles
+                if (role.type === "SYSTEM") {
+                  return;
+                }
+
+                if (permissions.canUpdate) {
+                  setSelectedRoleId(role.id);
+                  setIsOpen(true);
+                }
+              }}
+              canUpdate={permissions.canUpdate}
+            />
           ))}
         </div>
         {/* Footer */}
@@ -51,9 +89,14 @@ export function RolesList({ roles }: { roles: Roles; permissions: Permissions })
   );
 }
 
-function RoleItem({ role }: { role: Role }) {
+function RoleItem({ role, onClick, canUpdate }: { role: Role; onClick: () => void; canUpdate: boolean }) {
   return (
-    <div className="border-subtle flex p-3">
+    <div
+      className={classNames(
+        "border-subtle flex p-3",
+        canUpdate && role.type !== "SYSTEM" && "hover:bg-subtle cursor-pointer"
+      )}
+      onClick={onClick}>
       <div className="flex items-center gap-3 truncate">
         {/* Icon */}
         <div className="flex items-center justify-center">

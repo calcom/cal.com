@@ -9,6 +9,7 @@ export interface IRoleRepository {
   findByName(name: string, teamId?: number): Promise<Role | null>;
   findById(id: string): Promise<Role | null>;
   findByTeamId(teamId: number): Promise<Role[]>;
+  roleBelongsToTeam(roleId: string, teamId: number): Promise<boolean>;
   create(data: CreateRoleData): Promise<Role>;
   delete(id: string): Promise<void>;
   updatePermissions(roleId: string, permissions: PermissionString[]): Promise<Role>;

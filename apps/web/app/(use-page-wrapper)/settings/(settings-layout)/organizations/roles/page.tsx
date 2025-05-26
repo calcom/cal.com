@@ -16,8 +16,10 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { CreateRoleCTA } from "./_components/CreateRoleCta";
+import { RoleSheet } from "./_components/RoleSheet";
 import { RolesList } from "./_components/RolesList";
 import { SkeletonLoader } from "./_components/RolesSkeletonLoader";
+import { roleSearchParamsCache } from "./_components/searchParams";
 
 const getCachedTeamRoles = unstable_cache(
   async (teamId: number) => {
@@ -56,7 +58,7 @@ export const generateMetadata = async () =>
     "/settings/organizations/roles"
   );
 
-const Page = async () => {
+const Page = async ({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) => {
   const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
@@ -69,6 +71,8 @@ const Page = async () => {
   if (!teamHasPBACFeature) {
     return notFound();
   }
+
+  roleSearchParamsCache.parse(searchParams);
 
   const [roles, rolePermissions] = await Promise.all([
     getCachedTeamRoles(session.user.org.id),
@@ -88,24 +92,42 @@ const Page = async () => {
     return notFound();
   }
 
+  // Get sheet state from server cache
+  const isSheetOpen = roleSearchParamsCache.get("role-sheet");
+  const selectedRoleId = roleSearchParamsCache.get("role");
+  const selectedRole = roles.find((role) => role.id === selectedRoleId);
+  let hasAccess = false;
+
+  // Check if user has access to the selected role
+  if (selectedRole) {
+    const roleService = new RoleService();
+    hasAccess = await roleService.roleBelongsToTeam(selectedRole.id, session.user.org.id);
+  }
+
   return (
-    <SettingsHeader
-      title={t("roles_and_permissions")}
-      description={t("roles_and_permissions_description")}
-      borderInShellHeader={false}
-      CTA={canCreate || canManage ? <CreateRoleCTA /> : null}>
-      <Suspense fallback={<SkeletonLoader />}>
-        <RolesList
-          roles={roles}
-          permissions={{
-            canCreate: canCreate || canManage,
-            canRead: canRead || canManage,
-            canUpdate: canUpdate || canManage,
-            canDelete: canDelete || canManage,
-          }}
-        />
-      </Suspense>
-    </SettingsHeader>
+    <>
+      <SettingsHeader
+        title={t("roles_and_permissions")}
+        description={t("roles_and_permissions_description")}
+        borderInShellHeader={false}
+        CTA={canCreate || canManage ? <CreateRoleCTA /> : null}>
+        <Suspense fallback={<SkeletonLoader />}>
+          <RolesList
+            roles={roles}
+            permissions={{
+              canCreate: canCreate || canManage,
+              canRead: canRead || canManage,
+              canUpdate: canUpdate || canManage,
+              canDelete: canDelete || canManage,
+            }}
+            initialSelectedRole={selectedRole}
+            initialSheetOpen={isSheetOpen}
+          />
+        </Suspense>
+      </SettingsHeader>
+
+      {hasAccess && <RoleSheet role={selectedRole} open={isSheetOpen} />}
+    </>
   );
 };
 

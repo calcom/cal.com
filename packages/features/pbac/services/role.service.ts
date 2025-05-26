@@ -110,4 +110,8 @@ export class RoleService {
 
     return this.repository.updatePermissions(data.roleId, data.permissions);
   }
+
+  async roleBelongsToTeam(roleId: string, teamId: number) {
+    return this.repository.roleBelongsToTeam(roleId, teamId);
+  }
 }

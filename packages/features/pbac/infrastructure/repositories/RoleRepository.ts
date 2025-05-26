@@ -171,4 +171,9 @@ export class RoleRepository implements IRoleRepository {
       return callback(transactionRepo, trx);
     });
   }
+
+  async roleBelongsToTeam(roleId: string, teamId: number) {
+    const role = await this.findById(roleId);
+    return role?.teamId === teamId;
+  }
 }
