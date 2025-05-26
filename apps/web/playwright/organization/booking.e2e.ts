@@ -333,7 +333,7 @@ test.describe("Bookings", () => {
           // Second booking - should get a different host
           await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
           await selectFirstAvailableTimeSlotNextMonth(page);
-          await bookTimeSlot(page);
+          await bookTimeSlot(page, { email: "attendee1@test.com" });
           await expect(page.getByTestId("success-page")).toBeVisible();
           const secondHost = await page.getByTestId("booking-host-name").textContent();
           expect(secondHost).not.toBeNull();
@@ -342,7 +342,7 @@ test.describe("Bookings", () => {
           // Third booking - should get a different host
           await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
           await selectFirstAvailableTimeSlotNextMonth(page);
-          await bookTimeSlot(page);
+          await bookTimeSlot(page, { email: "attendee2@test.com" });
           await expect(page.getByTestId("success-page")).toBeVisible();
           const thirdHost = await page.getByTestId("booking-host-name").textContent();
           expect(thirdHost).not.toBeNull();
@@ -352,7 +352,7 @@ test.describe("Bookings", () => {
           // Fourth booking - should get a different host
           await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
           await selectFirstAvailableTimeSlotNextMonth(page);
-          await bookTimeSlot(page);
+          await bookTimeSlot(page, { email: "attendee3@test.com" });
           await expect(page.getByTestId("success-page")).toBeVisible();
           const fourthHost = await page.getByTestId("booking-host-name").textContent();
           expect(fourthHost).not.toBeNull();

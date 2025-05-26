@@ -69,23 +69,24 @@ model Host {
 }
 
 model EventType {
-  id          Int     @id @default(autoincrement())
+  id                Int     @id @default(autoincrement())
   /// @zod.min(1)
-  title       String
+  title             String
   /// @zod.custom(imports.eventTypeSlug)
-  slug        String
-  description String?
-  position    Int     @default(0)
+  slug              String
+  description       String?
+  interfaceLanguage String?
+  position          Int     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
-  locations   Json?
+  locations         Json?
   /// @zod.min(1)
-  length      Int
-  offsetStart Int     @default(0)
-  hidden      Boolean @default(false)
-  hosts       Host[]
-  users       User[]  @relation("user_eventtype")
-  owner       User?   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int?
+  length            Int
+  offsetStart       Int     @default(0)
+  hidden            Boolean @default(false)
+  hosts             Host[]
+  users             User[]  @relation("user_eventtype")
+  owner             User?   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?
 
   profileId Int?
   profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
@@ -500,6 +501,7 @@ model Team {
   // Available for Organization only
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
+  roles                  Role[] // Added for Role relation
 
   features TeamFeatures[]
 
@@ -584,11 +586,13 @@ model Membership {
   userId               Int
   accepted             Boolean           @default(false)
   role                 MembershipRole
+  customRoleId         String?
+  customRole           Role?             @relation(fields: [customRoleId], references: [id])
   team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean           @default(false)
   AttributeToUser      AttributeToUser[]
-  createdAt            DateTime?
+  createdAt            DateTime?         @default(now())
   updatedAt            DateTime?         @updatedAt
 
   @@unique([userId, teamId])
@@ -596,6 +600,7 @@ model Membership {
   @@index([userId])
   @@index([accepted])
   @@index([role])
+  @@index([customRoleId])
 }
 
 model VerificationToken {
@@ -826,6 +831,10 @@ model SelectedCalendar {
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
   error                            String?
+  lastErrorAt                      DateTime?
+  watchAttempts                    Int                   @default(0)
+  unwatchAttempts                  Int                   @default(0)
+  maxAttempts                      Int                   @default(3)
 
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
@@ -836,10 +845,12 @@ model SelectedCalendar {
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
   @@index([userId])
-  @@index([integration])
   @@index([externalId])
   @@index([eventTypeId])
   @@index([credentialId])
+  // Composite indices to optimize calendar-cache queries
+  @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
+  @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
 }
 
 enum EventTypeCustomInputType {
@@ -1131,14 +1142,14 @@ model App_RoutingForms_FormResponse {
 }
 
 model RoutingFormResponseField {
-  id               Int                              @id @default(autoincrement())
-  responseId       Int?
+  id               Int                             @id @default(autoincrement())
+  responseId       Int
   fieldId          String
   valueString      String?
   valueNumber      Decimal?
   valueStringArray String[]
-  response         App_RoutingForms_FormResponse?   @relation(fields: [responseId], references: [id], map: "RoutingFormResponseField_response_fkey")
-  denormalized     RoutingFormResponseDenormalized? @relation("DenormalizedResponseToFields", fields: [responseId], references: [id])
+  response         App_RoutingForms_FormResponse   @relation(fields: [responseId], references: [id], map: "RoutingFormResponseField_response_fkey", onDelete: Cascade)
+  denormalized     RoutingFormResponseDenormalized @relation("DenormalizedResponseToFields", fields: [responseId], references: [id], onDelete: Cascade)
 
   @@index([responseId])
   @@index([fieldId])
@@ -2002,6 +2013,10 @@ model DelegationCredential {
   /// @zod.custom(imports.serviceAccountKeySchema)
   serviceAccountKey   Json
   enabled             Boolean               @default(false)
+  // lastEnabledAt is set when the delegation credential is enabled
+  lastEnabledAt       DateTime?
+  // lastDisabledAt is set when the delegation credential is disabled. So, lastDisabledAt could be earlier then lastEnabledAt if the delegation credential was enabled -> then disabled -> then enabled again.
+  lastDisabledAt      DateTime?
   organizationId      Int
   organization        Team                  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   domain              String
@@ -2263,4 +2278,39 @@ model WorkflowOptOutContact {
   updatedAt DateTime            @updatedAt
 
   @@unique([type, value])
+}
+
+enum RoleType {
+  SYSTEM
+  CUSTOM
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  teamId      Int? // null for global roles
+  team        Team?            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  permissions RolePermission[]
+  memberships Membership[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  type        RoleType         @default(CUSTOM)
+
+  @@unique([name, teamId])
+  @@index([teamId])
+}
+
+model RolePermission {
+  id        String   @id @default(cuid())
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  resource  String
+  action    String
+  createdAt DateTime @default(now())
+
+  @@unique([roleId, resource, action])
+  @@index([roleId])
+  // TODO: come back to this with indexs.
+  @@index([action])
 }
