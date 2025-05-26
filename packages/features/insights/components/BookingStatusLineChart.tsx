@@ -28,7 +28,6 @@ export const BookingStatusLineChart = () => {
     isPending,
   } = trpc.viewer.insights.eventsTimeline.useQuery(
     {
-      timeView: selectedTimeView,
       startDate,
       endDate,
       teamId,

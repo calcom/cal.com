@@ -283,16 +283,17 @@ class EventsInsights {
     return csat;
   };
 
-  static getTimeView = (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
-    let resultTimeView = timeView;
-
-    if (startDate.diff(endDate, "day") > 90) {
-      resultTimeView = "month";
-    } else if (startDate.diff(endDate, "day") > 365) {
-      resultTimeView = "year";
+  static getTimeView = (startDate: Dayjs, endDate: Dayjs) => {
+    const diff = startDate.diff(endDate, "day");
+    if (diff > 365) {
+      return "year";
+    } else if (diff > 90) {
+      return "month";
+    } else if (diff > 14) {
+      return "week";
+    } else {
+      return "day";
     }
-
-    return resultTimeView;
   };
 
   static getPercentage = (actualMetric: number, previousMetric: number) => {
@@ -316,6 +317,13 @@ class EventsInsights {
     timeView,
     weekStart,
   }: GetDateRangesParams): DateRange[] {
+    console.log("💡 TEST", {
+      _startDate,
+      _endDate,
+      timeZone,
+      timeView,
+      weekStart,
+    });
     if (!["day", "week", "month", "year"].includes(timeView)) {
       return [];
     }

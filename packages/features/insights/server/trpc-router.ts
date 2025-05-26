@@ -447,104 +447,78 @@ export const insightsRouter = router({
 
     return result;
   }),
-  eventsTimeline: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        timeView: z.enum(["week", "month", "year", "day"]),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const {
-        teamId,
-        eventTypeId,
-        memberUserId,
-        isAll,
-        startDate,
-        endDate,
-        timeView: inputTimeView,
-        userId: selfUserId,
-      } = input;
-      if (selfUserId && ctx.user?.id !== selfUserId) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+  eventsTimeline: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
+    const { teamId, eventTypeId, memberUserId, isAll, startDate, endDate, userId: selfUserId } = input;
+    if (selfUserId && ctx.user?.id !== selfUserId) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    if (!teamId && !selfUserId) {
+      return [];
+    }
+
+    const timeView = EventsInsights.getTimeView(dayjs(startDate), dayjs(endDate));
+
+    const r = await buildBaseWhereCondition({
+      teamId,
+      eventTypeId: eventTypeId ?? undefined,
+      memberUserId: memberUserId ?? undefined,
+      userId: selfUserId ?? undefined,
+      isAll: isAll ?? false,
+      ctx: {
+        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+        userOrganizationId: ctx.user.organizationId,
+        insightsDb: ctx.insightsDb,
+      },
+    });
+
+    const { whereCondition: whereConditional } = r;
+
+    const dateRanges = EventsInsights.getDateRanges({
+      startDate,
+      endDate,
+      timeView,
+      timeZone: ctx.user.timeZone,
+      weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
+    });
+    if (!dateRanges.length) {
+      return [];
+    }
+
+    // Fetch counts grouped by status for the entire range
+    const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
+      whereConditional,
+      dayjs(startDate),
+      dayjs(endDate),
+      timeView
+    );
+
+    const result = dateRanges.map(({ formattedDate }) => {
+      const EventData = {
+        Month: formattedDate,
+        Created: 0,
+        Completed: 0,
+        Rescheduled: 0,
+        Cancelled: 0,
+        "No-Show (Host)": 0,
+        "No-Show (Guest)": 0,
+      };
+
+      const countsForDateRange = countsByStatus[formattedDate];
+
+      if (countsForDateRange) {
+        EventData["Created"] = countsForDateRange["_all"] || 0;
+        EventData["Completed"] = countsForDateRange["completed"] || 0;
+        EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
+        EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
+        EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
+        EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
       }
+      return EventData;
+    });
 
-      console.log("💡 TEST", {
-        startDate,
-        endDate,
-      });
-
-      if (!teamId && !selfUserId) {
-        return [];
-      }
-
-      let timeView = inputTimeView;
-
-      // Adjust the timeView if the range is less than 14 days
-      if (timeView === "week" && dayjs(endDate).diff(dayjs(startDate), "day") < 14) {
-        timeView = "day";
-      }
-
-      const r = await buildBaseWhereCondition({
-        teamId,
-        eventTypeId: eventTypeId ?? undefined,
-        memberUserId: memberUserId ?? undefined,
-        userId: selfUserId ?? undefined,
-        isAll: isAll ?? false,
-        ctx: {
-          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
-          insightsDb: ctx.insightsDb,
-        },
-      });
-
-      const { whereCondition: whereConditional } = r;
-
-      // Get date ranges directly instead of using timeline
-      const dateRanges = EventsInsights.getDateRanges({
-        startDate,
-        endDate,
-        timeView,
-        timeZone: ctx.user.timeZone,
-        weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
-      });
-      if (!dateRanges.length) {
-        return [];
-      }
-
-      // Fetch counts grouped by status for the entire range
-      const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
-        whereConditional,
-        dayjs(startDate),
-        dayjs(endDate),
-        timeView
-      );
-
-      const result = dateRanges.map(({ formattedDate }) => {
-        const EventData = {
-          Month: formattedDate,
-          Created: 0,
-          Completed: 0,
-          Rescheduled: 0,
-          Cancelled: 0,
-          "No-Show (Host)": 0,
-          "No-Show (Guest)": 0,
-        };
-
-        const countsForDateRange = countsByStatus[formattedDate];
-
-        if (countsForDateRange) {
-          EventData["Created"] = countsForDateRange["_all"] || 0;
-          EventData["Completed"] = countsForDateRange["completed"] || 0;
-          EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
-          EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
-          EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
-          EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
-        }
-        return EventData;
-      });
-
-      return result;
-    }),
+    return result;
+  }),
   popularEventTypes: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
     const { teamId, startDate, endDate, memberUserId, userId, isAll, eventTypeId } = input;
 
@@ -698,7 +672,7 @@ export const insightsRouter = router({
       },
     });
 
-    const timeView = EventsInsights.getTimeView("week", dayjs(startDate), dayjs(endDate));
+    const timeView = EventsInsights.getTimeView(dayjs(startDate), dayjs(endDate));
     const dateRanges = EventsInsights.getDateRanges({
       startDate,
       endDate,
