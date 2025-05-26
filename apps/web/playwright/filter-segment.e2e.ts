@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import {
-  applyFilter,
+  applySelectFilter,
   createFilterSegment,
   selectSegment,
   deleteSegment,
@@ -56,7 +56,7 @@ test.describe("Filter Segment Functionality", () => {
     const segmentName = "Admin Users";
 
     await test.step("Can apply and save a role filter as a segment", async () => {
-      await applyFilter(page, "role", "admin");
+      await applySelectFilter(page, "role", "admin");
 
       await expect(page.getByText(adminUser.email)).toBeVisible();
       await expect(page.getByText(memberUser.email)).toBeHidden();
@@ -110,7 +110,7 @@ test.describe("Filter Segment Functionality", () => {
     const dataTable = page.getByTestId("user-list-data-table");
     await expect(dataTable).toBeVisible();
 
-    await applyFilter(page, "role", "admin");
+    await applySelectFilter(page, "role", "admin");
     const segmentName = "Admin Users Persistent";
     await createFilterSegment(page, segmentName);
 
@@ -158,7 +158,7 @@ test.describe("Filter Segment Functionality", () => {
     const segmentName = "Team Admin Filter";
 
     await test.step("Can create a team scope filter segment", async () => {
-      await applyFilter(page, "role", "admin");
+      await applySelectFilter(page, "role", "admin");
 
       await createFilterSegment(page, segmentName, {
         teamScope: true,

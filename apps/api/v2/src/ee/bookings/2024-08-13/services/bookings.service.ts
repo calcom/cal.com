@@ -108,6 +108,12 @@ export class BookingsService_2024_08_13 {
         this.errorsBookingsService.handleEventTypeToBeBookedNotFound(body);
       }
 
+      if (eventType.schedulingType === "MANAGED") {
+        throw new BadRequestException(
+          `Event type with id=${eventType.id} is the parent managed event type that can't be booked. You have to provide the child event type id aka id of event type that has been assigned to one of the users.`
+        );
+      }
+
       body.eventTypeId = eventType.id;
 
       if ("instant" in body && body.instant) {

@@ -148,11 +148,10 @@ export const BookerPlatformWrapper = (
     eventSlug: props.eventSlug,
     isTeamEvent: props.isTeamEvent,
     teamId,
-    // orgSlug: props.entity?.orgSlug ?? null,
     selectedDuration,
   });
 
-  const bookerLayout = useBookerLayout(event?.data);
+  const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
   useInitializeBookerStore({
     ...props,
     teamMemberEmail,
