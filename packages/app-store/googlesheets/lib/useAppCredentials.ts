@@ -16,7 +16,7 @@ export const useAppCredentials = (appSlug: string) => {
 
   useEffect(() => {
     if (apps && !isLoading) {
-      const appData = apps.find((app) => app.slug === appSlug);
+      const appData = apps.find((app: any) => app.slug === appSlug);
       if (appData && "credentials" in appData) {
         setCredentials((appData as any).credentials || []);
       }

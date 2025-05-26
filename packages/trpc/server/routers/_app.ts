@@ -12,6 +12,6 @@ import { viewerRouter } from "./viewer/_router";
  */
 export const appRouter = router({
   viewer: viewerRouter,
-});
+}) as any; // Type assertion to avoid Google API type leakage
 
 export type AppRouter = typeof appRouter;

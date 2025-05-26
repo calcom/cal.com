@@ -1,4 +1,5 @@
 import app_Basecamp3 from "@calcom/app-store/basecamp3/trpc-router";
+import app_GoogleSheets from "@calcom/app-store/googlesheets/trpc-router";
 import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
@@ -86,6 +87,6 @@ export const viewerRouter = mergeRouters(
     credits: creditsRouter,
     ooo: oooRouter,
     travelSchedules: travelSchedulesRouter,
-    googleSheets: router({}),
+    googleSheets: app_GoogleSheets,
   })
 );

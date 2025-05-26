@@ -7,7 +7,8 @@ import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
-import GoogleSheetsService from "../lib/SheetsService";
+import type { GoogleSheetsCredential } from "../lib/SheetsService";
+import GoogleSheetsServiceWrapper from "../lib/SheetsService.wrapper";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { type, payload } = req.body;
@@ -85,7 +86,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   try {
-    const sheetsService = new GoogleSheetsService(credential);
+    const sheetsService = new GoogleSheetsServiceWrapper(credential as unknown as GoogleSheetsCredential);
 
     await sheetsService.appendBookingRow(metadata.googleSheets.spreadsheetId, formattedData);
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -13,13 +15,16 @@ import { showToast } from "@calcom/ui/components/toast";
 import { useAppCredentials } from "../lib/useAppCredentials";
 import { useSheetsService } from "../lib/useSheetsService";
 
-type AppProps = any;
+// Define a simple interface for spreadsheets to avoid Google API type references
+interface SimpleSpreadsheet {
+  id: string;
+  name: string;
+}
 
 export const EventTypeAppCard = ({ eventType, app }: EventTypeAppCardComponentProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
-  const [spreadsheets, setSpreadsheets] = useState<{ id: string; name: string }[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingSheet, setIsCreatingSheet] = useState(false);
 
   const googleSheetsMetadata = ((eventType as any).metadata || {}) as {
     googleSheets?: {
@@ -36,7 +41,8 @@ export const EventTypeAppCard = ({ eventType, app }: EventTypeAppCardComponentPr
   });
 
   const credentials = useAppCredentials(app.slug);
-  const sheetsService = useSheetsService(credentials);
+  const { isLoading, spreadsheets, createSpreadsheet, setupBookingSheet, refreshSpreadsheets } =
+    useSheetsService(credentials);
 
   const updateEventTypeMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
@@ -47,41 +53,32 @@ export const EventTypeAppCard = ({ eventType, app }: EventTypeAppCardComponentPr
     },
   });
 
-  const loadSpreadsheets = async () => {
-    if (!credentials?.length) return;
-
-    try {
-      setIsLoading(true);
-      const sheets = await sheetsService.listSpreadsheets();
-      setSpreadsheets(sheets);
-    } catch (error) {
-      console.error("Error loading spreadsheets:", error);
-      showToast(t("error_loading_spreadsheets"), "error");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const createNewSpreadsheet = async () => {
     if (!credentials?.length) return;
 
     try {
-      setIsLoading(true);
-      const newSheet = await sheetsService.createSpreadsheet(`Cal.com Bookings - ${eventType.title}`);
-      await sheetsService.setupBookingSheet(newSheet.spreadsheetId || "");
+      setIsCreatingSheet(true);
+      const title = `Cal.com Bookings - ${eventType.title}`;
+      const newSheet = await createSpreadsheet(title);
 
-      setSpreadsheets([
-        ...spreadsheets,
-        { id: newSheet.spreadsheetId || "", name: newSheet.properties?.title || "" },
-      ]);
-      formMethods.setValue("spreadsheetId", newSheet.spreadsheetId || "");
+      if (!newSheet) {
+        throw new Error("Failed to create spreadsheet");
+      }
+
+      const spreadsheetId = newSheet.spreadsheetId || newSheet.id || "";
+      if (!spreadsheetId) {
+        throw new Error("Failed to get spreadsheet ID from created spreadsheet");
+      }
+
+      await setupBookingSheet(spreadsheetId);
+      formMethods.setValue("spreadsheetId", spreadsheetId);
 
       showToast(t("spreadsheet_created_successfully"), "success");
     } catch (error) {
       console.error("Error creating spreadsheet:", error);
       showToast(t("error_creating_spreadsheet"), "error");
     } finally {
-      setIsLoading(false);
+      setIsCreatingSheet(false);
     }
   };
 
@@ -119,7 +116,7 @@ export const EventTypeAppCard = ({ eventType, app }: EventTypeAppCardComponentPr
     );
   }
 
-  if (isLoading) {
+  if (isLoading && !spreadsheets.length) {
     return (
       <SkeletonContainer>
         <SkeletonText className="h-4 w-full" />
@@ -136,7 +133,6 @@ export const EventTypeAppCard = ({ eventType, app }: EventTypeAppCardComponentPr
           <h3 className="text-emphasis font-medium">{t("google_sheets_settings")}</h3>
           <p className="text-default text-sm">{t("google_sheets_event_settings_description")}</p>
         </div>
-        {/* Toast notifications will be handled by the global toast provider */}
 
         <div className="mt-4">
           <div className="mb-5">
@@ -159,6 +155,7 @@ export const EventTypeAppCard = ({ eventType, app }: EventTypeAppCardComponentPr
             color="secondary"
             className="mt-2"
             onClick={createNewSpreadsheet}
+            loading={isCreatingSheet}
             data-testid="create-spreadsheet-button">
             {t("create_new_spreadsheet")}
           </Button>
