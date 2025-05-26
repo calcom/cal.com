@@ -11,7 +11,8 @@ import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
 
-import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
 import { SchedulingType } from "@calcom/prisma/client";
@@ -160,7 +161,7 @@ const buildEventsData = ({
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
-    const eventTypeValidInContext = areTheySiblingEntitites({
+    const eventTypeValidInContext = areTheySiblingEntities({
       entity1: {
         teamId: group.teamId ?? null,
         // group doesn't have userId. The query ensures that it belongs to the user only, if teamId isn't set. So, I am manually setting it to the form userId
@@ -385,6 +386,9 @@ const Route = ({
 
   const { eventOptions } = buildEventsData({ eventTypesByGroup, form, route });
 
+  const orgBranding = useOrgBranding();
+  const isOrganization = !!orgBranding;
+
   // /team/{TEAM_SLUG}/{EVENT_SLUG} -> /team/{TEAM_SLUG}
   const eventTypePrefix =
     eventOptions.length !== 0
@@ -554,7 +558,8 @@ const Route = ({
     : null;
 
   const attributesQueryBuilder =
-    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
+    // team member attributes are only available for organization teams
+    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm && isOrganization ? (
       <div className="mt-4">
         {/* TODO: */}
         {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
@@ -1159,7 +1164,7 @@ const Routes = ({
   const availableRouters =
     allForms?.filtered
       .filter(({ form: router }) => {
-        const routerValidInContext = areTheySiblingEntitites({
+        const routerValidInContext = areTheySiblingEntities({
           entity1: {
             teamId: router.teamId ?? null,
             // group doesn't have userId. The query ensures that it belongs to the user only, if teamId isn't set. So, I am manually setting it to the form userId

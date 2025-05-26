@@ -1,9 +1,11 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
+import { addFilter, openFilter } from "./filter-helpers";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
@@ -72,12 +74,11 @@ test.describe("Bookings", () => {
       const bookingsGetResponse = page.waitForResponse((response) =>
         /\/api\/trpc\/bookings\/get.*/.test(response.url())
       );
-      await page.goto(`/bookings/upcoming`);
+      await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
       await bookingsGetResponse;
 
-      await page.locator('[data-testid="add-filter-button"]').click();
-      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+      await addFilter(page, "dateRange");
+      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeHidden();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeHidden();
@@ -242,9 +243,8 @@ test.describe("Bookings", () => {
       await page.goto(`/bookings/past`);
       await bookingsGetResponse;
 
-      await page.locator('[data-testid="add-filter-button"]').click();
-      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+      await addFilter(page, "dateRange");
+      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible();
@@ -350,18 +350,17 @@ test.describe("Bookings", () => {
     const bookingsGetResponse = page.waitForResponse((response) =>
       /\/api\/trpc\/bookings\/get.*/.test(response.url())
     );
-    await page.goto(`/bookings/upcoming`);
+    await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
     await bookingsGetResponse;
 
-    await page.locator('[data-testid="add-filter-button"]').click();
-    await page.locator('[data-testid="add-filter-item-userId"]').click();
-    await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
+    await addFilter(page, "userId");
+    await openFilter(page, "userId");
 
     const bookingsGetResponse2 = page.waitForResponse(
       (response) => response.url().includes("/api/trpc/bookings/get?batch=1") && response.status() === 200
     );
     await page
-      .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
+      .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
       .click();
     await bookingsGetResponse2;
     await expect(page.locator('text="Cancel event"').nth(0)).toBeVisible();
@@ -457,18 +456,106 @@ test.describe("Bookings", () => {
     const bookingsGetResponse1 = page.waitForResponse((response) =>
       /\/api\/trpc\/bookings\/get.*/.test(response.url())
     );
-    await page.goto("/bookings/upcoming");
+    await page.goto("/bookings/upcoming", { waitUntil: "domcontentloaded" });
     await bookingsGetResponse1;
 
-    await page.locator('[data-testid="add-filter-button"]').click();
-    await page.locator('[data-testid="add-filter-item-userId"]').click();
-    await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
+    await addFilter(page, "userId");
+    await openFilter(page, "userId");
     await page
-      .locator(`[data-testid="multi-select-options-userId"] [role="option"]:has-text("${anotherUser}")`)
+      .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${anotherUser}")`)
       .click();
     await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
     await expect(page.locator('[data-testid="booking-item"]')).toHaveCount(0);
+  });
+
+  test.describe("Filter Dropdown Item Search", () => {
+    const filterItemsConfig = [
+      { key: "eventTypeId", name: "Event Type", testId: "add-filter-item-eventTypeId" },
+      { key: "teamId", name: "Team", testId: "add-filter-item-teamId" },
+      { key: "userId", name: "Member", testId: "add-filter-item-userId" },
+      { key: "attendeeName", name: "Attendees Name", testId: "add-filter-item-attendeeName" },
+      { key: "attendeeEmail", name: "Attendee Email", testId: "add-filter-item-attendeeEmail" },
+      { key: "dateRange", name: "Date Range", testId: "add-filter-item-dateRange" },
+    ];
+    const searchInputSelector = "[cmdk-input]";
+
+    const getFilterItemLocator = (page: Page, testId: string) => page.locator(`[data-testid="${testId}"]`);
+
+    test.beforeEach(async ({ page, users }) => {
+      const user = await users.create();
+      await user.apiLogin();
+      const bookingsGetResponse = page.waitForResponse((response) =>
+        /\/api\/trpc\/bookings\/get.*/.test(response.url())
+      );
+      await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
+      await bookingsGetResponse;
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await expect(page.locator(searchInputSelector)).toBeVisible();
+    });
+
+    test("should show all filter items initially and after clearing search", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+
+      // Initial check: all defined filter items should be visible
+      for (const item of filterItemsConfig) {
+        await expect(
+          getFilterItemLocator(page, item.testId),
+          `Item ${item.name} should be visible initially`
+        ).toBeVisible();
+      }
+
+      // Type something and then clear the search
+      await searchInput.fill("Some text");
+      await searchInput.clear();
+
+      // After clearing: all defined filter items should be visible again
+      for (const item of filterItemsConfig) {
+        await expect(
+          getFilterItemLocator(page, item.testId),
+          `Item ${item.name} should be visible after clearing search`
+        ).toBeVisible();
+      }
+    });
+
+    test("search should be case-insensitive", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+
+      // Search for "member" (lowercase)
+      await searchInput.fill("member");
+      await expect(getFilterItemLocator(page, "add-filter-item-userId")).toBeVisible();
+      await expect(getFilterItemLocator(page, "add-filter-item-eventTypeId")).toBeHidden();
+      await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
+    });
+
+    test("should individually find each filter item by its full name", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+
+      for (const targetItem of filterItemsConfig) {
+        await searchInput.fill(targetItem.name);
+
+        // Check that the target item is visible
+        await expect(
+          getFilterItemLocator(page, targetItem.testId),
+          `Searching for "${targetItem.name}", item "${targetItem.name}" should be visible`
+        ).toBeVisible();
+
+        await searchInput.clear();
+      }
+    });
+
+    test("should show no items for a non-matching search term", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+      const nonExistentTerm = "NonExistentFilterXYZ123";
+      await searchInput.fill(nonExistentTerm);
+
+      for (const item of filterItemsConfig) {
+        await expect(
+          getFilterItemLocator(page, item.testId),
+          `Item ${item.name} should be hidden for non-matching term '${nonExistentTerm}'`
+        ).toBeHidden();
+      }
+    });
   });
 });
 
