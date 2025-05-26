@@ -203,7 +203,6 @@ export const BookerPlatformWrapper = (
     event.data.length = props.duration;
   }
 
-  // this is what we need for calendar view
   const bookerLayout = useBookerLayout(event.data);
   useInitializeBookerStore({
     ...props,
