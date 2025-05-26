@@ -75,6 +75,7 @@ interface DataTableProviderProps {
   ctaContainerClassName?: string;
   defaultPageSize?: number;
   segments?: FilterSegmentOutput[];
+  preferredSegmentId?: number | null;
 }
 
 export function DataTableProvider({
@@ -84,6 +85,7 @@ export function DataTableProvider({
   defaultPageSize = DEFAULT_PAGE_SIZE,
   ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
   segments: providedSegments,
+  preferredSegmentId,
 }: DataTableProviderProps) {
   const filterToOpen = useRef<string | undefined>(undefined);
   const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
@@ -185,6 +187,7 @@ export function DataTableProvider({
       setPageIndex,
       setSearchTerm,
       segments: providedSegments,
+      preferredSegmentId,
     }
   );
 

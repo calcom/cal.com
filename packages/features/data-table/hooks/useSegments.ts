@@ -27,6 +27,7 @@ export const useSegments: UseSegments = ({
   setPageIndex,
   setSearchTerm,
   segments: providedSegments,
+  preferredSegmentId,
 }) => {
   const { data: rawSegments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery(
     {
@@ -93,10 +94,13 @@ export const useSegments: UseSegments = ({
   useEffect(() => {
     // this hook doesn't include segmentId in the dependency array
     // because we want to only run this once, when the component mounts
-    if (segmentId === -1 && rawSegments?.preferredSegmentId) {
-      setSegmentId(rawSegments.preferredSegmentId);
+    if (segmentId === -1) {
+      const preferredId = preferredSegmentId ?? rawSegments?.preferredSegmentId;
+      if (preferredId) {
+        setSegmentId(preferredId);
+      }
     }
-  }, [rawSegments, segmentId, setSegmentId]);
+  }, [rawSegments, segmentId, setSegmentId, preferredSegmentId]);
 
   useEffect(() => {
     if (selectedSegment) {
@@ -172,5 +176,3 @@ export const useSegments: UseSegments = ({
     isSegmentEnabled: true,
   };
 };
-
-// localStorage functions removed - now using backend API

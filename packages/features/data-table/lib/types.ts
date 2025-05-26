@@ -294,6 +294,7 @@ export type UseSegmentsProps = {
   setPageIndex: (pageIndex: number) => void;
   setSearchTerm: (searchTerm: string | null) => void;
   segments?: FilterSegmentOutput[];
+  preferredSegmentId?: number | null;
 };
 
 export type UseSegmentsReturn = {
