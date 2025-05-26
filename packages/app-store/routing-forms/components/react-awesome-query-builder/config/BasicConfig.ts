@@ -245,11 +245,11 @@ const operators: Operators = {
     jsonLogic: "none",
   },
   is_checked: {
-    label: "Is checked",
+    label: "Is Checked",
     labelForFormat: "IS CHECKED",
     cardinality: 0,
     reversedOp: "is_not_empty",
-    jsonLogic: "!",
+    jsonLogic: "!!",
   },
   is_not_checked: {
     isNotOp: true,
@@ -257,7 +257,7 @@ const operators: Operators = {
     labelForFormat: "IS NOT CHECKED",
     cardinality: 0,
     reversedOp: "is_empty",
-    jsonLogic: "!!",
+    jsonLogic: "!",
   },
 };
 

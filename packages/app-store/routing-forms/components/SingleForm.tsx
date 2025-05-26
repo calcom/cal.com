@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { v4 as uuidv4 } from "uuid";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -140,7 +139,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
       fields: data?.fields?.map((field) => {
         const options = field.options?.map((option) => ({
           ...option,
-          id: uuidv4(),
+          id: option.value || option.label,
         }));
 
         return { ...field, ...(!!options && { options }) };
