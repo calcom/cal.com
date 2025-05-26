@@ -165,8 +165,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     sessionUserId,
   });
 
-  console.log("isOrganizer", isOrganizer);
-
   // set meetingPassword for guests
   if (!isOrganizer) {
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken({
