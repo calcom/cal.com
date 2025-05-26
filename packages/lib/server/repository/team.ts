@@ -302,27 +302,6 @@ export class TeamRepository {
     await Promise.allSettled(teamBillingPromises);
   }
 
-  static async findTeamWithAdmins(teamId: number) {
-    return await prisma.team.findUnique({
-      where: { id: teamId },
-      select: {
-        name: true,
-        members: {
-          where: { role: { in: ["ADMIN", "OWNER"] }, accepted: true },
-          select: {
-            user: {
-              select: {
-                name: true,
-                email: true,
-                locale: true,
-              },
-            },
-          },
-        },
-      },
-    });
-  }
-
   static async findTeamWithMembers(teamId: number) {
     return await prisma.team.findUnique({
       where: { id: teamId },

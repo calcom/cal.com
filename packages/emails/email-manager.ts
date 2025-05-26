@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import { default as cloneDeep } from "lodash/cloneDeep";
 import type { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
@@ -49,6 +50,7 @@ import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-v
 import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
 import CreditBalanceLimitReachedEmail from "./templates/credit-balance-limit-reached-email";
 import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
+import DelegationCredentialDisabledEmail from "./templates/delegation-credential-disabled-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
@@ -187,18 +189,28 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
   teamMembersAndAttendees: Person[],
   eventTypeMetadata?: EventTypeMetadata
 ) => {
-  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
-
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
 
   for (const person of teamMembersAndAttendees) {
-    emailsAndSMSToSend.push(
-      sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember: person }))
-    );
-    if (person.phoneNumber) {
-      emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
+    const isAttendee = calendarEvent.attendees.some((attendee) => attendee.email === person.email);
+    const isTeamMember = !!calendarEvent.team?.members.some((member) => member.email === person.email);
+
+    if (isAttendee && !isTeamMember) {
+      if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, person)));
+        if (person.phoneNumber) {
+          emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
+        }
+      }
+    } else if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+      emailsAndSMSToSend.push(
+        sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember: person }))
+      );
+      if (person.phoneNumber) {
+        emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
+      }
     }
   }
 
@@ -450,7 +462,7 @@ export const sendCancelledEmailsAndSMS = async (
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
   const calEventLength = calendarEvent.length;
-  const eventDuration = calEventLength as number;
+  const eventDuration = dayjs(calEvent.endTime).diff(calEvent.startTime, "minutes");
 
   if (typeof calEventLength !== "number") {
     logger.error(
@@ -762,47 +774,97 @@ export const sendBookingRedirectNotification = async (bookingRedirect: IBookingR
 };
 
 export const sendCreditBalanceLowWarningEmails = async (input: {
-  team: {
-    name: string;
+  team?: {
+    name: string | null;
     id: number;
     adminAndOwners: {
-      name: string;
+      id: number;
+      name: string | null;
       email: string;
       t: TFunction;
     }[];
   };
+  user?: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  };
   balance: number;
 }) => {
-  const { team, balance } = input;
-  if (!team.adminAndOwners.length) return;
-  const emailsToSend: Promise<unknown>[] = [];
+  const { team, balance, user } = input;
+  if ((!team || !team.adminAndOwners.length) && !user) return;
 
-  for (const admin of team.adminAndOwners) {
-    emailsToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail(admin, balance, team)));
+  if (team) {
+    const emailsToSend: Promise<unknown>[] = [];
+
+    for (const admin of team.adminAndOwners) {
+      emailsToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail({ user: admin, balance, team })));
+    }
+
+    await Promise.all(emailsToSend);
   }
 
-  await Promise.all(emailsToSend);
+  if (user) {
+    await sendEmail(() => new CreditBalanceLowWarningEmail({ user, balance }));
+  }
 };
 
 export const sendCreditBalanceLimitReachedEmails = async ({
   team,
+  user,
 }: {
-  team: {
+  team?: {
     name: string;
     id: number;
     adminAndOwners: {
-      name: string;
+      id: number;
+      name: string | null;
       email: string;
       t: TFunction;
     }[];
   };
+  user?: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  };
 }) => {
-  if (!team.adminAndOwners.length) return;
-  const emailsToSend: Promise<unknown>[] = [];
+  if ((!team || !team.adminAndOwners.length) && !user) return;
 
-  for (const admin of team.adminAndOwners) {
-    emailsToSend.push(sendEmail(() => new CreditBalanceLimitReachedEmail(admin, team)));
+  if (team) {
+    const emailsToSend: Promise<unknown>[] = [];
+
+    for (const admin of team.adminAndOwners) {
+      emailsToSend.push(sendEmail(() => new CreditBalanceLimitReachedEmail({ user: admin, team })));
+    }
+    await Promise.all(emailsToSend);
   }
 
-  await Promise.all(emailsToSend);
+  if (user) {
+    await sendEmail(() => new CreditBalanceLimitReachedEmail({ user }));
+  }
+};
+
+export const sendDelegationCredentialDisabledEmail = async ({
+  recipientEmail,
+  recipientName,
+  calendarAppName,
+  conferencingAppName,
+}: {
+  recipientEmail: string;
+  recipientName?: string;
+  calendarAppName: string;
+  conferencingAppName: string;
+}) => {
+  await sendEmail(
+    () =>
+      new DelegationCredentialDisabledEmail({
+        recipientEmail,
+        recipientName,
+        calendarAppName,
+        conferencingAppName,
+      })
+  );
 };
