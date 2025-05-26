@@ -19,16 +19,18 @@ export const useSheetsService = (credentials: any[]): SheetsServiceHook => {
   const [spreadsheets, setSpreadsheets] = useState<SpreadsheetFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Get the tRPC hooks
+  // Get the tRPC hooks - use type assertion to avoid type leakage
   const utils = trpc.useContext();
 
-  const listSpreadsheetsQuery = trpc.viewer.googleSheets.listSpreadsheets.useQuery(
+  const googleSheetsRouter = trpc.viewer.googleSheets as any;
+
+  const listSpreadsheetsQuery = googleSheetsRouter.listSpreadsheets.useQuery(
     { credentialId: credentialId || 0 },
     { enabled: !!credentialId }
   );
 
-  const createSpreadsheetMutation = trpc.viewer.googleSheets.createSpreadsheet.useMutation({
-    onSuccess: (data) => {
+  const createSpreadsheetMutation = googleSheetsRouter.createSpreadsheet.useMutation({
+    onSuccess: (data: { spreadsheetId?: string; properties?: { title?: string } }) => {
       if (data && typeof data === "object" && "spreadsheetId" in data) {
         const spreadsheetId =
           typeof data.spreadsheetId === "string" ? data.spreadsheetId : String(data.spreadsheetId || "");
@@ -57,7 +59,7 @@ export const useSheetsService = (credentials: any[]): SheetsServiceHook => {
     },
   });
 
-  const setupBookingSheetMutation = trpc.viewer.googleSheets.setupBookingSheet.useMutation();
+  const setupBookingSheetMutation = googleSheetsRouter.setupBookingSheet.useMutation();
 
   // Set credential ID when credentials change
   useEffect(() => {

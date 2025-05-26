@@ -44,11 +44,17 @@ export const EventTypeAppCard = ({ eventType, app }: EventTypeAppCardComponentPr
   const { isLoading, spreadsheets, createSpreadsheet, setupBookingSheet, refreshSpreadsheets } =
     useSheetsService(credentials);
 
-  const updateEventTypeMutation = trpc.viewer.eventTypes.update.useMutation({
+  // Convert spreadsheets to SimpleSpreadsheet[] to avoid Google API type references
+  const typedSpreadsheets: SimpleSpreadsheet[] = spreadsheets.map((sheet) => ({
+    id: String(sheet.id || ""),
+    name: String(sheet.name || ""),
+  }));
+
+  const updateEventTypeMutation = (trpc.viewer as any).eventTypes.update.useMutation({
     onSuccess: async () => {
       showToast(t("event_type_updated_successfully"), "success");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       showToast(error.message || t("error_updating_event_type"), "error");
     },
   });
@@ -144,7 +150,7 @@ export const EventTypeAppCard = ({ eventType, app }: EventTypeAppCardComponentPr
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm"
               {...formMethods.register("spreadsheetId")}>
               <option value="">{t("select_option")}</option>
-              {spreadsheets.map((sheet) => (
+              {typedSpreadsheets.map((sheet) => (
                 <option key={sheet.id} value={sheet.id}>
                   {sheet.name}
                 </option>
