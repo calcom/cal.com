@@ -45,7 +45,7 @@ export class OrganizationsBookingsController {
   ): Promise<GetBookingsOutput_2024_08_13> {
     const { userIds, ...restParams } = queryParams;
 
-    const bookings = await this.bookingsService.getBookings(
+    const { bookings, pagination } = await this.bookingsService.getBookings(
       { ...restParams },
       { email: user.email, id: user.id, orgId },
       userIds
@@ -54,6 +54,7 @@ export class OrganizationsBookingsController {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 }

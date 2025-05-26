@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { calendar_v3 } from "@googleapis/calendar";
+import type { calendar_v3 } from "@googleapis/calendar";
 import type { Prisma } from "@prisma/client";
-import { OAuth2Client, JWT } from "googleapis-common";
 import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
@@ -12,18 +11,7 @@ import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import {
-  CalendarAppDelegationCredentialClientIdNotAuthorizedError,
-  CalendarAppDelegationCredentialInvalidGrantError,
-  CalendarAppDelegationCredentialError,
-} from "@calcom/lib/CalendarAppError";
 import { uniqueBy } from "@calcom/lib/array";
-import {
-  APP_CREDENTIAL_SHARING_ENABLED,
-  CREDENTIAL_SYNC_ENDPOINT,
-  CREDENTIAL_SYNC_SECRET,
-  CREDENTIAL_SYNC_SECRET_HEADER_NAME,
-} from "@calcom/lib/constants";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -39,14 +27,8 @@ import type {
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
-import { invalidateCredential } from "../../_utils/invalidateCredential";
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
-import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
-import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
-import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
-import { metadata } from "../_metadata";
-import { getGoogleAppKeys } from "./getGoogleAppKeys";
+import { CalendarAuth } from "./CalendarAuth";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
@@ -73,197 +55,25 @@ type GoogleChannelProps = {
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
-  private auth: ReturnType<typeof this.initGoogleAuth>;
+  private auth: CalendarAuth;
   private log: typeof logger;
   private credential: CredentialForCalendarServiceWithEmail;
-  private myGoogleAuth!: MyGoogleAuth;
-  private oAuthManagerInstance!: OAuthManager;
+
   constructor(credential: CredentialForCalendarServiceWithEmail) {
     this.integrationName = "google_calendar";
     this.credential = credential;
-    this.auth = this.initGoogleAuth(credential);
+    this.auth = new CalendarAuth(credential);
     this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private async getMyGoogleAuthSingleton() {
-    if (this.myGoogleAuth) {
-      return this.myGoogleAuth;
-    }
-    const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
-    const googleCredentials = OAuth2UniversalSchema.parse(this.credential.key);
-    this.myGoogleAuth = new MyGoogleAuth(client_id, client_secret, redirect_uris[0]);
-    this.myGoogleAuth.setCredentials(googleCredentials);
-    return this.myGoogleAuth;
+  public getCredentialId() {
+    return this.credential.id;
   }
 
-  private initGoogleAuth = (credential: CredentialForCalendarServiceWithEmail) => {
-    const currentTokenObject = getTokenObjectFromCredential(credential);
-    const auth = new OAuthManager({
-      // Keep it false because we are not using auth.request everywhere. That would be done later as it involves many google calendar sdk functionc calls and needs to be tested well.
-      autoCheckTokenExpiryOnRequest: false,
-      credentialSyncVariables: {
-        APP_CREDENTIAL_SHARING_ENABLED: APP_CREDENTIAL_SHARING_ENABLED,
-        CREDENTIAL_SYNC_ENDPOINT: CREDENTIAL_SYNC_ENDPOINT,
-        CREDENTIAL_SYNC_SECRET: CREDENTIAL_SYNC_SECRET,
-        CREDENTIAL_SYNC_SECRET_HEADER_NAME: CREDENTIAL_SYNC_SECRET_HEADER_NAME,
-      },
-      resourceOwner: {
-        type: "user",
-        id: credential.userId,
-      },
-      appSlug: metadata.slug,
-      currentTokenObject,
-      fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
-        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
-        const fetchTokens = await myGoogleAuth.refreshToken(refreshToken);
-        // Create Response from fetchToken.res
-        const response = new Response(JSON.stringify(fetchTokens.res?.data ?? null), {
-          status: fetchTokens.res?.status,
-          statusText: fetchTokens.res?.statusText,
-        });
-        return response;
-      },
-      isTokenExpired: async () => {
-        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
-        return myGoogleAuth.isTokenExpiring();
-      },
-      isTokenObjectUnusable: async function (response) {
-        // TODO: Confirm that if this logic should go to isAccessTokenUnusable
-        if (!response.ok || (response.status < 200 && response.status >= 300)) {
-          const responseBody = await response.json();
-
-          if (responseBody.error === "invalid_grant") {
-            return {
-              reason: "invalid_grant",
-            };
-          }
-        }
-        return null;
-      },
-      isAccessTokenUnusable: async () => {
-        // As long as refresh_token is valid, access_token is regenerated and fixed automatically by Google Calendar when a problem with it is detected
-        // So, a situation where access_token is invalid but refresh_token is valid should not happen
-        return null;
-      },
-      invalidateTokenObject: () => invalidateCredential(this.credential.id),
-      expireAccessToken: async () => {
-        await markTokenAsExpired(this.credential);
-      },
-      updateTokenObject: async (token) => {
-        this.myGoogleAuth.setCredentials(token);
-
-        const { key } = await prisma.credential.update({
-          where: {
-            id: credential.id,
-          },
-          data: {
-            key: token,
-          },
-        });
-
-        // Update cached credential as well
-        this.credential.key = key;
-      },
-    });
-    this.oAuthManagerInstance = auth;
-    return {
-      getMyGoogleAuthWithRefreshedToken: async () => {
-        // It would automatically update myGoogleAuth with correct token
-        const { token } = await auth.getTokenObjectOrFetch();
-        if (!token) {
-          throw new Error("Invalid grant for Google Calendar app");
-        }
-
-        const myGoogleAuth = await this.getMyGoogleAuthSingleton();
-        return myGoogleAuth;
-      },
-    };
-  };
-
-  private getAuthedCalendarFromDelegationCredential = async ({
-    delegationCredential,
-    emailToImpersonate,
-  }: {
-    emailToImpersonate: string;
-    delegationCredential: {
-      serviceAccountKey: {
-        client_email: string;
-        client_id: string;
-        private_key: string;
-      };
-    };
-  }) => {
-    const serviceAccountClientEmail = delegationCredential.serviceAccountKey.client_email;
-    const serviceAccountClientId = delegationCredential.serviceAccountKey.client_id;
-    const serviceAccountPrivateKey = delegationCredential.serviceAccountKey.private_key;
-
-    const authClient = new JWT({
-      email: serviceAccountClientEmail,
-      key: serviceAccountPrivateKey,
-      scopes: ["https://www.googleapis.com/auth/calendar"],
-      subject: emailToImpersonate,
-    });
-
-    try {
-      await authClient.authorize();
-    } catch (error) {
-      this.log.error("DelegationCredential: Error authorizing delegation credential", JSON.stringify(error));
-
-      if ((error as any).response?.data?.error === "unauthorized_client") {
-        throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
-          "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
-        );
-      }
-
-      if ((error as any).response?.data?.error === "invalid_grant") {
-        throw new CalendarAppDelegationCredentialInvalidGrantError(
-          "User might not exist in Google Workspace"
-        );
-      }
-
-      // Catch all error
-      throw new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
-    }
-
-    this.log.debug(
-      "Using delegation credential with service account email",
-      safeStringify({
-        serviceAccountClientEmail,
-        serviceAccountClientId,
-        emailToImpersonate,
-      })
-    );
-
-    return new calendar_v3.Calendar({
-      auth: authClient,
-    });
-  };
-
-  public authedCalendar = async () => {
-    let delegationCredentialAuthedCalendar;
-
-    if (this.credential.delegatedTo) {
-      if (!this.credential.user?.email) {
-        this.log.error("DelegationCredential: No email to impersonate found for delegation credential");
-      } else {
-        const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
-        delegationCredentialAuthedCalendar = await this.getAuthedCalendarFromDelegationCredential({
-          delegationCredential: this.credential.delegatedTo,
-          emailToImpersonate: this.credential.user.email.replace(oauthClientIdAliasRegex, ""),
-        });
-      }
-    }
-
-    if (delegationCredentialAuthedCalendar) {
-      return delegationCredentialAuthedCalendar;
-    }
-
-    const myGoogleAuth = await this.auth.getMyGoogleAuthWithRefreshedToken();
-    const calendar = new calendar_v3.Calendar({
-      auth: myGoogleAuth,
-    });
-    return calendar;
-  };
+  public async authedCalendar(): Promise<calendar_v3.Calendar> {
+    this.log.debug("Getting authed calendar");
+    return this.auth.getClient();
+  }
 
   private getAttendees = ({
     event,
@@ -337,7 +147,7 @@ export default class GoogleCalendarService implements Calendar {
 
   private async startWatchingCalendarsInGoogle({ calendarId }: { calendarId: string }) {
     const calendar = await this.authedCalendar();
-    logger.debug(`Subscribing to calendar ${calendarId}`);
+    logger.debug(`Subscribing to calendar ${calendarId}`, safeStringify({ GOOGLE_WEBHOOK_URL }));
 
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
@@ -650,8 +460,9 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async fetchAvailability(requestBody: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
+    log.debug("fetchAvailability", safeStringify({ requestBody }));
     const calendar = await this.authedCalendar();
-    const apiResponse = await this.oAuthManagerInstance.request(
+    const apiResponse = await this.auth.authManager.request(
       async () => new AxiosLikeResponseToFetchResponse(await calendar.freebusy.query({ requestBody }))
     );
     return apiResponse.json;
@@ -663,15 +474,36 @@ export default class GoogleCalendarService implements Calendar {
   ): Promise<calendar_v3.Schema$FreeBusyResponse> {
     if (shouldServeCache === false) return await this.fetchAvailability(args);
     const calendarCache = await CalendarCache.init(null);
-    const cached = await calendarCache.getCachedAvailability(this.credential.id, {
-      // Expand the start date to the start of the month to increase cache hits
-      timeMin: getTimeMin(args.timeMin),
-      // Expand the end date to the end of the month to increase cache hits
-      timeMax: getTimeMax(args.timeMax),
-      items: args.items,
+    const cached = await calendarCache.getCachedAvailability({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+      args: {
+        // Expand the start date to the start of the month to increase cache hits
+        timeMin: getTimeMin(args.timeMin),
+        // Expand the end date to the end of the month to increase cache hits
+        timeMax: getTimeMax(args.timeMax),
+        items: args.items,
+      },
     });
-    if (cached) return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+    if (cached) {
+      log.debug("[Cache Hit] Returning cached freebusy result", safeStringify({ cached, args }));
+      return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+    }
+    log.debug("[Cache Miss] Fetching freebusy result", safeStringify({ args }));
     return await this.fetchAvailability(args);
+  }
+
+  getValidCalendars<T extends { id?: string | null }>(cals: T[]) {
+    return cals.filter((cal): cal is T & { id: string } => !!cal.id);
+  }
+
+  filterPrimaryCalendar(cals: calendar_v3.Schema$CalendarListEntry[]) {
+    const validCals = this.getValidCalendars(cals);
+    const primaryCal = validCals.find((cal) => !!cal.primary);
+    if (primaryCal) {
+      return primaryCal;
+    }
+    return validCals[0];
   }
 
   async getCacheOrFetchAvailability(
@@ -698,7 +530,11 @@ export default class GoogleCalendarService implements Calendar {
   async getAvailabilityWithTimeZones(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    /**
+     * If true, we will fallback to the primary calendar if no valid selected calendars are found
+     */
+    fallbackToPrimary?: boolean
   ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
@@ -722,9 +558,16 @@ export default class GoogleCalendarService implements Calendar {
           };
         });
       }
+      if (!fallbackToPrimary) return [];
 
-      // we ever reach that code, we already check before if selectedCalendarIds is empty
-      return [];
+      const primaryCalendar = this.filterPrimaryCalendar(cals);
+      if (!primaryCalendar) return [];
+      return [
+        {
+          id: primaryCalendar.id,
+          timeZone: primaryCalendar.timeZone || "",
+        },
+      ];
     };
 
     try {
@@ -765,7 +608,11 @@ export default class GoogleCalendarService implements Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean
+    shouldServeCache?: boolean,
+    /**
+     * If true, we will fallback to the primary calendar if no valid selected calendars are found
+     */
+    fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]> {
     this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));
     const calendar = await this.authedCalendar();
@@ -778,9 +625,13 @@ export default class GoogleCalendarService implements Calendar {
     }
     const getCalIds = async () => {
       if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
-      const cals = await this.getAllCalendars(calendar, ["id"]);
+      const cals = await this.getAllCalendars(calendar, ["id", "primary"]);
       if (!cals.length) return [];
-      return cals.reduce((c, cal) => (cal.id ? [...c, cal.id] : c), [] as string[]);
+      if (!fallbackToPrimary) return this.getValidCalendars(cals).map((cal) => cal.id);
+
+      const primaryCalendar = this.filterPrimaryCalendar(cals);
+      if (!primaryCalendar) return [];
+      return [primaryCalendar.id];
     };
 
     try {
@@ -838,11 +689,20 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
+  /**
+   * Better alternative to `getPrimaryCalendar` that doesn't require any argument
+   */
+  async fetchPrimaryCalendar() {
+    const calendar = await this.authedCalendar();
+    const primaryCalendar = await this.getPrimaryCalendar(calendar);
+    return primaryCalendar;
+  }
+
   async listCalendars(): Promise<IntegrationCalendar[]> {
     this.log.debug("Listing calendars");
     const calendar = await this.authedCalendar();
     try {
-      const { json: cals } = await this.oAuthManagerInstance.request(
+      const { json: cals } = await this.auth.authManager.request(
         async () =>
           new AxiosLikeResponseToFetchResponse({
             status: 200,
@@ -873,12 +733,14 @@ export default class GoogleCalendarService implements Calendar {
 
   // It would error if the delegation credential is not set up correctly
   async testDelegationCredentialSetup() {
+    log.debug("Testing delegation credential setup");
     const calendar = await this.authedCalendar();
     const cals = await calendar.calendarList.list({ fields: "items(id)" });
     return !!cals.data.items;
   }
 
   /**
+   * calendarId is the externalId for the SelectedCalendar
    * It doesn't check if the subscription has expired or not.
    * It just creates a new subscription.
    */
@@ -889,6 +751,7 @@ export default class GoogleCalendarService implements Calendar {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
   }) {
+    log.debug("watchCalendar", safeStringify({ calendarId, eventTypeIds }));
     if (!process.env.GOOGLE_WEBHOOK_TOKEN) {
       log.warn("GOOGLE_WEBHOOK_TOKEN is not set, skipping watching calendar");
       return;
@@ -918,15 +781,13 @@ export default class GoogleCalendarService implements Calendar {
           expiration: otherCalendarsWithSameSubscription[0].googleChannelExpiration,
         }
       : {};
-    let error: string | undefined;
 
     if (!otherCalendarsWithSameSubscription.length) {
       try {
         googleChannelProps = await this.startWatchingCalendarsInGoogle({ calendarId });
       } catch (error) {
-        this.log.error(`Failed to watch calendar ${calendarId}`, error);
-        // We set error to prevent attempting to watch on next cron run
-        error = error instanceof Error ? error.message : "Unknown error";
+        this.log.error(`Failed to watch calendar ${calendarId}`, safeStringify(error));
+        throw error;
       }
     } else {
       logger.info(
@@ -944,7 +805,6 @@ export default class GoogleCalendarService implements Calendar {
         googleChannelResourceId: googleChannelProps.resourceId,
         googleChannelResourceUri: googleChannelProps.resourceUri,
         googleChannelExpiration: googleChannelProps.expiration,
-        error,
       },
       eventTypeIds
     );
@@ -971,7 +831,7 @@ export default class GoogleCalendarService implements Calendar {
     });
 
     const calendarWithSameExternalId = calendarsWithSameCredentialId.filter(
-      (sc) => sc.externalId === calendarId
+      (sc) => sc.externalId === calendarId && sc.integration === this.integrationName
     );
 
     const calendarsWithSameExternalIdThatAreBeingWatched = calendarWithSameExternalId.filter(
@@ -1030,18 +890,27 @@ export default class GoogleCalendarService implements Calendar {
 
     // Populate the cache back for the remaining calendars, if any
     const remainingCalendars =
-      calendarsWithSameCredentialId.filter((sc) => sc.externalId !== calendarId) || [];
+      calendarsWithSameCredentialId.filter(
+        (sc) => sc.externalId !== calendarId && sc.integration === this.integrationName
+      ) || [];
     if (remainingCalendars.length > 0) {
       await this.fetchAvailabilityAndSetCache(remainingCalendars);
     }
   }
 
   async setAvailabilityInCache(args: FreeBusyArgs, data: calendar_v3.Schema$FreeBusyResponse): Promise<void> {
+    log.debug("setAvailabilityInCache", safeStringify({ args, data }));
     const calendarCache = await CalendarCache.init(null);
-    await calendarCache.upsertCachedAvailability(this.credential.id, args, JSON.parse(JSON.stringify(data)));
+    await calendarCache.upsertCachedAvailability({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+      args,
+      value: JSON.parse(JSON.stringify(data)),
+    });
   }
 
   async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
+    this.log.debug("fetchAvailabilityAndSetCache", safeStringify({ selectedCalendars }));
     const selectedCalendarsPerEventType = new Map<
       SelectedCalendarEventTypeIds[number],
       IntegrationCalendar[]
@@ -1104,6 +973,10 @@ export default class GoogleCalendarService implements Calendar {
     data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">,
     eventTypeIds: SelectedCalendarEventTypeIds
   ) {
+    log.debug(
+      "upsertSelectedCalendarsForEventTypeIds",
+      safeStringify({ data, eventTypeIds, credential: this.credential })
+    );
     if (!this.credential.userId) {
       logger.error("upsertSelectedCalendarsForEventTypeIds failed. userId is missing.");
       return;
@@ -1114,6 +987,7 @@ export default class GoogleCalendarService implements Calendar {
         ...data,
         integration: this.integrationName,
         credentialId: this.credential.id,
+        delegationCredentialId: this.credential.delegatedToId ?? null,
         userId: this.credential.userId,
       },
       eventTypeIds,
@@ -1181,19 +1055,5 @@ export default class GoogleCalendarService implements Calendar {
       logger.error("Error in `getPrimaryCalendar`", { error });
       throw error;
     }
-  }
-}
-
-class MyGoogleAuth extends OAuth2Client {
-  constructor(client_id: string, client_secret: string, redirect_uri: string) {
-    super(client_id, client_secret, redirect_uri);
-  }
-
-  isTokenExpiring() {
-    return super.isTokenExpiring();
-  }
-
-  async refreshToken(token: string | null | undefined) {
-    return super.refreshToken(token);
   }
 }

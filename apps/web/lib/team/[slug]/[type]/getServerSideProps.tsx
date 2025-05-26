@@ -6,6 +6,7 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -113,8 +114,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
+  const featureRepo = new FeaturesRepository();
+  const useApiV2 = await featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots");
+
   return {
     props: {
+      useApiV2,
       eventData: {
         eventTypeId,
         entity: {
@@ -136,6 +141,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         title: eventData.title,
         users: eventHostsUserData,
         hidden: eventData.hidden,
+        interfaceLanguage: eventData.interfaceLanguage,
       },
       booking,
       user: teamSlug,
@@ -201,6 +207,7 @@ const getTeamWithEventsData = async (
           hidden: true,
           disableCancelling: true,
           disableRescheduling: true,
+          interfaceLanguage: true,
           hosts: {
             take: 3,
             select: {
