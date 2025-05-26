@@ -89,4 +89,4 @@ export const viewerRouter = mergeRouters(
     travelSchedules: travelSchedulesRouter,
     googleSheets: app_GoogleSheets,
   })
-);
+) as any; // Type assertion to avoid Google API type leakage

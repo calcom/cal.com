@@ -31,7 +31,7 @@ export const useSheetsService = (credentials: any[]): SheetsServiceHook => {
     { enabled: !!credentialId }
   );
 
-  const createSpreadsheetMutation = googleSheetsRouter.createSpreadsheet.useMutation({
+  const createSpreadsheetMutation = (googleSheetsRouter as any).createSpreadsheet.useMutation({
     onSuccess: (data: { spreadsheetId?: string; properties?: { title?: string } }) => {
       if (data && typeof data === "object" && "spreadsheetId" in data) {
         const spreadsheetId =
@@ -61,7 +61,7 @@ export const useSheetsService = (credentials: any[]): SheetsServiceHook => {
     },
   });
 
-  const setupBookingSheetMutation = googleSheetsRouter.setupBookingSheet.useMutation();
+  const setupBookingSheetMutation = (googleSheetsRouter as any).setupBookingSheet.useMutation();
 
   // Set credential ID when credentials change
   useEffect(() => {

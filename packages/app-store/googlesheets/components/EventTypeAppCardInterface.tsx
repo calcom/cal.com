@@ -45,7 +45,7 @@ export const EventTypeAppCard = ({ eventType, app }: EventTypeAppCardComponentPr
     useSheetsService(credentials);
 
   // Convert spreadsheets to SimpleSpreadsheet[] to avoid Google API type references
-  const typedSpreadsheets: SimpleSpreadsheet[] = spreadsheets.map((sheet) => ({
+  const typedSpreadsheets: SimpleSpreadsheet[] = spreadsheets.map((sheet: any) => ({
     id: String(sheet.id || ""),
     name: String(sheet.name || ""),
   }));
