@@ -49,13 +49,13 @@ const ScheduleTimezoneUpdateDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        title={t("update_default_schedule_timezone_question")}
+        title={t("update_default_schedule")}
         description={t("update_default_schedule_timezone_description")}
         type="creation">
         <DialogFooter showDivider>
           <DialogClose color="secondary">{t("dont_update")}</DialogClose>
           <Button color="primary" onClick={handleUpdateSchedule} loading={isUpdating}>
-            {t("update_default_schedule")}
+            {t("update")}
           </Button>
         </DialogFooter>
       </DialogContent>
