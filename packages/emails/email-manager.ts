@@ -195,8 +195,9 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
 
   for (const person of teamMembersAndAttendees) {
     const isAttendee = calendarEvent.attendees.some((attendee) => attendee.email === person.email);
+    const isTeamMember = !!calendarEvent.team?.members.some((member) => member.email === person.email);
 
-    if (isAttendee) {
+    if (isAttendee && !isTeamMember) {
       if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
         emailsAndSMSToSend.push(sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, person)));
         if (person.phoneNumber) {
