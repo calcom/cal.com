@@ -219,6 +219,7 @@ export class CalendarAuth {
           userId: this.credential.userId ?? null,
           delegatedToId: this.credential.delegatedToId ?? null,
           credentialType: this.credential.type,
+          appId: metadata.slug,
         });
         if (this.oAuthClient) {
           this.oAuthClient.setCredentials(token);

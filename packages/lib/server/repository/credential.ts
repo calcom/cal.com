@@ -214,13 +214,15 @@ export class CredentialRepository {
     delegationCredentialId,
     type,
     key,
+    appId,
   }: {
     userId: number;
     delegationCredentialId: string;
     type: string;
     key: Prisma.InputJsonValue;
+    appId: string;
   }) {
-    return prisma.credential.create({ data: { userId, delegationCredentialId, type, key } });
+    return prisma.credential.create({ data: { userId, delegationCredentialId, type, key, appId } });
   }
 
   static async updateWhereId({ id, data }: { id: number; data: { key: Prisma.InputJsonValue } }) {

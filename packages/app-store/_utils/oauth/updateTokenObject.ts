@@ -41,6 +41,7 @@ export const updateTokenObjectInDb = async (
         authStrategy: "jwt";
         userId: number | null;
         credentialType: string;
+        appId: string;
         delegatedToId: string | null;
       }
     | {
@@ -51,7 +52,7 @@ export const updateTokenObjectInDb = async (
 ) => {
   const { tokenObject } = args;
   if (args.authStrategy === "jwt") {
-    const { userId, delegatedToId, credentialType } = args;
+    const { userId, delegatedToId, credentialType, appId } = args;
     if (!userId) {
       log.error("Cannot update token object in DB for Delegation as userId is not present");
       return;
@@ -77,6 +78,7 @@ export const updateTokenObjectInDb = async (
         delegationCredentialId: delegatedToId,
         type: credentialType,
         key: tokenObject as Prisma.InputJsonValue,
+        appId,
       });
     }
   } else {
