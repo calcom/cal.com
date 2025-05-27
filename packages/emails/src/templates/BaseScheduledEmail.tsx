@@ -106,7 +106,6 @@ export const BaseScheduledEmail = (
         </>
       )}
       {props.calEvent.rescheduledBy && (
-        //add here
         <Info
           label={t("rescheduled_by")}
           description={
