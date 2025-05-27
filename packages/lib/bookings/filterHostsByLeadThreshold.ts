@@ -98,7 +98,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
     team: {
       parentId?: number | null;
       rrResetInterval: RRResetInterval | null;
-      rrTimestampBasis: RRTimestampBasis | null;
+      rrTimestampBasis: RRTimestampBasis;
     } | null;
     includeNoShowInRRCalculation: boolean;
   };
