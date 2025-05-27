@@ -15,6 +15,7 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { getRichDescription } from "@calcom/utils/getRichDescription";
 
 import type { BookingToDelete } from "../../handleCancelBooking";
 
@@ -96,6 +97,7 @@ async function cancelAttendeeSeat(
           const updatedEvt = {
             ...evt,
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
+            calendarDescription: getRichDescription(evt),
           };
           if (reference.type.includes("_video")) {
             integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));

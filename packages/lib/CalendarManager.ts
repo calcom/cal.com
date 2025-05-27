@@ -288,8 +288,8 @@ export const createEvent = async (
   externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
   // Some calendar libraries may edit the original event so let's clone it
-  const calEvent: CalendarServiceEvent = formatCalEvent(originalEvent);
-  const uid: string = getUid(calEvent);
+  const formattedEvent = formatCalEvent(originalEvent);
+  const uid: string = getUid(formattedEvent);
   const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
@@ -297,15 +297,15 @@ export const createEvent = async (
   log.debug(
     "Creating calendar event",
     safeStringify({
-      calEvent: getPiiFreeCalendarEvent(calEvent),
+      calEvent: getPiiFreeCalendarEvent(formattedEvent),
     })
   );
   // Check if the disabledNotes flag is set to true
-  if (calEvent.hideCalendarNotes) {
-    calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
+  if (formattedEvent.hideCalendarNotes) {
+    formattedEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
   }
 
-  processEvent(calEvent);
+  const calEvent = processEvent(formattedEvent);
 
   const externalCalendarIdWhenDelegationCredentialIsChosen = credential.delegatedToId
     ? externalId
@@ -381,8 +381,8 @@ export const updateEvent = async (
   bookingRefUid: string | null,
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
-  const calEvent = formatCalEvent(rawCalEvent);
-  processEvent(calEvent);
+  const formattedEvent = formatCalEvent(rawCalEvent);
+  const calEvent = processEvent(formattedEvent);
   const uid = getUid(calEvent);
   const calendar = await getCalendar(credential);
   let success = false;
@@ -493,9 +493,12 @@ export const deleteEvent = async ({
 /**
  * Process the calendar event by generating description and removing attendees if needed
  */
-const processEvent = (calEvent: CalendarServiceEvent) => {
+const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
   // Generate the calendar event description
-  calEvent.calendarDescription = getRichDescription(calEvent);
+  const calendarEvent: CalendarServiceEvent = {
+    ...calEvent,
+    calendarDescription: getRichDescription(calEvent),
+  };
 
   // Determine if the calendar event should include attendees
   const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
@@ -505,4 +508,6 @@ const processEvent = (calEvent: CalendarServiceEvent) => {
   if (calEvent.hideOrganizerEmail && !isOrganizerExempt) {
     calEvent.attendees = [];
   }
+
+  return calendarEvent;
 };
