@@ -65,6 +65,8 @@ const generateIcsString = ({
     recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
   }
 
+  const isOrganizerVirta = event.organizer.email.includes("@virtahealth.com");
+
   const icsEvent = createEvent({
     uid: event.iCalUID || event.uid!,
     sequence: event.iCalSequence || 0,
@@ -74,7 +76,10 @@ const generateIcsString = ({
     productId: "calcom/ics",
     title: event.title,
     description: getRichDescription(event, t),
-    organizer: { name: event.organizer.name, email: event.organizer.email },
+    organizer: {
+      name: event.organizer.name,
+      ...(event.hideOrganizerEmail && !isOrganizerVirta ? {} : { email: event.organizer.email }),
+    },
     ...{ recurrenceRule },
     attendees: [
       ...event.attendees.map((attendee: Person) => ({
