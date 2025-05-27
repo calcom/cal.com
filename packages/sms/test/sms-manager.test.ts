@@ -3,15 +3,13 @@ import { describe, expect, test, vi, beforeEach } from "vitest";
 
 import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
-import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import prisma from "@calcom/prisma";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import SMSManager from "../sms-manager";
 
-// Mock dependencies
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/features/ee/workflows/lib/reminders/messageDispatcher");
-vi.mock("@calcom/lib/isSmsCalEmail");
 vi.mock("@calcom/prisma", () => ({
   default: {
     team: {
@@ -20,16 +18,51 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
+interface TestAttendee extends Person {
+  name: string;
+  email: string;
+  phoneNumber?: string;
+  timeZone: string;
+  language: {
+    translate: TFunction;
+    locale: string;
+  };
+}
+
+interface TestCalEvent extends CalendarEvent {
+  uid: string;
+  type: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  attendees: TestAttendee[];
+  organizer: {
+    id: number;
+    name: string;
+    email: string;
+    timeZone: string;
+    language: {
+      translate: TFunction;
+      locale: string;
+    };
+  };
+  team?: {
+    id: number;
+    name: string;
+    members: unknown[];
+  };
+}
+
 // Create a concrete implementation of SMSManager for testing
 class TestSMSManager extends SMSManager {
-  getMessage(attendee: any): string {
+  getMessage(attendee: TestAttendee): string {
     return `Test message for ${attendee.name}`;
   }
 }
 
 describe("SMSManager", () => {
   const mockTranslate = ((key: string) => key) as TFunction;
-  const mockCalEvent = {
+  const mockCalEvent: TestCalEvent = {
     uid: "test-booking-uid",
     type: "test",
     title: "Test Event",
@@ -38,7 +71,7 @@ describe("SMSManager", () => {
     attendees: [
       {
         name: "John Doe",
-        email: "john@example.com",
+        email: "john@sms.cal.com",
         phoneNumber: "+1234567890",
         timeZone: "America/New_York",
         language: { translate: mockTranslate, locale: "en" },
@@ -62,13 +95,12 @@ describe("SMSManager", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (isSmsCalEmail as any).mockReturnValue(true);
   });
 
   describe("sendSMSToAttendee", () => {
     test("should not send SMS if phone number is missing", async () => {
       const smsManager = new TestSMSManager(mockCalEvent);
-      const attendeeWithoutPhone = {
+      const attendeeWithoutPhone: TestAttendee = {
         ...mockCalEvent.attendees[0],
         phoneNumber: undefined,
         timeZone: "America/New_York",
@@ -80,39 +112,27 @@ describe("SMSManager", () => {
       expect(sendSmsOrFallbackEmail).not.toHaveBeenCalled();
     });
 
-    test("should not send SMS if SMS notifications are disabled for team", async () => {
-      const mockTeamId = 123;
-      const mockTeam = {
-        id: mockTeamId,
-        name: "Test Team",
-        members: [],
+    test("should not send SMS if email is not @sms.cal.com", async () => {
+      const smsManager = new TestSMSManager(mockCalEvent);
+      const attendeeWithRegularEmail: TestAttendee = {
+        ...mockCalEvent.attendees[0],
+        email: "john@example.com",
+        phoneNumber: "+1234567890",
+        timeZone: "America/New_York",
+        language: { translate: mockTranslate, locale: "en" },
       };
-      const smsManager = new TestSMSManager({
-        ...mockCalEvent,
-        team: mockTeam,
-      });
 
-      // Mock team settings to disable SMS
-      (prisma.team.findUnique as any).mockResolvedValue({
-        parent: {
-          isOrganization: true,
-          organizationSettings: {
-            disablePhoneOnlySMSNotifications: true,
-          },
-        },
-      });
-
-      await smsManager.sendSMSToAttendee(mockCalEvent.attendees[0]);
+      await smsManager.sendSMSToAttendee(attendeeWithRegularEmail);
 
       expect(sendSmsOrFallbackEmail).not.toHaveBeenCalled();
     });
 
-    test("should send SMS successfully for valid attendee", async () => {
+    test("should send SMS only when both phone number and @sms.cal.com email are present", async () => {
       const smsManager = new TestSMSManager(mockCalEvent);
       const mockSmsResponse = { success: true };
 
-      (sendSmsOrFallbackEmail as any).mockResolvedValue(mockSmsResponse);
-      (checkSMSRateLimit as any).mockResolvedValue(undefined);
+      (sendSmsOrFallbackEmail as jest.Mock).mockResolvedValue(mockSmsResponse);
+      (checkSMSRateLimit as jest.Mock).mockResolvedValue(undefined);
 
       const result = await smsManager.sendSMSToAttendee(mockCalEvent.attendees[0], "test-booking-uid");
 
@@ -134,28 +154,56 @@ describe("SMSManager", () => {
       expect(result).toEqual(mockSmsResponse);
     });
 
+    test("should not send SMS if SMS notifications are disabled for team", async () => {
+      const mockTeamId = 123;
+      const mockTeam = {
+        id: mockTeamId,
+        name: "Test Team",
+        members: [],
+      };
+      const smsManager = new TestSMSManager({
+        ...mockCalEvent,
+        team: mockTeam,
+      });
+
+      // Mock team settings to disable SMS
+      (prisma.team.findUnique as jest.Mock).mockResolvedValue({
+        parent: {
+          isOrganization: true,
+          organizationSettings: {
+            disablePhoneOnlySMSNotifications: true,
+          },
+        },
+      });
+
+      await smsManager.sendSMSToAttendee(mockCalEvent.attendees[0]);
+
+      expect(sendSmsOrFallbackEmail).not.toHaveBeenCalled();
+    });
+
     test("should handle SMS sending errors", async () => {
       const smsManager = new TestSMSManager(mockCalEvent);
       const mockError = new Error("SMS sending failed");
 
-      (sendSmsOrFallbackEmail as any).mockRejectedValue(mockError);
-      (checkSMSRateLimit as any).mockResolvedValue(undefined);
+      (sendSmsOrFallbackEmail as jest.Mock).mockRejectedValue(mockError);
+      (checkSMSRateLimit as jest.Mock).mockResolvedValue(undefined);
 
       await expect(smsManager.sendSMSToAttendee(mockCalEvent.attendees[0])).rejects.toThrow(mockError);
     });
   });
 
   describe("sendSMSToAttendees", () => {
-    test("should send SMS to all attendees", async () => {
+    test("should send SMS only to attendees with phone number and @sms.cal.com email", async () => {
       const smsManager = new TestSMSManager(mockCalEvent);
       const mockSmsResponse = { success: true };
 
-      (sendSmsOrFallbackEmail as any).mockResolvedValue(mockSmsResponse);
-      (checkSMSRateLimit as any).mockResolvedValue(undefined);
+      (sendSmsOrFallbackEmail as jest.Mock).mockResolvedValue(mockSmsResponse);
+      (checkSMSRateLimit as jest.Mock).mockResolvedValue(undefined);
 
       await smsManager.sendSMSToAttendees();
 
-      expect(sendSmsOrFallbackEmail).toHaveBeenCalledTimes(mockCalEvent.attendees.length);
+      // Only one attendee has both phone number and @sms.cal.com email
+      expect(sendSmsOrFallbackEmail).toHaveBeenCalledTimes(1);
     });
 
     test("should not send SMS if notifications are disabled", async () => {
@@ -170,7 +218,7 @@ describe("SMSManager", () => {
         team: mockTeam,
       });
 
-      (prisma.team.findUnique as any).mockResolvedValue({
+      (prisma.team.findUnique as jest.Mock).mockResolvedValue({
         parent: {
           isOrganization: true,
           organizationSettings: {
