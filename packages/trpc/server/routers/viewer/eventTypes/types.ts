@@ -31,7 +31,8 @@ const calVideoSettingsSchema = z
     disableRecordingForOrganizer: z.boolean().optional().nullable(),
     redirectUrlOnExit: z.string().url().optional().nullable(),
   })
-  .optional();
+  .optional()
+  .nullable();
 
 const hostSchema = z.object({
   userId: z.number(),

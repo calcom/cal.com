@@ -169,7 +169,8 @@ export const useEventTypeForm = ({
               disableRecordingForOrganizer: z.boolean().nullable(),
               disableRecordingForGuests: z.boolean().nullable(),
             })
-            .optional(),
+            .optional()
+            .nullable(),
         })
         // TODO: Add schema for other fields later.
         .passthrough()
