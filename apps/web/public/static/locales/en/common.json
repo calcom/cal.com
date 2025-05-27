@@ -3056,7 +3056,7 @@
   "you_do_not_have_permission_to_create_an_organization_for_this_email": "You do not have permission to create an organization for this email",
   "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "You do not have permission to migrate one or more of the teams",
   "organization_has_subscription_already": "Organization has a subscription already",
-  "reset_interval": "Reset Interval",
+  "reset_interval_weighted_rr": "Reset interval for weighted Round Robin",
   "interval": "Interval",
   "rr_reset_interval_description": "Determines how often the round robin booking count resets to ensure balanced distribution.",
   "daily": "Daily",

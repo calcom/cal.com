@@ -653,7 +653,10 @@ async function fetchAllDataNeededForCalculations<
 
   const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
 
-  const interval = getLuckyUserParams.eventType.team?.rrResetInterval ?? RRResetInterval.MONTH;
+  const interval =
+    eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrResetInterval
+      ? getLuckyUserParams.eventType.team?.rrResetInterval
+      : RRResetInterval.MONTH;
 
   const rrTimestampBasis =
     eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrTimestampBasis
