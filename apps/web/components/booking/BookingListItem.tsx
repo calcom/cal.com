@@ -296,9 +296,13 @@ function BookingListItem(booking: BookingItemProps) {
         ]),
   ];
 
-  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+  // currently, we don't allow reassignment for multiple round robin hosts events.
+  if (
+    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    booking.eventType.roundRobinHostsCount == 1
+  ) {
     editBookingActions.push({
-      id: "reassign ",
+      id: "reassign",
       label: t("reassign"),
       onClick: () => {
         setIsOpenReassignDialog(true);

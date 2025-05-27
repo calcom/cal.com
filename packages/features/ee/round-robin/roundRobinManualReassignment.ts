@@ -92,6 +92,7 @@ export const roundRobinManualReassignment = async ({
 
   // currently, we don't allow reassignment for multiple round robin hosts.
   if (eventType.roundRobinHostsCount > 1) {
+    roundRobinReassignLogger.error(`Reassignment not allowed for multiple round robin hosts`);
     throw new Error("Reassignment not allowed for multiple round robin hosts");
   }
 
