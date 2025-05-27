@@ -30,11 +30,14 @@ import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
+
+type ScheduleType = Array<Pick<ScheduleQueryData["schedule"][number], "days" | "startTime" | "endTime">>;
 
 type AvailabilityTableCustomClassNames = {
   tableContainer?: string;
@@ -73,8 +76,8 @@ export type EventAvailabilityTabCustomClassNames = {
 };
 
 type EventTypeScheduleDetailsProps = {
-  scheduleQueryData?: Pick<ScheduleQueryData, "timeZone" | "id" | "isManaged" | "readOnly"> & {
-    schedule: Array<Pick<ScheduleQueryData["schedule"][number], "days" | "startTime" | "endTime">>;
+  scheduleQueryData?: Pick<ScheduleQueryData, "timeZone" | "id" | "isManaged" | "readOnly" | "timeBlocks"> & {
+    schedule: ScheduleType;
   };
   isSchedulePending?: boolean;
   user?: Pick<RouterOutputs["viewer"]["me"]["get"], "timeFormat" | "weekStart">;
@@ -184,72 +187,22 @@ const EventTypeScheduleDetails = memo(
     editAvailabilityRedirectUrl,
     customClassNames,
   }: EventTypeScheduleDetailsProps) => {
-    const timeFormat = user?.timeFormat;
-    const { t, i18n } = useLocale();
-
-    const weekStart = weekStartNum(user?.weekStart);
-
-    const filterDays = (dayNum: number) =>
-      scheduleQueryData?.schedule?.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+    const { t } = useLocale();
 
     return (
       <div>
         <div className={classNames("border-subtle space-y-4 border-x p-6", customClassNames?.tableContainer)}>
-          <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
-            {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
-              const isAvailable = !!filterDays(index).length;
-              return (
-                <li
-                  key={day}
-                  className={classNames(
-                    "my-6 flex border-transparent last:mb-2",
-                    customClassNames?.tableRow
-                  )}>
-                  <span
-                    className={classNames(
-                      "w-20 font-medium sm:w-32 ",
-                      !isAvailable ? "text-subtle line-through" : "text-default",
-                      customClassNames?.day
-                    )}>
-                    {day}
-                  </span>
-                  {isSchedulePending ? (
-                    <SkeletonText className="block h-5 w-60" />
-                  ) : isAvailable ? (
-                    <div className="space-y-3 text-right">
-                      {filterDays(index).map((dayRange, i) => (
-                        <div
-                          key={i}
-                          className={classNames(
-                            "text-default flex items-center leading-4",
-                            customClassNames?.dayAvailabilityContainer
-                          )}>
-                          <span
-                            className={classNames(
-                              "w-16 sm:w-28 sm:text-left",
-                              customClassNames?.dayAvailabilityFrom
-                            )}>
-                            {format(dayRange.startTime, timeFormat === 12)}
-                          </span>
-                          <span className={classNames("ms-4", customClassNames?.dayAvailabilitySeperator)}>
-                            -
-                          </span>
-                          <div className={classNames("ml-6 sm:w-28", customClassNames?.dayAvailabilityTo)}>
-                            {format(dayRange.endTime, timeFormat === 12)}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span
-                      className={classNames("text-subtle ml-6 sm:ml-0", customClassNames?.dayUnavailable)}>
-                      {t("unavailable")}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
+          <EventTypeScheduleDayRange
+            schedule={scheduleQueryData?.schedule}
+            isPending={isSchedulePending}
+            loggedInUser={user}
+            customClassNames={customClassNames}
+          />
+        </div>
+        <div className="border-subtle space-y-4 border p-6">
+          {scheduleQueryData && scheduleQueryData.timeBlocks?.length && (
+            <EventTypeTimeBlocks timeBlocks={scheduleQueryData.timeBlocks} />
+          )}
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
           <span className="text-default flex items-center justify-center text-sm sm:justify-start">
@@ -277,6 +230,88 @@ const EventTypeScheduleDetails = memo(
 );
 
 EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
+
+const EventTypeScheduleDayRange = ({
+  schedule,
+  isPending,
+  loggedInUser,
+  customClassNames,
+}: {
+  schedule: ScheduleType | undefined;
+  isPending?: boolean;
+  loggedInUser?: Pick<RouterOutputs["viewer"]["me"]["get"], "timeFormat" | "weekStart">;
+  customClassNames?: AvailabilityTableCustomClassNames;
+}) => {
+  const { t, i18n } = useLocale();
+  const timeFormat = loggedInUser?.timeFormat;
+  const weekStart = weekStartNum(loggedInUser?.weekStart);
+  const weekdays = weekdayNames(i18n.language, weekStart, "long");
+
+  const filterDays = (dayNum: number) =>
+    schedule?.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+
+  const displayTimeRanges = (dayRanges: ScheduleType) => {
+    return dayRanges.map((dayRange, i) => (
+      <div
+        key={i}
+        className={classNames(
+          "text-default flex items-center leading-4",
+          customClassNames?.dayAvailabilityContainer
+        )}>
+        <span className={classNames("w-16 sm:w-28 sm:text-left", customClassNames?.dayAvailabilityFrom)}>
+          {format(dayRange.startTime, timeFormat === 12)}
+        </span>
+        <span className={classNames("ms-4", customClassNames?.dayAvailabilitySeperator)}>-</span>
+        <div className={classNames("ml-6 sm:w-28", customClassNames?.dayAvailabilityTo)}>
+          {format(dayRange.endTime, timeFormat === 12)}
+        </div>
+      </div>
+    ));
+  };
+
+  const displayDayAvailability = (dayIndex: number) => {
+    const dayRanges = filterDays(dayIndex);
+    if (isPending) {
+      return <SkeletonText className="block h-5 w-60" />;
+    }
+    return dayRanges.length > 0 ? (
+      <div className="space-y-3 text-right">{displayTimeRanges(dayRanges)}</div>
+    ) : (
+      <span className={classNames("text-subtle ml-6 sm:ml-0", customClassNames?.dayUnavailable)}>
+        {t("unavailable")}
+      </span>
+    );
+  };
+
+  return (
+    <div>
+      <label className="text-default mb-2 block text-sm font-medium leading-none">
+        {t("default_schedule_name")}
+      </label>
+      <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
+        {weekdays.map((day, index) => {
+          const isAvailable = filterDays(index).length > 0;
+
+          return (
+            <li
+              key={day}
+              className={classNames("my-6 flex border-transparent last:mb-2", customClassNames?.tableRow)}>
+              <span
+                className={classNames(
+                  "w-20 font-medium sm:w-32 ",
+                  !isAvailable ? "text-subtle line-through" : "text-default",
+                  customClassNames?.day
+                )}>
+                {day}
+              </span>
+              {displayDayAvailability(index)}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+};
 
 const EventTypeSchedule = ({
   eventType,
@@ -403,6 +438,32 @@ const EventTypeSchedule = ({
     </div>
   );
 };
+
+const EventTypeTimeBlocks = ({ timeBlocks }: { timeBlocks: string[] }) => {
+  const { t } = useLocale();
+
+  return (
+    <div>
+      <label className="text-default mb-2 block text-sm font-medium leading-none">{t("time_blocks")}</label>
+      <p className="text-subtle mb-4 text-sm">{t("time_blocks_subtitle")}</p>
+      <div className="space-y-2">
+        {timeBlocks.map((timeBlock, index) => (
+          <div key={index} className="mb-2 flex-col items-center space-y-2">
+            {index !== 0 && (
+              <div>
+                <p>{t("or")}</p>
+              </div>
+            )}
+            <div className="w-full">
+              <TextField label={false} type="standard" value={timeBlock} readOnly={true} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const TeamMemberSchedule = ({
   host,
   index,
