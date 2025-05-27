@@ -927,12 +927,6 @@ export class EventTypeRepository {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
 
-  static compareMembership(mship1: MembershipRole, mship2: MembershipRole) {
-    const mshipToNumber = (mship: MembershipRole) =>
-      Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
-    return mshipToNumber(mship1) > mshipToNumber(mship2);
-  }
-
   static async getUserEventGroups({
     upId,
     userId,
@@ -948,6 +942,11 @@ export class EventTypeRepository {
     };
     forRoutingForms?: boolean;
   }) {
+    const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
+      const mshipToNumber = (mship: MembershipRole) =>
+        Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
+      return mshipToNumber(mship1) > mshipToNumber(mship2);
+    };
     const profile = await ProfileRepository.findByUpId(upId);
     const parentOrgHasLockedEventTypes =
       profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
@@ -1066,7 +1065,7 @@ export class EventTypeRepository {
               parentId: team.parentId,
               bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? teamParentMetadata?.requestedSlug ?? null),
               membershipRole:
-                orgMembership && this.compareMembership(orgMembership, membership.role)
+                orgMembership && compareMembership(orgMembership, membership.role)
                   ? orgMembership
                   : membership.role,
               profile: {
@@ -1081,7 +1080,7 @@ export class EventTypeRepository {
                 readOnly:
                   membership.role ===
                   (team.parentId
-                    ? orgMembership && this.compareMembership(orgMembership, membership.role)
+                    ? orgMembership && compareMembership(orgMembership, membership.role)
                       ? orgMembership
                       : MembershipRole.MEMBER
                     : MembershipRole.MEMBER),

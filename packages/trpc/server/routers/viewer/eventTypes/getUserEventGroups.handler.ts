@@ -1,7 +1,6 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -40,7 +39,3 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     throw error;
   }
 };
-
-export function compareMembership(mship1: MembershipRole, mship2: MembershipRole) {
-  return EventTypeRepository.compareMembership(mship1, mship2);
-}
