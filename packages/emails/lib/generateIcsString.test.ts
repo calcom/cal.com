@@ -1,5 +1,6 @@
 import { describe, expect } from "vitest";
 
+import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { buildCalendarEvent, buildPerson } from "@calcom/lib/test/builder";
 import { buildVideoCallData } from "@calcom/lib/test/builder";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -26,7 +27,7 @@ const testIcsStringContains = ({
 }) => {
   const DTSTART = `${event.startTime.split(".")[0].split(":").slice(0, 2).join(":").replace(/[-:]/g, "")}00Z`;
   const DTEND = `${event.endTime.split(".")[0].split(":").slice(0, 2).join(":").replace(/[-:]/g, "")}00Z`;
-  const isOrganizerExempt = process.env.ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",").some((domain) =>
+  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",").some((domain) =>
     event.organizer.email.toLowerCase().endsWith(domain.toLowerCase())
   );
   expect(icsString).toEqual(expect.stringContaining(`UID:${event.iCalUID}`));

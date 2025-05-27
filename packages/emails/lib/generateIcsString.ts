@@ -5,6 +5,7 @@ import { RRule } from "rrule";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export enum BookingAction {
@@ -65,7 +66,7 @@ const generateIcsString = ({
     recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
   }
 
-  const isOrganizerExempt = process.env.ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",").some((domain) =>
+  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",").some((domain) =>
     event.organizer.email.toLowerCase().endsWith(domain.toLowerCase())
   );
 
