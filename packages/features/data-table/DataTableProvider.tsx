@@ -95,7 +95,10 @@ export function DataTableProvider({
     columnVisibilityParser
   );
   const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>("widths", columnSizingParser);
-  const [segmentId, setSegmentId] = useQueryState("segment", segmentIdParser);
+  const [segmentId, setSegmentId] = useQueryState(
+    "segment",
+    segmentIdParser.withDefault(preferredSegmentId ?? -1)
+  );
   const [pageIndex, setPageIndex] = useQueryState("page", pageIndexParser);
   const [pageSize, setPageSize] = useQueryState("size", pageSizeParser);
   const [searchTerm, setSearchTerm] = useQueryState("q", searchTermParser);
