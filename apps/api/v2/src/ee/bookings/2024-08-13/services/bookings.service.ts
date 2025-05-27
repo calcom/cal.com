@@ -7,6 +7,7 @@ import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
@@ -37,6 +38,7 @@ import {
   getCalendarLinks,
   getDefaultConferencingAppLocation,
   getLocationValueForDB,
+  getOrgIdFromMemberOrTeamId,
 } from "@calcom/platform-libraries";
 import { handleNewBooking } from "@calcom/platform-libraries";
 import { enrichUsersWithDelegationCredentials } from "@calcom/platform-libraries/app-store";
@@ -99,7 +101,8 @@ export class BookingsService_2024_08_13 {
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
-    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13
+    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13,
+    private readonly credentialsRepository: CredentialsRepository
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -1021,31 +1024,51 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
 
-    if (existingBooking.user === null) {
+    if (existingBooking.userId === null) {
+      throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
+    }
+
+    if (existingBooking.eventTypeId === null) {
+      throw new NotFoundException(`No event type found for booking with uid=${bookingUid}`);
+    }
+
+    const existingBookingHost = await this.usersRepository.findById(existingBooking.userId);
+    const existingBookingEventType = await this.eventTypesRepository.getEventTypeById(
+      existingBooking.eventTypeId
+    );
+
+    if (existingBookingHost === null) {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
     }
 
     if (typeof location === "object" && location.type === "organizersDefaultApp") {
+      const existingBookingHostCredentials = await this.credentialsRepository.getAllUserCredentialsById(
+        existingBookingHost?.id
+      );
+      const existingBookingUserOrgId = await getOrgIdFromMemberOrTeamId({
+        memberId: existingBooking.userId ?? null,
+        teamId: existingBookingEventType?.teamId,
+      });
       const enrichedUser = await enrichUsersWithDelegationCredentials({
-        orgId: null,
+        orgId: existingBookingUserOrgId ?? null,
         users: [
           {
-            id: existingBooking.user.id,
-            email: existingBooking.user.email,
-            credentials: existingBooking.user.credentials,
+            id: existingBookingHost.id,
+            email: existingBookingHost.email,
+            credentials: existingBookingHostCredentials,
           },
         ],
       });
 
       bookingLocation = getDefaultConferencingAppLocation(
-        existingBooking.user.metadata,
+        existingBookingHost?.metadata,
         enrichedUser[0].credentials
       );
     } else if (typeof location === "object") {
       const transformedLocation = this.inputService.transformLocation(location);
       const { bookingLocation: bookingLocationForDB } = getLocationValueForDB(
         transformedLocation?.optionValue || transformedLocation?.value,
-        existingBooking.eventType?.locations as unknown as LocationObject[]
+        existingBookingEventType?.locations as unknown as LocationObject[]
       );
       bookingLocation = bookingLocationForDB;
     }

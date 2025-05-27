@@ -1,5 +1,4 @@
 import { ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 import { IsOptional } from "class-validator";
 
 import {
@@ -32,8 +31,5 @@ export class UpdateBookingInput_2024_08_13 {
       { $ref: getSchemaPath(BookingInputOrganizersDefaultAppLocation_2024_08_13) },
     ],
   })
-  @Type(() => Object)
-  // note(Rajiv): string is for backwards compatability
-  // since we allow backwards compatability at the time of booking creation we need to allow for booking updation as well
-  location?: BookingInputLocation_2024_08_13 | string;
+  location?: BookingInputLocation_2024_08_13;
 }

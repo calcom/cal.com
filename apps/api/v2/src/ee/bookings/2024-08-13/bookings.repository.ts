@@ -54,18 +54,6 @@ export class BookingsRepository_2024_08_13 {
       where: {
         uid: bookingUid,
       },
-      include: {
-        user: {
-          include: {
-            credentials: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
-        eventType: true,
-      },
     });
   }
 
@@ -188,7 +176,7 @@ export class BookingsRepository_2024_08_13 {
         uid: bookingUid,
       },
       data: {
-        location: body.location as string,
+        location: body.location,
       },
     });
   }
