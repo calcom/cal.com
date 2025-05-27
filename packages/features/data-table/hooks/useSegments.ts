@@ -42,25 +42,10 @@ export const useSegments: UseSegments = ({
 
   // Recalculate date ranges based on the current timestamp
   const segments = useMemo(() => {
-    // If segments are provided directly, use those
-    if (providedSegments) {
-      return providedSegments.map((segment) => ({
-        ...segment,
-        activeFilters: segment.activeFilters.map((filter) => {
-          if (isDateRangeFilterValue(filter.v)) {
-            return {
-              ...filter,
-              v: recalculateDateRange(filter.v),
-            };
-          }
-          return filter;
-        }),
-      }));
-    }
+    const segmentsSource = providedSegments || rawSegments?.segments;
+    if (!segmentsSource) return [];
 
-    if (!rawSegments?.segments) return [];
-
-    return rawSegments.segments.map((segment) => ({
+    return segmentsSource.map((segment) => ({
       ...segment,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {
@@ -74,10 +59,9 @@ export const useSegments: UseSegments = ({
     }));
   }, [rawSegments, providedSegments]);
 
-  const selectedSegment = useMemo(
-    () => segments?.find((segment) => segment.id === segmentId),
-    [segments, segmentId]
-  );
+  const selectedSegment = useMemo(() => {
+    return segments?.find((segment) => segment.id === segmentId);
+  }, [segments, segmentId]);
 
   useEffect(() => {
     if (segments && segmentId > 0 && !isFetchingSegments) {
@@ -91,16 +75,16 @@ export const useSegments: UseSegments = ({
     }
   }, [segments, segmentId, setSegmentId, isFetchingSegments]);
 
+  const memoizedPreferredSegmentId = useMemo(
+    () => preferredSegmentId ?? rawSegments?.preferredSegmentId,
+    [preferredSegmentId, rawSegments]
+  );
+
   useEffect(() => {
-    // this hook doesn't include segmentId in the dependency array
-    // because we want to only run this once, when the component mounts
-    if (segmentId === -1) {
-      const preferredId = preferredSegmentId ?? rawSegments?.preferredSegmentId;
-      if (preferredId) {
-        setSegmentId(preferredId);
-      }
+    if (memoizedPreferredSegmentId) {
+      setSegmentId(memoizedPreferredSegmentId);
     }
-  }, [rawSegments, segmentId, setSegmentId, preferredSegmentId]);
+  }, [memoizedPreferredSegmentId, setSegmentId]);
 
   useEffect(() => {
     if (selectedSegment) {
