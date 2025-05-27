@@ -3,7 +3,7 @@
 /**
  * It returns true if the two entities are created for the same team or same user.
  */
-export const areTheySiblingEntitites = ({
+export const areTheySiblingEntities = ({
   entity1,
   entity2,
 }: {
