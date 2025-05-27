@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -11,6 +11,7 @@ import {
   clearFilters,
   openSegmentSubmenu,
   locateSelectedSegmentName,
+  getByTableColumnText,
 } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
@@ -20,9 +21,6 @@ test.afterEach(async ({ users, orgs }) => {
   await users.deleteAll();
   await orgs.deleteAll();
 });
-
-export const getByTableColumnText = (page: Page, columnId: string, text: string) =>
-  page.locator(`[data-testid="data-table-td-${columnId}"]`).getByText(text);
 
 test.describe("Filter Segment Functionality", () => {
   test("Admin can create, use, and delete filter segments in organization members list", async ({
@@ -62,20 +60,20 @@ test.describe("Filter Segment Functionality", () => {
     await test.step("Can apply and save a role filter as a segment", async () => {
       await applySelectFilter(page, "role", "admin");
 
-      await expect(page.getByText(adminUser.email)).toBeVisible();
-      await expect(page.getByText(memberUser.email)).toBeHidden();
+      await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
+      await expect(getByTableColumnText(page, "member", memberUser.email)).toBeHidden();
 
       await createFilterSegment(page, segmentName);
 
       await clearFilters(page);
 
-      await expect(page.getByText(adminUser.email)).toBeVisible();
-      await expect(page.getByText(memberUser.email)).toBeVisible();
+      await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
+      await expect(getByTableColumnText(page, "member", memberUser.email)).toBeVisible();
 
       await selectSegment(page, segmentName);
 
-      await expect(page.getByText(adminUser.email)).toBeVisible();
-      await expect(page.getByText(memberUser.email)).toBeHidden();
+      await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
+      await expect(getByTableColumnText(page, "member", memberUser.email)).toBeHidden();
     });
 
     await test.step("Can delete a filter segment", async () => {
@@ -123,8 +121,8 @@ test.describe("Filter Segment Functionality", () => {
 
     await selectSegment(page, segmentName);
 
-    await expect(page.getByText(adminUser.email)).toBeVisible();
-    await expect(page.getByText(memberUser.email)).toBeHidden();
+    await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
+    await expect(getByTableColumnText(page, "member", memberUser.email)).toBeHidden();
 
     await deleteSegment(page, segmentName);
   });
@@ -322,8 +320,8 @@ test.describe("Filter Segment Functionality", () => {
 
       await clearFilters(page);
       await selectSegment(page, segmentName);
-      await expect(page.getByText(adminUser.email)).toBeVisible();
-      await expect(page.getByText(memberUser.email)).toBeHidden();
+      await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
+      await expect(getByTableColumnText(page, "member", memberUser.email)).toBeHidden();
     });
 
     await test.step("Regular member can see but not modify team segments", async () => {
@@ -348,8 +346,8 @@ test.describe("Filter Segment Functionality", () => {
       await expect(dataTable).toBeVisible();
 
       await selectSegment(page, "Team Admin Filter");
-      await expect(page.getByText(adminUser.email)).toBeVisible();
-      await expect(page.getByText(memberUser.email)).toBeHidden();
+      await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
+      await expect(getByTableColumnText(page, "member", memberUser.email)).toBeHidden();
 
       await openSegmentSubmenu(page, segmentName);
       await expect(
