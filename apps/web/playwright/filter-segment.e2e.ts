@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -10,6 +10,7 @@ import {
   listSegments,
   clearFilters,
   openSegmentSubmenu,
+  locateSelectedSegmentName,
 } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
@@ -19,6 +20,9 @@ test.afterEach(async ({ users, orgs }) => {
   await users.deleteAll();
   await orgs.deleteAll();
 });
+
+export const getByTableColumnText = (page: Page, columnId: string, text: string) =>
+  page.locator(`[data-testid="data-table-td-${columnId}"]`).getByText(text);
 
 test.describe("Filter Segment Functionality", () => {
   test("Admin can create, use, and delete filter segments in organization members list", async ({
@@ -158,20 +162,22 @@ test.describe("Filter Segment Functionality", () => {
     const segmentName = "Admin Only";
     await createFilterSegment(page, segmentName);
 
-    await expect(page.getByText(adminUser.email)).toBeVisible();
-    await expect(page.getByText(memberUser.email)).toBeHidden();
+    await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
+    await expect(getByTableColumnText(page, "member", memberUser.email)).toBeHidden();
 
     await page.goto(`/settings/organizations/${org.slug}/members`);
+    await expect(locateSelectedSegmentName(page, segmentName)).toBeVisible();
     await expect(dataTable).toBeVisible();
 
-    await expect(page.getByText(adminUser.email)).toBeVisible();
-    await expect(page.getByText(memberUser.email)).toBeHidden();
+    await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
+    await expect(getByTableColumnText(page, "member", memberUser.email)).toBeHidden();
 
     await deleteSegment(page, segmentName);
   });
 
   test("Filter segment preferences persist across different browser sessions", async ({
     browser,
+    page,
     users,
     orgs,
   }) => {
@@ -187,40 +193,21 @@ test.describe("Filter Segment Functionality", () => {
       username: "admin-user-session",
     });
 
-    const firstContext = await browser.newContext();
-    const firstPage = await firstContext.newPage();
+    await orgOwner.apiLogin();
+    await page.goto(`/settings/organizations/${org.slug}/members`);
 
-    await firstPage.goto("/auth/login");
-    await firstPage.fill("#email", `${orgOwner.username}@example.com`);
-    await firstPage.fill("#password", orgOwner.username);
-    await firstPage.click('[type="submit"]');
-    await firstPage.waitForURL("/**");
-
-    await firstPage.goto(`/settings/organizations/${org.slug}/members`);
-
-    await expect(firstPage.getByTestId("user-list-data-table")).toBeVisible();
-    await applySelectFilter(firstPage, "role", "admin");
+    await expect(page.getByTestId("user-list-data-table")).toBeVisible();
+    await applySelectFilter(page, "role", "admin");
     const segmentName = "Cross Session Admins";
-    await createFilterSegment(firstPage, segmentName);
+    await createFilterSegment(page, segmentName);
 
-    await firstContext.close();
-
-    const secondContext = await browser.newContext();
-    const secondPage = await secondContext.newPage();
-
-    await secondPage.goto("/auth/login");
-    await secondPage.fill("#email", `${orgOwner.username}@example.com`);
-    await secondPage.fill("#password", orgOwner.username);
-    await secondPage.click('[type="submit"]');
-    await secondPage.waitForURL("/**");
-
+    const [secondContext, secondPage] = await orgOwner.apiLoginOnNewBrowser(browser);
     await secondPage.goto(`/settings/organizations/${org.slug}/members`);
 
     const dataTable = secondPage.getByTestId("user-list-data-table");
     await expect(dataTable).toBeVisible();
-
-    await secondPage.waitForTimeout(1000);
-    await expect(secondPage.getByText(adminUser.email)).toBeVisible();
+    await expect(locateSelectedSegmentName(secondPage, segmentName)).toBeVisible();
+    await expect(getByTableColumnText(secondPage, "member", adminUser.email)).toBeVisible();
 
     await deleteSegment(secondPage, segmentName);
     await secondContext.close();
@@ -248,18 +235,17 @@ test.describe("Filter Segment Functionality", () => {
     await expect(dataTable).toBeVisible();
 
     await applySelectFilter(page, "role", "admin");
-    const segmentName = "Team Admin Persistent";
+    const segmentName = "Team Admin";
     await createFilterSegment(page, segmentName, {
       teamScope: true,
       teamName: subTeam.name,
     });
 
-    const baseUrl = page.url().split("?")[0];
-    await page.goto(baseUrl);
+    await page.goto(`/settings/organizations/${org.slug}/members`);
     await expect(dataTable).toBeVisible();
+    await expect(locateSelectedSegmentName(page, segmentName)).toBeVisible();
 
-    await page.waitForTimeout(1000);
-    await expect(page.getByText(adminUser.email)).toBeVisible();
+    await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
 
     await deleteSegment(page, segmentName);
   });
@@ -286,12 +272,10 @@ test.describe("Filter Segment Functionality", () => {
     const membersSegmentName = "Members Table Segment";
     await createFilterSegment(page, membersSegmentName);
 
-    const baseUrl = page.url().split("?")[0];
-    await page.goto(baseUrl);
+    await page.goto(`/settings/organizations/${org.slug}/members`);
     await expect(page.getByTestId("user-list-data-table")).toBeVisible();
-
-    await page.waitForTimeout(1000);
-    await expect(page.getByText(adminUser.email)).toBeVisible();
+    await expect(locateSelectedSegmentName(page, membersSegmentName)).toBeVisible();
+    await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
 
     await deleteSegment(page, membersSegmentName);
   });
