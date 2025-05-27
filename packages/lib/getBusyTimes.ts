@@ -204,6 +204,7 @@ const _getBusyTimes = async (params: {
       endTime,
       selectedCalendars,
       shouldServeCache,
+      undefined,
       timeBlocksList?.length ? true : false
     );
     promises.push(calendarBusyTimesWithTimeBlocksPromise);

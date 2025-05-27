@@ -3,7 +3,9 @@ import type { Control } from "react-hook-form";
 
 import type { AvailabilityFormValues } from "@calcom/atoms/availability/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, TextField, InputError } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
+import { InputError } from "@calcom/ui/components/form";
 
 const TimeBlocksList = ({
   fields,
