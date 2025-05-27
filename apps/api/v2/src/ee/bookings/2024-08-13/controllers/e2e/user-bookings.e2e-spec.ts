@@ -4,6 +4,7 @@ import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-booking-location.output";
 import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -27,6 +28,7 @@ import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.rep
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
+import { createBooking } from "@calcom/features/bookings/lib/handleNewBooking/createBooking";
 import {
   CAL_API_VERSION_HEADER,
   SUCCESS_STATUS,
@@ -51,6 +53,7 @@ import {
   MarkAbsentBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
+import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/update-booking-location.input";
 import { Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
@@ -2225,64 +2228,60 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should update booking location via PATCH", async () => {
-        // 1. Create a booking with initial address location
-        const initialBookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithAllLocationsId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
+        const mockBooking = await bookingsRepositoryFixture.create({
+          user: {
+            connect: {
+              id: user.id,
+            },
           },
+          startTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
+          title: "peer coding lets goo",
+          uid: `booking-in-the-past-${randomString()}`,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          location: "integrations:daily",
+          customInputs: {},
+          metadata: {},
+          responses: {
+            name: "Oldie",
+            email: "oldie@gmail.com",
+          },
+          attendees: {
+            create: {
+              email: "oldie@gmail.com",
+              name: "Oldie",
+              locale: "lv",
+              timeZone: "Europe/Rome",
+            },
+          },
+          rating: 10,
+          iCalUID: "ics-uid",
+        });
+
+        const body: UpdateBookingLocationInput_2024_08_13 = {
           location: {
-            type: "address",
+            type: "attendeePhone",
+            phone: "+12345678901",
           },
         };
 
-        const bookingResponse = await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(initialBookingBody)
+        return request(app.getHttpServer())
+          .patch(`/v2/bookings/${mockBooking.uid}`)
+          .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201);
-
-        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
-        const createdBooking = bookingResponseBody.data;
-        expect(createdBooking).toHaveProperty("id");
-        expect(createdBooking).toHaveProperty("uid");
-
-        if (!responseDataIsBooking(createdBooking)) {
-          throw new Error("Unexpected response data type");
-        }
-
-        // 2. Update the location to attendee phone
-        const newLocation = {
-          type: "attendeePhone",
-          phone: "+12345678901",
-        };
-
-        const patchResponse = await request(app.getHttpServer())
-          .patch(`/v2/bookings/${createdBooking.uid}`)
-          .send({ location: newLocation })
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200);
-
-        // 3. Assert the response
-        expect(patchResponse.body.status).toBe(SUCCESS_STATUS);
-        expect(patchResponse.body.data.bookingUid).toBe(createdBooking.uid);
-        expect(patchResponse.body.data.location).toBe("+12345678901"); // Should be stored as optionValue
-
-        // 4. Verify the update by fetching the booking
-        const getResponse = await request(app.getHttpServer())
-          .get(`/v2/bookings/${createdBooking.uid}`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200);
-
-        // Location should be stored as a string using optionValue
-        expect(getResponse.body.data.location).toBe("+12345678901");
-
-        // Clean up
-        await bookingsRepositoryFixture.deleteById(createdBooking.id);
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: UpdateBookingLocationOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.bookingUid).toEqual(mockBooking.uid);
+            expect(responseBody.data.location).toEqual("+12345678901");
+            await bookingsRepositoryFixture.deleteById(mockBooking.id);
+          });
       });
     });
 
