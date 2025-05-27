@@ -318,4 +318,42 @@ export class TeamRepository {
       },
     });
   }
+
+  static async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
+    const memberships = await prisma.membership.findMany({
+      where: {
+        userId: userId,
+      },
+      include: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            isOrganization: true,
+            metadata: true,
+            inviteTokens: true,
+            parent: true,
+            parentId: true,
+          },
+        },
+      },
+      orderBy: { role: "desc" },
+    });
+
+    return memberships
+      .filter((mmship) => {
+        if (includeOrgs) return true;
+        return !mmship.team.isOrganization;
+      })
+      .map(({ team: { inviteTokens, ...team }, ...membership }) => ({
+        role: membership.role,
+        accepted: membership.accepted,
+        ...team,
+        metadata: teamMetadataSchema.parse(team.metadata),
+        /** To prevent breaking we only return non-email attached token here, if we have one */
+        inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
+      }));
+  }
 }
