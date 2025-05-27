@@ -12,6 +12,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 
 import { useRoleStates } from "../hooks/useRoleQueryStates";
+import { DeleteRoleModal } from "./DeleteRoleModal";
 import { RoleSheet } from "./RoleSheet";
 
 type Role = {
@@ -43,9 +44,16 @@ interface RolesListProps {
   permissions: Permissions;
   initialSelectedRole?: Role;
   initialSheetOpen?: boolean;
+  teamId: number;
 }
 
-export function RolesList({ roles, permissions, initialSelectedRole, initialSheetOpen }: RolesListProps) {
+export function RolesList({
+  roles,
+  permissions,
+  initialSelectedRole,
+  initialSheetOpen,
+  teamId,
+}: RolesListProps) {
   const { t } = useLocale();
   const { isOpen, setIsOpen, selectedRoleId, setSelectedRoleId, handleSheetOpenChange } = useRoleStates(
     initialSheetOpen,
@@ -81,6 +89,7 @@ export function RolesList({ roles, permissions, initialSelectedRole, initialShee
                 }}
                 canUpdate={permissions.canUpdate}
                 permissions={permissions}
+                teamId={teamId}
               />
             ))}
           </div>
@@ -91,7 +100,12 @@ export function RolesList({ roles, permissions, initialSelectedRole, initialShee
         </div>
       </div>
 
-      <RoleSheet role={selectedRole} open={isOpen ?? false} onOpenChange={handleSheetOpenChange} />
+      <RoleSheet
+        role={selectedRole}
+        open={isOpen ?? false}
+        onOpenChange={handleSheetOpenChange}
+        teamId={teamId}
+      />
     </>
   );
 }
@@ -101,11 +115,13 @@ function RoleItem({
   onClick,
   canUpdate,
   permissions,
+  teamId,
 }: {
   role: Role;
   onClick: () => void;
   canUpdate: boolean;
   permissions: Permissions;
+  teamId: number;
 }) {
   const { t } = useLocale();
   const showDropdown = role.type !== "SYSTEM" && (permissions.canUpdate || permissions.canDelete);
@@ -128,7 +144,7 @@ function RoleItem({
         </div>
 
         <Badge variant={role.type === "SYSTEM" ? "grayWithoutHover" : "green"}>
-          {role.type === "SYSTEM" ? "default_role" : "custom_role"}
+          {t(role.type === "SYSTEM" ? "default_role" : "custom_role")}
         </Badge>
 
         {showDropdown && (
@@ -143,10 +159,8 @@ function RoleItem({
                     {t("edit")}
                   </DropdownItem>
                 )}
-                {permissions.canDelete && (
-                  <DropdownItem StartIcon="trash" color="destructive">
-                    {t("delete")}
-                  </DropdownItem>
+                {permissions.canDelete && role.type !== "SYSTEM" && (
+                  <DeleteRoleModal roleId={role.id} roleName={role.name} teamId={teamId} />
                 )}
               </DropdownMenuContent>
             </Dropdown>
