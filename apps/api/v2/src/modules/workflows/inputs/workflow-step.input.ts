@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
-import { Transform, Type } from "class-transformer";
-import { IsNumber, ValidateIf, IsBoolean, IsString, ValidateNested, IsOptional, IsIn } from "class-validator";
+import { Type } from "class-transformer";
+import { IsNumber, IsBoolean, IsString, ValidateNested, IsIn } from "class-validator";
 
 export const EMAIL_HOST = "email_host";
 export const EMAIL_ATTENDEE = "email_attendee";

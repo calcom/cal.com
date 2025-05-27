@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { TimeUnit, WorkflowTriggerEvents } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsNumber, ValidateNested, IsOptional } from "class-validator";
+import { IsNumber, ValidateNested } from "class-validator";
 
 export const BEFORE_EVENT = "before_event";
 export const EVENT_CANCELLED = "event_cancelled";
@@ -106,7 +106,6 @@ export class TriggerOffsetDTO {
   })
   @ValidateNested()
   @Type(() => WorkflowTriggerOffsetDto)
-  @IsOptional()
   offset!: WorkflowTriggerOffsetDto;
 }
 
