@@ -155,17 +155,14 @@ test.describe("Filter Segment Functionality", () => {
     await expect(dataTable).toBeVisible();
 
     await applySelectFilter(page, "role", "admin");
-    const segmentName = "Database Persistent Admins";
+    const segmentName = "Admin Only";
     await createFilterSegment(page, segmentName);
 
     await expect(page.getByText(adminUser.email)).toBeVisible();
     await expect(page.getByText(memberUser.email)).toBeHidden();
 
-    const baseUrl = page.url().split("?")[0];
-    await page.goto(baseUrl);
+    await page.goto(`/settings/organizations/${org.slug}/members`);
     await expect(dataTable).toBeVisible();
-
-    await page.waitForTimeout(1000); // Allow time for preference to load
 
     await expect(page.getByText(adminUser.email)).toBeVisible();
     await expect(page.getByText(memberUser.email)).toBeHidden();
