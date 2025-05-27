@@ -249,7 +249,7 @@ const Locations: React.FC<LocationsProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillLocation, seatsEnabled]);
 
-  const isPlatorm = useIsPlatform();
+  const isPlatform = useIsPlatform();
 
   return (
     <div className={classNames("w-full", customClassNames?.container)}>
@@ -343,34 +343,38 @@ const Locations: React.FC<LocationsProps> = ({
                 <div className="bg-muted mt-2 space-y-2 rounded-lg p-4">
                   <div className="w-full">
                     <div className="flex flex-col gap-2">
-                      <Controller
-                        name="calVideoSettings.disableRecordingForGuests"
-                        defaultValue={!!eventType.calVideoSettings?.disableRecordingForGuests}
-                        render={({ field: { onChange, value } }) => {
-                          return (
-                            <SettingsToggle
-                              title={t("disable_recording_for_guests")}
-                              labelClassName="text-sm"
-                              checked={value}
-                              onCheckedChange={onChange}
-                            />
-                          );
-                        }}
-                      />
-                      <Controller
-                        name="calVideoSettings.disableRecordingForOrganizer"
-                        defaultValue={!!eventType.calVideoSettings?.disableRecordingForOrganizer}
-                        render={({ field: { onChange, value } }) => {
-                          return (
-                            <SettingsToggle
-                              title={t("disable_recording_for_organizer")}
-                              labelClassName="text-sm"
-                              checked={value}
-                              onCheckedChange={onChange}
-                            />
-                          );
-                        }}
-                      />
+                      {!isPlatform && (
+                        <Controller
+                          name="calVideoSettings.disableRecordingForGuests"
+                          defaultValue={!!eventType.calVideoSettings?.disableRecordingForGuests}
+                          render={({ field: { onChange, value } }) => {
+                            return (
+                              <SettingsToggle
+                                title={t("disable_recording_for_guests")}
+                                labelClassName="text-sm"
+                                checked={value}
+                                onCheckedChange={onChange}
+                              />
+                            );
+                          }}
+                        />
+                      )}
+                      {!isPlatform && (
+                        <Controller
+                          name="calVideoSettings.disableRecordingForOrganizer"
+                          defaultValue={!!eventType.calVideoSettings?.disableRecordingForOrganizer}
+                          render={({ field: { onChange, value } }) => {
+                            return (
+                              <SettingsToggle
+                                title={t("disable_recording_for_organizer")}
+                                labelClassName="text-sm"
+                                checked={value}
+                                onCheckedChange={onChange}
+                              />
+                            );
+                          }}
+                        />
+                      )}
 
                       <TextField
                         label={t("enter_redirect_url_on_exit_description")}
@@ -545,7 +549,7 @@ const Locations: React.FC<LocationsProps> = ({
           </li>
         )}
       </ul>
-      {props.showAppStoreLink && !isPlatorm && (
+      {props.showAppStoreLink && !isPlatform && (
         <p className="text-default mt-2 text-sm">
           <ServerTrans
             t={t}
