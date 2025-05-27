@@ -146,10 +146,13 @@ export const updateMeetingTokenIfExpired = async ({
   return meetingToken;
 };
 
-export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
-  meetingToken: string | null,
-  userId?: number
-) => {
+export const generateGuestMeetingTokenFromOwnerMeetingToken = async ({
+  meetingToken,
+  userId,
+}: {
+  meetingToken: string | null;
+  userId?: number;
+}) => {
   if (!meetingToken) return null;
 
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);

@@ -691,7 +691,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
         startTime: "2050-09-05",
         endTime: "2050-09-10",
       };
-  
+
       it("should allow routingFormResponseId=0 in dry-run mode", async () => {
         return request(app.getHttpServer())
           .get(baseUrl)
@@ -706,7 +706,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
             expect(res.body.status).toEqual(SUCCESS_STATUS);
           });
       });
-  
+
       it("should reject routingFormResponseId=1 in dry-run mode", async () => {
         return request(app.getHttpServer())
           .get(baseUrl)
@@ -718,10 +718,12 @@ describe("Slots 2024-04-15 Endpoints", () => {
           })
           .expect(400)
           .expect((res) => {
-            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain("routingFormResponseId must be 0 for dry run");
+            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain(
+              "routingFormResponseId must be 0 for dry run"
+            );
           });
       });
-  
+
       it("should allow routingFormResponseId=1 in non-dry-run mode", async () => {
         return request(app.getHttpServer())
           .get(baseUrl)
@@ -735,7 +737,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
             expect(res.body.status).toEqual(SUCCESS_STATUS);
           });
       });
-  
+
       it("should reject routingFormResponseId=0 in non-dry-run mode", async () => {
         return request(app.getHttpServer())
           .get(baseUrl)
@@ -746,7 +748,9 @@ describe("Slots 2024-04-15 Endpoints", () => {
           })
           .expect(400)
           .expect((res) => {
-            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain("routingFormResponseId must be a positive number");
+            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain(
+              "routingFormResponseId must be a positive number"
+            );
           });
       });
 
@@ -760,7 +764,9 @@ describe("Slots 2024-04-15 Endpoints", () => {
           })
           .expect(400)
           .expect((res) => {
-            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain("routingFormResponseId must be a positive number");
+            expect(res.body.error.details.errors[0].constraints.routingFormResponseIdValidator).toContain(
+              "routingFormResponseId must be a positive number"
+            );
           });
       });
     });
