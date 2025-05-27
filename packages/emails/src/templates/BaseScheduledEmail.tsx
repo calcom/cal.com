@@ -105,7 +105,7 @@ export const BaseScheduledEmail = (
           )}
         </>
       )}
-      {props.calEvent.rescheduledBy && (
+      {props.calEvent.rescheduledBy && !props.calEvent.hideOrganizerEmail && (
         <Info label={t("rescheduled_by")} description={props.calEvent.rescheduledBy} withSpacer />
       )}
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
