@@ -92,10 +92,10 @@ export class OrganizationTeamWorkflowsController {
   @PlatformPlan("SCALE")
   async updateWorkflow(
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("workflowId") workflowId: number,
+    @Param("workflowId", ParseIntPipe) workflowId: number,
     @GetUser() user: UserWithProfile,
     @Body() data: UpdateWorkflowDto
-  ): Promise<Promise<GetWorkflowOutput>> {
+  ): Promise<GetWorkflowOutput> {
     const workflow = await this.workflowsService.updateTeamWorkflow(user, teamId, workflowId, data);
     return { data: workflow, status: SUCCESS_STATUS };
   }
