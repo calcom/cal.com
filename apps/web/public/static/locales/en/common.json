@@ -2010,7 +2010,7 @@
   "add_a_booking_question": "Add a question",
   "identifier": "Identifier",
   "duplicate_email": "Email is duplicate",
-  "enter_redirect_url_on_exit_description": "Enter a redirect URL on exit to redirect the attendee to a different page after the meeting ends.",
+  "enter_redirect_url_on_exit_description": "Enter a redirect URL to which the attendee will be sent once they leave the meeting.",
   "booking_with_payment_cancelled": "Paying for this event is no longer possible",
   "booking_with_payment_cancelled_already_paid": "A refund for this booking payment is on its way.",
   "booking_with_payment_cancelled_refunded": "This booking payment has been refunded.",
