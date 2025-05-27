@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 import { TRPCError } from "@trpc/server";
 
@@ -16,17 +16,7 @@ export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
 
   if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const allOrgTeams = await prisma.team.findMany({
-    where: {
-      parentId: currentUserOrgId,
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
-
-  return allOrgTeams;
+  return await OrganizationRepository.getTeams({ organizationId: currentUserOrgId });
 }
 
 export default getTeamsHandler;
