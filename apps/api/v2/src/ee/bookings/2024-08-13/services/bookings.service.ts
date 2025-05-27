@@ -1024,7 +1024,7 @@ export class BookingsService_2024_08_13 {
       return this.getBooking(existingBooking.uid);
     }
 
-    await this.updateBookingLocation(existingBooking, location);
+    return await this.updateBookingLocation(existingBooking, location);
   }
 
   async updateBookingLocation(existingBooking: Booking, location: BookingInputLocation_2024_08_13) {
