@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -11,11 +12,13 @@ import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -83,6 +86,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
+    calVideoSettings,
     ...rest
   } = input;
 
@@ -90,6 +94,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id },
     select: {
       title: true,
+      locations: true,
       description: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
@@ -113,6 +118,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           beginMessage: true,
           enabled: true,
           llmId: true,
+        },
+      },
+      calVideoSettings: {
+        select: {
+          disableRecordingForOrganizer: true,
+          disableRecordingForGuests: true,
+          redirectUrlOnExit: true,
         },
       },
       children: {
@@ -516,6 +528,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     }
+  }
+
+  if (calVideoSettings) {
+    await CalVideoSettingsRepository.createOrUpdateCalVideoSettings({
+      eventTypeId: id,
+      calVideoSettings,
+    });
+  }
+
+  const parsedEventTypeLocations = eventTypeLocations.safeParse(eventType.locations ?? []);
+
+  const isCalVideoLocationActive = locations
+    ? locations.some((location) => location.type === DailyLocationType)
+    : parsedEventTypeLocations.success &&
+      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+
+  if (eventType.calVideoSettings && !isCalVideoLocationActive) {
+    await CalVideoSettingsRepository.deleteCalVideoSettings(id);
   }
 
   // Logic for updating `fieldTranslations`
