@@ -44,6 +44,7 @@ export const bookingSelect = {
   title: true,
   uid: true,
   metadata: true,
+  smsReminderNumber: true,
   attendees: {
     select: {
       name: true,
@@ -136,6 +137,28 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
     return;
   }
 
+  // Check if it's a verified secondary email of the user
+  const secondaryEmail = await prisma.secondaryEmail.findFirst({
+    where: {
+      userId,
+      email,
+      emailVerified: {
+        not: null,
+      },
+    },
+  });
+
+  if (secondaryEmail) {
+    await prisma.verifiedEmail.create({
+      data: {
+        email,
+        userId,
+        teamId,
+      },
+    });
+    return;
+  }
+
   if (teamId) {
     const team = await prisma.team.findFirst({
       where: {
@@ -148,6 +171,12 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
               select: {
                 id: true,
                 email: true,
+                secondaryEmails: {
+                  select: {
+                    email: true,
+                    emailVerified: true,
+                  },
+                },
               },
             },
           },
@@ -165,9 +194,18 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
       throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
     }
 
-    const teamMemberEmail = team.members.filter((member) => member.user.email === email);
+    let foundTeamMember = team.members.find((member) => member.user.email === email);
 
-    if (teamMemberEmail) {
+    // Only check secondary emails if no match was found with primary email
+    if (!foundTeamMember) {
+      foundTeamMember = team.members.find((member) =>
+        member.user.secondaryEmails.some(
+          (secondary) => secondary.email === email && !!secondary.emailVerified
+        )
+      );
+    }
+
+    if (foundTeamMember) {
       await prisma.verifiedEmail.create({
         data: {
           email,
@@ -620,10 +658,6 @@ export async function scheduleBookingReminders(
 
   //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
-    // we do not have attendees phone number (user is notified about that when setting this action)
-    if (step.action == WorkflowActions.SMS_ATTENDEE || step.action == WorkflowActions.WHATSAPP_ATTENDEE)
-      return;
-
     const promiseScheduleReminders = bookings.map(async (booking) => {
       const defaultLocale = "en";
       const bookingInfo = {
@@ -704,6 +738,8 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           workflowStepId: step.id,
           verifiedAt: step?.verifiedAt ?? null,
+          userId,
+          teamId,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({
@@ -740,6 +776,44 @@ export async function scheduleBookingReminders(
           teamId: teamId,
           verifiedAt: step?.verifiedAt ?? null,
         });
+      } else if (booking.smsReminderNumber) {
+        if (step.action === WorkflowActions.SMS_ATTENDEE) {
+          await scheduleSMSReminder({
+            evt: bookingInfo,
+            reminderPhone: booking.smsReminderNumber,
+            triggerEvent: trigger,
+            action: step.action,
+            timeSpan: {
+              time,
+              timeUnit,
+            },
+            message: step.reminderBody || "",
+            workflowStepId: step.id,
+            template: step.template,
+            sender: step.sender,
+            userId: userId,
+            teamId: teamId,
+            verifiedAt: step?.verifiedAt ?? null,
+          });
+        } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
+          await scheduleWhatsappReminder({
+            evt: bookingInfo,
+            reminderPhone: booking.smsReminderNumber,
+            triggerEvent: trigger,
+            action: step.action,
+            timeSpan: {
+              time,
+              timeUnit,
+            },
+            message: step.reminderBody || "",
+            workflowStepId: step.id,
+            template: step.template,
+            sender: step.sender,
+            userId: userId,
+            teamId: teamId,
+            verifiedAt: step?.verifiedAt ?? null,
+          });
+        }
       }
     });
     await Promise.all(promiseScheduleReminders);

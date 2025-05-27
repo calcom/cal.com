@@ -13,7 +13,13 @@ import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  MembershipRole,
+  TimeUnit,
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -46,6 +52,7 @@ import {
   isWhatsappAction,
   getTemplateBodyForAction,
   shouldScheduleEmailReminder,
+  isSMSOrWhatsappAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -86,6 +93,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     { teamId },
     { enabled: !!teamId }
   );
+
+  const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
+
+  const creditsTeamId = userTeams?.find(
+    (team) => team.accepted && (team.role === MembershipRole.ADMIN || team.role === MembershipRole.OWNER)
+  )?.id;
 
   const { hasActiveTeamPlan } = useHasActiveTeamPlan();
 
@@ -358,7 +371,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const selectedAction = {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
-      needsTeamsUpgrade: false,
+      needsCredits: isSMSOrWhatsappAction(step.action),
+      creditsTeamId: teamId ?? creditsTeamId,
     };
 
     const selectedTemplate = {
@@ -488,7 +502,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailSubjectNeeded(true);
                             }
 
-                            form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
+                            form.setValue(`steps.${step.stepNumber - 1}.sendTo`, null);
                             form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
                             setUpdateTemplate(!updateTemplate);
@@ -497,12 +511,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         defaultValue={selectedAction}
                         options={actionOptions?.map((option) => ({
                           ...option,
+                          creditsTeamId: teamId ?? creditsTeamId,
                         }))}
-                        isOptionDisabled={(option: {
-                          label: string;
-                          value: WorkflowActions;
-                          needsTeamsUpgrade: boolean;
-                        }) => option.needsTeamsUpgrade}
                       />
                     );
                   }}
@@ -807,7 +817,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }}
                         defaultValue={selectedTemplate}
                         value={selectedTemplate}
-                        options={templateOptions}
+                        options={templateOptions.map((option) => ({
+                          label: option.label,
+                          value: option.value,
+                          needsTeamsUpgrade:
+                            option.needsTeamsUpgrade &&
+                            !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
+                        }))}
                         isOptionDisabled={(option: {
                           label: string;
                           value: any;
@@ -853,9 +869,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       )}
                   </div>
                 )}
-
                 <div className="mb-2 flex items-center pb-1">
-                  <Label className="mb-0 flex-none ">
+                  <Label className="mb-0 flex-none">
                     {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                   </Label>
                 </div>
@@ -873,7 +888,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   updateTemplate={updateTemplate}
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
-                  editable={!props.readOnly && !isWhatsappAction(step.action) && hasActiveTeamPlan}
+                  editable={
+                    !props.readOnly &&
+                    !isWhatsappAction(step.action) &&
+                    (hasActiveTeamPlan || isSMSAction(step.action))
+                  }
                   excludedToolbarItems={
                     !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
                   }

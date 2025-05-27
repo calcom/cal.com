@@ -8,7 +8,7 @@ import EventManager from "@calcom/lib/EventManager";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -121,14 +121,14 @@ async function updateBookingLocationInDb({
   });
 }
 
-async function getAllCredentials({
+async function getAllCredentialsIncludeServiceAccountKey({
   user,
   conferenceCredentialId,
 }: {
   user: { id: number; email: string };
   conferenceCredentialId: number | null;
 }) {
-  const credentials = await getUsersCredentials(user);
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
   let conferenceCredential;
 
@@ -265,7 +265,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
 
   const eventManager = new EventManager({
     ...ctx.user,
-    credentials: await getAllCredentials({ user: ctx.user, conferenceCredentialId }),
+    credentials: await getAllCredentialsIncludeServiceAccountKey({ user: ctx.user, conferenceCredentialId }),
   });
 
   const updatedResult = await updateLocationInConnectedAppForBooking({

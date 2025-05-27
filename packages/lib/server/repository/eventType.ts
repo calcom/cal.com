@@ -470,6 +470,7 @@ export class EventTypeRepository {
       title: true,
       slug: true,
       description: true,
+      interfaceLanguage: true,
       length: true,
       isInstantEvent: true,
       instantMeetingExpiryTimeOffsetInSeconds: true,
@@ -674,6 +675,7 @@ export class EventTypeRepository {
       },
       secondaryEmailId: true,
       maxLeadThreshold: true,
+      includeNoShowInRRCalculation: true,
       useEventLevelSelectedCalendars: true,
     });
 
@@ -811,6 +813,7 @@ export class EventTypeRepository {
         rrSegmentQueryValue: true,
         isRRWeightsEnabled: true,
         maxLeadThreshold: true,
+        includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,
         team: {
           select: {

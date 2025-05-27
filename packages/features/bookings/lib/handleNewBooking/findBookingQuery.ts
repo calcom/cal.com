@@ -1,6 +1,8 @@
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
 
-export const findBookingQuery = async (bookingId: number) => {
+// Define the function with underscore prefix
+const _findBookingQuery = async (bookingId: number) => {
   const foundBooking = await prisma.booking.findUnique({
     where: {
       id: bookingId,
@@ -46,3 +48,5 @@ export const findBookingQuery = async (bookingId: number) => {
   // Don't leak any sensitive data
   return foundBooking;
 };
+
+export const findBookingQuery = withReporting(_findBookingQuery, "findBookingQuery");

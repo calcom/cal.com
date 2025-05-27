@@ -1,4 +1,5 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
+import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
@@ -53,7 +54,7 @@ export class OrganizationsTeamsBookingsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetUser() user: UserWithProfile
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.bookingsService.getBookings(
+    const { bookings, pagination } = await this.bookingsService.getBookings(
       { ...queryParams, teamId },
       { email: user.email, id: user.id, orgId }
     );
@@ -61,6 +62,7 @@ export class OrganizationsTeamsBookingsController {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 
@@ -82,9 +84,10 @@ export class OrganizationsTeamsBookingsController {
   })
   @HttpCode(HttpStatus.OK)
   async getBookingReferences(
-    @Param("bookingUid") bookingUid: string
+    @Param("bookingUid") bookingUid: string,
+    @Query() filter: BookingReferencesFilterInput_2024_08_13
   ): Promise<BookingReferencesOutput_2024_08_13> {
-    const bookingReferences = await this.bookingReferencesService.getOrgBookingReferences(bookingUid);
+    const bookingReferences = await this.bookingReferencesService.getOrgBookingReferences(bookingUid, filter);
 
     return {
       status: SUCCESS_STATUS,
