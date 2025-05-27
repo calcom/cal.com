@@ -40,4 +40,5 @@ export const ENDPOINTS = [
   "routingForms",
   "credits",
   "filterSegments",
+  "pbac",
 ] as const;

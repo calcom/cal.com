@@ -1,5 +1,5 @@
+import type { PermissionString } from "../../domain/types/permission-registry";
 import { usePermissionStore } from "../store/permission-store";
-import type { PermissionString } from "../types/permission-registry";
 
 export function usePermission(teamId: number, permission: PermissionString) {
   const hasPermission = usePermissionStore((state) => state.hasPermission(teamId, permission));
