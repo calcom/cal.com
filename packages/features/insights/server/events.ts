@@ -258,7 +258,7 @@ class EventsInsights {
       return "year";
     } else if (diff > 90) {
       return "month";
-    } else if (diff > 14) {
+    } else if (diff > 30) {
       return "week";
     } else {
       return "day";
@@ -326,7 +326,8 @@ class EventsInsights {
             start: currentStartDate,
             end: currentEndDate,
             timeView,
-            omitYear: startDate.year() === endDate.year(),
+            wholeStart: startDate,
+            wholeEnd: endDate,
           }),
         });
         break;
@@ -339,7 +340,8 @@ class EventsInsights {
           start: currentStartDate,
           end: currentEndDate,
           timeView,
-          omitYear: startDate.year() === endDate.year(),
+          wholeStart: startDate,
+          wholeEnd: endDate,
         }),
       });
 
@@ -353,16 +355,26 @@ class EventsInsights {
     start,
     end,
     timeView,
-    omitYear,
+    wholeStart,
+    wholeEnd,
   }: {
     start: dayjs.Dayjs;
     end: dayjs.Dayjs;
     timeView: TimeViewType;
-    omitYear: boolean;
+    wholeStart: dayjs.Dayjs;
+    wholeEnd: dayjs.Dayjs;
   }): string {
+    const omitYear = wholeStart.year() === wholeEnd.year();
+
     switch (timeView) {
       case "day":
-        return omitYear ? start.format("MMM D") : start.format("MMM D, YYYY");
+        const shouldShowMonth = wholeStart.isSame(start, "day") || start.date() === 1;
+
+        if (shouldShowMonth) {
+          return omitYear ? start.format("MMM D") : start.format("MMM D, YYYY");
+        } else {
+          return omitYear ? start.format("D") : start.format("D, YYYY");
+        }
       case "week":
         const startFormat = "MMM D";
         let endFormat = "MMM D";

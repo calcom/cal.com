@@ -34,12 +34,12 @@ describe("EventsInsights", () => {
         expect(ranges[1]).toEqual({
           startDate: "2025-05-02T00:00:00.000Z",
           endDate: "2025-05-02T23:59:59.999Z",
-          formattedDate: "May 2",
+          formattedDate: "2",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-03T00:00:00.000Z",
           endDate: "2025-05-03T23:59:59.999Z",
-          formattedDate: "May 3",
+          formattedDate: "3",
         });
       });
 
@@ -212,7 +212,7 @@ describe("EventsInsights", () => {
         expect(ranges[1]).toEqual({
           startDate: "2025-03-30T22:00:00.000Z", // March 31st 00:00 Paris time
           endDate: "2025-03-31T21:59:59.999Z", // March 31st 23:59:59 Paris time
-          formattedDate: "Mar 31",
+          formattedDate: "31",
         });
       });
 
@@ -308,7 +308,7 @@ describe("EventsInsights", () => {
         expect(ranges[1]).toEqual({
           startDate: "2025-05-15T15:00:00.000Z",
           endDate: "2025-05-16T14:59:59.999Z",
-          formattedDate: "May 16",
+          formattedDate: "16",
         });
       });
 
@@ -506,79 +506,254 @@ describe("EventsInsights", () => {
 
   describe("formatPeriod", () => {
     describe("Day View", () => {
-      it("should format date without year when omitYear is true", () => {
-        const result = EventsInsights.formatPeriod({
-          start: dayjs("2024-01-01"),
-          end: dayjs("2024-01-01"),
-          timeView: "day",
-          omitYear: true,
+      describe("Beginning of data (wholeStart === start)", () => {
+        it("should always show month for the first day when same year", () => {
+          const result = EventsInsights.formatPeriod({
+            start: dayjs("2024-01-15"),
+            end: dayjs("2024-01-15"),
+            timeView: "day",
+            wholeStart: dayjs("2024-01-15"), // Same as start
+            wholeEnd: dayjs("2024-01-20"),
+          });
+          expect(result).toBe("Jan 15");
         });
-        expect(result).toBe("Jan 1");
+
+        it("should always show month for the first day when different years", () => {
+          const result = EventsInsights.formatPeriod({
+            start: dayjs("2024-01-15"),
+            end: dayjs("2024-01-15"),
+            timeView: "day",
+            wholeStart: dayjs("2024-01-15"), // Same as start
+            wholeEnd: dayjs("2025-02-01"),
+          });
+          expect(result).toBe("Jan 15, 2024");
+        });
       });
 
-      it("should format date with year when omitYear is false", () => {
-        const result = EventsInsights.formatPeriod({
-          start: dayjs("2024-01-01"),
-          end: dayjs("2024-01-01"),
-          timeView: "day",
-          omitYear: false,
+      describe("First day of month (start.date() === 1)", () => {
+        it("should show month for 1st day of month when same year", () => {
+          const result = EventsInsights.formatPeriod({
+            start: dayjs("2024-02-01"),
+            end: dayjs("2024-02-01"),
+            timeView: "day",
+            wholeStart: dayjs("2024-01-15"),
+            wholeEnd: dayjs("2024-02-10"),
+          });
+          expect(result).toBe("Feb 1");
         });
-        expect(result).toBe("Jan 1, 2024");
+
+        it("should show month for 1st day of month when different years", () => {
+          const result = EventsInsights.formatPeriod({
+            start: dayjs("2024-02-01"),
+            end: dayjs("2024-02-01"),
+            timeView: "day",
+            wholeStart: dayjs("2023-12-15"),
+            wholeEnd: dayjs("2024-03-01"),
+          });
+          expect(result).toBe("Feb 1, 2024");
+        });
+      });
+
+      describe("Regular days (not first day, not 1st of month)", () => {
+        it("should omit month for regular days when same year", () => {
+          const result = EventsInsights.formatPeriod({
+            start: dayjs("2024-01-16"),
+            end: dayjs("2024-01-16"),
+            timeView: "day",
+            wholeStart: dayjs("2024-01-15"),
+            wholeEnd: dayjs("2024-01-20"),
+          });
+          expect(result).toBe("16");
+        });
+
+        it("should omit month but show year for regular days when different years", () => {
+          const result = EventsInsights.formatPeriod({
+            start: dayjs("2024-01-16"),
+            end: dayjs("2024-01-16"),
+            timeView: "day",
+            wholeStart: dayjs("2023-12-15"),
+            wholeEnd: dayjs("2024-02-01"),
+          });
+          expect(result).toBe("16, 2024");
+        });
+      });
+
+      describe("Edge cases", () => {
+        it("should show month when start is both beginning of data AND 1st of month", () => {
+          const result = EventsInsights.formatPeriod({
+            start: dayjs("2024-01-01"),
+            end: dayjs("2024-01-01"),
+            timeView: "day",
+            wholeStart: dayjs("2024-01-01"), // Same as start AND 1st of month
+            wholeEnd: dayjs("2024-01-05"),
+          });
+          expect(result).toBe("Jan 1");
+        });
+
+        it("should show month for last day of month if it's 1st of month (edge case)", () => {
+          // This tests the case where start.date() === 1 takes precedence
+          const result = EventsInsights.formatPeriod({
+            start: dayjs("2024-03-01"),
+            end: dayjs("2024-03-01"),
+            timeView: "day",
+            wholeStart: dayjs("2024-02-28"),
+            wholeEnd: dayjs("2024-03-05"),
+          });
+          expect(result).toBe("Mar 1");
+        });
+
+        it("should omit month for end of month when not 1st and not beginning", () => {
+          const result = EventsInsights.formatPeriod({
+            start: dayjs("2024-01-31"),
+            end: dayjs("2024-01-31"),
+            timeView: "day",
+            wholeStart: dayjs("2024-01-15"),
+            wholeEnd: dayjs("2024-02-05"),
+          });
+          expect(result).toBe("31");
+        });
+      });
+
+      describe("Real-world scenarios", () => {
+        it("should format a range from Jan 15 to Jan 20 correctly", () => {
+          // Simulating how getDateRanges would call formatPeriod for each day
+          const wholeStart = dayjs("2024-01-15");
+          const wholeEnd = dayjs("2024-01-20");
+
+          const results: string[] = [];
+          for (let i = 0; i <= 5; i++) {
+            const currentDay = wholeStart.add(i, "day");
+            results.push(
+              EventsInsights.formatPeriod({
+                start: currentDay,
+                end: currentDay,
+                timeView: "day",
+                wholeStart,
+                wholeEnd,
+              })
+            );
+          }
+
+          expect(results).toEqual(["Jan 15", "16", "17", "18", "19", "20"]);
+        });
+
+        it("should format a range from Jan 30 to Feb 3 correctly", () => {
+          // Simulating month transition
+          const wholeStart = dayjs("2024-01-30");
+          const wholeEnd = dayjs("2024-02-03");
+
+          const results: string[] = [];
+          let currentDay = wholeStart;
+          while (currentDay.isBefore(wholeEnd) || currentDay.isSame(wholeEnd)) {
+            results.push(
+              EventsInsights.formatPeriod({
+                start: currentDay,
+                end: currentDay,
+                timeView: "day",
+                wholeStart,
+                wholeEnd,
+              })
+            );
+            currentDay = currentDay.add(1, "day");
+          }
+
+          expect(results).toEqual(["Jan 30", "31", "Feb 1", "2", "3"]);
+        });
+
+        it("should format a range from Dec 30, 2023 to Jan 2, 2024 correctly", () => {
+          // Simulating year transition with different years
+          const wholeStart = dayjs("2023-12-30");
+          const wholeEnd = dayjs("2024-01-02");
+
+          const results: string[] = [];
+          let currentDay = wholeStart;
+          while (currentDay.isBefore(wholeEnd) || currentDay.isSame(wholeEnd)) {
+            results.push(
+              EventsInsights.formatPeriod({
+                start: currentDay,
+                end: currentDay,
+                timeView: "day",
+                wholeStart,
+                wholeEnd,
+              })
+            );
+            currentDay = currentDay.add(1, "day");
+          }
+
+          expect(results).toEqual(["Dec 30, 2023", "31, 2023", "Jan 1, 2024", "2, 2024"]);
+        });
+
+        it("should format a single day range correctly", () => {
+          const result = EventsInsights.formatPeriod({
+            start: dayjs("2024-01-15"),
+            end: dayjs("2024-01-15"),
+            timeView: "day",
+            wholeStart: dayjs("2024-01-15"),
+            wholeEnd: dayjs("2024-01-15"),
+          });
+
+          expect(result).toBe("Jan 15");
+        });
       });
     });
 
     describe("Week View", () => {
       describe("Same month", () => {
-        it("should format dates without year when omitYear is true", () => {
+        it("should format dates without year when wholeStart and wholeEnd are same year", () => {
           const result = EventsInsights.formatPeriod({
             start: dayjs("2024-01-01"),
             end: dayjs("2024-01-07"),
             timeView: "week",
-            omitYear: true,
+            wholeStart: dayjs("2024-01-01"),
+            wholeEnd: dayjs("2024-12-31"),
           });
           expect(result).toBe("Jan 1 - 7");
         });
 
-        it("should format dates with year when omitYear is false", () => {
+        it("should format dates with year when wholeStart and wholeEnd are different years", () => {
           const result = EventsInsights.formatPeriod({
             start: dayjs("2024-01-01"),
             end: dayjs("2024-01-07"),
             timeView: "week",
-            omitYear: false,
+            wholeStart: dayjs("2023-12-01"),
+            wholeEnd: dayjs("2024-02-01"),
           });
           expect(result).toBe("Jan 1 - 7, 2024");
         });
       });
 
       describe("Different months", () => {
-        it("should format dates without year when omitYear is true", () => {
+        it("should format dates without year when wholeStart and wholeEnd are same year", () => {
           const result = EventsInsights.formatPeriod({
             start: dayjs("2024-01-29"),
             end: dayjs("2024-02-04"),
             timeView: "week",
-            omitYear: true,
+            wholeStart: dayjs("2024-01-01"),
+            wholeEnd: dayjs("2024-12-31"),
           });
           expect(result).toBe("Jan 29 - Feb 4");
         });
 
-        it("should format dates with year when omitYear is false", () => {
+        it("should format dates with year when wholeStart and wholeEnd are different years", () => {
           const result = EventsInsights.formatPeriod({
             start: dayjs("2024-01-29"),
             end: dayjs("2024-02-04"),
             timeView: "week",
-            omitYear: false,
+            wholeStart: dayjs("2023-12-01"),
+            wholeEnd: dayjs("2024-03-01"),
           });
           expect(result).toBe("Jan 29 - Feb 4, 2024");
         });
       });
 
       describe("Different years", () => {
-        it("should format dates with respective years regardless of omitYear", () => {
+        it("should format dates with respective years when start and end span different years", () => {
           const result = EventsInsights.formatPeriod({
             start: dayjs("2023-12-31"),
             end: dayjs("2024-01-06"),
             timeView: "week",
-            omitYear: true, // should be ignored for different years
+            wholeStart: dayjs("2023-12-01"),
+            wholeEnd: dayjs("2024-01-31"),
           });
           expect(result).toBe("Dec 31 , 2023 - Jan 6, 2024");
         });
@@ -586,44 +761,48 @@ describe("EventsInsights", () => {
     });
 
     describe("Month View", () => {
-      it("should format month without year when omitYear is true", () => {
+      it("should format month without year when wholeStart and wholeEnd are same year", () => {
         const result = EventsInsights.formatPeriod({
           start: dayjs("2024-01-01"),
           end: dayjs("2024-01-31"),
           timeView: "month",
-          omitYear: true,
+          wholeStart: dayjs("2024-01-01"),
+          wholeEnd: dayjs("2024-12-31"),
         });
         expect(result).toBe("Jan");
       });
 
-      it("should format month with year when omitYear is false", () => {
+      it("should format month with year when wholeStart and wholeEnd are different years", () => {
         const result = EventsInsights.formatPeriod({
           start: dayjs("2024-01-01"),
           end: dayjs("2024-01-31"),
           timeView: "month",
-          omitYear: false,
+          wholeStart: dayjs("2023-12-01"),
+          wholeEnd: dayjs("2024-02-01"),
         });
         expect(result).toBe("Jan 2024");
       });
     });
 
     describe("Year View", () => {
-      it("should format year regardless of omitYear value", () => {
-        const resultWithOmitYear = EventsInsights.formatPeriod({
+      it("should format year regardless of wholeStart and wholeEnd values", () => {
+        const resultWithSameYear = EventsInsights.formatPeriod({
           start: dayjs("2024-01-01"),
           end: dayjs("2024-12-31"),
           timeView: "year",
-          omitYear: true,
+          wholeStart: dayjs("2024-01-01"),
+          wholeEnd: dayjs("2024-12-31"),
         });
-        expect(resultWithOmitYear).toBe("2024");
+        expect(resultWithSameYear).toBe("2024");
 
-        const resultWithoutOmitYear = EventsInsights.formatPeriod({
+        const resultWithDifferentYears = EventsInsights.formatPeriod({
           start: dayjs("2024-01-01"),
           end: dayjs("2024-12-31"),
           timeView: "year",
-          omitYear: false,
+          wholeStart: dayjs("2023-12-01"),
+          wholeEnd: dayjs("2025-01-01"),
         });
-        expect(resultWithoutOmitYear).toBe("2024");
+        expect(resultWithDifferentYears).toBe("2024");
       });
     });
 
@@ -633,7 +812,8 @@ describe("EventsInsights", () => {
           start: dayjs("2024-01-01"),
           end: dayjs("2024-01-01"),
           timeView: "invalid" as any,
-          omitYear: false,
+          wholeStart: dayjs("2024-01-01"),
+          wholeEnd: dayjs("2024-12-31"),
         });
         expect(result).toBe("");
       });
