@@ -27,7 +27,7 @@ export type CalendarSubscription = {
   providerResourceId: string | null;
   providerResourceUri: string | null;
   providerExpiration: Date | null;
-} | null;
+};
 
 type PaymentInfo = {
   link?: string | null;
@@ -90,6 +90,10 @@ export type NewCalendarEventType = {
   conferenceData?: ConferenceData;
   delegatedToId?: string | null;
   usedExternalCalendarId?: string | null;
+};
+
+export type NewCalendarEventTypeWithSyncSupport = Omit<NewCalendarEventType, "usedExternalCalendarId"> & {
+  usedExternalCalendarId: string | null;
 };
 
 export type CalendarEventType = {
@@ -310,23 +314,24 @@ export interface Calendar {
 
   testDelegationCredentialSetup?(): Promise<boolean>;
 
-  watchCalendar?(options: {
+  watchSelectedCalendar?(options: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
-    calendarSubscription: CalendarSubscription;
+    calendarSubscription: CalendarSubscription | null;
   }): Promise<unknown>;
 
   onWatchedCalendarChange?(options: {
     calendarId: string;
     syncActions: ("availability-cache" | "events-sync")[];
+    selectedCalendars: IntegrationCalendar[];
   }): Promise<{
     eventsToSync: CalendarEventsToSync;
   }>;
 
-  unwatchCalendar?(options: {
+  unwatchSelectedCalendar?(options: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
-    calendarSubscription: CalendarSubscription;
+    calendarSubscription: CalendarSubscription | null;
   }): Promise<void>;
 
   subscribeToCalendar?(options: { calendarId: string }): Promise<{

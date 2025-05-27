@@ -48,44 +48,38 @@ No additional configuration is needed. Once Google Calendar is connected as your
 ## Architecture:
 
 Actors Involved:
-- `CRON:bi-directional-calendar-sync`
-- `CRON:subscription-cron`
+- `CRON:calendar-subscriptions`
 - Third Party Calendar Webhook(webhook.handler.ts)
 - handleNewBooking.ts
 - CalendarService#onWatchedCalendarChange
 
 Flow:
-- Bi-directional sync is enabled for User's organization
-- On creating a booking we push a task to Tasker that would create a CalendarSync record. 
-   NOTE: It could be delayed by a few minutes, due to how the tasker works. So,if a booking is created for the first time in a calendar, it could take a few minutes for sync to actually get enabled. We could improve this further by creating CalendarSync records on DestinationCalendar upsert_
-- `CRON:bi-directional-calendar-sync` runs every few minutes and it does the following.
-   - Creates a subscription record for each of CalendarSync records that doesn't have a subscription record yet. The subscription record doesn't have channel related fields yet, it would just have credentialId, providerType, externalCalendarId, status=PENDING.
-- `CRON:subscription-cron` runs every few minutes and it does the following. We keep this cron separate as it could be used by both SelectedCalendar and CalendarSync.
-   - For each of the status=PENDING records in CalendarSubscription table, it creates a subscription in provider using the credential and updates the subscription record with the channel related fields, moving the status to ACTIVE.
-- When both the above Crons have run atleast once, we consider the sync to be established for all the required calendars for bi-directional sync.
-- Now, lets say a booking is created in Cal.com, it would be added to Google Calendar as well. At this moment, BookingReference table holds uid that refers to the eventId in third party calendar(in this case Google Calendar).
-- Now let's say that the booking's time changes, we will receive a webhook event that will be handled by webhook.handle.ts.
+- 'calendar-sync' feature is enabled for User's organization
+- On creating a booking we push task 'createCalendarSync' to Tasker that would 
+   - Create a CalendarSync record. 
+   - Create a CalendarSubscription record.
+   - Connect both CalendarSubscription and BookingReference records to CalendarSync record.
+   _NOTE: Creation of CalendarSync record could be delayed by a few minutes, due to how the tasker works. So, if a booking is created for the first time in a calendar, it could take a few minutes for sync to actually get enabled. We could improve this further by creating CalendarSync records when a destination calendar is created_
+- `CRON:calendar-subscriptions` runs every few minutes and it does the following.
+   - Ensures that all Subscriptions are active. Those that are to be expired soon are also renewed.
+- Now, lets say a booking is created in Cal.com, it would be added to Google Calendar as well. At this moment, BookingReference table holds uid that refers to the eventId in third party calendar(in this case Google Calendar). This uid is used to identify the eventId in third party calendar when we receive a webhook event.
+- Now let's say that the booking's time changes, we will receive a webhook event that will be handled by webhook.handler.ts.
    - It identifies that for the particular channel, if there is associated CalendarSync, if yes it means that there might be something to sync from the third party calendar events to Cal.com bookings.
    - We delegate the work to CalendarService#onWatchedCalendarChange method, which will do the following:
       - It fetches latest updated few events from the third party calendar.
       - For every such third party calendar event, that has corresponding BookingReference.uid, it updates the corresponding Booking record in Cal.com with the new details from the third party calendar event.
 
-Notes:
-- We could use lastUsedAt field in CalendarSync table, which is update every time a booking uses that calendar as the destination. We could start updating that as well in a follow up as we avoid the need to make the changes in handleNewBooking flow.
-
 FAQ:
 - Existing bookings in the system that are re-scheduled, will they be synced back from the third party calendar?
   - Yes, they will be synced back as those bookings still have BookingReference.uid to identify the eventId in third party calendar
-  - [ ] Test this
 
 TODO:
-- [ ] Subscription renewal support
-- [ ] Reuse subscription from SelectedCalendar
+- [x] Subscription renewal support
+- [x] Reuse subscription from SelectedCalendar
 - [ ] Ensure that a subscription record is never deleted, unless it has been expired by Cal.com itself, then it is safe to be deleted. This is important because otherwise we wouldn't be able to stop subscription on that if needed and such channels could cause increased push notification delay. 
 - [ ] Review indices carefully on DB. Maybe use explain analyze to check if they are being used.
 - [ ] When does updateEvent return an array of NewCalendarEventType?
 - [ ] Tests for Google CalendarService
-
 
 - Tests:
    - [ ] Subscription renewal

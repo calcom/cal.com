@@ -26,6 +26,7 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
   sendAnalyticsEvent: () =>
     import("./analytics/sendAnalyticsEvent").then((module) => module.sendAnalyticsEvent),
+  createCalendarSync: () => import("./calendarSync/createCalendarSync").then((module) => module.handler),
 };
 
 export const tasksConfig = {

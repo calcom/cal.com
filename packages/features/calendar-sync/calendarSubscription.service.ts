@@ -1,6 +1,10 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import { CalendarSubscriptionStatus } from "@calcom/prisma/enums";
+
+import { CalendarSubscriptionRepository } from "./calendarSubscription.repository";
+import { CalendarSyncRepository } from "./calendarSync.repository";
 
 const log = logger.getSubLogger({ prefix: ["[CalendarSubscriptionService]"] });
 type ProviderSubscriptionDetails = {
@@ -45,11 +49,11 @@ export class CalendarSubscriptionService {
     log.debug("Finding existing subscription", safeStringify({ externalCalendarId, integration }));
 
     // First check for active subscription in CalendarSubscription
-    const existingSubscription = await prisma.calendarSubscription.findFirst({
+    const existingSubscription = await CalendarSubscriptionRepository.findFirst({
       where: {
         externalCalendarId,
         // We query for ACTIVE because only those would have have provider details set
-        status: "ACTIVE",
+        status: CalendarSubscriptionStatus.ACTIVE,
         providerType: integration,
       },
     });
@@ -142,7 +146,7 @@ export class CalendarSubscriptionService {
     externalId: string;
     integration: string;
   }) {
-    return await prisma.calendarSubscription.findFirst({
+    return CalendarSubscriptionRepository.findFirst({
       where: {
         externalCalendarId: externalId,
         providerType: integration,
@@ -153,26 +157,37 @@ export class CalendarSubscriptionService {
   /**
    * Create a new CalendarSubscription record with PENDING status
    */
-  static async createPendingSubscription({
+  static async createIfNotExists({
     credentialId,
     externalCalendarId,
-    integration,
+    data,
   }: {
     credentialId: number;
     externalCalendarId: string;
-    integration: string;
+    data: {
+      providerType: string;
+      status: CalendarSubscriptionStatus;
+      calendarSyncId: string | null;
+    };
   }) {
     log.debug(
-      "Creating new PENDING subscription",
-      safeStringify({ credentialId, externalCalendarId, integration })
+      "Creating new subscription if not exists",
+      safeStringify({ credentialId, externalCalendarId, data })
     );
 
-    return await prisma.calendarSubscription.create({
-      data: {
-        credentialId,
+    // First, let's check if a record already exists
+    return CalendarSubscriptionRepository.upsert({
+      where: {
+        credentialId_externalCalendarId: {
+          credentialId,
+          externalCalendarId,
+        },
+      },
+      updateData: {},
+      createData: {
         externalCalendarId,
-        providerType: integration,
-        status: "PENDING",
+        credentialId,
+        ...data,
       },
     });
   }
@@ -196,12 +211,12 @@ export class CalendarSubscriptionService {
       safeStringify({ credentialId, externalCalendarId, integration, providerDetails })
     );
 
-    return await prisma.calendarSubscription.create({
+    return await CalendarSubscriptionRepository.create({
       data: {
         credentialId,
         externalCalendarId,
         providerType: integration,
-        status: "ACTIVE",
+        status: CalendarSubscriptionStatus.ACTIVE,
         providerSubscriptionId: providerDetails.id,
         providerSubscriptionKind: providerDetails.kind,
         providerResourceId: providerDetails.resourceId,
@@ -224,7 +239,7 @@ export class CalendarSubscriptionService {
   }) {
     log.debug("Activating subscription", safeStringify({ subscriptionId, providerDetails }));
 
-    return await prisma.calendarSubscription.update({
+    return CalendarSubscriptionRepository.update({
       where: { id: subscriptionId },
       data: {
         providerSubscriptionId: providerDetails.id,
@@ -232,7 +247,7 @@ export class CalendarSubscriptionService {
         providerResourceId: providerDetails.resourceId,
         providerResourceUri: providerDetails.resourceUri,
         providerExpiration: providerDetails.expiration ? new Date(Number(providerDetails.expiration)) : null,
-        status: "ACTIVE",
+        status: CalendarSubscriptionStatus.ACTIVE,
         activatedAt: new Date(),
       },
     });
@@ -250,7 +265,7 @@ export class CalendarSubscriptionService {
   }) {
     log.debug("Linking CalendarSync to subscription", safeStringify({ calendarSyncId, subscriptionId }));
 
-    return await prisma.calendarSync.update({
+    return CalendarSyncRepository.update({
       where: { id: calendarSyncId },
       data: { subscriptionId },
     });
@@ -262,9 +277,13 @@ export class CalendarSubscriptionService {
   static async deactivateSubscription(subscriptionId: string) {
     log.debug("Deactivating subscription", safeStringify({ subscriptionId }));
 
-    return await prisma.calendarSubscription.update({
+    return CalendarSubscriptionRepository.update({
       where: { id: subscriptionId },
-      data: { status: "INACTIVE" },
+      data: { status: CalendarSubscriptionStatus.INACTIVE },
     });
+  }
+
+  static async findAllRequiringRenewalOrActivation({ batchSize }: { batchSize: number }) {
+    return CalendarSubscriptionRepository.findManyRequiringRenewalOrActivation({ batchSize });
   }
 }

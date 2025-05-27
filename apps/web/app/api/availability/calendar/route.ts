@@ -89,13 +89,15 @@ async function deleteHandler(req: NextRequest) {
   const { integration, externalId, credentialId, eventTypeId } =
     selectedCalendarSelectSchema.parse(searchParams);
 
-  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
-  const calendarSubscription = await CalendarSubscriptionService.findbyExternalIdAndIntegration({
-    externalId,
-    integration,
-  });
+  const [calendarCacheRepository, calendarSubscription] = await Promise.all([
+    CalendarCache.initFromCredentialId(credentialId),
+    CalendarSubscriptionService.findbyExternalIdAndIntegration({
+      externalId,
+      integration,
+    }),
+  ]);
 
-  await calendarCacheRepository.unwatchCalendar({
+  await calendarCacheRepository.unwatchSelectedCalendar({
     calendarId: externalId,
     eventTypeIds: [eventTypeId ?? null],
     calendarSubscription: calendarSubscription,

@@ -14,7 +14,7 @@ import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/ty
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { Direction } from "@calcom/prisma/enums";
+import { CalendarSyncDirection } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -1453,7 +1453,7 @@ export async function expectCalendarSyncToBeInDatabase({
       credentialId,
       externalCalendarId,
       integration,
-      lastSyncDirection: Direction.UPSTREAM,
+      lastSyncDirection: CalendarSyncDirection.UPSTREAM,
       lastSyncedUpAt: expect.any(Date),
     })
   );

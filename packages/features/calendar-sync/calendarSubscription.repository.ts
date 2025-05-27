@@ -1,6 +1,82 @@
 import prisma from "@calcom/prisma";
+import type { CalendarSubscriptionStatus } from "@calcom/prisma/enums";
 
+type ProviderType = string;
 export class CalendarSubscriptionRepository {
+  static async create({
+    data,
+  }: {
+    data: {
+      credentialId: number;
+      externalCalendarId: string;
+      providerType: ProviderType;
+      status: CalendarSubscriptionStatus;
+      providerSubscriptionId: string | null;
+      providerSubscriptionKind: string | null;
+      providerResourceId: string | null;
+      providerResourceUri: string | null;
+      providerExpiration: Date | null;
+      activatedAt: Date;
+    };
+  }) {
+    return prisma.calendarSubscription.create({
+      data,
+    });
+  }
+
+  static async update({
+    where,
+    data,
+  }: {
+    where: {
+      id: string;
+    };
+    data: {
+      providerSubscriptionId?: string | null;
+      providerSubscriptionKind?: string | null;
+      providerResourceId?: string | null;
+      providerResourceUri?: string | null;
+      providerExpiration?: Date | null;
+      activatedAt?: Date;
+      status?: CalendarSubscriptionStatus;
+    };
+  }) {
+    return await prisma.calendarSubscription.update({
+      where,
+      data,
+    });
+  }
+
+  static async upsert({
+    where,
+    createData,
+    updateData,
+  }: {
+    where: {
+      credentialId_externalCalendarId: {
+        credentialId: number;
+        externalCalendarId: string;
+      };
+    };
+    createData: {
+      externalCalendarId: string;
+      credentialId: number;
+      providerType: ProviderType;
+      status?: CalendarSubscriptionStatus;
+      calendarSyncId?: string | null;
+    };
+    updateData: {
+      providerType?: ProviderType;
+      status?: CalendarSubscriptionStatus;
+    };
+  }) {
+    return prisma.calendarSubscription.upsert({
+      where,
+      update: updateData,
+      create: createData,
+    });
+  }
+
   static async findUniqueById({ id }: { id: string }) {
     return prisma.calendarSubscription.findUnique({
       where: { id },
@@ -70,5 +146,19 @@ export class CalendarSubscriptionRepository {
     });
 
     return requiringRenewalOrActivation;
+  }
+
+  static async findFirst({
+    where,
+  }: {
+    where: {
+      providerType?: ProviderType;
+      status?: CalendarSubscriptionStatus;
+      externalCalendarId?: string;
+    };
+  }) {
+    return prisma.calendarSubscription.findFirst({
+      where,
+    });
   }
 }

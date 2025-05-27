@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 import { z } from "zod";
 
 import { CalendarSyncRepository } from "@calcom/features/calendar-sync/calendarSync.repository";
+import { syncDownstream } from "@calcom/features/calendar-sync/lib/syncDownstream";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -9,7 +10,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 
-import { syncEvents } from "../../_utils/calendars/calendarSync";
 import { getCalendar } from "../../_utils/getCalendar";
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarWebhook"] });
@@ -185,11 +185,16 @@ async function getCalendarFromChannelId({
     });
   }
 
+  const allRelatedSelectedCalendars = await SelectedCalendarRepository.findFromCredentialId(
+    calendar.credentialId
+  );
+
   return {
     calendarService,
     syncActions,
     externalCalendarId: calendar.externalCalendarId,
     calendarSyncId: calendarSync?.id ?? null,
+    allRelatedSelectedCalendars,
   };
 }
 
@@ -232,7 +237,7 @@ export async function postHandler(req: NextApiRequest) {
       return { message: "ok" };
     }
 
-    const { calendarService, syncActions, externalCalendarId, calendarSyncId } =
+    const { calendarService, syncActions, externalCalendarId, calendarSyncId, allRelatedSelectedCalendars } =
       await getCalendarFromChannelId({
         channelId,
         resourceId,
@@ -252,10 +257,11 @@ export async function postHandler(req: NextApiRequest) {
     const result = await calendarService.onWatchedCalendarChange({
       calendarId: externalCalendarId,
       syncActions,
+      selectedCalendars: allRelatedSelectedCalendars,
     });
 
     if (result.eventsToSync) {
-      await syncEvents({
+      await syncDownstream({
         calendarEvents: result.eventsToSync,
         app: {
           type: "google_calendar",
@@ -323,7 +329,7 @@ export async function postHandler(req: NextApiRequest) {
     if (error instanceof HttpError) {
       // Log HttpErrors with context before re-throwing
       log.error(
-        `HttpError processing webhook: ${error.message}`,
+        `Error processing webhook: ${error.message}`,
         safeStringify({ statusCode: error.statusCode, context })
       );
       throw error;

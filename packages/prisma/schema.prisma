@@ -220,7 +220,7 @@ model Credential {
   references             BookingReference[]
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
-  calendarSyncs      CalendarSync[]
+  calendarSyncs          CalendarSync[]
   subscriptions          CalendarSubscription[]
 
   @@index([appId])
@@ -643,10 +643,9 @@ model BookingReference {
   id                         Int      @id @default(autoincrement())
   /// @zod.min(1)
   type                       String
-  // A Google Calendar event can be found in multiple BookingReference records because a reschedule would create a new Booking and thus a new BookingReference, but same Calendar Event will be updated.
+  // It is the id of the third party calendar event
+  // A Calendar event can be found in multiple BookingReference records because a reschedule would create a new Booking and thus a new BookingReference but same id would be there
   // This is why we can't make it unique.
-  // This causes problems down the line where we can't uniquely identify a booking from a uid and thus we need to filter out rescheduled ones.
-  // But that is how BookingReferences are and they store historical records of booking reschedules and we probably don't want to change that.
   /// @zod.min(1)
   uid                        String
   meetingId                  String?
@@ -2293,11 +2292,11 @@ model WorkflowOptOutContact {
 // Pending -> Active or Pending -> Error
 // ACTIVE -> INACTIVE if we identify that the sync is no longer needed.
 // ACTIVE -> ERROR could occur if maybe some error in renewing the subscription.
-enum SubscriptionStatus {
+enum CalendarSubscriptionStatus {
   ACTIVE
   INACTIVE // e.g., Third party calendar watch is no longer needed and has been stopped.
-  ERROR    // e.g., Permissions lost, API errors
-  PENDING  // e.g. Waiting to create subscription in provider
+  ERROR
+  PENDING  // Waiting to create subscription in provider
 }
 
 model CalendarSubscription {
@@ -2317,7 +2316,7 @@ model CalendarSubscription {
   providerResourceUri      String? // e.g., Google's resource URI
   providerExpiration       DateTime? // e.g., Google's channel expiration time
 
-  status      SubscriptionStatus @default(ACTIVE) // ACTIVE, INACTIVE, ERROR, PENDING
+  status      CalendarSubscriptionStatus @default(ACTIVE) // ACTIVE, INACTIVE, ERROR, PENDING
   // Updated whenever a push notification is received from the provider
   lastSyncAt  DateTime?
   lastError   String? // Last error message caused during attempted subscription
@@ -2329,15 +2328,16 @@ model CalendarSubscription {
   activatedAt DateTime?
 
   calendarSync CalendarSync?
+  // Subscription might be in use for freeBusy time watching if calendarSync is not set
   calendarSyncId String?
 
-  // Ensure one active subscription per credential + external calendar
+  // Ensure one subscription per credential + external calendar
   @@unique([credentialId, externalCalendarId])
   @@index([credentialId])
   @@index([providerSubscriptionId]) // For quick lookup from webhook headers
 }
 
-enum Direction {
+enum CalendarSyncDirection {
   UPSTREAM // Cal.com -> Third party calendar
   DOWNSTREAM // Third party calendar -> Cal.com
 }
@@ -2359,7 +2359,7 @@ model CalendarSync {
   subscriptionId     String? @unique
   lastSyncedUpAt     DateTime?
   lastSyncedDownAt   DateTime?
-  lastSyncDirection  Direction?
+  lastSyncDirection  CalendarSyncDirection?
 
   // All bookings that were synced to this calendar
   bookingReferences BookingReference[]

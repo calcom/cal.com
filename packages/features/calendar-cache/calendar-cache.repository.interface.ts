@@ -5,15 +5,15 @@ import type { SelectedCalendarEventTypeIds, CalendarSubscription } from "@calcom
 export type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
 export interface ICalendarCacheRepository {
-  watchCalendar(args: {
+  watchSelectedCalendar(args: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
-    calendarSubscription: CalendarSubscription;
+    calendarSubscription: CalendarSubscription | null;
   }): Promise<any>;
-  unwatchCalendar(args: {
+  unwatchSelectedCalendar(args: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
-    calendarSubscription: CalendarSubscription;
+    calendarSubscription: CalendarSubscription | null;
   }): Promise<any>;
   upsertCachedAvailability({
     credentialId,

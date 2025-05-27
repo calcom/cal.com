@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEventsToSync } from "@calcom/types/Calendar";
 
-import { getBookingUpdateActions } from "./calendarSync";
+import { getBookingUpdateActions } from "./syncDownstream";
 
 // Common booking data for tests
 const baseBooking = {
@@ -164,7 +164,7 @@ describe("calendarSync", () => {
         id: "event9",
         startTime: dayjs(baseBooking.startTime),
         endTime: dayjs(baseBooking.endTime),
-        status: "confirmed",
+        status: "ACCEPTED",
         organizerResponseStatus: "declined",
       } as CalendarEventsToSync[number];
       const actions = getBookingUpdateActions({ calendarEvent, booking: baseBooking, appName });
@@ -174,7 +174,7 @@ describe("calendarSync", () => {
           type: "CANCEL_BOOKING",
           bookingId: baseBooking.id,
           cancelledBy: appName,
-          notes: ["Organizer declined the meeting in Google Calendar"],
+          cancellationReason: "organizer_declined_in_calendar",
         })
       );
     });

@@ -1,7 +1,9 @@
+/**
+ * This cron is responsible to manage the subscriptions with all the third party providers
+ */
 import type { NextRequest } from "next/server";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { CalendarSubscriptionRepository } from "@calcom/features/calendar-sync/calendarSubscription.repository";
 import { CalendarSubscriptionService } from "@calcom/features/calendar-sync/calendarSubscription.service";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
@@ -150,12 +152,13 @@ export const GET = async (req: Request) => {
 
   let successCount = 0;
   let failureCount = 0;
-  const processedCount = 0;
-
+  let processedCount = 0;
   try {
-    const subscriptionsToProcess = await CalendarSubscriptionRepository.findManyRequiringRenewalOrActivation({
+    const subscriptionsToProcess = await CalendarSubscriptionService.findAllRequiringRenewalOrActivation({
       batchSize: BATCH_SIZE,
     });
+
+    processedCount = subscriptionsToProcess.length;
 
     if (!subscriptionsToProcess.length) {
       log.info("No subscriptions need processing in this run.");

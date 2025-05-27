@@ -28,6 +28,7 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { createCalendarSyncTask } from "@calcom/features/calendar-sync/tasks";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -88,10 +89,6 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
-import {
-  createCalendarSync,
-  getReferencesToCreateSupportingCalendarSync,
-} from "./handleNewBooking/calendarSync";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -2095,18 +2092,12 @@ async function handler(
 
   try {
     if (!isDryRun) {
-      const { calendarSync, calendarEventId } = await createCalendarSync({
+      await createCalendarSyncTask({
         results,
         organizer: {
           id: organizerUser.id,
           organizationId: organizerOrganizationId ?? null,
         },
-      });
-
-      const referencesToCreateSupportingCalendarSync = getReferencesToCreateSupportingCalendarSync({
-        referencesToCreate,
-        calendarSyncId: calendarSync?.id ?? null,
-        calendarEventId,
       });
 
       await prisma.booking.update({
@@ -2118,7 +2109,7 @@ async function handler(
           metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
           references: {
             createMany: {
-              data: referencesToCreateSupportingCalendarSync,
+              data: referencesToCreate,
             },
           },
         },

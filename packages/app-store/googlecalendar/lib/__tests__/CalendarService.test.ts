@@ -468,7 +468,7 @@ describe("Watching and unwatching calendar", () => {
     const credentialInDb1 = await createCredentialForCalendarService();
     const calendarService = new CalendarService(credentialInDb1);
 
-    await calendarService.watchCalendar({
+    await calendarService.watchSelectedCalendar({
       calendarId: testSelectedCalendar.externalId,
       eventTypeIds: [null],
     });
@@ -500,7 +500,7 @@ describe("Watching and unwatching calendar", () => {
 
     expect(watchedCalendar?.id).toBeDefined();
 
-    await calendarService.unwatchCalendar({
+    await calendarService.unwatchSelectedCalendar({
       calendarId: testSelectedCalendar.externalId,
       eventTypeIds: [null],
     });
@@ -546,7 +546,7 @@ describe("Watching and unwatching calendar", () => {
       });
 
       const calendarService = new CalendarService(delegationCredential1Member1);
-      await calendarService.watchCalendar({
+      await calendarService.watchSelectedCalendar({
         calendarId: testSelectedCalendar.externalId,
         eventTypeIds: [null],
       });
@@ -589,7 +589,7 @@ describe("Watching and unwatching calendar", () => {
       });
 
       const calendarService = new CalendarService(delegationCredential1Member1);
-      await calendarService.unwatchCalendar({
+      await calendarService.unwatchSelectedCalendar({
         calendarId: selectedCalendar.externalId,
         eventTypeIds: [null],
       });
@@ -609,7 +609,7 @@ describe("Watching and unwatching calendar", () => {
     });
   });
 
-  test("watchCalendar should not do google subscription if already subscribed for the same calendarId", async () => {
+  test("watchSelectedCalendar should not do google subscription if already subscribed for the same calendarId", async () => {
     const credentialInDb1 = await createCredentialForCalendarService();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
     const userLevelCalendar = await SelectedCalendarRepository.create({
@@ -628,7 +628,7 @@ describe("Watching and unwatching calendar", () => {
       credentialId: credentialInDb1.id,
     });
 
-    await calendarCache.watchCalendar({
+    await calendarCache.watchSelectedCalendar({
       calendarId: userLevelCalendar.externalId,
       eventTypeIds: [userLevelCalendar.eventTypeId],
     });
@@ -646,7 +646,7 @@ describe("Watching and unwatching calendar", () => {
     });
 
     // Watch different selectedcalendar with same externalId and credentialId
-    await calendarCache.watchCalendar({
+    await calendarCache.watchSelectedCalendar({
       calendarId: eventTypeLevelCalendar.externalId,
       eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
     });
@@ -662,7 +662,7 @@ describe("Watching and unwatching calendar", () => {
     });
   });
 
-  test("watchCalendar should do google subscription if already subscribed but for different calendarId", async () => {
+  test("watchSelectedCalendar should do google subscription if already subscribed but for different calendarId", async () => {
     const credentialInDb1 = await createCredentialForCalendarService();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
     const userLevelCalendar = await SelectedCalendarRepository.create({
@@ -681,7 +681,7 @@ describe("Watching and unwatching calendar", () => {
       credentialId: credentialInDb1.id,
     });
 
-    await calendarCache.watchCalendar({
+    await calendarCache.watchSelectedCalendar({
       calendarId: userLevelCalendar.externalId,
       eventTypeIds: [userLevelCalendar.eventTypeId],
     });
@@ -699,7 +699,7 @@ describe("Watching and unwatching calendar", () => {
     });
 
     // Watch different selectedcalendar with same externalId and credentialId
-    await calendarCache.watchCalendar({
+    await calendarCache.watchSelectedCalendar({
       calendarId: eventTypeLevelCalendar.externalId,
       eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
     });
@@ -718,7 +718,7 @@ describe("Watching and unwatching calendar", () => {
     });
   });
 
-  test("unwatchCalendar should not unsubscribe from google if there is another selectedCalendar with same externalId and credentialId", async () => {
+  test("unwatchSelectedCalendar should not unsubscribe from google if there is another selectedCalendar with same externalId and credentialId", async () => {
     const credentialInDb1 = await createCredentialForCalendarService();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
 
@@ -775,7 +775,7 @@ describe("Watching and unwatching calendar", () => {
         eventTypeId: 2,
       });
 
-    await calendarCache.unwatchCalendar({
+    await calendarCache.unwatchSelectedCalendar({
       calendarId: userLevelCalendar.externalId,
       eventTypeIds: [userLevelCalendar.eventTypeId],
     });
@@ -783,7 +783,7 @@ describe("Watching and unwatching calendar", () => {
     expectGoogleUnsubscriptionToNotHaveOccurredAndClearMock();
     await expectSelectedCalendarToNotHaveGoogleChannelProps(userLevelCalendar.id);
 
-    await calendarCache.unwatchCalendar({
+    await calendarCache.unwatchSelectedCalendar({
       calendarId: eventTypeLevelCalendar.externalId,
       eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
     });

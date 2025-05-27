@@ -53,36 +53,40 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
-  async watchCalendar(args: {
+  async watchSelectedCalendar(args: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
-    calendarSubscription: CalendarSubscription;
+    calendarSubscription: CalendarSubscription | null;
   }) {
     assertCalendarHasDbCredential(this.calendar);
     const { calendarId, eventTypeIds, calendarSubscription } = args;
-    if (typeof this.calendar?.watchCalendar !== "function") {
+    if (typeof this.calendar?.watchSelectedCalendar !== "function") {
       log.info(
-        '[handleWatchCalendar] Skipping watching calendar due to calendar not having "watchCalendar" method'
+        '[handleWatchCalendar] Skipping watching calendar due to calendar not having "watchSelectedCalendar" method'
       );
       return;
     }
-    await this.calendar?.watchCalendar({ calendarId, eventTypeIds, calendarSubscription });
+    await this.calendar?.watchSelectedCalendar({ calendarId, eventTypeIds, calendarSubscription });
   }
 
-  async unwatchCalendar(args: {
+  async unwatchSelectedCalendar(args: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
-    calendarSubscription: CalendarSubscription;
+    calendarSubscription: CalendarSubscription | null;
   }) {
     assertCalendarHasDbCredential(this.calendar);
     const { calendarId, eventTypeIds, calendarSubscription } = args;
-    if (typeof this.calendar?.unwatchCalendar !== "function") {
+    if (typeof this.calendar?.unwatchSelectedCalendar !== "function") {
       log.info(
-        '[unwatchCalendar] Skipping unwatching calendar due to calendar not having "unwatchCalendar" method'
+        '[unwatchSelectedCalendar] Skipping unwatching calendar due to calendar not having "unwatchSelectedCalendar" method'
       );
       return;
     }
-    const response = await this.calendar?.unwatchCalendar({ calendarId, eventTypeIds, calendarSubscription });
+    const response = await this.calendar?.unwatchSelectedCalendar({
+      calendarId,
+      eventTypeIds,
+      calendarSubscription,
+    });
     return response;
   }
 

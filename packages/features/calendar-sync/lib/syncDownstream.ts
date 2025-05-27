@@ -29,7 +29,7 @@ type BookingUpdateAction =
       type: "CANCEL_BOOKING";
       bookingId: number;
       cancelledBy: string;
-      cancellationReason: "ORGANIZER_DECLINED_IN_CALENDAR" | "EVENT_CANCELLED_IN_CALENDAR";
+      cancellationReason: "organizer_declined_in_calendar" | "event_cancelled_in_calendar";
       notes?: string[];
     }
   | {
@@ -91,8 +91,8 @@ export function getBookingUpdateActions({
       cancelledBy: appName,
       cancellationReason:
         calendarEvent.organizerResponseStatus === "declined"
-          ? "ORGANIZER_DECLINED_IN_CALENDAR"
-          : "EVENT_CANCELLED_IN_CALENDAR",
+          ? "organizer_declined_in_calendar"
+          : "event_cancelled_in_calendar",
       notes: ["Ignoring every other change as the booking has been cancelled"],
     });
     // If a booking is being cancelled, we don't need to make any other changes. We could even skip the changes in the calendar event time
@@ -167,7 +167,7 @@ function getBookingMap(bookingReferences: { uid: string | null; booking: Booking
   return bookingMap;
 }
 
-export async function syncEvents({
+export async function syncDownstream({
   calendarEvents,
   app,
 }: {
@@ -213,7 +213,9 @@ export async function syncEvents({
         const booking = bookingMap.get(calendarEvent.id) || null;
         if (!booking) {
           // The calendar event wasn't created in Cal.com, so we don't need to sync it
-          log.debug(`No booking found for Calendar Event ${calendarEvent.id}. Skipping sync.`);
+          log.error(
+            `No booking found for Calendar Event ${calendarEvent.id}. Nothing to sync for this event.`
+          );
           continue;
         }
         const actions = getBookingUpdateActions({ calendarEvent, booking, appName: app.name });
@@ -237,12 +239,13 @@ export async function syncEvents({
               break;
             case "UPDATE_BOOKING_TIMES":
               log.debug(
-                `Calendar Event ${calendarEvent.id} triggered TIME UPDATE for Cal.com booking ${action.bookingId}. Temporarily ignored`,
+                `Calendar Event ${calendarEvent.id} has time change, but it is ignored temporarily for booking ${action.bookingId}.`,
                 safeStringify({
                   newStart: action.startTime,
                   newEnd: action.endTime,
                 })
               );
+              // TODO: To be enabled in a follow up PR
               // dbUpdatePromise = prisma.booking.update({
               //   where: { id: action.bookingId },
               //   data: {

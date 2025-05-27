@@ -192,12 +192,7 @@ export class FeaturesRepository implements IFeaturesRepository {
   async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags): Promise<boolean> {
     try {
       // Early return if team has feature directly assigned
-      const teamHasFeature = await db.teamFeatures.findFirst({
-        where: {
-          teamId,
-          featureId,
-        },
-      });
+      const teamHasFeature = await this.checkIfTeamDirectlyHasFeature({ teamId, featureId });
       if (teamHasFeature) return true;
 
       const query = Prisma.sql`
@@ -239,5 +234,23 @@ export class FeaturesRepository implements IFeaturesRepository {
       );
       throw err;
     }
+  }
+
+  async checkIfTeamDirectlyHasFeature({
+    teamId,
+    featureId,
+  }: {
+    teamId: number;
+    featureId: keyof AppFlags;
+  }): Promise<boolean> {
+    const teamHasFeature = await db.teamFeatures.findUnique({
+      where: {
+        teamId_featureId: {
+          teamId,
+          featureId,
+        },
+      },
+    });
+    return Boolean(teamHasFeature);
   }
 }
