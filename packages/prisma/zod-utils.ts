@@ -280,7 +280,7 @@ export const bookingCancelSchema = z.object({
   // note(Lauris): cancelSubsequentBookings will cancel all bookings after one specified by id or uid.
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
-  seatReferenceUid: z.string().optional(),
+  seatReferenceUid: z.union([z.string(), z.array(z.string())]).optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
   internalNote: z
     .object({
@@ -293,7 +293,7 @@ export const bookingCancelSchema = z.object({
 });
 
 export const bookingCancelAttendeeSeatSchema = z.object({
-  seatReferenceUid: z.string(),
+  seatReferenceUid: z.string().or(z.array(z.string())),
 });
 
 export const bookingCancelInput = bookingCancelSchema.refine(
