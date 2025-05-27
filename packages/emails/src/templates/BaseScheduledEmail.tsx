@@ -50,8 +50,17 @@ export const BaseScheduledEmail = (
     )}, ${t(getRecipientStart("MMMM").toLowerCase())} ${getRecipientStart("D, YYYY")}`,
   });
 
-  const shouldHideOrganizerEmail =
-    props.calEvent.rescheduledBy === props.calEvent.organizer.email && props.calEvent.hideOrganizerEmail;
+  let rescheduledBy = props.calEvent.rescheduledBy;
+  if (
+    rescheduledBy &&
+    rescheduledBy === props.calEvent.organizer.email &&
+    props.calEvent.hideOrganizerEmail
+  ) {
+    const personWhoRescheduled = [props.calEvent.organizer, ...props.calEvent.attendees].find(
+      (person) => person.email === rescheduledBy
+    );
+    rescheduledBy = personWhoRescheduled?.email;
+  }
 
   return (
     <BaseEmailHtml
@@ -108,15 +117,7 @@ export const BaseScheduledEmail = (
           )}
         </>
       )}
-      {props.calEvent.rescheduledBy && (
-        <Info
-          label={t("rescheduled_by")}
-          description={
-            shouldHideOrganizerEmail ? props.calEvent.organizer.name : props.calEvent.rescheduledBy
-          }
-          withSpacer
-        />
-      )}
+      {rescheduledBy && <Info label={t("rescheduled_by")} description={rescheduledBy} withSpacer />}
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
       <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
       <WhoInfo calEvent={props.calEvent} t={t} />
