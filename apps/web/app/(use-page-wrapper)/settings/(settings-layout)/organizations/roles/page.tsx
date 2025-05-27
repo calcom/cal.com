@@ -104,6 +104,7 @@ const Page = async ({ searchParams }: { searchParams: Record<string, string | st
       CTA={canCreate || canManage ? <CreateRoleCTA /> : null}>
       <Suspense fallback={<SkeletonLoader />}>
         <RolesList
+          teamId={session.user.org.id}
           roles={roles}
           permissions={{
             canCreate: canCreate || canManage,
