@@ -11,6 +11,7 @@ export interface RolePermission {
 export interface Role {
   id: string;
   name: string;
+  color?: string;
   description?: string;
   teamId?: number;
   type: RoleType;
@@ -22,6 +23,7 @@ export interface Role {
 // Value Objects
 export interface CreateRoleData {
   name: string;
+  color?: string;
   description?: string;
   teamId?: number;
   permissions: PermissionString[];

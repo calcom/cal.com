@@ -21,6 +21,7 @@ export class RoleRepository implements IRoleRepository {
         "Role.description",
         "Role.teamId",
         "Role.type",
+        "Role.color",
         "Role.createdAt",
         "Role.updatedAt",
         (eb) =>
@@ -47,6 +48,7 @@ export class RoleRepository implements IRoleRepository {
         "Role.description",
         "Role.teamId",
         "Role.type",
+        "Role.color",
         "Role.createdAt",
         "Role.updatedAt",
         (eb) =>
@@ -72,6 +74,7 @@ export class RoleRepository implements IRoleRepository {
         "Role.description",
         "Role.teamId",
         "Role.type",
+        "Role.color",
         "Role.createdAt",
         "Role.updatedAt",
         (eb) =>

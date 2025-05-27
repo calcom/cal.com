@@ -27,6 +27,7 @@ describe("RoleService", () => {
       delete: vi.fn(),
       updatePermissions: vi.fn(),
       transaction: vi.fn(),
+      roleBelongsToTeam: vi.fn(),
     };
     service = new RoleService(mockRepository);
   });
@@ -44,6 +45,7 @@ describe("RoleService", () => {
         id: "new-role",
         name: roleData.name,
         teamId: roleData.teamId,
+        color: "#000000",
         type: RoleType.CUSTOM,
         permissions: [{ id: "perm-1", resource: "eventType", action: "create" }],
         createdAt: new Date(),
@@ -93,6 +95,7 @@ describe("RoleService", () => {
         id: roleId,
         name: "Test Role",
         teamId: 1,
+        color: "#000000",
         type: RoleType.CUSTOM,
         permissions: [
           { id: "perm-1", resource: "eventType", action: "create" },
@@ -129,6 +132,7 @@ describe("RoleService", () => {
         name: "Test Role",
         teamId: 1,
         type: RoleType.CUSTOM,
+        color: "#000000",
         permissions: [
           { id: "perm-1", resource: "eventType", action: "create" },
           { id: "perm-2", resource: "eventType", action: "read" },
@@ -183,6 +187,7 @@ describe("RoleService", () => {
         id: roleId,
         name: "Test Role",
         teamId: 1,
+        color: "#000000",
         type: RoleType.CUSTOM,
         permissions: [],
         createdAt: new Date(),
@@ -202,6 +207,7 @@ describe("RoleService", () => {
         id: roleId,
         name: "System Role",
         teamId: 1,
+        color: "#000000",
         type: RoleType.SYSTEM,
         permissions: [],
         createdAt: new Date(),
@@ -230,6 +236,7 @@ describe("RoleService", () => {
         id: roleId,
         name: "Test Role",
         teamId: 1,
+        color: "#000000",
         type: RoleType.CUSTOM,
         permissions: [
           { id: "perm-1", resource: "eventType", action: "create" },

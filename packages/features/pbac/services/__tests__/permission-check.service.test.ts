@@ -32,6 +32,7 @@ describe("PermissionCheckService", () => {
       getUserMemberships: vi.fn(),
       checkRolePermission: vi.fn(),
       checkRolePermissions: vi.fn(),
+      getResourcePermissions: vi.fn(),
     };
 
     mockFeaturesRepository = {
