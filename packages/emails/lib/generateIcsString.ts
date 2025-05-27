@@ -65,7 +65,9 @@ const generateIcsString = ({
     recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
   }
 
-  const isOrganizerVirta = event.organizer.email.includes("@virtahealth.com");
+  const isOrganizerExempt = process.env.ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",").some((domain) =>
+    event.organizer.email.toLowerCase().endsWith(domain.toLowerCase())
+  );
 
   const icsEvent = createEvent({
     uid: event.iCalUID || event.uid!,
@@ -78,7 +80,9 @@ const generateIcsString = ({
     description: getRichDescription(event, t),
     organizer: {
       name: event.organizer.name,
-      ...(event.hideOrganizerEmail && !isOrganizerVirta ? {} : { email: event.organizer.email }),
+      ...(event.hideOrganizerEmail && !isOrganizerExempt
+        ? { email: "no-reply@cal.com" }
+        : { email: event.organizer.email }),
     },
     ...{ recurrenceRule },
     attendees: [
