@@ -173,7 +173,6 @@ export default class GoogleCalendarService implements Calendar {
     externalCalendarId?: string
   ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
-    // const formattedCalEvent = formatCalEvent(calEventRaw);
 
     const payload: calendar_v3.Schema$Event = {
       summary: calEvent.title,
