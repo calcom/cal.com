@@ -97,7 +97,7 @@ async function deleteHandler(req: NextRequest) {
     }),
   ]);
 
-  await calendarCacheRepository.unwatchCalendar({
+  await calendarCacheRepository.unwatchSelectedCalendar({
     calendarId: externalId,
     eventTypeIds: [eventTypeId ?? null],
     calendarSubscription: calendarSubscription,

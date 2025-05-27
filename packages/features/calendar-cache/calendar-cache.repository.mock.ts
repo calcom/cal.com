@@ -5,8 +5,8 @@ import type { ICalendarCacheRepository } from "./calendar-cache.repository.inter
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepositoryMock"] });
 
 export class CalendarCacheRepositoryMock implements ICalendarCacheRepository {
-  async watchCalendar() {
-    log.info(`Skipping watchCalendar due to calendar-cache being disabled`);
+  async watchSelectedCalendar() {
+    log.info(`Skipping watchSelectedCalendar due to calendar-cache being disabled`);
   }
   async upsertCachedAvailability() {
     log.info(`Skipping upsertCachedAvailability due to calendar-cache being disabled`);
@@ -16,8 +16,8 @@ export class CalendarCacheRepositoryMock implements ICalendarCacheRepository {
     return null;
   }
 
-  async unwatchCalendar() {
-    log.info(`Skipping unwatchCalendar due to calendar-cache being disabled`);
+  async unwatchSelectedCalendar() {
+    log.info(`Skipping unwatchSelectedCalendar due to calendar-cache being disabled`);
   }
 
   async deleteManyByCredential() {

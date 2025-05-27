@@ -318,7 +318,7 @@ export interface Calendar {
 
   testDelegationCredentialSetup?(): Promise<boolean>;
 
-  watchCalendar?(options: {
+  watchSelectedCalendar?(options: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
     calendarSubscription: CalendarSubscription | null;
@@ -332,7 +332,7 @@ export interface Calendar {
     eventsToSync: CalendarEventsToSync;
   }>;
 
-  unwatchCalendar?(options: {
+  unwatchSelectedCalendar?(options: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
     calendarSubscription: CalendarSubscription | null;
