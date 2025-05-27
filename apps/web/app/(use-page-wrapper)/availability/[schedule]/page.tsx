@@ -1,11 +1,17 @@
-import { createRouterCaller } from "app/_trpc/context";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
-import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
+import prisma from "@calcom/prisma";
+import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
@@ -28,6 +34,27 @@ export const generateMetadata = async () => {
   );
 };
 
+export const getCachedScheduleData = unstable_cache(
+  async (scheduleId: number, userId: number, timeZone: string, defaultScheduleId: number | null) => {
+    return await ScheduleRepository.findDetailedScheduleById({
+      scheduleId,
+      userId,
+      timeZone,
+      defaultScheduleId,
+    });
+  },
+  ["schedule.findDetailedScheduleById"],
+  { revalidate: 3600 } // Cache for 1 hour
+);
+
+export const getCachedTravelSchedulesData = unstable_cache(
+  async (userId: number) => {
+    return await TravelScheduleRepository.findTravelSchedulesByUserId(userId);
+  },
+  ["travelSchedule.findTravelSchedulesByUserId"],
+  { revalidate: 3600 } // Cache for 1 hour
+);
+
 const Page = async ({ params }: PageProps) => {
   const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
@@ -35,14 +62,20 @@ const Page = async ({ params }: PageProps) => {
   }
   const scheduleId = parsed.data.schedule;
 
-  const [availabilityCaller, travelSchedulesCaller] = await Promise.all([
-    createRouterCaller(availabilityRouter),
-    createRouterCaller(travelSchedulesRouter),
-  ]);
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+
+  if (!session?.user?.id) {
+    notFound();
+  }
+
+  const userId = session.user.id;
+  const userTimeZone = session.user.timeZone || "UTC";
+
+  const defaultScheduleId = await getDefaultScheduleId(userId, prisma);
 
   const [scheduleData, travelSchedulesData] = await Promise.all([
-    availabilityCaller.schedule.get({ scheduleId }),
-    travelSchedulesCaller.get(),
+    getCachedScheduleData(scheduleId, userId, userTimeZone, defaultScheduleId),
+    getCachedTravelSchedulesData(userId),
   ]);
 
   if (!scheduleData) {
