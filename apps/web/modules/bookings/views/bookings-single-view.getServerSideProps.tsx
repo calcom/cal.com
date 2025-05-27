@@ -220,14 +220,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // Filter out organizer information if hideOrganizerEmail is true
   const sanitizedBookingInfo =
     eventType.hideOrganizerEmail && bookingInfo.rescheduledBy === bookingInfo.user?.email
-      ? { ...bookingInfo, rescheduledBy: null }
+      ? { ...bookingInfo, rescheduledBy: bookingInfo.user?.name }
       : bookingInfo;
 
   const sanitizedPreviousBooking =
     eventType.hideOrganizerEmail &&
     previousBooking &&
     previousBooking.rescheduledBy === bookingInfo.user?.email
-      ? { ...previousBooking, rescheduledBy: null }
+      ? { ...previousBooking, rescheduledBy: bookingInfo.user?.name }
       : previousBooking;
 
   return {
