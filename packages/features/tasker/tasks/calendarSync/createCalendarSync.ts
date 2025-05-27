@@ -1,1 +1,1 @@
-export { handler } from "../../../calendar-sync/tasks/createCalendarSync/createCalendarSync";
+export { handler } from "../../../calendar-sync/tasks/createCalendarSync/handler";

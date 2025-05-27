@@ -28,7 +28,7 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
-import { createCalendarSyncTask } from "@calcom/features/calendar-sync/tasks";
+import { createCalendarSyncTask } from "@calcom/features/calendar-sync/tasks/createCalendarSync/createTask";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -2115,12 +2115,8 @@ async function handler(
         },
       });
     }
-    // TODO: Attach bookingReferenceId as well to calendarSync
   } catch (error) {
-    loggerWithEventDetails.error(
-      "Error while updating booking references or calendarSyncs",
-      safeStringify(error)
-    );
+    loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
   const evtWithMetadata = {

@@ -7,7 +7,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { AdditionalInformation } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
 
-import { featureName } from "./feature";
+import { featureName } from "../../feature";
 
 const log = logger.getSubLogger({ prefix: [featureName, "tasks"] });
 type CalendarResults = EventResult<
