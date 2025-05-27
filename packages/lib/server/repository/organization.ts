@@ -57,7 +57,6 @@ export class OrganizationRepository {
 
     await prisma.membership.create({
       data: {
-        createdAt: new Date(),
         userId: owner.id,
         role: MembershipRole.OWNER,
         accepted: true,
@@ -103,7 +102,6 @@ export class OrganizationRepository {
 
     await prisma.membership.create({
       data: {
-        createdAt: new Date(),
         userId: ownerInDb.id,
         role: MembershipRole.OWNER,
         accepted: true,
@@ -473,5 +471,50 @@ export class OrganizationRepository {
     });
 
     return team?.isPrivate ?? false;
+  }
+
+  static async getTeams({ organizationId }: { organizationId: number }) {
+    return await prisma.team.findMany({
+      where: {
+        parentId: organizationId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  }
+
+  static async getFacetedValues({ organizationId }: { organizationId: number }) {
+    const [teams, attributes] = await Promise.all([
+      prisma.team.findMany({
+        where: {
+          parentId: organizationId,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      }),
+      prisma.attribute.findMany({
+        where: { teamId: organizationId },
+        select: {
+          id: true,
+          name: true,
+          options: {
+            select: {
+              value: true,
+            },
+            distinct: "value",
+          },
+        },
+      }),
+    ]);
+
+    return {
+      teams,
+      attributes,
+      roles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    };
   }
 }
