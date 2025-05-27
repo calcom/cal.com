@@ -1,7 +1,5 @@
 "use client";
 
-import { useQueryState } from "nuqs";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/badge";
 import { Button } from "@calcom/ui/button";
@@ -13,8 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 
+import { useRoleStates } from "../hooks/useRoleQueryStates";
 import { RoleSheet } from "./RoleSheet";
-import { roleParsers } from "./searchParams";
 
 type Role = {
   id: string;
@@ -49,23 +47,12 @@ interface RolesListProps {
 
 export function RolesList({ roles, permissions, initialSelectedRole, initialSheetOpen }: RolesListProps) {
   const { t } = useLocale();
-  const [isOpen, setIsOpen] = useQueryState("role-sheet", {
-    ...roleParsers["role-sheet"],
-    defaultValue: initialSheetOpen ?? false,
-  });
-  const [selectedRoleId, setSelectedRoleId] = useQueryState("role", {
-    ...roleParsers.role,
-    defaultValue: initialSelectedRole?.id ?? "",
-  });
+  const { isOpen, setIsOpen, selectedRoleId, setSelectedRoleId, handleSheetOpenChange } = useRoleStates(
+    initialSheetOpen,
+    initialSelectedRole?.id
+  );
 
   const selectedRole = roles.find((role) => role.id === selectedRoleId);
-
-  const handleSheetOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      setSelectedRoleId("");
-    }
-  };
 
   return (
     <>
