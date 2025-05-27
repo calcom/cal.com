@@ -44,7 +44,7 @@ const obtainNewUsernameChangeCondition = ({
 }: {
   userIsPremium: boolean;
   isNewUsernamePremium: boolean;
-  stripeCustomer: RouterOutputs["viewer"]["stripeCustomer"] | undefined;
+  stripeCustomer: RouterOutputs["viewer"]["loggedInViewerRouter"]["stripeCustomer"] | undefined;
 }) => {
   if (!userIsPremium && isNewUsernamePremium) {
     return UsernameChangeStatusEnum.UPGRADE;
