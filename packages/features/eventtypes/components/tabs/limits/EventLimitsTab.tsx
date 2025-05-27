@@ -387,6 +387,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
+  const [useCustomInterval, setUseCustomInterval] = useState(false);
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -518,48 +519,89 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               "w-full",
               customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.container
             )}>
-            <Label
-              htmlFor="slotInterval"
-              className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.label}>
-              {t("slot_interval")}
-              {shouldLockIndicator("slotInterval")}
-            </Label>
-            <Controller
-              name="slotInterval"
-              render={() => {
-                const slotIntervalOptions = [
-                  {
-                    label: t("slot_interval_default"),
-                    value: -1,
-                  },
-                  ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
-                    label: `${minutes} ${t("minutes")}`,
-                    value: minutes,
-                  })),
-                ];
-                return (
-                  <Select
-                    isSearchable={false}
-                    isDisabled={shouldLockDisableProps("slotInterval").disabled}
-                    onChange={(val) => {
-                      formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null, {
-                        shouldDirty: true,
-                      });
-                    }}
-                    defaultValue={
-                      slotIntervalOptions.find(
-                        (option) => option.value === formMethods.getValues("slotInterval")
-                      ) || slotIntervalOptions[0]
-                    }
-                    options={slotIntervalOptions}
-                    className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select}
-                    innerClassNames={
-                      customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.innerClassNames
-                    }
-                  />
-                );
-              }}
-            />
+            <div className="flex items-end justify-end">
+              <div className="w-1/2 md:w-full">
+                <Label
+                  htmlFor="slotInterval"
+                  className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.label}>
+                  {t("slot_interval")}
+                  {shouldLockIndicator("slotInterval")}
+                </Label>
+                <Controller
+                  name="slotInterval"
+                  render={() => {
+                    const slotIntervalOptions = [
+                      {
+                        label: t("slot_interval_default"),
+                        value: -1,
+                      },
+                      ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
+                        label: `${minutes} ${t("minutes")}`,
+                        value: minutes,
+                      })),
+                    ];
+                    return (
+                      <Select
+                        isSearchable={false}
+                        isDisabled={shouldLockDisableProps("slotInterval").disabled || useCustomInterval}
+                        onChange={(val) => {
+                          formMethods.setValue(
+                            "slotInterval",
+                            val && (val.value || 0) > 0 ? val.value : null,
+                            {
+                              shouldDirty: true,
+                            }
+                          );
+                        }}
+                        defaultValue={
+                          slotIntervalOptions.find(
+                            (option) => option.value === formMethods.getValues("slotInterval")
+                          ) || slotIntervalOptions[0]
+                        }
+                        options={slotIntervalOptions}
+                        className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select}
+                        innerClassNames={
+                          customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.innerClassNames
+                        }
+                      />
+                    );
+                  }}
+                />
+              </div>
+              <div className="ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px]">
+                <SettingsToggle
+                  title={t("Use custom interval")}
+                  checked={useCustomInterval}
+                  onCheckedChange={(active) => setUseCustomInterval(active)}
+                  {...shouldLockDisableProps("slotInterval")}
+                />
+                <Controller
+                  name="slotInterval"
+                  render={({ field, fieldState }) => {
+                    return (
+                      <>
+                        <InputField
+                          required
+                          disabled={shouldLockDisableProps("slotInterval").disabled || !useCustomInterval}
+                          defaultValue={field.value ?? ""}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value || "0", 10);
+                            field.onChange(isNaN(val) || val <= 0 ? null : val);
+                          }}
+                          type="number"
+                          placeholder="0"
+                          className={classNames(
+                            "mb-0 h-9 ltr:mr-2 rtl:ml-2",
+                            customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select
+                          )}
+                          min={1}
+                        />
+                      </>
+                    );
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
