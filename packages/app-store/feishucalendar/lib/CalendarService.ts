@@ -1,9 +1,10 @@
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
+  CalendarServiceEvent,
   CalendarEvent,
   EventBusyDate,
   IntegrationCalendar,
@@ -372,10 +373,10 @@ export default class FeishuCalendarService implements Calendar {
     }
   };
 
-  private translateEvent = (event: CalendarEvent): FeishuEvent => {
+  private translateEvent = (event: CalendarServiceEvent): FeishuEvent => {
     const feishuEvent: FeishuEvent = {
       summary: event.title,
-      description: getRichDescription(event),
+      description: event.calendarDescription,
       start_time: {
         timestamp: parseEventTime2Timestamp(event.startTime),
         timezone: event.organizer.timeZone,
