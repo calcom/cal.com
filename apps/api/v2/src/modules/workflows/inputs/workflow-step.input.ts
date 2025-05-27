@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsNumber, IsBoolean, IsString, ValidateNested, IsIn } from "class-validator";
@@ -93,7 +93,6 @@ export class HtmlWorkflowMessageDto extends BaseWorkflowMessageDto {
     description: "HTML content of the message (used for Emails)",
     example:
       "<p>This is a reminder from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here  {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.</p>",
-    required: false,
   })
   @IsString()
   html!: string;
@@ -104,7 +103,6 @@ export class TextWorkflowMessageDto extends BaseWorkflowMessageDto {
     description: "Text content of the message (used for SMS)",
     example:
       "This is a reminder message from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.",
-    required: false,
   })
   @IsString()
   text!: string;
@@ -137,7 +135,7 @@ export class WorkflowEmailHostStepDto extends BaseWorkflowStepDto {
   @IsIn(STEP_ACTIONS)
   action: typeof EMAIL_HOST = EMAIL_HOST;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: `Whether to include a calendar event in the notification, can be included with actions ${EMAIL_HOST}, ${EMAIL_ATTENDEE}, ${EMAIL_ADDRESS}`,
     example: true,
   })
@@ -156,18 +154,17 @@ export class WorkflowEmailAddressStepDto extends BaseWorkflowStepDto {
   @IsIn(STEP_ACTIONS)
   action: typeof EMAIL_ADDRESS = EMAIL_ADDRESS;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: "Email address if recipient is EMAIL, required for action EMAIL_ADDRESS",
     example: "31214",
-    required: false,
     externalDocs: {
       url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-an-email-for-an-org-team",
     },
   })
   @IsNumber()
-  verifiedEmailId?: number;
+  verifiedEmailId!: number;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: `Whether to include a calendar event in the notification, can be included with actions ${EMAIL_HOST}, ${EMAIL_ATTENDEE}, ${EMAIL_ADDRESS}`,
     example: true,
   })
@@ -186,7 +183,7 @@ export class WorkflowEmailAttendeeStepDto extends BaseWorkflowStepDto {
   @IsIn(STEP_ACTIONS)
   action: typeof EMAIL_ATTENDEE = EMAIL_ATTENDEE;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: `Whether to include a calendar event in the notification, can be included with actions ${EMAIL_HOST}, ${EMAIL_ATTENDEE}, ${EMAIL_ADDRESS}`,
     example: true,
   })
@@ -205,11 +202,10 @@ export class WorkflowPhoneWhatsAppNumberStepDto extends BaseWorkflowStepDto {
   @IsIn(STEP_ACTIONS)
   action: typeof WHATSAPP_NUMBER = WHATSAPP_NUMBER;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description:
       "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
     example: "3243434",
-    required: false,
     externalDocs: {
       url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team",
     },
@@ -229,11 +225,10 @@ export class WorkflowPhoneAttendeeStepDto extends BaseWorkflowStepDto {
   @IsIn(STEP_ACTIONS)
   action: typeof SMS_ATTENDEE = SMS_ATTENDEE;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description:
       "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
     example: "3243434",
-    required: false,
     externalDocs: {
       url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team",
     },
@@ -250,11 +245,10 @@ export class WorkflowPhoneNumberStepDto extends BaseWorkflowStepDto {
   @IsIn(STEP_ACTIONS)
   action: typeof SMS_NUMBER = SMS_NUMBER;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description:
       "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
     example: "3243434",
-    required: false,
     externalDocs: {
       url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team",
     },

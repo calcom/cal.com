@@ -1,4 +1,4 @@
-import { ApiProperty, getSchemaPath } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsNumber, IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
 
@@ -114,12 +114,12 @@ export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWha
 }
 
 export class UpdateWorkflowDto {
-  @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
+  @ApiPropertyOptional({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
   @IsOptional()
   name?: string;
 
-  @ApiProperty({ description: "Activation settings for the workflow", type: WorkflowActivationDto })
+  @ApiPropertyOptional({ description: "Activation settings for the workflow", type: WorkflowActivationDto })
   @ValidateNested()
   @Type(() => WorkflowActivationDto)
   @IsOptional()
@@ -147,7 +147,7 @@ export class UpdateWorkflowDto {
     | OnCancelTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
     | OnAfterCalVideoHostsNoShowTriggerDto;
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "Steps to execute as part of the workflow",
     items: {
       oneOf: [
@@ -158,6 +158,8 @@ export class UpdateWorkflowDto {
         { $ref: getSchemaPath(UpdatePhoneWhatsAppNumberWorkflowStepDto) },
         { $ref: getSchemaPath(UpdateWhatsAppAttendeePhoneWorkflowStepDto) },
         { $ref: getSchemaPath(UpdatePhoneNumberWorkflowStepDto) },
+        { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
+        { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
       ],
     },
   })

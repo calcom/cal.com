@@ -83,7 +83,20 @@ export class CreateWorkflowDto {
   @Type(() => WorkflowActivationDto)
   activation!: WorkflowActivationDto;
 
-  @ApiProperty({ description: "Trigger configuration for the workflow", type: BaseWorkflowTriggerDto })
+  @ApiProperty({
+    description: "Trigger configuration for the workflow",
+    items: {
+      oneOf: [
+        { $ref: getSchemaPath(OnBeforeEventTriggerDto) },
+        { $ref: getSchemaPath(OnAfterEventTriggerDto) },
+        { $ref: getSchemaPath(OnCancelTriggerDto) },
+        { $ref: getSchemaPath(OnCreationTriggerDto) },
+        { $ref: getSchemaPath(OnRescheduleTriggerDto) },
+        { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
+        { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
+      ],
+    },
+  })
   @ValidateNested()
   @Type(() => BaseWorkflowTriggerDto, {
     discriminator: {

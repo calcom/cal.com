@@ -102,7 +102,6 @@ export class TriggerOffsetDTO {
   @ApiProperty({
     description: "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
     type: WorkflowTriggerOffsetDto,
-    required: true,
   })
   @ValidateNested()
   @Type(() => WorkflowTriggerOffsetDto)

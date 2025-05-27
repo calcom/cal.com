@@ -21016,14 +21016,14 @@
             "example": 24
           },
           "unit": {
-            "enum": [
-              "HOUR",
-              "MINUTE",
-              "DAY"
-            ],
             "type": "string",
             "description": "Unit for the offset time",
-            "example": "HOUR"
+            "example": "hour",
+            "enum": [
+              "hour",
+              "minute",
+              "day"
+            ]
           }
         },
         "required": [
@@ -21035,16 +21035,18 @@
         "type": "object",
         "properties": {
           "type": {
-            "enum": [
-              "BEFORE_EVENT",
-              "EVENT_CANCELLED",
-              "NEW_EVENT",
-              "AFTER_EVENT",
-              "RESCHEDULE_EVENT"
-            ],
             "type": "string",
             "description": "Trigger type for the workflow",
-            "example": "BEFORE_EVENT"
+            "example": "before_event",
+            "enum": [
+              "before_event",
+              "event_cancelled",
+              "new_event",
+              "after_event",
+              "reschedule_event",
+              "after_hosts_cal_video_no_show",
+              "after_guests_cal_video_no_show"
+            ]
           },
           "offset": {
             "description": "Offset details (present for BEFORE_EVENT/AFTER_EVENT)",
@@ -21096,29 +21098,29 @@
             "example": 1
           },
           "action": {
-            "enum": [
-              "EMAIL_HOST",
-              "EMAIL_ATTENDEE",
-              "EMAIL_ADDRESS",
-              "SMS_ATTENDEE",
-              "SMS_NUMBER",
-              "WHATSAPP_ATTENDEE",
-              "WHATSAPP_NUMBER"
-            ],
             "type": "string",
             "description": "Action to perform",
-            "example": "EMAIL_HOST"
+            "example": "email_host",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ]
           },
           "recipient": {
-            "enum": [
-              "HOST",
-              "ATTENDEE",
-              "EMAIL",
-              "PHONE_NUMBER"
-            ],
             "type": "string",
             "description": "Intended recipient type",
-            "example": "HOST"
+            "example": "const",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
           },
           "email": {
             "type": "string",
@@ -21130,13 +21132,17 @@
             "description": "Verified Phone if action is SMS_NUMBER or WHATSAPP_NUMBER"
           },
           "template": {
-            "enum": [
-              "REMINDER",
-              "CUSTOM"
-            ],
             "type": "string",
             "description": "Template type used",
-            "example": "REMINDER"
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
           },
           "includeCalendarEvent": {
             "type": "object",
@@ -21308,134 +21314,6 @@
           "isActiveOnAllEventTypes"
         ]
       },
-      "BaseWorkflowTriggerDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "enum": [
-              "BEFORE_EVENT",
-              "EVENT_CANCELLED",
-              "NEW_EVENT",
-              "AFTER_EVENT",
-              "RESCHEDULE_EVENT"
-            ],
-            "type": "string",
-            "description": "Trigger type for the workflow"
-          }
-        },
-        "required": [
-          "type"
-        ]
-      },
-      "WorkflowMessageDto": {
-        "type": "object",
-        "properties": {
-          "subject": {
-            "type": "string",
-            "description": "Subject of the message",
-            "example": "Reminder: Your Meeting {EVENT_NAME} - {EVENT_DATE_ddd, MMM D, YYYY h:mma} with Cal.com"
-          },
-          "html": {
-            "type": "string",
-            "description": "HTML content of the message (used for Emails)",
-            "example": "<p>This is a reminder from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here  {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.</p>"
-          },
-          "text": {
-            "type": "string",
-            "description": "Text content of the message (used for SMS)",
-            "example": "This is a reminder message from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}."
-          }
-        },
-        "required": [
-          "subject"
-        ]
-      },
-      "WorkflowStepDto": {
-        "type": "object",
-        "properties": {
-          "stepNumber": {
-            "type": "number",
-            "description": "Step number in the workflow sequence",
-            "example": 1
-          },
-          "action": {
-            "enum": [
-              "EMAIL_HOST",
-              "EMAIL_ATTENDEE",
-              "EMAIL_ADDRESS",
-              "SMS_ATTENDEE",
-              "SMS_NUMBER",
-              "WHATSAPP_ATTENDEE",
-              "WHATSAPP_NUMBER"
-            ],
-            "type": "string",
-            "description": "Action to perform",
-            "example": "EMAIL_HOST"
-          },
-          "recipient": {
-            "enum": [
-              "HOST",
-              "ATTENDEE",
-              "EMAIL",
-              "PHONE_NUMBER"
-            ],
-            "type": "string",
-            "description": "Recipient type",
-            "example": "ATTENDEE"
-          },
-          "verifiedEmailId": {
-            "type": "number",
-            "description": "Email address if recipient is EMAIL, required for action EMAIL_ADDRESS",
-            "example": "31214",
-            "externalDocs": {
-              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-an-email-for-an-org-team"
-            }
-          },
-          "verifiedPhoneId": {
-            "type": "number",
-            "description": "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
-            "example": "3243434",
-            "externalDocs": {
-              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team"
-            }
-          },
-          "template": {
-            "enum": [
-              "REMINDER",
-              "CUSTOM"
-            ],
-            "type": "string",
-            "description": "Template type for the step",
-            "example": "REMINDER"
-          },
-          "includeCalendarEvent": {
-            "type": "object",
-            "default": false,
-            "description": "Whether to include a calendar event in the notification, can be included with actions EMAIL_HOST, EMAIL_ATTENDEE, EMAIL_ADDRESS ",
-            "example": true
-          },
-          "sender": {
-            "type": "string",
-            "description": "Displayed sender name."
-          },
-          "message": {
-            "description": "Message content for this step",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/WorkflowMessageDto"
-              }
-            ]
-          }
-        },
-        "required": [
-          "stepNumber",
-          "action",
-          "recipient",
-          "template",
-          "sender",
-          "message"
-        ]
-      },
       "CreateWorkflowDto": {
         "type": "object",
         "properties": {
@@ -21453,19 +21331,40 @@
             ]
           },
           "trigger": {
+            "type": "object",
             "description": "Trigger configuration for the workflow",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BaseWorkflowTriggerDto"
-              }
-            ]
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/OnBeforeEventTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterEventTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnCancelTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnCreationTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnRescheduleTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterCalVideoGuestsNoShowTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+                }
+              ]
+            }
           },
           "steps": {
             "description": "Steps to execute as part of the workflow",
-            "type": "array",
             "items": {
-              "$ref": "#/components/schemas/WorkflowStepDto"
-            }
+              "type": "object"
+            },
+            "type": "array"
           }
         },
         "required": [
@@ -21493,10 +21392,10 @@
           },
           "steps": {
             "description": "Steps to execute as part of the workflow",
-            "type": "array",
             "items": {
-              "$ref": "#/components/schemas/WorkflowStepDto"
-            }
+              "type": "object"
+            },
+            "type": "array"
           },
           "trigger": {
             "type": "object"
