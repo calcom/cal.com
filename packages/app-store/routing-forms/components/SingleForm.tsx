@@ -152,6 +152,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
       if (!field.id) {
         return {
           ...field,
+          identifier: field.name,
           name: field.name,
           id: uuidv4(),
         };
