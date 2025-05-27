@@ -222,6 +222,7 @@ describe("scanWorkflowBody", () => {
       { ...mockWorkflowStep, workflow: { user: { whitelistWorkflows: true } } },
     ]);
     prismaMock.workflow.findFirst.mockResolvedValue(mockWorkflow);
+    prismaMock.task.create.mockResolvedValue(mockTranslateWorkflowTaskCreation);
     mockFetch.mockResolvedValue({
       json: () => Promise.resolve({ flagged: true }),
     });
