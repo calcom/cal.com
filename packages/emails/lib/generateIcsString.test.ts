@@ -27,9 +27,9 @@ const testIcsStringContains = ({
 }) => {
   const DTSTART = `${event.startTime.split(".")[0].split(":").slice(0, 2).join(":").replace(/[-:]/g, "")}00Z`;
   const DTEND = `${event.endTime.split(".")[0].split(":").slice(0, 2).join(":").replace(/[-:]/g, "")}00Z`;
-  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",").some((domain) =>
-    event.organizer.email.toLowerCase().endsWith(domain.toLowerCase())
-  );
+  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+    .filter((domain) => domain.trim() !== "")
+    .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
   expect(icsString).toEqual(expect.stringContaining(`UID:${event.iCalUID}`));
   // Sometimes the deeply equal stringMatching error appears. Don't want to add flakey tests
   // expect(icsString).toEqual(expect.stringContaining(`SUMMARY:${event.title}`));

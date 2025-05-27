@@ -66,9 +66,9 @@ const generateIcsString = ({
     recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
   }
 
-  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",").some((domain) =>
-    event.organizer.email.toLowerCase().endsWith(domain.toLowerCase())
-  );
+  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+    .filter((domain) => domain.trim() !== "")
+    .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
   const icsEvent = createEvent({
     uid: event.iCalUID || event.uid!,
