@@ -344,7 +344,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
           ?.filter((f) => !f.deleted)
           .map((f) => {
             return {
-              id: f.id,
+              id: f.name,
               routerId: sourceForm.id,
               label: "",
               type: "",
@@ -367,7 +367,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     // Find all fields that are in DB(including deleted) but not in the mutation
     // e.g. inputFields is [A,B,C]. DB is [A,B,C,D,E,F]. It means D,E,F got deleted
     const deletedFields =
-      serializedForm.fields?.filter((f) => !fields.find((field) => field.id === f.id)) || [];
+      serializedForm.fields?.filter((f) => !fields.find((field) => field.name === f.name)) || [];
 
     // Add back deleted fields in the end and mark them deleted.
     // Fields mustn't be deleted, to make sure columns never decrease which hugely simplifies CSV generation
@@ -379,6 +379,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     );
     return fields;
   }
+
   function assertIfInvalidRouter(router: App_RoutingForms_Form) {
     const routesOfRouter = zodRoutes.parse(router.routes);
     if (routesOfRouter) {
