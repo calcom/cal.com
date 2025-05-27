@@ -135,12 +135,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- -- Create trigger for membership role changes
--- DROP TRIGGER IF EXISTS membership_role_change_trigger ON "Membership";
--- CREATE TRIGGER membership_role_change_trigger
---     BEFORE INSERT OR UPDATE OF role ON "Membership"
---     FOR EACH ROW
---     EXECUTE FUNCTION update_membership_custom_role();
+-- Create trigger for membership role changes
+DROP TRIGGER IF EXISTS membership_role_change_trigger ON "Membership";
+CREATE TRIGGER membership_role_change_trigger
+    BEFORE INSERT OR UPDATE OF role ON "Membership"
+    FOR EACH ROW
+    EXECUTE FUNCTION update_membership_custom_role();
 
 -- -- Update existing memberships to have the correct customRoleId in batches
 -- DO $$
