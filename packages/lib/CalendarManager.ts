@@ -305,17 +305,7 @@ export const createEvent = async (
     calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
   }
 
-  // Generate the calendar event description
-  calEvent.calendarDescription = getRichDescription(calEvent);
-
-  // Determine if the calendar event should include attendees
-  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
-    .filter((domain) => domain.trim() !== "")
-    .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
-
-  if (calEvent.hideOrganizerEmail && !isOrganizerExempt) {
-    calEvent.attendees = [];
-  }
+  processEvent(calEvent);
 
   const externalCalendarIdWhenDelegationCredentialIsChosen = credential.delegatedToId
     ? externalId
@@ -387,10 +377,12 @@ export const createEvent = async (
 
 export const updateEvent = async (
   credential: CredentialForCalendarService,
-  calEvent: CalendarEvent,
+  rawCalEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
+  const calEvent = formatCalEvent(rawCalEvent);
+  processEvent(calEvent);
   const uid = getUid(calEvent);
   const calendar = await getCalendar(credential);
   let success = false;
@@ -496,4 +488,21 @@ export const deleteEvent = async ({
   }
 
   return Promise.resolve({});
+};
+
+/**
+ * Process the calendar event by generating description and removing attendees if needed
+ */
+const processEvent = (calEvent: CalendarServiceEvent) => {
+  // Generate the calendar event description
+  calEvent.calendarDescription = getRichDescription(calEvent);
+
+  // Determine if the calendar event should include attendees
+  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+    .filter((domain) => domain.trim() !== "")
+    .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
+
+  if (calEvent.hideOrganizerEmail && !isOrganizerExempt) {
+    calEvent.attendees = [];
+  }
 };
