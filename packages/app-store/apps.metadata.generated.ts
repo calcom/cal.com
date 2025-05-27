@@ -21,6 +21,7 @@ import deel_config_json from "./deel/config.json";
 import demodesk_config_json from "./demodesk/config.json";
 import dialpad_config_json from "./dialpad/config.json";
 import discord_config_json from "./discord/config.json";
+import dub_config_json from "./dub/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
 import elevenlabs_config_json from "./elevenlabs/config.json";
@@ -127,6 +128,7 @@ export const appStoreMetadata = {
   demodesk: demodesk_config_json,
   dialpad: dialpad_config_json,
   discord: discord_config_json,
+  dub: dub_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
   elevenlabs: elevenlabs_config_json,
