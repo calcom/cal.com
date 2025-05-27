@@ -29,10 +29,14 @@ import {
 } from "./workflow-step.input";
 import {
   AFTER_EVENT,
+  AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+  AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   BaseWorkflowTriggerDto,
   BEFORE_EVENT,
   EVENT_CANCELLED,
   NEW_EVENT,
+  OnAfterCalVideoGuestsNoShowTriggerDto,
+  OnAfterCalVideoHostsNoShowTriggerDto,
   OnAfterEventTriggerDto,
   OnBeforeEventTriggerDto,
   OnCancelTriggerDto,
@@ -61,87 +65,14 @@ export class WorkflowActivationDto {
   activeOnEventTypeIds: number[] = [];
 }
 
-export type UpdateWorkflowStepDto =
-  | UpdateEmailAttendeeWorkflowStepDto
-  | UpdateEmailAddressWorkflowStepDto
-  | UpdateEmailHostWorkflowStepDto
-  | UpdateWhatsAppAttendeePhoneWorkflowStepDto
-  | UpdatePhoneWhatsAppNumberWorkflowStepDto
-  | UpdatePhoneAttendeeWorkflowStepDto
-  | UpdatePhoneNumberWorkflowStepDto;
-export class UpdateEmailAttendeeWorkflowStepDto extends WorkflowEmailAttendeeStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-
-export class UpdateEmailAddressWorkflowStepDto extends WorkflowEmailAddressStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-
-export class UpdateEmailHostWorkflowStepDto extends WorkflowEmailHostStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-
-export class UpdatePhoneWhatsAppNumberWorkflowStepDto extends WorkflowPhoneWhatsAppNumberStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-export class UpdatePhoneAttendeeWorkflowStepDto extends WorkflowPhoneAttendeeStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-export class UpdatePhoneNumberWorkflowStepDto extends WorkflowPhoneNumberStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWhatsAppAttendeeStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-
 export type TriggerDtoType =
   | OnAfterEventTriggerDto
   | OnBeforeEventTriggerDto
   | OnCreationTriggerDto
   | OnRescheduleTriggerDto
-  | OnCancelTriggerDto;
+  | OnCancelTriggerDto
+  | OnAfterCalVideoGuestsNoShowTriggerDto
+  | OnAfterCalVideoHostsNoShowTriggerDto;
 export class CreateWorkflowDto {
   @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
@@ -163,6 +94,8 @@ export class CreateWorkflowDto {
         { value: OnCancelTriggerDto, name: EVENT_CANCELLED },
         { value: OnCreationTriggerDto, name: NEW_EVENT },
         { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
+        { value: OnAfterCalVideoGuestsNoShowTriggerDto, name: AFTER_GUESTS_CAL_VIDEO_NO_SHOW },
+        { value: OnAfterCalVideoHostsNoShowTriggerDto, name: AFTER_HOSTS_CAL_VIDEO_NO_SHOW },
       ],
     },
   })
@@ -171,7 +104,9 @@ export class CreateWorkflowDto {
     | OnBeforeEventTriggerDto
     | OnCreationTriggerDto
     | OnRescheduleTriggerDto
-    | OnCancelTriggerDto;
+    | OnCancelTriggerDto
+    | OnAfterCalVideoGuestsNoShowTriggerDto
+    | OnAfterCalVideoHostsNoShowTriggerDto;
 
   @ApiProperty({
     description: "Steps to execute as part of the workflow",
@@ -211,78 +146,5 @@ export class CreateWorkflowDto {
     | WorkflowPhoneWhatsAppNumberStepDto
     | WorkflowPhoneNumberStepDto
     | WorkflowPhoneAttendeeStepDto
-  )[];
-}
-
-export class UpdateWorkflowDto {
-  @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
-  @IsString()
-  @IsOptional()
-  name?: string;
-
-  @ApiProperty({ description: "Activation settings for the workflow", type: WorkflowActivationDto })
-  @ValidateNested()
-  @Type(() => WorkflowActivationDto)
-  @IsOptional()
-  activation?: WorkflowActivationDto;
-
-  @Type(() => BaseWorkflowTriggerDto, {
-    discriminator: {
-      property: "type",
-      subTypes: [
-        { value: OnBeforeEventTriggerDto, name: BEFORE_EVENT },
-        { value: OnAfterEventTriggerDto, name: AFTER_EVENT },
-        { value: OnCancelTriggerDto, name: EVENT_CANCELLED },
-        { value: OnCreationTriggerDto, name: NEW_EVENT },
-        { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
-      ],
-    },
-  })
-  trigger!:
-    | OnAfterEventTriggerDto
-    | OnBeforeEventTriggerDto
-    | OnCreationTriggerDto
-    | OnRescheduleTriggerDto
-    | OnCancelTriggerDto;
-
-  @ApiProperty({
-    description: "Steps to execute as part of the workflow",
-    items: {
-      oneOf: [
-        { $ref: getSchemaPath(UpdateEmailAddressWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdateEmailAttendeeWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdateEmailHostWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdatePhoneAttendeeWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdatePhoneWhatsAppNumberWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdateWhatsAppAttendeePhoneWorkflowStepDto) },
-        { $ref: getSchemaPath(UpdatePhoneNumberWorkflowStepDto) },
-      ],
-    },
-  })
-  @ValidateNested({ each: true })
-  @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })
-  @IsOptional()
-  @Type(() => BaseWorkflowStepDto, {
-    discriminator: {
-      property: "action",
-      subTypes: [
-        { value: UpdateEmailAddressWorkflowStepDto, name: EMAIL_ADDRESS },
-        { value: UpdateEmailAttendeeWorkflowStepDto, name: EMAIL_ATTENDEE },
-        { value: UpdateEmailHostWorkflowStepDto, name: EMAIL_HOST },
-        { value: UpdateWhatsAppAttendeePhoneWorkflowStepDto, name: WHATSAPP_ATTENDEE },
-        { value: UpdatePhoneWhatsAppNumberWorkflowStepDto, name: WHATSAPP_NUMBER },
-        { value: UpdatePhoneNumberWorkflowStepDto, name: SMS_NUMBER },
-        { value: UpdatePhoneAttendeeWorkflowStepDto, name: SMS_ATTENDEE },
-      ],
-    },
-  })
-  steps?: (
-    | UpdateEmailAddressWorkflowStepDto
-    | UpdateEmailAttendeeWorkflowStepDto
-    | UpdateEmailHostWorkflowStepDto
-    | UpdatePhoneAttendeeWorkflowStepDto
-    | UpdatePhoneWhatsAppNumberWorkflowStepDto
-    | UpdateWhatsAppAttendeePhoneWorkflowStepDto
-    | UpdatePhoneNumberWorkflowStepDto
   )[];
 }

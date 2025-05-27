@@ -2,14 +2,16 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
 import {
   CreateWorkflowDto,
-  UpdateWorkflowDto,
   WorkflowActivationDto,
   TriggerDtoType,
+} from "@/modules/workflows/inputs/create-workflow.input";
+import {
+  UpdateWorkflowDto,
   UpdateWorkflowStepDto,
   UpdateEmailAttendeeWorkflowStepDto,
   UpdateEmailAddressWorkflowStepDto,
   UpdateEmailHostWorkflowStepDto,
-} from "@/modules/workflows/inputs/create-workflow.input";
+} from "@/modules/workflows/inputs/update-workflow.input";
 import { WorkflowOutput, WorkflowStepOutputDto } from "@/modules/workflows/outputs/workflow.output";
 import { WorkflowsRepository, WorkflowType } from "@/modules/workflows/workflows.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
@@ -22,14 +24,15 @@ import {
   EMAIL_ADDRESS,
   EMAIL_ATTENDEE,
   EMAIL_HOST,
+  ENUM_TO_STEP_ACTIONS,
+  ENUM_TO_TEMPLATES,
   HOST,
   HtmlWorkflowMessageDto,
   PHONE_NUMBER,
   RecipientType,
   SMS_ATTENDEE,
   SMS_NUMBER,
-  StepAction,
-  StepActionsType,
+  STEP_ACTIONS_TO_ENUM,
   TemplateType,
   TextWorkflowMessageDto,
   WHATSAPP_ATTENDEE,
@@ -39,13 +42,16 @@ import {
 } from "../inputs/workflow-step.input";
 import {
   AFTER_EVENT,
+  AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+  AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   BEFORE_EVENT,
-  EVENT_CANCELLED,
+  ENUM_TO_TIME_UNIT,
+  ENUM_TO_WORKFLOW_TRIGGER,
   HOUR,
   OnAfterEventTriggerDto,
   OnBeforeEventTriggerDto,
-  TimeUnitType,
-  WorkflowTriggerType,
+  TIME_UNIT_TO_ENUM,
+  WORKFLOW_TRIGGER_TO_ENUM,
 } from "../inputs/workflow-trigger.input";
 
 @Injectable()
@@ -125,15 +131,18 @@ export class TeamWorkflowsService {
     };
 
     const trigger: TriggerDtoType =
-      workflow.trigger === BEFORE_EVENT.toUpperCase() || workflow.trigger === AFTER_EVENT.toUpperCase()
+      workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[BEFORE_EVENT] ||
+      workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[AFTER_EVENT] ||
+      workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[AFTER_GUESTS_CAL_VIDEO_NO_SHOW] ||
+      workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[AFTER_HOSTS_CAL_VIDEO_NO_SHOW]
         ? {
-            type: workflow.trigger.toLowerCase() as typeof BEFORE_EVENT | typeof AFTER_EVENT,
+            type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger],
             offset: {
               value: workflow.time ?? 1,
-              unit: (workflow.timeUnit?.toLowerCase() ?? HOUR) as TimeUnitType,
+              unit: workflow.timeUnit ? ENUM_TO_TIME_UNIT[workflow.timeUnit] : HOUR,
             },
           }
-        : { type: workflow.trigger.toLowerCase() as typeof EVENT_CANCELLED };
+        : { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
 
     const steps: WorkflowStepOutputDto[] = workflow.steps.map((step) => {
       let recipient: RecipientType;
@@ -141,7 +150,7 @@ export class TeamWorkflowsService {
       let phone = "";
       let text;
       let html;
-      switch (step.action.toLowerCase() as StepAction) {
+      switch (ENUM_TO_STEP_ACTIONS[step.action]) {
         case EMAIL_HOST:
           recipient = HOST;
           html = step.reminderBody ?? "";
@@ -176,11 +185,11 @@ export class TeamWorkflowsService {
       return {
         id: step.id,
         stepNumber: step.stepNumber,
-        action: step.action.toLowerCase() as StepAction,
+        action: ENUM_TO_STEP_ACTIONS[step.action],
         recipient: recipient,
         email,
         phone,
-        template: step.template?.toLowerCase() as TemplateType,
+        template: ENUM_TO_TEMPLATES[step.template],
         includeCalendarEvent: step.includeCalendarEvent,
         sender: step.sender ?? "Default Sender",
         message: {
@@ -265,7 +274,7 @@ export class TeamWorkflowsService {
               }
             }
 
-            const actionForZod = stepDto.action.toUpperCase() as unknown as Uppercase<StepActionsType>;
+            const actionForZod = STEP_ACTIONS_TO_ENUM[stepDto.action];
             const templateForZod = stepDto.template as unknown as Uppercase<TemplateType>;
 
             return {
@@ -286,9 +295,9 @@ export class TeamWorkflowsService {
         )
       : currentData.steps.map((step) => ({ ...step, senderName: step.sender }));
 
-    const triggerForZod =
-      (updateDto?.trigger?.type?.toUpperCase() as unknown as Uppercase<WorkflowTriggerType>) ??
-      currentData.trigger;
+    const triggerForZod = updateDto?.trigger?.type
+      ? WORKFLOW_TRIGGER_TO_ENUM[updateDto?.trigger?.type]
+      : currentData.trigger;
     const timeUnitForZod =
       updateDto.trigger instanceof OnBeforeEventTriggerDto ||
       updateDto.trigger instanceof OnAfterEventTriggerDto
@@ -309,7 +318,7 @@ export class TeamWorkflowsService {
         updateDto.trigger instanceof OnAfterEventTriggerDto
           ? updateDto?.trigger?.offset?.value ?? currentData?.time ?? null
           : null,
-      timeUnit: (timeUnitForZod?.toUpperCase() as unknown as Uppercase<TimeUnitType>) ?? null,
+      timeUnit: timeUnitForZod ? TIME_UNIT_TO_ENUM[timeUnitForZod] : null,
       isActiveOnAll: updateDto?.activation?.isActiveOnAllEventTypes ?? currentData.isActiveOnAll ?? false,
     } as const satisfies TUpdateInputSchema;
 

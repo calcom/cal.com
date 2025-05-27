@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { Transform, Type } from "class-transformer";
 import { IsNumber, ValidateIf, IsBoolean, IsString, ValidateNested, IsOptional, IsIn } from "class-validator";
 
@@ -7,7 +8,7 @@ export const EMAIL_ATTENDEE = "email_attendee";
 export const EMAIL_ADDRESS = "email_address";
 export const SMS_ATTENDEE = "sms_attendee";
 export const SMS_NUMBER = "sms_number";
-export const WHATSAPP_ATTENDEE = "whatsapp_number";
+export const WHATSAPP_ATTENDEE = "whatsapp_attendee";
 export const WHATSAPP_NUMBER = "whatsapp_number";
 
 export const STEP_ACTIONS = [
@@ -20,12 +21,55 @@ export const STEP_ACTIONS = [
   WHATSAPP_NUMBER,
 ] as const;
 
+export const STEP_ACTIONS_TO_ENUM = {
+  [EMAIL_HOST]: WorkflowActions.EMAIL_HOST,
+  [EMAIL_ATTENDEE]: WorkflowActions.EMAIL_ATTENDEE,
+  [EMAIL_ADDRESS]: WorkflowActions.EMAIL_ADDRESS,
+  [SMS_ATTENDEE]: WorkflowActions.SMS_ATTENDEE,
+  [WHATSAPP_ATTENDEE]: WorkflowActions.WHATSAPP_ATTENDEE,
+  [WHATSAPP_NUMBER]: WorkflowActions.WHATSAPP_NUMBER,
+  [SMS_NUMBER]: WorkflowActions.SMS_NUMBER,
+} as const;
+
+export const ENUM_TO_STEP_ACTIONS = {
+  [WorkflowActions.EMAIL_HOST]: EMAIL_HOST,
+  [WorkflowActions.EMAIL_ATTENDEE]: EMAIL_ATTENDEE,
+  [WorkflowActions.EMAIL_ADDRESS]: EMAIL_ADDRESS,
+  [WorkflowActions.SMS_ATTENDEE]: SMS_ATTENDEE,
+  [WorkflowActions.WHATSAPP_ATTENDEE]: WHATSAPP_ATTENDEE,
+  [WorkflowActions.WHATSAPP_NUMBER]: WHATSAPP_NUMBER,
+  [WorkflowActions.SMS_NUMBER]: SMS_NUMBER,
+} as const;
+
 export type StepAction = (typeof STEP_ACTIONS)[number];
+export type StepActionsType = (typeof STEP_ACTIONS)[number];
+
 export const REMINDER = "reminder";
 export const CUSTOM = "custom";
-export const TEMPLATES = [REMINDER, CUSTOM] as const;
+export const CANCELLED = "cancelled";
+export const RESCHEDULED = "rescheduled";
+export const COMPLETED = "completed";
+export const RATING = "rating";
+export const TEMPLATES = [REMINDER, CUSTOM, RESCHEDULED, COMPLETED, RATING, CANCELLED] as const;
+export const TEMPLATES_TO_ENUM = {
+  [WorkflowTemplates.REMINDER]: REMINDER,
+  [CUSTOM]: WorkflowTemplates.CUSTOM,
+  [RESCHEDULED]: WorkflowTemplates.RESCHEDULED,
+  [CANCELLED]: WorkflowTemplates.CANCELLED,
+  [COMPLETED]: WorkflowTemplates.COMPLETED,
+  [RATING]: WorkflowTemplates.RATING,
+} as const;
+
+export const ENUM_TO_TEMPLATES = {
+  [WorkflowTemplates.REMINDER]: REMINDER,
+  [WorkflowTemplates.CUSTOM]: CUSTOM,
+  [WorkflowTemplates.RESCHEDULED]: RESCHEDULED,
+  [WorkflowTemplates.CANCELLED]: CANCELLED,
+  [WorkflowTemplates.COMPLETED]: COMPLETED,
+  [WorkflowTemplates.RATING]: RATING,
+} as const;
+
 export type TemplateType = (typeof TEMPLATES)[number];
-export type StepActionsType = (typeof STEP_ACTIONS)[number];
 
 export const HOST = "const";
 export const ATTENDEE = "attendee";
@@ -51,9 +95,8 @@ export class HtmlWorkflowMessageDto extends BaseWorkflowMessageDto {
       "<p>This is a reminder from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here  {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.</p>",
     required: false,
   })
-  @IsOptional()
   @IsString()
-  html?: string;
+  html!: string;
 }
 
 export class TextWorkflowMessageDto extends BaseWorkflowMessageDto {
@@ -63,9 +106,8 @@ export class TextWorkflowMessageDto extends BaseWorkflowMessageDto {
       "This is a reminder message from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.",
     required: false,
   })
-  @IsOptional()
   @IsString()
-  text?: string;
+  text!: string;
 }
 
 export class BaseWorkflowStepDto {

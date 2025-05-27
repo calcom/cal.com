@@ -331,7 +331,6 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     it("should update an existing workflow, update the first step and discard other steps", async () => {
       const step1 = createdWorkflow.steps.find((step) => step.stepNumber === 1);
       expect(step1).toBeDefined();
-      console.log("STEP", [{ ...step1, sender: "updatedSender" } as WorkflowEmailAttendeeStepDto]);
       const partialUpdateDto: Partial<CreateWorkflowDto> = {
         name: updatedName,
         steps: step1 ? [{ ...step1, sender: "updatedSender" } as WorkflowEmailAttendeeStepDto] : [],

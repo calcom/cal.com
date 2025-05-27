@@ -68,7 +68,6 @@ export class WorkflowsRepository {
     workflowId: number,
     data: TUpdateInputSchema
   ) {
-    console.log("UPDATE DATA", data.steps);
     await updateWorkflow({
       ctx: {
         user: { ...user, locale: user?.locale ?? "en" },
