@@ -59,7 +59,7 @@ export const BaseScheduledEmail = (
     const personWhoRescheduled = [props.calEvent.organizer, ...props.calEvent.attendees].find(
       (person) => person.email === rescheduledBy
     );
-    rescheduledBy = personWhoRescheduled?.email;
+    rescheduledBy = personWhoRescheduled?.name;
   }
 
   return (
