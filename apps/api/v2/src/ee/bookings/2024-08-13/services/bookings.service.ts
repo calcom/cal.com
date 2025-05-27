@@ -58,8 +58,9 @@ import {
   CancelBookingInput,
   UpdateBookingInput_2024_08_13,
 } from "@calcom/platform-types";
+import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
 import { PrismaClient } from "@calcom/prisma";
-import { EventType, User, Team } from "@calcom/prisma/client";
+import { EventType, User, Team, Booking } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -1013,16 +1014,22 @@ export class BookingsService_2024_08_13 {
   }
 
   async updateBooking(bookingUid: string, body: UpdateBookingInput_2024_08_13) {
-    let bookingLocation = "";
-    const { location } = body;
-    if (!location) {
-      throw new NotFoundException(`Location not found `);
-    }
-
     const existingBooking = await this.bookingsRepository.getByUid(bookingUid);
     if (!existingBooking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
+    const { location } = body;
+
+    if (!location) {
+      return this.getBooking(existingBooking.uid);
+    }
+
+    await this.updateBookingLocation(existingBooking, location);
+  }
+
+  async updateBookingLocation(existingBooking: Booking, location: BookingInputLocation_2024_08_13) {
+    const bookingUid = existingBooking.uid;
+    let bookingLocation = "";
 
     if (existingBooking.userId === null) {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
@@ -1033,13 +1040,14 @@ export class BookingsService_2024_08_13 {
     }
 
     const existingBookingHost = await this.usersRepository.findById(existingBooking.userId);
-    const existingBookingEventType = await this.eventTypesRepository.getEventTypeById(
-      existingBooking.eventTypeId
-    );
 
     if (existingBookingHost === null) {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
     }
+
+    const existingBookingEventType = await this.eventTypesRepository.getEventTypeById(
+      existingBooking.eventTypeId
+    );
 
     if (typeof location === "object" && location.type === "organizersDefaultApp") {
       const existingBookingHostCredentials = await this.credentialsRepository.getAllUserCredentialsById(
