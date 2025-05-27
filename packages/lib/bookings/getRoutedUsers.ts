@@ -86,7 +86,7 @@ export type EventType = {
     id: number;
     parentId: number | null;
     rrResetInterval: RRResetInterval | null;
-    rrTimestampBasis: RRTimestampBasis | null;
+    rrTimestampBasis: RRTimestampBasis;
   } | null;
 };
 
