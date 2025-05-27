@@ -89,7 +89,7 @@ const handleCalendarsToUnwatch = async () => {
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
           const calendarSubscription = calendarSubscriptionMap.get(externalId);
-          await cc.unwatchSelectedCalendar({
+          await cc.unwatchCalendar({
             calendarId: externalId,
             eventTypeIds,
             calendarSubscription: calendarSubscription ?? null,
@@ -147,7 +147,7 @@ const handleCalendarsToWatch = async () => {
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
           const calendarSubscription = calendarSubscriptionMap.get(externalId);
-          await cc.watchSelectedCalendar({
+          await cc.watchCalendar({
             calendarId: externalId,
             eventTypeIds,
             calendarSubscription: calendarSubscription ?? null,

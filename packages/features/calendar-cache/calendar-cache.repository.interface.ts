@@ -5,12 +5,12 @@ import type { SelectedCalendarEventTypeIds, CalendarSubscription } from "@calcom
 export type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
 export interface ICalendarCacheRepository {
-  watchSelectedCalendar(args: {
+  watchCalendar(args: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
     calendarSubscription: CalendarSubscription | null;
   }): Promise<any>;
-  unwatchSelectedCalendar(args: {
+  unwatchCalendar(args: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
     calendarSubscription: CalendarSubscription | null;

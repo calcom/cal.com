@@ -944,7 +944,7 @@ export default class GoogleCalendarService implements Calendar {
    *
    * If calendarSubscription is not null, it will reuse that Subscription
    */
-  async watchSelectedCalendar({
+  async watchCalendar({
     calendarId,
     eventTypeIds,
     calendarSubscription,
@@ -953,7 +953,7 @@ export default class GoogleCalendarService implements Calendar {
     eventTypeIds: SelectedCalendarEventTypeIds;
     calendarSubscription: CalendarSubscription | null;
   }) {
-    log.debug("watchSelectedCalendar", safeStringify({ calendarId, eventTypeIds }));
+    log.debug("watchCalendar", safeStringify({ calendarId, eventTypeIds }));
     if (!process.env.GOOGLE_WEBHOOK_TOKEN) {
       log.warn("GOOGLE_WEBHOOK_TOKEN is not set, skipping watching calendar");
       return;
@@ -1042,7 +1042,7 @@ export default class GoogleCalendarService implements Calendar {
    * If calendarSubscription is not null, it will not actually unsubscribe and unwatch the calendar.
    * It will just remove the googleChannel related fields from the SelectedCalendar.
    */
-  async unwatchSelectedCalendar({
+  async unwatchCalendar({
     calendarId,
     eventTypeIds,
     calendarSubscription,

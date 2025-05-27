@@ -20,8 +20,8 @@ describe("CalendarCacheRepository", () => {
 
     // Setup mock calendar
     mockCalendar = {
-      watchSelectedCalendar: vi.fn(),
-      unwatchSelectedCalendar: vi.fn(),
+      watchCalendar: vi.fn(),
+      unwatchCalendar: vi.fn(),
     } as unknown as Calendar;
   });
 

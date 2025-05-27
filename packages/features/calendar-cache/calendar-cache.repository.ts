@@ -53,36 +53,36 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
-  async watchSelectedCalendar(args: {
+  async watchCalendar(args: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
     calendarSubscription: CalendarSubscription | null;
   }) {
     assertCalendarHasDbCredential(this.calendar);
     const { calendarId, eventTypeIds, calendarSubscription } = args;
-    if (typeof this.calendar?.watchSelectedCalendar !== "function") {
+    if (typeof this.calendar?.watchCalendar !== "function") {
       log.info(
-        '[handleWatchCalendar] Skipping watching calendar due to calendar not having "watchSelectedCalendar" method'
+        '[handleWatchCalendar] Skipping watching calendar due to calendar not having "watchCalendar" method'
       );
       return;
     }
-    await this.calendar?.watchSelectedCalendar({ calendarId, eventTypeIds, calendarSubscription });
+    await this.calendar?.watchCalendar({ calendarId, eventTypeIds, calendarSubscription });
   }
 
-  async unwatchSelectedCalendar(args: {
+  async unwatchCalendar(args: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
     calendarSubscription: CalendarSubscription | null;
   }) {
     assertCalendarHasDbCredential(this.calendar);
     const { calendarId, eventTypeIds, calendarSubscription } = args;
-    if (typeof this.calendar?.unwatchSelectedCalendar !== "function") {
+    if (typeof this.calendar?.unwatchCalendar !== "function") {
       log.info(
-        '[unwatchSelectedCalendar] Skipping unwatching calendar due to calendar not having "unwatchSelectedCalendar" method'
+        '[unwatchCalendar] Skipping unwatching calendar due to calendar not having "unwatchCalendar" method'
       );
       return;
     }
-    const response = await this.calendar?.unwatchSelectedCalendar({
+    const response = await this.calendar?.unwatchCalendar({
       calendarId,
       eventTypeIds,
       calendarSubscription,
