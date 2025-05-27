@@ -106,7 +106,14 @@ export const BaseScheduledEmail = (
         </>
       )}
       {props.calEvent.rescheduledBy && (
-        <Info label={t("rescheduled_by")} description={props.calEvent.rescheduledBy} withSpacer />
+        //add here
+        <Info
+          label={t("rescheduled_by")}
+          description={
+            props.calEvent.hideOrganizerEmail ? t("redacted_for_privacy") : props.calEvent.rescheduledBy
+          }
+          withSpacer
+        />
       )}
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
       <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
