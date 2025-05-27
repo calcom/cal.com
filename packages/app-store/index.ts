@@ -6,6 +6,7 @@ const appStore = {
   dailyvideo: createCachedImport(() => import("./dailyvideo")),
   dub: createCachedImport(() => import("./dub")),
   googlecalendar: createCachedImport(() => import("./googlecalendar")),
+  googlesheets: createCachedImport(() => import("./googlesheets")),
   googlevideo: createCachedImport(() => import("./googlevideo")),
   hubspot: createCachedImport(() => import("./hubspot")),
   huddle01video: createCachedImport(() => import("./huddle01video")),

@@ -1,0 +1,15 @@
+{
+  "name": "Google Sheets",
+  "slug": "googlesheets",
+  "type": "googlesheets_other",
+  "logo": "icon.svg",
+  "url": "https://cal.com/apps/googlesheets",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Send booking data to Google Sheets",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "__createdUsingCli": true
+}
