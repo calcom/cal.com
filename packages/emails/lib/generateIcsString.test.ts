@@ -169,7 +169,7 @@ describe("generateIcsString", () => {
 });
 
 describe("hidden organizer email", () => {
-  test("when hideOrganizerEmail is true, organizer email should be omitted", () => {
+  test("when hideOrganizerEmail is true, organizer email should be no-reply@cal.com", () => {
     const event = buildCalendarEvent({
       iCalSequence: 0,
       attendees: [buildPerson()],
@@ -184,9 +184,8 @@ describe("hidden organizer email", () => {
 
     const assertedIcsString = assertHasIcsString(icsString);
 
-    expect(assertedIcsString).toEqual(expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}`));
-    expect(assertedIcsString).not.toEqual(
-      expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}:mailto:`)
+    expect(assertedIcsString).toEqual(
+      expect.stringContaining(`ORGANIZER;CN=${event.organizer.name}:mailto:no-reply@cal.com`)
     );
   });
 
