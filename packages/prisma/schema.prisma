@@ -463,7 +463,7 @@ model Team {
   metadata               Json?
   theme                  String?
   rrResetInterval        RRResetInterval?        @default(MONTH)
-  rrTimestampBasis       RRTimestampBasis?       @default(CREATED_AT)
+  rrTimestampBasis       RRTimestampBasis        @default(CREATED_AT)
   brandColor             String?
   darkBrandColor         String?
   verifiedNumbers        VerifiedNumber[]

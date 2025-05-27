@@ -69,7 +69,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     team: {
       parentId?: number | null;
       rrResetInterval: RRResetInterval | null;
-      rrTimestampBasis: RRTimestampBasis | null;
+      rrTimestampBasis: RRTimestampBasis;
     } | null;
     includeNoShowInRRCalculation: boolean;
   };
