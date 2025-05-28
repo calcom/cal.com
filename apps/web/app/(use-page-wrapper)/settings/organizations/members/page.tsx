@@ -32,7 +32,6 @@ const Page = async () => {
     orgCaller.getFacetedValues(),
   ]);
   const attributes = await getCachedAttributes(org.id);
-
   return (
     <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
   );

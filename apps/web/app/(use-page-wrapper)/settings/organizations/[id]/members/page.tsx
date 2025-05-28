@@ -32,7 +32,7 @@ const ServerPageWrapper = async () => {
     orgCaller.getFacetedValues(),
   ]);
   const attributes = await getCachedAttributes(org.id);
-  console.log(org);
+
   return (
     <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
   );
