@@ -4,7 +4,6 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -116,11 +115,7 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
   if (isTargetingOrg) {
     return isOrgAdminOrOwner || !isOrgPrivate;
   }
-  const team = await prisma.team.findUnique({
-    where: {
-      id: teamId,
-    },
-  });
+  const team = await TeamRepository.findById({ id: teamId });
 
   if (!team) return false;
 
@@ -128,12 +123,9 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
     return true;
   }
 
-  const membership = await prisma.membership.findFirst({
-    where: {
-      teamId,
-      userId: ctx.user.id,
-      accepted: true,
-    },
+  const membership = await TeamRepository.findTeamMembership({
+    userId: ctx.user.id,
+    teamId,
   });
 
   if (!membership) return false;
