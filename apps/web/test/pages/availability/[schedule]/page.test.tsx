@@ -11,13 +11,13 @@ import {
 
 vi.mock("@calcom/lib/server/repository/schedule", () => ({
   ScheduleRepository: {
-    findDetailedScheduleById: vi.fn(),
+    findDetailedScheduleById: vi.fn().mockImplementation(() => Promise.resolve({})),
   },
 }));
 
 vi.mock("@calcom/lib/server/repository/travelSchedule", () => ({
   TravelScheduleRepository: {
-    findTravelSchedulesByUserId: vi.fn(),
+    findTravelSchedulesByUserId: vi.fn().mockImplementation(() => Promise.resolve([])),
   },
 }));
 
@@ -34,7 +34,7 @@ describe("Availability Schedule Page Caching", () => {
 
   it("should cache schedule data with 1 hour revalidation", async () => {
     const mockScheduleData = { id: 1, name: "Test Schedule" };
-    ScheduleRepository.findDetailedScheduleById.mockResolvedValue(mockScheduleData);
+    (ScheduleRepository.findDetailedScheduleById as jest.Mock).mockResolvedValue(mockScheduleData);
 
     const result = await getCachedScheduleData(1, 123, "UTC", 1);
 
@@ -54,7 +54,9 @@ describe("Availability Schedule Page Caching", () => {
 
   it("should cache travel schedules data with 1 hour revalidation", async () => {
     const mockTravelSchedules = [{ id: 1, timeZone: "America/New_York" }];
-    TravelScheduleRepository.findTravelSchedulesByUserId.mockResolvedValue(mockTravelSchedules);
+    (TravelScheduleRepository.findTravelSchedulesByUserId as jest.Mock).mockResolvedValue(
+      mockTravelSchedules
+    );
 
     const result = await getCachedTravelSchedulesData(123);
 
