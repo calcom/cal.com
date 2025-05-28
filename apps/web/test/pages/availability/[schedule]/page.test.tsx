@@ -4,7 +4,10 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
 
-import { getCachedScheduleData, getCachedTravelSchedulesData } from "./page";
+import {
+  getCachedScheduleData,
+  getCachedTravelSchedulesData,
+} from "../../../../app/(use-page-wrapper)/availability/[schedule]/page";
 
 vi.mock("@calcom/lib/server/repository/schedule", () => ({
   ScheduleRepository: {
