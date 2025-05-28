@@ -387,7 +387,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
-  const [useCustomInterval, setUseCustomInterval] = useState(false);
+  const customLength = -2;
+  const [isCustomEditing, setIsCustomEditing] = useState(false);
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -533,7 +534,11 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                     const slotIntervalOptions = [
                       {
                         label: t("slot_interval_default"),
-                        value: -1,
+                        value: 0,
+                      },
+                      {
+                        label: t("custom"),
+                        value: customLength,
                       },
                       ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
                         label: `${minutes} ${t("minutes")}`,
@@ -543,15 +548,15 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                     return (
                       <Select
                         isSearchable={false}
-                        isDisabled={shouldLockDisableProps("slotInterval").disabled || useCustomInterval}
+                        isDisabled={shouldLockDisableProps("slotInterval").disabled}
                         onChange={(val) => {
-                          formMethods.setValue(
-                            "slotInterval",
-                            val && (val.value || 0) > 0 ? val.value : null,
-                            {
-                              shouldDirty: true,
-                            }
-                          );
+                          if (val?.value === customLength) {
+                            setIsCustomEditing(true);
+                            formMethods.setValue("slotInterval", 0, { shouldDirty: true });
+                          } else {
+                            setIsCustomEditing(false);
+                            formMethods.setValue("slotInterval", val?.value || null, { shouldDirty: true });
+                          }
                         }}
                         defaultValue={
                           slotIntervalOptions.find(
@@ -568,33 +573,39 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                   }}
                 />
               </div>
-              <div className="ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px]">
-                <SettingsToggle
-                  title={t("Use custom interval")}
-                  checked={useCustomInterval}
-                  onCheckedChange={(active) => setUseCustomInterval(active)}
-                  {...shouldLockDisableProps("slotInterval")}
-                />
+              <div
+                className={`ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px] ${
+                  !isCustomEditing && "hidden"
+                }`}>
+                <Label
+                  htmlFor="slotInterval"
+                  className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.label}>
+                  {t("custom")}
+                  {shouldLockIndicator("slotInterval")}
+                </Label>
                 <Controller
                   name="slotInterval"
-                  render={({ field, fieldState }) => {
+                  render={({ field }) => {
                     return (
                       <>
                         <InputField
                           required
-                          disabled={shouldLockDisableProps("slotInterval").disabled || !useCustomInterval}
-                          defaultValue={field.value ?? ""}
+                          disabled={shouldLockDisableProps("slotInterval").disabled || !isCustomEditing}
+                          defaultValue={0}
                           onChange={(e) => {
+                            setIsCustomEditing(true);
                             const val = parseInt(e.target.value || "0", 10);
                             field.onChange(isNaN(val) || val <= 0 ? null : val);
                           }}
                           type="number"
                           placeholder="0"
+                          addOnSuffix={t("minutes")}
                           className={classNames(
-                            "mb-0 h-9 ltr:mr-2 rtl:ml-2",
+                            `mb-0 h-9 ltr:mr-2 rtl:ml-2`,
                             customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select
                           )}
                           min={1}
+                          max={120}
                         />
                       </>
                     );
