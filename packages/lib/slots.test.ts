@@ -346,7 +346,7 @@ describe("Tests the slot logic", () => {
       eventLength: 20,
       offsetStart: 0,
     });
-    // 9:00, 9:35, 10:10, 10:45, 11:20, 11:55 (last slot ends at 12:15, so only up to 11:20)
+    // Expected slots: 09:00, 09:35, 10:10, 10:45, 11:20 (slot starting at 11:55 ends at 12:15 and is therefore excluded)
     expect(result.map((slot) => slot.time.format("HH:mm"))).toEqual([
       "09:00",
       "09:35",
