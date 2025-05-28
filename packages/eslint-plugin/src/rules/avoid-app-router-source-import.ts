@@ -7,20 +7,26 @@ const rule = createRule({
     return {
       ImportDeclaration(node) {
         if (node.source.value === "@calcom/trpc/server/routers/_app") {
-          node.specifiers.forEach((item) => {
-            if (
-              item.type === "ImportSpecifier" &&
-              "imported" in item &&
-              item.imported?.name === "AppRouter"
-            ) {
-              return context.report({
-                node: item,
-                loc: node.loc,
-                messageId: "avoid-app-router-source-import",
-                fix: (fixer) => fixer.replaceText(node.source, '"@calcom/trpc/types/server/routers/_app"'),
-              });
-            }
-          });
+          const hasAppRouter = node.specifiers.some(
+            (item) =>
+              item.type === "ImportSpecifier" && "imported" in item && item.imported?.name === "AppRouter"
+          );
+
+          if (hasAppRouter) {
+            const sourceCode = context.getSourceCode();
+            const importText = sourceCode.getText(node);
+
+            const fixedImport = importText.replace(
+              "@calcom/trpc/server/routers/_app",
+              "@calcom/trpc/types/server/routers/_app"
+            );
+
+            return context.report({
+              node,
+              messageId: "avoid-app-router-source-import",
+              fix: (fixer) => fixer.replaceText(node, fixedImport),
+            });
+          }
         }
       },
     };
