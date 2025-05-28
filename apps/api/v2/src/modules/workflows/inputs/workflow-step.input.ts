@@ -130,7 +130,11 @@ export class BaseWorkflowStepDto {
 }
 
 export class WorkflowEmailHostStepDto extends BaseWorkflowStepDto {
-  @ApiProperty({ description: "Action to perform", example: EMAIL_HOST, enum: STEP_ACTIONS })
+  @ApiProperty({
+    description: "Action to perform, send an email to the host of the event",
+    example: EMAIL_HOST,
+    enum: STEP_ACTIONS,
+  })
   @IsString()
   @IsIn(STEP_ACTIONS)
   action: typeof EMAIL_HOST = EMAIL_HOST;
@@ -149,7 +153,11 @@ export class WorkflowEmailHostStepDto extends BaseWorkflowStepDto {
 }
 
 export class WorkflowEmailAddressStepDto extends BaseWorkflowStepDto {
-  @ApiProperty({ description: "Action to perform", example: EMAIL_ADDRESS, enum: STEP_ACTIONS })
+  @ApiProperty({
+    description: "Action to perform, send an email to a specific email address",
+    example: EMAIL_ADDRESS,
+    enum: STEP_ACTIONS,
+  })
   @IsString()
   @IsIn(STEP_ACTIONS)
   action: typeof EMAIL_ADDRESS = EMAIL_ADDRESS;
@@ -178,7 +186,11 @@ export class WorkflowEmailAddressStepDto extends BaseWorkflowStepDto {
 }
 
 export class WorkflowEmailAttendeeStepDto extends BaseWorkflowStepDto {
-  @ApiProperty({ description: "Action to perform", example: EMAIL_ATTENDEE, enum: STEP_ACTIONS })
+  @ApiProperty({
+    description: "Action to perform, send an email to the attendees of the event",
+    example: EMAIL_ATTENDEE,
+    enum: STEP_ACTIONS,
+  })
   @IsString()
   @IsIn(STEP_ACTIONS)
   action: typeof EMAIL_ATTENDEE = EMAIL_ATTENDEE;
@@ -197,7 +209,10 @@ export class WorkflowEmailAttendeeStepDto extends BaseWorkflowStepDto {
 }
 
 export class WorkflowPhoneWhatsAppNumberStepDto extends BaseWorkflowStepDto {
-  @ApiProperty({ description: "Action to perform", example: WHATSAPP_NUMBER })
+  @ApiProperty({
+    description: "Action to perform, send a text message via whatsapp to a specific phone number",
+    example: WHATSAPP_NUMBER,
+  })
   @IsString()
   @IsIn(STEP_ACTIONS)
   action: typeof WHATSAPP_NUMBER = WHATSAPP_NUMBER;
@@ -220,7 +235,10 @@ export class WorkflowPhoneWhatsAppNumberStepDto extends BaseWorkflowStepDto {
 }
 
 export class WorkflowPhoneAttendeeStepDto extends BaseWorkflowStepDto {
-  @ApiProperty({ description: "Action to perform", example: SMS_ATTENDEE })
+  @ApiProperty({
+    description: "Action to perform, send a text message to the phone numbers of the attendees",
+    example: SMS_ATTENDEE,
+  })
   @IsString()
   @IsIn(STEP_ACTIONS)
   action: typeof SMS_ATTENDEE = SMS_ATTENDEE;
@@ -240,7 +258,10 @@ export class WorkflowPhoneAttendeeStepDto extends BaseWorkflowStepDto {
 }
 
 export class WorkflowPhoneNumberStepDto extends BaseWorkflowStepDto {
-  @ApiProperty({ description: "Action to perform", example: SMS_NUMBER })
+  @ApiProperty({
+    description: "Action to perform, send a text message to a specific phone number",
+    example: SMS_NUMBER,
+  })
   @IsString()
   @IsIn(STEP_ACTIONS)
   action: typeof SMS_NUMBER = SMS_NUMBER;
@@ -268,7 +289,11 @@ export class WorkflowPhoneWhatsAppAttendeeStepDto extends BaseWorkflowStepDto {
   @IsIn(STEP_ACTIONS)
   action: typeof WHATSAPP_ATTENDEE = WHATSAPP_ATTENDEE;
 
-  @ApiProperty({ description: "Message content for this step", type: TextWorkflowMessageDto })
+  @ApiProperty({
+    description:
+      "Message content for this step, send a text message via whatsapp to the phone numbers of the attendees",
+    type: TextWorkflowMessageDto,
+  })
   @ValidateNested()
   @Type(() => TextWorkflowMessageDto)
   message!: TextWorkflowMessageDto;

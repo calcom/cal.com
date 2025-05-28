@@ -119,7 +119,10 @@ export class UpdateWorkflowDto {
   @IsOptional()
   name?: string;
 
-  @ApiPropertyOptional({ description: "Activation settings for the workflow", type: WorkflowActivationDto })
+  @ApiPropertyOptional({
+    description: "Activation settings for the workflow, the action that will trigger the workflow.",
+    type: WorkflowActivationDto,
+  })
   @ValidateNested()
   @Type(() => WorkflowActivationDto)
   @IsOptional()
@@ -158,8 +161,6 @@ export class UpdateWorkflowDto {
         { $ref: getSchemaPath(UpdatePhoneWhatsAppNumberWorkflowStepDto) },
         { $ref: getSchemaPath(UpdateWhatsAppAttendeePhoneWorkflowStepDto) },
         { $ref: getSchemaPath(UpdatePhoneNumberWorkflowStepDto) },
-        { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
-        { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
       ],
     },
   })
