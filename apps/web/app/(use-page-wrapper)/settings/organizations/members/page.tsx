@@ -21,7 +21,7 @@ const getCachedAttributes = unstable_cache(
     return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
   },
   ["viewer.attributes.list"],
-  { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour
+  { revalidate: 3600 } // Cache for 1 hour
 );
 
 const Page = async () => {
