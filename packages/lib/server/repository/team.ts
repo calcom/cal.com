@@ -561,6 +561,17 @@ export class TeamRepository {
     });
   }
 
+  static async listUserInvites(userId: number) {
+    return await prisma.membership.findMany({
+      where: {
+        user: {
+          id: userId,
+        },
+        accepted: false,
+      },
+    });
+  }
+
   // TODO: Move errors away from TRPC error to make it more generic
   static async inviteMemberByToken(token: string, userId: number) {
     const verificationToken = await prisma.verificationToken.findFirst({

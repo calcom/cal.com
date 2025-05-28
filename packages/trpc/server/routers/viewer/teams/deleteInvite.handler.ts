@@ -1,4 +1,5 @@
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -30,7 +31,7 @@ export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) =
   if (!verificationToken.teamId || !(await isTeamAdmin(ctx.user.id, verificationToken.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  await prisma.verificationToken.delete({ where: { id: verificationToken.id } });
+  await TeamRepository.deleteInvite({ teamId: verificationToken.teamId, token });
 };
 
 export default deleteInviteHandler;
