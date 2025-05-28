@@ -31,6 +31,7 @@ export const ZUpdateInputSchema = z.object({
   time: z.number().nullable(),
   timeUnit: z.enum(TIME_UNIT).nullable(),
   isActiveOnAll: z.boolean().optional(),
+  autoTranslateWorkflowEnabled: z.boolean().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;
