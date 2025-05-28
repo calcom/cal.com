@@ -359,7 +359,7 @@ export async function createOutlookCalendarEvents(credentialId: number, destinat
 
   for (const event of expectedCacheValue) {
     const createdEvent = await outlookCalendarService.createEvent(
-      { ...baseEvent, startTime: event.start, endTime: event.end },
+      { ...baseEvent, startTime: event.start, endTime: event.end, calendarDescription: "E2E Test Event" },
       credentialId
     );
     eventsToDelete.push(createdEvent.id);
