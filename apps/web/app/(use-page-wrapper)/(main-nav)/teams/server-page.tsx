@@ -1,15 +1,11 @@
 import { createRouterCaller } from "app/_trpc/context";
 import type { SearchParams } from "app/_types";
+import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
-import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { TRPCError } from "@trpc/server";
 
@@ -26,12 +22,14 @@ const getCachedTeams = unstable_cache(
   { revalidate: 3600 } // Cache for 1 hour
 );
 
-export const ServerTeamsListing = async ({ searchParams }: { searchParams: SearchParams }) => {
+export const ServerTeamsListing = async ({
+  searchParams,
+  session,
+}: {
+  searchParams: SearchParams;
+  session: Session;
+}) => {
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  if (!session?.user?.id) {
-    redirect("/auth/login");
-  }
   const userId = session.user.id;
 
   let teamNameFromInvite,
