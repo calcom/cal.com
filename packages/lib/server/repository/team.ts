@@ -1150,4 +1150,32 @@ export class TeamRepository {
       },
     });
   }
+
+  static async getUserCredentials({
+    userId,
+    select = {
+      userId: true,
+      app: {
+        select: {
+          slug: true,
+          categories: true,
+        },
+      },
+      destinationCalendars: {
+        select: {
+          externalId: true,
+        },
+      },
+    },
+  }: {
+    userId: number;
+    select?: Prisma.CredentialSelect;
+  }) {
+    return await prisma.credential.findMany({
+      where: {
+        userId,
+      },
+      select,
+    });
+  }
 }

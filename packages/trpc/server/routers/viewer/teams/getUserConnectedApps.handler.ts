@@ -2,7 +2,6 @@ import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { prisma } from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -86,10 +85,8 @@ export const getUserConnectedAppsHandler = async ({ ctx, input }: GetUserConnect
   const userConnectedAppsMap: Record<number, Apps[]> = {};
 
   for (const userId of userIds) {
-    const cred = prisma.credential.findMany({
-      where: {
-        userId,
-      },
+    const cred = TeamRepository.getUserCredentials({
+      userId,
       select: credentialSelect,
     });
     credentialsPromises.push(cred);
