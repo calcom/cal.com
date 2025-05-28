@@ -5,7 +5,6 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -29,19 +28,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (input.slug) {
-    const userConflict = await prisma.team.findMany({
-      where: {
-        slug: input.slug,
-      },
+    const hasConflict = await TeamRepository.checkSlugConflict({
+      slug: input.slug,
+      exceptTeamId: input.id,
     });
-    if (userConflict.some((t) => t.id !== input.id)) return;
+    if (hasConflict) return;
   }
 
-  const prevTeam = await prisma.team.findFirst({
-    where: {
-      id: input.id,
-    },
-  });
+  const prevTeam = await TeamRepository.findById({ id: input.id });
 
   if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
 

@@ -372,6 +372,16 @@ export class TeamRepository {
     });
   }
 
+  static async checkSlugConflict({ slug, exceptTeamId }: { slug: string; exceptTeamId: number }) {
+    const teams = await prisma.team.findMany({
+      where: {
+        slug: slug,
+      },
+    });
+
+    return teams.some((t) => t.id !== exceptTeamId);
+  }
+
   static async checkSlugCollision({ slug, parentId }: { slug: string; parentId: number | null }) {
     return await prisma.team.findFirst({
       where: {
