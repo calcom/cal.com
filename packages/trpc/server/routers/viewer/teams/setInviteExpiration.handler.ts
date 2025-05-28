@@ -1,6 +1,5 @@
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -17,13 +16,8 @@ type SetInviteExpirationOptions = {
 export const setInviteExpirationHandler = async ({ ctx, input }: SetInviteExpirationOptions) => {
   const { token, expiresInDays } = input;
 
-  const verificationToken = await prisma.verificationToken.findFirst({
-    where: {
-      token: token,
-    },
-    select: {
-      teamId: true,
-    },
+  const verificationToken = await TeamRepository.getVerificationToken({
+    token,
   });
 
   if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND" });

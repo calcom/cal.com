@@ -555,6 +555,17 @@ export class TeamRepository {
     });
   }
 
+  static async getVerificationToken({ token }: { token: string }) {
+    return await prisma.verificationToken.findFirst({
+      where: {
+        token: token,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+  }
+
   static async setInviteExpiration({
     token,
     expiresInDays,
