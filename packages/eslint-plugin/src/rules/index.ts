@@ -8,4 +8,5 @@ export default {
   "no-prisma-include-true": require("./no-prisma-include-true").default,
   "deprecated-imports-next-router": require("./deprecated-imports-next-router").default,
   "no-scroll-into-view-embed": require("./no-scroll-into-view-embed").default,
+  "avoid-app-router-source-import": require("./avoid-app-router-source-import").default,
 } as ESLint.Plugin["rules"];
