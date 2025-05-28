@@ -934,6 +934,35 @@ export class TeamRepository {
     });
   }
 
+  static async skipTeamTrials({ userId }: { userId: number }) {
+    try {
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          trialEndsAt: null,
+        },
+      });
+
+      const ownedTeams = await prisma.team.findMany({
+        where: {
+          members: {
+            some: {
+              userId: userId,
+              accepted: true,
+              role: "OWNER",
+            },
+          },
+        },
+      });
+
+      return { success: true, ownedTeams };
+    } catch (error) {
+      return { success: false, error: "Failed to skip team trials" };
+    }
+  }
+
   static async updateInternalNotesPresets({
     teamId,
     presets,

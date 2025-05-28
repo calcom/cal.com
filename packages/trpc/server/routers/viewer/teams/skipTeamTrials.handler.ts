@@ -1,7 +1,7 @@
 import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
@@ -20,26 +20,14 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
   if (IS_SELF_HOSTED) return { success: true };
 
   try {
-    await prisma.user.update({
-      where: {
-        id: ctx.user.id,
-      },
-      data: {
-        trialEndsAt: null,
-      },
+    const { success, ownedTeams, error } = await TeamRepository.skipTeamTrials({
+      userId: ctx.user.id,
     });
 
-    const ownedTeams = await prisma.team.findMany({
-      where: {
-        members: {
-          some: {
-            userId: ctx.user.id,
-            accepted: true,
-            role: "OWNER",
-          },
-        },
-      },
-    });
+    if (!success || !ownedTeams) {
+      log.error("Error skipping team trials", error);
+      return { success: false, error: error || "Failed to skip team trials" };
+    }
 
     for (const team of ownedTeams) {
       const teamBillingService = new InternalTeamBilling(team);
