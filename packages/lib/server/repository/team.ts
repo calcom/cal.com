@@ -322,6 +322,10 @@ export class TeamRepository {
   static async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
     const memberships = await prisma.membership.findMany({
       where: {
+        // Show all the teams this user belongs to regardless of the team being part of the user's org or not
+        // We don't want to restrict in the listing here. If we need to restrict a situation where a user is part of the org along with being part of a non-org team, we should do that instead of filtering out from here
+        // This became necessary when we started migrating user to Org, without migrating some teams of the user to the org
+        // Also, we would allow a user to be part of multiple orgs, then also it would be necessary.
         userId: userId,
       },
       include: {
