@@ -555,6 +555,27 @@ export class TeamRepository {
     });
   }
 
+  static async setInviteExpiration({
+    token,
+    expiresInDays,
+  }: {
+    token: string;
+    expiresInDays: number | null;
+  }) {
+    const oneDay = 24 * 60 * 60 * 1000;
+    const expires = expiresInDays
+      ? new Date(Date.now() + expiresInDays * oneDay)
+      : new Date("9999-12-31T23:59:59Z"); //maximum possible date incase the link is set to never expire
+
+    return await prisma.verificationToken.update({
+      where: { token },
+      data: {
+        expires,
+        expiresInDays: expiresInDays ? expiresInDays : null,
+      },
+    });
+  }
+
   static async listInvites({ teamId }: { teamId: number }) {
     return await prisma.verificationToken.findMany({
       where: {
