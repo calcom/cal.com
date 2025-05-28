@@ -68,6 +68,18 @@ model Host {
   @@index([scheduleId])
 }
 
+model CalVideoSettings {
+  eventTypeId Int       @id
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+
+  disableRecordingForOrganizer Boolean @default(false)
+  disableRecordingForGuests    Boolean @default(false)
+  redirectUrlOnExit            String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model EventType {
   id                Int     @id @default(autoincrement())
   /// @zod.min(1)
@@ -176,6 +188,7 @@ model EventType {
   hideOrganizerEmail                      Boolean                   @default(false)
   /// @zod.custom(imports.emailSchema)
   customReplyToEmail                      String?
+  calVideoSettings                        CalVideoSettings?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -221,10 +234,10 @@ model Credential {
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
+  @@index([userId, delegationCredentialId])
 }
 
 enum IdentityProvider {

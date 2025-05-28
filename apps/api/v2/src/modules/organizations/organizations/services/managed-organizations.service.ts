@@ -1,3 +1,4 @@
+import { getPagination } from "@/lib/pagination/pagination";
 import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
@@ -11,6 +12,7 @@ import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { slugify } from "@calcom/platform-libraries";
+import { SkipTakePagination } from "@calcom/platform-types";
 
 @Injectable()
 export class ManagedOrganizationsService {
@@ -99,18 +101,22 @@ export class ManagedOrganizationsService {
     return this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);
   }
 
-  async getManagedOrganizations(managerOrganizationId: number) {
-    const managedOrganizations = await this.managedOrganizationsRepository.getByManagerOrganizationId(
-      managerOrganizationId
-    );
-    const managedOrganizationsIds = managedOrganizations.map(
-      (managedOrganization) => managedOrganization.managedOrganizationId
-    );
+  async getManagedOrganizations(managerOrganizationId: number, pagination: SkipTakePagination) {
+    const { items: managedOrganizations, totalItems } =
+      await this.managedOrganizationsRepository.getByManagerOrganizationIdPaginated(
+        managerOrganizationId,
+        pagination
+      );
 
-    const organizations = await this.organizationsRepository.findByIds(managedOrganizationsIds);
-    return organizations.map((organization) =>
-      this.managedOrganizationsOutputService.getOutputManagedOrganization(organization)
-    );
+    return {
+      organizations: managedOrganizations.map((managedOrganization) =>
+        this.managedOrganizationsOutputService.getOutputManagedOrganization(managedOrganization)
+      ),
+      pagination: getPagination({
+        ...pagination,
+        totalCount: totalItems,
+      }),
+    };
   }
 
   async updateManagedOrganization(managedOrganizationId: number, body: UpdateOrganizationInput) {

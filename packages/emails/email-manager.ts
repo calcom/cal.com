@@ -189,18 +189,28 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
   teamMembersAndAttendees: Person[],
   eventTypeMetadata?: EventTypeMetadata
 ) => {
-  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
-
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
 
   for (const person of teamMembersAndAttendees) {
-    emailsAndSMSToSend.push(
-      sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember: person }))
-    );
-    if (person.phoneNumber) {
-      emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
+    const isAttendee = calendarEvent.attendees.some((attendee) => attendee.email === person.email);
+    const isTeamMember = !!calendarEvent.team?.members.some((member) => member.email === person.email);
+
+    if (isAttendee && !isTeamMember) {
+      if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, person)));
+        if (person.phoneNumber) {
+          emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
+        }
+      }
+    } else if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+      emailsAndSMSToSend.push(
+        sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember: person }))
+      );
+      if (person.phoneNumber) {
+        emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
+      }
     }
   }
 
