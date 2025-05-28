@@ -575,4 +575,62 @@ export class TeamRepository {
       },
     });
   }
+
+  static async listSimpleMembers(userId: number, isOrgAdmin: boolean, isOrgPrivate: boolean) {
+    if (!isOrgAdmin && isOrgPrivate) {
+      return [];
+    }
+
+    const teamsToQuery = (
+      await prisma.membership.findMany({
+        where: {
+          userId,
+          accepted: true,
+          NOT: [
+            {
+              role: MembershipRole.MEMBER,
+              team: {
+                isPrivate: true,
+              },
+            },
+          ],
+        },
+        select: { teamId: true },
+      })
+    ).map((membership) => membership.teamId);
+
+    if (!teamsToQuery.length) {
+      return [];
+    }
+
+    // Fetch unique users through memberships
+    const members = (
+      await prisma.membership.findMany({
+        where: {
+          accepted: true,
+          teamId: { in: teamsToQuery },
+        },
+        select: {
+          id: true,
+          accepted: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatarUrl: true,
+              email: true,
+            },
+          },
+        },
+        distinct: ["userId"],
+        orderBy: [
+          { userId: "asc" }, // First order by userId to ensure consistent ordering
+          { id: "asc" }, // Then by id as secondary sort
+        ],
+      })
+    ).map((membership) => membership.user);
+
+    return members;
+  }
 }
