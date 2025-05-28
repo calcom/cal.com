@@ -901,6 +901,19 @@ export class TeamRepository {
     return members;
   }
 
+  static async getInternalNotesPresets({ teamId }: { teamId: number }) {
+    return await prisma.internalNotePreset.findMany({
+      where: {
+        teamId,
+      },
+      select: {
+        id: true,
+        name: true,
+        cancellationReason: true,
+      },
+    });
+  }
+
   static async updateInternalNotesPresets({
     teamId,
     presets,
