@@ -576,6 +576,21 @@ export class TeamRepository {
     });
   }
 
+  static async hasTeamPlan(userId: number) {
+    const hasTeamPlan = await prisma.membership.findFirst({
+      where: {
+        accepted: true,
+        userId,
+        team: {
+          slug: {
+            not: null,
+          },
+        },
+      },
+    });
+    return { hasTeamPlan: !!hasTeamPlan };
+  }
+
   static async listSimpleMembers(userId: number, isOrgAdmin: boolean, isOrgPrivate: boolean) {
     if (!isOrgAdmin && isOrgPrivate) {
       return [];
