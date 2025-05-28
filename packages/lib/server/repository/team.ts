@@ -272,11 +272,91 @@ export class TeamRepository {
     return createdTeam;
   }
 
-  static async update({ id, data }: { id: number; data: Prisma.TeamUpdateArgs["data"] }) {
-    return await prisma.team.update({
+  static async update({
+    id,
+    data,
+    logo,
+    prevTeam,
+    isTeamBillingEnabled,
+  }: {
+    id: number;
+    data: Prisma.TeamUpdateArgs["data"];
+    logo?: string | null;
+    prevTeam?: any;
+    isTeamBillingEnabled?: boolean;
+  }) {
+    const updateData: Prisma.TeamUpdateArgs["data"] = { ...data };
+
+    if (logo && logo.startsWith("data:image/png;base64,")) {
+      const { uploadLogo } = await import("@calcom/lib/server/avatar");
+      updateData.logoUrl = await uploadLogo({ teamId: id, logo });
+    } else if (typeof logo !== "undefined" && !logo) {
+      updateData.logoUrl = null;
+    }
+
+    if (prevTeam && isTeamBillingEnabled) {
+      if (
+        data.slug &&
+        isTeamBillingEnabled &&
+        /** If the team doesn't have a slug we can assume that it hasn't been published yet. */
+        !prevTeam.slug
+      ) {
+        updateData.metadata = {
+          requestedSlug: data.slug,
+        };
+        delete updateData.slug;
+      } else if (data.slug) {
+        const { teamMetadataSchema } = await import("@calcom/prisma/zod-utils");
+        const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
+        if (metadataParse.success) {
+          const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
+          updateData.metadata = {
+            ...cleanMetadata,
+          };
+        }
+      }
+    }
+
+    const updatedTeam = await prisma.team.update({
       where: { id },
-      data,
+      data: updateData,
     });
+
+    if (prevTeam && updatedTeam.parentId && prevTeam.slug) {
+      if (updatedTeam.slug === prevTeam.slug) return updatedTeam;
+
+      const parentTeam = await prisma.team.findUnique({
+        where: {
+          id: updatedTeam.parentId,
+        },
+        select: {
+          slug: true,
+        },
+      });
+
+      if (!parentTeam?.slug) {
+        throw new Error(`Parent team with slug: ${parentTeam?.slug} not found`);
+      }
+
+      const { getOrgFullOrigin } = await import("@calcom/ee/organizations/lib/orgDomains");
+      const orgUrlPrefix = getOrgFullOrigin(parentTeam.slug);
+
+      const toUrlOld = `${orgUrlPrefix}/${prevTeam.slug}`;
+      const toUrlNew = `${orgUrlPrefix}/${updatedTeam.slug}`;
+
+      const { RedirectType } = await import("@calcom/prisma/enums");
+      await prisma.tempOrgRedirect.updateMany({
+        where: {
+          type: RedirectType.Team,
+          toUrl: toUrlOld,
+        },
+        data: {
+          toUrl: toUrlNew,
+        },
+      });
+    }
+
+    return updatedTeam;
   }
 
   static async findBySlug(slug: string, options?: { includeMemberships?: boolean }) {
