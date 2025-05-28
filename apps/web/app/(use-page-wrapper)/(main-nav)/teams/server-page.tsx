@@ -1,30 +1,24 @@
-import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
-import type { SearchParams, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
+import { createRouterCaller } from "app/_trpc/context";
+import type { SearchParams } from "app/_types";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
-import { CreationSource } from "@calcom/prisma/enums";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { TRPCError } from "@trpc/server";
 
 import { TeamsCTA } from "./CTA";
 
-const getCachedMe = unstable_cache(
-  async (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-    const meCaller = await createRouterCaller(meRouter, await getTRPCContext(headers, cookies));
-    return await meCaller.get();
-  },
-  ["viewer.me.get"],
-  { revalidate: 3600 } // Cache for 1 hour
-);
-
 const getCachedTeams = unstable_cache(
-  async (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-    const teamsCaller = await createRouterCaller(viewerTeamsRouter, await getTRPCContext(headers, cookies));
-    return await teamsCaller.list({
+  async (userId: number) => {
+    return await TeamRepository.findTeamsByUserId({
+      userId,
       includeOrgs: true,
     });
   },
@@ -34,30 +28,26 @@ const getCachedTeams = unstable_cache(
 
 export const ServerTeamsListing = async ({ searchParams }: { searchParams: SearchParams }) => {
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
-  const _headers = await headers();
-  const _cookies = await cookies();
-
-  const teamsCaller = await createRouterCaller(viewerTeamsRouter);
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  if (!session?.user?.id) {
+    redirect("/auth/login");
+  }
+  const userId = session.user.id;
 
   let teamNameFromInvite,
     errorMsgFromInvite = null;
 
   if (token) {
     try {
-      teamNameFromInvite = await teamsCaller.inviteMemberByToken({
-        token,
-        creationSource: CreationSource.WEBAPP,
-      });
+      teamNameFromInvite = await TeamRepository.inviteMemberByToken(token, userId);
     } catch (e) {
       errorMsgFromInvite = "Error while fetching teams";
       if (e instanceof TRPCError) errorMsgFromInvite = e.message;
     }
   }
 
-  const [user, teams] = await Promise.all([
-    getCachedMe(_headers, _cookies),
-    getCachedTeams(_headers, _cookies),
-  ]);
+  const meCaller = await createRouterCaller(meRouter);
+  const [user, teams] = await Promise.all([meCaller.get(), getCachedTeams(userId)]);
 
   return {
     Main: (
