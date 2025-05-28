@@ -7,19 +7,18 @@ import {
   ZSingleSelectFilterValue,
   ZDateRangeFilterValue,
 } from "@calcom/features/data-table";
+import { useChangeTimeZoneWithPreservedLocalTime } from "@calcom/features/data-table/hooks/useChangeTimeZoneWithPreservedLocalTime";
 import {
   getDefaultStartDate,
   getDefaultEndDate,
   CUSTOM_PRESET_VALUE,
   type PresetOptionValue,
 } from "@calcom/features/data-table/lib/dateRange";
-import { useUserTimePreferences } from "@calcom/trpc/react/hooks/useUserTimePreferences";
 
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
 export function useInsightsParameters() {
   const { isAll, teamId, userId } = useInsightsOrgTeams();
-  const { preserveLocalTime } = useUserTimePreferences();
 
   const memberUserIds = useFilterValue("bookingUserId", ZMultiSelectFilterValue)?.data as
     | number[]
@@ -28,13 +27,14 @@ export function useInsightsParameters() {
   const eventTypeId = useFilterValue("eventTypeId", ZSingleSelectFilterValue)?.data as number | undefined;
   const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
-  const startDate = useMemo(
-    () => preserveLocalTime(createdAtRange?.startDate ?? getDefaultStartDate().toISOString()),
-    [createdAtRange?.startDate, preserveLocalTime]
+  const startDate = useChangeTimeZoneWithPreservedLocalTime(
+    useMemo(
+      () => createdAtRange?.startDate ?? getDefaultStartDate().toISOString(),
+      [createdAtRange?.startDate]
+    )
   );
-  const endDate = useMemo(
-    () => preserveLocalTime(createdAtRange?.endDate ?? getDefaultEndDate().toISOString()),
-    [createdAtRange?.endDate, preserveLocalTime]
+  const endDate = useChangeTimeZoneWithPreservedLocalTime(
+    useMemo(() => createdAtRange?.endDate ?? getDefaultEndDate().toISOString(), [createdAtRange?.endDate])
   );
 
   const dateRangePreset = useMemo<PresetOptionValue>(() => {

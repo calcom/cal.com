@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
+import dayjs from "@calcom/dayjs";
+
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
 import {
   activeFiltersParser,
@@ -64,6 +66,8 @@ export type DataTableContextType = {
 
   searchTerm: string;
   setSearchTerm: (searchTerm: string | null) => void;
+
+  timeZone: string;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -75,6 +79,7 @@ interface DataTableProviderProps {
   ctaContainerClassName?: string;
   defaultPageSize?: number;
   segments?: FilterSegmentOutput[];
+  timeZone?: string;
 }
 
 export function DataTableProvider({
@@ -84,6 +89,7 @@ export function DataTableProvider({
   defaultPageSize = DEFAULT_PAGE_SIZE,
   ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
   segments: providedSegments,
+  timeZone: providedTimeZone,
 }: DataTableProviderProps) {
   const filterToOpen = useRef<string | undefined>(undefined);
   const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
@@ -97,6 +103,8 @@ export function DataTableProvider({
   const [pageIndex, setPageIndex] = useQueryState("page", pageIndexParser);
   const [pageSize, setPageSize] = useQueryState("size", pageSizeParser);
   const [searchTerm, setSearchTerm] = useQueryState("q", searchTermParser);
+
+  const timeZone = providedTimeZone ?? dayjs.tz.guess();
 
   const setDebouncedSearchTerm = useMemo(
     () => debounce((value: string | null) => setSearchTerm(value ? value.trim() : null), 500),
@@ -239,6 +247,7 @@ export function DataTableProvider({
         isSegmentEnabled,
         searchTerm,
         setSearchTerm: setDebouncedSearchTerm,
+        timeZone,
       }}>
       {children}
     </DataTableContext.Provider>
