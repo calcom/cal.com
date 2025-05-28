@@ -17,6 +17,12 @@ import { useDataTable } from "./useDataTable";
  * The output timestamp is based on the timezone in the user's profile settings.
  */
 export function useChangeTimeZoneWithPreservedLocalTime(isoString: string) {
-  const { timeZone } = useDataTable();
-  return useMemo(() => preserveLocalTime(isoString, dayjs.tz.guess(), timeZone), [isoString]);
+  const { timeZone: profileTimeZone } = useDataTable();
+  return useMemo(() => {
+    const currentTimeZone = dayjs.tz.guess();
+    if (!profileTimeZone || currentTimeZone === profileTimeZone) {
+      return isoString;
+    }
+    return preserveLocalTime(isoString, currentTimeZone, profileTimeZone);
+  }, [isoString, profileTimeZone]);
 }
