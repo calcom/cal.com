@@ -5,12 +5,17 @@ import type { z } from "zod";
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import removeMember from "@calcom/features/ee/teams/lib/removeMember";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { uploadLogo } from "@calcom/lib/server/avatar";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
 
 import { TRPCError } from "@trpc/server";
 
@@ -1218,10 +1223,12 @@ export class TeamRepository {
 
   static async findUsersByEmailOrUsername({
     usernamesOrEmails,
+    orgId,
     teamId,
   }: {
     usernamesOrEmails: string[];
-    teamId: number;
+    orgId?: number;
+    teamId?: number;
   }) {
     return await prisma.user.findMany({
       where: {
@@ -1230,7 +1237,7 @@ export class TeamRepository {
           {
             profiles: {
               some: {
-                organizationId: teamId,
+                organizationId: orgId,
                 username: { in: usernamesOrEmails },
               },
             },
@@ -1308,11 +1315,19 @@ export class TeamRepository {
     token,
     expires,
     teamId,
+    teamName,
+    role,
+    usernameOrEmail,
+    sendTo,
   }: {
     identifier: string;
     token: string;
     expires?: Date;
     teamId: number;
+    teamName: string;
+    role: MembershipRole;
+    usernameOrEmail: string;
+    sendTo?: string;
   }) {
     return await prisma.verificationToken.create({
       data: {
@@ -1391,5 +1406,136 @@ export class TeamRepository {
         totalRowCount,
       },
     };
+  }
+
+  static async createNewUsersConnectToOrgIfExists({
+    invitations,
+    isOrg,
+    teamId,
+    parentId,
+    autoAcceptEmailDomain,
+    orgConnectInfoByUsernameOrEmail,
+    isPlatformManaged,
+    timeFormat,
+    weekStart,
+    timeZone,
+    language,
+    creationSource,
+  }: {
+    invitations: { usernameOrEmail: string; role: MembershipRole }[];
+    isOrg: boolean;
+    teamId: number;
+    parentId?: number | null;
+    autoAcceptEmailDomain: string | null;
+    orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
+    isPlatformManaged?: boolean;
+    timeFormat?: number;
+    weekStart?: string;
+    timeZone?: string;
+    language: string;
+    creationSource: any;
+  }) {
+    for (const invitation of invitations) {
+      if (!isEmail(invitation.usernameOrEmail)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Invite failed because ${invitation.usernameOrEmail} is not a valid email address`,
+        });
+      }
+    }
+
+    const createdUsers = await prisma.$transaction(
+      async (tx) => {
+        const createdUsers = [];
+        for (let index = 0; index < invitations.length; index++) {
+          const invitation = invitations[index];
+          const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
+          const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
+          const [domainName, TLD] = emailDomain.split(".");
+
+          const orgMemberUsername =
+            emailDomain === autoAcceptEmailDomain
+              ? slugify(emailUser)
+              : slugify(`${emailUser}-${domainName}${isPlatformManaged ? `-${TLD}` : ""}`);
+
+          const regularTeamMemberUsername = null;
+
+          const isBecomingAnOrgMember = parentId || isOrg;
+
+          const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+          const t = await getTranslation(language ?? "en", "common");
+          const createdUser = await tx.user.create({
+            data: {
+              username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
+              email: invitation.usernameOrEmail,
+              verified: true,
+              invitedTo: teamId,
+              isPlatformManaged: !!isPlatformManaged,
+              timeFormat,
+              weekStart,
+              timeZone,
+              creationSource,
+              organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
+              ...(orgId
+                ? {
+                    profiles: {
+                      createMany: {
+                        data: [
+                          {
+                            uid: ProfileRepository.generateProfileUid(),
+                            username: orgMemberUsername,
+                            organizationId: orgId,
+                          },
+                        ],
+                      },
+                    },
+                  }
+                : null),
+              teams: {
+                create: {
+                  teamId: teamId,
+                  role: invitation.role,
+                  accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
+                },
+              },
+              ...(!isPlatformManaged
+                ? {
+                    schedules: {
+                      create: {
+                        name: t("default_schedule_name"),
+                        availability: {
+                          createMany: {
+                            data: defaultAvailability.map((schedule) => ({
+                              days: schedule.days,
+                              startTime: schedule.startTime,
+                              endTime: schedule.endTime,
+                            })),
+                          },
+                        },
+                      },
+                    },
+                  }
+                : {}),
+            },
+          });
+
+          if (parentId) {
+            await tx.membership.create({
+              data: {
+                createdAt: new Date(),
+                teamId: parentId,
+                userId: createdUser.id,
+                role: MembershipRole.MEMBER,
+                accepted: autoAccept,
+              },
+            });
+          }
+          createdUsers.push(createdUser);
+        }
+        return createdUsers;
+      },
+      { timeout: 10000 }
+    );
+    return createdUsers;
   }
 }
