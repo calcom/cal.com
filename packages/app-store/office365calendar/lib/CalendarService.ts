@@ -3,18 +3,17 @@ import type { DefaultBodyType } from "msw";
 
 import { MSTeamsLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { getLocation, getRichDescription, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
+import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialConfigurationError,
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
-import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
-  CalendarEvent,
+  CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
@@ -241,7 +240,7 @@ export default class Office365CalendarService implements Calendar {
     return azureUserId ? `/users/${this.azureUserId}` : "/me";
   }
 
-  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     const mainHostDestinationCalendar = event.destinationCalendar
       ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
         event.destinationCalendar[0]
@@ -251,10 +250,9 @@ export default class Office365CalendarService implements Calendar {
         ? `${await this.getUserEndpoint()}/calendars/${mainHostDestinationCalendar?.externalId}/events`
         : `${await this.getUserEndpoint()}/calendar/events`;
 
-      const formattedEvent = formatCalEvent(event);
       const response = await this.fetcher(eventsUrl, {
         method: "POST",
-        body: JSON.stringify(this.translateEvent(formattedEvent)),
+        body: JSON.stringify(this.translateEvent(event)),
       });
 
       const responseJson = await handleErrorsJson<
@@ -273,7 +271,7 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
+  async updateEvent(uid: string, event: CalendarServiceEvent): Promise<NewCalendarEventType> {
     try {
       let rescheduledEvent: Event | undefined;
       if (event.location === MSTeamsLocationType) {
@@ -426,7 +424,7 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  private translateEvent = (event: CalendarEvent, rescheduledEvent?: Event) => {
+  private translateEvent = (event: CalendarServiceEvent, rescheduledEvent?: Event) => {
     const isOnlineMeeting = event.location === MSTeamsLocationType;
     const isRescheduledOnlineMeeting = rescheduledEvent ? rescheduledEvent.isOnlineMeeting : false;
     const existingBody =
@@ -442,7 +440,7 @@ export default class Office365CalendarService implements Calendar {
         content = getRichDescriptionHTML(event);
       }
     } else {
-      content = getRichDescription(event);
+      content = event.calendarDescription;
     }
 
     const office365Event: Event = {

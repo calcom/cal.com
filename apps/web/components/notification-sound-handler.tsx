@@ -91,6 +91,11 @@ export function NotificationSoundHandler() {
     // Don't automatically initialize - wait for user interaction
     return () => {
       stopSound();
+      if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+        audioContextRef.current.close();
+      }
+      audioContextRef.current = null;
+      audioBufferRef.current = null;
     };
   }, []);
 
