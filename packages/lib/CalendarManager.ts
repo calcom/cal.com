@@ -506,7 +506,7 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
   if (calEvent.hideOrganizerEmail && !isOrganizerExempt) {
-    calEvent.attendees = [];
+    calendarEvent.attendees = [];
   }
 
   return calendarEvent;
