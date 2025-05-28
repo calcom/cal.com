@@ -1,4 +1,5 @@
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -55,17 +56,10 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     });
   }
 
-  const membership = await prisma.membership.update({
-    where: {
-      userId_teamId: { userId: input.memberId, teamId: input.teamId },
-    },
-    data: {
-      role: input.role,
-    },
-    include: {
-      team: true,
-      user: true,
-    },
+  const membership = await TeamRepository.changeMemberRole({
+    memberId: input.memberId,
+    teamId: input.teamId,
+    role: input.role,
   });
 };
 
