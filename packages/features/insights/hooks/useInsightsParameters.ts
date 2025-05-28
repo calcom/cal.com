@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import dayjs from "@calcom/dayjs";
 import {
   useFilterValue,
   useColumnFilters,
@@ -27,14 +28,22 @@ export function useInsightsParameters() {
   const eventTypeId = useFilterValue("eventTypeId", ZSingleSelectFilterValue)?.data as number | undefined;
   const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
+  // TODO for future: this preserving local time & startOf & endOf should be handled
+  // from DateRangeFilter out of the box.
+  // When we do it, we also need to remove those timezone handling logic from the backend side at the same time.
   const startDate = useChangeTimeZoneWithPreservedLocalTime(
-    useMemo(
-      () => createdAtRange?.startDate ?? getDefaultStartDate().toISOString(),
-      [createdAtRange?.startDate]
-    )
+    useMemo(() => {
+      return dayjs(createdAtRange?.startDate ?? getDefaultStartDate().toISOString())
+        .startOf("day")
+        .toISOString();
+    }, [createdAtRange?.startDate])
   );
   const endDate = useChangeTimeZoneWithPreservedLocalTime(
-    useMemo(() => createdAtRange?.endDate ?? getDefaultEndDate().toISOString(), [createdAtRange?.endDate])
+    useMemo(() => {
+      return dayjs(createdAtRange?.endDate ?? getDefaultEndDate().toISOString())
+        .endOf("day")
+        .toISOString();
+    }, [createdAtRange?.endDate])
   );
 
   const dateRangePreset = useMemo<PresetOptionValue>(() => {
