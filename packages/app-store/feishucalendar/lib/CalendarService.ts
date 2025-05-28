@@ -131,7 +131,7 @@ export default class FeishuCalendarService implements Calendar {
     });
   };
 
-  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar
@@ -201,7 +201,7 @@ export default class FeishuCalendarService implements Calendar {
    * @param event
    * @returns
    */
-  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
+  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId?: string) {
     const eventId = uid;
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar?.find(
