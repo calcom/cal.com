@@ -11,6 +11,7 @@ import {
   applyTextFilter,
   applyNumberFilter,
   selectOptionValue,
+  getByTableColumnText,
 } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
@@ -186,8 +187,8 @@ test.describe("Insights > Routing Filters", () => {
 
     await applySelectFilter(page, "bookingUserId", user1Name);
 
-    await expect(page.getByText("John Doe")).toBeVisible();
-    await expect(page.getByText("Jane Smith")).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "John Doe")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "Jane Smith")).toBeHidden();
 
     await prisma.booking.delete({ where: { id: booking1.id } });
     await prisma.booking.delete({ where: { id: booking2.id } });
@@ -291,8 +292,8 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByPlaceholder("Filter attendees by name or email").fill("John");
     await page.keyboard.press("Enter");
 
-    await expect(page.getByText("Response 1")).toBeVisible();
-    await expect(page.getByText("Response 2")).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "Response 1")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "Response 2")).toBeHidden();
 
     await clearFilters(page);
     await addFilter(page, "bookingAttendees");
@@ -300,8 +301,8 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByPlaceholder("Filter attendees by name or email").fill("jane.smith@example");
     await page.keyboard.press("Enter");
 
-    await expect(page.getByText("Response 2")).toBeVisible();
-    await expect(page.getByText("Response 1")).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "Response 2")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "Response 1")).toBeHidden();
 
     await clearFilters(page);
     await addFilter(page, "bookingAttendees");
@@ -309,8 +310,8 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByPlaceholder("Filter attendees by name or email").fill("JANE");
     await page.keyboard.press("Enter");
 
-    await expect(page.getByText("Response 2")).toBeVisible();
-    await expect(page.getByText("Response 1")).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "Response 2")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "Response 1")).toBeHidden();
 
     await prisma.booking.delete({ where: { id: booking1.id } });
     await prisma.booking.delete({ where: { id: booking2.id } });
@@ -392,26 +393,26 @@ test.describe("Insights > Routing Filters", () => {
 
     await applyTextFilter(page, fieldId, "Contains", "test");
 
-    await expect(page.getByText("This is a test description")).toBeVisible();
-    await expect(page.getByText("Another description for testing")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "This is a test description")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "Another description for testing")).toBeVisible();
 
     await clearFilters(page);
     await applyTextFilter(page, fieldId, "Is", "This is a test description");
 
-    await expect(page.getByText("This is a test description")).toBeVisible();
-    await expect(page.getByText("Another description for testing")).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "This is a test description")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "Another description for testing")).toBeHidden();
 
     await clearFilters(page);
     await applyTextFilter(page, fieldId, "Is empty");
 
-    await expect(page.getByText("This is a test description")).toBeHidden();
-    await expect(page.getByText("Another description for testing")).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "This is a test description")).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "Another description for testing")).toBeHidden();
 
     await clearFilters(page);
     await applyTextFilter(page, fieldId, "Contains", "TEST");
 
-    await expect(page.getByText("This is a test description")).toBeVisible();
-    await expect(page.getByText("Another description for testing")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "This is a test description")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "Another description for testing")).toBeVisible();
   });
 
   test("NUMBER field: should filter with different number operators", async ({
@@ -489,26 +490,23 @@ test.describe("Insights > Routing Filters", () => {
 
     await applyNumberFilter(page, fieldId, "=", 3);
 
-    const getByNumber = (number: number) =>
-      page.locator(`[data-testid="data-table-td-${fieldId}"]`).getByText(String(number));
-
-    await expect(getByNumber(3)).toBeVisible();
-    await expect(getByNumber(1)).toBeHidden();
-    await expect(getByNumber(5)).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "3")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "1")).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "5")).toBeHidden();
 
     await clearFilters(page);
     await applyNumberFilter(page, fieldId, ">", 3);
 
-    await expect(getByNumber(5)).toBeVisible();
-    await expect(getByNumber(1)).toBeHidden();
-    await expect(getByNumber(3)).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "5")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "1")).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "3")).toBeHidden();
 
     await clearFilters(page);
     await applyNumberFilter(page, fieldId, "≤", 3);
 
-    await expect(getByNumber(1)).toBeVisible();
-    await expect(getByNumber(3)).toBeVisible();
-    await expect(getByNumber(5)).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "1")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "3")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "5")).toBeHidden();
   });
 
   test("SINGLE_SELECT and MULTI_SELECT fields: should filter correctly", async ({
@@ -620,19 +618,16 @@ test.describe("Insights > Routing Filters", () => {
 
     await page.goto(`/insights/routing`);
 
-    const getByColumnValue = (columnId: string, value: string) =>
-      page.locator(`[data-testid="data-table-td-${columnId}"]`).getByText(value);
-
     await applySelectFilter(page, locationFieldId, "New York");
-    await expect(getByColumnValue(locationFieldId, "New York")).toBeVisible();
-    await expect(getByColumnValue(locationFieldId, "London")).toBeHidden();
+    await expect(getByTableColumnText(page, locationFieldId, "New York")).toBeVisible();
+    await expect(getByTableColumnText(page, locationFieldId, "London")).toBeHidden();
 
     await clearFilters(page);
     await applySelectFilter(page, skillFieldId, "JavaScript");
     await applySelectFilter(page, skillFieldId, "TypeScript");
-    await expect(getByColumnValue(skillFieldId, "JavaScript")).toBeVisible();
-    await expect(getByColumnValue(skillFieldId, "TypeScript")).toBeVisible();
-    await expect(getByColumnValue(skillFieldId, "React")).toBeHidden();
+    await expect(getByTableColumnText(page, skillFieldId, "JavaScript")).toBeVisible();
+    await expect(getByTableColumnText(page, skillFieldId, "TypeScript")).toBeVisible();
+    await expect(getByTableColumnText(page, skillFieldId, "React")).toBeHidden();
   });
 
   test("createdAt filter: should filter by date range", async ({ page, users, routingForms, prisma }) => {
@@ -698,14 +693,14 @@ test.describe("Insights > Routing Filters", () => {
     await page.getByTestId("date-range-options-w").click(); // Last 7 Days
     await page.keyboard.press("Escape");
 
-    await expect(page.getByText("Recent Response")).toBeVisible();
-    await expect(page.getByText("Old Response")).toBeHidden();
+    await expect(getByTableColumnText(page, fieldId, "Recent Response")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "Old Response")).toBeHidden();
 
     await openFilter(page, "createdAt");
     await page.getByTestId("date-range-options-t").click(); // Last 30 Days
     await page.keyboard.press("Escape");
 
-    await expect(page.getByText("Recent Response")).toBeVisible();
-    await expect(page.getByText("Old Response")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "Recent Response")).toBeVisible();
+    await expect(getByTableColumnText(page, fieldId, "Old Response")).toBeVisible();
   });
 });
