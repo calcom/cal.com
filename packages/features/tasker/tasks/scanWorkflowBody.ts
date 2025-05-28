@@ -2,6 +2,7 @@ import z from "zod";
 
 import { getTemplateBodyForAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
+import { Task } from "@calcom/features/tasker/repository";
 import { lockUser, LockReason } from "@calcom/lib/autoLock";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -12,17 +13,26 @@ import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewe
 export const scanWorkflowBodySchema = z.object({
   userId: z.number(),
   workflowStepIds: z.array(z.number()),
+  createdAt: z.string(),
 });
 
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
 
 export async function scanWorkflowBody(payload: string) {
-  const { workflowStepIds, userId } = scanWorkflowBodySchema.parse(JSON.parse(payload));
+  const { workflowStepIds, userId, createdAt } = scanWorkflowBodySchema.parse(JSON.parse(payload));
+
+  const stepIdsToScan: number[] = [];
+  for (const workflowStepId of workflowStepIds) {
+    const newerTask = await Task.findNewerScanTaskForStepId(workflowStepId, createdAt);
+    if (!newerTask) stepIdsToScan.push(workflowStepId);
+  }
+
+  if (stepIdsToScan.length === 0) return;
 
   const workflowSteps = await prisma.workflowStep.findMany({
     where: {
       id: {
-        in: workflowStepIds,
+        in: stepIdsToScan,
       },
     },
     include: {
@@ -116,7 +126,7 @@ export async function scanWorkflowBody(payload: string) {
     await prisma.workflowStep.updateMany({
       where: {
         id: {
-          in: workflowStepIds,
+          in: stepIdsToScan,
         },
       },
       data: {
@@ -130,7 +140,7 @@ export async function scanWorkflowBody(payload: string) {
       steps: {
         some: {
           id: {
-            in: workflowStepIds,
+            in: stepIdsToScan,
           },
         },
       },
@@ -142,7 +152,7 @@ export async function scanWorkflowBody(payload: string) {
   });
 
   if (!workflow) {
-    log.warn(`Workflow with steps ${workflowStepIds} not found`);
+    log.warn(`Workflow with steps ${stepIdsToScan} not found`);
     return;
   }
 

@@ -187,4 +187,19 @@ export class Task {
     //   },
     // });
   }
+
+  static async findNewerScanTaskForStepId(workflowStepId: number, createdAt: string) {
+    return db.task.findFirst({
+      where: {
+        type: "scanWorkflowBody",
+        payload: {
+          path: ["workflowStepIds"],
+          array_contains: workflowStepId,
+        },
+        createdAt: {
+          gt: new Date(createdAt),
+        },
+      },
+    });
+  }
 }
