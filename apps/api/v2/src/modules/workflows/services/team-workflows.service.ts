@@ -64,7 +64,7 @@ export class TeamWorkflowsService {
   async getTeamWorkflows(teamId: number, skip: number, take: number) {
     const workflows = await this.workflowsRepository.getTeamWorkflows(teamId, skip, take);
 
-    return workflows.map((workflow) => this.toDto(workflow));
+    return workflows.map((workflow) => this.toOutputDto(workflow));
   }
 
   async getTeamWorkflowById(teamId: number, workflowId: number) {
@@ -74,7 +74,7 @@ export class TeamWorkflowsService {
       throw new NotFoundException(`Workflow with ID ${workflowId} not found for team ${teamId}`);
     }
 
-    return this.toDto(workflow);
+    return this.toOutputDto(workflow);
   }
 
   async createTeamWorkflow(user: UserWithProfile, teamId: number, data: CreateWorkflowDto) {
@@ -90,7 +90,7 @@ export class TeamWorkflowsService {
       throw new BadRequestException(`Could not create Workflow in team ${teamId}`);
     }
 
-    return this.toDto(createdWorkflow);
+    return this.toOutputDto(createdWorkflow);
   }
 
   async updateTeamWorkflow(
@@ -117,14 +117,14 @@ export class TeamWorkflowsService {
       throw new BadRequestException(`Could not update Workflow with ID ${workflowId} in team ${teamId}`);
     }
 
-    return this.toDto(updatedWorkflow);
+    return this.toOutputDto(updatedWorkflow);
   }
 
   async deleteTeamWorkflow(teamId: number, workflowId: number) {
     return await this.workflowsRepository.deleteTeamWorkflowById(teamId, workflowId);
   }
 
-  private toDto(workflow: WorkflowType): WorkflowOutput {
+  private toOutputDto(workflow: WorkflowType): WorkflowOutput {
     const activation: WorkflowActivationDto = {
       isActiveOnAllEventTypes: workflow.isActiveOnAll,
       activeOnEventTypeIds: workflow.activeOn?.map((relation) => relation.eventTypeId) ?? [],
@@ -205,7 +205,7 @@ export class TeamWorkflowsService {
       name: workflow.name,
       activation: activation,
       trigger: trigger,
-      steps: steps,
+      steps: steps.sort((stepA, stepB) => stepA.stepNumber - stepB.stepNumber),
     };
   }
 

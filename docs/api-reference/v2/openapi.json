@@ -4889,9 +4889,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -4899,9 +4902,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -19719,7 +19724,7 @@
           },
           "activeOnEventTypeIds": {
             "default": [],
-            "description": "List of active calendar IDs the workflow applies to, required if isActiveOnAll is false",
+            "description": "List of event-types IDs the workflow applies to, required if isActiveOnAllEventTypes is false",
             "example": [698191],
             "type": "array",
             "items": {
@@ -19793,7 +19798,7 @@
             "example": "Platform Test Workflow"
           },
           "activation": {
-            "description": "Activation settings for the workflow",
+            "description": "Activation settings for the workflow, the action that will trigger the workflow.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowActivationDto"

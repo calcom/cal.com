@@ -55,7 +55,8 @@ export class WorkflowActivationDto {
   isActiveOnAllEventTypes = false;
 
   @ApiPropertyOptional({
-    description: "List of active calendar IDs the workflow applies to, required if isActiveOnAll is false",
+    description:
+      "List of event-types IDs the workflow applies to, required if isActiveOnAllEventTypes is false",
     example: [698191],
     type: [Number],
   })
