@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -47,58 +48,27 @@ const checkCanUserAccessConnectedApps = async (
   userIds: number[]
 ) => {
   // Check if the user is a member of the team or an admin/owner of the org
-  const team = await prisma.team.findUnique({
-    where: { id: teamId },
-    select: {
-      id: true,
-      parent: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  });
+  const team = await TeamRepository.findTeamById(teamId);
 
   if (!team) {
     throw new Error("Team not found");
   }
 
-  const isMember = await prisma.membership.findFirst({
-    where: {
-      userId: user.id,
-      teamId: teamId,
-    },
-  });
+  const isMember = await TeamRepository.findTeamMembership({ userId: user.id, teamId });
 
   const isOrgAdminOrOwner =
     team.parent &&
-    (await prisma.membership.findFirst({
-      where: {
-        userId: user.id,
-        teamId: team.parent.id,
-        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
-      },
-    }));
+    (await TeamRepository.findOrgAdminOrOwnerMembership({ userId: user.id, orgId: team.parent.id }));
 
   if (!isMember && !isOrgAdminOrOwner) {
     throw new Error("User is not authorized to access this team's connected apps");
   }
 
   // Check if all userIds belong to the team
-  const teamMembers = await prisma.membership.findMany({
-    where: {
-      teamId,
-      userId: {
-        in: userIds,
-      },
-    },
-    select: {
-      userId: true,
-    },
-  });
+  const teamMembers = await TeamRepository.findTeamMembershipsByUserIds({ teamId, userIds });
 
   if (teamMembers.length !== userIds.length) {
-    const teamMemberIds = teamMembers.map((member) => member.userId);
+    const teamMemberIds = teamMembers.map((member: { userId: number }) => member.userId);
     const invalidUserIds = userIds.filter((id) => !teamMemberIds.includes(id));
 
     if (invalidUserIds.length > 0) {

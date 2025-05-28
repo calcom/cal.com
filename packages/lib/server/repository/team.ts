@@ -543,6 +543,53 @@ export class TeamRepository {
     });
   }
 
+  static async findTeamById(teamId: number) {
+    return await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        parent: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async findTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
+    return await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId,
+      },
+    });
+  }
+
+  static async findTeamMembershipsByUserIds({ teamId, userIds }: { teamId: number; userIds: number[] }) {
+    return await prisma.membership.findMany({
+      where: {
+        teamId,
+        userId: {
+          in: userIds,
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+  }
+
+  static async findOrgAdminOrOwnerMembership({ userId, orgId }: { userId: number; orgId: number }) {
+    return await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId: orgId,
+        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+      },
+    });
+  }
+
   static async createInvite({ teamId, token }: { teamId: number; token?: string }) {
     if (token) {
       const existingToken = await prisma.verificationToken.findFirst({
