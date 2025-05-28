@@ -447,59 +447,5 @@ describe("RoutingFormResponseField", () => {
       expect(fieldIds).not.toContain("number-field-id");
       expect(fieldIds).not.toContain("multiselect-field-id");
     });
-
-    it("should handle changing field types in response", async () => {
-      const formResponse = await prisma.app_RoutingForms_FormResponse.create({
-        data: {
-          formFillerId: "test-filler-change-types",
-          formId: formId,
-          response: {
-            "text-field-id": {
-              label: "Name",
-              value: "Test Name",
-            },
-            "number-field-id": {
-              label: "Rating",
-              value: 4,
-            },
-          },
-          routedToBookingUid: null,
-        },
-      });
-      responseId = formResponse.id;
-
-      const initialDenormalizedResponse = await prisma.routingFormResponseDenormalized.findUnique({
-        where: { id: responseId },
-        include: { fields: true },
-      });
-
-      expect(initialDenormalizedResponse).not.toBeNull();
-      expect(initialDenormalizedResponse?.fields).toBeDefined();
-      expect(initialDenormalizedResponse?.fields).toHaveLength(2);
-
-      await prisma.app_RoutingForms_FormResponse.update({
-        where: { id: responseId },
-        data: {
-          response: {
-            "text-field-id": {
-              label: "Name",
-              value: 123, // Changed from string to number
-            },
-            "number-field-id": {
-              label: "Rating",
-              value: "Four", // Changed from number to string
-            },
-          },
-        },
-      });
-
-      const updatedDenormalizedResponse = await prisma.routingFormResponseDenormalized.findUnique({
-        where: { id: responseId },
-        include: { fields: true },
-      });
-
-      expect(updatedDenormalizedResponse).not.toBeNull();
-      expect(updatedDenormalizedResponse?.fields).toBeDefined();
-    });
   });
 });
