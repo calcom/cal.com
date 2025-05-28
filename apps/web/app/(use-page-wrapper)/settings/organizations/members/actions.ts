@@ -1,7 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
-export async function revalidateSettingsMembersList() {
-  revalidatePath("/settings/organizations/members");
+export async function revalidateAttributesList() {
+  revalidateTag("viewer.attributes.list");
 }
