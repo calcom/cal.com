@@ -23,6 +23,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import {
   InputField,
+  Input,
   DateRangePicker,
   Label,
   TextField,
@@ -387,8 +388,16 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
-  const customLength = -2;
-  const [isCustomEditing, setIsCustomEditing] = useState(false);
+  const [isCustomMode, setIsCustomMode] = useState(false);
+
+  const slotIntervalOptions = [
+    { label: t("slot_interval_default"), value: 0 },
+    { label: t("custom"), value: "__custom__" },
+    ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
+      label: `${minutes} ${t("minutes")}`,
+      value: minutes,
+    })),
+  ];
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -520,99 +529,62 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               "w-full",
               customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.container
             )}>
-            <div className="flex items-end justify-end">
-              <div className="w-1/2 md:w-full">
-                <Label
-                  htmlFor="slotInterval"
-                  className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.label}>
-                  {t("slot_interval")}
-                  {shouldLockIndicator("slotInterval")}
-                </Label>
-                <Controller
-                  name="slotInterval"
-                  render={() => {
-                    const slotIntervalOptions = [
-                      {
-                        label: t("slot_interval_default"),
-                        value: 0,
-                      },
-                      {
-                        label: t("custom"),
-                        value: customLength,
-                      },
-                      ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
-                        label: `${minutes} ${t("minutes")}`,
-                        value: minutes,
-                      })),
-                    ];
-                    return (
+            <Label
+              htmlFor="slotInterval"
+              className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.label}>
+              {t("slot_interval")}
+              {shouldLockIndicator("slotInterval")}
+            </Label>
+            <Controller
+              name="slotInterval"
+              render={({ field }) => {
+                return (
+                  <>
+                    {!isCustomMode ? (
                       <Select
-                        isSearchable={false}
-                        isDisabled={shouldLockDisableProps("slotInterval").disabled}
+                        value={
+                          slotIntervalOptions.find((opt) => opt.value === field.value) ||
+                          slotIntervalOptions[0]
+                        }
                         onChange={(val) => {
-                          if (val?.value === customLength) {
-                            setIsCustomEditing(true);
-                            formMethods.setValue("slotInterval", 0, { shouldDirty: true });
+                          if (val?.value === "__custom__") {
+                            setIsCustomMode(true);
+                            field.onChange(null);
                           } else {
-                            setIsCustomEditing(false);
-                            formMethods.setValue("slotInterval", val?.value || null, { shouldDirty: true });
+                            setIsCustomMode(false);
+                            field.onChange(val?.value ?? null);
                           }
                         }}
-                        defaultValue={
-                          slotIntervalOptions.find(
-                            (option) => option.value === formMethods.getValues("slotInterval")
-                          ) || slotIntervalOptions[0]
-                        }
                         options={slotIntervalOptions}
-                        className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select}
-                        innerClassNames={
-                          customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.innerClassNames
-                        }
+                        isSearchable={false}
                       />
-                    );
-                  }}
-                />
-              </div>
-              <div
-                className={`ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px] ${
-                  !isCustomEditing && "hidden"
-                }`}>
-                <Label
-                  htmlFor="slotInterval"
-                  className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.label}>
-                  {t("custom")}
-                  {shouldLockIndicator("slotInterval")}
-                </Label>
-                <Controller
-                  name="slotInterval"
-                  render={({ field }) => {
-                    return (
-                      <>
-                        <InputField
-                          required
-                          disabled={shouldLockDisableProps("slotInterval").disabled || !isCustomEditing}
-                          defaultValue={0}
-                          onChange={(e) => {
-                            setIsCustomEditing(true);
-                            const val = parseInt(e.target.value || "0", 10);
-                            field.onChange(isNaN(val) || val <= 0 ? null : val);
-                          }}
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <Input
                           type="number"
-                          placeholder="0"
-                          addOnSuffix={t("minutes")}
-                          className={classNames(
-                            `mb-0 h-9 ltr:mr-2 rtl:ml-2`,
-                            customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select
-                          )}
+                          className="h-9"
+                          value={field.value ?? ""}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            field.onChange(isNaN(val) ? null : val);
+                          }}
+                          onBlur={(e) => {
+                            setIsCustomMode(false);
+                            const val = parseInt(e.target.value, 10);
+                            if (isNaN(val)) {
+                              field.onChange(null);
+                            }
+                          }}
                           min={1}
                           max={120}
                         />
-                      </>
-                    );
-                  }}
-                />
-              </div>
-            </div>
+                        <Label className="mr-2 mt-2">{t("minutes")}</Label>
+                      </div>
+                    )}
+                  </>
+                );
+              }}
+            />
           </div>
         </div>
       </div>
