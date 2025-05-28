@@ -7,6 +7,10 @@ import { useUserTimePreferences } from "@calcom/trpc/react/hooks/useUserTimePref
 import { Badge } from "@calcom/ui/components/badge";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
+const decodeHtmlEntities = (str: string): string => {
+  return str.replace(/&#x2F;/g, "/").replace(/&#47;/g, "/");
+};
+
 const TimezoneBadgeContent = () => {
   const { t } = useLocale();
   const { timeZone: userTimezone } = useUserTimePreferences();
@@ -23,10 +27,17 @@ const TimezoneBadgeContent = () => {
       return null;
     }
 
+    const rawTooltipContent = t("timezone_mismatch_tooltip", {
+      browserTimezone,
+      userTimezone,
+    });
+
+    const decodedTooltipContent = decodeHtmlEntities(rawTooltipContent);
+
     return {
       browser: browserTimezone,
       user: userTimezone,
-      tooltipContent: `Your browser timezone (${browserTimezone}) differs from your settings timezone (${userTimezone})`,
+      tooltipContent: decodedTooltipContent,
       badgeContent: userTimezone,
     };
   }, [userTimezone, t]);
@@ -44,6 +55,7 @@ const TimezoneBadgeContent = () => {
     </Tooltip>
   );
 };
+
 export const TimezoneBadge = () => {
   return (
     <NoSSR fallback={null}>
