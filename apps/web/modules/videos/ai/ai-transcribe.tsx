@@ -61,7 +61,7 @@ const BUTTONS = {
   },
 };
 
-export const CalAiTranscribe = () => {
+export const CalAiTranscribe = ({ showRecordingButton }: { showRecordingButton: boolean }) => {
   const daily = useDaily();
   const { t } = useLocale();
 
@@ -83,7 +83,11 @@ export const CalAiTranscribe = () => {
 
   useDailyEvent("transcription-started", (ev) => {
     daily?.updateCustomTrayButtons({
-      recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+      ...(showRecordingButton
+        ? {
+            recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+          }
+        : {}),
       transcription: BUTTONS.STOP_TRANSCRIPTION,
     });
   });
@@ -97,7 +101,11 @@ export const CalAiTranscribe = () => {
 
   useDailyEvent("transcription-stopped", (ev) => {
     daily?.updateCustomTrayButtons({
-      recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+      ...(showRecordingButton
+        ? {
+            recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+          }
+        : {}),
       transcription: BUTTONS.START_TRANSCRIPTION,
     });
   });
