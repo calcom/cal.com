@@ -10,7 +10,7 @@ const AttributesLayout = async ({ children }: { children: React.ReactNode }) => 
   const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
 
   if (!isOrgAdminOrOwner) {
-    redirect("/settings/organizations/profile");
+    return redirect("/settings/organizations/profile");
   }
 
   return children;
