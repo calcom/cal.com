@@ -901,6 +901,26 @@ export class TeamRepository {
     return members;
   }
 
+  static async checkIfMembershipExists({ teamId, value }: { teamId: number; value: string }) {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        teamId,
+        user: {
+          OR: [
+            {
+              email: value,
+            },
+            {
+              username: value,
+            },
+          ],
+        },
+      },
+    });
+
+    return !!membership;
+  }
+
   static async getInternalNotesPresets({ teamId }: { teamId: number }) {
     return await prisma.internalNotePreset.findMany({
       where: {
