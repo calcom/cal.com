@@ -259,7 +259,7 @@ export const InfiniteEventTypeList = ({
   const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.eventTypeOrder.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
