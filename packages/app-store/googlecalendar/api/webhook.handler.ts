@@ -13,6 +13,12 @@ import prisma from "@calcom/prisma";
 import { getCalendar } from "../../_utils/getCalendar";
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarWebhook"] });
+class IgnorableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "IgnorableError";
+  }
+}
 
 const googleHeadersSchema = z.object({
   "x-goog-channel-expiration": z.string(), // Sat, 22 Mar 2025 19:14:43 GMT
@@ -55,10 +61,7 @@ function getActionsToTake({
 
   if (!selectedCalendar && !calendarSync) {
     // The channel isn't registered with us
-    throw new HttpError({
-      statusCode: 404,
-      message: "No selectedCalendar or calendarSync found for push notification",
-    });
+    throw new IgnorableError("No selectedCalendar or calendarSync found for push notification");
   }
 
   if (selectedCalendar) {
@@ -86,11 +89,9 @@ function getActionsToTake({
         })
       );
 
-      throw new HttpError({
-        statusCode: 400,
-        message:
-          "Data inconsistency: SelectedCalendar.externalId and CalendarSync.externalCalendarId do not match for the same subscription.",
-      });
+      throw new Error(
+        "Data inconsistency: SelectedCalendar.externalId and CalendarSync.externalCalendarId do not match for the same subscription."
+      );
     }
 
     if (credentialId && credentialId !== calendarSync.credentialId) {
@@ -128,10 +129,7 @@ function getActionsToTake({
         externalCalendarId,
       })
     );
-    throw new HttpError({
-      statusCode: 500,
-      message: error,
-    });
+    throw new Error(error);
   }
 
   return { syncActions, calendar: { externalCalendarId, credentialId } };
@@ -170,19 +168,13 @@ async function getCalendarFromChannelId({
   if (!credentialForCalendarCache) {
     // Could happen if the credential was a delegation User Credential and DelegationCredential is now disabled
     log.error("No credential found for credentialId", safeStringify({ credentialId: calendar.credentialId }));
-    throw new HttpError({
-      statusCode: 500,
-      message: `No credential found for credentialId: ${calendar.credentialId} `,
-    });
+    throw new Error(`No credential found for credentialId: ${calendar.credentialId} `);
   }
 
   const calendarService = await getCalendar(credentialForCalendarCache);
 
   if (!calendarService) {
-    throw new HttpError({
-      statusCode: 500,
-      message: `Failed to initialize calendar service for credential: ${calendar.credentialId}`,
-    });
+    throw new Error(`Failed to initialize calendar service for credential: ${calendar.credentialId}`);
   }
 
   const allRelatedSelectedCalendars = await SelectedCalendarRepository.findFromCredentialId(
@@ -202,16 +194,21 @@ export async function postHandler(req: NextApiRequest) {
   let channelId: string | undefined;
   let resourceId: string | undefined;
   try {
-    const parsedHeaders = googleHeadersSchema.parse(req.headers);
-    channelId = parsedHeaders["x-goog-channel-id"];
-    resourceId = parsedHeaders["x-goog-resource-id"];
-    const channelToken = parsedHeaders["x-goog-channel-token"];
+    const parsedHeaders = googleHeadersSchema.safeParse(req.headers);
+    if (!parsedHeaders.success) {
+      throw new Error("Invalid request headers");
+    }
+    const headers = parsedHeaders.data;
+
+    channelId = headers["x-goog-channel-id"];
+    resourceId = headers["x-goog-resource-id"];
+    const channelToken = headers["x-goog-channel-token"];
     /**
      * 'exists' - Resource exists and is changed
      * 'not_found' - Resource has been deleted
      * 'sync' - Initial sync when someone subscribes to the channel
      */
-    const resourceState = parsedHeaders["x-goog-resource-state"];
+    const resourceState = headers["x-goog-resource-state"];
 
     if (channelToken !== process.env.GOOGLE_WEBHOOK_TOKEN) {
       throw new HttpError({ statusCode: 403, message: "Invalid API key" });
@@ -225,15 +222,15 @@ export async function postHandler(req: NextApiRequest) {
     });
 
     if (resourceState === "sync") {
-      log.info(
-        `Ignoring 'sync' notification for resource ${resourceId} in channel ${channelId}, as sync notifications just confirms that a subscription has occured`
-      );
       if (subscription) {
         await prisma.calendarSubscription.update({
           where: { id: subscription.id },
           data: { lastSyncAt: new Date() },
         });
       }
+      log.info(
+        `Ignoring 'sync' notification for resource ${resourceId} in channel ${channelId}, as sync notifications just confirms that a subscription has occured`
+      );
       return { message: "ok" };
     }
 
@@ -247,10 +244,7 @@ export async function postHandler(req: NextApiRequest) {
     if (!calendarService?.onWatchedCalendarChange) {
       // Log error with more context
       log.error("Google Calendar service does not have onWatchedCalendarChange");
-      throw new HttpError({
-        statusCode: 500,
-        message: "Google Calendar service does not have onWatchedCalendarChange",
-      });
+      throw new Error("Google Calendar service does not have onWatchedCalendarChange");
     }
 
     // Pass the correct Google Calendar ID, resourceId, resourceState and the relevant syncActions
@@ -273,14 +267,16 @@ export async function postHandler(req: NextApiRequest) {
     if (subscription?.id) {
       try {
         await Promise.all([
+          // Update the CalendarSubscription was used
           prisma.calendarSubscription.update({
             where: { id: subscription.id },
-            data: { lastSyncAt: new Date() }, // Update last sync time
+            data: { lastSyncAt: new Date() },
           }),
+          // Update that CalendarSync was used
           calendarSyncId &&
             prisma.calendarSync.update({
               where: { id: calendarSyncId },
-              data: { lastSyncedDownAt: new Date(), lastSyncDirection: "DOWNSTREAM" }, // Update last sync time
+              data: { lastSyncedDownAt: new Date(), lastSyncDirection: "DOWNSTREAM" },
             }),
         ]);
         log.debug(
@@ -293,13 +289,9 @@ export async function postHandler(req: NextApiRequest) {
           safeStringify(error),
           safeStringify({ subscriptionId: subscription.id, resourceId, channelId })
         );
-        // Decide if this failure should impact the overall response (e.g., return 500?)
-        // For now, log the error but return "ok" as the primary webhook logic succeeded.
       }
     } else {
-      // This case might occur if only a selectedCalendar was found without a corresponding new CalendarSubscription record yet.
-      // This might be expected during transition or if selectedCalendars don't always have a linked CalendarSubscription.
-      log.info(
+      log.debug(
         "No subscription ID found to update lastSyncAt, likely processing for SelectedCalendar only.",
         safeStringify({ channelId, resourceId, syncActions })
       );
@@ -317,17 +309,14 @@ export async function postHandler(req: NextApiRequest) {
     );
     return { message: "ok" };
   } catch (error) {
-    // Log with context if available
     const context = { channelId, resourceId };
-    if (error instanceof z.ZodError) {
-      log.error(
-        "Invalid webhook headers",
-        safeStringify({ error: error.errors, headers: req.headers, context })
-      );
-      throw new HttpError({ statusCode: 400, message: "Invalid request headers" });
+
+    if (error instanceof IgnorableError) {
+      log.debug("Ignorable error processing webhook", safeStringify(error));
+      return { message: "ok" };
     }
+
     if (error instanceof HttpError) {
-      // Log HttpErrors with context before re-throwing
       log.error(
         `Error processing webhook: ${error.message}`,
         safeStringify({ statusCode: error.statusCode, context })

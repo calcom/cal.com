@@ -1,28 +1,27 @@
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
+
 import {
   createBookingScenario,
   getBooker,
   getOrganizer,
   getDate,
   getScenarioData,
+  createOrganization,
   TestData,
   mockCalendarToHaveNoBusySlots,
   mockSuccessfulVideoMeetingCreation,
   getGoogleCalendarCredential,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import {
-  expectBookingToBeInDatabase,
-  expectCalendarSyncToBeInDatabase,
-  expectBookingInDBToBeRescheduledFromTo,
-} from "@calcom/web/test/utils/bookingScenario/expects";
+import { expectTaskToBeCreated } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { describe } from "vitest";
-import { test } from "vitest";
+import { describe, test, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
@@ -30,17 +29,45 @@ export type CustomNextApiResponse = NextApiResponse & Response;
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
 
+async function createOrganizationAneEnableCalendarSyncFeature() {
+  const org = await createOrganization({
+    name: "Test Org",
+    slug: "testorg",
+  });
+
+  const payloadToMakePartOfOrganization = [
+    {
+      membership: {
+        accepted: true,
+        role: MembershipRole.ADMIN,
+      },
+      team: {
+        id: org.id,
+        name: "Test Org",
+        slug: "testorg",
+      },
+    },
+  ];
+
+  await prismock.teamFeatures.create({
+    data: {
+      teamId: org.id,
+      featureId: "calendar-sync",
+    },
+  });
+
+  return { payloadToMakePartOfOrganization, org };
+}
+
 describe("handleNewBooking-Calendar Sync:", () => {
   setupAndTeardown();
 
   describe("Calendar Sync - New Booking:", () => {
     test(
-      `should create a successful booking with mock calendar app and setup bidirectional sync
-          1. Should create a booking in the database
-          2. Should create a CalendarSync record with externalId of the eventType's destinationCalendar
-          4. Should send emails to the booker as well as organizer
-      `,
+      `should create a 'createCalendarSync' task with externalId of the eventType's destinationCalendar`,
       async () => {
+        const { payloadToMakePartOfOrganization } = await createOrganizationAneEnableCalendarSyncFeature();
+
         const targetCalendar = {
           integration: "google_calendar",
           externalId: "google-calendar-id@example.com",
@@ -58,6 +85,7 @@ describe("handleNewBooking-Calendar Sync:", () => {
           email: "organizer@example.com",
           id: 101,
           schedules: [TestData.schedules.IstWorkHours],
+          teams: payloadToMakePartOfOrganization,
           credentials: [
             {
               ...getGoogleCalendarCredential(),
@@ -90,6 +118,21 @@ describe("handleNewBooking-Calendar Sync:", () => {
           })
         );
 
+        const dbOrganizer = await prismock.user.findUnique({
+          where: {
+            id: organizer.id,
+          },
+          include: {
+            teams: {
+              include: {
+                team: true,
+              },
+            },
+          },
+        });
+
+        console.log("dbOrganizer", JSON.stringify(dbOrganizer, null, 2));
+
         mockSuccessfulVideoMeetingCreation({
           metadataLookupKey: "dailyvideo",
           videoMeetingData: {
@@ -117,53 +160,31 @@ describe("handleNewBooking-Calendar Sync:", () => {
           },
         });
 
-        const createdBooking = await handleNewBooking({
+        await handleNewBooking({
           bookingData: mockBookingData,
         });
 
-        const { bookingReferences } = await expectBookingToBeInDatabase({
-          description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          uid: createdBooking.uid!,
-          eventTypeId: mockBookingData.eventTypeId,
-          status: BookingStatus.ACCEPTED,
-          references: [
-            {
-              type: appStoreMetadata.googlecalendar.type,
-              uid: "google-calendar-event-id",
+        await expectTaskToBeCreated({
+          taskType: "createCalendarSync",
+          taskPayload: {
+            calendarEventId: "google-calendar-event-id",
+            calendarSyncData: expect.objectContaining({
+              userId: organizer.id,
+              credentialId,
               externalCalendarId: targetCalendar.externalId,
-            },
-          ],
-          iCalUID: createdBooking.iCalUID,
-        });
-
-        const calendarReference = bookingReferences.find(
-          (reference) => reference.type === appStoreMetadata.googlecalendar.type
-        );
-
-        if (!calendarReference) {
-          throw new Error("Calendar reference not found");
-        }
-
-        // Check that CalendarSync record was created correctly
-        await expectCalendarSyncToBeInDatabase({
-          userId: organizer.id,
-          credentialId,
-          externalCalendarId: targetCalendar.externalId,
-          integration: targetCalendar.integration,
-          bookingReference: calendarReference,
+              integration: targetCalendar.integration,
+            }),
+          },
         });
       },
       timeout
     );
 
     test(
-      `should create a successful booking with mock calendar app and setup bidirectional sync
-          1. Should create a booking in the database
-          2. Should create a CalendarSync record with externalId from the CalendarService for the case when externalId isn't explicitly passed to CalendarService
-          4. Should send emails to the booker as well as organizer
-      `,
+      `should create a 'createCalendarSync' task with externalId from the CalendarService for the case when externalId isn't explicitly passed to CalendarService`,
       async () => {
+        const { payloadToMakePartOfOrganization } = await createOrganizationAneEnableCalendarSyncFeature();
+
         const targetCalendar = {
           integration: "google_calendar",
           externalId: "google-calendar-id@example.com",
@@ -181,6 +202,7 @@ describe("handleNewBooking-Calendar Sync:", () => {
           email: "organizer@example.com",
           id: 101,
           schedules: [TestData.schedules.IstWorkHours],
+          teams: payloadToMakePartOfOrganization,
           credentials: [
             {
               ...getGoogleCalendarCredential(),
@@ -241,41 +263,21 @@ describe("handleNewBooking-Calendar Sync:", () => {
           },
         });
 
-        const createdBooking = await handleNewBooking({
+        await handleNewBooking({
           bookingData: mockBookingData,
         });
 
-        const { bookingReferences } = await expectBookingToBeInDatabase({
-          description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          uid: createdBooking.uid!,
-          eventTypeId: mockBookingData.eventTypeId,
-          status: BookingStatus.ACCEPTED,
-          references: [
-            {
-              type: appStoreMetadata.googlecalendar.type,
-              uid: "google-calendar-event-id",
+        await expectTaskToBeCreated({
+          taskType: "createCalendarSync",
+          taskPayload: {
+            calendarEventId: "google-calendar-event-id",
+            calendarSyncData: expect.objectContaining({
+              userId: organizer.id,
+              credentialId,
               externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID_FALLBACK_BY_CALENDAR_SERVICE",
-            },
-          ],
-          iCalUID: createdBooking.iCalUID,
-        });
-
-        const calendarReference = bookingReferences.find(
-          (reference) => reference.type === appStoreMetadata.googlecalendar.type
-        );
-
-        if (!calendarReference) {
-          throw new Error("Calendar reference not found");
-        }
-
-        // Check that CalendarSync record was created correctly
-        await expectCalendarSyncToBeInDatabase({
-          userId: organizer.id,
-          credentialId,
-          externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID_FALLBACK_BY_CALENDAR_SERVICE",
-          integration: targetCalendar.integration,
-          bookingReference: calendarReference,
+              integration: targetCalendar.integration,
+            }),
+          },
         });
       },
       timeout
@@ -284,12 +286,9 @@ describe("handleNewBooking-Calendar Sync:", () => {
 
   describe("Calendar Sync - Rescheduled Booking:", () => {
     test(
-      `should reschedule a booking with google calendar app and setup bidirectional sync
-          1. Should create a booking in the database
-          2. Should create a CalendarSync record with externalId of the eventType's destinationCalendar
-          4. Should send emails to the booker as well as organizer
-      `,
+      `should create a 'createCalendarSync' task with externalId of the eventType's destinationCalendar`,
       async () => {
+        const { payloadToMakePartOfOrganization } = await createOrganizationAneEnableCalendarSyncFeature();
         const targetCalendar = {
           integration: "google_calendar",
           externalId: "google-calendar-id@example.com",
@@ -306,6 +305,7 @@ describe("handleNewBooking-Calendar Sync:", () => {
           name: "Organizer",
           email: "organizer@example.com",
           id: 101,
+          teams: payloadToMakePartOfOrganization,
           schedules: [TestData.schedules.IstWorkHours],
           credentials: [
             {
@@ -393,58 +393,31 @@ describe("handleNewBooking-Calendar Sync:", () => {
           },
         });
 
-        const createdBooking = await handleNewBooking({
+        await handleNewBooking({
           bookingData: mockBookingData,
         });
 
-        const { newBookingReferences, previousBookingReferences } =
-          await expectBookingInDBToBeRescheduledFromTo({
-            from: {
-              uid: uidOfBookingToBeRescheduled,
-            },
-            to: {
-              description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              uid: createdBooking.uid!,
-              eventTypeId: mockBookingData.eventTypeId,
-              status: BookingStatus.ACCEPTED,
-              references: [
-                {
-                  type: appStoreMetadata.googlecalendar.type,
-                  uid: "ORIGINAL_BOOKING_REFERENCE_CALENDAR_EVENT_ID",
-                  externalCalendarId: targetCalendar.externalId,
-                },
-              ],
-            },
-          });
-
-        const newCalendarReference = newBookingReferences.find(
-          (reference) => reference.type === appStoreMetadata.googlecalendar.type
-        );
-
-        if (!newCalendarReference) {
-          throw new Error("Calendar reference not found");
-        }
-
         // Check that CalendarSync record was created correctly
-        await expectCalendarSyncToBeInDatabase({
-          userId: organizer.id,
-          credentialId,
-          externalCalendarId: targetCalendar.externalId,
-          integration: targetCalendar.integration,
-          bookingReference: newCalendarReference,
+        await expectTaskToBeCreated({
+          taskType: "createCalendarSync",
+          taskPayload: {
+            calendarEventId: "ORIGINAL_BOOKING_REFERENCE_CALENDAR_EVENT_ID",
+            calendarSyncData: expect.objectContaining({
+              userId: organizer.id,
+              credentialId,
+              externalCalendarId: targetCalendar.externalId,
+              integration: targetCalendar.integration,
+            }),
+          },
         });
       },
       timeout
     );
 
     test(
-      `should reschedule a booking with google calendar app and setup bidirectional sync
-          1. Should create a booking in the database
-          2. Should create a CalendarSync record with externalId from the previous booking's BookingReference if it was set
-          4. Should send emails to the booker as well as organizer
-      `,
+      `should create a 'createCalendarSync' task with externalId from the previous booking's BookingReference if it was set`,
       async () => {
+        const { payloadToMakePartOfOrganization } = await createOrganizationAneEnableCalendarSyncFeature();
         const targetCalendar = {
           integration: "google_calendar",
         };
@@ -461,6 +434,7 @@ describe("handleNewBooking-Calendar Sync:", () => {
           email: "organizer@example.com",
           id: 101,
           schedules: [TestData.schedules.IstWorkHours],
+          teams: payloadToMakePartOfOrganization,
           credentials: [
             {
               ...getGoogleCalendarCredential(),
@@ -546,58 +520,31 @@ describe("handleNewBooking-Calendar Sync:", () => {
           },
         });
 
-        const createdBooking = await handleNewBooking({
+        await handleNewBooking({
           bookingData: mockBookingData,
         });
 
-        const { newBookingReferences, previousBookingReferences } =
-          await expectBookingInDBToBeRescheduledFromTo({
-            from: {
-              uid: uidOfBookingToBeRescheduled,
-            },
-            to: {
-              description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              uid: createdBooking.uid!,
-              eventTypeId: mockBookingData.eventTypeId,
-              status: BookingStatus.ACCEPTED,
-              references: [
-                {
-                  type: appStoreMetadata.googlecalendar.type,
-                  uid: "ORIGINAL_BOOKING_REFERENCE_CALENDAR_EVENT_ID",
-                  externalCalendarId: "john@example.com",
-                },
-              ],
-            },
-          });
-
-        const newCalendarReference = newBookingReferences?.find(
-          (reference) => reference.type === appStoreMetadata.googlecalendar.type
-        );
-
-        if (!newCalendarReference) {
-          throw new Error("Calendar reference not found");
-        }
-
         // Check that CalendarSync record was created correctly
-        await expectCalendarSyncToBeInDatabase({
-          userId: organizer.id,
-          credentialId,
-          externalCalendarId: "john@example.com",
-          integration: targetCalendar.integration,
-          bookingReference: newCalendarReference,
+        await expectTaskToBeCreated({
+          taskType: "createCalendarSync",
+          taskPayload: {
+            calendarEventId: "ORIGINAL_BOOKING_REFERENCE_CALENDAR_EVENT_ID",
+            calendarSyncData: expect.objectContaining({
+              userId: organizer.id,
+              credentialId,
+              externalCalendarId: "john@example.com",
+              integration: targetCalendar.integration,
+            }),
+          },
         });
       },
       timeout
     );
 
     test(
-      `should reschedule a booking with google calendar app and setup bidirectional sync
-          1. Should create a booking in the database
-          2. Should create a CalendarSync record with externalId from the previous booking's BookingReference if not set
-          4. Should send emails to the booker as well as organizer
-      `,
+      `should create a 'createCalendarSync' task with fallback externalId when previous booking's BookingReference externalCalendarId is null`,
       async () => {
+        const { payloadToMakePartOfOrganization } = await createOrganizationAneEnableCalendarSyncFeature();
         const targetCalendar = {
           integration: "google_calendar",
         };
@@ -614,6 +561,7 @@ describe("handleNewBooking-Calendar Sync:", () => {
           email: "organizer@example.com",
           id: 101,
           schedules: [TestData.schedules.IstWorkHours],
+          teams: payloadToMakePartOfOrganization,
           credentials: [
             {
               ...getGoogleCalendarCredential(),
@@ -699,46 +647,22 @@ describe("handleNewBooking-Calendar Sync:", () => {
           },
         });
 
-        const createdBooking = await handleNewBooking({
+        await handleNewBooking({
           bookingData: mockBookingData,
         });
 
-        const { newBookingReferences, previousBookingReferences } =
-          await expectBookingInDBToBeRescheduledFromTo({
-            from: {
-              uid: uidOfBookingToBeRescheduled,
-            },
-            to: {
-              description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              uid: createdBooking.uid!,
-              eventTypeId: mockBookingData.eventTypeId,
-              status: BookingStatus.ACCEPTED,
-              references: [
-                {
-                  type: appStoreMetadata.googlecalendar.type,
-                  uid: "ORIGINAL_BOOKING_REFERENCE_CALENDAR_EVENT_ID",
-                  externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID_FALLBACK_BY_CALENDAR_SERVICE",
-                },
-              ],
-            },
-          });
-
-        const newCalendarReference = newBookingReferences?.find(
-          (reference) => reference.type === appStoreMetadata.googlecalendar.type
-        );
-
-        if (!newCalendarReference) {
-          throw new Error("Calendar reference not found");
-        }
-
         // Check that CalendarSync record was created correctly
-        await expectCalendarSyncToBeInDatabase({
-          userId: organizer.id,
-          credentialId,
-          externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID_FALLBACK_BY_CALENDAR_SERVICE",
-          integration: targetCalendar.integration,
-          bookingReference: newCalendarReference,
+        await expectTaskToBeCreated({
+          taskType: "createCalendarSync",
+          taskPayload: {
+            calendarEventId: "ORIGINAL_BOOKING_REFERENCE_CALENDAR_EVENT_ID",
+            calendarSyncData: expect.objectContaining({
+              userId: organizer.id,
+              credentialId,
+              externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID_FALLBACK_BY_CALENDAR_SERVICE",
+              integration: targetCalendar.integration,
+            }),
+          },
         });
       },
       timeout

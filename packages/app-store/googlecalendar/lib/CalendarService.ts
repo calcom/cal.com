@@ -974,7 +974,6 @@ export default class GoogleCalendarService implements Calendar {
     let googleChannelProps: GoogleChannelProps = {};
     let shouldCreateNewSubscription = true;
     if (calendarSubscription) {
-      // Use CalendarSubscription data
       googleChannelProps = {
         id: calendarSubscription.providerSubscriptionId,
         kind: calendarSubscription.providerSubscriptionKind,
@@ -990,7 +989,6 @@ export default class GoogleCalendarService implements Calendar {
         })
       );
     } else if (otherCalendarsWithSameSubscription.length > 0) {
-      // Use SelectedCalendar data
       googleChannelProps = {
         kind: otherCalendarsWithSameSubscription[0].googleChannelKind,
         id: otherCalendarsWithSameSubscription[0].googleChannelId,

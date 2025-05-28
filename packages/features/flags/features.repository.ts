@@ -243,12 +243,10 @@ export class FeaturesRepository implements IFeaturesRepository {
     teamId: number;
     featureId: keyof AppFlags;
   }): Promise<boolean> {
-    const teamHasFeature = await db.teamFeatures.findUnique({
+    const teamHasFeature = await db.teamFeatures.findFirst({
       where: {
-        teamId_featureId: {
-          teamId,
-          featureId,
-        },
+        teamId,
+        featureId,
       },
     });
     return Boolean(teamHasFeature);

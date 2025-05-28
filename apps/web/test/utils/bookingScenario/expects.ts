@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
 
@@ -14,7 +14,6 @@ import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/ty
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CalendarSyncDirection } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -414,7 +413,7 @@ export function expectSMSWorkflowToBeNotTriggered({
 export async function expectBookingToBeInDatabase(
   booking: Partial<Booking> & Pick<Booking, "uid"> & { references?: Partial<BookingReference>[] }
 ) {
-  const actualBooking = await prismaMock.booking.findUnique({
+  const actualBooking = await prismock.booking.findUnique({
     where: {
       uid: booking.uid,
     },
@@ -436,7 +435,7 @@ export async function expectBookingToBeInDatabase(
 }
 
 export async function expectBookingTrackingToBeInDatabase(tracking: Tracking, uid?: string) {
-  const actualBooking = await prismaMock.booking.findUnique({
+  const actualBooking = await prismock.booking.findUnique({
     where: {
       uid,
     },
@@ -1400,7 +1399,7 @@ export async function expectBookingToNotHaveReference(
   booking: Pick<Booking, "uid">,
   reference: Partial<BookingReference>
 ) {
-  const actualBooking = await prismaMock.booking.findUnique({
+  const actualBooking = await prismock.booking.findUnique({
     where: {
       uid: booking.uid,
     },
@@ -1420,46 +1419,22 @@ export function expectNoAttemptToGetAvailability(calendarMock: CalendarServiceMe
   expect(calendarMock.getAvailabilityCalls.length).toBe(0);
 }
 
-/**
- * Helper function to check that a CalendarSync record was created with the expected properties
- */
-export async function expectCalendarSyncToBeInDatabase({
-  userId,
-  credentialId,
-  externalCalendarId,
-  integration,
-  bookingReference,
+export async function expectTaskToBeCreated({
+  taskType,
+  taskPayload,
 }: {
-  userId: number;
-  credentialId: number;
-  externalCalendarId: string;
-  integration: string;
-  bookingReference: { id: string | null };
+  taskType: string;
+  taskPayload: Record<string, unknown>;
 }) {
-  const calendarSync = await prismaMock.calendarSync.findFirst({
+  const tasks = await prismock.task.findMany({
     where: {
-      userId,
-      externalCalendarId,
-      integration,
-    },
-    include: {
-      bookingReferences: true,
+      type: taskType,
     },
   });
 
-  expect(calendarSync).toEqual(
-    expect.objectContaining({
-      userId,
-      credentialId,
-      externalCalendarId,
-      integration,
-      lastSyncDirection: CalendarSyncDirection.UPSTREAM,
-      lastSyncedUpAt: expect.any(Date),
-    })
-  );
+  expect(tasks.length).toBe(1);
 
-  expect(calendarSync?.bookingReferences).toHaveLength(1);
-  expect(calendarSync?.bookingReferences[0].id).toBe(bookingReference.id);
-
-  return calendarSync;
+  const firstTask = tasks[0];
+  const parsedPayload = JSON.parse(firstTask.payload);
+  expect(parsedPayload).toEqual(taskPayload);
 }

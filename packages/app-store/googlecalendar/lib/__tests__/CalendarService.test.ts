@@ -786,6 +786,7 @@ describe("Watching and unwatching calendar", () => {
     await calendarCache.unwatchCalendar({
       calendarId: userLevelCalendar.externalId,
       eventTypeIds: [userLevelCalendar.eventTypeId],
+      calendarSubscription: null,
     });
     // There is another selectedCalendar with same externalId and credentialId, so actual unsubscription does not happen
     expectGoogleUnsubscriptionToNotHaveOccurredAndClearMock();
@@ -794,6 +795,7 @@ describe("Watching and unwatching calendar", () => {
     await calendarCache.unwatchCalendar({
       calendarId: eventTypeLevelCalendar.externalId,
       eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
+      calendarSubscription: null,
     });
 
     expectGoogleUnsubscriptionToHaveOccurredAndClearMock([

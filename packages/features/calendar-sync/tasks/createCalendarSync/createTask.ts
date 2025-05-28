@@ -112,6 +112,7 @@ export const createCalendarSyncTask = async ({
   };
   const organizationId = organizer.organizationId;
   if (!organizationId) {
+    log.debug("Organizer is not part of an organization, skipping calendar sync task");
     return defaultReturnValue;
   }
   const featuresRepository = new FeaturesRepository();
@@ -121,7 +122,7 @@ export const createCalendarSyncTask = async ({
   });
 
   if (!isBiDirectionalSyncEnabled) {
-    log.info(
+    log.debug(
       `Calendar sync is not enabled for organizationId  ${organizationId}, skipping calendar sync task`
     );
     return defaultReturnValue;
