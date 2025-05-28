@@ -19,7 +19,12 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
   // Only owners can award owner role.
   if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
-  const memberships = await TeamRepository.listAllMemberships(input.teamId);
+  const memberships = await TeamRepository.listAllMemberships({
+    teamId: input.teamId,
+    where: {
+      teamId: input.teamId,
+    },
+  });
 
   const targetMembership = memberships.find((m) => m.userId === input.memberId);
   const myMembership = memberships.find((m) => m.userId === ctx.user.id);

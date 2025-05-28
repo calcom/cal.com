@@ -536,12 +536,33 @@ export class TeamRepository {
     };
   }
 
-  static async listAllMemberships(teamId: number) {
-    return await prisma.membership.findMany({
-      where: {
-        teamId,
-      },
-    });
+  static async listAllMemberships(
+    teamIdOrParams:
+      | number
+      | {
+          userId?: number;
+          teamId?: number;
+          where?: Prisma.MembershipWhereInput;
+          select?: Prisma.MembershipSelect;
+        }
+  ) {
+    if (typeof teamIdOrParams === "number") {
+      return await prisma.membership.findMany({
+        where: {
+          teamId: teamIdOrParams,
+        },
+      });
+    } else {
+      const { userId, teamId, where, select } = teamIdOrParams;
+      return await prisma.membership.findMany({
+        where: {
+          ...(userId ? { userId } : {}),
+          ...(teamId ? { teamId } : {}),
+          ...where,
+        },
+        ...(select ? { select } : {}),
+      });
+    }
   }
 
   static async findTeamById(teamId: number) {
@@ -1177,5 +1198,198 @@ export class TeamRepository {
       },
       select,
     });
+  }
+
+  static async findTeamWithParent(teamId: number) {
+    return await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+      include: {
+        organizationSettings: true,
+        parent: {
+          include: {
+            organizationSettings: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async findUsersByEmailOrUsername({
+    usernamesOrEmails,
+    teamId,
+  }: {
+    usernamesOrEmails: string[];
+    teamId: number;
+  }) {
+    return await prisma.user.findMany({
+      where: {
+        OR: [
+          // Either it's a username in that organization
+          {
+            profiles: {
+              some: {
+                organizationId: teamId,
+                username: { in: usernamesOrEmails },
+              },
+            },
+          },
+          { email: { in: usernamesOrEmails } },
+        ],
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        password: true,
+        completedOnboarding: true,
+        identityProvider: true,
+        profiles: true,
+        teams: true,
+      },
+    });
+  }
+
+  static async createMemberships({
+    teamId,
+    language,
+    invitees,
+    parentId,
+    accepted,
+  }: {
+    teamId: number;
+    language: string;
+    invitees: any[];
+    parentId: number | null;
+    accepted: boolean;
+  }) {
+    logger.debug("Creating memberships for", { teamId, language, invitees, parentId, accepted });
+    try {
+      await prisma.membership.createMany({
+        data: invitees.flatMap((invitee) => {
+          const organizationRole = invitee?.teams?.[0]?.role;
+          const data = [];
+          const createdAt = new Date();
+          data.push({
+            createdAt,
+            teamId,
+            userId: invitee.id,
+            accepted,
+            role:
+              organizationRole === "OWNER" || organizationRole === "ADMIN"
+                ? organizationRole
+                : invitee.newRole,
+          });
+
+          if (parentId && invitee.needToCreateOrgMembership) {
+            data.push({
+              createdAt,
+              accepted,
+              teamId: parentId,
+              userId: invitee.id,
+              role: MembershipRole.MEMBER,
+            });
+          }
+          return data;
+        }),
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        logger.error("Failed to create memberships", teamId);
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  static async createVerificationToken({
+    identifier,
+    token,
+    expires,
+    teamId,
+  }: {
+    identifier: string;
+    token: string;
+    expires?: Date;
+    teamId: number;
+  }) {
+    return await prisma.verificationToken.create({
+      data: {
+        identifier,
+        token,
+        expires: expires || new Date(new Date().setHours(168)), // +1 week
+        teamId,
+      },
+    });
+  }
+
+  static async listMembersWithSearch({
+    teamIds,
+    searchText,
+    cursor,
+    limit,
+  }: {
+    teamIds: number[];
+    searchText?: string;
+    cursor?: string;
+    limit?: number;
+  }) {
+    const searchTextClauses: Prisma.UserWhereInput[] = [
+      { name: { contains: searchText, mode: "insensitive" } },
+      { username: { contains: searchText, mode: "insensitive" } },
+    ];
+
+    const memberships = await prisma.membership.findMany({
+      where: {
+        accepted: true,
+        teamId: { in: teamIds },
+        user: searchText?.trim()?.length
+          ? {
+              OR: searchTextClauses,
+            }
+          : undefined,
+      },
+      select: {
+        id: true,
+        accepted: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+            email: true,
+          },
+        },
+      },
+      distinct: ["userId"],
+      cursor: cursor ? { id: parseInt(cursor) } : undefined,
+      take: limit ? limit + 1 : undefined,
+      orderBy: [
+        { userId: "asc" }, // First order by userId to ensure consistent ordering
+        { id: "asc" }, // Then by id as secondary sort
+      ],
+    });
+
+    const totalRowCount = await prisma.membership.count({
+      where: {
+        accepted: true,
+        teamId: { in: teamIds },
+        user: searchText?.trim()?.length
+          ? {
+              OR: searchTextClauses,
+            }
+          : undefined,
+      },
+      distinct: ["userId"],
+    });
+
+    return {
+      members: memberships,
+      meta: {
+        totalRowCount,
+      },
+    };
   }
 }
