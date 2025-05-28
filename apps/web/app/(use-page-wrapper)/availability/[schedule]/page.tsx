@@ -1,5 +1,3 @@
-import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -11,9 +9,10 @@ import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSc
 import prisma from "@calcom/prisma";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
-import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
+import type { PageProps } from "../../../_types";
+import { _generateMetadata } from "../../../_utils";
+import { buildLegacyRequest } from "../../../lib/buildLegacyCtx";
+import { AvailabilitySettingsWebWrapper } from "../../../modules/availability/[schedule]/schedule-view";
 
 const querySchema = z.object({
   schedule: z
