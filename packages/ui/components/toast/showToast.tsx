@@ -19,11 +19,11 @@ export const SuccessToast = ({ message, onClose, toastId }: IToast) => (
     <span className="mt-1 ">
       <Icon name="check" className="h-4 w-4" />
     </span>
-    <span className="flex items-center">
+    <div className="flex items-center">
       <p data-testid="toast-success" className="m-0 w-full text-left">
         {message}
       </p>
-    </span>
+    </div>
     <span className="mt-1">
       <Icon name="x" className="h-4 w-4 hover:cursor-pointer" />
     </span>
@@ -39,11 +39,11 @@ export const ErrorToast = ({ message, onClose, toastId }: IToast) => (
     <span className="mt-1">
       <Icon name="info" className="text-semantic-error  h-4 w-4" />
     </span>
-    <span className="flex items-center">
-      <p data-testid="toast-error" className="m-0 w-full text-left">
+    <div className="flex items-center">
+      <p data-testid="toast-success" className="m-0 w-full text-left">
         {message}
       </p>
-    </span>
+    </div>
     <span className="mt-1">
       <Icon name="x" className="text-semantic-error h-4 w-4 hover:cursor-pointer" />
     </span>
@@ -59,11 +59,11 @@ export const WarningToast = ({ message, onClose, toastId }: IToast) => (
     <span className="mt-1">
       <Icon name="info" className="text-semantic-attention h-4 w-4" />
     </span>
-    <span className="flex items-center">
-      <p data-testid="toast-warning" className="m-0 w-full text-left">
+    <div className="flex items-center">
+      <p data-testid="toast-success" className="m-0 w-full text-left">
         {message}
       </p>
-    </span>
+    </div>
     <span className="mt-1">
       <Icon name="x" className="text-semantic-attention h-4 w-4 hover:cursor-pointer" />
     </span>
