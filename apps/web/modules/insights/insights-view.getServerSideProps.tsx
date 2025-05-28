@@ -9,8 +9,8 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession({ req: context.req });
-  const { timeZone } = await prisma.user.findUnique({
-    where: { id: session.user.id },
+  const { timeZone } = await prisma.user.findUniqueOrThrow({
+    where: { id: session?.user.id ?? -1 },
     select: {
       timeZone: true,
     },
