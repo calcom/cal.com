@@ -591,6 +591,40 @@ export class TeamRepository {
     return { hasTeamPlan: !!hasTeamPlan };
   }
 
+  static async hasActiveTeamPlan(userId: number) {
+    const { IS_SELF_HOSTED } = await import("@calcom/lib/constants");
+    if (IS_SELF_HOSTED) return { isActive: true, isTrial: false };
+
+    const teams = await prisma.team.findMany({
+      where: {
+        members: {
+          some: {
+            userId,
+            accepted: true,
+          },
+        },
+      },
+    });
+
+    if (!teams.length) return { isActive: false, isTrial: false };
+
+    let isTrial = false;
+    for (const team of teams) {
+      const { InternalTeamBilling } = await import("@calcom/ee/billing/teams/internal-team-billing");
+      const teamBillingService = new InternalTeamBilling(team);
+      const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
+
+      if (subscriptionStatus === "active" || subscriptionStatus === "past_due") {
+        return { isActive: true, isTrial: false };
+      }
+      if (subscriptionStatus === "trialing") {
+        isTrial = true;
+      }
+    }
+
+    return { isActive: false, isTrial };
+  }
+
   static async getUpgradeable(userId: number) {
     const { IS_TEAM_BILLING_ENABLED } = await import("@calcom/lib/constants");
     if (!IS_TEAM_BILLING_ENABLED) return [];
