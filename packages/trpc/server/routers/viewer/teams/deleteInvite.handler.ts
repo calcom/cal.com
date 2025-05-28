@@ -1,6 +1,5 @@
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -17,14 +16,8 @@ type DeleteInviteOptions = {
 export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) => {
   const { token } = input;
 
-  const verificationToken = await prisma.verificationToken.findFirst({
-    where: {
-      token: token,
-    },
-    select: {
-      teamId: true,
-      id: true,
-    },
+  const verificationToken = await TeamRepository.getVerificationToken({
+    token,
   });
 
   if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND" });
