@@ -40,6 +40,7 @@ function getActionsToTake({
   resourceId,
   selectedCalendar,
   calendarSync,
+  resourceState,
 }: {
   channelId: string;
   resourceId: string;
@@ -53,6 +54,7 @@ function getActionsToTake({
     externalCalendarId: string;
     credentialId: number;
   } | null;
+  resourceState: string;
 }) {
   const syncActions: ("availability-cache" | "events-sync")[] = [];
 
@@ -65,7 +67,7 @@ function getActionsToTake({
   }
 
   if (selectedCalendar) {
-    syncActions.push("events-sync");
+    syncActions.push("availability-cache");
     externalCalendarId = selectedCalendar.externalId;
     credentialId = selectedCalendar.credentialId;
     log.debug(
@@ -75,7 +77,11 @@ function getActionsToTake({
   }
 
   if (calendarSync) {
-    syncActions.push("events-sync");
+    // resourceState is 'sync' when a subscription is created. We don't need to sync events in that case.
+    if (resourceState !== "sync") {
+      syncActions.push("events-sync");
+    }
+
     if (externalCalendarId && externalCalendarId !== calendarSync.externalCalendarId) {
       log.error(
         "Data inconsistency: Selected calendar externalId and Synced calendar externalId do not match for the same subscription.",
@@ -139,12 +145,14 @@ async function getCalendarFromChannelId({
   channelId,
   resourceId,
   subscription,
+  resourceState,
 }: {
   channelId: string;
   resourceId: string;
   subscription: {
     id: string;
   } | null;
+  resourceState: string;
 }) {
   const [selectedCalendar, calendarSync] = await Promise.all([
     SelectedCalendarRepository.findFirstByGoogleChannelIdAndResourceId(channelId, resourceId),
@@ -158,6 +166,7 @@ async function getCalendarFromChannelId({
     resourceId,
     selectedCalendar,
     calendarSync,
+    resourceState,
   });
 
   // Fetch the credential using the determined credentialId
@@ -221,24 +230,12 @@ export async function postHandler(req: NextApiRequest) {
       },
     });
 
-    if (resourceState === "sync") {
-      if (subscription) {
-        await prisma.calendarSubscription.update({
-          where: { id: subscription.id },
-          data: { lastSyncAt: new Date() },
-        });
-      }
-      log.info(
-        `Ignoring 'sync' notification for resource ${resourceId} in channel ${channelId}, as sync notifications just confirms that a subscription has occured`
-      );
-      return { message: "ok" };
-    }
-
     const { calendarService, syncActions, externalCalendarId, calendarSyncId, allRelatedSelectedCalendars } =
       await getCalendarFromChannelId({
         channelId,
         resourceId,
         subscription,
+        resourceState,
       });
 
     if (!calendarService?.onWatchedCalendarChange) {

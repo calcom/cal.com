@@ -102,7 +102,7 @@ export class CalendarSubscriptionRepository {
     where,
   }: {
     where: {
-      integration?: string;
+      providerType?: ProviderType;
       externalCalendarId?: {
         in: string[];
       };

@@ -1,7 +1,7 @@
 // Import mocks for Google Calendar
 import prismock from "../../../../tests/libs/__mocks__/prisma";
 // Import the mock function directly
-import { calendarEventsListMock } from "../lib/__mocks__/googleapis";
+import { calendarEventsListMock, freebusyQueryMock } from "../lib/__mocks__/googleapis";
 
 import type { NextApiRequest } from "next";
 import { describe, expect, it, vi, beforeEach } from "vitest";
@@ -16,6 +16,18 @@ vi.mock("../../_utils/oauth/OAuthManager", () => ({
   OAuthManager: vi.fn().mockImplementation(() => ({
     getTokenObjectOrFetch: vi.fn().mockResolvedValue({
       token: "test-token",
+    }),
+    request: vi.fn().mockImplementation(async (fn) => {
+      const res = await fn({
+        url: "https://www.googleapis.com/calendar/v3/calendars/primary/events?alt=json",
+        method: "GET",
+        headers: {
+          "x-goog-channel-token": "test-webhook-token",
+        },
+      });
+      return {
+        json: await res.json(),
+      };
     }),
     refreshOAuthToken: vi.fn().mockResolvedValue({
       token: "test-token",
@@ -146,6 +158,10 @@ describe("Google Calendar Webhook Handler", () => {
     providerSubscriptionId = "test-subscription-id",
     providerResourceId = "test-resource-id",
     bookingStatus = BookingStatus.ACCEPTED,
+    options = {
+      createCalendarSync: true,
+      createSelectedCalendar: false,
+    },
   } = {}) {
     // crreate an App record
     await prismock.app.create({
@@ -221,23 +237,27 @@ describe("Google Calendar Webhook Handler", () => {
     });
 
     // Create calendar sync
-    const calendarSync = await prismock.calendarSync.create({
-      data: {
-        integration: "google_calendar",
-        externalCalendarId,
-        userId: user.id,
-        credentialId: credential.id,
-        bookingReferences: { connect: { id: bookingReference.id } },
-      },
-    });
+    const calendarSync = options.createCalendarSync
+      ? await prismock.calendarSync.create({
+          data: {
+            integration: "google_calendar",
+            externalCalendarId,
+            userId: user.id,
+            credentialId: credential.id,
+            bookingReferences: { connect: { id: bookingReference.id } },
+          },
+        })
+      : null;
 
     const subscription = await prismock.calendarSubscription.create({
       data: {
-        calendarSync: {
-          connect: {
-            id: calendarSync.id,
+        ...(calendarSync && {
+          calendarSync: {
+            connect: {
+              id: calendarSync.id,
+            },
           },
-        },
+        }),
         providerSubscriptionId: providerSubscriptionId,
         providerResourceId: providerResourceId,
         providerSubscriptionKind: "test-kind",
@@ -250,7 +270,30 @@ describe("Google Calendar Webhook Handler", () => {
       },
     });
 
-    return { user, credential, booking, bookingReference, calendarSync, subscription };
+    const selectedCalendar = options.createSelectedCalendar
+      ? await prismock.selectedCalendar.create({
+          data: {
+            userId: user.id,
+            externalId: externalCalendarId,
+            credentialId: credential.id,
+            googleChannelId: providerSubscriptionId,
+            googleChannelKind: "test-kind",
+            googleChannelResourceId: providerResourceId,
+            googleChannelResourceUri: "test-resource-uri",
+            googleChannelExpiration: dayjs().add(1, "day").toISOString(),
+            integration: "google_calendar",
+          },
+        })
+      : null;
+
+    await prismock.feature.create({
+      data: {
+        slug: "calendar-cache",
+        enabled: true,
+      },
+    });
+
+    return { user, selectedCalendar, credential, booking, bookingReference, calendarSync, subscription };
   }
 
   it("should cancel a booking when Google Calendar event is cancelled", async () => {
@@ -352,5 +395,43 @@ describe("Google Calendar Webhook Handler", () => {
       newStartTime,
       newEndTime,
     });
+  });
+
+  it(`should update availability cache on "sync" resource state if selected calendar is there`, async () => {
+    const googleChannelId = "test-channel-id";
+    const googleResourceId = "test-resource-id";
+    const calendarEventId = "google-event-123";
+
+    // Create booking with future time
+    await setupTestData({
+      calendarEventId,
+      externalCalendarId: "johndoe@example.com",
+      providerSubscriptionId: googleChannelId,
+      providerResourceId: googleResourceId,
+      options: {
+        createCalendarSync: false,
+        createSelectedCalendar: true,
+      },
+    });
+
+    freebusyQueryMock.mockResolvedValueOnce({
+      data: {
+        items: [],
+      },
+    });
+
+    const result = await webhookHandler({
+      ...req,
+      headers: {
+        ...req.headers,
+        "x-goog-channel-id": googleChannelId,
+        "x-goog-resource-id": googleResourceId,
+        "x-goog-resource-state": "sync",
+      },
+    } as unknown as NextApiRequest);
+
+    expect(result).toBeDefined();
+    const calendarCache = await prismock.calendarCache.findMany();
+    expect(calendarCache.length).toBe(1);
   });
 });

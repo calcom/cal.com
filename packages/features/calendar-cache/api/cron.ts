@@ -61,10 +61,11 @@ function getUniqueCalendarsByExternalId<
 
 const handleCalendarsToUnwatch = async () => {
   const calendarsToUnwatch = await SelectedCalendarRepository.getNextBatchToUnwatch(500);
+  log.info(`Found ${calendarsToUnwatch.length} calendars to unwatch`);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
   const calendarSubscriptions = await CalendarSubscriptionRepository.findMany({
     where: {
-      integration: "google_calendar",
+      providerType: "google_calendar",
       externalCalendarId: {
         in: Object.keys(calendarsWithEventTypeIdsGroupedTogether),
       },
@@ -123,10 +124,11 @@ const handleCalendarsToUnwatch = async () => {
 
 const handleCalendarsToWatch = async () => {
   const calendarsToWatch = await SelectedCalendarRepository.getNextBatchToWatch(500);
+  log.info(`Found ${calendarsToWatch.length} calendars to watch`);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
   const calendarSubscriptions = await CalendarSubscriptionRepository.findMany({
     where: {
-      integration: "google_calendar",
+      providerType: "google_calendar",
       externalCalendarId: {
         in: Object.keys(calendarsWithEventTypeIdsGroupedTogether),
       },

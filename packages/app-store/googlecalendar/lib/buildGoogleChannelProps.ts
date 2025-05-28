@@ -19,7 +19,7 @@ export async function buildGoogleChannelProps({
   selectedCalendar: IntegrationCalendar | null;
   calendarSubscription: CalendarSubscription | null;
 }) {
-  let googleChannelProps: GoogleChannelProps = {};
+  let googleChannelProps: GoogleChannelProps | null = null;
   if (calendarSubscription) {
     googleChannelProps = {
       id: calendarSubscription.providerSubscriptionId,
