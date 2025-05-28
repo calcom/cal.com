@@ -2,8 +2,8 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
-import { OrgTeamMembershipOutputDto } from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -43,7 +43,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
     let managedEventType: EventType;
     let membership: Membership;
     let membership2: Membership;
-    let membershipCreatedViaApi: OrgTeamMembershipOutputDto;
+    let membershipCreatedViaApi: TeamMembershipOutput;
 
     const userEmail = `organizations-teams-memberships-admin-${randomString()}@api.com`;
     const userEmail2 = `organizations-teams-memberships-member-${randomString()}@api.com`;
@@ -55,6 +55,11 @@ describe("Organizations Teams Memberships Endpoints", () => {
     let nonOrgUser: User;
 
     let userToInviteViaApi: User;
+
+    const metadata = {
+      some: "key",
+    };
+    const bio = "This is a bio";
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -75,10 +80,14 @@ describe("Organizations Teams Memberships Endpoints", () => {
       user = await userRepositoryFixture.create({
         email: userEmail,
         username: userEmail,
+        bio,
+        metadata,
       });
       user2 = await userRepositoryFixture.create({
         email: userEmail2,
         username: userEmail2,
+        bio,
+        metadata,
       });
 
       nonOrgUser = await userRepositoryFixture.create({
@@ -89,6 +98,8 @@ describe("Organizations Teams Memberships Endpoints", () => {
       userToInviteViaApi = await userRepositoryFixture.create({
         email: invitedUserEmail,
         username: invitedUserEmail,
+        bio,
+        metadata,
       });
 
       org = await organizationsRepositoryFixture.create({
@@ -232,11 +243,25 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto[]> = response.body;
+          const responseBody: ApiSuccessResponse<TeamMembershipOutput[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data[0].id).toEqual(membership.id);
+          expect(responseBody.data[0].userId).toEqual(user.id);
+          expect(responseBody.data[0].role).toEqual("ADMIN");
+          expect(responseBody.data[0].user.bio).toEqual(bio);
+          expect(responseBody.data[0].user.metadata).toEqual(metadata);
+          expect(responseBody.data[0].user.email).toEqual(user.email);
+          expect(responseBody.data[0].user.username).toEqual(user.username);
           expect(responseBody.data[1].id).toEqual(membership2.id);
+          expect(responseBody.data[1].userId).toEqual(user2.id);
+          expect(responseBody.data[1].role).toEqual("MEMBER");
+          expect(responseBody.data[1].user.bio).toEqual(user2.bio);
+          expect(responseBody.data[1].user.metadata).toEqual(user2.metadata);
+          expect(responseBody.data[1].user.email).toEqual(user2.email);
+          expect(responseBody.data[1].user.username).toEqual(user2.username);
           expect(responseBody.data.length).toEqual(2);
+          expect(responseBody.data[0].teamId).toEqual(orgTeam.id);
+          expect(responseBody.data[1].teamId).toEqual(orgTeam.id);
         });
     });
 
@@ -251,10 +276,15 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships?skip=1&take=1`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto[]> = response.body;
+          const responseBody: ApiSuccessResponse<TeamMembershipOutput[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data[0].id).toEqual(membership2.id);
           expect(responseBody.data[0].userId).toEqual(user2.id);
+          expect(responseBody.data[0].role).toEqual("MEMBER");
+          expect(responseBody.data[0].user.bio).toEqual(bio);
+          expect(responseBody.data[0].user.metadata).toEqual(metadata);
+          expect(responseBody.data[0].user.email).toEqual(user2.email);
+          expect(responseBody.data[0].user.username).toEqual(user2.username);
           expect(responseBody.data.length).toEqual(1);
         });
     });
@@ -270,11 +300,16 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membership.id}`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
+          const responseBody: ApiSuccessResponse<TeamMembershipOutput> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(membership.id);
           expect(responseBody.data.userId).toEqual(user.id);
           expect(responseBody.data.user.email).toEqual(user.email);
+          expect(responseBody.data.user.username).toEqual(user.username);
+          expect(responseBody.data.user.bio).toEqual(bio);
+          expect(responseBody.data.user.metadata).toEqual(metadata);
+          expect(responseBody.data.role).toEqual("ADMIN");
+          expect(responseBody.data.teamId).toEqual(orgTeam.id);
         });
     });
 
@@ -305,13 +340,16 @@ describe("Organizations Teams Memberships Endpoints", () => {
         } satisfies CreateOrgTeamMembershipDto)
         .expect(201)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
+          const responseBody: ApiSuccessResponse<TeamMembershipOutput> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           membershipCreatedViaApi = responseBody.data;
           expect(membershipCreatedViaApi.teamId).toEqual(orgTeam.id);
           expect(membershipCreatedViaApi.role).toEqual("MEMBER");
           expect(membershipCreatedViaApi.userId).toEqual(userToInviteViaApi.id);
           expect(membershipCreatedViaApi.user.email).toEqual(userToInviteViaApi.email);
+          expect(membershipCreatedViaApi.user.username).toEqual(userToInviteViaApi.username);
+          expect(membershipCreatedViaApi.user.bio).toEqual(userToInviteViaApi.bio);
+          expect(membershipCreatedViaApi.user.metadata).toEqual(userToInviteViaApi.metadata);
           userHasCorrectEventTypes(membershipCreatedViaApi.userId);
         });
     });
@@ -347,10 +385,14 @@ describe("Organizations Teams Memberships Endpoints", () => {
         } satisfies UpdateOrgTeamMembershipDto)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
+          const responseBody: ApiSuccessResponse<TeamMembershipOutput> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           membershipCreatedViaApi = responseBody.data;
           expect(membershipCreatedViaApi.role).toEqual("OWNER");
+          expect(membershipCreatedViaApi.user.email).toEqual(userToInviteViaApi.email);
+          expect(membershipCreatedViaApi.user.username).toEqual(userToInviteViaApi.username);
+          expect(membershipCreatedViaApi.user.bio).toEqual(userToInviteViaApi.bio);
+          expect(membershipCreatedViaApi.user.metadata).toEqual(userToInviteViaApi.metadata);
         });
     });
 
@@ -359,7 +401,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .delete(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membershipCreatedViaApi.id}`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
+          const responseBody: ApiSuccessResponse<TeamMembershipOutput> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(membershipCreatedViaApi.id);
         });

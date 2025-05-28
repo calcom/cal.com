@@ -18,6 +18,7 @@ type DatePickerWithRangeProps = {
   withoutPopover?: boolean;
   "data-testid"?: string;
   strictlyBottom?: boolean;
+  allowPastDates?: boolean;
 };
 
 export function DatePickerWithRange({
@@ -30,23 +31,46 @@ export function DatePickerWithRange({
   withoutPopover,
   "data-testid": testId,
   strictlyBottom,
+  allowPastDates = false,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
-    if (dates?.endDate) {
-      onDatesChange({ startDate: date, endDate: undefined });
+    if (allowPastDates) {
+      // for Out of Office (past dates allowed)
+      if (dates?.endDate) {
+        onDatesChange({ startDate: date, endDate: undefined });
+      } else {
+        const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
+        const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
+        onDatesChange({ startDate, endDate });
+      }
     } else {
-      const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
-      const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
-      onDatesChange({ startDate, endDate });
+      // for Limit Future Booking and other date range selections (no past dates)
+      if (!dates.startDate) {
+        onDatesChange({ startDate: date, endDate: undefined });
+      } else if (!dates.endDate) {
+        if (date < dates.startDate) {
+          onDatesChange({ startDate: date, endDate: dates.startDate });
+        } else {
+          onDatesChange({ startDate: dates.startDate, endDate: date });
+        }
+      } else {
+        if (date.getTime() === dates.startDate.getTime() || date.getTime() === dates.endDate.getTime()) {
+          onDatesChange({ startDate: date, endDate: undefined });
+        } else if (date < dates.startDate) {
+          onDatesChange({ startDate: date, endDate: undefined });
+        } else {
+          onDatesChange({ startDate: dates.startDate, endDate: date });
+        }
+      }
     }
   }
-  const fromDate = minDate ?? new Date();
+
+  const fromDate = allowPastDates && minDate === null ? undefined : minDate ?? new Date();
 
   const calendar = (
     <Calendar
       initialFocus
-      //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
-      fromDate={minDate === null ? undefined : fromDate}
+      fromDate={fromDate}
       toDate={maxDate}
       mode="range"
       defaultMonth={dates?.startDate}

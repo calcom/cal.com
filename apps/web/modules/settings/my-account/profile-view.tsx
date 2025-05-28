@@ -94,7 +94,7 @@ const ProfileView = () => {
   const { update } = useSession();
   const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
 
-  const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
@@ -121,7 +121,7 @@ const ProfileView = () => {
       }
     },
   });
-  const unlinkConnectedAccountMutation = trpc.viewer.unlinkConnectedAccount.useMutation({
+  const unlinkConnectedAccountMutation = trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
     onSuccess: async (res) => {
       showToast(t(res.message), "success");
       utils.viewer.me.invalidate();
@@ -131,7 +131,7 @@ const ProfileView = () => {
     },
   });
 
-  const addSecondaryEmailMutation = trpc.viewer.addSecondaryEmail.useMutation({
+  const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
     onSuccess: (res) => {
       setShowSecondaryEmailModalOpen(false);
       setNewlyAddedSecondaryEmail(res?.data?.email);

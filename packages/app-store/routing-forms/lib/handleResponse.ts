@@ -5,7 +5,7 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
@@ -31,10 +31,6 @@ export type Form = SerializableForm<
 >;
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
-
-export const handleResponse = (...args: Parameters<typeof _handleResponse>) => {
-  return monitorCallbackAsync(_handleResponse, ...args);
-};
 
 const _handleResponse = async ({
   response,
@@ -185,7 +181,7 @@ const _handleResponse = async ({
           })(),
         ]);
 
-      await monitorCallbackAsync(getRoutedMembers);
+      await withReporting(getRoutedMembers, "getRoutedMembers")();
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
@@ -202,8 +198,7 @@ const _handleResponse = async ({
         },
       });
 
-      await monitorCallbackAsync(
-        onFormSubmission,
+      await onFormSubmission(
         { ...serializableFormWithFields, userWithEmails },
         dbFormResponse.response as FormResponse,
         dbFormResponse.id,
@@ -247,3 +242,5 @@ const _handleResponse = async ({
     throw e;
   }
 };
+
+export const handleResponse = withReporting(_handleResponse, "handleResponse");

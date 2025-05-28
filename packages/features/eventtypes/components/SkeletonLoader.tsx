@@ -34,11 +34,11 @@ export function InfiniteSkeletonLoader() {
   );
 }
 
-export function TabsSkeletonLoader() {
+function TabsSkeletonLoader() {
   return (
-    <div className="mb-4 max-w-full lg:mb-5">
+    <div className="mb-2.5 max-w-full">
       <nav className="no-scrollbar flex space-x-0.5 overflow-x-scroll rounded-md">
-        <div className="bg-subtle inline-flex h-fit items-center justify-center whitespace-nowrap rounded-md p-2">
+        <div className="bg-subtle inline-flex h-fit items-center justify-center whitespace-nowrap rounded-md p-1">
           <SkeletonAvatar className="mb-1 mr-1 h-4 w-4 rounded-full" />
           <SkeletonText className="h-4 w-16" />
         </div>

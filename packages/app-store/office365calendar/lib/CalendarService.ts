@@ -2,7 +2,7 @@ import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microso
 import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { getLocation } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialConfigurationError,
@@ -12,7 +12,7 @@ import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
-  CalendarEvent,
+  CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
@@ -239,7 +239,7 @@ export default class Office365CalendarService implements Calendar {
     return azureUserId ? `/users/${this.azureUserId}` : "/me";
   }
 
-  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     const mainHostDestinationCalendar = event.destinationCalendar
       ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
         event.destinationCalendar[0]
@@ -264,7 +264,7 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
+  async updateEvent(uid: string, event: CalendarServiceEvent): Promise<NewCalendarEventType> {
     try {
       const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
         method: "PATCH",
@@ -401,12 +401,12 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  private translateEvent = (event: CalendarEvent) => {
+  private translateEvent = (event: CalendarServiceEvent) => {
     const office365Event: Event = {
       subject: event.title,
       body: {
         contentType: "text",
-        content: getRichDescription(event),
+        content: event.calendarDescription,
       },
       start: {
         dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),

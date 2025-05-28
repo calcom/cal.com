@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -11,16 +12,18 @@ import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
-import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
+import { setDestinationCalendarHandler } from "../../viewer/calendars/setDestinationCalendar.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   ensureUniqueBookingFields,
@@ -82,6 +85,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     autoTranslateDescriptionEnabled,
     description: newDescription,
     title: newTitle,
+    seatsPerTimeSlot,
+    calVideoSettings,
     ...rest
   } = input;
 
@@ -89,7 +94,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id },
     select: {
       title: true,
+      locations: true,
       description: true,
+      seatsPerTimeSlot: true,
+      recurringEvent: true,
       fieldTranslations: {
         select: {
           field: true,
@@ -110,6 +118,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           beginMessage: true,
           enabled: true,
           llmId: true,
+        },
+      },
+      calVideoSettings: {
+        select: {
+          disableRecordingForOrganizer: true,
+          disableRecordingForGuests: true,
+          redirectUrlOnExit: true,
         },
       },
       children: {
@@ -160,6 +175,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
+  const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? eventType.seatsPerTimeSlot;
+  const finalRecurringEvent = recurringEvent ?? eventType.recurringEvent;
+
+  if (finalSeatsPerTimeSlot && finalRecurringEvent) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Recurring Events and Offer Seats cannot be active at the same time.",
+    });
+  }
+
   const teamId = input.teamId || eventType.team?.id;
   const guestsField = bookingFields?.find((field) => field.name === "guests");
 
@@ -185,8 +210,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     disableGuests: guestsField?.hidden ?? false,
+    seatsPerTimeSlot,
   };
   data.locations = locations ?? undefined;
+
   if (periodType) {
     data.periodType = handlePeriodType(periodType);
   }
@@ -501,6 +528,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     }
+  }
+
+  if (calVideoSettings) {
+    await CalVideoSettingsRepository.createOrUpdateCalVideoSettings({
+      eventTypeId: id,
+      calVideoSettings,
+    });
+  }
+
+  const parsedEventTypeLocations = eventTypeLocations.safeParse(eventType.locations ?? []);
+
+  const isCalVideoLocationActive = locations
+    ? locations.some((location) => location.type === DailyLocationType)
+    : parsedEventTypeLocations.success &&
+      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+
+  if (eventType.calVideoSettings && !isCalVideoLocationActive) {
+    await CalVideoSettingsRepository.deleteCalVideoSettings(id);
   }
 
   // Logic for updating `fieldTranslations`

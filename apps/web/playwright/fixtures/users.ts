@@ -227,6 +227,7 @@ const createTeamAndAddUser = async (
   const { role = MembershipRole.OWNER, id: userId } = user;
   await prisma.membership.create({
     data: {
+      createdAt: new Date(),
       teamId: team.id,
       userId,
       role: role,
@@ -394,7 +395,7 @@ export const createUsersFixture = (
               },
               {
                 id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: "https://cal.com" },
+                action: { type: "externalRedirectUrl", value: "https://cal.com/peer" },
                 queryValue: {
                   id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
                   type: "group",
@@ -566,6 +567,7 @@ export const createUsersFixture = (
               // Add teammates to the team
               await prisma.membership.create({
                 data: {
+                  createdAt: new Date(),
                   teamId: team.id,
                   userId: teamUser.id,
                   role: MembershipRole.MEMBER,
