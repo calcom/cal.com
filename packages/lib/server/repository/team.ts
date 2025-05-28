@@ -372,6 +372,15 @@ export class TeamRepository {
     });
   }
 
+  static async checkSlugCollision({ slug, parentId }: { slug: string; parentId: number | null }) {
+    return await prisma.team.findFirst({
+      where: {
+        slug: slug,
+        parentId: parentId,
+      },
+    });
+  }
+
   static async findByParentId(parentId: number) {
     return await prisma.team.findMany({
       where: {
@@ -570,6 +579,34 @@ export class TeamRepository {
         accepted: false,
       },
     });
+  }
+
+  static async listOwnedTeams({ userId, roles }: { userId: number; roles: MembershipRole[] }) {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        teams: {
+          where: {
+            accepted: true,
+            role: {
+              in: roles,
+            },
+          },
+          select: {
+            team: true,
+          },
+        },
+      },
+    });
+
+    return user?.teams
+      ?.filter((m) => {
+        return !m.team.isOrganization;
+      })
+      ?.map(({ team }) => team);
   }
 
   // TODO: Move errors away from TRPC error to make it more generic
