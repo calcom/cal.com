@@ -1,0 +1,15 @@
+model CalendarAvailabilityCache {
+  id            String   @id @default(cuid())
+  userId        Int
+  calendarId    String
+  date          DateTime
+  availableSlots Json
+  lastUpdated   DateTime @default(now())
+  subscriptionId String?
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, calendarId, date])
+  @@index([userId])
+  @@index([calendarId])
+  @@index([date])
+} 
