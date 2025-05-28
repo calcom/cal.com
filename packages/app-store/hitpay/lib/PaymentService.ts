@@ -50,6 +50,7 @@ export class PaymentService implements IAbstractPaymentService {
           title: true,
           startTime: true,
           endTime: true,
+          eventTypeId: true,
           eventType: {
             select: {
               slug: true,
@@ -64,11 +65,13 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error("Booking or API key not found");
       }
 
-      const { startTime, endTime } = booking;
+      const { startTime, endTime, eventTypeId } = booking;
       const bookingsWithSameTimeSlot = await prisma.booking.findMany({
         where: {
+          eventTypeId,
           startTime,
           endTime,
+          OR: [{ status: "PENDING" }, { status: "AWAITING_HOST" }],
         },
         select: {
           uid: true,
@@ -171,7 +174,15 @@ export class PaymentService implements IAbstractPaymentService {
       return paymentData;
     } catch (error) {
       log.error("Payment could not be created", bookingId, safeStringify(error));
-      throw new Error(ErrorCode.PaymentCreationFailure);
+      await prisma.booking.update({
+        where: {
+          id: bookingId,
+        },
+        data: {
+          status: "CANCELLED",
+        },
+      });
+      throw error;
     }
   }
   async update(): Promise<Payment> {
