@@ -7,9 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import SingleForm, {
-  getServerSidePropsForSingleFormView as getServerSideProps,
-} from "../../components/SingleForm";
+import SingleForm from "../../components/SingleForm";
+import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 
 export { getServerSideProps };
 
