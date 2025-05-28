@@ -1,4 +1,5 @@
 import { _generateMetadata } from "app/_utils";
+import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
@@ -19,17 +20,40 @@ export const generateMetadata = async () => {
     "/apps"
   );
 };
+const getCachedAppRegistry = unstable_cache(
+  async () => {
+    return await getAppRegistry();
+  },
+  ["appRegistry.get"],
+  { revalidate: 3600 } // Cache for 1 hour
+);
+
+const getCachedAppRegistryWithCredentials = unstable_cache(
+  async (userId: number, teamIds: number[]) => {
+    return await getAppRegistryWithCredentials(userId, teamIds);
+  },
+  ["appRegistry.getWithCredentials"],
+  { revalidate: 3600 } // Cache for 1 hour
+);
+
+const getCachedUserAdminTeams = unstable_cache(
+  async (userId: number) => {
+    return await UserRepository.getUserAdminTeams(userId);
+  },
+  ["user.getAdminTeams"],
+  { revalidate: 3600 } // Cache for 1 hour
+);
 
 const ServerPage = async () => {
   const req = buildLegacyRequest(await headers(), await cookies());
   const session = await getServerSession({ req });
   let appStore, userAdminTeamsIds: number[];
   if (session?.user?.id) {
-    const userAdminTeams = await UserRepository.getUserAdminTeams(session.user.id);
+    const userAdminTeams = await getCachedUserAdminTeams(session.user.id);
     userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
-    appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeamsIds);
+    appStore = await getCachedAppRegistryWithCredentials(session.user.id, userAdminTeamsIds);
   } else {
-    appStore = await getAppRegistry();
+    appStore = await getCachedAppRegistry();
     userAdminTeamsIds = [];
   }
 
@@ -42,7 +66,6 @@ const ServerPage = async () => {
     }
     return c;
   }, {} as Record<string, number>);
-
   const props = {
     categories: Object.entries(categories)
       .map(([name, count]): { name: AppCategories; count: number } => ({
@@ -55,8 +78,6 @@ const ServerPage = async () => {
     appStore,
     userAdminTeams: userAdminTeamsIds,
   };
-
   return <AppsPage {...props} isAdmin={session?.user?.role === "ADMIN"} />;
 };
-
 export default ServerPage;
