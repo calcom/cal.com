@@ -900,4 +900,62 @@ export class TeamRepository {
 
     return members;
   }
+
+  static async updateInternalNotesPresets({
+    teamId,
+    presets,
+  }: {
+    teamId: number;
+    presets: { id?: number; name: string; cancellationReason?: string }[];
+  }) {
+    const existingPresets = await prisma.internalNotePreset.findMany({
+      where: {
+        teamId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const existingIds = existingPresets.map((preset) => preset.id);
+    const updatedIds = presets.map((preset) => preset.id).filter((id): id is number => id !== undefined);
+
+    const idsToDelete = existingIds.filter((id) => !updatedIds.includes(id));
+
+    if (idsToDelete.length > 0) {
+      await prisma.internalNotePreset.deleteMany({
+        where: {
+          id: {
+            in: idsToDelete,
+          },
+          teamId,
+        },
+      });
+    }
+
+    return await Promise.all(
+      presets.map((preset) => {
+        if (preset.id && preset.id !== -1) {
+          return prisma.internalNotePreset.update({
+            where: {
+              id: preset.id,
+              teamId,
+            },
+            data: {
+              name: preset.name,
+              cancellationReason: preset.cancellationReason,
+            },
+          });
+        } else {
+          return prisma.internalNotePreset.create({
+            data: {
+              name: preset.name,
+              cancellationReason: preset.cancellationReason,
+              teamId,
+            },
+          });
+        }
+      })
+    );
+  }
 }
