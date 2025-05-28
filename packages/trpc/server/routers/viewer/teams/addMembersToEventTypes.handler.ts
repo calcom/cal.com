@@ -1,7 +1,5 @@
-import type { Prisma } from "@prisma/client";
-
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
-import prisma from "@calcom/prisma";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 
 import { TRPCError } from "@trpc/server";
 
@@ -24,18 +22,9 @@ export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEve
   // check if user is admin or owner of team
   if (!isTeamAdminOrOwner) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const data: Prisma.HostCreateManyInput[] = eventTypeIds.flatMap((eventId) =>
-    userIds.map((userId) => ({
-      eventTypeId: eventId,
-      userId: userId,
-      priority: 2, // Default medium priority
-    }))
-  );
-
-  return await prisma.host.createMany({
-    data,
-    // skip if user already a host in eventType
-    skipDuplicates: true,
+  return await TeamRepository.addMembersToEventTypes({
+    eventTypeIds,
+    userIds,
   });
 }
 

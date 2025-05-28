@@ -1109,4 +1109,25 @@ export class TeamRepository {
       })
     );
   }
+
+  static async addMembersToEventTypes({
+    eventTypeIds,
+    userIds,
+  }: {
+    eventTypeIds: number[];
+    userIds: number[];
+  }) {
+    const data = eventTypeIds.flatMap((eventId) =>
+      userIds.map((userId) => ({
+        eventTypeId: eventId,
+        userId: userId,
+        priority: 2, // Default medium priority
+      }))
+    );
+
+    return await prisma.host.createMany({
+      data,
+      skipDuplicates: true,
+    });
+  }
 }
