@@ -1,4 +1,4 @@
-import { canCreateEntity, canEditEntity } from "@calcom/lib/entityPermissionUtils";
+import { canCreateEntity, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import prisma from "@calcom/prisma";
 import type { App_RoutingForms_Form, User } from "@calcom/prisma/client";
 

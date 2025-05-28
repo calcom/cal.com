@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 
 import { sanitizeValue } from "@calcom/lib/csvUtils";
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import prisma from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 

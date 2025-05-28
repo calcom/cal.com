@@ -94,7 +94,9 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     userId: true,
     destinationCalendar: true,
     bookingFields: true,
+    calVideoSettings: true,
   } satisfies Prisma.EventTypeSelect;
+
   let eventTypeGroups: TEventTypeGroup[] | null = [];
 
   if (teamIds && teamIds.length > 0) {

@@ -16,7 +16,7 @@ import { router } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 
 import { buildBaseWhereCondition } from "./buildBaseWhereCondition";
-import { EventsInsights } from "./events";
+import { EventsInsights, type GetDateRangesParams } from "./events";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
 
@@ -193,8 +193,8 @@ export const insightsRouter = router({
     const baseWhereCondition = {
       ...whereConditional,
       createdAt: {
-        gte: dayjs(startDate).startOf("day").toDate(),
-        lte: dayjs(endDate).endOf("day").toDate(),
+        gte: startDate,
+        lte: endDate,
       },
     };
 
@@ -306,120 +306,77 @@ export const insightsRouter = router({
 
     return result;
   }),
-  eventsTimeline: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        timeView: z.enum(["week", "month", "year", "day"]),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const {
-        teamId,
-        eventTypeId,
-        memberUserId,
-        isAll,
-        startDate: startDateString,
-        endDate: endDateString,
-        timeView: inputTimeView,
-        userId: selfUserId,
-      } = input;
+  eventsTimeline: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
+    const { teamId, eventTypeId, memberUserId, isAll, startDate, endDate, userId: selfUserId } = input;
+    if (selfUserId && ctx.user?.id !== selfUserId) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
 
-      // Convert to UTC without shifting the time zone
-      let startDate = dayjs.utc(startDateString).startOf("day");
-      let endDate = dayjs.utc(endDateString).endOf("day");
+    if (!teamId && !selfUserId) {
+      return [];
+    }
 
-      if (selfUserId && ctx.user?.id !== selfUserId) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+    const timeView = EventsInsights.getTimeView(startDate, endDate);
+    const r = await buildBaseWhereCondition({
+      teamId,
+      eventTypeId: eventTypeId ?? undefined,
+      memberUserId: memberUserId ?? undefined,
+      userId: selfUserId ?? undefined,
+      isAll: isAll ?? false,
+      ctx: {
+        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
+        userOrganizationId: ctx.user.organizationId,
+        insightsDb: ctx.insightsDb,
+      },
+    });
+
+    const { whereCondition: whereConditional } = r;
+
+    const dateRanges = EventsInsights.getDateRanges({
+      startDate,
+      endDate,
+      timeView,
+      timeZone: ctx.user.timeZone,
+      weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
+    });
+    if (!dateRanges.length) {
+      return [];
+    }
+
+    // Fetch counts grouped by status for the entire range
+    const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
+      whereConditional,
+      dayjs(startDate),
+      dayjs(endDate),
+      dateRanges
+    );
+
+    const result = dateRanges.map(({ formattedDate }) => {
+      const EventData = {
+        Month: formattedDate,
+        Created: 0,
+        Completed: 0,
+        Rescheduled: 0,
+        Cancelled: 0,
+        "No-Show (Host)": 0,
+        "No-Show (Guest)": 0,
+      };
+
+      const countsForDateRange = countsByStatus[formattedDate];
+
+      if (countsForDateRange) {
+        EventData["Created"] = countsForDateRange["_all"] || 0;
+        EventData["Completed"] = countsForDateRange["completed"] || 0;
+        EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
+        EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
+        EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
+        EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
       }
+      return EventData;
+    });
 
-      if (!teamId && !selfUserId) {
-        return [];
-      }
-
-      let timeView = inputTimeView;
-
-      // Adjust the timeView if the range is less than 14 days
-      if (timeView === "week" && endDate.diff(startDate, "day") < 14) {
-        timeView = "day";
-      }
-
-      // Align startDate to the Monday of the week if timeView is 'week'
-      if (timeView === "week") {
-        startDate = startDate.day(1); // Set startDate to Monday
-        endDate = endDate.day(1).add(6, "day").endOf("day"); // Set endDate to Sunday of the same week
-      }
-
-      const r = await buildBaseWhereCondition({
-        teamId,
-        eventTypeId: eventTypeId ?? undefined,
-        memberUserId: memberUserId ?? undefined,
-        userId: selfUserId ?? undefined,
-        isAll: isAll ?? false,
-        ctx: {
-          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
-          insightsDb: ctx.insightsDb,
-        },
-      });
-
-      const { whereCondition: whereConditional } = r;
-      const timeline = await EventsInsights.getTimeLine(timeView, startDate, endDate);
-
-      if (!timeline) {
-        return [];
-      }
-
-      const dateFormat: string = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
-
-      // Align date ranges consistently with weeks starting on Monday
-      const dateRanges = timeline.map((date) => {
-        let startOfRange = dayjs.utc(date).startOf(timeView);
-        let endOfRange = dayjs.utc(date).endOf(timeView);
-
-        if (timeView === "week") {
-          startOfRange = dayjs.utc(date).day(1); // Start at Monday in UTC
-          endOfRange = startOfRange.add(6, "day").endOf("day"); // End at Sunday in UTC
-        }
-
-        return {
-          startDate: startOfRange.toISOString(),
-          endDate: endOfRange.toISOString(),
-          formattedDate: startOfRange.format(dateFormat), // Align formatted date for consistency
-        };
-      });
-      // Fetch counts grouped by status for the entire range
-      const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
-        whereConditional,
-        startDate,
-        endDate,
-        timeView
-      );
-      const result = dateRanges.map(({ formattedDate }) => {
-        const EventData = {
-          Month: formattedDate,
-          Created: 0,
-          Completed: 0,
-          Rescheduled: 0,
-          Cancelled: 0,
-          "No-Show (Host)": 0,
-          "No-Show (Guest)": 0,
-        };
-
-        const countsForDateRange = countsByStatus[formattedDate];
-
-        if (countsForDateRange) {
-          EventData["Created"] = countsForDateRange["_all"] || 0;
-          EventData["Completed"] = countsForDateRange["completed"] || 0;
-          EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
-          EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
-          EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
-          EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
-        }
-        return EventData;
-      });
-
-      return result;
-    }),
+    return result;
+  }),
   popularEventTypes: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
     const { teamId, startDate, endDate, memberUserId, userId, isAll, eventTypeId } = input;
 
@@ -451,8 +408,8 @@ export const insightsRouter = router({
     bookingWhere = {
       ...bookingWhere,
       createdAt: {
-        gte: dayjs(startDate).toISOString(),
-        lte: dayjs(endDate).toISOString(),
+        gte: startDate,
+        lte: endDate,
       },
     };
 
@@ -550,15 +507,7 @@ export const insightsRouter = router({
     return result;
   }),
   averageEventDuration: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const {
-      teamId,
-      startDate: startDateString,
-      endDate: endDateString,
-      memberUserId,
-      userId,
-      eventTypeId,
-      isAll,
-    } = input;
+    const { teamId, startDate, endDate, memberUserId, userId, eventTypeId, isAll } = input;
 
     if (userId && ctx.user?.id !== userId) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -567,9 +516,6 @@ export const insightsRouter = router({
     if (!teamId && !userId) {
       return [];
     }
-
-    const startDate = dayjs.utc(startDateString).startOf("day");
-    const endDate = dayjs.utc(endDateString).endOf("day");
 
     const { whereCondition: whereConditional } = await buildBaseWhereCondition({
       teamId,
@@ -584,10 +530,16 @@ export const insightsRouter = router({
       },
     });
 
-    const timeView = EventsInsights.getTimeView("week", startDate, endDate);
-    const timeLine = await EventsInsights.getTimeLine("week", startDate, endDate);
+    const timeView = EventsInsights.getTimeView(startDate, endDate);
+    const dateRanges = EventsInsights.getDateRanges({
+      startDate,
+      endDate,
+      timeView,
+      timeZone: ctx.user.timeZone,
+      weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
+    });
 
-    if (!timeLine) {
+    if (!dateRanges.length) {
       return [];
     }
 
@@ -601,16 +553,17 @@ export const insightsRouter = router({
       where: {
         ...whereConditional,
         createdAt: {
-          gte: startDate.toDate(),
-          lte: endDate.toDate(),
+          gte: startDate,
+          lte: endDate,
         },
       },
     });
 
     const resultMap = new Map<string, { totalDuration: number; count: number }>();
 
-    for (const date of timeLine) {
-      resultMap.set(dayjs(date).startOf(startOfEndOf).format("ll"), { totalDuration: 0, count: 0 });
+    // Initialize the map with all date ranges
+    for (const range of dateRanges) {
+      resultMap.set(dayjs(range.startDate).format("ll"), { totalDuration: 0, count: 0 });
     }
 
     for (const booking of allBookings) {
@@ -657,8 +610,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
         status: "CANCELLED",
       };
@@ -740,8 +693,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
       };
 
@@ -821,8 +774,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
       };
 
@@ -1076,8 +1029,8 @@ export const insightsRouter = router({
     bookingWhere = {
       ...bookingWhere,
       createdAt: {
-        gte: dayjs(startDate).startOf("day").toDate(),
-        lte: dayjs(endDate).endOf("day").toDate(),
+        gte: startDate,
+        lte: endDate,
       },
       ratingFeedback: { not: null },
     };
@@ -1192,8 +1145,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
         noShowHost: true,
       };
@@ -1270,8 +1223,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
         rating: { not: null },
       };
@@ -1348,8 +1301,8 @@ export const insightsRouter = router({
       bookingWhere = {
         ...bookingWhere,
         createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
+          gte: startDate,
+          lte: endDate,
         },
         rating: { not: null },
       };

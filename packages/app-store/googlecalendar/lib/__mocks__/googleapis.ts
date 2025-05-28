@@ -36,7 +36,6 @@ const adminMock = {
     Admin: vi.fn(),
   },
 };
-
 export interface MockJWT {
   type: "jwt";
   config: {
