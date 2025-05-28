@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -54,26 +55,19 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     };
   }
 
-  const totalMembers = await prisma.membership.count({ where: whereCondition });
-
-  const teamMembers = await prisma.membership.findMany({
-    where: whereCondition,
-    select: {
-      id: true,
-      role: true,
-      accepted: true,
-      teamId: true,
-      user: { select: userSelect },
-    },
-    cursor: cursor ? { id: cursor } : undefined,
-    take: limit + 1,
-    orderBy: { id: "asc" },
+  const { members: teamMembers, meta } = await TeamRepository.listMembers({
+    teamId,
+    cursor: cursor ? String(cursor) : undefined,
+    limit: limit + 1,
+    searchTerm,
   });
+
+  const totalMembers = meta.totalRowCount;
 
   let nextCursor: typeof cursor | undefined = undefined;
   if (teamMembers.length > limit) {
     const nextItem = teamMembers.pop();
-    nextCursor = nextItem?.id;
+    nextCursor = nextItem?.id ? Number(nextItem.id) : undefined;
   }
 
   const membersWithApps = await Promise.all(
