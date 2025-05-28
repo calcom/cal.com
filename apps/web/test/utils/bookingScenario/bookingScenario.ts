@@ -704,7 +704,7 @@ export async function addUsersToDb(users: InputUser[]) {
       for (const dateRange of user.outOfOffice.dateRanges) {
         await prismock.outOfOfficeEntry.create({
           data: {
-            uid: uuidv4(),
+            uuid: uuidv4(),
             start: new Date(dateRange.start),
             end: new Date(dateRange.end),
             user: {
@@ -832,7 +832,7 @@ export async function addUsers(users: InputUser[]) {
           console.log(`Created a profile for user ${user.id} in organization ${team.id}`);
           await prismock.profile.create({
             data: {
-              uuid: uuidv4(),
+              uid: uuidv4(),
               userId: user.id,
               organizationId: team.id,
               username: user.username,

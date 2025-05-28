@@ -206,10 +206,6 @@ export async function syncDownstream({
       },
     });
 
-    console.log("bookingReferences", safeStringify(bookingReferences), {
-      calendarEventIds,
-      appType: app.type,
-    });
     const bookingMap = getBookingMap(bookingReferences);
 
     const results = [];

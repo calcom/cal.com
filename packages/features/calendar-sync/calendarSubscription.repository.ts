@@ -131,13 +131,6 @@ export class CalendarSubscriptionRepository {
           },
         ],
       },
-      select: {
-        id: true,
-        credentialId: true,
-        externalCalendarId: true,
-        providerType: true,
-        status: true,
-      },
       orderBy: [
         // Process PENDING first, then by expiration date
         { status: "desc" },

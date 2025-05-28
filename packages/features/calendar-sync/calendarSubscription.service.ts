@@ -22,7 +22,7 @@ export class CalendarSubscriptionService {
    * Find an existing subscription from either CalendarSubscription or SelectedCalendar tables
    * Returns normalized subscription data regardless of source
    */
-  static async findActiveProviderSubscription({
+  static async findActiveProviderSubscriptionInSelectedCalendarToo({
     externalCalendarId,
     integration,
   }: {
@@ -186,6 +186,15 @@ export class CalendarSubscriptionService {
       createData: {
         externalCalendarId,
         credentialId,
+        ...(data.calendarSyncId
+          ? {
+              calendarSync: {
+                connect: {
+                  id: data.calendarSyncId,
+                },
+              },
+            }
+          : {}),
         ...data,
       },
     });

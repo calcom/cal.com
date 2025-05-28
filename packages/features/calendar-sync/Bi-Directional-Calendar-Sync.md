@@ -79,9 +79,9 @@ FAQ:
   - [ ] Test this
 
 TODO:
-- [ ] Subscription renewal support
-- [ ] Reuse subscription from SelectedCalendar
-- [ ] Ensure that a subscription record is never deleted, unless it has been expired by Cal.com itself, then it is safe to be deleted. This is important because otherwise we wouldn't be able to stop subscription on that if needed and such channels could cause increased push notification delay. 
+- [x] Subscription renewal support
+- [x] Reuse subscription from SelectedCalendar
+- [x] Ensure that a subscription record is never deleted, unless it has been expired by Cal.com itself, then it is safe to be deleted. This is important because otherwise we wouldn't be able to stop subscription on that if needed and such channels could cause increased push notification delay. 
 - [ ] Review indices carefully on DB. Maybe use explain analyze to check if they are being used.
 - [ ] When does updateEvent return an array of NewCalendarEventType?
 - [ ] Tests for Google CalendarService
@@ -92,8 +92,10 @@ TODO:
    - [ ] Reusing subscription from SelectedCalendar and CalendarSubscription both
 
 Follow up:
-- [ ] Cleanup
-   - [ ] unusubscribe from channel, resourceId which are not connected to any CalendarSync record or don't have SelectedCalendar record with same channelId and resourceId.
+- [ ] Add renewedAt to CalendarSubscription so that we can track when a subscription was reactivated along with activatedAt.
+- [ ] Unsubscribing
+   - [ ] Mark a subscription as INACTIVE and unsubcribe from the channel if it is not connected to any CalendarSync record or SelectedCalendar record.
+
 - [ ] Feature Completeness
    - [ ] Cancel when all attendees(booker + guests and not organizer) have declined the calendar-event
    - [ ] Send email and trigger other things that are done when a booking is cancelled

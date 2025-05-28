@@ -2307,9 +2307,10 @@ model WorkflowOptOutContact {
 // ACTIVE -> ERROR could occur if maybe some error in renewing the subscription.
 enum CalendarSubscriptionStatus {
   ACTIVE
+  PENDING  // Waiting to create subscription in provider
+  // Start using these statuses in followup PR
   INACTIVE // e.g., Third party calendar watch is no longer needed and has been stopped.
   ERROR
-  PENDING  // Waiting to create subscription in provider
 }
 
 model CalendarSubscription {
@@ -2337,7 +2338,6 @@ model CalendarSubscription {
   updatedAt   DateTime @updatedAt
 
   // When the subscription was activated i.e. when we have successfully created the subscription in the provider
-  // Useful for debugging cases where change might have occurred in the provider before activation
   activatedAt DateTime?
 
   calendarSync CalendarSync?

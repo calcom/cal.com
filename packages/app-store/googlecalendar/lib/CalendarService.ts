@@ -31,6 +31,7 @@ import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Creden
 
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
 import { CalendarAuth } from "./CalendarAuth";
+import { buildGoogleChannelProps } from "./buildGoogleChannelProps";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
@@ -46,14 +47,6 @@ const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googleca
 
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && error.hasOwnProperty("config");
-
-type GoogleChannelProps = {
-  kind?: string | null;
-  id?: string | null;
-  resourceId?: string | null;
-  resourceUri?: string | null;
-  expiration?: string | null;
-};
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
@@ -970,43 +963,14 @@ export default class GoogleCalendarService implements Calendar {
       (sc) => !eventTypeIds?.includes(sc.eventTypeId)
     );
 
-    // Fill in googleChannelProps from either an existing subscription or selected calendar
-    let googleChannelProps: GoogleChannelProps = {};
-    let shouldCreateNewSubscription = true;
-    if (calendarSubscription) {
-      googleChannelProps = {
-        id: calendarSubscription.providerSubscriptionId,
-        kind: calendarSubscription.providerSubscriptionKind,
-        resourceId: calendarSubscription.providerResourceId,
-        resourceUri: calendarSubscription.providerResourceUri,
-        expiration: calendarSubscription.providerExpiration?.toISOString() ?? null,
-      };
-      shouldCreateNewSubscription = false;
-      logger.info(
-        `Calendar ${calendarId} is already being watched via CalendarSubscription. Reusing existing channel.`,
-        safeStringify({
-          calendarSubscriptionId: calendarSubscription?.id,
-        })
-      );
-    } else if (otherCalendarsWithSameSubscription.length > 0) {
-      googleChannelProps = {
-        kind: otherCalendarsWithSameSubscription[0].googleChannelKind,
-        id: otherCalendarsWithSameSubscription[0].googleChannelId,
-        resourceId: otherCalendarsWithSameSubscription[0].googleChannelResourceId,
-        resourceUri: otherCalendarsWithSameSubscription[0].googleChannelResourceUri,
-        expiration: otherCalendarsWithSameSubscription[0].googleChannelExpiration,
-      };
-      shouldCreateNewSubscription = false;
-      logger.info(
-        `Calendar ${calendarId} is already being watched via otherSelectedCalendars. Reusing existing channel.`,
-        safeStringify({
-          otherCalendarsWithSameSubscription: otherCalendarsWithSameSubscription.map((sc) => sc.id),
-        })
-      );
-    }
+    let googleChannelProps = await buildGoogleChannelProps({
+      calendarId,
+      selectedCalendar: otherCalendarsWithSameSubscription[0],
+      calendarSubscription,
+    });
 
     // Only create a new subscription if none exists
-    if (shouldCreateNewSubscription) {
+    if (!googleChannelProps) {
       try {
         googleChannelProps = await this.subscribeToCalendar({ calendarId });
       } catch (error) {

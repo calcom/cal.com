@@ -1,8 +1,8 @@
 -- CreateEnum
-CREATE TYPE "SubscriptionStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'ERROR', 'PENDING');
+CREATE TYPE "CalendarSubscriptionStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'ERROR', 'PENDING');
 
 -- CreateEnum
-CREATE TYPE "Direction" AS ENUM ('UPSTREAM', 'DOWNSTREAM');
+CREATE TYPE "CalendarSyncDirection" AS ENUM ('UPSTREAM', 'DOWNSTREAM');
 
 -- AlterTable
 ALTER TABLE "BookingReference" ADD COLUMN     "calendarSyncId" TEXT;
@@ -18,7 +18,7 @@ CREATE TABLE "CalendarSubscription" (
     "providerResourceId" TEXT,
     "providerResourceUri" TEXT,
     "providerExpiration" TIMESTAMP(3),
-    "status" "SubscriptionStatus" NOT NULL DEFAULT 'ACTIVE',
+    "status" "CalendarSubscriptionStatus" NOT NULL DEFAULT 'ACTIVE',
     "lastSyncAt" TIMESTAMP(3),
     "lastError" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -39,7 +39,7 @@ CREATE TABLE "CalendarSync" (
     "subscriptionId" TEXT,
     "lastSyncedUpAt" TIMESTAMP(3),
     "lastSyncedDownAt" TIMESTAMP(3),
-    "lastSyncDirection" "Direction",
+    "lastSyncDirection" "CalendarSyncDirection",
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -80,4 +80,4 @@ ALTER TABLE "CalendarSync" ADD CONSTRAINT "CalendarSync_userId_fkey" FOREIGN KEY
 ALTER TABLE "CalendarSync" ADD CONSTRAINT "CalendarSync_credentialId_fkey" FOREIGN KEY ("credentialId") REFERENCES "Credential"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CalendarSync" ADD CONSTRAINT "CalendarSync_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "CalendarSubscription"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CalendarSync" ADD CONSTRAINT "CalendarSync_subscriptionId_fkey" FOREIGN KEY ("subscriptionId") REFERENCES "CalendarSubscription"("id") ON DELETE SET NULL ON UPDATE CASCADE;

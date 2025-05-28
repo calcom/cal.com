@@ -29,10 +29,11 @@ const validateRequest = (req: NextRequest) => {
 const tryReuseExistingSubscription = async (
   subscription: Pick<CalendarSubscription, "id" | "externalCalendarId" | "providerType">
 ): Promise<boolean> => {
-  const existingSubscription = await CalendarSubscriptionService.findActiveProviderSubscription({
-    externalCalendarId: subscription.externalCalendarId,
-    integration: subscription.providerType,
-  });
+  const existingSubscription =
+    await CalendarSubscriptionService.findActiveProviderSubscriptionInSelectedCalendarToo({
+      externalCalendarId: subscription.externalCalendarId,
+      integration: subscription.providerType,
+    });
 
   if (existingSubscription?.fromSelectedCalendar) {
     log.info(
@@ -61,7 +62,10 @@ const tryReuseExistingSubscription = async (
  * Creates or renews a subscription with the third-party calendar provider
  */
 const createOrRenewThirdPartySubscription = async (
-  subscription: Pick<CalendarSubscription, "id" | "credentialId" | "externalCalendarId" | "status">
+  subscription: Pick<
+    CalendarSubscription,
+    "id" | "credentialId" | "externalCalendarId" | "status" | "providerSubscriptionId" | "providerResourceId"
+  >
 ): Promise<void> => {
   const isRenewal = subscription.status === "ACTIVE";
   const logPrefix = isRenewal ? "RENEW" : "ACTIVATE";
@@ -86,6 +90,22 @@ const createOrRenewThirdPartySubscription = async (
       `subscribeToCalendar is not implemented for CalendarSubscription ${subscription.id} (credential ${subscription.credentialId}, externalId ${subscription.externalCalendarId})`
     );
     throw new Error("subscribeToCalendar is not implemented");
+  }
+
+  if (isRenewal && subscription.providerSubscriptionId && subscription.providerResourceId) {
+    try {
+      // Unsubscribe from the old subscription as it might be still receive webhooks for some time causing duplicate webhook events
+      await calendarService.unsubscribeFromCalendar?.({
+        providerSubscriptionId: subscription.providerSubscriptionId,
+        providerResourceId: subscription.providerResourceId,
+      });
+    } catch (error) {
+      // We are okay if we are unable to unsubscribe from the old subscription as it was about to expire anyway
+      log.error(
+        `Error unsubscribing from CalendarSubscription ${subscription.id} (credential ${subscription.credentialId}, externalId ${subscription.externalCalendarId}):`,
+        safeStringify(error)
+      );
+    }
   }
 
   const thirdPartySubscriptionResponse = await calendarService.subscribeToCalendar({
@@ -125,13 +145,19 @@ const createOrRenewThirdPartySubscription = async (
 const processSubscription = async (
   subscription: Pick<
     CalendarSubscription,
-    "id" | "credentialId" | "externalCalendarId" | "providerType" | "status"
+    | "id"
+    | "credentialId"
+    | "externalCalendarId"
+    | "providerType"
+    | "status"
+    | "providerSubscriptionId"
+    | "providerResourceId"
   >
 ) => {
   const isRenewal = subscription.status === "ACTIVE";
 
-  // For new subscriptions, check if there's an existing subscription in SelectedCalendar we can reuse
   if (!isRenewal) {
+    // See if we have active subscription from SelectedCalendar that we can reuse
     const reused = await tryReuseExistingSubscription(subscription);
     if (reused) {
       return;
@@ -183,7 +209,7 @@ export const GET = async (req: Request) => {
     const results = await Promise.allSettled(
       subscriptionsToProcess.map(async (subscription) => {
         try {
-          // TODO: Bulk subscriptions should be done Google Calendar API supports it.
+          // TODO: Bulk subscriptions should be done. Google Calendar API supports it.
           await processSubscription(subscription);
         } catch (error) {
           log.error(
