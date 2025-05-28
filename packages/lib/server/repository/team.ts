@@ -630,6 +630,17 @@ export class TeamRepository {
       ?.map(({ team }) => team);
   }
 
+  static async getMembershipByUser({ userId, teamId }: { userId: number; teamId: number }) {
+    return await prisma.membership.findUnique({
+      where: {
+        userId_teamId: {
+          userId,
+          teamId,
+        },
+      },
+    });
+  }
+
   static async listUserTeams({ userId }: { userId: number }) {
     return await prisma.membership.findMany({
       where: {
