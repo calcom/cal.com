@@ -13,3 +13,4 @@ export { RecentFeedbackTable } from "./RecentFeedbackTable";
 export { RoutedToPerPeriod } from "./RoutedToPerPeriod";
 export { RoutingFormResponsesTable, type RoutingFormTableType } from "./RoutingFormResponsesTable";
 export { RoutingKPICards } from "./RoutingKPICards";
+export { TimezoneBadge } from "./TimezoneBadge";
