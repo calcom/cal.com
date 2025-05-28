@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import {
   getAttendeeToBeUsedInSMS,
-  getSMSMessageBody,
+  getSMSMessageWithVariables,
   shouldUseTwilio,
 } from "@calcom/ee/workflows/lib/reminders/utils";
 import { SENDER_ID } from "@calcom/lib/constants";
@@ -159,7 +159,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       let smsMessage = message;
 
       if (smsMessage) {
-        smsMessage = await getSMSMessageBody(smsMessage, evt, attendeeToBeUsedInSMS, action);
+        smsMessage = await getSMSMessageWithVariables(smsMessage, evt, attendeeToBeUsedInSMS, action);
       } else if (template === WorkflowTemplates.REMINDER) {
         smsMessage =
           smsReminderTemplate(
@@ -211,7 +211,6 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
           } catch (error) {
             log.error(`Error sending SMS with error ${error}`);
           }
-          return;
         }
 
         if (
@@ -221,7 +220,6 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         ) {
           try {
             // schedule at least 15 minutes in advance and at most 2 hours in advance
-
             const scheduledNotification = await scheduleSmsOrFallbackEmail({
               twilioData: {
                 phoneNumber: reminderPhone,

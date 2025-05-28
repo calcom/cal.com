@@ -34,7 +34,7 @@ export const bulkShortenLinks = async (links: string[]) => {
   });
 };
 
-export const getSMSMessageBody = async (
+export const getSMSMessageWithVariables = async (
   smsMessage: string,
   evt: BookingInfo,
   attendeeToBeUsedInSMS: AttendeeInBookingInfo,
@@ -124,4 +124,5 @@ export const shouldUseTwilio = (trigger: WorkflowTriggerEvents, scheduledDate: d
       return true;
     }
   }
+  return false;
 };
