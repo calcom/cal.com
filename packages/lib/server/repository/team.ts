@@ -572,6 +572,19 @@ export class TeamRepository {
       },
       select: {
         teamId: true,
+        id: true,
+      },
+    });
+  }
+
+  static async getVerificationTokenByEmail({ identifier, teamId }: { identifier: string; teamId: number }) {
+    return await prisma.verificationToken.findFirst({
+      where: {
+        identifier,
+        teamId,
+      },
+      select: {
+        token: true,
       },
     });
   }
