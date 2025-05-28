@@ -73,6 +73,7 @@ describe("Platform Destination Calendar Endpoints", () => {
       user.id,
       APPLE_CALENDAR_ID
     );
+
     jest.spyOn(CalendarsService.prototype, "getCalendars").mockReturnValue(
       Promise.resolve({
         connectedCalendars: [
@@ -102,9 +103,22 @@ describe("Platform Destination Calendar Endpoints", () => {
               email: user.email,
             },
             error: { message: "" },
+            delegationCredentialId: null,
+            credentialId: appleCalendarCredentials.id,
           },
         ],
-        destinationCalendar: null,
+        destinationCalendar: {
+          name: "destinationCalendar",
+          eventTypeId: 1,
+          credentialId: appleCalendarCredentials.id,
+          primaryEmail: "primaryEmail",
+          integration: "apple_calendar",
+          externalId: "externalId",
+          userId: null,
+          id: 0,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+        },
       })
     );
     app = moduleRef.createNestApplication();
