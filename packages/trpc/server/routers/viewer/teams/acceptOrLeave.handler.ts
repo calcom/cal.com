@@ -1,6 +1,6 @@
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
-import { prisma } from "@calcom/prisma";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
@@ -14,31 +14,17 @@ type AcceptOrLeaveOptions = {
 
 export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions) => {
   if (input.accept) {
-    const teamMembership = await prisma.membership.update({
-      where: {
-        userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
-      },
-      data: {
-        accepted: true,
-      },
-      include: {
-        team: true,
-      },
+    const teamMembership = await TeamRepository.acceptMembership({
+      userId: ctx.user.id,
+      teamId: input.teamId,
     });
 
     const team = teamMembership.team;
 
     if (team.parentId) {
-      await prisma.membership.update({
-        where: {
-          userId_teamId: { userId: ctx.user.id, teamId: team.parentId },
-        },
-        data: {
-          accepted: true,
-        },
-        include: {
-          team: true,
-        },
+      await TeamRepository.acceptMembership({
+        userId: ctx.user.id,
+        teamId: team.parentId,
       });
     }
 
@@ -58,20 +44,15 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
     await updateNewTeamMemberEventTypes(ctx.user.id, input.teamId);
   } else {
     try {
-      const membership = await prisma.membership.delete({
-        where: {
-          userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
-        },
-        include: {
-          team: true,
-        },
+      const membership = await TeamRepository.declineMembership({
+        userId: ctx.user.id,
+        teamId: input.teamId,
       });
 
       if (membership.team.parentId) {
-        await prisma.membership.delete({
-          where: {
-            userId_teamId: { userId: ctx.user.id, teamId: membership.team.parentId },
-          },
+        await TeamRepository.declineMembership({
+          userId: ctx.user.id,
+          teamId: membership.team.parentId,
         });
       }
     } catch (e) {
