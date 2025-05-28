@@ -14,7 +14,7 @@ type ListSimpleMembersOptions = {
 export const listSimpleMembers = async ({ ctx }: ListSimpleMembersOptions) => {
   const { isOrgAdmin, isPrivate } = ctx.user.organization;
 
-  return await TeamRepository.listSimpleMembers(ctx.user.id, isOrgAdmin, isPrivate);
+  return await TeamRepository.listSimpleMembers(ctx.user.id, isOrgAdmin ?? false, isPrivate ?? false);
 };
 
 export default listSimpleMembers;
