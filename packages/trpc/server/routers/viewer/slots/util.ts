@@ -532,10 +532,18 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
       console.log("restrictionTimezone->", restrictionTimezone);
       const dateOverrides = restrictionSchedule.availability.filter((a) => !!a.date);
       const recurringRules = restrictionSchedule.availability.filter((a) => !a.date);
-
+      console.log(
+        "slots debug:",
+        timeSlots[0].time.format(),
+        timeSlots[0].time.utc().format(),
+        timeSlots[0].time.tz(restrictionTimezone),
+        timeSlots[0].time.tz(restrictionTimezone).format("YYYY-MM-DD"),
+        timeSlots[0].time.tz(restrictionTimezone).day(),
+        timeSlots[0].time.tz(restrictionTimezone).valueOf()
+      );
       availableTimeSlots = timeSlots.filter((slot) => {
-        console.log("slot->", slot.time.format());
-        console.log("slotConverted->", slot.time.utc().format());
+        // console.log("slot->", slot.time.format());
+        // console.log("slotConverted->", slot.time.utc().format());
         const slotInTz = slot.time.tz(restrictionTimezone);
         const slotDateStr = slotInTz.format("YYYY-MM-DD");
         const slotWeekday = slotInTz.day();
@@ -544,23 +552,22 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         const slotValue = slotInTz.valueOf(); // milliseconds since epoch
 
         // 1. Date-based override
-        const dateRule = dateOverrides.find((a) =>
-          dayjs(a.date).tz(restrictionTimezone).isSame(slotInTz, "day")
-        );
+        const dateRule = dateOverrides.find((a) => dayjs.utc(a.date).isSame(slotInTz, "day"));
 
         if (dateRule) {
-          console.log("Date override values:", {
-            dateRule,
-            startTime: dateRule.startTime,
-            endTime: dateRule.endTime,
-            slotDateStr,
-            restrictionTimezone,
-          });
-          // Convert ISO timestamps to HH:MM format
-          const startTimeStr = dayjs(dateRule.startTime).format("HH:mm");
-          const endTimeStr = dayjs(dateRule.endTime).format("HH:mm");
+          // Convert ISO timestamps to HH:MM format without timezone conversion
+          const startTimeStr = dayjs.utc(dateRule.startTime).format("HH:mm");
+          const endTimeStr = dayjs.utc(dateRule.endTime).format("HH:mm");
           const start = dayjs.tz(`${slotDateStr}T${startTimeStr}`, restrictionTimezone);
           const end = dayjs.tz(`${slotDateStr}T${endTimeStr}`, restrictionTimezone);
+          console.log("Override values:", {
+            startTimeStr,
+            endTimeStr,
+            start: start.format(),
+            end: end.format(),
+            dateRule,
+            slotValue,
+          });
           return slotValue >= start.valueOf() && slotValue < end.valueOf();
         }
 
@@ -568,11 +575,19 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         const rule = recurringRules.find((a) => a.days.includes(slotWeekday));
 
         if (rule) {
-          // Convert ISO timestamps to HH:MM format
-          const startTimeStr = dayjs(rule.startTime).format("HH:mm");
-          const endTimeStr = dayjs(rule.endTime).format("HH:mm");
+          // Convert ISO timestamps to HH:MM format without timezone conversion
+          const startTimeStr = dayjs.utc(rule.startTime).format("HH:mm");
+          const endTimeStr = dayjs.utc(rule.endTime).format("HH:mm");
           const start = dayjs.tz(`${slotDateStr}T${startTimeStr}`, restrictionTimezone);
           const end = dayjs.tz(`${slotDateStr}T${endTimeStr}`, restrictionTimezone);
+          console.log("Rule values:", {
+            startTimeStr,
+            endTimeStr,
+            start: start.format(),
+            end: end.format(),
+            rule,
+            slotValue,
+          });
           return slotValue >= start.valueOf() && slotValue < end.valueOf();
         }
 
