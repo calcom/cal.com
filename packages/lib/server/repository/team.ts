@@ -535,6 +535,14 @@ export class TeamRepository {
     };
   }
 
+  static async listAllMemberships(teamId: number) {
+    return await prisma.membership.findMany({
+      where: {
+        teamId,
+      },
+    });
+  }
+
   static async createInvite({ teamId, token }: { teamId: number; token?: string }) {
     if (token) {
       const existingToken = await prisma.verificationToken.findFirst({
