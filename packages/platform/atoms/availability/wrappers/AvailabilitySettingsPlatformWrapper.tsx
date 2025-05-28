@@ -33,6 +33,7 @@ type AvailabilitySettingsPlatformWrapperProps = {
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
   onBeforeUpdate?: (updateBody: UpdateScheduleInput_2024_06_11) => boolean | Promise<boolean>;
+  onFormStateChange?: (formState: AvailabilityFormValues) => void;
   allowDelete?: boolean;
   allowSetToDefault?: boolean;
   disableToasts?: boolean;
@@ -49,6 +50,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
   disableEditableHeading = false,
   enableOverrides = false,
   onBeforeUpdate,
+  onFormStateChange,
   allowDelete,
   allowSetToDefault,
   disableToasts,
@@ -176,6 +178,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
         customClassNames={customClassNames}
         allowDelete={allowDelete}
         allowSetToDefault={allowSetToDefault}
+        onFormStateChange={onFormStateChange}
       />
     </AtomsWrapper>
   );
