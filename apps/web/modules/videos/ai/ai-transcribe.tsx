@@ -144,13 +144,21 @@ export const CalAiTranscribe = ({ showRecordingButton }: { showRecordingButton: 
   const toggleTranscription = async () => {
     if (transcription?.isTranscribing) {
       daily?.updateCustomTrayButtons({
-        recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+        ...(showRecordingButton
+          ? {
+              recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+            }
+          : {}),
         transcription: BUTTONS.WAIT_FOR_TRANSCRIPTION_TO_STOP,
       });
       daily?.stopTranscription();
     } else {
       daily?.updateCustomTrayButtons({
-        recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+        ...(showRecordingButton
+          ? {
+              recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+            }
+          : {}),
         transcription: BUTTONS.WAIT_FOR_TRANSCRIPTION_TO_START,
       });
       daily?.startTranscription();
