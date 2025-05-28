@@ -62,14 +62,19 @@ const Page = async ({ params }: PageProps) => {
   }
   const scheduleId = parsed.data.schedule;
 
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
 
-  if (!session?.user?.id) {
+  if (!session?.user) {
     notFound();
   }
 
-  const userId = session.user.id;
-  const userTimeZone = session.user.timeZone || "UTC";
+  const user = session.user as { id: number; timeZone?: string };
+  if (!user.id) {
+    notFound();
+  }
+
+  const userId = user.id;
+  const userTimeZone = user.timeZone || "UTC";
 
   const defaultScheduleId = await getDefaultScheduleId(userId, prisma);
 
