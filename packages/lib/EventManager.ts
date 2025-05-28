@@ -333,7 +333,6 @@ export default class EventManager {
       };
     });
 
-    log.debug("updateLocation", safeStringify({ referencesToCreate, results }));
     return {
       results,
       referencesToCreate,
@@ -575,13 +574,13 @@ export default class EventManager {
       });
     }
 
-    const referencesToCreate = (
-      shouldUpdateBookingReferences
-        ? updatedBookingReferences
-        : [...booking.references].map((reference) => ({
-            ...reference,
-          }))
-    ).map((reference) => {
+    const _referencesToCreate = shouldUpdateBookingReferences
+      ? updatedBookingReferences
+      : [...booking.references].map((reference) => ({
+          ...reference,
+        }));
+
+    const referencesToCreate = _referencesToCreate.map((reference) => {
       const thirdPartyAppResultForTheReference = results.find((result) => {
         if (isCalendarLikeResult(result)) {
           const updatedEvent =
@@ -593,12 +592,19 @@ export default class EventManager {
       });
       return {
         ...reference,
-        // Ensure that externalCalendarId is set from the latest updatedEven
+        // Ensure that externalCalendarId is set from the latest updatedEvent
         externalCalendarId: thirdPartyAppResultForTheReference?.externalId || reference.externalCalendarId,
       };
     });
 
-    log.debug("Rescheduled booking", safeStringify({ results, referencesToCreate }));
+    log.debug(
+      "Rescheduled booking",
+      safeStringify({
+        referencesToCreate: referencesToCreate.map((r) => ({
+          externalCalendarId: r.externalCalendarId,
+        })),
+      })
+    );
     return {
       results,
       referencesToCreate,
@@ -942,7 +948,6 @@ export default class EventManager {
       if (calendarReference.length === 0) {
         return [];
       }
-      log.debug("updateAllCalendarEvents - Found calendar references", safeStringify({ calendarReference }));
       // process all calendar references
       let result = [];
       for (const reference of calendarReference) {

@@ -4,7 +4,6 @@ import prisma from "@calcom/prisma";
 import { CalendarSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { CalendarSubscriptionRepository } from "./calendarSubscription.repository";
-import { CalendarSyncRepository } from "./calendarSync.repository";
 
 const log = logger.getSubLogger({ prefix: ["[CalendarSubscriptionService]"] });
 type ProviderSubscriptionDetails = {
@@ -193,41 +192,6 @@ export class CalendarSubscriptionService {
   }
 
   /**
-   * Create an ACTIVE CalendarSubscription from an existing SelectedCalendar subscription
-   */
-  static async createActiveSubscriptionFromSelectedCalendar({
-    credentialId,
-    externalCalendarId,
-    integration,
-    providerDetails,
-  }: {
-    credentialId: number;
-    externalCalendarId: string;
-    integration: string;
-    providerDetails: ProviderSubscriptionDetails;
-  }) {
-    log.debug(
-      "Creating new ACTIVE subscription from SelectedCalendar data",
-      safeStringify({ credentialId, externalCalendarId, integration, providerDetails })
-    );
-
-    return await CalendarSubscriptionRepository.create({
-      data: {
-        credentialId,
-        externalCalendarId,
-        providerType: integration,
-        status: CalendarSubscriptionStatus.ACTIVE,
-        providerSubscriptionId: providerDetails.id,
-        providerSubscriptionKind: providerDetails.kind,
-        providerResourceId: providerDetails.resourceId,
-        providerResourceUri: providerDetails.resourceUri,
-        providerExpiration: providerDetails.expiration ? new Date(Number(providerDetails.expiration)) : null,
-        activatedAt: new Date(),
-      },
-    });
-  }
-
-  /**
    * Update a CalendarSubscription from PENDING to ACTIVE with provider details
    */
   static async activateSubscription({
@@ -250,24 +214,6 @@ export class CalendarSubscriptionService {
         status: CalendarSubscriptionStatus.ACTIVE,
         activatedAt: new Date(),
       },
-    });
-  }
-
-  /**
-   * Link a CalendarSync record to an existing subscription
-   */
-  static async linkCalendarSyncToSubscription({
-    calendarSyncId,
-    subscriptionId,
-  }: {
-    calendarSyncId: string;
-    subscriptionId: string;
-  }) {
-    log.debug("Linking CalendarSync to subscription", safeStringify({ calendarSyncId, subscriptionId }));
-
-    return CalendarSyncRepository.update({
-      where: { id: calendarSyncId },
-      data: { subscriptionId },
     });
   }
 

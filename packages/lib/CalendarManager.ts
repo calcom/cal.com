@@ -421,7 +421,6 @@ export const updateEvent = async (
           })
       : undefined;
 
-  log.debug("updateEvent Result", safeStringify({ updatedResult }));
   if (!updatedResult) {
     logger.error(
       "updateEvent failed",
@@ -441,17 +440,13 @@ export const updateEvent = async (
     calWarnings = updatedResult?.additionalInfo?.calWarnings || [];
   }
 
-  const usedExternalCalendarId =
-    externalCalendarId ||
-    (updatedResult instanceof Array
-      ? updatedResult.map((res) => res.usedExternalCalendarId).find((id) => id)
-      : updatedResult?.usedExternalCalendarId);
+  const firstUpdatedResult = updatedResult instanceof Array ? updatedResult[0] : updatedResult;
+  const usedExternalCalendarId = externalCalendarId || firstUpdatedResult?.usedExternalCalendarId;
   return {
     appName: credential.appId || "",
     type: credential.type,
     success,
     uid,
-    // TODO: Missing these two fields, no cmplaint from TS
     externalId: usedExternalCalendarId,
     credentialId: credential.id,
     updatedEvent: updatedResult,

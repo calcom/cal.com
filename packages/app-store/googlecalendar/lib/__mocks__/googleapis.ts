@@ -118,6 +118,7 @@ const setLastCreatedOAuth2Client = (oauth2Client: MockOAuth2Client | null) => {
 };
 export {
   calendarMock,
+  calendarEventsListMock,
   adminMock,
   setCredentialsMock,
   freebusyQueryMock,

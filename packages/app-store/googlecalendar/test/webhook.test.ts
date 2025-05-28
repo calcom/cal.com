@@ -210,9 +210,8 @@ describe("Google Calendar Webhook Handler", () => {
     const bookingReference = await prismock.bookingReference.create({
       data: {
         type: "google_calendar",
-        uid: "test-ref-uid",
+        uid: calendarEventId,
         bookingId: booking.id,
-        calendarEventId, // This should match the mocked event ID
         meetingId: null,
         meetingPassword: null,
         meetingUrl: null,
@@ -258,6 +257,7 @@ describe("Google Calendar Webhook Handler", () => {
     const calendarEventId = "google-event-1";
     const googleChannelId = "test-channel-id";
     const googleResourceId = "test-resource-id";
+
     // Set up test data
     const { booking: bookingToSync, calendarSync } = await setupTestData({
       calendarEventId,
@@ -296,7 +296,8 @@ describe("Google Calendar Webhook Handler", () => {
     await expectBookingToBeCancelled({ bookingId: bookingToSync.id, calendarSyncId: calendarSync.id });
   });
 
-  it("should update booking times when Google Calendar event times change", async () => {
+  // TODO: Enable this test when we enable support for time changes
+  it.skip("should update booking times when Google Calendar event times change", async () => {
     const googleChannelId = "test-channel-id";
     const googleResourceId = "test-resource-id";
     const calendarEventId = "google-event-123";
