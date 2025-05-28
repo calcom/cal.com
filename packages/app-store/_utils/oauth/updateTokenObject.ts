@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type z from "zod";
 
 import logger from "@calcom/lib/logger";
