@@ -1130,4 +1130,23 @@ export class TeamRepository {
       skipDuplicates: true,
     });
   }
+
+  static async removeHostsFromEventTypes({
+    eventTypeIds,
+    userIds,
+  }: {
+    eventTypeIds: number[];
+    userIds: number[];
+  }) {
+    return await prisma.host.deleteMany({
+      where: {
+        eventTypeId: {
+          in: eventTypeIds,
+        },
+        userId: {
+          in: userIds,
+        },
+      },
+    });
+  }
 }
