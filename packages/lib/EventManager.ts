@@ -182,6 +182,7 @@ export default class EventManager {
    * @param event
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
+    // TODO this method shouldn't be modifying the event object that's passed in
     const evt = processLocation(event);
 
     // Fallback to cal video if no location is set
@@ -253,7 +254,7 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
-    const createdCRMEvents = await this.createAllCRMEvents(clonedCalEvent);
+    const createdCRMEvents = await this.createAllCRMEvents(evt);
 
     results.push(...createdCRMEvents);
 

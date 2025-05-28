@@ -276,17 +276,21 @@ export type CalendarEventsToSync = {
   organizerResponseStatus: "needsAction" | "declined" | "tentative" | "accepted";
 }[];
 
+export interface CalendarServiceEvent extends CalendarEvent {
+  calendarDescription: string;
+}
+
 export interface Calendar {
   getCredentialId?(): number;
   createEvent(
-    event: CalendarEvent,
+    event: CalendarServiceEvent,
     credentialId: number,
     externalCalendarId?: string
   ): Promise<NewCalendarEventType>;
 
   updateEvent(
     uid: string,
-    event: CalendarEvent,
+    event: CalendarServiceEvent,
     externalCalendarId?: string | null
   ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 

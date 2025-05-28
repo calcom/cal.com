@@ -12,14 +12,21 @@ import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cach
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
-import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
-import type { CalendarEventsToSync, NewCalendarEventTypeWithSyncSupport } from "@calcom/types/Calendar";
-import type { Calendar, CalendarEvent, EventBusyDate, IntegrationCalendar } from "@calcom/types/Calendar";
-import type { SelectedCalendarEventTypeIds, CalendarSubscription } from "@calcom/types/Calendar";
+import type {
+  CalendarEventsToSync,
+  NewCalendarEventTypeWithSyncSupport,
+  SelectedCalendarEventTypeIds,
+  Calendar,
+  CalendarSubscription,
+  CalendarServiceEvent,
+  CalendarEvent,
+  EventBusyDate,
+  IntegrationCalendar,
+} from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
@@ -189,60 +196,57 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async createEvent(
-    calEventRaw: CalendarEvent,
+    calEvent: CalendarServiceEvent,
     credentialId: number,
     externalCalendarId?: string
   ): Promise<NewCalendarEventTypeWithSyncSupport> {
     this.log.debug("Creating event");
-    const formattedCalEvent = formatCalEvent(calEventRaw);
 
     const payload: calendar_v3.Schema$Event = {
-      summary: formattedCalEvent.title,
-      description: getRichDescription(formattedCalEvent),
+      summary: calEvent.title,
+      description: calEvent.calendarDescription,
       start: {
-        dateTime: formattedCalEvent.startTime,
-        timeZone: formattedCalEvent.organizer.timeZone,
+        dateTime: calEvent.startTime,
+        timeZone: calEvent.organizer.timeZone,
       },
       end: {
-        dateTime: formattedCalEvent.endTime,
-        timeZone: formattedCalEvent.organizer.timeZone,
+        dateTime: calEvent.endTime,
+        timeZone: calEvent.organizer.timeZone,
       },
-      attendees: this.getAttendees({ event: formattedCalEvent, hostExternalCalendarId: externalCalendarId }),
+      attendees: this.getAttendees({ event: calEvent, hostExternalCalendarId: externalCalendarId }),
       reminders: {
         useDefault: true,
       },
-      guestsCanSeeOtherGuests: !!formattedCalEvent.seatsPerTimeSlot
-        ? formattedCalEvent.seatsShowAttendees
-        : true,
-      iCalUID: formattedCalEvent.iCalUID,
+      guestsCanSeeOtherGuests: !!calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
+      iCalUID: calEvent.iCalUID,
     };
-    if (calEventRaw.hideCalendarEventDetails) {
+    if (calEvent.hideCalendarEventDetails) {
       payload.visibility = "private";
     }
 
-    if (formattedCalEvent.location) {
-      payload["location"] = getLocation(formattedCalEvent);
+    if (calEvent.location) {
+      payload["location"] = getLocation(calEvent);
     }
 
-    if (formattedCalEvent.recurringEvent) {
+    if (calEvent.recurringEvent) {
       const rule = new RRule({
-        freq: formattedCalEvent.recurringEvent.freq,
-        interval: formattedCalEvent.recurringEvent.interval,
-        count: formattedCalEvent.recurringEvent.count,
+        freq: calEvent.recurringEvent.freq,
+        interval: calEvent.recurringEvent.interval,
+        count: calEvent.recurringEvent.count,
       });
 
       payload["recurrence"] = [rule.toString()];
     }
 
-    if (formattedCalEvent.conferenceData && formattedCalEvent.location === MeetLocationType) {
-      payload["conferenceData"] = formattedCalEvent.conferenceData;
+    if (calEvent.conferenceData && calEvent.location === MeetLocationType) {
+      payload["conferenceData"] = calEvent.conferenceData;
     }
     const calendar = await this.authedCalendar();
     // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
     const chosenExternalCalendarId =
       externalCalendarId ??
       this.getExternalCalendarId({
-        destinationCalendars: formattedCalEvent.destinationCalendar ?? [],
+        destinationCalendars: calEvent.destinationCalendar ?? [],
         credentialId,
       });
 
@@ -252,16 +256,14 @@ export default class GoogleCalendarService implements Calendar {
     try {
       let event: calendar_v3.Schema$Event | undefined;
       let recurringEventId = null;
-      if (formattedCalEvent.existingRecurringEvent) {
-        recurringEventId = formattedCalEvent.existingRecurringEvent.recurringEventId;
+      if (calEvent.existingRecurringEvent) {
+        recurringEventId = calEvent.existingRecurringEvent.recurringEventId;
         const recurringEventInstances = await calendar.events.instances({
           calendarId,
-          eventId: formattedCalEvent.existingRecurringEvent.recurringEventId,
+          eventId: calEvent.existingRecurringEvent.recurringEventId,
         });
         if (recurringEventInstances.data.items) {
-          const calComEventStartTime = dayjs(formattedCalEvent.startTime)
-            .tz(formattedCalEvent.organizer.timeZone)
-            .format();
+          const calComEventStartTime = dayjs(calEvent.startTime).tz(calEvent.organizer.timeZone).format();
           for (let i = 0; i < recurringEventInstances.data.items.length; i++) {
             const instance = recurringEventInstances.data.items[i];
             const instanceStartTime = dayjs(instance.start?.dateTime)
@@ -285,10 +287,8 @@ export default class GoogleCalendarService implements Calendar {
             calendarId,
             eventId: event.id || "",
             requestBody: {
-              location: getLocation(formattedCalEvent),
-              description: getRichDescription({
-                ...formattedCalEvent,
-              }),
+              location: getLocation(calEvent),
+              description: calEvent.calendarDescription,
             },
           });
         }
@@ -315,7 +315,7 @@ export default class GoogleCalendarService implements Calendar {
           eventId: event.id || "",
           requestBody: {
             description: getRichDescription({
-              ...formattedCalEvent,
+              ...calEvent,
               additionalInformation: { hangoutLink: event.hangoutLink },
             }),
           },
@@ -366,42 +366,38 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
-    const formattedCalEvent = formatCalEvent(event);
-
+  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
     const payload: calendar_v3.Schema$Event = {
-      summary: formattedCalEvent.title,
-      description: getRichDescription(formattedCalEvent),
+      summary: event.title,
+      description: event.calendarDescription,
       start: {
-        dateTime: formattedCalEvent.startTime,
-        timeZone: formattedCalEvent.organizer.timeZone,
+        dateTime: event.startTime,
+        timeZone: event.organizer.timeZone,
       },
       end: {
-        dateTime: formattedCalEvent.endTime,
-        timeZone: formattedCalEvent.organizer.timeZone,
+        dateTime: event.endTime,
+        timeZone: event.organizer.timeZone,
       },
-      attendees: this.getAttendees({ event: formattedCalEvent, hostExternalCalendarId: externalCalendarId }),
+      attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
       reminders: {
         useDefault: true,
       },
-      guestsCanSeeOtherGuests: !!formattedCalEvent.seatsPerTimeSlot
-        ? formattedCalEvent.seatsShowAttendees
-        : true,
+      guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
     };
 
-    if (formattedCalEvent.location) {
-      payload["location"] = getLocation(formattedCalEvent);
+    if (event.location) {
+      payload["location"] = getLocation(event);
     }
 
-    if (formattedCalEvent.conferenceData && formattedCalEvent.location === MeetLocationType) {
-      payload["conferenceData"] = formattedCalEvent.conferenceData;
+    if (event.conferenceData && event.location === MeetLocationType) {
+      payload["conferenceData"] = event.conferenceData;
     }
 
     const calendar = await this.authedCalendar();
     const chosenExternalCalendarId =
       externalCalendarId ??
       this.getExternalCalendarId({
-        destinationCalendars: formattedCalEvent.destinationCalendar ?? [],
+        destinationCalendars: event.destinationCalendar ?? [],
         credentialId: this.credential.id,
       });
 
@@ -429,7 +425,7 @@ export default class GoogleCalendarService implements Calendar {
           eventId: evt.data.id || "",
           requestBody: {
             description: getRichDescription({
-              ...formattedCalEvent,
+              ...event,
               additionalInformation: { hangoutLink: evt.data.hangoutLink },
             }),
           },
@@ -459,7 +455,7 @@ export default class GoogleCalendarService implements Calendar {
     } catch (error) {
       this.log.error(
         "There was an error updating event in google calendar: ",
-        safeStringify({ error, event: formattedCalEvent, uid })
+        safeStringify({ error, event, uid })
       );
       throw error;
     }
