@@ -19,7 +19,7 @@ import { z } from "zod";
 
 import { getAvailableSlots } from "@calcom/platform-libraries/slots";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+import { Booking, EventType } from "@calcom/prisma/client";
 
 const eventTypeMetadataSchema = z
   .object({
@@ -126,7 +126,8 @@ export class SlotsService_2024_09_04 {
       }
     }
 
-    const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
+    const nonSeatedEventAlreadyBooked =
+      !eventType.seatsPerTimeSlot && booking && this.bookingIsNotCancelledOrRejected(booking);
     if (nonSeatedEventAlreadyBooked) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
@@ -275,7 +276,8 @@ export class SlotsService_2024_09_04 {
       }
     }
 
-    const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
+    const nonSeatedEventAlreadyBooked =
+      !eventType.seatsPerTimeSlot && booking && this.bookingIsNotCancelledOrRejected(booking);
     if (nonSeatedEventAlreadyBooked) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
@@ -297,5 +299,9 @@ export class SlotsService_2024_09_04 {
 
   async deleteReservedSlot(uid: string) {
     return this.slotsRepository.deleteSlot(uid);
+  }
+
+  private bookingIsNotCancelledOrRejected(booking: { status: Booking["status"] }) {
+    return booking.status !== "CANCELLED" && booking.status !== "REJECTED";
   }
 }

@@ -1501,6 +1501,232 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
     });
 
+    describe("booking status", () => {
+      const startTime = "2050-09-12T11:00:00.000Z";
+      const testBookingUid = `booking-uid-${eventTypeId}-booking-status-test`;
+
+      describe("cant reserve", () => {
+        it("should not be able to reserve a slot if booking is accepted during that time", async () => {
+          const booking = await bookingsRepositoryFixture.create({
+            status: "ACCEPTED",
+            uid: testBookingUid,
+            title: "booking title",
+            startTime,
+            endTime: "2050-09-12T12:00:00.000Z",
+            eventType: {
+              connect: {
+                id: eventTypeId,
+              },
+            },
+            metadata: {},
+            responses: {
+              name: "tester",
+              email: "tester@example.com",
+              guests: [],
+            },
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          });
+
+          const reserveResponse = await request(app.getHttpServer())
+            .post(`/v2/slots/reservations`)
+            .send({
+              eventTypeId,
+              slotStart: startTime,
+            })
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+            .expect(422);
+
+          expect(reserveResponse.body.error.message).toEqual(
+            `Can't reserve a slot if the event is already booked.`
+          );
+          await bookingsRepositoryFixture.deleteById(booking.id);
+        });
+
+        it("should not be able to reserve a slot if booking is pending during that time", async () => {
+          const booking = await bookingsRepositoryFixture.create({
+            status: "PENDING",
+            uid: testBookingUid,
+            title: "booking title",
+            startTime,
+            endTime: "2050-09-12T12:00:00.000Z",
+            eventType: {
+              connect: {
+                id: eventTypeId,
+              },
+            },
+            metadata: {},
+            responses: {
+              name: "tester",
+              email: "tester@example.com",
+              guests: [],
+            },
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          });
+
+          const reserveResponse = await request(app.getHttpServer())
+            .post(`/v2/slots/reservations`)
+            .send({
+              eventTypeId,
+              slotStart: startTime,
+            })
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+            .expect(422);
+
+          expect(reserveResponse.body.error.message).toEqual(
+            `Can't reserve a slot if the event is already booked.`
+          );
+          await bookingsRepositoryFixture.deleteById(booking.id);
+        });
+
+        it("should not be able to reserve a slot if booking is awaiting host during that time", async () => {
+          const booking = await bookingsRepositoryFixture.create({
+            status: "AWAITING_HOST",
+            uid: testBookingUid,
+            title: "booking title",
+            startTime,
+            endTime: "2050-09-12T12:00:00.000Z",
+            eventType: {
+              connect: {
+                id: eventTypeId,
+              },
+            },
+            metadata: {},
+            responses: {
+              name: "tester",
+              email: "tester@example.com",
+              guests: [],
+            },
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          });
+
+          const reserveResponse = await request(app.getHttpServer())
+            .post(`/v2/slots/reservations`)
+            .send({
+              eventTypeId,
+              slotStart: startTime,
+            })
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+            .expect(422);
+
+          expect(reserveResponse.body.error.message).toEqual(
+            `Can't reserve a slot if the event is already booked.`
+          );
+          await bookingsRepositoryFixture.deleteById(booking.id);
+        });
+      });
+
+      describe("can reserve", () => {
+        it("should be able to reserve a slot if booking is cancelled during that time", async () => {
+          const booking = await bookingsRepositoryFixture.create({
+            status: "CANCELLED",
+            uid: testBookingUid,
+            title: "booking title",
+            startTime,
+            endTime: "2050-09-12T12:00:00.000Z",
+            eventType: {
+              connect: {
+                id: eventTypeId,
+              },
+            },
+            metadata: {},
+            responses: {
+              name: "tester",
+              email: "tester@example.com",
+              guests: [],
+            },
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          });
+
+          const reserveResponse = await request(app.getHttpServer())
+            .post(`/v2/slots/reservations`)
+            .send({
+              eventTypeId,
+              slotStart: startTime,
+            })
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+            .expect(201);
+
+          const reserveResponseBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponse.body;
+          expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
+          const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
+          expect(responseReservedSlot.reservationUid).toBeDefined();
+          expect(responseReservedSlot.eventTypeId).toEqual(eventTypeId);
+          expect(responseReservedSlot.slotStart).toEqual(startTime);
+          expect(responseReservedSlot.slotDuration).toEqual(eventTypeLength);
+          expect(responseReservedSlot.slotEnd).toEqual(
+            DateTime.fromISO(startTime, { zone: "UTC" }).plus({ minutes: eventTypeLength }).toISO()
+          );
+          expect(responseReservedSlot.reservationDuration).toEqual(5);
+          await bookingsRepositoryFixture.deleteById(booking.id);
+          await selectedSlotsRepositoryFixture.deleteByUId(responseReservedSlot.reservationUid);
+        });
+
+        it("should be able to reserve a slot if booking is rejected during that time", async () => {
+          const booking = await bookingsRepositoryFixture.create({
+            status: "REJECTED",
+            uid: testBookingUid,
+            title: "booking title",
+            startTime,
+            endTime: "2050-09-12T12:00:00.000Z",
+            eventType: {
+              connect: {
+                id: eventTypeId,
+              },
+            },
+            metadata: {},
+            responses: {
+              name: "tester",
+              email: "tester@example.com",
+              guests: [],
+            },
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          });
+
+          const reserveResponse = await request(app.getHttpServer())
+            .post(`/v2/slots/reservations`)
+            .send({
+              eventTypeId,
+              slotStart: startTime,
+            })
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+            .expect(201);
+
+          const reserveResponseBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponse.body;
+          expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
+          const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
+          expect(responseReservedSlot.reservationUid).toBeDefined();
+          expect(responseReservedSlot.eventTypeId).toEqual(eventTypeId);
+          expect(responseReservedSlot.slotStart).toEqual(startTime);
+          expect(responseReservedSlot.slotDuration).toEqual(eventTypeLength);
+          expect(responseReservedSlot.slotEnd).toEqual(
+            DateTime.fromISO(startTime, { zone: "UTC" }).plus({ minutes: eventTypeLength }).toISO()
+          );
+          expect(responseReservedSlot.reservationDuration).toEqual(5);
+          await bookingsRepositoryFixture.deleteById(booking.id);
+        });
+      });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       await userRepositoryFixture.deleteByEmail(oooTestUserEmail);

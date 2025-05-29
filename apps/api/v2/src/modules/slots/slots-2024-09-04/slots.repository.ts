@@ -15,7 +15,7 @@ export class SlotsRepository_2024_09_04 {
   async getBookingWithAttendeesByEventTypeIdAndStart(eventTypeId: number, startTime: Date) {
     return this.dbRead.prisma.booking.findFirst({
       where: { eventTypeId, startTime },
-      select: { attendees: true },
+      select: { attendees: true, status: true },
     });
   }
 
