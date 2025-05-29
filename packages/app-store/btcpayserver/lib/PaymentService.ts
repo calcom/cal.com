@@ -99,7 +99,7 @@ export class PaymentService implements IAbstractPaymentService {
           referenceId: uid,
           customerName: bookerName,
           customerEmail: bookerEmail,
-          bookingDescription: booking.description || `Booking with ${bookerName}`,
+          bookingDescription: booking.title || `Booking with ${bookerName}`,
         },
         checkout: {
           buyerEmail: bookerEmail,
