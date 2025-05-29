@@ -9733,6 +9733,16 @@
             }
           },
           {
+            "name": "rescheduleUid",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the booking being rescheduled. When provided, allows showing availability for rescheduling an existing booking by excluding the original booking's time slot from busy time calculations.",
+            "example": "abc123def456",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "routingFormId",
             "required": true,
             "in": "path",
@@ -10152,6 +10162,14 @@
               "type": "string",
               "default": "2024-09-04"
             }
+          },
+          {
+            "name": "rescheduleUid",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the booking being rescheduled. When provided, allows showing availability for rescheduling an existing booking by excluding the original booking's time slot from busy time calculations. This ensures that the original booking time appears as available when rescheduling.",
+            "example": "abc123def456",
+            "schema": {}
           },
           {
             "name": "start",
