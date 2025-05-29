@@ -26,7 +26,7 @@ generator kysely {
 }
 
 generator enums {
-  provider = "ts-node --transpile-only ./enum-generator"
+  provider = "ts-node --transpile-only ./enum-generator.ts"
 }
 
 enum SchedulingType {
@@ -66,6 +66,18 @@ model Host {
   @@index([userId])
   @@index([eventTypeId])
   @@index([scheduleId])
+}
+
+model CalVideoSettings {
+  eventTypeId Int       @id
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+
+  disableRecordingForOrganizer Boolean @default(false)
+  disableRecordingForGuests    Boolean @default(false)
+  redirectUrlOnExit            String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EventType {
@@ -176,6 +188,7 @@ model EventType {
   hideOrganizerEmail                      Boolean                   @default(false)
   /// @zod.custom(imports.emailSchema)
   customReplyToEmail                      String?
+  calVideoSettings                        CalVideoSettings?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -221,10 +234,10 @@ model Credential {
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
+  @@index([userId, delegationCredentialId])
 }
 
 enum IdentityProvider {
@@ -831,6 +844,10 @@ model SelectedCalendar {
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
   error                            String?
+  lastErrorAt                      DateTime?
+  watchAttempts                    Int                   @default(0)
+  unwatchAttempts                  Int                   @default(0)
+  maxAttempts                      Int                   @default(3)
 
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
@@ -841,10 +858,12 @@ model SelectedCalendar {
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
   @@index([userId])
-  @@index([integration])
   @@index([externalId])
   @@index([eventTypeId])
   @@index([credentialId])
+  // Composite indices to optimize calendar-cache queries
+  @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
+  @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
 }
 
 enum EventTypeCustomInputType {
