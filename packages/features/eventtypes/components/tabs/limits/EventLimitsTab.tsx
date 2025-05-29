@@ -30,6 +30,7 @@ import {
   Select,
   SettingsToggle,
 } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -559,7 +560,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                         isSearchable={false}
                       />
                     ) : (
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center">
                         <Input
                           type="number"
                           className="h-9"
@@ -569,7 +570,6 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                             field.onChange(isNaN(val) ? null : val);
                           }}
                           onBlur={(e) => {
-                            setIsCustomMode(false);
                             const val = parseInt(e.target.value, 10);
                             if (isNaN(val)) {
                               field.onChange(null);
@@ -578,7 +578,15 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                           min={1}
                           max={120}
                         />
-                        <Label className="mr-2 mt-2">{t("minutes")}</Label>
+                        <Label className="ml-2 mr-5 mt-2">{t("minutes")}</Label>
+                        <Icon
+                          name="x"
+                          className="mr-1 h-5 w-5 cursor-pointer"
+                          onClick={() => {
+                            setIsCustomMode(false);
+                            field.onChange(null); // or set to 0 if that’s the default
+                          }}
+                        />
                       </div>
                     )}
                   </>
