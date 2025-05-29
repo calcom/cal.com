@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -27,9 +27,15 @@ type Fields = z.infer<typeof eventTypeBookingFieldsSchema>;
 export const useEventTypeForm = ({
   eventType,
   onSubmit,
+  onFormStateChange,
 }: {
   eventType: EventTypeSetupProps["eventType"];
   onSubmit: (data: EventTypeUpdateInput) => void;
+  onFormStateChange?: (formState: {
+    isDirty: boolean;
+    dirtyFields: Partial<FormValues>;
+    values: FormValues;
+  }) => void;
 }) => {
   const { t } = useLocale();
   const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
@@ -180,6 +186,18 @@ export const useEventTypeForm = ({
   const {
     formState: { isDirty: isFormDirty, dirtyFields },
   } = form;
+
+  useEffect(() => {
+    if (onFormStateChange) {
+      const currentValues = form.getValues();
+
+      onFormStateChange({
+        isDirty: isFormDirty,
+        dirtyFields: dirtyFields as Partial<FormValues>,
+        values: currentValues,
+      });
+    }
+  }, [isFormDirty, dirtyFields, onFormStateChange, form]);
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
