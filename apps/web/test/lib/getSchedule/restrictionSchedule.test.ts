@@ -1,514 +1,406 @@
-import { getDate, createBookingScenario } from "../../utils/bookingScenario/bookingScenario";
+import {
+  createBookingScenario,
+  Timezones,
+  TestData,
+  type ScenarioData,
+} from "../../utils/bookingScenario/bookingScenario";
 
 import { describe, test, vi } from "vitest";
+import type { z } from "zod";
 
+import type { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect } from "./expects";
+import { setupAndTeardown } from "./setupAndTeardown";
 
-describe("Restriction Schedule Tests", () => {
-  test("should filter slots based on restriction schedule availability", async () => {
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+type ScheduleScenario = {
+  eventTypes: ScenarioData["eventTypes"];
+  users: ScenarioData["users"];
+  apps: ScenarioData["apps"];
+  selectedSlots?: ScenarioData["selectedSlots"];
+};
 
-    console.log("plus1DateString:", plus1DateString);
-    console.log("plus2DateString:", plus2DateString);
-
-    const mockDate = "2025-05-24"; // Mock date for availability
-
-    // Create a restriction schedule that's only available from 1 PM to 4 PM
-    const restrictionSchedule = {
-      id: 1,
-      name: "Restricted Hours",
-      timeZone: "Europe/London",
-      availability: [
-        {
-          days: [1, 2, 3, 4, 5], // Monday to Friday
-          startTime: new Date("1970-01-01T13:00:00.000Z"),
-          endTime: new Date("1970-01-01T16:00:00.000Z"),
-          date: mockDate, // Use mock date
-        },
-      ],
-    };
-
-    // Set the system time for testing
-    vi.setSystemTime("2025-05-24T00:00:00Z");
-
-    // Define scenario data
-    const scenarioData = {
-      eventTypes: [
-        {
-          id: 1,
-          length: 60,
-          users: [{ id: 101 }],
-          restrictionScheduleId: restrictionSchedule.id,
-          useBookerTimezone: true,
-        },
-      ],
-      users: [
-        {
-          name: "John Doe",
-          email: "john.doe@example.com",
-          username: "johndoe",
-          timeZone: "Europe/London",
-          id: 101,
-          schedules: [
-            {
-              id: 1,
-              name: "Working Hours",
-              availability: [
-                {
-                  days: [1, 2, 3, 4, 5],
-                  startTime: new Date("1970-01-01T09:00:00.000Z"),
-                  endTime: new Date("1970-01-01T17:00:00.000Z"),
-                  date: null,
-                },
-              ],
-              timeZone: "Europe/London",
-            },
-          ],
-        },
-      ],
-    };
-
-    await createBookingScenario(scenarioData);
-
-    // Call getSchedule with appropriate input parameters
-    const schedule = await getSchedule({
-      input: {
-        eventTypeId: 1,
-        eventTypeSlug: "",
-        startTime: `${plus1DateString}T18:30:00.000Z`,
-        endTime: `${plus2DateString}T18:29:59.999Z`,
-        timeZone: "Asia/Dubai",
-        isTeamEvent: false,
-        orgSlug: null,
-      },
-    });
-
-    // Mock free slots
-    schedule.slots[plus2DateString] = [
-      { time: `${plus2DateString}T09:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T10:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T11:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T12:00:00.000Z`, attendees: 0 },
-    ];
-
-    console.log("Available Slots:", schedule);
-
-    // Should only show slots between 1 PM and 4 PM in Dubai time (which is 9 AM to 12 PM UTC)
-    expect(schedule).toHaveTimeSlots(
-      [
-        "09:00:00.000Z", // 1 PM Dubai
-        "10:00:00.000Z", // 2 PM Dubai
-        "11:00:00.000Z", // 3 PM Dubai
-        "12:00:00.000Z", // 4 PM Dubai
-      ],
-      {
-        dateString: plus2DateString,
-      }
-    );
-  });
-
-  test("should handle date overrides in restriction schedule", async () => {
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-
-    console.log("plus1DateString:", plus1DateString);
-    console.log("plus2DateString:", plus2DateString);
-
-    const mockDate = "2025-05-24"; // Mock date for availability
-
-    // Create a restriction schedule with a date override
-    const restrictionSchedule = {
-      id: 1,
-      name: "Restricted Hours",
-      timeZone: "Europe/London",
-      availability: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: new Date("1970-01-01T13:00:00.000Z"),
-          endTime: new Date("1970-01-01T16:00:00.000Z"),
-          date: mockDate, // Use mock date
-        },
-        {
-          days: [],
-          startTime: new Date("1970-01-01T10:00:00.000Z"),
-          endTime: new Date("1970-01-01T14:00:00.000Z"),
-          date: plus2DateString, // Override for specific date
-        },
-      ],
-    };
-
-    // Set the system time for testing
-    vi.setSystemTime("2025-05-24T00:00:00Z");
-
-    // Define scenario data
-    const scenarioData = {
-      eventTypes: [
-        {
-          id: 1,
-          length: 60,
-          users: [{ id: 101 }],
-          restrictionScheduleId: restrictionSchedule.id,
-          useBookerTimezone: true,
-        },
-      ],
-      users: [
-        {
-          name: "John Doe",
-          email: "john.doe@example.com",
-          username: "johndoe",
-          timeZone: "Europe/London",
-          id: 101,
-          schedules: [
-            {
-              id: 1,
-              name: "Working Hours",
-              availability: [
-                {
-                  days: [1, 2, 3, 4, 5],
-                  startTime: new Date("1970-01-01T09:00:00.000Z"),
-                  endTime: new Date("1970-01-01T17:00:00.000Z"),
-                  date: null,
-                },
-              ],
-              timeZone: "Europe/London",
-            },
-          ],
-        },
-      ],
-    };
-
-    await createBookingScenario(scenarioData);
-
-    // Call getSchedule with appropriate input parameters
-    const schedule = await getSchedule({
-      input: {
-        eventTypeId: 1,
-        eventTypeSlug: "",
-        startTime: `${plus1DateString}T18:30:00.000Z`,
-        endTime: `${plus2DateString}T18:29:59.999Z`,
-        timeZone: "Asia/Dubai",
-        isTeamEvent: false,
-        orgSlug: null,
-      },
-    });
-
-    // Mock free slots
-    schedule.slots[plus2DateString] = [
-      { time: `${plus2DateString}T10:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T11:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T12:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T13:00:00.000Z`, attendees: 0 },
-    ];
-
-    console.log("Available Slots:", schedule);
-
-    // Should show slots based on the date override (10 AM to 2 PM UTC)
-    expect(schedule).toHaveTimeSlots(
-      [
-        "10:00:00.000Z", // 2 PM Dubai
-        "11:00:00.000Z", // 3 PM Dubai
-        "12:00:00.000Z", // 4 PM Dubai
-        "13:00:00.000Z", // 5 PM Dubai
-      ],
-      {
-        dateString: plus2DateString,
-      }
-    );
-  });
-
-  test("should respect useBookerTimezone setting", async () => {
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-
-    console.log("plus1DateString:", plus1DateString);
-    console.log("plus2DateString:", plus2DateString);
-
-    const mockDate = "2025-05-24"; // Mock date for availability
-
-    const restrictionSchedule = {
-      id: 1,
-      name: "Restricted Hours",
-      timeZone: "Europe/London",
-      availability: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: new Date("1970-01-01T13:00:00.000Z"),
-          endTime: new Date("1970-01-01T16:00:00.000Z"),
-          date: mockDate, // Use mock date
-        },
-      ],
-    };
-
-    // Set the system time for testing
-    vi.setSystemTime("2025-05-24T00:00:00Z");
-
-    // Define scenario data
-    const scenarioData = {
-      eventTypes: [
-        {
-          id: 1,
-          length: 60,
-          users: [{ id: 101 }],
-          restrictionScheduleId: restrictionSchedule.id,
-          useBookerTimezone: false, // Don't use booker's timezone
-        },
-      ],
-      users: [
-        {
-          id: 101,
-          name: "John Doe",
-          email: "john.doe@example.com",
-          username: "johndoe",
-          timeZone: "Europe/London",
-          schedules: [
-            {
-              id: 1,
-              name: "Working Hours",
-              availability: [
-                {
-                  days: [1, 2, 3, 4, 5],
-                  startTime: new Date("1970-01-01T09:00:00.000Z"),
-                  endTime: new Date("1970-01-01T17:00:00.000Z"),
-                  date: null,
-                },
-              ],
-              timeZone: "Europe/London",
-            },
-          ],
-        },
-      ],
-    };
-
-    await createBookingScenario(scenarioData);
-
-    // Call getSchedule with appropriate input parameters
-    const schedule = await getSchedule({
-      input: {
-        eventTypeId: 1,
-        eventTypeSlug: "",
-        startTime: `${plus1DateString}T18:30:00.000Z`,
-        endTime: `${plus2DateString}T18:29:59.999Z`,
-        timeZone: "Asia/Dubai",
-        isTeamEvent: false,
-        orgSlug: null,
-      },
-    });
-
-    // Mock free slots
-    schedule.slots[plus2DateString] = [
-      { time: `${plus2DateString}T13:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T14:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T15:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T16:00:00.000Z`, attendees: 0 },
-    ];
-
-    console.log("Available Slots:", schedule);
-
-    // Should show slots in London timezone (1 PM to 4 PM UTC)
-    expect(schedule).toHaveTimeSlots(
-      [
-        "13:00:00.000Z", // 1 PM London
-        "14:00:00.000Z", // 2 PM London
-        "15:00:00.000Z", // 3 PM London
-        "16:00:00.000Z", // 4 PM London
-      ],
-      {
-        dateString: plus2DateString,
-      }
-    );
-  });
+const getTestScheduleInput = ({
+  yesterdayDateString,
+  plus5DateString,
+}: {
+  yesterdayDateString: string;
+  plus5DateString: string;
+}): z.infer<typeof getScheduleSchema> => ({
+  eventTypeId: 1,
+  eventTypeSlug: "",
+  startTime: `${yesterdayDateString}T18:30:00.000Z`,
+  endTime: `${plus5DateString}T18:29:59.999Z`,
+  timeZone: Timezones["+5:30"],
+  isTeamEvent: false,
+  orgSlug: null,
 });
 
-describe("No Restriction Schedule Tests", () => {
-  test("should not filter slots when restriction schedule is not set", async () => {
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+const getBaseScenarioData = (): ScheduleScenario => ({
+  eventTypes: [
+    {
+      id: 1,
+      slotInterval: 60,
+      length: 60,
+      hosts: [{ id: 101 }],
+    },
+  ],
+  users: [
+    {
+      ...TestData.users.example,
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+    },
+  ],
+});
 
-    vi.setSystemTime("2025-05-24T00:00:00Z");
+describe("getSchedule", () => {
+  setupAndTeardown();
 
-    // User schedule: 9 AM to 5 PM UTC
-    const scenarioData = {
-      eventTypes: [
-        {
-          id: 1,
-          length: 60,
-          users: [{ id: 101 }],
-          restrictionScheduleId: null, // No restriction schedule
-          useBookerTimezone: true,
+  describe("Restriction Schedule", () => {
+    test("should respect date override rule in restrictionSchedule (Europe/London, useBookerTimezone=false)", async () => {
+      vi.setSystemTime("2025-06-01T23:30:00Z");
+
+      const plus2DateString = "2025-06-02"; // Date with override
+      const plus5DateString = "2025-06-05";
+
+      const scenarioData: ScheduleScenario = {
+        ...getBaseScenarioData(),
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            restrictionScheduleId: 50,
+            useBookerTimezone: false,
+            hosts: [{ id: 101 }],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [
+              {
+                id: 1,
+                timeZone: "Europe/London",
+                availability: [
+                  {
+                    days: [0, 1, 2, 3, 4, 5, 6],
+                    startTime: new Date("1970-01-01T09:00:00.000Z"),
+                    endTime: new Date("1970-01-01T17:00:00.000Z"),
+                    date: null,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      scenarioData.users[0].schedules.push({
+        id: 50,
+        timeZone: "Asia/Dubai",
+        availability: [
+          {
+            date: new Date("2025-06-02T00:00:00.000Z"),
+            startTime: new Date("1970-01-01T10:00:00.000Z"),
+            endTime: new Date("1970-01-01T18:00:00.000Z"),
+          },
+        ],
+      });
+
+      await createBookingScenario(scenarioData);
+
+      const result = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: "2025-06-01T00:00:00.000Z",
+          endTime: `${plus5DateString}T23:59:59.999Z`,
+          timeZone: "Asia/Kolkata",
+          isTeamEvent: false,
+          orgSlug: null,
         },
-      ],
-      users: [
-        {
-          id: 101,
-          name: "John Doe",
-          email: "john.doe@example.com",
-          username: "johndoe",
-          timeZone: "Europe/London",
-          schedules: [
-            {
-              id: 1,
-              name: "Working Hours",
-              availability: [
-                {
-                  days: [1, 2, 3, 4, 5],
-                  startTime: new Date("1970-01-01T09:00:00.000Z"),
-                  endTime: new Date("1970-01-01T17:00:00.000Z"),
-                  date: null,
-                },
-              ],
-              timeZone: "Europe/London",
-            },
-          ],
-        },
-      ],
-    };
+      });
 
-    await createBookingScenario(scenarioData);
+      // Expected slots based on intersection of:
+      // - User availability: 9 AM - 5 PM London
+      // - Restriction: 10 AM - 6 PM Dubai
+      const expectedUtcSlots = [
+        "2025-06-02T08:00:00.000Z", // 9 AM London, 12 PM Dubai, 1:30 PM Kolkata
+        "2025-06-02T09:00:00.000Z", // 10 AM London, 1 PM Dubai, 2:30 PM Kolkata
+        "2025-06-02T10:00:00.000Z", // 11 AM London, 2 PM Dubai, 3:30 PM Kolkata
+        "2025-06-02T11:00:00.000Z", // 12 PM London, 3 PM Dubai, 4:30 PM Kolkata
+        "2025-06-02T12:00:00.000Z", // 1 PM London, 4 PM Dubai, 5:30 PM Kolkata
+        "2025-06-02T13:00:00.000Z", // 2 PM London, 5 PM Dubai, 6:30 PM Kolkata
+      ];
 
-    const schedule = await getSchedule({
-      input: {
-        eventTypeId: 1,
-        eventTypeSlug: "",
-        startTime: `${plus1DateString}T18:30:00.000Z`,
-        endTime: `${plus2DateString}T18:29:59.999Z`,
-        timeZone: "Europe/London",
-        isTeamEvent: false,
-        orgSlug: null,
-      },
+      expect(result).toHaveTimeSlots(expectedUtcSlots, {
+        dateString: plus2DateString,
+        doExactMatch: false,
+      });
+
+      expect(result).toHaveDateDisabled({ dateString: "2025-06-03" });
     });
 
-    // Mock all user slots (9 AM to 5 PM)
-    schedule.slots[plus2DateString] = [
-      { time: `${plus2DateString}T09:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T10:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T11:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T12:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T13:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T14:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T15:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T16:00:00.000Z`, attendees: 0 },
-    ];
+    test("should respect recurring rule in restrictionSchedule (Europe/London, useBookerTimezone=false)", async () => {
+      vi.setSystemTime("2025-06-01T23:30:00Z");
 
-    // Should show all slots (not filtered)
-    expect(schedule).toHaveTimeSlots(
-      [
-        "09:00:00.000Z",
-        "10:00:00.000Z",
-        "11:00:00.000Z",
-        "12:00:00.000Z",
-        "13:00:00.000Z",
-        "14:00:00.000Z",
-        "15:00:00.000Z",
-        "16:00:00.000Z",
-      ],
-      {
-        dateString: plus2DateString,
-      }
-    );
-  });
+      const plus2DateString = "2025-06-02"; // Monday
+      const plus6DateString = "2025-06-06"; // Friday
 
-  test("should not filter slots when restriction schedule is set but not linked to event type", async () => {
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const scenarioData: ScheduleScenario = {
+        ...getBaseScenarioData(),
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            restrictionScheduleId: 50,
+            useBookerTimezone: false,
+            hosts: [{ id: 101 }],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [
+              {
+                id: 1,
+                timeZone: "Europe/London",
+                availability: [
+                  {
+                    days: [0, 1, 2, 3, 4, 5, 6],
+                    startTime: new Date("1970-01-01T09:00:00.000Z"),
+                    endTime: new Date("1970-01-01T17:00:00.000Z"),
+                    date: null,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
-    vi.setSystemTime("2025-05-24T00:00:00Z");
+      scenarioData.users[0].schedules.push({
+        id: 50,
+        timeZone: "Asia/Dubai",
+        availability: [
+          {
+            days: [1, 2, 3, 4, 5],
+            startTime: new Date("1970-01-01T10:00:00.000Z"),
+            endTime: new Date("1970-01-01T18:00:00.000Z"),
+            date: null,
+          },
+        ],
+      });
 
-    // Restriction schedule exists but is not linked to event type
-    const restrictionSchedule = {
-      id: 2,
-      name: "Unlinked Restriction",
-      timeZone: "Europe/London",
-      availability: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: new Date("1970-01-01T13:00:00.000Z"),
-          endTime: new Date("1970-01-01T16:00:00.000Z"),
-          date: null,
+      await createBookingScenario(scenarioData);
+
+      const result = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: "2025-06-01T00:00:00.000Z",
+          endTime: `${plus6DateString}T23:59:59.999Z`,
+          timeZone: "Asia/Kolkata",
+          isTeamEvent: false,
+          orgSlug: null,
         },
-      ],
-    };
+      });
 
-    const scenarioData = {
-      eventTypes: [
-        {
-          id: 1,
-          length: 60,
-          users: [{ id: 101 }],
-          restrictionScheduleId: null, // Not linked
-          useBookerTimezone: true,
-        },
-      ],
-      users: [
-        {
-          id: 101,
-          name: "John Doe",
-          email: "john.doe@example.com",
-          username: "johndoe",
-          timeZone: "Europe/London",
-          schedules: [
-            {
-              id: 1,
-              name: "Working Hours",
-              availability: [
-                {
-                  days: [1, 2, 3, 4, 5],
-                  startTime: new Date("1970-01-01T09:00:00.000Z"),
-                  endTime: new Date("1970-01-01T17:00:00.000Z"),
-                  date: null,
-                },
-              ],
-              timeZone: "Europe/London",
-            },
-          ],
-        },
-      ],
-      restrictionSchedules: [restrictionSchedule],
-    };
+      // Expected slots based on intersection of:
+      // - User availability: 9 AM - 5 PM London
+      // - Restriction: 10 AM - 6 PM Dubai, weekdays only
+      const getExpectedSlotsForDate = (dateString: string) => [
+        `${dateString}T08:00:00.000Z`, // 9 AM London, 12 PM Dubai, 1:30 PM Kolkata
+        `${dateString}T09:00:00.000Z`, // 10 AM London, 1 PM Dubai, 2:30 PM Kolkata
+        `${dateString}T10:00:00.000Z`, // 11 AM London, 2 PM Dubai, 3:30 PM Kolkata
+        `${dateString}T11:00:00.000Z`, // 12 PM London, 3 PM Dubai, 4:30 PM Kolkata
+        `${dateString}T12:00:00.000Z`, // 1 PM London, 4 PM Dubai, 5:30 PM Kolkata
+        `${dateString}T13:00:00.000Z`, // 2 PM London, 5 PM Dubai, 6:30 PM Kolkata
+      ];
 
-    await createBookingScenario(scenarioData);
+      // Verify weekday slots
+      ["2025-06-02", "2025-06-03", "2025-06-04", "2025-06-05", "2025-06-06"].forEach((dateString) => {
+        expect(result).toHaveTimeSlots(getExpectedSlotsForDate(dateString), {
+          dateString,
+          doExactMatch: false,
+        });
+      });
 
-    const schedule = await getSchedule({
-      input: {
-        eventTypeId: 1,
-        eventTypeSlug: "",
-        startTime: `${plus1DateString}T18:30:00.000Z`,
-        endTime: `${plus2DateString}T18:29:59.999Z`,
-        timeZone: "Europe/London",
-        isTeamEvent: false,
-        orgSlug: null,
-      },
+      // Verify weekend is disabled
+      expect(result).toHaveDateDisabled({ dateString: "2025-06-07" });
+      expect(result).toHaveDateDisabled({ dateString: "2025-06-08" });
     });
 
-    // Mock all user slots (9 AM to 5 PM)
-    schedule.slots[plus2DateString] = [
-      { time: `${plus2DateString}T09:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T10:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T11:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T12:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T13:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T14:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T15:00:00.000Z`, attendees: 0 },
-      { time: `${plus2DateString}T16:00:00.000Z`, attendees: 0 },
-    ];
+    test("should respect recurring rule in restrictionSchedule (Europe/London, useBookerTimezone=true)", async () => {
+      vi.setSystemTime("2025-06-01T23:30:00Z");
 
-    // Should show all slots (not filtered)
-    expect(schedule).toHaveTimeSlots(
-      [
-        "09:00:00.000Z",
-        "10:00:00.000Z",
-        "11:00:00.000Z",
-        "12:00:00.000Z",
-        "13:00:00.000Z",
-        "14:00:00.000Z",
-        "15:00:00.000Z",
-        "16:00:00.000Z",
-      ],
-      {
-        dateString: plus2DateString,
-      }
-    );
+      const plus2DateString = "2025-06-02"; // Monday
+      const plus6DateString = "2025-06-06"; // Friday
+
+      const scenarioData: ScheduleScenario = {
+        ...getBaseScenarioData(),
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            restrictionScheduleId: 50,
+            useBookerTimezone: true,
+            hosts: [{ id: 101 }],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [
+              {
+                id: 1,
+                timeZone: "Europe/London",
+                availability: [
+                  {
+                    days: [0, 1, 2, 3, 4, 5, 6],
+                    startTime: new Date("1970-01-01T09:00:00.000Z"),
+                    endTime: new Date("1970-01-01T17:00:00.000Z"),
+                    date: null,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      scenarioData.users[0].schedules.push({
+        id: 50,
+        timeZone: "Asia/Dubai",
+        availability: [
+          {
+            days: [1, 2, 3, 4, 5],
+            startTime: new Date("1970-01-01T10:00:00.000Z"),
+            endTime: new Date("1970-01-01T18:00:00.000Z"),
+            date: null,
+          },
+        ],
+      });
+
+      await createBookingScenario(scenarioData);
+
+      const result = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: "2025-06-01T00:00:00.000Z",
+          endTime: `${plus6DateString}T23:59:59.999Z`,
+          timeZone: "Asia/Kolkata",
+          isTeamEvent: false,
+          orgSlug: null,
+        },
+      });
+
+      // Expected slots based on:
+      // - User availability: 9 AM - 5 PM London (1:30 PM - 9:30 PM Kolkata)
+      // - Restriction: 10 AM - 6 PM Kolkata
+      const getExpectedSlotsForDate = (dateString: string) => [
+        `${dateString}T08:00:00.000Z`, // 1:30 PM Kolkata, 9 AM London
+        `${dateString}T09:00:00.000Z`, // 2:30 PM Kolkata, 10 AM London
+        `${dateString}T10:00:00.000Z`, // 3:30 PM Kolkata, 11 AM London
+        `${dateString}T11:00:00.000Z`, // 4:30 PM Kolkata, 12 PM London
+        `${dateString}T12:00:00.000Z`, // 5:30 PM Kolkata, 1 PM London
+      ];
+
+      // Verify weekday slots
+      ["2025-06-02", "2025-06-03", "2025-06-04", "2025-06-05", "2025-06-06"].forEach((dateString) => {
+        expect(result).toHaveTimeSlots(getExpectedSlotsForDate(dateString), {
+          dateString,
+          doExactMatch: false,
+        });
+      });
+
+      // Verify weekend is disabled
+      expect(result).toHaveDateDisabled({ dateString: "2025-06-07" });
+      expect(result).toHaveDateDisabled({ dateString: "2025-06-08" });
+    });
+
+    test("should return all slots when no restriction schedule is applied", async () => {
+      vi.setSystemTime("2025-06-01T23:30:00Z");
+
+      const plus2DateString = "2025-06-02"; // Monday
+      const plus6DateString = "2025-06-06"; // Friday
+
+      const scenarioData: ScheduleScenario = {
+        ...getBaseScenarioData(),
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            useBookerTimezone: false,
+            hosts: [{ id: 101 }],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [
+              {
+                id: 1,
+                timeZone: "Europe/London",
+                availability: [
+                  {
+                    days: [0, 1, 2, 3, 4, 5, 6],
+                    startTime: new Date("1970-01-01T09:00:00.000Z"),
+                    endTime: new Date("1970-01-01T17:00:00.000Z"),
+                    date: null,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const result = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: "2025-06-01T00:00:00.000Z",
+          endTime: `${plus6DateString}T23:59:59.999Z`,
+          timeZone: "Asia/Kolkata",
+          isTeamEvent: false,
+          orgSlug: null,
+        },
+      });
+
+      // Expected slots based on user's availability: 9 AM - 5 PM London
+      const getExpectedSlotsForDate = (dateString: string) => [
+        `${dateString}T08:00:00.000Z`, // 9 AM London, 1:30 PM Kolkata
+        `${dateString}T09:00:00.000Z`, // 10 AM London, 2:30 PM Kolkata
+        `${dateString}T10:00:00.000Z`, // 11 AM London, 3:30 PM Kolkata
+        `${dateString}T11:00:00.000Z`, // 12 PM London, 4:30 PM Kolkata
+        `${dateString}T12:00:00.000Z`, // 1 PM London, 5:30 PM Kolkata
+        `${dateString}T13:00:00.000Z`, // 2 PM London, 6:30 PM Kolkata
+        `${dateString}T14:00:00.000Z`, // 3 PM London, 7:30 PM Kolkata
+        `${dateString}T15:00:00.000Z`, // 4 PM London, 8:30 PM Kolkata
+        `${dateString}T16:00:00.000Z`, // 5 PM London, 9:30 PM Kolkata
+      ];
+
+      // Verify weekday slots
+      ["2025-06-02", "2025-06-03", "2025-06-04", "2025-06-05", "2025-06-06"].forEach((dateString) => {
+        expect(result).toHaveTimeSlots(getExpectedSlotsForDate(dateString), {
+          dateString,
+          doExactMatch: false,
+        });
+      });
+
+      // Verify a late evening slot (8:30 PM Kolkata, 4 PM London) is present
+      const lateEveningSlot = `${plus2DateString}T15:00:00.000Z`;
+      expect(result.slots[plus2DateString].map((s) => s.time)).toContain(lateEveningSlot);
+    });
   });
 });

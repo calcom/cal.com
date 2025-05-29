@@ -237,6 +237,9 @@ export type InputEventType = {
   owner?: number;
   metadata?: any;
   rescheduleWithSameRoundRobinHost?: boolean;
+  restrictionSchedule?: Prisma.ScheduleCreateInput;
+  useBookerTimezone?: boolean;
+  restrictionScheduleId?: number;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
@@ -363,6 +366,27 @@ export async function addEventTypesToDb(
       });
     }
 
+    // Handle restrictionSchedule creation and connection
+    if (eventType.restrictionSchedule) {
+      log.silly("TestData: Creating RestrictionSchedule for EventType", JSON.stringify(eventType));
+      const createdRestrictionSchedule = await prismock.schedule.create({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        data: {
+          ...eventType.restrictionSchedule.create,
+          eventType: {
+            connect: {
+              id: createdEventType.id,
+            },
+          },
+        },
+      });
+      await prismock.eventType.update({
+        where: { id: createdEventType.id },
+        data: { restrictionScheduleId: createdRestrictionSchedule.id },
+      });
+    }
+
     if (eventType.team?.id) {
       const createdTeam = await prismock.team.create({
         data: {
@@ -454,6 +478,20 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
             },
           }
         : eventType.schedule,
+      restrictionScheduleId: eventType.restrictionScheduleId ?? undefined,
+      useBookerTimezone: eventType.useBookerTimezone ?? false,
+      restrictionSchedule: eventType.restrictionSchedule
+        ? {
+            create: {
+              ...eventType.restrictionSchedule,
+              availability: {
+                createMany: {
+                  data: eventType.restrictionSchedule.availability,
+                },
+              },
+            },
+          }
+        : undefined,
       owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
       schedulingType: eventType.schedulingType,
       parent: eventType.parent ? { connect: { id: eventType.parent.id } } : undefined,
