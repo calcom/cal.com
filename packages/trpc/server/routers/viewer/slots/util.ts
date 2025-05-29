@@ -536,22 +536,20 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         const slotDateStr = slotInTz.format("YYYY-MM-DD");
         const slotWeekday = slotInTz.day();
         // Build full datetime for slot comparison
-        const slotValue = slotInTz.valueOf(); // milliseconds since epoch
-        // 1. Date-based override
+        const slotValue = slotInTz.valueOf();
+
         const overrideRule = dateOverrides.find((a) => dayjs.utc(a.date).isSame(slotInTz, "day"));
         if (overrideRule) {
-          // Convert ISO timestamps to HH:MM format without timezone conversion
           const startTimeStr = dayjs.utc(overrideRule.startTime).format("HH:mm");
           const endTimeStr = dayjs.utc(overrideRule.endTime).format("HH:mm");
           const start = dayjs.tz(`${slotDateStr}T${startTimeStr}`, restrictionTimezone);
           const end = dayjs.tz(`${slotDateStr}T${endTimeStr}`, restrictionTimezone);
           return slotValue >= start.valueOf() && slotValue < end.valueOf();
         }
-        // 2. Weekday-based rule
+
         const recurringRule = recurringRules.find((a) => a.days.includes(slotWeekday));
 
         if (recurringRule) {
-          // Convert ISO timestamps to HH:MM format without timezone conversion
           const startTimeStr = dayjs.utc(recurringRule.startTime).format("HH:mm");
           const endTimeStr = dayjs.utc(recurringRule.endTime).format("HH:mm");
           const start = dayjs.tz(`${slotDateStr}T${startTimeStr}`, restrictionTimezone);
