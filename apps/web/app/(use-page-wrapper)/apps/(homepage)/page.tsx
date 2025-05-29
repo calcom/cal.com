@@ -1,15 +1,18 @@
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 
-import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { AppCategories } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import AppsPage from "~/apps/apps-view";
+
+import {
+  getCachedAppRegistry,
+  getCachedAppRegistryWithCredentials,
+  getCachedUserAdminTeams,
+} from "./page-cache-exports";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -20,29 +23,6 @@ export const generateMetadata = async () => {
     "/apps"
   );
 };
-const getCachedAppRegistry = unstable_cache(
-  async () => {
-    return await getAppRegistry();
-  },
-  ["appRegistry.get"],
-  { revalidate: 3600 } // Cache for 1 hour
-);
-
-const getCachedAppRegistryWithCredentials = unstable_cache(
-  async (userId: number, teamIds: number[]) => {
-    return await getAppRegistryWithCredentials(userId, teamIds);
-  },
-  ["appRegistry.getWithCredentials"],
-  { revalidate: 3600 } // Cache for 1 hour
-);
-
-const getCachedUserAdminTeams = unstable_cache(
-  async (userId: number) => {
-    return await UserRepository.getUserAdminTeams(userId);
-  },
-  ["user.getAdminTeams"],
-  { revalidate: 3600 } // Cache for 1 hour
-);
 
 const ServerPage = async () => {
   const req = buildLegacyRequest(await headers(), await cookies());
