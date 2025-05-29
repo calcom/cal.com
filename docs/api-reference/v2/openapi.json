@@ -430,9 +430,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -440,9 +443,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -628,9 +633,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -638,9 +646,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -1860,9 +1870,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -1870,9 +1883,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -2533,9 +2548,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -2543,9 +2561,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -2609,9 +2629,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -2619,9 +2642,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -2749,9 +2774,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -2759,9 +2787,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -4011,9 +4041,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -4021,9 +4054,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -4095,9 +4130,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -4105,9 +4143,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -5447,9 +5487,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -5457,9 +5500,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -5709,9 +5754,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -5719,9 +5767,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -6128,9 +6178,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -6138,9 +6191,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -8358,9 +8413,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -8368,9 +8426,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -8615,6 +8675,31 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -9245,9 +9330,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -9255,9 +9343,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -9303,9 +9393,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -9313,9 +9406,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -11073,9 +11168,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11083,9 +11181,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -11446,9 +11546,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11456,9 +11559,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -11504,9 +11609,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11514,9 +11622,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -11810,9 +11920,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11820,9 +11933,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -11860,9 +11975,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11870,9 +11988,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -12034,9 +12154,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -12044,9 +12167,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -17554,13 +17679,17 @@
             "type": "string",
             "example": "John Doe"
           },
+          "username": {
+            "type": "string",
+            "example": "john-doe"
+          },
           "avatarUrl": {
             "type": "string",
             "nullable": true,
             "example": "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png"
           }
         },
-        "required": ["userId", "name"]
+        "required": ["userId", "name", "username"]
       },
       "EventTypeTeam": {
         "type": "object",
@@ -20158,6 +20287,66 @@
         },
         "required": ["status", "data"]
       },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "totalItems": {
+            "type": "number",
+            "description": "The total number of items available across all pages, matching the query criteria.",
+            "example": 123,
+            "minimum": 0
+          },
+          "remainingItems": {
+            "type": "number",
+            "description": "The number of items remaining to be fetched *after* the current page. Calculated as: `totalItems - (skip + itemsPerPage)`.",
+            "example": 103,
+            "minimum": 0
+          },
+          "returnedItems": {
+            "type": "number",
+            "description": "The number of items returned in the current page.",
+            "example": 10
+          },
+          "itemsPerPage": {
+            "type": "number",
+            "description": "The maximum number of items requested per page.",
+            "example": 10,
+            "minimum": 1
+          },
+          "currentPage": {
+            "type": "number",
+            "description": "The current page number being returned.",
+            "example": 2,
+            "minimum": 1
+          },
+          "totalPages": {
+            "type": "number",
+            "description": "The total number of pages available.",
+            "example": 13,
+            "minimum": 0
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a subsequent page available after the current one.",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a preceding page available before the current one.",
+            "example": true
+          }
+        },
+        "required": [
+          "totalItems",
+          "remainingItems",
+          "returnedItems",
+          "itemsPerPage",
+          "currentPage",
+          "totalPages",
+          "hasNextPage",
+          "hasPreviousPage"
+        ]
+      },
       "GetManagedOrganizationsOutput": {
         "type": "object",
         "properties": {
@@ -20171,9 +20360,12 @@
             "items": {
               "$ref": "#/components/schemas/ManagedOrganizationOutput"
             }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
           }
         },
-        "required": ["status", "data"]
+        "required": ["status", "data", "pagination"]
       },
       "UpdateOrganizationInput": {
         "type": "object",
@@ -22188,60 +22380,6 @@
           }
         },
         "required": ["status", "data"]
-      },
-      "PaginationMetaDto": {
-        "type": "object",
-        "properties": {
-          "totalItems": {
-            "type": "number",
-            "minimum": 0,
-            "description": "The total number of items available across all pages, matching the query criteria.",
-            "example": 123
-          },
-          "remainingItems": {
-            "type": "number",
-            "minimum": 0,
-            "description": "The number of items remaining to be fetched *after* the current page. Calculated as: `totalItems - (skip + itemsPerPage)`.",
-            "example": 103
-          },
-          "itemsPerPage": {
-            "type": "number",
-            "minimum": 1,
-            "description": "The maximum number of items requested per page.",
-            "example": 10
-          },
-          "currentPage": {
-            "type": "number",
-            "minimum": 1,
-            "description": "The current page number being returned.",
-            "example": 2
-          },
-          "totalPages": {
-            "type": "number",
-            "minimum": 0,
-            "description": "The total number of pages available.",
-            "example": 13
-          },
-          "hasNextPage": {
-            "type": "boolean",
-            "description": "Indicates if there is a subsequent page available after the current one.",
-            "example": true
-          },
-          "hasPreviousPage": {
-            "type": "boolean",
-            "description": "Indicates if there is a preceding page available before the current one.",
-            "example": true
-          }
-        },
-        "required": [
-          "totalItems",
-          "remainingItems",
-          "itemsPerPage",
-          "currentPage",
-          "totalPages",
-          "hasNextPage",
-          "hasPreviousPage"
-        ]
       },
       "GetBookingsOutput_2024_08_13": {
         "type": "object",
