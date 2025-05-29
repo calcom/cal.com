@@ -5,6 +5,7 @@ import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servic
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { getPagination } from "@/lib/pagination/pagination";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
@@ -538,10 +539,13 @@ export class BookingsService_2024_08_13 {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
 
+    const skip = Math.abs(queryParams?.skip ?? 0);
+    const take = Math.abs(queryParams?.take ?? 100);
+
     const fetchedBookings: { bookings: { id: number }[]; totalCount: number } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
-      skip: queryParams.skip ?? 0,
-      take: queryParams.take ?? 100,
+      skip,
+      take,
       filters: {
         ...this.inputService.transformGetBookingsFilters(queryParams),
         ...(userIds?.length ? { userIds } : {}),
@@ -594,28 +598,11 @@ export class BookingsService_2024_08_13 {
       }
     }
 
-    const skip = Math.abs(queryParams?.skip ?? 0);
-    const take = Math.abs(queryParams?.take ?? 100);
-    const itemsPerPage = take;
-    const totalPages = itemsPerPage !== 0 ? Math.ceil(fetchedBookings.totalCount / itemsPerPage) : 0;
-    const currentPage = Math.floor(skip / itemsPerPage) + 1;
-    const hasNextPage = skip + itemsPerPage < fetchedBookings.totalCount;
-    const hasPreviousPage = skip > 0;
+    const pagination = getPagination({ skip, take, totalCount: fetchedBookings.totalCount });
+
     return {
       bookings: formattedBookings,
-      pagination: {
-        totalItems: fetchedBookings.totalCount,
-        // clamp remainingItems between 0 and totalCount
-        remainingItems: Math.min(
-          Math.max(fetchedBookings.totalCount - (skip + take), 0),
-          fetchedBookings.totalCount
-        ),
-        itemsPerPage: itemsPerPage,
-        currentPage: currentPage,
-        totalPages: totalPages,
-        hasNextPage: hasNextPage,
-        hasPreviousPage: hasPreviousPage,
-      },
+      pagination,
     };
   }
 

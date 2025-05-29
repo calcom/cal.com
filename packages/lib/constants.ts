@@ -5,6 +5,7 @@ const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.REND
 export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
 export const IS_PRODUCTION = CALCOM_ENV === "production";
 export const IS_PRODUCTION_BUILD = process.env.NODE_ENV === "production";
+export const ORGANIZER_EMAIL_EXEMPT_DOMAINS = process.env.ORGANIZER_EMAIL_EXEMPT_DOMAINS || "";
 const IS_DEV = CALCOM_ENV === "development";
 
 /** https://app.cal.com */
