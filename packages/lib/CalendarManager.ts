@@ -4,7 +4,7 @@ import { sortBy } from "lodash";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
-import { getUid } from "@calcom/lib/CalEventPgvarser";
+import { getUid } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
