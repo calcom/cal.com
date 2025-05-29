@@ -31,7 +31,7 @@ import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Creden
 
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
 import { CalendarAuth } from "./CalendarAuth";
-import { buildGoogleChannelProps } from "./buildGoogleChannelProps";
+import { buildGoogleChannelProps, type GoogleChannelProps } from "./buildGoogleChannelProps";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
@@ -963,12 +963,12 @@ export default class GoogleCalendarService implements Calendar {
       (sc) => !eventTypeIds?.includes(sc.eventTypeId)
     );
 
-    let googleChannelProps = await buildGoogleChannelProps({
-      calendarId,
+    const { source, existingGoogleChannelProps } = await buildGoogleChannelProps({
       selectedCalendar: otherCalendarsWithSameSubscription[0],
       calendarSubscription,
     });
 
+    let googleChannelProps: GoogleChannelProps | null = existingGoogleChannelProps;
     // Only create a new subscription if none exists
     if (!googleChannelProps) {
       try {
@@ -991,7 +991,7 @@ export default class GoogleCalendarService implements Calendar {
       },
       eventTypeIds
     );
-    return googleChannelProps;
+    return { googleChannelProps, reusedFromCalendarSubscription: source === "calendarSubscription" };
   }
 
   /**
@@ -1165,7 +1165,7 @@ export default class GoogleCalendarService implements Calendar {
   ) {
     log.debug(
       "upsertSelectedCalendarsForEventTypeIds",
-      safeStringify({ data, eventTypeIds, credential: this.credential })
+      safeStringify({ eventTypeIds, credentialId: this.credential.id })
     );
     if (!this.credential.userId) {
       logger.error("upsertSelectedCalendarsForEventTypeIds failed. userId is missing.");

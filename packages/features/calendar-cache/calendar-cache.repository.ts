@@ -66,7 +66,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       );
       return;
     }
-    await this.calendar?.watchCalendar({ calendarId, eventTypeIds, calendarSubscription });
+    return this.calendar?.watchCalendar({ calendarId, eventTypeIds, calendarSubscription });
   }
 
   async unwatchCalendar(args: {
@@ -180,5 +180,9 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
     });
+  }
+
+  async getCalendarService() {
+    return this.calendar;
   }
 }

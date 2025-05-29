@@ -11,7 +11,7 @@ const log = logger.getSubLogger({ prefix: [`[[tasker] createCalendarSync]`] });
 
 export async function handler(payload: string): Promise<void> {
   const { calendarEventId, calendarSyncData } = createCalendarSyncSchema.parse(JSON.parse(payload));
-  log.debug("Creating calendarSync", safeStringify(calendarSyncData));
+  log.debug("Creating calendarSync", safeStringify({ calendarEventId }));
   try {
     const lastSyncedUpAt = new Date(calendarSyncData.lastSyncedUpAt);
     const createdCalendarSync =

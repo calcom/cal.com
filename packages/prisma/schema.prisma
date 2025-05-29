@@ -2330,7 +2330,7 @@ model CalendarSubscription {
   providerResourceUri      String? // e.g., Google's resource URI
   providerExpiration       DateTime? // e.g., Google's channel expiration time
 
-  status      CalendarSubscriptionStatus @default(ACTIVE) // ACTIVE, INACTIVE, ERROR, PENDING
+  status      CalendarSubscriptionStatus @default(PENDING) // ACTIVE, INACTIVE, ERROR, PENDING
   // Updated whenever a push notification is received from the provider
   lastSyncAt  DateTime?
   lastError   String? // Last error message caused during attempted subscription
