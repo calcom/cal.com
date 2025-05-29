@@ -65,7 +65,7 @@ function getActionsToTake({
 
   if (!selectedCalendar && !calendarSync) {
     // The channel isn't registered with us
-    throw new IgnorableError("No selectedCalendar or calendarSync found for push notification");
+    throw new IgnorableError("This channel is not registered with us now, ignoring it");
   }
 
   // Means calendar is selected for conflict checking and we should sync availability-cache

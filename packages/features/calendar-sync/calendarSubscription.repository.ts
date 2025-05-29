@@ -62,11 +62,16 @@ export class CalendarSubscriptionRepository {
       lastSyncAt?: Date;
       lastError?: string;
       lastErrorAt?: Date;
+      calendarSyncId?: string | null;
     };
   }) {
+    const { calendarSyncId, ...rest } = data;
     return await prisma.calendarSubscription.update({
       where,
-      data,
+      data: {
+        ...rest,
+        ...(calendarSyncId ? { calendarSync: { connect: { id: calendarSyncId } } } : {}),
+      },
       select: safeCalendarSubscriptionSelect,
     });
   }

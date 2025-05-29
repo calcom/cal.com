@@ -116,7 +116,7 @@ export async function handler(payload: string): Promise<void> {
       calendarSyncId: createdCalendarSync.id,
     });
 
-    await CalendarSubscriptionService.createIfNotExists({
+    const createdCalendarSubscription = await CalendarSubscriptionService.createIfNotExists({
       credentialId: createdCalendarSync.credentialId,
       externalCalendarId: createdCalendarSync.externalCalendarId,
       data: {
@@ -124,6 +124,12 @@ export async function handler(payload: string): Promise<void> {
         status: CalendarSubscriptionStatus.PENDING,
         calendarSyncId: createdCalendarSync.id,
       },
+    });
+
+    // Ensure existing Subscription if any is connected to this calendarSync
+    await CalendarSubscriptionService.connectToCalendarSync({
+      id: createdCalendarSubscription.id,
+      calendarSyncId: createdCalendarSync.id,
     });
   } catch (error) {
     log.error("Error in process of createCalendarSync task", safeStringify(error));

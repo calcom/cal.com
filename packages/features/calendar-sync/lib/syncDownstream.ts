@@ -2,9 +2,11 @@ import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
-import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import type { CalendarEventsToSync } from "@calcom/types/Calendar";
+
+import type { CancellationBySyncReason } from "../types";
+import { cancelBooking } from "./downstreamActions";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSync"] });
 
@@ -30,7 +32,7 @@ type BookingUpdateAction =
       type: "CANCEL_BOOKING";
       bookingId: number;
       cancelledBy: string;
-      cancellationReason: "organizer_declined_in_calendar" | "event_cancelled_in_calendar";
+      cancellationReason: CancellationBySyncReason;
       notes?: string[];
     }
   | {
@@ -207,20 +209,17 @@ export async function syncDownstream({
         const actions = getBookingUpdateActions({ calendarEvent, booking, appName: app.name });
 
         for (const action of actions) {
-          let dbUpdatePromise: Promise<unknown> = Promise.resolve(); // Default to no DB operation
+          const dbUpdatePromise: Promise<unknown> = Promise.resolve(); // Default to no DB operation
 
           switch (action.type) {
             case "CANCEL_BOOKING":
               log.info(
                 `Calendar Event ${calendarEvent.id} triggered CANCEL for Cal.com booking ${action.bookingId}.`
               );
-              dbUpdatePromise = prisma.booking.update({
-                where: { id: action.bookingId },
-                data: {
-                  status: "CANCELLED",
-                  cancelledBy: action.cancelledBy,
-                  cancellationReason: action.cancellationReason,
-                },
+              await cancelBooking({
+                bookingId: action.bookingId,
+                cancelledBy: action.cancelledBy,
+                cancellationReason: action.cancellationReason,
               });
               break;
             case "UPDATE_BOOKING_TIMES":
