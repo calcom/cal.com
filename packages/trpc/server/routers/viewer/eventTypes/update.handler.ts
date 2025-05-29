@@ -310,6 +310,23 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (restrictionScheduleId) {
+    // Verify that the user owns the restriction schedule
+    const restrictionSchedule = await ctx.prisma.schedule.findUnique({
+      where: {
+        id: restrictionScheduleId,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    if (!restrictionSchedule || restrictionSchedule.userId !== ctx.user.id) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You can only use your own schedules as restriction schedules",
+      });
+    }
+
     data.restrictionSchedule = {
       connect: {
         id: restrictionScheduleId,
