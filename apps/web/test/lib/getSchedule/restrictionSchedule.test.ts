@@ -43,7 +43,7 @@ const getBaseScenarioData = (): ScheduleScenario => ({
       id: 1,
       slotInterval: 60,
       length: 60,
-      hosts: [{ id: 101 }],
+      hosts: [{ userId: 101 }],
     },
   ],
   users: [
@@ -53,6 +53,7 @@ const getBaseScenarioData = (): ScheduleScenario => ({
       schedules: [TestData.schedules.IstWorkHours],
     },
   ],
+  apps: [],
 });
 
 describe("getSchedule", () => {
@@ -73,7 +74,7 @@ describe("getSchedule", () => {
             length: 60,
             restrictionScheduleId: 50,
             useBookerTimezone: false,
-            hosts: [{ id: 101 }],
+            hosts: [{ userId: 101 }],
           },
         ],
         users: [
@@ -83,6 +84,7 @@ describe("getSchedule", () => {
             schedules: [
               {
                 id: 1,
+                name: "Test Schedule",
                 timeZone: "Europe/London",
                 availability: [
                   {
@@ -100,10 +102,12 @@ describe("getSchedule", () => {
 
       scenarioData.users[0].schedules.push({
         id: 50,
+        name: "Test Schedule",
         timeZone: "Asia/Dubai",
         availability: [
           {
-            date: new Date("2025-06-02T00:00:00.000Z"),
+            date: "2025-06-02",
+            days: [1, 2, 3, 4, 5],
             startTime: new Date("1970-01-01T10:00:00.000Z"),
             endTime: new Date("1970-01-01T18:00:00.000Z"),
           },
@@ -158,7 +162,7 @@ describe("getSchedule", () => {
             length: 60,
             restrictionScheduleId: 50,
             useBookerTimezone: false,
-            hosts: [{ id: 101 }],
+            hosts: [{ userId: 101 }],
           },
         ],
         users: [
@@ -168,6 +172,7 @@ describe("getSchedule", () => {
             schedules: [
               {
                 id: 1,
+                name: "Test Schedule",
                 timeZone: "Europe/London",
                 availability: [
                   {
@@ -185,6 +190,7 @@ describe("getSchedule", () => {
 
       scenarioData.users[0].schedules.push({
         id: 50,
+        name: "Test Schedule",
         timeZone: "Asia/Dubai",
         availability: [
           {
@@ -249,7 +255,7 @@ describe("getSchedule", () => {
             length: 60,
             restrictionScheduleId: 50,
             useBookerTimezone: true,
-            hosts: [{ id: 101 }],
+            hosts: [{ userId: 101 }],
           },
         ],
         users: [
@@ -259,6 +265,7 @@ describe("getSchedule", () => {
             schedules: [
               {
                 id: 1,
+                name: "Test Schedule",
                 timeZone: "Europe/London",
                 availability: [
                   {
@@ -276,6 +283,7 @@ describe("getSchedule", () => {
 
       scenarioData.users[0].schedules.push({
         id: 50,
+        name: "Test Schedule",
         timeZone: "Asia/Dubai",
         availability: [
           {
@@ -338,7 +346,7 @@ describe("getSchedule", () => {
             id: 1,
             length: 60,
             useBookerTimezone: false,
-            hosts: [{ id: 101 }],
+            hosts: [{ userId: 101 }],
           },
         ],
         users: [
@@ -348,6 +356,7 @@ describe("getSchedule", () => {
             schedules: [
               {
                 id: 1,
+                name: "Test Schedule",
                 timeZone: "Europe/London",
                 availability: [
                   {
