@@ -210,6 +210,7 @@ model EventType {
   @@index([scheduleId])
   @@index([secondaryEmailId])
   @@index([parentId])
+  @@index([restrictionScheduleId])
 }
 
 model Credential {
