@@ -153,6 +153,11 @@ export type FormValues = {
   maxLeadThreshold?: number;
   restrictionScheduleId: number | null;
   useBookerTimezone: boolean;
+  calVideoSettings?: {
+    disableRecordingForOrganizer?: boolean;
+    disableRecordingForGuests?: boolean;
+    redirectUrlOnExit?: string;
+  };
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
