@@ -315,7 +315,6 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
                       Cancel
                     </Button>
                     <Button
-                      StartIcon={btcpayIcon}
                       className="h-10"
                       color="primary"
                       type="submit"

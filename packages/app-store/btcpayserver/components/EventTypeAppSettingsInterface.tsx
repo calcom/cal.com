@@ -64,7 +64,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               <TextField
                 label={t("price")}
                 className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
-                addOnSuffix={selectedCurrency.unit || selectedCurrency.value}
+                addOnSuffix={selectedCurrency.value}
                 addOnClassname="h-[38px]"
                 step="1"
                 min="1"
