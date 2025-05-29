@@ -75,7 +75,10 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    userId: Booking["userId"],
+    username: string | null,
     bookerName: string,
+    paymentOption: PaymentOption,
     bookerEmail: string
   ) {
     try {
@@ -115,7 +118,7 @@ export class PaymentService implements IAbstractPaymentService {
         `/api/v1/stores/${this.credentials.storeId}/invoices`,
         { method: "POST", body: JSON.stringify(invoiceRequest) }
       )) as BTCPayInvoice;
-
+ 
       const paymentData = await prisma.payment.create({
         data: {
           uid,
