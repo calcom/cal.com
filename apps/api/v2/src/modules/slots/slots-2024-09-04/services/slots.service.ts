@@ -109,9 +109,10 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid end date");
     }
 
-    const booking = await this.slotsRepository.getBookingWithAttendeesByEventTypeIdAndStart(
+    const booking = await this.slotsRepository.findActiveOverlappingBooking(
       input.eventTypeId,
-      startDate.toJSDate()
+      startDate.toJSDate(),
+      endDate.toJSDate()
     );
 
     if (eventType.seatsPerTimeSlot) {
@@ -126,8 +127,7 @@ export class SlotsService_2024_09_04 {
       }
     }
 
-    const nonSeatedEventAlreadyBooked =
-      !eventType.seatsPerTimeSlot && booking && this.bookingIsNotCancelledOrRejected(booking);
+    const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
     if (nonSeatedEventAlreadyBooked) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
@@ -259,9 +259,10 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid end date");
     }
 
-    const booking = await this.slotsRepository.getBookingWithAttendeesByEventTypeIdAndStart(
+    const booking = await this.slotsRepository.findActiveOverlappingBooking(
       input.eventTypeId,
-      startDate.toJSDate()
+      startDate.toJSDate(),
+      endDate.toJSDate()
     );
 
     if (eventType.seatsPerTimeSlot) {
@@ -276,8 +277,7 @@ export class SlotsService_2024_09_04 {
       }
     }
 
-    const nonSeatedEventAlreadyBooked =
-      !eventType.seatsPerTimeSlot && booking && this.bookingIsNotCancelledOrRejected(booking);
+    const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
     if (nonSeatedEventAlreadyBooked) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
@@ -299,9 +299,5 @@ export class SlotsService_2024_09_04 {
 
   async deleteReservedSlot(uid: string) {
     return this.slotsRepository.deleteSlot(uid);
-  }
-
-  private bookingIsNotCancelledOrRejected(booking: { status: Booking["status"] }) {
-    return booking.status !== "CANCELLED" && booking.status !== "REJECTED";
   }
 }
