@@ -1,5 +1,3 @@
-import React from "react";
-
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
 import type {
   ApiErrorResponse,
@@ -39,7 +37,7 @@ type AvailabilitySettingsPlatformWrapperProps = {
   allowSetToDefault?: boolean;
   disableToasts?: boolean;
   isDryRun?: boolean;
-  loadingStateChildren?: React.ReactElement;
+  loadingStateChildren?: React.ReactNode;
 };
 
 export const AvailabilitySettingsPlatformWrapper = ({
@@ -122,10 +120,8 @@ export const AvailabilitySettingsPlatformWrapper = ({
   };
 
   if (isLoading) {
-    if (loadingStateChildren) {
-      return loadingStateChildren;
-    }
-    return <div className="px-10 py-4 text-xl">Loading...</div>;
+    if (loadingStateChildren) return <> {loadingStateChildren} </>;
+    return <div className="px-10 py-4 text-xl"> Loading... </div>;
   }
 
   if (!atomSchedule) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
