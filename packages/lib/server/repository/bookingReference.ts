@@ -66,4 +66,27 @@ export class BookingReferenceRepository {
       },
     });
   }
+
+  static async findManyWhereUidsAndTypeIncludeBooking({ uids, type }: { uids: string[]; type: string }) {
+    return prisma.bookingReference.findMany({
+      where: {
+        uid: {
+          in: uids,
+        },
+        type: type,
+      },
+      select: {
+        uid: true,
+        type: true,
+        booking: {
+          select: {
+            id: true,
+            startTime: true,
+            endTime: true,
+            status: true,
+          },
+        },
+      },
+    });
+  }
 }
