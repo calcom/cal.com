@@ -21,7 +21,8 @@ import {
   ZOOM,
   OFFICE_365_VIDEO,
 } from "@calcom/platform-constants";
-import { userMetadata, getUsersCredentials } from "@calcom/platform-libraries";
+import { userMetadata } from "@calcom/platform-libraries";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import { getApps, handleDeleteCredential } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
@@ -90,7 +91,7 @@ export class ConferencingService {
     if (!CONFERENCING_APPS.includes(appSlug)) {
       throw new BadRequestException("Invalid app, available apps are: ", CONFERENCING_APPS.join(", "));
     }
-    const credentials = await getUsersCredentials(user);
+    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
     const foundApp = getApps(credentials, true).filter((app) => app.slug === appSlug)[0];
 

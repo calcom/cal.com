@@ -71,6 +71,10 @@ export class RouterController {
       3
     );
 
+    if (!eventTypeData) {
+      throw new NotFoundException("Event type not found.");
+    }
+
     // get the salesforce record owner email for the email given as a form response.
     const {
       email: teamMemberEmail,
@@ -81,9 +85,9 @@ export class RouterController {
       eventData: eventTypeData,
     });
 
-    Boolean(teamMemberEmail) && routingUrl.searchParams.set("cal.teamMemberEmail", teamMemberEmail);
-    Boolean(crmOwnerRecordType) && routingUrl.searchParams.set("cal.crmOwnerRecordType", crmOwnerRecordType);
-    Boolean(crmAppSlug) && routingUrl.searchParams.set("cal.crmAppSlug", crmAppSlug);
+    teamMemberEmail && routingUrl.searchParams.set("cal.teamMemberEmail", teamMemberEmail);
+    crmOwnerRecordType && routingUrl.searchParams.set("cal.crmOwnerRecordType", crmOwnerRecordType);
+    crmAppSlug && routingUrl.searchParams.set("cal.crmAppSlug", crmAppSlug);
 
     return { status: "success", data: routingUrl.toString(), redirect: true };
   }
