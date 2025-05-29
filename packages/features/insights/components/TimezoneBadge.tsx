@@ -1,3 +1,4 @@
+import { decodeHTML } from "entities";
 import { useMemo } from "react";
 
 import NoSSR from "@calcom/lib/components/NoSSR";
@@ -6,10 +7,6 @@ import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { useUserTimePreferences } from "@calcom/trpc/react/hooks/useUserTimePreferences";
 import { Badge } from "@calcom/ui/components/badge";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-const decodeHtmlEntities = (str: string): string => {
-  return str.replace(/&#x2F;/g, "/").replace(/&#47;/g, "/");
-};
 
 const TimezoneBadgeContent = () => {
   const { t } = useLocale();
@@ -32,7 +29,7 @@ const TimezoneBadgeContent = () => {
       userTimezone,
     });
 
-    const decodedTooltipContent = decodeHtmlEntities(rawTooltipContent);
+    const decodedTooltipContent = decodeHTML(rawTooltipContent);
 
     return {
       browser: browserTimezone,
