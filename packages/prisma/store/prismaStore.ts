@@ -35,7 +35,7 @@ const getPrismaClient = (options?: Prisma.PrismaClientOptions) => {
   // TODO: Migrate it to $extends
   bookingReferenceMiddleware(_prisma);
   return _prisma
-    .$extends(usageTrackingExtention())
+    .$extends(usageTrackingExtention(_prisma))
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())

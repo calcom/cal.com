@@ -27,11 +27,8 @@ if (!isNaN(loggerLevel)) {
   }
 }
 
-// If any changed on middleware server restart is required
-// TODO: Migrate it to $extends
-
 export const prisma = new Proxy({} as PrismaClientWithExtensions, {
-  get(target, prop) {
+  get(_target, prop) {
     if (process.env.NODE_ENV === "test") {
       const defaultPrisma = getPrisma(Tenant.US, prismaOptions);
       return Reflect.get(defaultPrisma, prop);
