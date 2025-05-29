@@ -437,6 +437,10 @@ export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
   name!: string;
 
   @IsString()
+  @DocsProperty({ example: "john-doe" })
+  username!: string;
+
+  @IsString()
   @IsOptional()
   @ApiPropertyOptional({
     example: "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png",
