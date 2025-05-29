@@ -4,18 +4,27 @@ export enum Tenant {
   INSIGHTS = "insights",
 }
 
-export const tenantToDatabaseUrl = {
+const TENANT_ENV_MAP: Partial<Record<Tenant, string>> = {};
+if (process.env.TENANT_DOMAINS_EU) {
+  TENANT_ENV_MAP[Tenant.EU] = process.env.TENANT_DOMAINS_EU;
+}
+
+export const tenantToDatabaseUrl: Record<Tenant, string | undefined> = {
   [Tenant.US]: process.env.DATABASE_URL,
   [Tenant.EU]: process.env.DATABASE_URL_EU,
   [Tenant.INSIGHTS]: process.env.INSIGHTS_DATABASE_URL,
 };
 
 export const getTenantFromHost = (host: string) => {
-  // TODO: Use an env variable for this
-  const EU_DOMAIN = "cal.eu";
-  // Check if host is exactly 'cal.eu' or ends with '.cal.eu'
-  if (host === EU_DOMAIN || host.endsWith(`.${EU_DOMAIN}`)) {
-    return Tenant.EU;
+  for (const [tenant, domainList] of Object.entries(TENANT_ENV_MAP)) {
+    const domains = domainList
+      .split(",")
+      .map((d) => d.trim())
+      .filter(Boolean);
+    if (domains.some((domain) => host === domain || host.endsWith(`.${domain}`))) {
+      console.debug(`Matched tenant: ${tenant} for host: ${host}`);
+      return tenant as Tenant;
+    }
   }
-  return Tenant.US;
+  return Tenant.US; // Default to US if no match found
 };
