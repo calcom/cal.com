@@ -1,16 +1,17 @@
 import { z } from "zod";
 
-import { _AvailabilityModel as Availability, _ScheduleModel as Schedule } from "@calcom/prisma/zod";
 import { denullishShape } from "@calcom/prisma/zod-utils";
+import { AvailabilitySchema } from "@calcom/prisma/zod/modelSchema/AvailabilitySchema";
+import { ScheduleSchema } from "@calcom/prisma/zod/modelSchema/ScheduleSchema";
 
 export const schemaAvailabilityBaseBodyParams = /** We make all these properties required */ denullishShape(
-  Availability.pick({
+  AvailabilitySchema.pick({
     /** We need to pass the schedule where this availability belongs to */
     scheduleId: true,
   })
 );
 
-export const schemaAvailabilityReadPublic = Availability.pick({
+export const schemaAvailabilityReadPublic = AvailabilitySchema.pick({
   id: true,
   startTime: true,
   endTime: true,
@@ -19,7 +20,7 @@ export const schemaAvailabilityReadPublic = Availability.pick({
   days: true,
   // eventTypeId: true /** @deprecated */,
   // userId: true /** @deprecated */,
-}).merge(z.object({ success: z.boolean().optional(), Schedule: Schedule.partial() }).partial());
+}).merge(z.object({ success: z.boolean().optional(), Schedule: ScheduleSchema.partial() }).partial());
 
 const schemaAvailabilityCreateParams = z
   .object({

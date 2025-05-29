@@ -92,7 +92,11 @@ async function postHandler(req: NextApiRequest) {
   }
 
   const data = await prisma.eventTypeCustomInput.create({
-    data: { ...body, eventType: { connect: { id: eventTypeId } } },
+    data: {
+      ...body,
+      options: body.options === null ? [] : body.options,
+      eventType: { connect: { id: eventTypeId } },
+    },
   });
 
   return {

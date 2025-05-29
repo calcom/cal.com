@@ -1,6 +1,5 @@
-import type { Payment, Prisma } from "@prisma/client";
-
 import appStore from "@calcom/app-store";
+import type { Payment, Prisma } from "@calcom/prisma/client";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 

@@ -1,6 +1,6 @@
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import type { BookerStore } from "@calcom/features/bookings/Booker/store";
-import type { Timezone } from "@calcom/features/bookings/Booker/types";
+import type { Timezone, VIEW_TYPE } from "@calcom/features/bookings/Booker/types";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
   ApiSuccessResponse,
@@ -8,7 +8,6 @@ import type {
   ApiSuccessResponseWithoutData,
   RoutingFormSearchParams,
 } from "@calcom/platform-types";
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
 
@@ -79,8 +78,6 @@ export type BookerPlatformWrapperAtomProps = Omit<
   timeZones?: Timezone[];
   isBookingDryRun?: boolean;
 };
-
-type VIEW_TYPE = keyof typeof BookerLayouts;
 
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
   username: string | string[];

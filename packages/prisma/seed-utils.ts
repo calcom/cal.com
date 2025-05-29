@@ -1,5 +1,4 @@
 import { faker } from "@faker-js/faker";
-import type { Prisma, UserPermissionRole } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { uuid } from "short-uuid";
 import type z from "zod";
@@ -10,6 +9,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import prisma from ".";
+import type { Prisma, UserPermissionRole } from "./client";
 import type { teamMetadataSchema } from "./zod-utils";
 
 export async function createUserAndEventType({

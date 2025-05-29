@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
-export const safeAppSelect = Prisma.validator<Prisma.AppSelect>()({
+export const safeAppSelect = {
   slug: true,
   dirName: true,
   /** Omitting to avoid frontend leaks */
@@ -9,4 +9,4 @@ export const safeAppSelect = Prisma.validator<Prisma.AppSelect>()({
   createdAt: true,
   updatedAt: true,
   enabled: true,
-});
+} satisfies Prisma.AppSelect;

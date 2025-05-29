@@ -1,8 +1,7 @@
-import type { EventType as PrismaEventType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import type { EventType as PrismaEventType } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -44,12 +43,12 @@ type HostWithLegacySelectedCalendars<
   user: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>;
 };
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   name: true,
   avatarUrl: true,
   username: true,
   id: true,
-});
+} satisfies Prisma.UserSelect;
 
 function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(
   hosts: HostWithLegacySelectedCalendars<TSelectedCalendar, THost, TUser>[]
@@ -370,12 +369,12 @@ export class EventTypeRepository {
     orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
     where?: Prisma.EventTypeWhereInput;
   }) {
-    const userSelect = Prisma.validator<Prisma.UserSelect>()({
+    const userSelect = {
       name: true,
       avatarUrl: true,
       username: true,
       id: true,
-    });
+    } satisfies Prisma.UserSelect;
 
     const select = {
       ...eventTypeSelect,
@@ -463,7 +462,7 @@ export class EventTypeRepository {
   }
 
   static async findById({ id, userId }: { id: number; userId: number }) {
-    const userSelect = Prisma.validator<Prisma.UserSelect>()({
+    const userSelect = {
       name: true,
       avatarUrl: true,
       username: true,
@@ -472,9 +471,9 @@ export class EventTypeRepository {
       locale: true,
       defaultScheduleId: true,
       isPlatformManaged: true,
-    });
+    } satisfies Prisma.UserSelect;
 
-    const CompleteEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+    const CompleteEventTypeSelect = {
       id: true,
       title: true,
       slug: true,
@@ -693,7 +692,7 @@ export class EventTypeRepository {
           redirectUrlOnExit: true,
         },
       },
-    });
+    } satisfies Prisma.EventTypeSelect;
 
     // This is more efficient than using a complex join with team.members in the query
     const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });

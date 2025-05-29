@@ -2,11 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import { WebhookService } from "../WebhookService";
-import getWebhooks from "../getWebhooks";
+import { WebhookService } from "./WebhookService";
+import getWebhooks from "./getWebhooks";
 
-vi.mock("../getWebhooks");
-vi.mock("../sendOrSchedulePayload");
+vi.mock("./getWebhooks", () => ({
+  default: vi.fn(),
+}));
+
+vi.mock("./sendOrSchedulePayload", () => ({
+  default: vi.fn(),
+}));
 
 vi.mock("@calcom/lib/logger", async () => {
   const actual = await vi.importActual<typeof import("@calcom/lib/logger")>("@calcom/lib/logger");
