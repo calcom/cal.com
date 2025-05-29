@@ -1,9 +1,10 @@
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
+import dayjs from "@calcom/dayjs";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
@@ -63,7 +64,10 @@ export const BookEventForm = ({
   eventQuery: {
     isError: boolean;
     isPending: boolean;
-    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
+    data?: Pick<
+      BookerEvent,
+      "price" | "currency" | "metadata" | "bookingFields" | "locations" | "minimumBookingNotice"
+    > | null;
   };
   rescheduleUid: string | null;
 }) => {
@@ -77,6 +81,28 @@ export const BookEventForm = ({
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
+
+  const [isMinimumBookingNoticePassed, setIsMinimumBookingNoticePassed] = useState(false);
+
+  useEffect(() => {
+    const minimumBookingNotice = eventType?.minimumBookingNotice;
+    if (!timeslot || !minimumBookingNotice) return;
+
+    const now = dayjs();
+    const meeting = dayjs(timeslot);
+
+    const minutesTillMeeting = meeting.diff(now, "minute");
+    const minutesTillBooking = Math.min(minutesTillMeeting - minimumBookingNotice, 60 * 12 * 10);
+
+    if (minutesTillBooking <= 0) {
+      setIsMinimumBookingNoticePassed(true);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => setIsMinimumBookingNoticePassed(true), minutesTillBooking * 60 * 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [timeslot, eventType]);
 
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;
@@ -227,7 +253,10 @@ export const BookEventForm = ({
                 type="submit"
                 color="primary"
                 disabled={
-                  (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
+                  (!!shouldRenderCaptcha && !watchedCfToken) ||
+                  isTimeslotUnavailable ||
+                  confirmButtonDisabled ||
+                  isMinimumBookingNoticePassed
                 }
                 loading={
                   loadingStates.creatingBooking ||

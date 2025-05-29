@@ -85,6 +85,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     disableCancelling: true,
     disableRescheduling: true,
     seatsShowAvailabilityCount: true,
+    minimumBookingNotice: true,
     bookingFields: true,
     teamId: true,
     team: {
