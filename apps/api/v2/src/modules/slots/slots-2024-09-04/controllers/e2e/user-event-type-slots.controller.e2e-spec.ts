@@ -1870,7 +1870,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
             .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
             .expect(201);
 
-          console.log("asap resoinse", reserveResponse.body);
           expect(reserveResponse.body.data.reservationUid).toBeDefined();
 
           await selectedSlotsRepositoryFixture.deleteByUId(reserveResponse.body.data.reservationUid);
