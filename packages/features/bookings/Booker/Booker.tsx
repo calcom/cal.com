@@ -335,7 +335,8 @@ const BookerComponent = ({
             `${customClassNames?.bookerContainer}`
           )}>
           <AnimatePresence>
-            {!isInstantMeeting && (
+            {/* calendar view options visible when selecting date and time only */}
+            {!isInstantMeeting && (bookerState === "selecting_date" || bookerState === "selecting_time") && (
               <BookerSection
                 area="header"
                 className={classNames(
