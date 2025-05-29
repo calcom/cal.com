@@ -21,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
@@ -94,6 +93,10 @@ function EventTypeSingleLayout({
   const [Shell] = useMemo(() => {
     return isPlatform ? [PlatformShell] : [WebShell];
   }, [isPlatform]);
+  const getEyeIconProps = () => ({
+    icon: formMethods.watch("hidden") ? "eye-off" : "eye",
+    tooltip: formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile"),
+  });
 
   return (
     <Shell
@@ -118,20 +121,20 @@ function EventTypeSingleLayout({
                     {t("hidden")}
                   </Skeleton>
                 )}
-                <Tooltip
-                  sideOffset={4}
-                  content={
-                    formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
-                  }
-                  side="bottom">
+                <Tooltip sideOffset={4} content={getEyeIconProps().tooltip} side="bottom">
                   <div className="self-center rounded-md p-2">
-                    <Switch
-                      id="hiddenSwitch"
+                    <Button
+                      variant="icon"
+                      color="secondary"
                       disabled={eventTypesLockedByOrg}
-                      checked={!formMethods.watch("hidden")}
-                      onCheckedChange={(e) => {
-                        formMethods.setValue("hidden", !e, { shouldDirty: true });
+                      onClick={() => {
+                        const current = formMethods.getValues("hidden");
+                        formMethods.setValue("hidden", !current, { shouldDirty: true });
                       }}
+                      tooltip={getEyeIconProps().tooltip}
+                      tooltipSide="bottom"
+                      tooltipOffset={4}
+                      StartIcon={getEyeIconProps().icon}
                     />
                   </div>
                 </Tooltip>
@@ -247,15 +250,22 @@ function EventTypeSingleLayout({
                 <Skeleton
                   as={Label}
                   htmlFor="hiddenSwitch"
-                  className="mt-2 inline cursor-pointer self-center pr-2 ">
+                  className="mt-2 inline cursor-pointer self-center pr-2">
                   {formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                 </Skeleton>
-                <Switch
-                  id="hiddenSwitch"
-                  checked={!formMethods.watch("hidden")}
-                  onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", !e, { shouldDirty: true });
+                <Button
+                  variant="icon"
+                  color="secondary"
+                  onClick={() => {
+                    const current = formMethods.getValues("hidden");
+                    formMethods.setValue("hidden", !current, { shouldDirty: true });
                   }}
+                  tooltip={
+                    formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
+                  }
+                  tooltipSide="bottom"
+                  tooltipOffset={4}
+                  StartIcon={formMethods.watch("hidden") ? "eye-off" : "eye"}
                 />
               </div>
             </DropdownMenuContent>
