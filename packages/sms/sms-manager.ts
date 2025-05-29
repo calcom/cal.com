@@ -58,6 +58,7 @@ export default abstract class SMSManager {
   isTeamEvent = false;
   teamId: number | undefined = undefined;
   organizerUserId: number | undefined = undefined;
+  private _isSMSNotificationEnabled: boolean | null = null;
 
   constructor(calEvent: CalendarEvent) {
     this.calEvent = calEvent;
@@ -67,6 +68,10 @@ export default abstract class SMSManager {
   }
 
   private async isSMSNotificationEnabled(): Promise<boolean> {
+    if (this._isSMSNotificationEnabled !== null) {
+      return this._isSMSNotificationEnabled;
+    }
+
     const teamId = this.teamId;
 
     if (teamId) {
@@ -86,11 +91,11 @@ export default abstract class SMSManager {
         },
       });
 
-      if (team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications) {
-        return false;
-      }
+      this._isSMSNotificationEnabled = !team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications;
+      return this._isSMSNotificationEnabled;
     }
 
+    this._isSMSNotificationEnabled = true;
     return true;
   }
 
