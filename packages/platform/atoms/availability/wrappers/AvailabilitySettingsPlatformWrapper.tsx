@@ -37,6 +37,7 @@ type AvailabilitySettingsPlatformWrapperProps = {
   allowSetToDefault?: boolean;
   disableToasts?: boolean;
   isDryRun?: boolean;
+  loadingStateChildren?: React.ReactNode;
 };
 
 export const AvailabilitySettingsPlatformWrapper = ({
@@ -53,6 +54,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
   allowSetToDefault,
   disableToasts,
   isDryRun = false,
+  loadingStateChildren,
 }: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
@@ -117,7 +119,10 @@ export const AvailabilitySettingsPlatformWrapper = ({
     }
   };
 
-  if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;
+  if (isLoading) {
+    if (loadingStateChildren) return <> {loadingStateChildren} </>;
+    return <div className="px-10 py-4 text-xl"> Loading... </div>;
+  }
 
   if (!atomSchedule) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
 
