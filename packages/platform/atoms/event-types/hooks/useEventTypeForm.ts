@@ -187,17 +187,18 @@ export const useEventTypeForm = ({
     formState: { isDirty: isFormDirty, dirtyFields },
   } = form;
 
+  // Watch all form values to trigger onFormStateChange on any change
+  const watchedValues = form.watch();
+
   useEffect(() => {
     if (onFormStateChange) {
-      const currentValues = form.getValues();
-
       onFormStateChange({
         isDirty: isFormDirty,
         dirtyFields: dirtyFields as Partial<FormValues>,
-        values: currentValues,
+        values: watchedValues,
       });
     }
-  }, [isFormDirty, dirtyFields, onFormStateChange, form]);
+  }, [isFormDirty, watchedValues, onFormStateChange]);
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
