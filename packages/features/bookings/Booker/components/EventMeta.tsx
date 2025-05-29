@@ -253,7 +253,7 @@ export const EventMeta = ({
               </EventMetaBlock>
             ) : null}
           </div>
-          {children && <div className={`${classNames?.eventMetaChildren || ""} mt-4`}>{children}</div>}
+          {children && <div className={classNames?.eventMetaChildren}>{children}</div>}
         </m.div>
       )}
     </div>
