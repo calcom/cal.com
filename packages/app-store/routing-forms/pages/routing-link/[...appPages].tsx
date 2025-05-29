@@ -231,7 +231,7 @@ const usePrefilledResponse = (form: Props["form"]) => {
     // We only want to keep arrays if the field is a multi-select
     const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
 
-    prefillResponse[field.name] = {
+    prefillResponse[field.id ?? field.name] = {
       value: getFieldResponseForJsonLogic({ field, value }),
       label: field.label,
       identifier: field?.identifier,

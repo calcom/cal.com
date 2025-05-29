@@ -62,7 +62,7 @@ const _handleResponse = async ({
     };
 
     const missingFields = serializableFormWithFields.fields
-      .filter((field) => !(field.required ? response[field.name]?.value : true))
+      .filter((field) => !(field.required ? response[field.id ?? field.name]?.value : true))
       .map((f) => f.label);
 
     if (missingFields.length) {
@@ -73,7 +73,7 @@ const _handleResponse = async ({
     }
     const invalidFields = serializableFormWithFields.fields
       .filter((field) => {
-        const fieldValue = response[field.name]?.value;
+        const fieldValue = response[field.id ?? field.name]?.value;
         // The field isn't required at this point. Validate only if it's set
         if (!fieldValue) {
           return false;
@@ -88,7 +88,7 @@ const _handleResponse = async ({
         }
         return !schema.safeParse(fieldValue).success;
       })
-      .map((f) => ({ label: f.label, type: f.type, value: response[f.name]?.value }));
+      .map((f) => ({ label: f.label, type: f.type, value: response[f.id ?? f.name]?.value }));
 
     if (invalidFields.length) {
       throw new TRPCError({

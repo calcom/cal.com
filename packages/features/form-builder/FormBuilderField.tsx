@@ -367,6 +367,21 @@ export const ComponentForField = ({
     ) : null;
   }
 
+  if (componentConfig.propsType === "number") {
+    return (
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
+        <componentConfig.factory
+          placeholder={field.placeholder}
+          name={field.name}
+          label={field.label}
+          readOnly={readOnly}
+          value={value as number}
+          setValue={setValue as (arg: typeof value) => void}
+        />
+      </WithLabel>
+    );
+  }
+
   if (componentConfig.propsType === "variants") {
     const translatedVariantsConfig = getTranslatedVariantsConfig(field, t);
     if (!translatedVariantsConfig) {

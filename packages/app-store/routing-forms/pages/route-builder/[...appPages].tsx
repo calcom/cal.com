@@ -1412,7 +1412,6 @@ function Page({
     console.error("Events not available");
     return <div>{t("something_went_wrong")}</div>;
   }
-
   return (
     <div className="route-config">
       <Routes

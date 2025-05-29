@@ -29,11 +29,16 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
   text: (val) => typeof val === "string",
   textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
   variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
+  number: (val) => typeof val === "number" || typeof val === "string",
 };
 
 type Component =
   | {
       propsType: "text";
+      factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
+    }
+  | {
+      propsType: "number";
       factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
     }
   | {

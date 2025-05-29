@@ -110,7 +110,7 @@ export const TestForm = ({
     if (!requiredFields.length) return true;
 
     return requiredFields.every((field) => {
-      const fieldResponse = response[field.name];
+      const fieldResponse = response[field.id ?? field.name];
       if (!fieldResponse) return false;
 
       const value = fieldResponse.value;

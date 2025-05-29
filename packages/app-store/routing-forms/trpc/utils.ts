@@ -100,7 +100,7 @@ async function _onFormSubmission(
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 
   for (const [fieldId, fieldResponse] of Object.entries(response)) {
-    const field = form.fields.find((f) => f.name === fieldId);
+    const field = form.fields.find((f) => (f.id ?? f.name) === fieldId);
     if (!field) {
       throw new Error(`Field with id ${fieldId} not found`);
     }

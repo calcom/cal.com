@@ -1,4 +1,9 @@
-export const getValidRhfFieldName = (fieldName: string) => {
+export const getValidRhfFieldName = (fieldName: string | undefined) => {
+  if (!fieldName) {
+    return fieldName;
+  }
+
+  // We don't want to allow any special characters in the field name. So, we replace all the special characters with `-`
   // Remember that any transformation that you do here would run on System Field names as well. So, be careful and avoiding doing anything here that would modify the SystemField names.
   // e.g. SystemField name currently have uppercases in them. So, no need to lowercase unless absolutely needed.
   return fieldName.replace(/[^a-zA-Z0-9-_]/g, "-");
