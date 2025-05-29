@@ -12,7 +12,6 @@ export type IconName =
   | "atom"
   | "badge-check"
   | "ban"
-  | "bell-off"
   | "bell"
   | "binary"
   | "blocks"

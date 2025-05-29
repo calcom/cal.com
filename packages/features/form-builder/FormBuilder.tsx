@@ -99,10 +99,6 @@ export const FormBuilder = function FormBuilder({
     name: formProp as unknown as "fields",
   });
 
-  if (formProp === "bookingFields") {
-    console.log("fields", fields);
-  }
-
   const [fieldDialog, setFieldDialog] = useState({
     isOpen: false,
     fieldIndex: -1,

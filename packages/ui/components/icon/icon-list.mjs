@@ -13,7 +13,6 @@ export const lucideIconList = new Set([
   "badge-check",
   "ban",
   "bell",
-  "bell-off",
   "binary",
   "blocks",
   "bold",
