@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import type { CalendarEventsToSync } from "@calcom/types/Calendar";
@@ -185,25 +186,9 @@ export async function syncDownstream({
   try {
     const calendarEventIds = calendarEvents.map((event) => event.id).filter(Boolean) as string[];
 
-    const bookingReferences = await prisma.bookingReference.findMany({
-      where: {
-        uid: {
-          in: calendarEventIds,
-        },
-        type: app.type,
-      },
-      select: {
-        uid: true,
-        type: true,
-        booking: {
-          select: {
-            id: true,
-            startTime: true,
-            endTime: true,
-            status: true,
-          },
-        },
-      },
+    const bookingReferences = await BookingReferenceRepository.findManyWhereUidsAndTypeIncludeBooking({
+      uids: calendarEventIds,
+      type: app.type,
     });
 
     const bookingMap = getBookingMap(bookingReferences);
