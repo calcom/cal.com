@@ -124,11 +124,7 @@ export class LicenseKeySingleton {
 
   public static async getInstance(deploymentRepo: IDeploymentRepository): Promise<ILicenseKeyService> {
     if (!LicenseKeySingleton.instance) {
-      const licenseKey = await getDeploymentKey(deploymentRepo);
-      const useNoop = !licenseKey || process.env.NEXT_PUBLIC_IS_E2E === "1";
-      LicenseKeySingleton.instance = !useNoop
-        ? await LicenseKeyService.create(deploymentRepo)
-        : new NoopLicenseKeyService();
+      LicenseKeySingleton.instance = await LicenseKeyService.create(deploymentRepo);
     }
     return LicenseKeySingleton.instance;
   }

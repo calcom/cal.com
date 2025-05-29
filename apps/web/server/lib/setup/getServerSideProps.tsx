@@ -20,7 +20,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
   // direct access is intentional.
   const deploymentRepo = new DeploymentRepository(prisma);
-  const licenseKey = deploymentRepo.getLicenseKeyWithId(1);
+  const licenseKey = await deploymentRepo.getLicenseKeyWithId(1);
 
   // Check existent CALCOM_LICENSE_KEY env var and account for it
   if (!!process.env.CALCOM_LICENSE_KEY && !licenseKey) {
