@@ -26,7 +26,7 @@ generator kysely {
 }
 
 generator enums {
-  provider = "ts-node --transpile-only ./enum-generator"
+  provider = "ts-node --transpile-only ./enum-generator.ts"
 }
 
 enum SchedulingType {

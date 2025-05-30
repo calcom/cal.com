@@ -1,7 +1,7 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -103,6 +103,7 @@ type AvailabilitySettingsProps = {
   customClassNames?: CustomClassNames;
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
+  onFormStateChange?: (formState: AvailabilityFormValues) => void;
   bulkUpdateModalProps?: {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -275,6 +276,7 @@ export function AvailabilitySettings({
   customClassNames,
   disableEditableHeading = false,
   enableOverrides = false,
+  onFormStateChange,
   bulkUpdateModalProps,
   allowSetToDefault = true,
   allowDelete = true,
@@ -288,6 +290,17 @@ export function AvailabilitySettings({
       schedule: schedule.availability || [],
     },
   });
+
+  const watchedValues = useWatch({
+    control: form.control,
+  });
+
+  // Trigger callback whenever the form state changes
+  useEffect(() => {
+    if (onFormStateChange && watchedValues) {
+      onFormStateChange(watchedValues as AvailabilityFormValues);
+    }
+  }, [watchedValues, onFormStateChange]);
 
   const [Shell, Schedule, TimezoneSelect] = useMemo(() => {
     return isPlatform
