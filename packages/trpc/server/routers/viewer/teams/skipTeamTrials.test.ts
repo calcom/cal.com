@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 
 import { skipTeamTrialsHandler } from "./skipTeamTrials.handler";
@@ -34,6 +35,31 @@ vi.mock("@calcom/prisma", () => ({
     team: {
       findMany: vi.fn(),
     },
+  },
+}));
+
+vi.mock("@calcom/lib/server/repository/team", () => ({
+  TeamRepository: {
+    skipTeamTrials: vi.fn().mockImplementation(async ({ userId }) => {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { trialEndsAt: null },
+      });
+
+      const ownedTeams = await prisma.team.findMany({
+        where: {
+          members: {
+            some: {
+              userId: userId,
+              accepted: true,
+              role: "OWNER",
+            },
+          },
+        },
+      });
+
+      return { success: true, ownedTeams };
+    }),
   },
 }));
 
@@ -124,7 +150,7 @@ describe("skipTeamTrialsHandler", () => {
   });
 
   it("should handle errors gracefully", async () => {
-    vi.mocked(prisma.user.update).mockRejectedValueOnce(new Error("Database error"));
+    vi.mocked(TeamRepository.skipTeamTrials).mockRejectedValueOnce(new Error("Database error"));
 
     // @ts-expect-error - simplified context for testing
     const result = await skipTeamTrialsHandler({ ctx: mockCtx, input: {} });

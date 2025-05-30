@@ -1,14 +1,21 @@
 import { Prisma } from "@prisma/client";
+import crypto from "crypto";
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import removeMember from "@calcom/features/ee/teams/lib/removeMember";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
+import { uploadLogo } from "@calcom/lib/server/avatar";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
 
 import { TRPCError } from "@trpc/server";
 
@@ -170,6 +177,7 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   isOrganization: true,
   organizationSettings: true,
   isPlatform: true,
+  isPrivate: true,
 });
 
 export class TeamRepository {
@@ -222,6 +230,555 @@ export class TeamRepository {
     if (deletedTeam?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
 
     return deletedTeam;
+  }
+
+  static async create({
+    name,
+    slug,
+    userId,
+    logo,
+    parentId,
+  }: {
+    name: string;
+    slug: string;
+    userId: number;
+    logo?: string;
+    parentId?: number;
+  }) {
+    const createdTeam = await prisma.team.create({
+      data: {
+        slug,
+        name,
+        members: {
+          create: {
+            userId,
+            role: MembershipRole.OWNER,
+            accepted: true,
+          },
+        },
+        ...(parentId && { parentId }),
+      },
+    });
+
+    if (logo && logo.startsWith("data:image/png;base64,")) {
+      const logoUrl = await uploadLogo({
+        logo,
+        teamId: createdTeam.id,
+      });
+      await prisma.team.update({
+        where: {
+          id: createdTeam.id,
+        },
+        data: {
+          logoUrl,
+        },
+      });
+    }
+
+    return createdTeam;
+  }
+
+  static async update({
+    id,
+    data,
+    logo,
+    prevTeam,
+    isTeamBillingEnabled,
+  }: {
+    id: number;
+    data: Prisma.TeamUpdateArgs["data"];
+    logo?: string | null;
+    prevTeam?: any;
+    isTeamBillingEnabled?: boolean;
+  }) {
+    const updateData: Prisma.TeamUpdateArgs["data"] = { ...data };
+
+    if (logo && logo.startsWith("data:image/png;base64,")) {
+      const { uploadLogo } = await import("@calcom/lib/server/avatar");
+      updateData.logoUrl = await uploadLogo({ teamId: id, logo });
+    } else if (typeof logo !== "undefined" && !logo) {
+      updateData.logoUrl = null;
+    }
+
+    if (prevTeam && isTeamBillingEnabled) {
+      if (
+        data.slug &&
+        isTeamBillingEnabled &&
+        /** If the team doesn't have a slug we can assume that it hasn't been published yet. */
+        !prevTeam.slug
+      ) {
+        updateData.metadata = {
+          requestedSlug: data.slug,
+        };
+        delete updateData.slug;
+      } else if (data.slug) {
+        const { teamMetadataSchema } = await import("@calcom/prisma/zod-utils");
+        const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
+        if (metadataParse.success) {
+          const { requestedSlug: _, ...cleanMetadata } = metadataParse.data || {};
+          updateData.metadata = {
+            ...cleanMetadata,
+          };
+        }
+      }
+    }
+
+    const updatedTeam = await prisma.team.update({
+      where: { id },
+      data: updateData,
+    });
+
+    if (prevTeam && updatedTeam.parentId && prevTeam.slug) {
+      if (updatedTeam.slug === prevTeam.slug) return updatedTeam;
+
+      const parentTeam = await prisma.team.findUnique({
+        where: {
+          id: updatedTeam.parentId,
+        },
+        select: {
+          slug: true,
+        },
+      });
+
+      if (!parentTeam?.slug) {
+        throw new Error(`Parent team with slug: ${parentTeam?.slug} not found`);
+      }
+
+      const { getOrgFullOrigin } = await import("@calcom/ee/organizations/lib/orgDomains");
+      const orgUrlPrefix = getOrgFullOrigin(parentTeam.slug);
+
+      const toUrlOld = `${orgUrlPrefix}/${prevTeam.slug}`;
+      const toUrlNew = `${orgUrlPrefix}/${updatedTeam.slug}`;
+
+      const { RedirectType } = await import("@calcom/prisma/enums");
+      await prisma.tempOrgRedirect.updateMany({
+        where: {
+          type: RedirectType.Team,
+          toUrl: toUrlOld,
+        },
+        data: {
+          toUrl: toUrlNew,
+        },
+      });
+    }
+
+    return updatedTeam;
+  }
+
+  static async findBySlug(slug: string, options?: { includeMemberships?: boolean }) {
+    return await prisma.team.findFirst({
+      where: {
+        slug,
+      },
+      ...(options?.includeMemberships && {
+        include: {
+          members: true,
+        },
+      }),
+    });
+  }
+
+  static async checkSlugConflict({ slug, exceptTeamId }: { slug: string; exceptTeamId: number }) {
+    const teams = await prisma.team.findMany({
+      where: {
+        slug: slug,
+      },
+    });
+
+    return teams.some((t) => t.id !== exceptTeamId);
+  }
+
+  static async checkSlugCollision({ slug, parentId }: { slug: string; parentId: number | null }) {
+    return await prisma.team.findFirst({
+      where: {
+        slug: slug,
+        parentId: parentId,
+      },
+    });
+  }
+
+  static async findByParentId(parentId: number) {
+    return await prisma.team.findMany({
+      where: {
+        parentId,
+      },
+    });
+  }
+
+  static async acceptMembership({ userId, teamId }: { userId: number; teamId: number }) {
+    const teamMembership = await prisma.membership.update({
+      where: {
+        userId_teamId: { userId, teamId },
+      },
+      data: {
+        accepted: true,
+      },
+      include: {
+        team: true,
+      },
+    });
+
+    return teamMembership;
+  }
+
+  static async declineMembership({ userId, teamId }: { userId: number; teamId: number }) {
+    const membership = await prisma.membership.delete({
+      where: {
+        userId_teamId: { userId, teamId },
+      },
+      include: {
+        team: true,
+      },
+    });
+
+    return membership;
+  }
+
+  static async updateMembership({
+    userId,
+    teamId,
+    data,
+  }: {
+    userId: number;
+    teamId: number;
+    data: Prisma.MembershipUpdateInput;
+  }) {
+    return await prisma.membership.update({
+      where: {
+        userId_teamId: { userId, teamId },
+      },
+      data,
+    });
+  }
+
+  static async changeMemberRole({
+    memberId,
+    teamId,
+    role,
+  }: {
+    memberId: number;
+    teamId: number;
+    role: MembershipRole;
+  }) {
+    return await prisma.membership.update({
+      where: {
+        userId_teamId: { userId: memberId, teamId },
+      },
+      data: {
+        role,
+      },
+      include: {
+        team: true,
+        user: true,
+      },
+    });
+  }
+
+  static async listMembers({
+    teamId,
+    cursor,
+    limit,
+    searchTerm,
+  }: {
+    teamId: number;
+    cursor?: string;
+    limit?: number;
+    searchTerm?: string;
+  }) {
+    const whereCondition: Prisma.MembershipWhereInput = {
+      teamId,
+    };
+
+    if (searchTerm) {
+      whereCondition.user = {
+        OR: [
+          { email: { contains: searchTerm, mode: "insensitive" } },
+          { username: { contains: searchTerm, mode: "insensitive" } },
+          { name: { contains: searchTerm, mode: "insensitive" } },
+        ],
+      };
+    }
+
+    const totalMembers = await prisma.membership.count({ where: whereCondition });
+
+    const userSelect = Prisma.validator<Prisma.UserSelect>()({
+      username: true,
+      email: true,
+      name: true,
+      avatarUrl: true,
+      id: true,
+      bio: true,
+      disableImpersonation: true,
+      lastActiveAt: true,
+    });
+
+    const teamMembers = await prisma.membership.findMany({
+      where: whereCondition,
+      select: {
+        id: true,
+        role: true,
+        accepted: true,
+        teamId: true,
+        user: { select: userSelect },
+      },
+      cursor: cursor ? { id: parseInt(cursor, 10) } : undefined,
+      take: limit ? limit + 1 : undefined,
+      orderBy: { id: "asc" },
+    });
+
+    let nextCursor: typeof cursor | undefined = undefined;
+    if (limit && teamMembers.length > limit) {
+      const nextItem = teamMembers.pop();
+      nextCursor = nextItem?.id ? String(nextItem.id) : undefined;
+    }
+
+    return {
+      members: teamMembers,
+      nextCursor,
+      meta: {
+        totalRowCount: totalMembers,
+      },
+    };
+  }
+
+  static async listAllMemberships(
+    teamIdOrParams:
+      | number
+      | {
+          userId?: number;
+          teamId?: number;
+          where?: Prisma.MembershipWhereInput;
+          select?: Prisma.MembershipSelect;
+        }
+  ) {
+    if (typeof teamIdOrParams === "number") {
+      return await prisma.membership.findMany({
+        where: {
+          teamId: teamIdOrParams,
+        },
+      });
+    } else {
+      const { userId, teamId, where, select } = teamIdOrParams;
+      return await prisma.membership.findMany({
+        where: {
+          ...(userId ? { userId } : {}),
+          ...(teamId ? { teamId } : {}),
+          ...where,
+        },
+        ...(select ? { select } : {}),
+      });
+    }
+  }
+
+  static async findTeamById(teamId: number) {
+    return await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        parent: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async findTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
+    return await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId,
+      },
+    });
+  }
+
+  static async findTeamMembershipsByUserIds({ teamId, userIds }: { teamId: number; userIds: number[] }) {
+    return await prisma.membership.findMany({
+      where: {
+        teamId,
+        userId: {
+          in: userIds,
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+  }
+
+  static async findOrgAdminOrOwnerMembership({ userId, orgId }: { userId: number; orgId: number }) {
+    return await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId: orgId,
+        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+      },
+    });
+  }
+
+  static async createInvite({ teamId, token }: { teamId: number; token?: string }) {
+    if (token) {
+      const existingToken = await prisma.verificationToken.findFirst({
+        where: { token, identifier: `invite-link-for-teamId-${teamId}`, teamId },
+      });
+      if (!existingToken) return null;
+      return existingToken;
+    }
+
+    const newToken = await prisma.verificationToken.create({
+      data: {
+        identifier: `invite-link-for-teamId-${teamId}`,
+        token: token || crypto.randomBytes(32).toString("hex"),
+        expires: new Date(new Date().setHours(168)), // +1 week,
+        expiresInDays: 7,
+        teamId,
+      },
+    });
+
+    return newToken;
+  }
+
+  static async deleteInvite({ teamId, token }: { teamId: number; token: string }) {
+    return await prisma.verificationToken.delete({
+      where: {
+        token,
+      },
+    });
+  }
+
+  static async getVerificationToken({ token }: { token: string }) {
+    return await prisma.verificationToken.findFirst({
+      where: {
+        token: token,
+      },
+      select: {
+        teamId: true,
+        id: true,
+      },
+    });
+  }
+
+  static async getVerificationTokenByEmail({ identifier, teamId }: { identifier: string; teamId: number }) {
+    return await prisma.verificationToken.findFirst({
+      where: {
+        identifier,
+        teamId,
+      },
+      select: {
+        token: true,
+      },
+    });
+  }
+
+  static async setInviteExpiration({
+    token,
+    expiresInDays,
+  }: {
+    token: string;
+    expiresInDays: number | null;
+  }) {
+    const oneDay = 24 * 60 * 60 * 1000;
+    const expires = expiresInDays
+      ? new Date(Date.now() + expiresInDays * oneDay)
+      : new Date("9999-12-31T23:59:59Z"); //maximum possible date incase the link is set to never expire
+
+    return await prisma.verificationToken.update({
+      where: { token },
+      data: {
+        expires,
+        expiresInDays: expiresInDays ? expiresInDays : null,
+      },
+    });
+  }
+
+  static async listInvites({ teamId }: { teamId: number }) {
+    return await prisma.verificationToken.findMany({
+      where: {
+        teamId,
+      },
+      select: {
+        id: true,
+        token: true,
+        expires: true,
+        expiresInDays: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  static async listUserInvites(userId: number) {
+    return await prisma.membership.findMany({
+      where: {
+        user: {
+          id: userId,
+        },
+        accepted: false,
+      },
+    });
+  }
+
+  static async listOwnedTeams({ userId, roles }: { userId: number; roles: MembershipRole[] }) {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        teams: {
+          where: {
+            accepted: true,
+            role: {
+              in: roles,
+            },
+          },
+          select: {
+            team: true,
+          },
+        },
+      },
+    });
+
+    return user?.teams
+      ?.filter((m) => {
+        return !m.team.isOrganization;
+      })
+      ?.map(({ team }) => team);
+  }
+
+  static async getMembershipByUser({ userId, teamId }: { userId: number; teamId: number }) {
+    return await prisma.membership.findUnique({
+      where: {
+        userId_teamId: {
+          userId,
+          teamId,
+        },
+      },
+    });
+  }
+
+  static async listUserTeams({ userId }: { userId: number }) {
+    return await prisma.membership.findMany({
+      where: {
+        userId: userId,
+      },
+      include: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logoUrl: true,
+            isOrganization: true,
+            metadata: true,
+            inviteTokens: true,
+            parent: true,
+            parentId: true,
+          },
+        },
+      },
+      orderBy: { role: "desc" },
+    });
   }
 
   // TODO: Move errors away from TRPC error to make it more generic
@@ -317,5 +874,668 @@ export class TeamRepository {
         isOrganization: true,
       },
     });
+  }
+
+  static async hasTeamPlan(userId: number) {
+    const hasTeamPlan = await prisma.membership.findFirst({
+      where: {
+        accepted: true,
+        userId,
+        team: {
+          slug: {
+            not: null,
+          },
+        },
+      },
+    });
+    return { hasTeamPlan: !!hasTeamPlan };
+  }
+
+  static async hasActiveTeamPlan(userId: number) {
+    const { IS_SELF_HOSTED } = await import("@calcom/lib/constants");
+    if (IS_SELF_HOSTED) return { isActive: true, isTrial: false };
+
+    const teams = await prisma.team.findMany({
+      where: {
+        members: {
+          some: {
+            userId,
+            accepted: true,
+          },
+        },
+      },
+    });
+
+    if (!teams.length) return { isActive: false, isTrial: false };
+
+    let isTrial = false;
+    for (const team of teams) {
+      const { InternalTeamBilling } = await import("@calcom/ee/billing/teams/internal-team-billing");
+      const teamBillingService = new InternalTeamBilling(team);
+      const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
+
+      if (subscriptionStatus === "active" || subscriptionStatus === "past_due") {
+        return { isActive: true, isTrial: false };
+      }
+      if (subscriptionStatus === "trialing") {
+        isTrial = true;
+      }
+    }
+
+    return { isActive: false, isTrial };
+  }
+
+  static async getUpgradeable(userId: number) {
+    const { IS_TEAM_BILLING_ENABLED } = await import("@calcom/lib/constants");
+    if (!IS_TEAM_BILLING_ENABLED) return [];
+
+    let teams = await prisma.membership.findMany({
+      where: {
+        user: {
+          id: userId,
+        },
+        role: MembershipRole.OWNER,
+        team: {
+          parentId: null, // Since ORGS relay on their parent's subscription, we don't need to return them
+        },
+      },
+      include: {
+        team: {
+          include: {
+            children: true,
+          },
+        },
+      },
+    });
+
+    /** We only need to return teams that don't have a `subscriptionId` on their metadata */
+    teams = teams.filter((m) => {
+      const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+      if (metadata.success && metadata.data?.subscriptionId) return false;
+      if (m.team.isOrganization) return false; // We also don't return ORGs as it will be handled in OrgUpgradeBanner
+      if (m.team.children.length > 0) return false; // We also don't return ORGs as it will be handled in OrgUpgradeBanner
+      return true;
+    });
+    return teams;
+  }
+
+  static async listSimpleMembers(userId: number, isOrgAdmin: boolean, isOrgPrivate: boolean) {
+    if (!isOrgAdmin && isOrgPrivate) {
+      return [];
+    }
+
+    const teamsToQuery = (
+      await prisma.membership.findMany({
+        where: {
+          userId,
+          accepted: true,
+          NOT: [
+            {
+              role: MembershipRole.MEMBER,
+              team: {
+                isPrivate: true,
+              },
+            },
+          ],
+        },
+        select: { teamId: true },
+      })
+    ).map((membership) => membership.teamId);
+
+    if (!teamsToQuery.length) {
+      return [];
+    }
+
+    // Fetch unique users through memberships
+    const members = (
+      await prisma.membership.findMany({
+        where: {
+          accepted: true,
+          teamId: { in: teamsToQuery },
+        },
+        select: {
+          id: true,
+          accepted: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatarUrl: true,
+              email: true,
+            },
+          },
+        },
+        distinct: ["userId"],
+        orderBy: [
+          { userId: "asc" }, // First order by userId to ensure consistent ordering
+          { id: "asc" }, // Then by id as secondary sort
+        ],
+      })
+    ).map((membership) => membership.user);
+
+    return members;
+  }
+
+  static async checkIfMembershipExists({ teamId, value }: { teamId: number; value: string }) {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        teamId,
+        user: {
+          OR: [
+            {
+              email: value,
+            },
+            {
+              username: value,
+            },
+          ],
+        },
+      },
+    });
+
+    return !!membership;
+  }
+
+  static async getInternalNotesPresets({ teamId }: { teamId: number }) {
+    return await prisma.internalNotePreset.findMany({
+      where: {
+        teamId,
+      },
+      select: {
+        id: true,
+        name: true,
+        cancellationReason: true,
+      },
+    });
+  }
+
+  static async skipTeamTrials({ userId }: { userId: number }) {
+    try {
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          trialEndsAt: null,
+        },
+      });
+
+      const ownedTeams = await prisma.team.findMany({
+        where: {
+          members: {
+            some: {
+              userId: userId,
+              accepted: true,
+              role: "OWNER",
+            },
+          },
+        },
+      });
+
+      return { success: true, ownedTeams };
+    } catch (error) {
+      return { success: false, error: "Failed to skip team trials" };
+    }
+  }
+
+  static async updateInternalNotesPresets({
+    teamId,
+    presets,
+  }: {
+    teamId: number;
+    presets: { id?: number; name: string; cancellationReason?: string }[];
+  }) {
+    const existingPresets = await prisma.internalNotePreset.findMany({
+      where: {
+        teamId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const existingIds = existingPresets.map((preset) => preset.id);
+    const updatedIds = presets.map((preset) => preset.id).filter((id): id is number => id !== undefined);
+
+    const idsToDelete = existingIds.filter((id) => !updatedIds.includes(id));
+
+    if (idsToDelete.length > 0) {
+      await prisma.internalNotePreset.deleteMany({
+        where: {
+          id: {
+            in: idsToDelete,
+          },
+          teamId,
+        },
+      });
+    }
+
+    return await Promise.all(
+      presets.map((preset) => {
+        if (preset.id && preset.id !== -1) {
+          return prisma.internalNotePreset.update({
+            where: {
+              id: preset.id,
+              teamId,
+            },
+            data: {
+              name: preset.name,
+              cancellationReason: preset.cancellationReason,
+            },
+          });
+        } else {
+          return prisma.internalNotePreset.create({
+            data: {
+              name: preset.name,
+              cancellationReason: preset.cancellationReason,
+              teamId,
+            },
+          });
+        }
+      })
+    );
+  }
+
+  static async addMembersToEventTypes({
+    eventTypeIds,
+    userIds,
+  }: {
+    eventTypeIds: number[];
+    userIds: number[];
+  }) {
+    const data = eventTypeIds.flatMap((eventId) =>
+      userIds.map((userId) => ({
+        eventTypeId: eventId,
+        userId: userId,
+        priority: 2, // Default medium priority
+      }))
+    );
+
+    return await prisma.host.createMany({
+      data,
+      skipDuplicates: true,
+    });
+  }
+
+  static async removeHostsFromEventTypes({
+    eventTypeIds,
+    userIds,
+  }: {
+    eventTypeIds: number[];
+    userIds: number[];
+  }) {
+    return await prisma.host.deleteMany({
+      where: {
+        eventTypeId: {
+          in: eventTypeIds,
+        },
+        userId: {
+          in: userIds,
+        },
+      },
+    });
+  }
+
+  static async getUserCredentials({
+    userId,
+    select = {
+      userId: true,
+      app: {
+        select: {
+          slug: true,
+          categories: true,
+        },
+      },
+      destinationCalendars: {
+        select: {
+          externalId: true,
+        },
+      },
+    },
+  }: {
+    userId: number;
+    select?: Prisma.CredentialSelect;
+  }) {
+    return await prisma.credential.findMany({
+      where: {
+        userId,
+      },
+      select,
+    });
+  }
+
+  static async findTeamWithParent(teamId: number) {
+    return await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+      include: {
+        organizationSettings: true,
+        parent: {
+          include: {
+            organizationSettings: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async findUsersByEmailOrUsername({
+    usernamesOrEmails,
+    orgId,
+    teamId,
+  }: {
+    usernamesOrEmails: string[];
+    orgId?: number;
+    teamId?: number;
+  }) {
+    return await prisma.user.findMany({
+      where: {
+        OR: [
+          // Either it's a username in that organization
+          {
+            profiles: {
+              some: {
+                organizationId: orgId,
+                username: { in: usernamesOrEmails },
+              },
+            },
+          },
+          { email: { in: usernamesOrEmails } },
+        ],
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        password: true,
+        completedOnboarding: true,
+        identityProvider: true,
+        profiles: true,
+        teams: true,
+      },
+    });
+  }
+
+  static async createMemberships({
+    teamId,
+    language,
+    invitees,
+    parentId,
+    accepted,
+  }: {
+    teamId: number;
+    language: string;
+    invitees: any[];
+    parentId: number | null;
+    accepted: boolean;
+  }) {
+    logger.debug("Creating memberships for", { teamId, language, invitees, parentId, accepted });
+    try {
+      await prisma.membership.createMany({
+        data: invitees.flatMap((invitee) => {
+          const organizationRole = invitee?.teams?.[0]?.role;
+          const data = [];
+          const createdAt = new Date();
+          data.push({
+            createdAt,
+            teamId,
+            userId: invitee.id,
+            accepted,
+            role:
+              organizationRole === "OWNER" || organizationRole === "ADMIN"
+                ? organizationRole
+                : invitee.newRole,
+          });
+
+          if (parentId && invitee.needToCreateOrgMembership) {
+            data.push({
+              createdAt,
+              accepted,
+              teamId: parentId,
+              userId: invitee.id,
+              role: MembershipRole.MEMBER,
+            });
+          }
+          return data;
+        }),
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        logger.error("Failed to create memberships", teamId);
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  static async createVerificationToken({
+    identifier,
+    token,
+    expires,
+    teamId,
+    teamName,
+    role,
+    usernameOrEmail,
+    sendTo,
+  }: {
+    identifier: string;
+    token: string;
+    expires?: Date;
+    teamId: number;
+    teamName: string;
+    role: MembershipRole;
+    usernameOrEmail: string;
+    sendTo?: string;
+  }) {
+    return await prisma.verificationToken.create({
+      data: {
+        identifier,
+        token,
+        expires: expires || new Date(new Date().setHours(168)), // +1 week
+        teamId,
+      },
+    });
+  }
+
+  static async listMembersWithSearch({
+    teamIds,
+    searchText,
+    cursor,
+    limit,
+  }: {
+    teamIds: number[];
+    searchText?: string;
+    cursor?: string;
+    limit?: number;
+  }) {
+    const searchTextClauses: Prisma.UserWhereInput[] = [
+      { name: { contains: searchText, mode: "insensitive" } },
+      { username: { contains: searchText, mode: "insensitive" } },
+    ];
+
+    const memberships = await prisma.membership.findMany({
+      where: {
+        accepted: true,
+        teamId: { in: teamIds },
+        user: searchText?.trim()?.length
+          ? {
+              OR: searchTextClauses,
+            }
+          : undefined,
+      },
+      select: {
+        id: true,
+        accepted: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+            email: true,
+          },
+        },
+      },
+      distinct: ["userId"],
+      cursor: cursor ? { id: parseInt(cursor) } : undefined,
+      take: limit ? limit + 1 : undefined,
+      orderBy: [
+        { userId: "asc" }, // First order by userId to ensure consistent ordering
+        { id: "asc" }, // Then by id as secondary sort
+      ],
+    });
+
+    const totalRowCount = await prisma.membership.count({
+      where: {
+        accepted: true,
+        teamId: { in: teamIds },
+        user: searchText?.trim()?.length
+          ? {
+              OR: searchTextClauses,
+            }
+          : undefined,
+      },
+      distinct: ["userId"],
+    });
+
+    return {
+      members: memberships,
+      meta: {
+        totalRowCount,
+      },
+    };
+  }
+
+  static async createNewUsersConnectToOrgIfExists({
+    invitations,
+    isOrg,
+    teamId,
+    parentId,
+    autoAcceptEmailDomain,
+    orgConnectInfoByUsernameOrEmail,
+    isPlatformManaged,
+    timeFormat,
+    weekStart,
+    timeZone,
+    language,
+    creationSource,
+  }: {
+    invitations: { usernameOrEmail: string; role: MembershipRole }[];
+    isOrg: boolean;
+    teamId: number;
+    parentId?: number | null;
+    autoAcceptEmailDomain: string | null;
+    orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
+    isPlatformManaged?: boolean;
+    timeFormat?: number;
+    weekStart?: string;
+    timeZone?: string;
+    language: string;
+    creationSource: any;
+  }) {
+    for (const invitation of invitations) {
+      if (!isEmail(invitation.usernameOrEmail)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Invite failed because ${invitation.usernameOrEmail} is not a valid email address`,
+        });
+      }
+    }
+
+    const createdUsers = await prisma.$transaction(
+      async (tx) => {
+        const createdUsers = [];
+        for (let index = 0; index < invitations.length; index++) {
+          const invitation = invitations[index];
+          const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
+          const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
+          const [domainName, TLD] = emailDomain.split(".");
+
+          const orgMemberUsername =
+            emailDomain === autoAcceptEmailDomain
+              ? slugify(emailUser)
+              : slugify(`${emailUser}-${domainName}${isPlatformManaged ? `-${TLD}` : ""}`);
+
+          const regularTeamMemberUsername = null;
+
+          const isBecomingAnOrgMember = parentId || isOrg;
+
+          const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+          const t = await getTranslation(language ?? "en", "common");
+          const createdUser = await tx.user.create({
+            data: {
+              username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
+              email: invitation.usernameOrEmail,
+              verified: true,
+              invitedTo: teamId,
+              isPlatformManaged: !!isPlatformManaged,
+              timeFormat,
+              weekStart,
+              timeZone,
+              creationSource,
+              organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
+              ...(orgId
+                ? {
+                    profiles: {
+                      createMany: {
+                        data: [
+                          {
+                            uid: ProfileRepository.generateProfileUid(),
+                            username: orgMemberUsername,
+                            organizationId: orgId,
+                          },
+                        ],
+                      },
+                    },
+                  }
+                : null),
+              teams: {
+                create: {
+                  teamId: teamId,
+                  role: invitation.role,
+                  accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
+                },
+              },
+              ...(!isPlatformManaged
+                ? {
+                    schedules: {
+                      create: {
+                        name: t("default_schedule_name"),
+                        availability: {
+                          createMany: {
+                            data: defaultAvailability.map((schedule) => ({
+                              days: schedule.days,
+                              startTime: schedule.startTime,
+                              endTime: schedule.endTime,
+                            })),
+                          },
+                        },
+                      },
+                    },
+                  }
+                : {}),
+            },
+          });
+
+          if (parentId) {
+            await tx.membership.create({
+              data: {
+                createdAt: new Date(),
+                teamId: parentId,
+                userId: createdUser.id,
+                role: MembershipRole.MEMBER,
+                accepted: autoAccept,
+              },
+            });
+          }
+          createdUsers.push(createdUser);
+        }
+        return createdUsers;
+      },
+      { timeout: 10000 }
+    );
+    return createdUsers;
   }
 }

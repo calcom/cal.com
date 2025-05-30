@@ -1,5 +1,5 @@
 import { isTeamMember } from "@calcom/lib/server/queries/teams";
-import { prisma } from "@calcom/prisma";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -18,15 +18,8 @@ export const getInternalNotesPresetsHandler = async ({ ctx, input }: UpdateMembe
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  return await prisma.internalNotePreset.findMany({
-    where: {
-      teamId: input.teamId,
-    },
-    select: {
-      id: true,
-      name: true,
-      cancellationReason: true,
-    },
+  return await TeamRepository.getInternalNotesPresets({
+    teamId: input.teamId,
   });
 };
 

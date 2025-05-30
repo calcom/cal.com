@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -20,13 +20,9 @@ export const getMembershipbyUserHandler = async ({ ctx, input }: GetMembershipby
     });
   }
 
-  return await prisma.membership.findUnique({
-    where: {
-      userId_teamId: {
-        userId: input.memberId,
-        teamId: input.teamId,
-      },
-    },
+  return await TeamRepository.getMembershipByUser({
+    userId: input.memberId,
+    teamId: input.teamId,
   });
 };
 
