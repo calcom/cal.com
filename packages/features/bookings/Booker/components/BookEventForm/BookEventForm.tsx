@@ -85,21 +85,26 @@ export const BookEventForm = ({
   const [isMinimumBookingNoticePassed, setIsMinimumBookingNoticePassed] = useState(false);
 
   useEffect(() => {
-    const minimumBookingNotice = eventType?.minimumBookingNotice;
-    if (!timeslot || !minimumBookingNotice) return;
+    const minimumBookingNoticeInMinutes = eventType?.minimumBookingNotice || 0;
+    const minimumBookingNoticeInSeconds = minimumBookingNoticeInMinutes * 60;
+
+    if (!timeslot || !minimumBookingNoticeInSeconds) return;
 
     const now = dayjs();
     const meeting = dayjs(timeslot);
 
-    const minutesTillMeeting = meeting.diff(now, "minute");
-    const minutesTillBooking = Math.min(minutesTillMeeting - minimumBookingNotice, 60 * 12 * 10);
+    const secondsTillMeeting = meeting.diff(now, "second");
+    const secondsTillBooking = Math.min(
+      secondsTillMeeting - minimumBookingNoticeInSeconds,
+      60 * 60 * 12 * 10
+    );
 
-    if (minutesTillBooking <= 0) {
+    if (secondsTillBooking <= 0) {
       setIsMinimumBookingNoticePassed(true);
       return;
     }
 
-    const timeoutId = setTimeout(() => setIsMinimumBookingNoticePassed(true), minutesTillBooking * 60 * 100);
+    const timeoutId = setTimeout(() => setIsMinimumBookingNoticePassed(true), secondsTillBooking * 1000);
 
     return () => clearTimeout(timeoutId);
   }, [timeslot, eventType]);
