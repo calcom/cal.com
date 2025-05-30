@@ -1,4 +1,4 @@
-import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it } from "vitest";
 
@@ -6,12 +6,13 @@ import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { updateHandler } from "../update.handler";
-import { type TUpdateFilterSegmentInputSchema } from "../update.schema";
+import { FilterSegmentRepository } from "../../filterSegment";
+import { type TUpdateFilterSegmentInputSchema } from "../../filterSegment.type";
 
-describe("updateHandler", () => {
+describe("FilterSegmentRepository.update()", () => {
+  const userId = 1;
   const mockUser = {
-    id: 1,
+    id: userId,
     name: "Test User",
   } as NonNullable<TrpcSessionUser>;
 
@@ -61,8 +62,8 @@ describe("updateHandler", () => {
       ],
     };
 
-    const result = await updateHandler({
-      ctx: { user: mockUser },
+    const result = await FilterSegmentRepository.update({
+      userId,
       input,
     });
 
@@ -130,8 +131,8 @@ describe("updateHandler", () => {
       ],
     };
 
-    const result = await updateHandler({
-      ctx: { user: mockUser },
+    const result = await FilterSegmentRepository.update({
+      userId,
       input,
     });
 
@@ -171,8 +172,8 @@ describe("updateHandler", () => {
     };
 
     await expect(
-      updateHandler({
-        ctx: { user: mockUser },
+      FilterSegmentRepository.update({
+        userId,
         input,
       })
     ).rejects.toThrow("Filter segment not found or you don't have permission to update it");
@@ -236,8 +237,8 @@ describe("updateHandler", () => {
     };
 
     await expect(
-      updateHandler({
-        ctx: { user: mockUser },
+      FilterSegmentRepository.update({
+        userId,
         input,
       })
     ).rejects.toThrow("Filter segment not found or you don't have permission to update it");
