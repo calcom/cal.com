@@ -67,7 +67,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
     booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-    if (booking?.status === BookingStatus.CANCELLED && !allowRescheduleForCancelledBooking) {
+    if (
+      booking?.status === BookingStatus.CANCELLED &&
+      !allowRescheduleForCancelledBooking &&
+      eventData.disableReschedulingCancelledBookings
+    ) {
       return {
         redirect: {
           permanent: false,
@@ -207,6 +211,7 @@ const getTeamWithEventsData = async (
           hidden: true,
           disableCancelling: true,
           disableRescheduling: true,
+          disableReschedulingCancelledBookings: true,
           interfaceLanguage: true,
           hosts: {
             take: 3,

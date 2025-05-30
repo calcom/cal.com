@@ -497,6 +497,9 @@ export const EventAdvancedTab = ({
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
   const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
+  const disableReschedulingCancelledBookingsLocked = shouldLockDisableProps(
+    "disableReschedulingCancelledBookings"
+  );
 
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
@@ -507,6 +510,10 @@ export const EventAdvancedTab = ({
   const [disableCancelling, setDisableCancelling] = useState(eventType.disableCancelling || false);
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
+
+  const [disableReschedulingCancelledBookings, setDisableReschedulingCancelledBookings] = useState(
+    eventType.disableReschedulingCancelledBookings || false
+  );
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -636,6 +643,26 @@ export const EventAdvancedTab = ({
                 checked={disableRescheduling}
                 onCheckedChange={(val) => {
                   setDisableRescheduling(val);
+                  onChange(val);
+                }}
+              />
+            )}
+          />
+
+          <Controller
+            name="disableReschedulingCancelledBookings"
+            render={({ field: { onChange } }) => (
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                title={t("disable_rescheduling_cancelled_bookings")}
+                data-testid="disable-rescheduling-cancelled-bookings-toggle"
+                {...disableReschedulingCancelledBookingsLocked}
+                description={t("description_disable_rescheduling_cancelled_bookings")}
+                checked={disableReschedulingCancelledBookings}
+                onCheckedChange={(val) => {
+                  setDisableReschedulingCancelledBookings(val);
                   onChange(val);
                 }}
               />

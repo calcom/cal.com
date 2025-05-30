@@ -187,6 +187,8 @@ export default async function handleChildrenEventTypes({
             rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
             useEventLevelSelectedCalendars: false,
+            disableReschedulingCancelledBookings:
+              managedEventTypeValues.disableReschedulingCancelledBookings ?? false,
           },
         });
       })
@@ -259,6 +261,8 @@ export default async function handleChildrenEventTypes({
                 : {
                     deleteMany: {},
                   },
+            disableReschedulingCancelledBookings:
+              managedEventTypeValues.disableReschedulingCancelledBookings ?? false,
             metadata: {
               ...(eventType.metadata as Prisma.JsonObject),
               ...(metadata?.multipleDuration && "length" in unlockedFieldProps
