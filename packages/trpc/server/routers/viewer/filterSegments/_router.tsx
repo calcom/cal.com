@@ -1,17 +1,13 @@
+import {
+  ZCreateFilterSegmentInputSchema,
+  ZDeleteFilterSegmentInputSchema,
+  ZListFilterSegmentsInputSchema,
+  ZSetFilterSegmentPreferenceInputSchema,
+  ZUpdateFilterSegmentInputSchema,
+} from "@calcom/lib/server/repository/filterSegment.type";
+
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
-import { ZCreateFilterSegmentInputSchema } from "./create.schema";
-import { ZDeleteFilterSegmentInputSchema } from "./delete.schema";
-import { ZListFilterSegmentsInputSchema } from "./list.schema";
-import { ZSetFilterSegmentPreferenceInputSchema } from "./preference.schema";
-import { ZUpdateFilterSegmentInputSchema } from "./update.schema";
-
-type FilterSegmentsRouterHandlerCache = {
-  list?: typeof import("./list.handler").listHandler;
-  create?: typeof import("./create.handler").createHandler;
-  update?: typeof import("./update.handler").updateHandler;
-  delete?: typeof import("./delete.handler").deleteHandler;
-};
 
 export const filterSegmentsRouter = router({
   list: authedProcedure.input(ZListFilterSegmentsInputSchema).query(async ({ input, ctx }) => {

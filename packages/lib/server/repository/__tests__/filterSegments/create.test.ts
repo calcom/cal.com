@@ -1,4 +1,4 @@
-import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it } from "vitest";
 
@@ -6,12 +6,13 @@ import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { createHandler } from "../create.handler";
-import { type TCreateFilterSegmentInputSchema } from "../create.schema";
+import { FilterSegmentRepository } from "../../filterSegment";
+import { type TCreateFilterSegmentInputSchema } from "../../filterSegment.type";
 
-describe("createHandler", () => {
+describe("FilterSegmentRepository.create()", () => {
+  const userId = 1;
   const mockUser = {
-    id: 1,
+    id: userId,
     name: "Test User",
   } as NonNullable<TrpcSessionUser>;
 
@@ -40,8 +41,8 @@ describe("createHandler", () => {
       name: "My Bookings",
     };
 
-    const result = await createHandler({
-      ctx: { user: mockUser },
+    const result = await FilterSegmentRepository.create({
+      userId,
       input,
     });
 
@@ -74,8 +75,8 @@ describe("createHandler", () => {
       name: "Team Bookings",
     };
 
-    const result = await createHandler({
-      ctx: { user: mockUser },
+    const result = await FilterSegmentRepository.create({
+      userId,
       input,
     });
 
@@ -109,8 +110,8 @@ describe("createHandler", () => {
     };
 
     await expect(
-      createHandler({
-        ctx: { user: mockUser },
+      FilterSegmentRepository.create({
+        userId,
         input,
       })
     ).rejects.toThrow("You must be a team admin or owner to create team segments");
@@ -124,8 +125,8 @@ describe("createHandler", () => {
     };
 
     await expect(
-      createHandler({
-        ctx: { user: mockUser },
+      FilterSegmentRepository.create({
+        userId,
         // @ts-expect-error - Testing invalid input where teamId is missing for TEAM scope
         input: invalidInput,
       })
@@ -141,8 +142,8 @@ describe("createHandler", () => {
     };
 
     await expect(
-      createHandler({
-        ctx: { user: mockUser },
+      FilterSegmentRepository.create({
+        userId,
         // @ts-expect-error - Testing invalid input where teamId is present for USER scope
         input: invalidInput,
       })

@@ -1,16 +1,17 @@
-import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { listHandler } from "../list.handler";
-import { type TListFilterSegmentsInputSchema } from "../list.schema";
+import { FilterSegmentRepository } from "../../filterSegment";
+import { type TListFilterSegmentsInputSchema } from "../../filterSegment.type";
 
-describe("listHandler", () => {
+describe("FilterSegmentRepository.get()", () => {
+  const userId = 1;
   const mockUser = {
-    id: 1,
+    id: userId,
     name: "Test User",
   } as NonNullable<TrpcSessionUser>;
 
@@ -48,8 +49,8 @@ describe("listHandler", () => {
       tableIdentifier: "bookings",
     };
 
-    const result = await listHandler({
-      ctx: { user: mockUser },
+    const result = await FilterSegmentRepository.get({
+      userId,
       input,
     });
 
@@ -132,8 +133,8 @@ describe("listHandler", () => {
       tableIdentifier: "bookings",
     };
 
-    const result = await listHandler({
-      ctx: { user: mockUser },
+    const result = await FilterSegmentRepository.get({
+      userId,
       input,
     });
 
@@ -216,8 +217,8 @@ describe("listHandler", () => {
       tableIdentifier: "bookings",
     };
 
-    const result = await listHandler({
-      ctx: { user: mockUser },
+    const result = await FilterSegmentRepository.get({
+      userId,
       input,
     });
 
@@ -251,8 +252,8 @@ describe("listHandler", () => {
       tableIdentifier: "bookings",
     };
 
-    const result = await listHandler({
-      ctx: { user: mockUser },
+    const result = await FilterSegmentRepository.get({
+      userId,
       input,
     });
 
