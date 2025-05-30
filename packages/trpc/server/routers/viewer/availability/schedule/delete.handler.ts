@@ -6,6 +6,7 @@ import { prisma } from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
+import { updateHostsWithNewDefaultSchedule } from "../util";
 import type { TDeleteInputSchema } from "./delete.schema";
 
 type DeleteOptions = {
@@ -52,6 +53,8 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
     // to throw the error if there arent any other schedules
     if (!scheduleToSetAsDefault) throw new TRPCError({ code: "BAD_REQUEST" });
 
+    await updateHostsWithNewDefaultSchedule(user.id, input.scheduleId, scheduleToSetAsDefault.id);
+
     await prisma.user.update({
       where: {
         id: user.id,
@@ -60,6 +63,8 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
         defaultScheduleId: scheduleToSetAsDefault?.id || null,
       },
     });
+  } else if (user.defaultScheduleId) {
+    await updateHostsWithNewDefaultSchedule(user.id, input.scheduleId, user.defaultScheduleId);
   }
 
   const prevAvailability = scheduleToDelete.availability.map((avail) => ({
@@ -68,7 +73,6 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
     endTime: avail.endTime.toISOString(),
   }));
 
-  // Delete the schedule
   await prisma.schedule.delete({
     where: {
       id: input.scheduleId,
