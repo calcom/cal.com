@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -43,11 +43,26 @@ const getCachedEventGroups = unstable_cache(
       upIds?: string[] | undefined;
     }
   ) => {
-    const eventTypesCaller = await createRouterCaller(
-      eventTypesRouter,
-      await getTRPCContext(headers, cookies)
-    );
-    return await eventTypesCaller.getUserEventGroups({ filters });
+    const context = buildLegacyCtx(headers, cookies, {}, {});
+    const session = await getServerSession({ req: context.req });
+
+    if (!session?.user?.id) {
+      throw new Error("User not found");
+    }
+
+    try {
+      return await EventTypeRepository.getUserEventGroups({
+        upId: session.upId || "",
+        userId: session.user.id,
+        filters,
+        forRoutingForms: false,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === "Profile not found") {
+        throw new Error("Internal server error");
+      }
+      throw error;
+    }
   },
   ["viewer.eventTypes.getUserEventGroups"],
   { revalidate: 3600 } // seconds
