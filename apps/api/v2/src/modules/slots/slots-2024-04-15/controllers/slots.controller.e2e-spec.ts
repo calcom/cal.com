@@ -8,6 +8,7 @@ import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.m
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
@@ -465,6 +466,65 @@ describe("Slots 2024-04-15 Endpoints", () => {
       await request(app.getHttpServer())
         .delete(`/api/v2/slots/selected-slot?uid=${reservedSlotUid}`)
         .expect(200);
+    });
+
+    describe("Cookie Security Tests", () => {
+      it("should set secure HttpOnly cookie with correct security flags", async () => {
+        const slotStartTime = "2050-09-05T09:00:00.000Z";
+        const reserveResponse = await request(app.getHttpServer())
+          .post(`/api/v2/slots/reserve`)
+          .send({
+            eventTypeId,
+            slotUtcStartDate: slotStartTime,
+            slotUtcEndDate: "2050-09-05T10:00:00.000Z",
+          })
+          .expect(201);
+
+        // Verify secure cookie headers
+        const setCookieHeader = reserveResponse.get("Set-Cookie");
+        expect(setCookieHeader).toBeDefined();
+
+        const uidCookie = setCookieHeader.find((cookie: string) => cookie.startsWith("uid="));
+        expect(uidCookie).toBeDefined();
+
+        // Test security flags - should have HttpOnly at minimum
+        if (uidCookie) {
+          expect(uidCookie).toContain("HttpOnly"); // Prevents XSS access
+          expect(uidCookie).toContain("Path=/"); // Proper scope
+          // SameSite will be Lax or none depending on environment
+          expect(uidCookie).toMatch(/SameSite=(Lax|none)/);
+        }
+
+        // Clean up
+        const uid = reserveResponse.body.data;
+        await request(app.getHttpServer()).delete(`/api/v2/slots/selected-slot?uid=${uid}`).expect(200);
+      });
+
+      it("should not expose cookie to client-side JavaScript", async () => {
+        const slotStartTime = "2050-09-05T07:00:00.000Z";
+        const reserveResponse = await request(app.getHttpServer())
+          .post(`/api/v2/slots/reserve`)
+          .send({
+            eventTypeId,
+            slotUtcStartDate: slotStartTime,
+            slotUtcEndDate: "2050-09-05T08:00:00.000Z",
+          })
+          .expect(201);
+
+        // Verify HttpOnly flag is present to prevent XSS
+        const setCookieHeader = reserveResponse.get("Set-Cookie");
+        const uidCookie = setCookieHeader?.find((cookie: string) => cookie.startsWith("uid="));
+
+        expect(uidCookie).toBeDefined();
+        if (uidCookie) {
+          expect(uidCookie).toContain("HttpOnly"); // This is the key security fix
+          expect(uidCookie).not.toMatch(/SameSite=None(?!;)/); // Should not be permissive without Secure
+        }
+
+        // Clean up
+        const uid = reserveResponse.body.data;
+        await request(app.getHttpServer()).delete(`/api/v2/slots/selected-slot?uid=${uid}`).expect(200);
+      });
     });
 
     it("should do a booking and slot should not be available at that time", async () => {
