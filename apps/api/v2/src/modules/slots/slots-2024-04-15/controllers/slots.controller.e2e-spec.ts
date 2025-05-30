@@ -492,7 +492,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
           expect(uidCookie).toContain("HttpOnly"); // Prevents XSS access
           expect(uidCookie).toContain("Path=/"); // Proper scope
           // SameSite will be Lax or none depending on environment
-          expect(uidCookie).toMatch(/SameSite=(Lax|none)/);
+          expect(uidCookie).toMatch(/SameSite=(Lax|None)/i);
         }
 
         // Clean up
