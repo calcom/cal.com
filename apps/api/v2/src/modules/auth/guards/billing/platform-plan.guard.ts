@@ -61,7 +61,7 @@ export class PlatformPlanGuard implements CanActivate {
       !hasMinimumPlan({
         currentPlan: organization.platformBilling?.plan as PlatformPlanType,
         minimumPlan: minimumPlan,
-        plans: ["FREE", "STARTER", "ESSENTIALS", "SCALE", "ENTERPRISE"],
+        plans: ["FREE", "STARTER", "ESSENTIALS", "SCALE", "PER_ACTIVE_USER", "ENTERPRISE"],
       })
     ) {
       throw new ForbiddenException(
@@ -87,7 +87,7 @@ export function hasMinimumPlan(props: HasMinimumPlanProp): boolean {
   const minimumPlanIndex = props.plans.indexOf(props.minimumPlan);
 
   if (currentPlanIndex === -1 || minimumPlanIndex === -1) {
-    throw new Error(
+    throw new ForbiddenException(
       `PlatformPlanGuard - Invalid platform billing plan provided. Current plan: ${props.currentPlan}, Minimum plan: ${props.minimumPlan}`
     );
   }
