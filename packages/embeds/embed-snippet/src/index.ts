@@ -13,9 +13,14 @@ import type { Optional } from "@calcom/types/utils";
  */
 
 const WEBAPP_URL =
-  import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
+  (typeof process !== "undefined" && process.env.EMBED_PUBLIC_WEBAPP_URL) ||
+  (typeof process !== "undefined" && process.env.EMBED_PUBLIC_VERCEL_URL
+    ? `https://${process.env.EMBED_PUBLIC_VERCEL_URL}`
+    : "https://cal.com");
 
-const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
+const EMBED_LIB_URL =
+  (typeof process !== "undefined" && process.env.EMBED_PUBLIC_EMBED_LIB_URL) ||
+  `${WEBAPP_URL}/embed/embed.js`;
 
 type QueuePushArg = {
   [k: number]: Queue[number];

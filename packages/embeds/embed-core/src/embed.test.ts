@@ -153,8 +153,8 @@ describe("Cal", () => {
       writable: true,
     });
 
-    // Import dynamicall so that we could mock/override certain things before loading the embed.ts as it has side effects
-    CalClass = (await import("./embed")).Cal;
+    // Import dynamically so that we could mock/override certain things before loading the embed.ts as it has side effects
+    CalClass = (await import("./embed.js")).Cal;
   });
 
   beforeEach(() => {

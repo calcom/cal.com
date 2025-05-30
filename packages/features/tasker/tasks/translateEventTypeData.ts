@@ -42,7 +42,7 @@ async function processTranslations({
   text: string;
   field: EventTypeAutoTranslatedField;
 } & z.infer<typeof ZTranslateEventDataPayloadSchema>) {
-  const { LingoDotDevService } = await import("@calcom/lib/server/service/lingoDotDev");
+  const { LingoDotDevService } = await import("@calcom/lib/server/service/lingoDotDev.js");
 
   try {
     const targetLocales = SUPPORTED_LOCALES.filter(

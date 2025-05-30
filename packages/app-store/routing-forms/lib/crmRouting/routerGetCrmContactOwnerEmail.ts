@@ -52,7 +52,7 @@ export default async function routerGetCrmContactOwnerEmail({
     if (!routingOptions) continue;
     // See if any options are true
     if (Object.values(routingOptions).some((option) => option === true)) {
-      const appBookingFormHandler = (await import("@calcom/app-store/routing-forms/appBookingFormHandler"))
+      const appBookingFormHandler = (await import("@calcom/app-store/routing-forms/appBookingFormHandler.js"))
         .default;
       const appHandler = appBookingFormHandler[appSlug as keyof typeof appBookingFormHandler];
 

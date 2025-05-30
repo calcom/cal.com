@@ -5,6 +5,7 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "ESNext",
+    "moduleResolution": "node",
     "target": "ES5",
     "jsx": "react-jsx"
   },
