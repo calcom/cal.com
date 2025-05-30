@@ -1,35 +1,22 @@
-import type { Prisma } from "@prisma/client";
-
-import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import { markdownToSafeHTML } from "../markdownToSafeHTML";
-
-const log = logger.getSubLogger({ prefix: ["getEventTypesPublic"] });
+import { presentEventType } from "../server/repository/eventType.presenter";
 
 export type EventTypesPublic = Awaited<ReturnType<typeof getEventTypesPublic>>;
 
 export async function getEventTypesPublic(userId: number) {
   const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(userId);
-
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
-
-  return eventTypesRaw.map((eventType) => ({
-    ...eventType,
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
-    descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
-  }));
+  return eventTypesRaw.map(presentEventType);
 }
 
 type BaseEventType = Prisma.EventTypeGetPayload<{
   select: typeof baseEventTypeSelect;
 }>;
 
-type RawEventType = BaseEventType & {
-  metadata: Record<string, any> | null;
-};
+type RawEventType = BaseEventType;
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
   const eventTypes = await prisma.$queryRaw<RawEventType[]>`
@@ -68,16 +55,5 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
 
   // map and filter metadata, exclude eventType entirely when faulty metadata is found.
   // report error to exception so we don't lose the error.
-  return eventTypes.reduce<typeof eventTypes>((eventTypes, eventType) => {
-    const parsedMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
-    if (!parsedMetadata.success) {
-      log.error(parsedMetadata.error);
-      return eventTypes;
-    }
-    eventTypes.push({
-      ...eventType,
-      metadata: parsedMetadata.data,
-    });
-    return eventTypes;
-  }, []);
+  return eventTypes;
 };
