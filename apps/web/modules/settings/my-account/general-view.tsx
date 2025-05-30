@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import ScheduleTimezoneUpdateDialog from "@calcom/features/settings/ScheduleTimezoneUpdateDialog";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -102,10 +103,19 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
   const { update } = useSession();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
   const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
+  const [showScheduleTimezoneDialog, setShowScheduleTimezoneDialog] = useState(false);
+  const [pendingTimezone, setPendingTimezone] = useState<string | null>(null);
 
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await utils.viewer.me.invalidate();
+      const currentValues = getValues();
+
+      if (currentValues.timeZone && currentValues.timeZone !== originalTimezone) {
+        setPendingTimezone(currentValues.timeZone);
+        setShowScheduleTimezoneDialog(true);
+      }
+
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
       await update(res);
@@ -166,6 +176,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
         }) || [],
     },
   });
+  const originalTimezone = user.timeZone || "";
   const {
     formState: { isDirty, isSubmitting },
     reset,
@@ -394,6 +405,15 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
         onOpenChange={() => setIsTZScheduleOpen(false)}
         setValue={formMethods.setValue}
         existingSchedules={formMethods.getValues("travelSchedules") ?? []}
+      />
+
+      <ScheduleTimezoneUpdateDialog
+        open={showScheduleTimezoneDialog}
+        onOpenChange={setShowScheduleTimezoneDialog}
+        timeZone={pendingTimezone || ""}
+        onConfirm={() => {
+          setPendingTimezone(null);
+        }}
       />
     </div>
   );

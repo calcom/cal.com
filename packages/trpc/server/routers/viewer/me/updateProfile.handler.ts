@@ -257,7 +257,11 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     throw e; // make sure other errors are rethrown
   }
 
-  if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
+  if (
+    user.timeZone !== data.timeZone &&
+    updatedUser.schedules.length > 0 &&
+    input.updateDefaultScheduleTimeZone
+  ) {
     // on timezone change update timezone of default schedule
     const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
 

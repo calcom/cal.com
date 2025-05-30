@@ -16,6 +16,7 @@ export const ZUpdateProfileInputSchema = z.object({
   bio: z.string().optional(),
   avatarUrl: z.string().nullable().optional(),
   timeZone: timeZoneSchema.optional(),
+  updateDefaultScheduleTimeZone: z.boolean().optional(),
   weekStart: z.string().optional(),
   hideBranding: z.boolean().optional(),
   allowDynamicBooking: z.boolean().optional(),
