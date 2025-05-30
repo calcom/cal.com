@@ -4,6 +4,7 @@ import { Expose, Type } from "class-transformer";
 import { IsEnum, ValidateNested } from "class-validator";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { PaginationMetaDto } from "@calcom/platform-types";
 
 export class GetManagedOrganizationsOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
@@ -17,4 +18,9 @@ export class GetManagedOrganizationsOutput {
   @ValidateNested({ each: true })
   @Type(() => ManagedOrganizationOutput)
   data!: ManagedOrganizationOutput[];
+
+  @ApiProperty({ type: () => PaginationMetaDto })
+  @Type(() => PaginationMetaDto)
+  @ValidateNested()
+  pagination!: PaginationMetaDto;
 }
