@@ -380,6 +380,7 @@ export class BookingRepository {
               select: {
                 disableRecordingForGuests: true,
                 disableRecordingForOrganizer: true,
+                enableAutomaticTranscription: true,
                 redirectUrlOnExit: true,
               },
             },

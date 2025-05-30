@@ -9,7 +9,11 @@ import { useState, useEffect, useRef } from "react";
 import dayjs from "@calcom/dayjs";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
+import {
+  TRANSCRIPTION_STOPPED_ICON,
+  TRANSCRIPTION_STARTED_ICON,
+  RECORDING_DEFAULT_ICON,
+} from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -35,6 +39,7 @@ export default function JoinCall(props: PageProps) {
     displayLogInOverlay,
     loggedInUserName,
     showRecordingButton,
+    enableAutomaticTranscription,
     rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
@@ -81,8 +86,12 @@ export default function JoinCall(props: PageProps) {
             transcription: {
               label: "Cal.ai",
               tooltip: "Transcription powered by AI",
-              iconPath: TRANSCRIPTION_STOPPED_ICON,
-              iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+              iconPath: enableAutomaticTranscription
+                ? TRANSCRIPTION_STARTED_ICON
+                : TRANSCRIPTION_STOPPED_ICON,
+              iconPathDarkMode: enableAutomaticTranscription
+                ? TRANSCRIPTION_STARTED_ICON
+                : TRANSCRIPTION_STOPPED_ICON,
             },
           },
         }),
@@ -91,7 +100,6 @@ export default function JoinCall(props: PageProps) {
       callFrame = DailyIframe.getCallInstance();
     } finally {
       setDaily(callFrame ?? null);
-
       callFrame?.join();
     }
 
@@ -100,6 +108,12 @@ export default function JoinCall(props: PageProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useDailyEvent("joined-meeting", () => {
+    if (enableAutomaticTranscription) {
+      daily?.startTranscription();
+    }
+  });
 
   return (
     <DailyProvider callObject={daily}>
