@@ -547,7 +547,7 @@ export default class GoogleCalendarService implements Calendar {
         const { timeMin, timeMax, items } = args;
         const events = await Promise.all(
           items.map(async (item) => {
-            const { json: eventData } = await this.oAuthManagerInstance.request(
+            const { json: eventData } = await this.auth.authManager.request(
               async () =>
                 new AxiosLikeResponseToFetchResponse(
                   await calendar.events.list({
@@ -561,7 +561,7 @@ export default class GoogleCalendarService implements Calendar {
 
             if (!eventData.items || eventData.items?.length === 0) return [];
 
-            return eventData.items.map((event) => {
+            return eventData.items.map((event: calendar_v3.Schema$Event) => {
               const busyData: EventBusyData = {
                 start: event.start?.date
                   ? dayjs(event.start?.date).startOf("day").utc().format()
