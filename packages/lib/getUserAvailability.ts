@@ -349,15 +349,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
 
   let busyTimesFromLimits: EventBusyDetails[] = [];
-  let busyTimesFromTeamLimits: EventBusyDetails[] = [];
-
-  const busyTimesPromises = [];
 
   if (initialData?.busyTimesFromLimits && initialData?.eventTypeForLimits) {
     busyTimesFromLimits = initialData.busyTimesFromLimits.get(user.id) || [];
   } else if (eventType && (bookingLimits || durationLimits)) {
     // Fall back to individual query if not available in initialData
-    const busyTimesFromLimitsPromise = getBusyTimesFromLimits(
+    busyTimesFromLimits = await getBusyTimesFromLimits(
       bookingLimits,
       durationLimits,
       dateFrom.tz(timeZone),
@@ -367,10 +364,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       initialData?.busyTimesFromLimitsBookings ?? [],
       timeZone,
       initialData?.rescheduleUid ?? undefined
-    ).then((result) => {
-      busyTimesFromLimits = result;
-    });
-    busyTimesPromises.push(busyTimesFromLimitsPromise);
+    );
   }
 
   const teamForBookingLimits =
@@ -380,11 +374,13 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
 
+  let busyTimesFromTeamLimits: EventBusyDetails[] = [];
+
   if (initialData?.teamBookingLimits && teamForBookingLimits) {
     busyTimesFromTeamLimits = initialData.teamBookingLimits.get(user.id) || [];
   } else if (teamForBookingLimits && teamBookingLimits) {
     // Fall back to individual query if not available in initialData
-    const busyTimesFromTeamLimitsPromise = getBusyTimesFromTeamLimits(
+    busyTimesFromTeamLimits = await getBusyTimesFromTeamLimits(
       user,
       teamBookingLimits,
       dateFrom.tz(timeZone),
@@ -393,14 +389,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       teamForBookingLimits.includeManagedEventsInLimits,
       timeZone,
       initialData?.rescheduleUid ?? undefined
-    ).then((result) => {
-      busyTimesFromTeamLimits = result;
-    });
-    busyTimesPromises.push(busyTimesFromTeamLimitsPromise);
-  }
-
-  if (busyTimesPromises.length > 0) {
-    await Promise.all(busyTimesPromises);
+    );
   }
 
   // TODO: only query what we need after applying limits (shrink date range)
