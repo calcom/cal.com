@@ -1,5 +1,4 @@
 import type { Credentials } from "google-auth-library";
-import type { appDataSchema } from "googlesheets/zod";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import logger from "@calcom/lib/logger";
@@ -9,6 +8,7 @@ import { prisma } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import GoogleSheetsService from "../lib/GoogleSheetsService";
+import type { appDataSchema } from "../zod";
 
 type AppsMetadata = { googlesheets: typeof appDataSchema._type };
 
