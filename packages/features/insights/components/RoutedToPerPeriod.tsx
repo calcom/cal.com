@@ -131,7 +131,7 @@ function FormCard({
               ]}
               className="w-fit"
               value={selectedPeriod}
-              onValueChange={(value) => value && onPeriodChange(value)}
+              onValueChange={(value) => onPeriodChange(value)}
             />
             <div className="flex gap-2">
               <div className="w-64">
