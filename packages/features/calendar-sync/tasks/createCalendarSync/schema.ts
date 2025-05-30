@@ -7,6 +7,7 @@ export const createCalendarSyncSchema = z.object({
     externalCalendarId: z.string(),
     integration: z.string(),
     credentialId: z.number(),
+    delegationCredentialId: z.string().nullable(),
     lastSyncedUpAt: z.number(),
     lastSyncDirection: z.enum(["UPSTREAM", "DOWNSTREAM"]),
   }),
