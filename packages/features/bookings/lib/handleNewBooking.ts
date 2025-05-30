@@ -259,6 +259,7 @@ export const buildEventForTeamEventType = async ({
   organizerUser,
   schedulingType,
   team,
+  rrHostsPerMeeting,
 }: {
   existingEvent: Partial<CalendarEvent>;
   users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
@@ -271,6 +272,8 @@ export const buildEventForTeamEventType = async ({
     id: number;
     name: string;
   } | null;
+
+  rrHostsPerMeeting?: number;
 }) => {
   // not null assertion.
   if (!schedulingType) {
@@ -281,7 +284,7 @@ export const buildEventForTeamEventType = async ({
   const nonFixedUsers = users.filter((user) => !user.isFixed);
   const filteredUsers =
     schedulingType === SchedulingType.ROUND_ROBIN
-      ? [...fixedUsers, ...(nonFixedUsers.length > 0 ? [nonFixedUsers[0]] : [])]
+      ? [...fixedUsers, ...(nonFixedUsers.length > 0 ? nonFixedUsers.slice(0, rrHostsPerMeeting ?? 1) : [])]
       : users;
 
   // Organizer or user owner of this event type it's not listed as a team member.
@@ -312,6 +315,9 @@ export const buildEventForTeamEventType = async ({
     });
 
   const teamMembers = await Promise.all(teamMemberPromises);
+
+  console.log("teamMembers", teamMembers);
+  console.log({ nonFixedUsers, filteredUsers, evt });
 
   evt = CalendarEventBuilder.fromEvent(evt)
     .withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
@@ -1178,6 +1184,7 @@ async function handler(
       users,
       team: eventType.team,
       organizerUser,
+      rrHostsPerMeeting: eventType.rrHostsPerMeeting,
     });
   }
 

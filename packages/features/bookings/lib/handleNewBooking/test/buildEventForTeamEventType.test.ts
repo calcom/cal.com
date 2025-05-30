@@ -142,6 +142,27 @@ describe("buildEventForTeamEventType", () => {
     expect(memberEmails).not.toContain("nonfixed2@example.com");
   });
 
+  it("includes multiple non-fixed users for ROUND_ROBIN when rrHostsPerMeeting >= 2", async () => {
+    await buildEventForTeamEventType({
+      existingEvent: {},
+      users: [
+        baseUser({ id: 3, isFixed: true, email: "fixed@example.com" }),
+        baseUser({ id: 2, isFixed: false, email: "nonfixed1@example.com" }),
+        baseUser({ id: 4, isFixed: false, email: "nonfixed2@example.com" }),
+      ],
+      organizerUser: { email: "organizer@example.com" },
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      rrHostsPerMeeting: 2,
+    });
+
+    const teamArgs = withTeamSpy.mock.calls[0][0];
+    const memberEmails = teamArgs.members.map((m: any) => m.email);
+
+    expect(memberEmails).toContain("fixed@example.com");
+    expect(memberEmails).toContain("nonfixed1@example.com");
+    expect(memberEmails).toContain("nonfixed2@example.com");
+  });
+
   it("builds a team with fallback name and id", async () => {
     await buildEventForTeamEventType({
       existingEvent: {},
