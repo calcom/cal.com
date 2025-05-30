@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "CalendarSubscriptionStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'ERROR', 'PENDING');
+CREATE TYPE "CalendarSubscriptionStatus" AS ENUM ('ACTIVE', 'PENDING', 'INACTIVE', 'ERROR');
 
 -- CreateEnum
 CREATE TYPE "CalendarSyncDirection" AS ENUM ('UPSTREAM', 'DOWNSTREAM');
@@ -18,7 +18,7 @@ CREATE TABLE "CalendarSubscription" (
     "providerResourceId" TEXT,
     "providerResourceUri" TEXT,
     "providerExpiration" TIMESTAMP(3),
-    "status" "CalendarSubscriptionStatus" NOT NULL DEFAULT 'ACTIVE',
+    "status" "CalendarSubscriptionStatus" NOT NULL DEFAULT 'PENDING',
     "lastSyncAt" TIMESTAMP(3),
     "lastError" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
