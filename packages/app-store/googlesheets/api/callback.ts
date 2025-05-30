@@ -42,7 +42,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const token = await oAuth2Client.getToken(code);
     const key = token.tokens;
     const grantedScopes = token.tokens.scope?.split(" ") ?? [];
-    
+
     // Check if we have granted all required permissions
     const hasMissingRequiredScopes = GOOGLE_SHEETS_SCOPES.some((scope) => !grantedScopes.includes(scope));
     if (hasMissingRequiredScopes) {
@@ -70,8 +70,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   res.redirect(
-    getSafeRedirectUrl(state?.returnTo) ??
-      getInstalledAppPath({ variant: "other", slug: "googlesheets" })
+    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "googlesheets" })
   );
 }
 

@@ -77,9 +77,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           disabled={disabled}
           className="h-4 w-4 rounded border-gray-300"
         />
-        <label className="text-sm font-medium">
-          Enable Google Sheets export for this event type
-        </label>
+        <label className="text-sm font-medium">Enable Google Sheets export for this event type</label>
       </div>
 
       {enabled && (
@@ -98,18 +96,16 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           {spreadsheetUrl && (
             <Button
               type="button"
-              variant="outline"
               onClick={testConnection}
               disabled={disabled || isTestingConnection}
-              loading={isTestingConnection}
-            >
+              loading={isTestingConnection}>
               {isTestingConnection ? "Testing..." : "Test Connection"}
             </Button>
           )}
 
           <div className="text-sm text-gray-600">
-            <p className="font-medium mb-2">How it works:</p>
-            <ul className="list-disc list-inside space-y-1">
+            <p className="mb-2 font-medium">How it works:</p>
+            <ul className="list-inside list-disc space-y-1">
               <li>Booking data will be automatically exported to your Google Sheets</li>
               <li>Each booking gets one row that updates as the booking changes</li>
               <li>Column headers are created automatically on first use</li>

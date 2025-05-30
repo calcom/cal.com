@@ -9,8 +9,7 @@
     "@calcom/prisma": "*",
     "@calcom/types": "*",
     "@calcom/ui": "*",
-    "googleapis": "^118.0.0",
-    "googleapis-common": "^7.0.0"
+    "@googleapis/sheets": "^9.8.0"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*"

@@ -1,18 +1,21 @@
+import type { Credentials } from "google-auth-library";
+import type { appDataSchema } from "googlesheets/zod";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { logger } from "@calcom/lib/logger";
+import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import GoogleSheetsService from "../lib/GoogleSheetsService";
 
+type AppsMetadata = { googlesheets: typeof appDataSchema._type };
+
 // Supported webhook events for Google Sheets export
 const SUPPORTED_WEBHOOK_EVENTS = [
   "BOOKING_CREATED",
-  "BOOKING_CANCELLED", 
+  "BOOKING_CANCELLED",
   "BOOKING_RESCHEDULED",
   "BOOKING_PAID",
   "BOOKING_PAYMENT_INITIATED",
@@ -85,20 +88,22 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Check if Google Sheets is enabled for this event type
-    const eventTypeMetadata = eventType.metadata as any;
-    const googleSheetsConfig = eventTypeMetadata?.apps?.googlesheets;
-    
+    const eventTypeMetadata = eventType.metadata;
+    const apps = (eventTypeMetadata as { apps?: AppsMetadata })?.apps;
+
+    const googleSheetsConfig = apps?.googlesheets;
+
     if (!googleSheetsConfig?.enabled) {
-      logger.debug("Google Sheets not enabled for event type", { 
-        eventTypeId: calendarEvent.eventTypeId 
+      logger.debug("Google Sheets not enabled for event type", {
+        eventTypeId: calendarEvent.eventTypeId,
       });
       return res.status(200).json({ message: "Google Sheets not enabled" });
     }
 
     const spreadsheetId = googleSheetsConfig.spreadsheetId;
     if (!spreadsheetId) {
-      logger.debug("No spreadsheet ID configured", { 
-        eventTypeId: calendarEvent.eventTypeId 
+      logger.debug("No spreadsheet ID configured", {
+        eventTypeId: calendarEvent.eventTypeId,
       });
       return res.status(200).json({ message: "No spreadsheet configured" });
     }
@@ -124,7 +129,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       }
     }
 
-    if (!credential) {
+    if (!credential?.key) {
       logger.error("No valid Google Sheets credential found", {
         eventTypeId: calendarEvent.eventTypeId,
         triggerEvent,
@@ -133,7 +138,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Export data to Google Sheets
-    const sheetsService = new GoogleSheetsService(credential);
+    const sheetsService = await new GoogleSheetsService(credential.key as Credentials).initializeClient();
     await sheetsService.exportBookingData(spreadsheetId, calendarEvent);
 
     logger.info("Successfully exported booking data to Google Sheets", {

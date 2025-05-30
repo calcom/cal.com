@@ -9,6 +9,7 @@
   "categories": ["automation"],
   "publisher": "Cal.com",
   "email": "help@cal.com",
+  "extendsFeature": "EventType",
   "description": "Automatically export booking data to Google Sheets when enabled per event type",
   "isOAuth": true,
   "appData": {

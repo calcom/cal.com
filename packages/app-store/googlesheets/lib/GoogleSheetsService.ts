@@ -1,27 +1,26 @@
-import { google } from "googleapis";
+import { sheets_v4 } from "@googleapis/sheets";
+import type { Credentials } from "google-auth-library";
 import { OAuth2Client } from "googleapis-common";
 
-import { logger } from "@calcom/lib/logger";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import type { googleSheetsConfigSchema } from "../zod";
 import { getGoogleSheetsAppKeys } from "./getGoogleSheetsAppKeys";
 
-type GoogleSheetsConfig = typeof googleSheetsConfigSchema._type;
-
 export class GoogleSheetsService {
-  private oAuth2Client: OAuth2Client;
-  private sheets: any;
+  private oAuth2Client?: OAuth2Client;
+  private sheets?: sheets_v4.Sheets;
 
-  constructor(private credential: { key: any }) {
-    this.initializeClient();
-  }
-
-  private async initializeClient() {
+  constructor(private credentials: Credentials) {}
+  async initializeClient() {
     const { client_id, client_secret } = await getGoogleSheetsAppKeys();
-    this.oAuth2Client = new OAuth2Client(client_id, client_secret);
-    this.oAuth2Client.setCredentials(this.credential.key);
-    this.sheets = google.sheets({ version: "v4", auth: this.oAuth2Client });
+    const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlesheets/callback`;
+    this.oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uri);
+
+    this.oAuth2Client?.setCredentials(this.credentials);
+    this.sheets = new sheets_v4.Sheets({ auth: this.oAuth2Client });
+    return this;
   }
 
   /**
@@ -38,7 +37,7 @@ export class GoogleSheetsService {
    */
   async validateSpreadsheetAccess(spreadsheetId: string): Promise<boolean> {
     try {
-      await this.sheets.spreadsheets.get({
+      await this.sheets?.spreadsheets.get({
         spreadsheetId,
         fields: "properties.title",
       });
@@ -86,18 +85,18 @@ export class GoogleSheetsService {
 
     try {
       // Check if headers already exist
-      const response = await this.sheets.spreadsheets.values.get({
+      const response = await this.sheets?.spreadsheets.values.get({
         spreadsheetId,
         range: "A1:AB1",
       });
 
-      if (!response.data.values || response.data.values.length === 0) {
+      if (!response?.data.values || response?.data.values.length === 0) {
         // Create headers
-        await this.sheets.spreadsheets.values.update({
+        await this.sheets?.spreadsheets.values.update({
           spreadsheetId,
           range: "A1",
           valueInputOption: "RAW",
-          resource: {
+          requestBody: {
             values: [headers],
           },
         });
@@ -113,12 +112,12 @@ export class GoogleSheetsService {
    */
   private async findBookingRow(spreadsheetId: string, bookingId: number): Promise<number | null> {
     try {
-      const response = await this.sheets.spreadsheets.values.get({
+      const response = await this.sheets?.spreadsheets.values.get({
         spreadsheetId,
         range: "A:A",
       });
 
-      if (!response.data.values) return null;
+      if (!response?.data.values) return null;
 
       for (let i = 1; i < response.data.values.length; i++) {
         if (response.data.values[i][0] === bookingId.toString()) {
@@ -139,7 +138,7 @@ export class GoogleSheetsService {
     const attendeeNames = event.attendees.map((a) => a.name).join(", ");
     const attendeeEmails = event.attendees.map((a) => a.email).join(", ");
     const teamMembers = event.team?.members.map((m) => `${m.name} (${m.email})`).join(", ") || "";
-    
+
     return [
       event.bookingId || "",
       event.type || "",
@@ -180,39 +179,39 @@ export class GoogleSheetsService {
       await this.ensureHeaders(spreadsheetId);
 
       const rowData = this.transformEventToRowData(event);
-      
+
       if (event.bookingId) {
         // Try to find existing row
         const existingRow = await this.findBookingRow(spreadsheetId, event.bookingId);
-        
+
         if (existingRow) {
           // Update existing row
-          await this.sheets.spreadsheets.values.update({
+          await this.sheets?.spreadsheets.values.update({
             spreadsheetId,
             range: `A${existingRow}:AB${existingRow}`,
             valueInputOption: "RAW",
-            resource: {
+            requestBody: {
               values: [rowData],
             },
           });
         } else {
           // Append new row
-          await this.sheets.spreadsheets.values.append({
+          await this.sheets?.spreadsheets.values.append({
             spreadsheetId,
             range: "A:AB",
             valueInputOption: "RAW",
-            resource: {
+            requestBody: {
               values: [rowData],
             },
           });
         }
       } else {
         // No booking ID, just append
-        await this.sheets.spreadsheets.values.append({
+        await this.sheets?.spreadsheets.values.append({
           spreadsheetId,
           range: "A:AB",
           valueInputOption: "RAW",
-          resource: {
+          requestBody: {
             values: [rowData],
           },
         });
