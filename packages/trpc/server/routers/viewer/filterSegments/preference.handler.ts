@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import { FilterSegmentRepository } from "@calcom/lib/server/repository/filterSegment";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TSetFilterSegmentPreferenceInputSchema } from "./preference.schema";
@@ -15,32 +15,9 @@ export const setPreferenceHandler = async ({
   const { tableIdentifier, segmentId } = input;
   const userId = ctx.user.id;
 
-  if (segmentId === null) {
-    await prisma.userFilterSegmentPreference.deleteMany({
-      where: {
-        userId,
-        tableIdentifier,
-      },
-    });
-    return null;
-  }
-
-  const preference = await prisma.userFilterSegmentPreference.upsert({
-    where: {
-      userId_tableIdentifier: {
-        userId,
-        tableIdentifier,
-      },
-    },
-    update: {
-      segmentId,
-    },
-    create: {
-      userId,
-      tableIdentifier,
-      segmentId,
-    },
+  return await FilterSegmentRepository.setPreference({
+    userId,
+    tableIdentifier,
+    segmentId,
   });
-
-  return preference;
 };
