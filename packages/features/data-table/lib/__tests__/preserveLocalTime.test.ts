@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 
-import { preserveLocalTime } from "../useUserTimePreferences";
+import { preserveLocalTime } from "../preserveLocalTime";
 
 describe("preserveLocalTime", () => {
   it("should preserve midnight (00:00) when converting from Paris to Seoul", () => {
