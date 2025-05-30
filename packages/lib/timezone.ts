@@ -27,12 +27,37 @@ export const addTimezonesToDropdown = (timezones: Timezones) => {
 const formatOffset = (offset: string) =>
   offset.replace(/^([-+])(0)(\d):00$/, (_, sign, _zero, hour) => `${sign}${hour}:00`);
 
-export const handleOptionLabel = (option: ITimezoneOption, timezones: Timezones) => {
-  const offsetUnit = option.label.split("-")[0].substring(1);
-  const cityName = option.label.split(") ")[1];
+export const handleOptionLabel = (option: ITimezoneOption) => {
+  const ianaValue = option.value;
+  let displayCityName = "";
 
-  const timezoneValue = ` ${offsetUnit} ${formatOffset(dayjs.tz(undefined, option.value).format("Z"))}`;
-  return timezones.length > 0
-    ? `${cityName}${timezoneValue}`
-    : `${option.value.replace(/_/g, " ")}${timezoneValue}`;
+  if (option.label) {
+    const parts = option.label.split(") ");
+    if (parts.length > 1) {
+      displayCityName = parts[1];
+    } else {
+      const parts2 = option.label.split(" (GMT");
+      if (parts2.length > 0) {
+        displayCityName = parts2[0];
+      }
+    }
+  }
+
+  if (!displayCityName) {
+    displayCityName = ianaValue.includes("/")
+      ? ianaValue.split("/")[1].replace(/_/g, " ")
+      : ianaValue.replace(/_/g, " ");
+  }
+
+  let offsetString = "";
+  try {
+    offsetString = dayjs.tz(undefined, ianaValue).format("Z");
+  } catch (e) {
+    console.error(`Error getting offset for ${ianaValue} using dayjs:`, e);
+    offsetString = "ERR";
+  }
+
+  const displayOffset = `GMT${offsetString}`;
+
+  return `${displayCityName} (${displayOffset})`;
 };
