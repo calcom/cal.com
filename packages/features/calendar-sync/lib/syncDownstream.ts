@@ -1,9 +1,12 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import type { Booking } from "@calcom/prisma/client";
 import type { CalendarEventsToSync } from "@calcom/types/Calendar";
+
+import type { CancellationBySyncReason } from "../types";
+import { cancelBooking } from "./downstreamActions";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSync"] });
 
@@ -29,7 +32,7 @@ type BookingUpdateAction =
       type: "CANCEL_BOOKING";
       bookingId: number;
       cancelledBy: string;
-      cancellationReason: "organizer_declined_in_calendar" | "event_cancelled_in_calendar";
+      cancellationReason: CancellationBySyncReason;
       notes?: string[];
     }
   | {
@@ -185,25 +188,9 @@ export async function syncDownstream({
   try {
     const calendarEventIds = calendarEvents.map((event) => event.id).filter(Boolean) as string[];
 
-    const bookingReferences = await prisma.bookingReference.findMany({
-      where: {
-        uid: {
-          in: calendarEventIds,
-        },
-        type: app.type,
-      },
-      select: {
-        uid: true,
-        type: true,
-        booking: {
-          select: {
-            id: true,
-            startTime: true,
-            endTime: true,
-            status: true,
-          },
-        },
-      },
+    const bookingReferences = await BookingReferenceRepository.findManyWhereUidsAndTypeIncludeBooking({
+      uids: calendarEventIds,
+      type: app.type,
     });
 
     const bookingMap = getBookingMap(bookingReferences);
@@ -222,20 +209,17 @@ export async function syncDownstream({
         const actions = getBookingUpdateActions({ calendarEvent, booking, appName: app.name });
 
         for (const action of actions) {
-          let dbUpdatePromise: Promise<unknown> = Promise.resolve(); // Default to no DB operation
+          const dbUpdatePromise: Promise<unknown> = Promise.resolve(); // Default to no DB operation
 
           switch (action.type) {
             case "CANCEL_BOOKING":
               log.info(
                 `Calendar Event ${calendarEvent.id} triggered CANCEL for Cal.com booking ${action.bookingId}.`
               );
-              dbUpdatePromise = prisma.booking.update({
-                where: { id: action.bookingId },
-                data: {
-                  status: "CANCELLED",
-                  cancelledBy: action.cancelledBy,
-                  cancellationReason: action.cancellationReason,
-                },
+              await cancelBooking({
+                bookingId: action.bookingId,
+                cancelledBy: action.cancelledBy,
+                cancellationReason: action.cancellationReason,
               });
               break;
             case "UPDATE_BOOKING_TIMES":
