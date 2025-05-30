@@ -30,6 +30,22 @@ const getCachedAttributes = unstable_cache(
   { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour
 );
 
+const getCachedTeams = unstable_cache(
+  async (orgId: number) => {
+    return await OrganizationRepository.getTeams({ organizationId: orgId });
+  },
+  undefined,
+  { revalidate: 3600, tags: ["viewer.organizations.getTeams"] } // Cache for 1 hour
+);
+
+const getCachedFacetedValues = unstable_cache(
+  async (orgId: number) => {
+    return await OrganizationRepository.getFacetedValues({ organizationId: orgId });
+  },
+  undefined,
+  { revalidate: 3600, tags: ["viewer.organizations.getFacetedValues"] } // Cache for 1 hour
+);
+
 const Page = async () => {
   const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
@@ -38,12 +54,13 @@ const Page = async () => {
     return redirect("/settings/my-account/profile");
   }
 
-  const [org, teams, facetedTeamValues] = await Promise.all([
+  const [org, teams, facetedTeamValues, attributes] = await Promise.all([
     orgCaller.listCurrent(),
-    OrganizationRepository.getTeams({ organizationId: orgId }),
-    OrganizationRepository.getFacetedValues({ organizationId: orgId }),
+    getCachedTeams(orgId),
+    getCachedFacetedValues(orgId),
+    getCachedAttributes(orgId),
   ]);
-  const attributes = await getCachedAttributes(org.id);
+
   return (
     <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
   );
