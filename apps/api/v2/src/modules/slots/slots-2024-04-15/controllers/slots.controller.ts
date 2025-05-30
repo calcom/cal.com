@@ -57,6 +57,7 @@ export class SlotsController_2024_04_15 {
     res.cookie("uid", uid, {
       httpOnly: true,
       secure: isProduction,
+      sameSite: "lax",
     });
     return {
       status: SUCCESS_STATUS,
