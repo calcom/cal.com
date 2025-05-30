@@ -439,7 +439,6 @@ describe("handleChildrenEventTypes", () => {
         instantMeetingScheduleId: null,
         assignRRMembersUsingSegment: false,
         includeNoShowInRRCalculation: false,
-        disableReschedulingCancelledBookings: false,
         ...evType,
       };
 
