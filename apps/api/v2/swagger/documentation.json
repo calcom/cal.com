@@ -19060,6 +19060,10 @@
             "type": "string",
             "example": "John Doe"
           },
+          "username": {
+            "type": "string",
+            "example": "john-doe"
+          },
           "avatarUrl": {
             "type": "string",
             "nullable": true,
@@ -19068,7 +19072,8 @@
         },
         "required": [
           "userId",
-          "name"
+          "name",
+          "username"
         ]
       },
       "EventTypeTeam": {
