@@ -147,6 +147,7 @@ describe("handleChildrenEventTypes", () => {
           userId: 4,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
+          disableReschedulingCancelledBookings: false,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -206,6 +207,7 @@ describe("handleChildrenEventTypes", () => {
             deleteMany: {},
           },
           instantMeetingScheduleId: undefined,
+          disableReschedulingCancelledBookings: false,
         },
         where: {
           userId_parentId: {
@@ -315,6 +317,7 @@ describe("handleChildrenEventTypes", () => {
           workflows: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
+          disableReschedulingCancelledBookings: false,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -371,6 +374,7 @@ describe("handleChildrenEventTypes", () => {
           },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
+          disableReschedulingCancelledBookings: false,
         },
         where: {
           userId_parentId: {
@@ -435,6 +439,7 @@ describe("handleChildrenEventTypes", () => {
         instantMeetingScheduleId: null,
         assignRRMembersUsingSegment: false,
         includeNoShowInRRCalculation: false,
+        disableReschedulingCancelledBookings: false,
         ...evType,
       };
 
@@ -476,6 +481,7 @@ describe("handleChildrenEventTypes", () => {
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
           useEventLevelSelectedCalendars: false,
+          disableReschedulingCancelledBookings: false,
         },
       });
       const { profileId, rrSegmentQueryValue, ...rest } = evType;
