@@ -2019,6 +2019,12 @@
   "booking_confirmation_failed": "Booking confirmation failed",
   "not_enough_seats": "Not enough seats",
   "form_builder_field_already_exists": "A field with this name already exists",
+  "form_builder": {
+  "show_this_field_if": "Show this field if…",
+  "select_parent_field": "Select parent field",
+  "select_values": "Select values",
+  "when_value_is": "When value is"
+  },
   "show_on_booking_page": "Show on booking page",
   "visit_cancelled_booking": "You can visit the canceled booking page",
   "get_started_zapier_templates": "Get started with Zapier templates",
