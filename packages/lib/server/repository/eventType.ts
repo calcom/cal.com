@@ -863,6 +863,7 @@ export class EventTypeRepository {
               },
             },
             timeZone: true,
+            timeBlocks: true,
           },
         },
         availability: {
@@ -897,6 +898,7 @@ export class EventTypeRepository {
                 },
                 timeZone: true,
                 id: true,
+                timeBlocks: true,
               },
             },
           },

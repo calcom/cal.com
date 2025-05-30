@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 
-import { buildDateRanges, processDateOverride, processWorkingHours, subtract } from "./date-ranges";
+import { buildDateRanges, processDateItem, processWorkingHours, subtract } from "./date-ranges";
 
 describe("processWorkingHours", () => {
   // TEMPORAIRLY SKIPPING THIS TEST - Started failing after 29th Oct
@@ -299,7 +299,7 @@ describe("processDateOverrides", () => {
     // 2023-06-12T20:00:00-04:00 (America/New_York)
     const timeZone = "America/New_York";
 
-    const result = processDateOverride({
+    const result = processDateItem({
       item,
       itemDateAsUtc: dayjs.utc(item.date),
       timeZone,
@@ -329,7 +329,7 @@ describe("processDateOverrides", () => {
       },
     ];
 
-    const result = processDateOverride({
+    const result = processDateItem({
       item,
       itemDateAsUtc: dayjs.utc(item.date),
       timeZone,

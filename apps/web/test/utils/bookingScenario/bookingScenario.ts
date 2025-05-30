@@ -1167,6 +1167,7 @@ export const TestData = {
         },
       ],
       timeZone: Timezones["+5:30"],
+      timeBlocks: [],
     },
     /**
      * Has an overlap with IstEveningShift from 5PM to 6PM IST(11:30AM to 12:30PM GMT)
