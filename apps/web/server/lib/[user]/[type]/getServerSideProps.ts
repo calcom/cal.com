@@ -62,7 +62,7 @@ async function processReschedule({
     (booking?.eventTypeId === props.eventData?.id &&
       (booking.status !== BookingStatus.CANCELLED ||
         allowRescheduleForCancelledBooking ||
-        !props.eventData?.disableReschedulingCancelledBookings))
+        !(props.eventData as any)?.disableReschedulingCancelledBookings))
   ) {
     props.booking = booking;
     props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;

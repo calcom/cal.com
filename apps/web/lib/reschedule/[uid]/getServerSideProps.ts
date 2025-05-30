@@ -59,6 +59,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           allowReschedulingPastBookings: true,
           disableRescheduling: true,
+          disableReschedulingCancelledBookings: true,
           team: {
             select: {
               parentId: true,
