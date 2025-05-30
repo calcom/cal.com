@@ -17,7 +17,7 @@ export const DisablePhoneOnlySMSNotificationsSwitch = ({ currentOrg, isAdminOrOw
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [disablePhoneOnlySMSNotificationsActive, setDisablePhoneOnlySMSNotificationsActive] = useState(
-    !!currentOrg.organizationSettings?.disablePhoneOnlySMSNotifications || false
+    !!currentOrg.organizationSettings.disablePhoneOnlySMSNotifications
   );
 
   const mutation = trpc.viewer.organizations.update.useMutation({
