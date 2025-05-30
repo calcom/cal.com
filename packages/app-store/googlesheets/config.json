@@ -1,0 +1,21 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Google Sheets",
+  "slug": "googlesheets",
+  "type": "googlesheets_other",
+  "logo": "icon.svg",
+  "url": "https://sheets.google.com",
+  "variant": "other",
+  "categories": ["automation"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Automatically export booking data to Google Sheets when enabled per event type",
+  "isOAuth": true,
+  "appData": {
+    "location": {
+      "linkType": "static",
+      "type": "integrations:googlesheets"
+    }
+  },
+  "dirName": "googlesheets"
+}
