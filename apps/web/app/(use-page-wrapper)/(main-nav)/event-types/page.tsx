@@ -1,7 +1,8 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
-import { createRouterCaller } from "app/_trpc/context";
-import type { PageProps } from "app/_types";
+import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
+import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
+import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -23,9 +24,40 @@ export const generateMetadata = async () =>
     "/event-types"
   );
 
+const getCachedMe = unstable_cache(
+  async (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
+    const meCaller = await createRouterCaller(meRouter, await getTRPCContext(headers, cookies));
+    return await meCaller.get();
+  },
+  ["viewer.me.get"],
+  { revalidate: 3600 } // seconds
+);
+
+const getCachedEventGroups = unstable_cache(
+  async (
+    headers: ReadonlyHeaders,
+    cookies: ReadonlyRequestCookies,
+    filters?: {
+      teamIds?: number[] | undefined;
+      userIds?: number[] | undefined;
+      upIds?: string[] | undefined;
+    }
+  ) => {
+    const eventTypesCaller = await createRouterCaller(
+      eventTypesRouter,
+      await getTRPCContext(headers, cookies)
+    );
+    return await eventTypesCaller.getUserEventGroups({ filters });
+  },
+  ["viewer.eventTypes.getUserEventGroups"],
+  { revalidate: 3600 } // seconds
+);
+
 const Page = async ({ params, searchParams }: PageProps) => {
   const _searchParams = await searchParams;
-  const context = buildLegacyCtx(await headers(), await cookies(), await params, _searchParams);
+  const _headers = await headers();
+  const _cookies = await cookies();
+  const context = buildLegacyCtx(_headers, _cookies, await params, _searchParams);
   const session = await getServerSession({ req: context.req });
 
   if (!session?.user?.id) {
@@ -34,15 +66,9 @@ const Page = async ({ params, searchParams }: PageProps) => {
 
   const t = await getTranslate();
   const filters = getTeamsFiltersFromQuery(_searchParams);
-
-  const [meCaller, eventTypesCaller] = await Promise.all([
-    createRouterCaller(meRouter),
-    createRouterCaller(eventTypesRouter),
-  ]);
-
   const [me, userEventGroupsData] = await Promise.all([
-    meCaller.get(),
-    eventTypesCaller.getUserEventGroups({ filters }),
+    getCachedMe(_headers, _cookies),
+    getCachedEventGroups(_headers, _cookies, filters),
   ]);
 
   return (
@@ -56,4 +82,3 @@ const Page = async ({ params, searchParams }: PageProps) => {
 };
 
 export default Page;
-export const revalidate = 3600; // 1 hour in seconds

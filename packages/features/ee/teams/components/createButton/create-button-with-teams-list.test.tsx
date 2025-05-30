@@ -22,11 +22,13 @@ vi.mock("next/navigation", async (importOriginal) => {
 const runtimeMock = async (data: Array<any>) => {
   const updatedTrpc = {
     viewer: {
-      teamsAndUserProfilesQuery: {
-        useQuery() {
-          return {
-            data: data,
-          };
+      loggedInViewerRouter: {
+        teamsAndUserProfilesQuery: {
+          useQuery() {
+            return {
+              data: data,
+            };
+          },
         },
       },
     },
@@ -51,18 +53,20 @@ describe("Create Button Tests", () => {
       vi.mock("@calcom/trpc/react", () => ({
         trpc: {
           viewer: {
-            teamsAndUserProfilesQuery: {
-              useQuery() {
-                return {
-                  data: [
-                    {
-                      teamId: 1,
-                      name: "test",
-                      slug: "create-button-test",
-                      image: "image",
-                    },
-                  ],
-                };
+            loggedInViewerRouter: {
+              teamsAndUserProfilesQuery: {
+                useQuery() {
+                  return {
+                    data: [
+                      {
+                        teamId: 1,
+                        name: "test",
+                        slug: "create-button-test",
+                        image: "image",
+                      },
+                    ],
+                  };
+                },
               },
             },
           },

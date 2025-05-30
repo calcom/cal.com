@@ -226,20 +226,26 @@ export class EventTypesAtomService {
       } else {
         credentials = credentials.concat(teamAppCredentials);
       }
+    } else {
+      if (slug !== "stripe") {
+        // We only add delegationCredentials if the request for location options is for a user because DelegationCredential Credential is applicable to Users only.
+        const { credentials: allCredentials } =
+          await enrichUserWithDelegationConferencingCredentialsWithoutOrgId({
+            user: {
+              ...user,
+              credentials,
+            },
+          });
+        credentials = allCredentials;
+      }
     }
-    // We only add delegationCredentials if the request for location options is for a user because DelegationCredential Credential is applicable to Users only.
-    const { credentials: allCredentials } = await enrichUserWithDelegationConferencingCredentialsWithoutOrgId(
+
+    const enabledApps = await getEnabledAppsFromCredentials(
+      credentials as unknown as CredentialDataWithTeamName[],
       {
-        user: {
-          ...user,
-          credentials,
-        },
+        where: { slug },
       }
     );
-    credentials = allCredentials;
-    const enabledApps = await getEnabledAppsFromCredentials(allCredentials, {
-      where: { slug },
-    });
     const apps = await Promise.all(
       enabledApps
         .filter(({ ...app }) => app.slug === slug)

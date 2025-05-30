@@ -203,7 +203,7 @@ export const BookerPlatformWrapper = (
     event.data.length = props.duration;
   }
 
-  const bookerLayout = useBookerLayout(event.data);
+  const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
   useInitializeBookerStore({
     ...props,
     teamMemberEmail,
@@ -583,6 +583,7 @@ export const BookerPlatformWrapper = (
         isPlatform
         hasValidLicense={true}
         isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
+        eventMetaChildren={props.eventMetaChildren}
       />
     </AtomsWrapper>
   );
