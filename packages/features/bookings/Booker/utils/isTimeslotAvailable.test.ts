@@ -220,4 +220,68 @@ describe("isTimeSlotAvailable", () => {
 
     expect(result).toBe(true);
   });
+
+  // Test when onlyShowFirstAvailableSlot is enabled
+  it("should return false for non-first slots when onlyShowFirstAvailableSlot is enabled", () => {
+    const firstSlot = "2024-02-08T10:30:00.000Z";
+    const secondSlot = "2024-02-08T11:30:00.000Z";
+    const quickAvailabilityChecks: QuickAvailabilityCheck[] = [];
+
+    const result1 = isTimeSlotAvailable({
+      scheduleData: {
+        slots: {
+          "2024-02-08": [{ time: firstSlot }, { time: secondSlot }],
+        },
+      },
+      slotToCheckInIso: firstSlot,
+      quickAvailabilityChecks,
+      eventType: { onlyShowFirstAvailableSlot: true },
+    });
+
+    const result2 = isTimeSlotAvailable({
+      scheduleData: {
+        slots: {
+          "2024-02-08": [{ time: firstSlot }, { time: secondSlot }],
+        },
+      },
+      slotToCheckInIso: secondSlot,
+      quickAvailabilityChecks,
+      eventType: { onlyShowFirstAvailableSlot: true },
+    });
+
+    expect(result1).toBe(true);
+    expect(result2).toBe(false);
+  });
+
+  // Test when onlyShowFirstAvailableSlot is disabled
+  it("should allow all slots when onlyShowFirstAvailableSlot is disabled", () => {
+    const firstSlot = "2024-02-08T10:30:00.000Z";
+    const secondSlot = "2024-02-08T11:30:00.000Z";
+    const quickAvailabilityChecks: QuickAvailabilityCheck[] = [];
+
+    const result1 = isTimeSlotAvailable({
+      scheduleData: {
+        slots: {
+          "2024-02-08": [{ time: firstSlot }, { time: secondSlot }],
+        },
+      },
+      slotToCheckInIso: firstSlot,
+      quickAvailabilityChecks,
+      eventType: { onlyShowFirstAvailableSlot: false },
+    });
+
+    const result2 = isTimeSlotAvailable({
+      scheduleData: {
+        slots: {
+          "2024-02-08": [{ time: firstSlot }, { time: secondSlot }],
+        },
+      },
+      slotToCheckInIso: secondSlot,
+      quickAvailabilityChecks,
+      eventType: { onlyShowFirstAvailableSlot: false },
+    });
+
+    expect(result1).toBe(true);
+    expect(result2).toBe(true);
+  });
 });
