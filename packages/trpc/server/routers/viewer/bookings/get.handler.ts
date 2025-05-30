@@ -488,6 +488,7 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                "EventType.roundRobinHostsCount",
                 eb
                   .cast<SchedulingType>(
                     eb

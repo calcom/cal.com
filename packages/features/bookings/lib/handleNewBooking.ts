@@ -669,6 +669,7 @@ async function handler(
         },
       }),
     };
+
     if (input.bookingData.allRecurringDates && input.bookingData.isFirstRecurringSlot) {
       const isTeamEvent =
         eventType.schedulingType === SchedulingType.COLLECTIVE ||
@@ -789,7 +790,7 @@ async function handler(
 
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
-      while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+      while (luckyUserPool.length > 0 && luckyUsers.length < eventType.roundRobinHostsCount) {
         const freeUsers = luckyUserPool.filter(
           (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
         );
@@ -856,6 +857,14 @@ async function handler(
         } else {
           luckyUsers.push(newLuckyUser);
         }
+      }
+
+      // for round robin, luckyUsers.length must be equal to eventType.roundRobinHostsCount
+      if (
+        eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+        luckyUsers.length < eventType.roundRobinHostsCount
+      ) {
+        throw new Error(ErrorCode.NotEnoughAvailableHosts);
       }
       // ALL fixed users must be available
       if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
