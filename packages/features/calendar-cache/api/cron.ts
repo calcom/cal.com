@@ -1,5 +1,7 @@
 import type { NextApiRequest } from "next";
 
+import type { ICalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
+import { CalendarSubscriptionRepository } from "@calcom/features/calendar-sync/calendarSubscription.repository";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -60,7 +62,17 @@ function getUniqueCalendarsByExternalId<
 
 const handleCalendarsToUnwatch = async () => {
   const calendarsToUnwatch = await SelectedCalendarRepository.getNextBatchToUnwatch(500);
+  log.info(`Found ${calendarsToUnwatch.length} calendars to unwatch`);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
+  const calendarSubscriptions = await CalendarSubscriptionRepository.findMany({
+    where: {
+      providerType: "google_calendar",
+      externalCalendarId: {
+        in: Object.keys(calendarsWithEventTypeIdsGroupedTogether),
+      },
+    },
+  });
+  const calendarSubscriptionMap = new Map(calendarSubscriptions.map((cs) => [cs.externalCalendarId, cs]));
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { eventTypeIds, credentialId, id }]) => {
@@ -78,8 +90,12 @@ const handleCalendarsToUnwatch = async () => {
 
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
-          await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
-          await SelectedCalendarRepository.removeUnwatchingError({ id });
+          const calendarSubscription = calendarSubscriptionMap.get(externalId);
+          await cc.unwatchCalendar({
+            calendarId: externalId,
+            eventTypeIds,
+            calendarSubscription: calendarSubscription ?? null,
+          });
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {
@@ -107,9 +123,44 @@ const handleCalendarsToUnwatch = async () => {
   return result;
 };
 
+const upsertCache = async ({
+  calendarCache,
+  credentialId,
+  externalId,
+}: {
+  calendarCache: ICalendarCacheRepository;
+  credentialId: number;
+  externalId: string;
+}) => {
+  const calendarService = await calendarCache.getCalendarService();
+  if (!calendarService) {
+    log.error(`CalendarService is not available via CalendarCache for credentialId: ${credentialId}`);
+    return;
+  }
+  const allSelectedCalendarsForCredential = await SelectedCalendarRepository.findFromCredentialId(
+    credentialId
+  );
+  await calendarService.onWatchedCalendarChange?.({
+    calendarId: externalId,
+    syncActions: ["availability-cache"],
+    selectedCalendars: allSelectedCalendarsForCredential,
+  });
+};
+
 const handleCalendarsToWatch = async () => {
   const calendarsToWatch = await SelectedCalendarRepository.getNextBatchToWatch(500);
+  log.info(`Found ${calendarsToWatch.length} calendars to watch`);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
+  const calendarSubscriptions = await CalendarSubscriptionRepository.findMany({
+    where: {
+      providerType: "google_calendar",
+      externalCalendarId: {
+        in: Object.keys(calendarsWithEventTypeIdsGroupedTogether),
+      },
+    },
+  });
+
+  const calendarSubscriptionMap = new Map(calendarSubscriptions.map((cs) => [cs.externalCalendarId, cs]));
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { credentialId, eventTypeIds, id }]) => {
@@ -122,8 +173,23 @@ const handleCalendarsToWatch = async () => {
 
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
-          await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
-          await SelectedCalendarRepository.removeWatchingError({ id });
+          const calendarSubscription = calendarSubscriptionMap.get(externalId);
+          const response = await cc.watchCalendar({
+            calendarId: externalId,
+            eventTypeIds,
+            calendarSubscription: calendarSubscription ?? null,
+          });
+
+          if (response.reusedFromCalendarSubscription) {
+            // It means that a new third party subscription wasn't created and thus no immediate webhook request with resourceState=sync will be sent that would populate the availability cache
+            // Assuming that CalendarCache isn't there we could manually update the cache
+            // TODO: Instead of relying on webhook to cache for the first time, we could use this strategy always. That keeps things simple. Note: Webhook is still needed for updating the cache when the availability changes.
+            await upsertCache({
+              calendarCache: cc,
+              credentialId,
+              externalId,
+            });
+          }
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {

@@ -28,6 +28,7 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { createCalendarSyncTask } from "@calcom/features/calendar-sync/tasks/createCalendarSync/createTask";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -2091,6 +2092,14 @@ async function handler(
 
   try {
     if (!isDryRun) {
+      await createCalendarSyncTask({
+        results,
+        organizer: {
+          id: organizerUser.id,
+          organizationId: organizerOrganizationId ?? null,
+        },
+      });
+
       await prisma.booking.update({
         where: {
           uid: booking.uid,
