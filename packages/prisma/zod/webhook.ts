@@ -19,6 +19,7 @@ export const _WebhookModel = z.object({
   platform: z.boolean(),
   time: z.number().int().nullish(),
   timeUnit: z.nativeEnum(TimeUnit).nullish(),
+  delayMinutes: z.number().int().nullish(),
 })
 
 export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {

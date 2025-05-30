@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -101,6 +101,16 @@ export default function EventTypeWebhookListItem(props: {
             ))}
           </div>
         </Tooltip>
+
+        {webhook.eventTriggers.includes("FORM_SUBMITTED_NO_EVENT") && (
+          <div className="text-subtle mt-2 text-sm">
+            {t("triggers_after_delay", { minutes: webhook.delayMinutes || 10 })}
+          </div>
+        )}
+        {webhook.eventTriggers.includes(WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT) &&
+          webhook.delayMinutes && (
+            <Badge variant="gray">{t("delayed_by_minutes", { minutes: webhook.delayMinutes })}</Badge>
+          )}
       </div>
       {!props.readOnly && (
         <div className="ml-2 flex items-center space-x-4">
