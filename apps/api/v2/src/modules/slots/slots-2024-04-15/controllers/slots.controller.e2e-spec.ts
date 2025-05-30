@@ -518,7 +518,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
         expect(uidCookie).toBeDefined();
         if (uidCookie) {
           expect(uidCookie).toContain("HttpOnly"); // This is the key security fix
-          expect(uidCookie).not.toMatch(/SameSite=None(?!;)/); // Should not be permissive without Secure
+          expect(uidCookie).not.toMatch(/SameSite=None(?!.*Secure)/); // Should not be permissive without Secure
         }
 
         // Clean up
