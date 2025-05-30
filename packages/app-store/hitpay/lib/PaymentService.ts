@@ -172,16 +172,24 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error("Failed to store Payment data");
       }
       return paymentData;
-    } catch (error) {
+    } catch (error: any) {
       log.error("Payment could not be created", bookingId, safeStringify(error));
-      await prisma.booking.update({
-        where: {
-          id: bookingId,
-        },
-        data: {
-          status: "CANCELLED",
-        },
-      });
+      try {
+        await prisma.booking.update({
+          where: {
+            id: bookingId,
+          },
+          data: {
+            status: "CANCELLED",
+          },
+        });
+      } catch (error) {
+        throw new Error(ErrorCode.PaymentCreationFailure);
+      }
+
+      if (error.message === ErrorCode.BookingSeatsFull || error.message === ErrorCode.NoAvailableUsersFound) {
+        throw error;
+      }
       throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }
