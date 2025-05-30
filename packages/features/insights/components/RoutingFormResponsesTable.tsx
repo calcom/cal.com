@@ -66,7 +66,6 @@ export function RoutingFormResponsesTable() {
     limit,
     offset,
   });
-
   const processedData = useMemo(() => {
     if (!isHeadersSuccess || !data) return [];
     return data.data as RoutingFormTableRow[];
