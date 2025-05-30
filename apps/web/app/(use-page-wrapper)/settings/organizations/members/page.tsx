@@ -1,7 +1,8 @@
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
+import { unstable_cache } from "next/cache";
 
-import { attributesRouter } from "@calcom/trpc/server/routers/viewer/attributes/_router";
+import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { MembersView } from "~/members/members-view";
@@ -15,18 +16,22 @@ export const generateMetadata = async () =>
     "/settings/organizations/members"
   );
 
+const getCachedAttributes = unstable_cache(
+  async (orgId: number) => {
+    return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
+  },
+  undefined,
+  { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour
+);
+
 const Page = async () => {
-  const [orgCaller, attributesCaller] = await Promise.all([
-    createRouterCaller(viewerOrganizationsRouter),
-    createRouterCaller(attributesRouter),
-  ]);
-  const [org, teams, facetedTeamValues, attributes] = await Promise.all([
+  const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
+  const [org, teams, facetedTeamValues] = await Promise.all([
     orgCaller.listCurrent(),
     orgCaller.getTeams(),
     orgCaller.getFacetedValues(),
-    attributesCaller.list(),
   ]);
-
+  const attributes = await getCachedAttributes(org.id);
   return (
     <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
   );
