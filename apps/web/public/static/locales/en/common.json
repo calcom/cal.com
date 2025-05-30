@@ -1230,6 +1230,7 @@
   "email_validation_error": "That doesn't look like an email address",
   "emails_must_be_unique_valid": "Emails must be unique and valid",
   "url_validation_error": "That doesn't look like a URL",
+  "url_must_start_with_protocol": "URL must start with http:// or https://",
   "place_where_cal_widget_appear": "Place this code in your HTML where you want your {{appName}} widget to appear.",
   "create_update_react_component": "Create or update an existing React component as shown below.",
   "copy_code": "Copy Code",
