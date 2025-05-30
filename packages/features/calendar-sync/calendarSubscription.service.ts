@@ -219,7 +219,7 @@ export class CalendarSubscriptionService {
         providerSubscriptionKind: providerDetails.kind,
         providerResourceId: providerDetails.resourceId,
         providerResourceUri: providerDetails.resourceUri,
-        providerExpiration: providerDetails.expiration ? new Date(Number(providerDetails.expiration)) : null,
+        providerExpiration: providerDetails.expiration ? new Date(providerDetails.expiration) : null,
         status: CalendarSubscriptionStatus.ACTIVE,
         activatedAt: new Date(),
       },

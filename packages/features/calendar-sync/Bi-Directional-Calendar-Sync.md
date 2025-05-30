@@ -62,9 +62,9 @@ Flow:
    - Creates a subscription record for each of CalendarSync records that doesn't have a subscription record yet. The subscription record doesn't have channel related fields yet, it would just have credentialId, providerType, externalCalendarId, status=PENDING.
 - `CRON:subscription-cron` runs every few minutes and it does the following. We keep this cron separate as it could be used by both SelectedCalendar and CalendarSync.
    - For each of the status=PENDING records in CalendarSubscription table, it creates a subscription in provider using the credential and updates the subscription record with the channel related fields, moving the status to ACTIVE.
-- When both the above Crons have run atleast once, we consider the sync to be established for all the required calendars for bi-directional sync.
++- When both the above Crons have run at least once, we consider the sync to be established for all the required calendars for bi-directional sync.
 - Now, lets say a booking is created in Cal.com, it would be added to Google Calendar as well. At this moment, BookingReference table holds uid that refers to the eventId in third party calendar(in this case Google Calendar).
-- Now let's say that the booking's time changes, we will receive a webhook event that will be handled by webhook.handle.ts.
++- Now let's say that the booking's time changes, we will receive a webhook event that will be handled by webhook.handler.ts.
    - It identifies that for the particular channel, if there is associated CalendarSync, if yes it means that there might be something to sync from the third party calendar events to Cal.com bookings.
    - We delegate the work to CalendarService#onWatchedCalendarChange method, which will do the following:
       - It fetches latest updated few events from the third party calendar.
@@ -94,7 +94,7 @@ TODO:
 Follow up:
 - [ ] Add renewedAt to CalendarSubscription so that we can track when a subscription was reactivated along with activatedAt.
 - [ ] Unsubscribing
-   - [ ] Mark a subscription as INACTIVE and unsubcribe from the channel if it is not connected to any CalendarSync record or SelectedCalendar record.
++   - [ ] Mark a subscription as INACTIVE and unsubscribe from the channel if it is not connected to any CalendarSync record or SelectedCalendar record.
 
 - [ ] Feature Completeness
    - [ ] Cancel when all attendees(booker + guests and not organizer) have declined the calendar-event
