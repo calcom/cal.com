@@ -3224,6 +3224,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/googlesheets@workspace:packages/app-store/googlesheets":
+  version: 0.0.0-use.local
+  resolution: "@calcom/googlesheets@workspace:packages/app-store/googlesheets"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/tsconfig": "*"
+    "@calcom/types": "*"
+    "@calcom/ui": "*"
+    "@googleapis/sheets": ^9.8.0
+  languageName: unknown
+  linkType: soft
+
 "@calcom/googlevideo@workspace:packages/app-store/googlevideo":
   version: 0.0.0-use.local
   resolution: "@calcom/googlevideo@workspace:packages/app-store/googlevideo"
@@ -6071,6 +6084,15 @@ __metadata:
   dependencies:
     googleapis-common: ^7.0.0
   checksum: e99227439409aff14f228d4cfb5316e284072fe51ab7b65e16c02d0b90e7e9c67cbc1c4d7a502aff7bf992410478fc5c29f06ad4f180e7d8923690e9c344f6de
+  languageName: node
+  linkType: hard
+
+"@googleapis/sheets@npm:^9.8.0":
+  version: 9.8.0
+  resolution: "@googleapis/sheets@npm:9.8.0"
+  dependencies:
+    googleapis-common: ^7.0.0
+  checksum: 28ff73b896478b30d83b5b474413ca8d9a7dab76438950f889e554a82d4a7239e78028d45d046b476250aa4253e17fef55f34cb94ab30af7974347cc03f81699
   languageName: node
   linkType: hard
 

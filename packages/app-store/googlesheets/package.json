@@ -1,0 +1,17 @@
+{
+  "name": "@calcom/googlesheets",
+  "version": "0.0.0",
+  "description": "Automatically export booking data to Google Sheets",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/types": "*",
+    "@calcom/ui": "*",
+    "@googleapis/sheets": "^9.8.0"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*"
+  }
+}
