@@ -2,6 +2,8 @@
 import { afterEach, expect, test, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
+import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/CalendarAppError";
+
 import {
   generateJsonResponse,
   successResponse,
@@ -413,7 +415,7 @@ describe("Credential Sync Disabled", () => {
 
       expect(async () => {
         return auth.getTokenObjectOrFetch();
-      }).rejects.toThrowError("could not refresh the token");
+      }).rejects.toThrowError("Could not get the token response");
     });
 
     test("if fetchNewTokenObject throws error that's not handled by isTokenObjectUnusable and isAccessTokenUnusable then auth.getTokenObjectOrFetch would still not throw error", async () => {
@@ -517,6 +519,45 @@ describe("Credential Sync Disabled", () => {
         token: expect.objectContaining(getDummyTokenObject()),
         isUpdated: false,
       });
+    });
+
+    test("if fetchNewTokenObject throws CalendarAppDelegationCredentialInvalidGrantError, the same error type is preserved and re-thrown", async () => {
+      const userId = 1;
+      const invalidateTokenObject = vi.fn();
+      const expireAccessToken = vi.fn();
+      const updateTokenObject = vi.fn();
+
+      const auth = new OAuthManager({
+        credentialSyncVariables: useCredentialSyncVariables,
+        resourceOwner: {
+          type: "user",
+          id: userId,
+        },
+        appSlug: "demo-app",
+        currentTokenObject: getDummyTokenObject(),
+        fetchNewTokenObject: async () => {
+          throw new CalendarAppDelegationCredentialInvalidGrantError(
+            "User might not exist in Google Workspace"
+          );
+        },
+        isTokenObjectUnusable: async () => {
+          return null;
+        },
+        isAccessTokenUnusable: async () => {
+          return null;
+        },
+        invalidateTokenObject: invalidateTokenObject,
+        updateTokenObject: updateTokenObject,
+        expireAccessToken: expireAccessToken,
+      });
+
+      await expect(async () => {
+        return auth.getTokenObjectOrFetch();
+      }).rejects.toThrow(CalendarAppDelegationCredentialInvalidGrantError);
+
+      await expect(async () => {
+        return auth.getTokenObjectOrFetch();
+      }).rejects.toThrow("User might not exist in Google Workspace");
     });
   });
 
