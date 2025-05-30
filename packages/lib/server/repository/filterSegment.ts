@@ -45,7 +45,21 @@ export class FilterSegmentRepository {
           },
         ],
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        tableIdentifier: true,
+        scope: true,
+        activeFilters: true,
+        sorting: true,
+        columnVisibility: true,
+        columnSizing: true,
+        perPage: true,
+        searchTerm: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        teamId: true,
         team: {
           select: {
             id: true,
