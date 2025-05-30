@@ -13,13 +13,13 @@ type IToast = {
 export const SuccessToast = ({ message, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "data-testid-toast-success bg-default dark:bg-inverted text-emphasis dark:text-inverted shadow-elevation-low border-subtle mb-2 flex h-auto space-x-2 rounded-lg border px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm"
+      "data-testid-toast-success bg-default dark:bg-inverted text-emphasis dark:text-inverted shadow-elevation-low border-subtle mx-auto mb-2 flex h-auto space-x-2 rounded-lg border px-3 py-2.5 text-center text-sm font-semibold rtl:space-x-reverse md:max-w-sm"
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
       <Icon name="check" className="h-4 w-4" />
     </span>
-    <p data-testid="toast-success" className="m-0 w-full text-left">
+    <p data-testid="toast-success" className="m-0 w-full text-center">
       {message}
     </p>
     <span className="mt-0.5">
