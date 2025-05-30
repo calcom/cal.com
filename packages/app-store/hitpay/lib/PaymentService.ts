@@ -182,7 +182,7 @@ export class PaymentService implements IAbstractPaymentService {
           status: "CANCELLED",
         },
       });
-      throw error;
+      throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }
   async update(): Promise<Payment> {
