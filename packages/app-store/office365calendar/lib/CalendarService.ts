@@ -24,6 +24,7 @@ import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectF
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
+import { OutlookCacheService } from "./CacheService";
 
 interface IRequest {
   method: string;
@@ -59,6 +60,7 @@ export default class Office365CalendarService implements Calendar {
   private apiGraphUrl = "https://graph.microsoft.com/v1.0";
   private credential: CredentialForCalendarServiceWithTenantId;
   private azureUserId?: string;
+  private cacheService: OutlookCacheService;
 
   constructor(credential: CredentialForCalendarServiceWithTenantId) {
     this.integrationName = "office365_calendar";
@@ -119,6 +121,7 @@ export default class Office365CalendarService implements Calendar {
     });
     this.credential = credential;
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.cacheService = new OutlookCacheService();
   }
 
   private getAuthUrl(delegatedTo: boolean, tenantId?: string): string {
@@ -303,12 +306,6 @@ export default class Office365CalendarService implements Calendar {
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);
 
-    const filter = `?startDateTime=${encodeURIComponent(
-      dateFromParsed.toISOString()
-    )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
-
-    const calendarSelectParams = "$select=showAs,start,end";
-
     try {
       const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
         if (calendar.integration === this.integrationName && calendar.externalId)
@@ -325,11 +322,46 @@ export default class Office365CalendarService implements Calendar {
       const ids = await (selectedCalendarIds.length === 0
         ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
         : Promise.resolve(selectedCalendarIds));
+
+      // Try to get availability from cache first
+      const cachedAvailability: EventBusyDate[] = [];
+      const datesToFetch: { date: Date; calendarId: string }[] = [];
+
+      // Check cache for each day and calendar
+      for (let d = new Date(dateFromParsed); d <= dateToParsed; d.setDate(d.getDate() + 1)) {
+        for (const calendarId of ids) {
+          const cached = await this.cacheService.getCachedAvailability(
+            this.credential.userId,
+            calendarId,
+            new Date(d)
+          );
+
+          if (cached) {
+            cachedAvailability.push(...cached);
+          } else {
+            datesToFetch.push({ date: new Date(d), calendarId });
+          }
+        }
+      }
+
+      // If we have all data in cache, return it
+      if (datesToFetch.length === 0) {
+        return cachedAvailability;
+      }
+
+      // Otherwise, fetch missing data from Microsoft Graph
+      const filter = `?startDateTime=${encodeURIComponent(
+        dateFromParsed.toISOString()
+      )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
+
+      const calendarSelectParams = "$select=showAs,start,end";
+
       const requestsPromises = ids.map(async (calendarId, id) => ({
         id,
         method: "GET",
         url: `${await this.getUserEndpoint()}/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
       }));
+
       const requests = await Promise.all(requestsPromises);
       const response = await this.apiGraphBatchCall(requests);
       const responseBody = await this.handleErrorJsonOffice365Calendar(response);
@@ -337,22 +369,51 @@ export default class Office365CalendarService implements Calendar {
       if (typeof responseBody === "string") {
         responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
       }
-      let alreadySuccessResponse = [] as ISettledResponse[];
 
-      // Validate if any 429 status Retry-After is present
-      const retryAfter =
-        !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
+      // Process the response and update cache
+      const availability: EventBusyDate[] = [];
+      for (const response of responseBatchApi.responses) {
+        if (response.status === 200 && response.body) {
+          const calendarId = ids[response.id];
+          const parsedBody = JSON.parse(response.body);
+          const events = parsedBody.value;
 
-      if (retryAfter && responseBatchApi.responses) {
-        responseBatchApi = await this.fetchRequestWithRetryAfter(requests, responseBatchApi.responses, 2);
+          // Group events by date
+          const eventsByDate = new Map<string, EventBusyDate[]>();
+          for (const event of events) {
+            const startDate = new Date(event.start.dateTime);
+            const endDate = new Date(event.end.dateTime);
+            const dateKey = startDate.toISOString().split("T")[0];
+
+            if (!eventsByDate.has(dateKey)) {
+              eventsByDate.set(dateKey, []);
+            }
+
+            eventsByDate.get(dateKey)?.push({
+              start: startDate,
+              end: endDate,
+            });
+          }
+
+          // Update cache for each date
+          for (const [dateKey, events] of eventsByDate) {
+            const date = new Date(dateKey);
+            await this.cacheService.setCachedAvailability(
+              this.credential.userId,
+              calendarId,
+              date,
+              events
+            );
+            availability.push(...events);
+          }
+        }
       }
 
-      // Recursively fetch nextLink responses
-      alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
-
-      return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
-    } catch (err) {
-      return Promise.reject([]);
+      // Combine cached and newly fetched availability
+      return [...cachedAvailability, ...availability];
+    } catch (error) {
+      this.log.error(error);
+      throw error;
     }
   }
 
