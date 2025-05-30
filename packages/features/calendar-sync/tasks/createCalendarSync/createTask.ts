@@ -88,6 +88,7 @@ const getCalendarSyncData = (
     data: {
       externalCalendarId: validCalendarResult.externalId,
       credentialId: validCalendarResult.credentialId,
+      delegationCredentialId: validCalendarResult.delegatedToId ?? null,
       integration: validCalendarResult.type,
       userId: organizer.id,
       lastSyncedUpAt: Date.now(),
