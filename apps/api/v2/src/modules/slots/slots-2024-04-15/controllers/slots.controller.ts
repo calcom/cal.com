@@ -57,11 +57,6 @@ export class SlotsController_2024_04_15 {
     res.cookie("uid", uid, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "strict" : "lax",
-      path: "/",
-      domain: process.env.NEXTAUTH_COOKIE_DOMAIN || undefined,
-      maxAge: 24 * 60 * 60 * 1000,
-      signed: true,
     });
     return {
       status: SUCCESS_STATUS,
