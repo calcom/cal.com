@@ -410,6 +410,16 @@ const BookerComponent = ({
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
                       <DatePicker
+                        classNames={{
+                          datePickerContainer:
+                            customClassNames?.datePickerCustomClassNames?.datePickerContainer,
+                          datePickerTitle: customClassNames?.datePickerCustomClassNames?.datePickerTitle,
+                          datePickerDays: customClassNames?.datePickerCustomClassNames?.datePickerDays,
+                          datePickerDate: customClassNames?.datePickerCustomClassNames?.datePickerDate,
+                          datePickerDatesActive:
+                            customClassNames?.datePickerCustomClassNames?.datePickerDatesActive,
+                          datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
+                        }}
                         event={event}
                         slots={schedule?.data?.slots}
                         isLoading={schedule.isPending}
