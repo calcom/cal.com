@@ -86,6 +86,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
+    restrictionScheduleId,
     calVideoSettings,
     ...rest
   } = input;
@@ -304,6 +305,35 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   } else if (schedule === null) {
     data.instantMeetingSchedule = {
+      disconnect: true,
+    };
+  }
+
+  if (restrictionScheduleId) {
+    // Verify that the user owns the restriction schedule
+    const restrictionSchedule = await ctx.prisma.schedule.findUnique({
+      where: {
+        id: restrictionScheduleId,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    if (!restrictionSchedule || restrictionSchedule.userId !== ctx.user.id) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You can only use your own schedules as restriction schedules",
+      });
+    }
+
+    data.restrictionSchedule = {
+      connect: {
+        id: restrictionScheduleId,
+      },
+    };
+  } else if (restrictionScheduleId === null || restrictionScheduleId === 0) {
+    data.restrictionSchedule = {
       disconnect: true,
     };
   }

@@ -154,6 +154,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     allowReschedulingPastBookings: false,
     hideOrganizerEmail: false,
     customReplyToEmail: null,
+    restrictionScheduleId: null,
+    useBookerTimezone: false,
     ...eventType,
   };
 };
