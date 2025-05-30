@@ -23,12 +23,14 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import {
   InputField,
+  Input,
   DateRangePicker,
   Label,
   TextField,
   Select,
   SettingsToggle,
 } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -387,6 +389,16 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
+  const [isCustomMode, setIsCustomMode] = useState(false);
+
+  const slotIntervalOptions = [
+    { label: t("slot_interval_default"), value: 0 },
+    { label: t("custom"), value: "__custom__" },
+    ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
+      label: `${minutes} ${t("minutes")}`,
+      value: minutes,
+    })),
+  ];
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -526,37 +538,58 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             </Label>
             <Controller
               name="slotInterval"
-              render={() => {
-                const slotIntervalOptions = [
-                  {
-                    label: t("slot_interval_default"),
-                    value: -1,
-                  },
-                  ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
-                    label: `${minutes} ${t("minutes")}`,
-                    value: minutes,
-                  })),
-                ];
+              render={({ field }) => {
                 return (
-                  <Select
-                    isSearchable={false}
-                    isDisabled={shouldLockDisableProps("slotInterval").disabled}
-                    onChange={(val) => {
-                      formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null, {
-                        shouldDirty: true,
-                      });
-                    }}
-                    defaultValue={
-                      slotIntervalOptions.find(
-                        (option) => option.value === formMethods.getValues("slotInterval")
-                      ) || slotIntervalOptions[0]
-                    }
-                    options={slotIntervalOptions}
-                    className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select}
-                    innerClassNames={
-                      customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.innerClassNames
-                    }
-                  />
+                  <>
+                    {!isCustomMode ? (
+                      <Select
+                        value={
+                          slotIntervalOptions.find((opt) => opt.value === field.value) ||
+                          slotIntervalOptions[0]
+                        }
+                        onChange={(val) => {
+                          if (val?.value === "__custom__") {
+                            setIsCustomMode(true);
+                            field.onChange(null);
+                          } else {
+                            setIsCustomMode(false);
+                            field.onChange(val?.value ?? null);
+                          }
+                        }}
+                        options={slotIntervalOptions}
+                        isSearchable={false}
+                      />
+                    ) : (
+                      <div className="flex items-center">
+                        <Input
+                          type="number"
+                          className="h-9"
+                          value={field.value ?? ""}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            field.onChange(isNaN(val) ? null : val);
+                          }}
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            if (isNaN(val)) {
+                              field.onChange(null);
+                            }
+                          }}
+                          min={1}
+                          max={120}
+                        />
+                        <Label className="ml-2 mr-5 mt-2">{t("minutes")}</Label>
+                        <Icon
+                          name="x"
+                          className="mr-1 h-5 w-5 cursor-pointer"
+                          onClick={() => {
+                            setIsCustomMode(false);
+                            field.onChange(null); // or set to 0 if that’s the default
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
                 );
               }}
             />
