@@ -69,8 +69,11 @@ async function expectBookingToBeCancelled({
   calendarSyncId,
 }: {
   bookingId: number;
-  calendarSyncId: string;
+  calendarSyncId: string | null;
 }) {
+  if (!calendarSyncId) {
+    throw new Error("Calendar sync ID is required");
+  }
   // Verify booking status was updated to CANCELLED
   const updatedBooking = await findBooking(bookingId);
   expect(updatedBooking).not.toBeNull();
@@ -93,13 +96,16 @@ async function expectBookingToHaveBeenRescheduledAtTime({
   newEndTime,
 }: {
   bookingId: number;
-  calendarSyncId: string;
+  calendarSyncId: string | null;
   rescheduledBy: string;
   originalStartTime: Date;
   originalEndTime: Date;
   newStartTime: Date;
   newEndTime: Date;
 }) {
+  if (!calendarSyncId) {
+    throw new Error("Calendar sync ID is required");
+  }
   // Verify booking times were updated
   const updatedBooking = await findBooking(bookingId);
 
@@ -332,11 +338,13 @@ describe("Google Calendar Webhook Handler", () => {
         "x-goog-resource-state": "exists",
       },
     } as unknown as NextApiRequest);
-    console.log("result", result);
     // Call the webhook handler and expect it to resolve
     expect(result).toBeDefined();
 
-    await expectBookingToBeCancelled({ bookingId: bookingToSync.id, calendarSyncId: calendarSync.id });
+    await expectBookingToBeCancelled({
+      bookingId: bookingToSync.id,
+      calendarSyncId: calendarSync?.id ?? null,
+    });
   });
 
   // TODO: Enable this test when we enable support for time changes
@@ -388,7 +396,7 @@ describe("Google Calendar Webhook Handler", () => {
 
     await expectBookingToHaveBeenRescheduledAtTime({
       bookingId: bookingToSync.id,
-      calendarSyncId: calendarSync.id,
+      calendarSyncId: calendarSync?.id ?? null,
       rescheduledBy: "Google Calendar",
       originalStartTime,
       originalEndTime,
