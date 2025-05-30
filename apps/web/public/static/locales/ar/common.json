@@ -3043,7 +3043,6 @@
   "you_do_not_have_permission_to_create_an_organization_for_this_email": "ليس لديك الصلاحية لإنشاء مؤسسة لهذا البريد الإلكتروني",
   "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "ليس لديك الصلاحية لنقل فريق واحد أو أكثر",
   "organization_has_subscription_already": "المؤسسة لديها اشتراك بالفعل",
-  "rr_reset_interval": "فترة إعادة تعيين الترتيب الدوري",
   "interval": "الفترة",
   "rr_reset_interval_description": "تحدد مدى تكرار إعادة تعيين عدد الحجوزات في الترتيب الدوري لضمان توزيع متوازن.",
   "daily": "يوميًا",
