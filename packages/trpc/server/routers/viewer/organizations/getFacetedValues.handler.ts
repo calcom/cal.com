@@ -1,5 +1,4 @@
-import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 import { TRPCError } from "@trpc/server";
 
@@ -19,36 +18,8 @@ export const getFacetedValuesHandler = async ({ ctx }: DeleteOptions) => {
   if (!organizationId) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Organization not found" });
   }
-  const [teams, attributes] = await Promise.all([
-    prisma.team.findMany({
-      where: {
-        parentId: organizationId,
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    }),
-    prisma.attribute.findMany({
-      where: { teamId: organizationId },
-      select: {
-        id: true,
-        name: true,
-        options: {
-          select: {
-            value: true,
-          },
-          distinct: "value",
-        },
-      },
-    }),
-  ]);
 
-  return {
-    teams: teams,
-    attributes: attributes,
-    roles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
-  };
+  return await OrganizationRepository.getFacetedValues({ organizationId });
 };
 
 export default getFacetedValuesHandler;
