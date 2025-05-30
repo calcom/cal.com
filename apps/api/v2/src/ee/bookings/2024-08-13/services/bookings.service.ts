@@ -639,6 +639,7 @@ export class BookingsService_2024_08_13 {
 
   async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput) {
     try {
+      await this.canRescheduleBooking(bookingUid);
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
         request,
         bookingUid,
@@ -684,13 +685,27 @@ export class BookingsService_2024_08_13 {
       }
       return this.outputService.getOutputBooking(databaseBooking);
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.message === "no_available_users_found_error") {
-          throw new BadRequestException("User either already has booking at this time or is not available");
-        }
-      }
-      throw error;
+      this.errorsBookingsService.handleBookingError(error, false);
     }
+  }
+
+  async canRescheduleBooking(bookingUid: string) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+    if (booking.status === "CANCELLED" && !booking.rescheduled) {
+      throw new BadRequestException(
+        `Can't reschedule booking with uid=${bookingUid} because it has been cancelled. Please provide uid of a booking that is not cancelled.`
+      );
+    }
+    if (booking.status === "CANCELLED" && booking.rescheduled) {
+      const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
+      throw new BadRequestException(
+        `Can't reschedule booking with uid=${bookingUid} because it has been cancelled and rescheduled already to booking with uid=${rescheduledTo?.uid}. You probably want to reschedule ${rescheduledTo?.uid} instead by passing it within the request URL.`
+      );
+    }
+    return booking;
   }
 
   async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
