@@ -59,7 +59,6 @@ export class SlotsController_2024_04_15 {
         httpOnly: true,
         secure: onProd,
         sameSite: "lax",
-        maxAge: 1000 * 60 * 60 * 24 * 10,
         path: "/",
       });
     }
