@@ -76,5 +76,20 @@ export const listHandler = async ({
     columnSizing: ZColumnSizing.catch({}).parse(segment.columnSizing),
   }));
 
-  return parsedSegments;
+  const preference = await prisma.userFilterSegmentPreference.findUnique({
+    where: {
+      userId_tableIdentifier: {
+        userId,
+        tableIdentifier,
+      },
+    },
+    select: {
+      segmentId: true,
+    },
+  });
+
+  return {
+    segments: parsedSegments,
+    preferredSegmentId: preference?.segmentId || null,
+  };
 };
