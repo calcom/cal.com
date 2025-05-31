@@ -16,7 +16,7 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
       ...BasicConfig.widgets.text,
     },
     radio: {
-      ...BasicConfig.widgets.multiselect,
+      ...BasicConfig.widgets.select,
     },
     url: {
       ...BasicConfig.widgets.text,

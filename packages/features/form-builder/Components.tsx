@@ -6,15 +6,9 @@ import type {
   TextLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
-import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { Label, CheckboxField, EmailField, InputField, Checkbox } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Label, InputField } from "@calcom/ui/components/form";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
@@ -183,20 +177,8 @@ export const Components: Record<FieldType, Component> = {
   },
   phone: {
     propsType: propsTypes.phone,
-    factory: ({ setValue, readOnly, ...props }) => {
-      if (!props) {
-        return <div />;
-      }
-
-      return (
-        <PhoneInput
-          disabled={readOnly}
-          onChange={(val: string) => {
-            setValue(val);
-          }}
-          {...props}
-        />
-      );
+    factory: (props) => {
+      return <Widgets.PhoneWidget {...props} />;
     },
   },
   email: {
@@ -205,113 +187,22 @@ export const Components: Record<FieldType, Component> = {
       if (!props) {
         return <div />;
       }
-
-      return (
-        <InputField
-          type="email"
-          id={props.name}
-          noLabel={true}
-          {...props}
-          onChange={(e) => props.setValue(e.target.value)}
-        />
-      );
+      return <Widgets.EmailWidget {...props} />;
     },
   },
   address: {
     propsType: propsTypes.address,
     factory: (props) => {
-      return (
-        <AddressInput
-          id={props.name}
-          onChange={(val) => {
-            props.setValue(val);
-          }}
-          {...props}
-          disabled={props.readOnly}
-        />
-      );
+      if (!props) {
+        return <div />;
+      }
+      return <Widgets.AddressWidget {...props} />;
     },
   },
   multiemail: {
     propsType: propsTypes.multiemail,
-    //TODO: Make it a ui component
-    factory: function MultiEmail({ value, readOnly, label, setValue, ...props }) {
-      const placeholder = props.placeholder;
-      const { t } = useLocale();
-      value = value || [];
-      return (
-        <>
-          {value.length ? (
-            <div>
-              <label htmlFor="guests" className="text-default  mb-1 block text-sm font-medium">
-                {label}
-              </label>
-              <ul>
-                {value.map((field, index) => (
-                  <li key={index}>
-                    <EmailField
-                      id={`${props.name}.${index}`}
-                      disabled={readOnly}
-                      value={value[index]}
-                      onChange={(e) => {
-                        value[index] = e.target.value.toLowerCase();
-                        setValue(value);
-                      }}
-                      placeholder={placeholder}
-                      label={<></>}
-                      required
-                      onClickAddon={() => {
-                        value.splice(index, 1);
-                        setValue(value);
-                      }}
-                      addOnSuffix={
-                        !readOnly ? (
-                          <Tooltip content="Remove email">
-                            <button className="m-1" type="button">
-                              <Icon name="x" width={12} className="text-default" />
-                            </button>
-                          </Tooltip>
-                        ) : null
-                      }
-                    />
-                  </li>
-                ))}
-              </ul>
-              {!readOnly && (
-                <Button
-                  data-testid="add-another-guest"
-                  type="button"
-                  color="minimal"
-                  StartIcon="user-plus"
-                  className="my-2.5"
-                  onClick={() => {
-                    value.push("");
-                    setValue(value);
-                  }}>
-                  {t("add_another")}
-                </Button>
-              )}
-            </div>
-          ) : (
-            <></>
-          )}
-
-          {!value.length && !readOnly && (
-            <Button
-              data-testid="add-guests"
-              color="minimal"
-              variant="button"
-              StartIcon="user-plus"
-              onClick={() => {
-                value.push("");
-                setValue(value);
-              }}
-              className="mr-auto h-fit whitespace-normal text-left">
-              <span className="flex-1">{label}</span>
-            </Button>
-          )}
-        </>
-      );
+    factory: (props) => {
+      return <Widgets.MultiEmailWidget {...props} />;
     },
   },
   multiselect: {
@@ -336,55 +227,22 @@ export const Components: Record<FieldType, Component> = {
   },
   checkbox: {
     propsType: propsTypes.checkbox,
-    factory: ({ options, readOnly, setValue, value }) => {
-      value = value || [];
-      return (
-        <div>
-          {options.map((option, i) => {
-            return (
-              <label key={i} className="block">
-                <Checkbox
-                  disabled={readOnly}
-                  onCheckedChange={(checked) => {
-                    const newValue = value.filter((v) => v !== option.value);
-                    if (checked) {
-                      newValue.push(option.value);
-                    }
-                    setValue(newValue);
-                  }}
-                  value={option.value}
-                  checked={value.includes(option.value)}
-                />
-                <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
-              </label>
-            );
-          })}
-        </div>
-      );
+    factory: (props) => {
+      const newProps = {
+        ...props,
+        listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
+      };
+      return <Widgets.CheckBoxWidget {...newProps} />;
     },
   },
   radio: {
     propsType: propsTypes.radio,
-    factory: ({ setValue, name, value, options, readOnly }) => {
-      return (
-        <RadioGroup
-          disabled={readOnly}
-          value={value}
-          onValueChange={(e) => {
-            setValue(e);
-          }}>
-          <>
-            {options.map((option, i) => (
-              <RadioField
-                label={option.label}
-                key={`option.${i}.radio`}
-                value={option.label}
-                id={`${name}.option.${i}.radio`}
-              />
-            ))}
-          </>
-        </RadioGroup>
-      );
+    factory: (props) => {
+      const newProps = {
+        ...props,
+        listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
+      };
+      return <Widgets.RadioWidget {...newProps} />;
     },
   },
   radioInput: {
@@ -517,33 +375,14 @@ export const Components: Record<FieldType, Component> = {
   },
   boolean: {
     propsType: propsTypes.boolean,
-    factory: ({ readOnly, name, label, value, setValue }) => {
-      return (
-        <div className="flex">
-          <CheckboxField
-            name={name}
-            onChange={(e) => {
-              if (e.target.checked) {
-                setValue(true);
-              } else {
-                setValue(false);
-              }
-            }}
-            placeholder=""
-            checked={value}
-            disabled={readOnly}
-            description=""
-            // Form Builder ensures that it would be safe HTML in here if the field type supports it. So, we can safely use label value in `descriptionAsSafeHtml`
-            descriptionAsSafeHtml={label ?? ""}
-          />
-        </div>
-      );
+    factory: (props) => {
+      return <Widgets.BooleanWidget {...props} />;
     },
   },
   url: {
     propsType: propsTypes.url,
     factory: (props) => {
-      return <Widgets.TextWidget type="url" noLabel={true} {...props} />;
+      return <Widgets.UrlWidget {...props} />;
     },
   },
 } as const;
