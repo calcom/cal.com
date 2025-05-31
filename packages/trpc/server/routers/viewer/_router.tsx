@@ -4,7 +4,7 @@ import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
-import { mergeRouters, router } from "../../trpc";
+import { router } from "../../trpc";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
 import { timezonesRouter } from "../publicViewer/timezones/_router";
@@ -32,6 +32,7 @@ import { oAuthRouter } from "./oAuth/_router";
 import { oooRouter } from "./ooo/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
+import { permissionsRouter } from "./pbac/_router";
 import { routingFormsRouter } from "./routing-forms/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
@@ -40,49 +41,47 @@ import { travelSchedulesRouter } from "./travelSchedules/_router";
 import { webhookRouter } from "./webhook/_router";
 import { workflowsRouter } from "./workflows/_router";
 
-export const viewerRouter = mergeRouters(
+export const viewerRouter = router({
   loggedInViewerRouter,
-
-  router({
-    apps: appsRouter,
-    me: meRouter,
-    public: publicViewerRouter,
-    auth: authRouter,
-    deploymentSetup: deploymentSetupRouter,
-    bookings: bookingsRouter,
-    calendars: calendarsRouter,
-    calVideo: calVideoRouter,
-    credentials: credentialsRouter,
-    eventTypes: eventTypesRouter,
-    availability: availabilityRouter,
-    teams: viewerTeamsRouter,
-    timezones: timezonesRouter,
-    organizations: viewerOrganizationsRouter,
-    delegationCredential: delegationCredentialRouter,
-    webhook: webhookRouter,
-    apiKeys: apiKeysRouter,
-    slots: slotsRouter,
-    workflows: workflowsRouter,
-    saml: ssoRouter,
-    dsync: dsyncRouter,
-    i18n: i18nRouter,
-    insights: insightsRouter,
-    payments: paymentsRouter,
-    filterSegments: filterSegmentsRouter,
-    // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
-    // After that there would just one merge call here for all the apps.
-    appRoutingForms: app_RoutingForms,
-    appBasecamp3: app_Basecamp3,
-    features: featureFlagRouter,
-    users: userAdminRouter,
-    oAuth: oAuthRouter,
-    googleWorkspace: googleWorkspaceRouter,
-    admin: adminRouter,
-    attributes: attributesRouter,
-    highPerf: highPerfRouter,
-    routingForms: routingFormsRouter,
-    credits: creditsRouter,
-    ooo: oooRouter,
-    travelSchedules: travelSchedulesRouter,
-  })
-);
+  apps: appsRouter,
+  me: meRouter,
+  public: publicViewerRouter,
+  auth: authRouter,
+  deploymentSetup: deploymentSetupRouter,
+  bookings: bookingsRouter,
+  calendars: calendarsRouter,
+  calVideo: calVideoRouter,
+  credentials: credentialsRouter,
+  eventTypes: eventTypesRouter,
+  availability: availabilityRouter,
+  teams: viewerTeamsRouter,
+  timezones: timezonesRouter,
+  organizations: viewerOrganizationsRouter,
+  delegationCredential: delegationCredentialRouter,
+  webhook: webhookRouter,
+  apiKeys: apiKeysRouter,
+  slots: slotsRouter,
+  workflows: workflowsRouter,
+  saml: ssoRouter,
+  dsync: dsyncRouter,
+  i18n: i18nRouter,
+  insights: insightsRouter,
+  payments: paymentsRouter,
+  filterSegments: filterSegmentsRouter,
+  pbac: permissionsRouter,
+  // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
+  // After that there would just one merge call here for all the apps.
+  appRoutingForms: app_RoutingForms,
+  appBasecamp3: app_Basecamp3,
+  features: featureFlagRouter,
+  users: userAdminRouter,
+  oAuth: oAuthRouter,
+  googleWorkspace: googleWorkspaceRouter,
+  admin: adminRouter,
+  attributes: attributesRouter,
+  highPerf: highPerfRouter,
+  routingForms: routingFormsRouter,
+  credits: creditsRouter,
+  ooo: oooRouter,
+  travelSchedules: travelSchedulesRouter,
+});

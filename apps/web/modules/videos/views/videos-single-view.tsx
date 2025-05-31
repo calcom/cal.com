@@ -3,6 +3,7 @@
 import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import { DailyProvider } from "@daily-co/daily-react";
+import { useDailyEvent } from "@daily-co/daily-react";
 import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -33,6 +34,8 @@ export default function JoinCall(props: PageProps) {
     calVideoLogo,
     displayLogInOverlay,
     loggedInUserName,
+    showRecordingButton,
+    rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
@@ -65,12 +68,16 @@ export default function JoinCall(props: PageProps) {
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
-            recording: {
-              label: "Record",
-              tooltip: "Start or stop recording",
-              iconPath: RECORDING_DEFAULT_ICON,
-              iconPathDarkMode: RECORDING_DEFAULT_ICON,
-            },
+            ...(showRecordingButton
+              ? {
+                  recording: {
+                    label: "Record",
+                    tooltip: "Start or stop recording",
+                    iconPath: RECORDING_DEFAULT_ICON,
+                    iconPathDarkMode: RECORDING_DEFAULT_ICON,
+                  },
+                }
+              : {}),
             transcription: {
               label: "Cal.ai",
               tooltip: "Transcription powered by AI",
@@ -99,7 +106,7 @@ export default function JoinCall(props: PageProps) {
       <div
         className="mx-auto hidden sm:block"
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe />
+        <CalAiTranscribe showRecordingButton={showRecordingButton} />
       </div>
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
@@ -126,7 +133,7 @@ export default function JoinCall(props: PageProps) {
       </div>
       {displayLogInOverlay && <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />}
 
-      <VideoMeetingInfo booking={booking} />
+      <VideoMeetingInfo booking={booking} rediectAttendeeToOnExit={rediectAttendeeToOnExit} />
     </DailyProvider>
   );
 }
@@ -255,15 +262,22 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
 interface VideoMeetingInfo {
   booking: PageProps["booking"];
+  rediectAttendeeToOnExit?: string | null;
 }
 
 export function VideoMeetingInfo(props: VideoMeetingInfo) {
   const [open, setOpen] = useState(false);
-  const { booking } = props;
+  const { booking, rediectAttendeeToOnExit } = props;
   const { t } = useLocale();
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
+
+  useDailyEvent("left-meeting", () => {
+    if (rediectAttendeeToOnExit) {
+      window.location.href = rediectAttendeeToOnExit;
+    }
+  });
 
   return (
     <>

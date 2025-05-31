@@ -6,6 +6,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["list"][number];
 
@@ -23,6 +24,7 @@ export function DeleteAttributeModal({
     onSuccess: () => {
       showToast(t("attribute_deleted_successfully"), "success");
       utils.viewer.attributes.list.invalidate();
+      revalidateAttributesList();
     },
     onError: (err) => {
       showToast(err.message, "error");
