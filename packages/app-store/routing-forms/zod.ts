@@ -1,12 +1,13 @@
 import { z } from "zod";
 
 import { fieldSchema } from "@calcom/features/form-builder/schema";
+import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 
 import { routingFormAppDataSchemas } from "./appDataSchemas";
 
 export const zodNonRouterField = fieldSchema.extend({
-  id: z.string(),
+  id: z.string().optional(),
   identifier: z.string().optional(),
   /**
    * @deprecated in favour of `options`
@@ -17,7 +18,6 @@ export const zodNonRouterField = fieldSchema.extend({
       z.object({
         label: z.string(),
         value: z.string().optional(),
-        // Routing Form Backward compatibility
         // To keep backwards compatibility with the options generated from legacy selectText, we allow saving null as id
         // It helps in differentiating whether the routing logic should consider the option.label as value or option.id as value.
         // This is important for legacy routes which has option.label saved in conditions and it must keep matching with the value of the option
@@ -25,6 +25,7 @@ export const zodNonRouterField = fieldSchema.extend({
       })
     )
     .optional(),
+  name: z.string().transform(getValidRhfFieldName).optional(),
 });
 
 export const zodRouterField = zodNonRouterField.extend({
