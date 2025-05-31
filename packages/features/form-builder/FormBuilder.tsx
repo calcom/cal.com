@@ -10,6 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
+import isRouterLinkedField from "@calcom/routing-forms/lib/isRouterLinkedField";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -170,6 +171,9 @@ export const FormBuilder = function FormBuilder({
             const isUserField =
               !isFieldEditableSystem && !isFieldEditableSystemButOptional && !isFieldEditableSystemButHidden;
 
+            // Disable delete for router fields
+            const isRouterField = isRouterLinkedField(field);
+
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
             }
@@ -248,7 +252,7 @@ export const FormBuilder = function FormBuilder({
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
-                    {isUserField && (
+                    {isUserField && !isRouterField && (
                       <Button
                         data-testid="delete-field-action"
                         color="destructive"
