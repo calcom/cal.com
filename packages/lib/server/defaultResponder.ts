@@ -2,6 +2,8 @@ import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
 import { captureException } from "@sentry/nextjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { withPrismaApiHandler } from "@calcom/prisma/store/withPrismaApiHandler";
+
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 import { performance } from "./perfObserver";
 
@@ -13,7 +15,7 @@ export function defaultResponder<T>(
   /** If set we will wrap the handle with sentry tracing */
   endpointRoute?: string
 ) {
-  return async (req: NextApiRequest, res: NextApiResponse) => {
+  return withPrismaApiHandler(async (req: NextApiRequest, res: NextApiResponse) => {
     let ok = false;
     try {
       performance.mark("Start");
@@ -38,5 +40,5 @@ export function defaultResponder<T>(
       performance.mark("End");
       performance.measure(`[${ok ? "OK" : "ERROR"}][$1] ${req.method} '${req.url}'`, "Start", "End");
     }
-  };
+  });
 }

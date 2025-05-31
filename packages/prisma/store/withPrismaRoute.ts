@@ -3,7 +3,11 @@ import type { NextRequest } from "next/server";
 import { runWithTenants } from "./prismaStore";
 import { getTenantFromHost } from "./tenants";
 
-type HandlerFn = (req: NextRequest) => Promise<Response>;
+type Params = {
+  [param: string]: string | string[] | undefined;
+};
+
+type HandlerFn = (req: NextRequest, options: { params: Promise<Params> }) => Promise<Response>;
 
 /**
  * Higher-order function that wraps a Next.js App Router route handler with tenant-aware Prisma client.
