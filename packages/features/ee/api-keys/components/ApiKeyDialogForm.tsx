@@ -6,14 +6,15 @@ import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { DialogFooter } from "@calcom/ui/components/dialog";
 import { Button } from "@calcom/ui/components/button";
+import { DialogFooter } from "@calcom/ui/components/dialog";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { SelectField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
 
 export default function ApiKeyDialogForm({
   defaultValues,
@@ -28,6 +29,7 @@ export default function ApiKeyDialogForm({
   const updateApiKeyMutation = trpc.viewer.apiKeys.edit.useMutation({
     onSuccess() {
       utils.viewer.apiKeys.list.invalidate();
+      revalidateApiKeysList();
       showToast(t("api_key_updated"), "success");
       handleClose();
     },
@@ -131,6 +133,7 @@ export default function ApiKeyDialogForm({
               setApiKey(apiKey);
               setApiKeyDetails({ ...event });
               await utils.viewer.apiKeys.list.invalidate();
+              revalidateApiKeysList();
               setSuccessfulNewApiKeyModal(true);
             }
           }}

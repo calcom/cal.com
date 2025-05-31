@@ -1,9 +1,10 @@
-import { getTranslate, _generateMetadata } from "app/_utils";
+import { createRouterCaller } from "app/_trpc/context";
+import { _generateMetadata } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
+import { apiKeysRouter } from "@calcom/trpc/server/routers/viewer/apiKeys/_router";
 
-import ApiKeysView, { NewApiKeyButton } from "~/settings/developer/api-keys-view";
+import ApiKeysView from "~/settings/developer/api-keys-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -15,17 +16,9 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
-
-  return (
-    <SettingsHeader
-      title={t("api_keys")}
-      description={t("create_first_api_key_description", { appName: APP_NAME })}
-      CTA={<NewApiKeyButton />}
-      borderInShellHeader={true}>
-      <ApiKeysView />
-    </SettingsHeader>
-  );
+  const caller = await createRouterCaller(apiKeysRouter);
+  const apiKeys = await caller.list();
+  return <ApiKeysView apiKeys={apiKeys} />;
 };
 
 export default Page;

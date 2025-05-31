@@ -1,10 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { getTimeMin, getTimeMax } from "./datesForCache";
 
 describe("getTimeMin", () => {
   // Tested on multiple dates
-  // vi.setSystemTime("2030-04-21T00:00:13Z");
+  vi.setSystemTime("2025-04-24T00:00:13Z");
+
   it("should return start of current month when no date is passed", () => {
     const result = getTimeMin();
     const expected = new Date();
@@ -73,5 +74,24 @@ describe("getTimeMax", () => {
     const testDate = "2024-09-15T10:30:00Z"; // September, next month includes DST change
     const result = getTimeMax(testDate);
     expect(result).toMatchInlineSnapshot(`"2024-11-01T00:00:00.000Z"`);
+  });
+
+  it("should handle year changes", () => {
+    const testDate = "2024-12-24T23:59:59Z";
+    const result = getTimeMax(testDate);
+    expect(result).toMatchInlineSnapshot(`"2025-02-01T00:00:00.000Z"`);
+  });
+
+  it("should handle next month", () => {
+    const testDate = "2025-05-01T02:59:59.999Z";
+    const result = getTimeMax(testDate);
+    expect(result).toMatchInlineSnapshot(`"2025-06-01T00:00:00.000Z"`);
+  });
+
+  it("should handle special case where timeMax is more than 2 months from now but less than 3 months", () => {
+    vi.setSystemTime("2025-04-24T00:00:13Z");
+    const testDate = "2025-06-02T23:59:59.999Z";
+    const result = getTimeMax(testDate);
+    expect(result).toMatchInlineSnapshot(`"2025-06-01T00:00:00.000Z"`);
   });
 });

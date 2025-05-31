@@ -9,6 +9,7 @@ import type {
   OutputLinkLocation_2024_06_14,
   OutputPhoneLocation_2024_06_14,
   OutputUnknownLocation_2024_06_14,
+  OutputLocation_2024_06_14,
 } from "@calcom/platform-types";
 
 import type { InternalLocation } from "../internal/locations";
@@ -43,7 +44,6 @@ const internalToApiIntegrationsMapping: Record<string, OutputIntegration_2024_06
   "integrations:discord_video": "discord-video",
   "integrations:demodesk_video": "demodesk-video",
   "integrations:campfire_video": "campfire-video",
-  "integrations:around_video": "around-video",
 };
 
 export function transformLocationsInternalToApi(internalLocations: InternalLocation[] | undefined) {
@@ -51,64 +51,73 @@ export function transformLocationsInternalToApi(internalLocations: InternalLocat
     return [];
   }
 
-  return internalLocations.map((location) => {
+  const apiLocations: OutputLocation_2024_06_14[] = [];
+
+  for (const location of internalLocations) {
     switch (location.type) {
       case "inPerson": {
         if (!location.address) {
-          throw new Error("Address location must have an address");
+          continue;
         }
         const addressLocation: OutputAddressLocation_2024_06_14 = {
           type: "address",
           address: location.address,
           public: location.displayLocationPublicly,
         };
-        return addressLocation;
+        apiLocations.push(addressLocation);
+        break;
       }
       case "attendeeInPerson": {
         const attendeeAddressLocation: OutputAttendeeAddressLocation_2024_06_14 = {
           type: "attendeeAddress",
         };
-        return attendeeAddressLocation;
+        apiLocations.push(attendeeAddressLocation);
+        break;
       }
       case "link": {
         if (!location.link) {
-          throw new Error("Link location must have a link");
+          continue;
         }
         const linkLocation: OutputLinkLocation_2024_06_14 = {
           type: "link",
           link: location.link,
           public: location.displayLocationPublicly,
         };
-        return linkLocation;
+        apiLocations.push(linkLocation);
+        break;
       }
       case "userPhone": {
         if (!location.hostPhoneNumber) {
-          throw new Error("Phone location must have a phone number");
+          continue;
         }
         const phoneLocation: OutputPhoneLocation_2024_06_14 = {
           type: "phone",
           phone: location.hostPhoneNumber,
           public: location.displayLocationPublicly,
         };
-        return phoneLocation;
+        apiLocations.push(phoneLocation);
+        break;
       }
       case "phone": {
         const attendeePhoneLocation: OutputAttendeePhoneLocation_2024_06_14 = {
           type: "attendeePhone",
         };
-        return attendeePhoneLocation;
+        apiLocations.push(attendeePhoneLocation);
+        break;
       }
       case "somewhereElse": {
         const attendeeDefinedLocation: OutputAttendeeDefinedLocation_2024_06_14 = {
           type: "attendeeDefined",
         };
-        return attendeeDefinedLocation;
+        apiLocations.push(attendeeDefinedLocation);
+        break;
       }
       case "conferencing": {
         const conferencingLocation: OutputOrganizersDefaultAppLocation_2024_06_14 = {
           type: "organizersDefaultApp",
         };
-        return conferencingLocation;
+        apiLocations.push(conferencingLocation);
+        break;
       }
       default: {
         const integrationType = internalToApiIntegrationsMapping[location.type];
@@ -117,7 +126,8 @@ export function transformLocationsInternalToApi(internalLocations: InternalLocat
             type: "unknown",
             location: JSON.stringify(location),
           };
-          return unknown;
+          apiLocations.push(unknown);
+          break;
         }
         const integration: OutputIntegrationLocation_2024_06_14 = {
           type: "integration",
@@ -125,8 +135,11 @@ export function transformLocationsInternalToApi(internalLocations: InternalLocat
           link: location.link,
           credentialId: location.credentialId,
         };
-        return integration;
+        apiLocations.push(integration);
+        break;
       }
     }
-  });
+  }
+
+  return apiLocations;
 }

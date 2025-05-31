@@ -9,15 +9,16 @@ import {
   sendDailyVideoRecordingEmails,
   sendDailyVideoTranscriptEmails,
 } from "@calcom/emails/daily-video-emails";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import {
   getAllTranscriptsAccessLinkFromMeetingId,
-  getDownloadLinkOfCalVideoByRecordingId,
   submitBatchProcessorTranscriptionJob,
 } from "@calcom/lib/videoClient";
+import { generateVideoToken } from "@calcom/lib/videoTokens";
 import prisma from "@calcom/prisma";
 import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
 import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";
@@ -26,7 +27,6 @@ import {
   meetingEndedSchema,
   recordingReadySchema,
   batchProcessorJobFinishedSchema,
-  downloadLinkSchema,
   testRequestSchema,
 } from "@calcom/web/lib/daily-webhook/schema";
 import {
@@ -44,18 +44,13 @@ const computeSignature = (hmacSecret: string, reqBody: any, webhookTimestampHead
   return computed_signature;
 };
 
-const getDownloadLinkOfCalVideo = async (recordingId: string) => {
-  const response = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
-  const downloadLinkResponse = downloadLinkSchema.parse(response);
-  const downloadLink = downloadLinkResponse.download_link;
+const getProxyDownloadLinkOfCalVideo = async (recordingId: string) => {
+  const token = generateVideoToken(recordingId);
+  const downloadLink = `${WEBAPP_URL}/api/video/recording?token=${token}`;
   return downloadLink;
 };
 
 export async function postHandler(request: NextRequest) {
-  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    return NextResponse.json({ message: "No SendGrid API key or email" }, { status: 405 });
-  }
-
   const body = await request.json();
 
   if (testRequestSchema.safeParse(body).success) {
@@ -114,7 +109,7 @@ export async function postHandler(request: NextRequest) {
         },
       });
 
-      const downloadLink = await getDownloadLinkOfCalVideo(recording_id);
+      const downloadLink = await getProxyDownloadLinkOfCalVideo(recording_id);
 
       const teamId = await getTeamIdFromEventType({
         eventType: {
@@ -196,7 +191,7 @@ export async function postHandler(request: NextRequest) {
 
       const evt = await getCalendarEvent(booking);
 
-      const recording = await getDownloadLinkOfCalVideo(input.recordingId);
+      const recording = await getProxyDownloadLinkOfCalVideo(input.recordingId);
       const batchProcessorJobAccessLink = await getBatchProcessorJobAccessLink(id);
 
       await triggerTranscriptionGeneratedWebhook({

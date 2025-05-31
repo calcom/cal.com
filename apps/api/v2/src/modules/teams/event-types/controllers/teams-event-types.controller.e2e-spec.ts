@@ -85,11 +85,13 @@ describe("Organizations Event Types Endpoints", () => {
       teamMember1 = await userRepositoryFixture.create({
         email: teammate1Email,
         username: teammate1Email,
+        name: "alice",
       });
 
       teamMember2 = await userRepositoryFixture.create({
         email: teammate2Email,
         username: teammate2Email,
+        name: "bob",
       });
 
       falseTestUser = await userRepositoryFixture.create({
@@ -312,6 +314,7 @@ describe("Organizations Event Types Endpoints", () => {
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
+        hideOrganizerEmail: true,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -343,6 +346,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
 
@@ -401,6 +405,21 @@ describe("Organizations Event Types Endpoints", () => {
 
           const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
           expect(responseTeamEvent).toBeDefined();
+          expect(responseTeamEvent?.hosts).toEqual([
+            {
+              userId: teamMember1.id,
+              name: teamMember1.name,
+              username: teamMember1.username,
+              avatarUrl: teamMember1.avatarUrl,
+            },
+            {
+              userId: teamMember2.id,
+              name: teamMember2.name,
+              username: teamMember2.username,
+              avatarUrl: teamMember2.avatarUrl,
+            },
+          ]);
+
           if (!responseTeamEvent) {
             throw new Error("Team event not found");
           }

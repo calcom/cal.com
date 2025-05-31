@@ -42,6 +42,8 @@ import {
 } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -122,8 +124,10 @@ const ProfileView = () => {
 
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
+      revalidateTeamsList();
       await utils.viewer.teams.list.invalidate();
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      revalidateEventTypesList();
       await utils.viewer.eventTypes.getByViewer.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
@@ -138,6 +142,7 @@ const ProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },
@@ -274,8 +279,10 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
       });
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      revalidateEventTypesList();
       // TODO: Not all changes require list invalidation
       await utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });

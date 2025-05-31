@@ -1,7 +1,7 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -12,7 +12,8 @@ import type {
   EventTypes,
 } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
+import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
+import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
 } from "@calcom/features/schedules/components/Schedule";
@@ -102,6 +103,7 @@ type AvailabilitySettingsProps = {
   customClassNames?: CustomClassNames;
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
+  onFormStateChange?: (formState: AvailabilityFormValues) => void;
   bulkUpdateModalProps?: {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -274,6 +276,7 @@ export function AvailabilitySettings({
   customClassNames,
   disableEditableHeading = false,
   enableOverrides = false,
+  onFormStateChange,
   bulkUpdateModalProps,
   allowSetToDefault = true,
   allowDelete = true,
@@ -287,6 +290,17 @@ export function AvailabilitySettings({
       schedule: schedule.availability || [],
     },
   });
+
+  const watchedValues = useWatch({
+    control: form.control,
+  });
+
+  // Trigger callback whenever the form state changes
+  useEffect(() => {
+    if (onFormStateChange && watchedValues) {
+      onFormStateChange(watchedValues as AvailabilityFormValues);
+    }
+  }, [watchedValues, onFormStateChange]);
 
   const [Shell, Schedule, TimezoneSelect] = useMemo(() => {
     return isPlatform
@@ -410,7 +424,7 @@ export function AvailabilitySettings({
                     "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
-                  <div className="flex flex-row items-center pt-5">
+                  <div className="flex flex-row items-center pt-16">
                     <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
                     {allowDelete && (

@@ -1192,6 +1192,7 @@ export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
 
 type ExpectedForSuccessfulCalendarEventCreationInCalendar = {
   calendarId?: string | null;
+  calendarIdUsingFallbackOfFirstCalendarCredential?: string | null;
   /**
    * explciityl set to null if you don't want to match on videoCallUrl
    */
@@ -1208,35 +1209,60 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
 ) {
   const expecteds = expected instanceof Array ? expected : [expected];
   expect(calendarMock.createEventCalls.length).toBe(expecteds.length);
+
   for (let i = 0; i < calendarMock.createEventCalls.length; i++) {
     const expected = expecteds[i];
     const createEventCall = calendarMock.createEventCalls[i];
+
     const { credential } = createEventCall.calendarServiceConstructorArgs;
     const { calEvent } = createEventCall.args;
+
     if (expected.credential) {
       expect(credential).toEqual(expect.objectContaining(expected.credential));
     }
-    expect(calEvent).toEqual(
-      expect.objectContaining({
-        destinationCalendar: expected.calendarId
-          ? [
-              expect.objectContaining({
-                externalId: expected.calendarId,
-              }),
-            ]
-          : expected.destinationCalendars
-          ? expect.arrayContaining(expected.destinationCalendars.map((cal) => expect.objectContaining(cal)))
-          : null,
 
-        ...(expected.videoCallUrl !== null
-          ? {
-              videoCallData: expect.objectContaining({
-                url: expected.videoCallUrl,
-              }),
-            }
-          : {}),
-      })
-    );
+    if (expected.calendarId) {
+      expect(calEvent).toEqual(
+        expect.objectContaining({
+          destinationCalendar: [
+            expect.objectContaining({
+              externalId: expected.calendarId,
+            }),
+          ],
+        })
+      );
+    } else if (expected.destinationCalendars) {
+      expect(calEvent).toEqual(
+        expect.objectContaining({
+          destinationCalendar: expected.destinationCalendars
+            ? expect.arrayContaining(expected.destinationCalendars.map((cal) => expect.objectContaining(cal)))
+            : null,
+        })
+      );
+    } else if (expected.calendarIdUsingFallbackOfFirstCalendarCredential) {
+      // In case of fallback, there is no destinationCalendar set
+      expect(calEvent).toEqual(
+        expect.objectContaining({
+          destinationCalendar: null,
+        })
+      );
+    } else {
+      expect(calEvent).toEqual(
+        expect.objectContaining({
+          destinationCalendar: null,
+        })
+      );
+    }
+
+    if (expected.videoCallUrl !== null) {
+      expect(calEvent).toEqual(
+        expect.objectContaining({
+          videoCallData: expect.objectContaining({
+            url: expected.videoCallUrl,
+          }),
+        })
+      );
+    }
   }
 }
 
