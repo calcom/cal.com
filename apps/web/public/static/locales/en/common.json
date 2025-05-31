@@ -1489,6 +1489,7 @@
   "turn_on": "Turn on",
   "cancelled_bookings_cannot_be_rescheduled": "Canceled bookings cannot be rescheduled",
   "settings_updated_successfully": "Settings updated successfully",
+  "enter_valid_reason": "Enter valid reason",
   "error_updating_settings": "Error updating settings",
   "personal_cal_url": "My personal {{appName}} URL",
   "bio_hint": "A few sentences about yourself. this will appear on your personal url page.",

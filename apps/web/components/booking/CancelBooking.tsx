@@ -130,7 +130,7 @@ export default function CancelBooking(props: Props) {
   }, []);
 
   const handleCancelEvent = (value: string) => {
-    if (value.trim().split(/\s+/).filter(Boolean).length < 3) {
+    if (cancellationReason.length < 2) {
       showToast(t("enter_valid_reason"), "warning");
       setCancellationReason(value);
     } else setCancellationReason(value);
