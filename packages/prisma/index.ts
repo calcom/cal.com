@@ -45,11 +45,15 @@ export const prisma = new Proxy({} as PrismaClientWithExtensions, {
   },
 });
 
+const insightsPrismaProxy = new Proxy({} as PrismaClientWithExtensions, {
+  get(_target, prop) {
+    return Reflect.get(getPrisma(Tenant.INSIGHTS, prismaOptions), prop);
+  },
+});
+
 // This prisma instance is meant to be used only for READ operations.
 // If self hosting, feel free to leave INSIGHTS_DATABASE_URL as empty and `readonlyPrisma` will default to `prisma`.
-export const readonlyPrisma = process.env.INSIGHTS_DATABASE_URL
-  ? getPrisma(Tenant.INSIGHTS, prismaOptions)
-  : prisma;
+export const readonlyPrisma = process.env.INSIGHTS_DATABASE_URL ? insightsPrismaProxy : prisma;
 
 export type PrismaClient = PrismaClientWithExtensions;
 

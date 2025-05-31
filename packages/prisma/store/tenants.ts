@@ -22,7 +22,6 @@ export const getTenantFromHost = (host: string) => {
       .map((d) => d.trim())
       .filter(Boolean);
     if (domains.some((domain) => host === domain || host.endsWith(`.${domain}`))) {
-      console.debug(`Matched tenant: ${tenant} for host: ${host}`);
       return tenant as Tenant;
     }
   }
