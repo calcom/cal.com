@@ -52,16 +52,14 @@ export class SlotsController_2024_04_15 {
   ): Promise<ApiResponse<string>> {
     const uid = await this.slotsService.reserveSlot(body, req.cookies?.uid);
 
-    const onProd = process.env.NODE_ENV === "production";
+    const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
 
-    if (onProd) {
-      res.cookie("uid", uid, {
-        httpOnly: true,
-        secure: onProd,
-        sameSite: "lax",
-        path: "/",
-      });
-    }
+    res.cookie("uid", uid, {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: "lax",
+      path: "/",
+    });
 
     return {
       status: SUCCESS_STATUS,
