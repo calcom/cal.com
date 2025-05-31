@@ -31,7 +31,7 @@ export function transformDateOverridesForAtom(
   schedule: { availability: ScheduleOverride },
   timeZone: string
 ) {
-  return schedule.availability.reduce((acc, override) => {
+  const acc = schedule.availability.reduce((acc, override) => {
     // only if future date override
     const currentUtcOffset = dayjs().tz(timeZone).utcOffset();
     const currentTimeInTz = dayjs().utc().add(currentUtcOffset, "minute");
@@ -61,9 +61,11 @@ export function transformDateOverridesForAtom(
       return acc;
     }
     acc[dayRangeIndex].ranges.push(newValue);
-    acc.sort((a, b) => a.ranges[0].start.getTime() - b.ranges[0].start.getTime());
     return acc;
   }, [] as { ranges: TimeRange[] }[]);
+
+  acc.sort((a, b) => a.ranges[0].start.getTime() - b.ranges[0].start.getTime());
+  return acc;
 }
 
 export const transformScheduleToAvailabilityForAtom = (schedule: { availability: ScheduleAvailability }) => {
