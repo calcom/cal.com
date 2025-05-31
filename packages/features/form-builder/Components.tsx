@@ -334,7 +334,7 @@ export const Components: Record<FieldType, Component> = {
     factory: (props) => {
       const newProps = {
         ...props,
-        listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
+        listValues: props.options.map((o) => ({ title: o.label, value: o.label })),
       };
       return <Widgets.SelectWidget id={props.name} {...newProps} />;
     },
