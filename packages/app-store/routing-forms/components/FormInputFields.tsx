@@ -35,7 +35,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         }
 
         return (
-          <div key={field.id} className="block flex-col sm:flex ">
+          <div key={field.id} className="my-5 block flex-col sm:flex ">
             <ComponentForField
               field={field}
               // @ts-expect-error FIXME @hariombalhara
