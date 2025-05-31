@@ -225,8 +225,8 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
       }}
       isDisabled={remainingProps.readOnly}
       value={optionFromList}
-      options={selectItems}
       {...remainingProps}
+      options={selectItems}
     />
   );
 }
