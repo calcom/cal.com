@@ -7,7 +7,7 @@ import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { routingFormAppDataSchemas } from "./appDataSchemas";
 
 export const zodNonRouterField = fieldSchema.extend({
-  id: z.string().optional(),
+  id: z.string(),
   identifier: z.string().optional(),
   /**
    * @deprecated in favour of `options`
