@@ -112,6 +112,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     },
     onError(e) {
       if (e.message) {
+        console.error(e);
         showToast(e.message, "error");
         return;
       }
@@ -141,7 +142,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           id: option.value || option.label,
         }));
 
-        return { ...field, ...(!!options && { options }) };
+        return { ...field, ...(!!options && { options }), id: field.name };
       }),
     });
   };

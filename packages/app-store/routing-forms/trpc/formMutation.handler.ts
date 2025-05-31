@@ -344,7 +344,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
           ?.filter((f) => !f.deleted)
           .map((f) => {
             return {
-              id: f.id ?? f.name,
+              id: f.id,
               routerId: sourceForm.id,
               label: "",
               type: "",
@@ -367,9 +367,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     // Find all fields that are in DB(including deleted) but not in the mutation
     // e.g. inputFields is [A,B,C]. DB is [A,B,C,D,E,F]. It means D,E,F got deleted
     const deletedFields =
-      serializedForm.fields?.filter(
-        (f) => !fields.find((field) => field.id === f.id || field.name === f.name)
-      ) || [];
+      serializedForm.fields?.filter((f) => !fields.find((field) => field.id === f.id)) || [];
 
     // Add back deleted fields in the end and mark them deleted.
     // Fields mustn't be deleted, to make sure columns never decrease which hugely simplifies CSV generation

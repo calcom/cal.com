@@ -39,12 +39,12 @@ export default function FormInputFields(props: FormInputFieldsProps) {
             <ComponentForField
               field={field}
               // @ts-expect-error FIXME @hariombalhara
-              value={response[field.id ?? field.name ?? ""]?.value ?? undefined}
+              value={response[field.id]?.value ?? undefined}
               setValue={(val: any) => {
                 setResponse(() => {
                   return {
                     ...response,
-                    [field.id ?? field.name ?? ""]: {
+                    [field.id]: {
                       label: field.label,
                       identifier: field?.identifier,
                       fieldType: field.type,

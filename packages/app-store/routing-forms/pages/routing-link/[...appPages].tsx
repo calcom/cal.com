@@ -21,10 +21,8 @@ import { useCalcomTheme } from "@calcom/ui/styles";
 
 import FormInputFields from "../../components/FormInputFields";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
-import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
-import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { NonRouterRoute, FormResponse } from "../../types/types";
 import type { getServerSideProps } from "./getServerSideProps";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
@@ -220,23 +218,3 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm {...props} />;
 }
-
-const usePrefilledResponse = (form: Props["form"]) => {
-  const searchParams = useCompatSearchParams();
-  const prefillResponse: FormResponse = {};
-
-  // Prefill the form from query params
-  form.fields?.forEach((field) => {
-    const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean) ?? [];
-    // We only want to keep arrays if the field is a multi-select
-    const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
-
-    prefillResponse[field.id ?? field.name] = {
-      value: getFieldResponseForJsonLogic({ field, value }),
-      label: field.label,
-      identifier: field?.identifier,
-    };
-  });
-  const [response, setResponse] = useState<FormResponse>(prefillResponse);
-  return [response, setResponse] as const;
-};

@@ -1,13 +1,11 @@
 import { z } from "zod";
 
 import { fieldSchema } from "@calcom/features/form-builder/schema";
-import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 
 import { routingFormAppDataSchemas } from "./appDataSchemas";
 
 export const zodNonRouterField = fieldSchema.extend({
-  name: z.string().optional().transform(getValidRhfFieldName),
   options: z
     .array(
       z.object({
@@ -22,7 +20,7 @@ export const zodNonRouterField = fieldSchema.extend({
     )
     .optional(),
 
-  id: z.string().optional(),
+  id: z.string(),
   identifier: z.string().optional(),
   /**
    * @deprecated in favour of `options`
