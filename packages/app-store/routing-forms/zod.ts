@@ -6,6 +6,12 @@ import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { routingFormAppDataSchemas } from "./appDataSchemas";
 
 export const zodNonRouterField = fieldSchema.extend({
+  id: z.string(),
+  identifier: z.string().optional(),
+  /**
+   * @deprecated in favour of `options`
+   */
+  selectText: z.string().optional(),
   options: z
     .array(
       z.object({
@@ -19,13 +25,6 @@ export const zodNonRouterField = fieldSchema.extend({
       })
     )
     .optional(),
-
-  id: z.string(),
-  identifier: z.string().optional(),
-  /**
-   * @deprecated in favour of `options`
-   */
-  selectText: z.string().optional(),
 });
 
 export const zodRouterField = zodNonRouterField.extend({

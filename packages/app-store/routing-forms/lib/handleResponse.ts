@@ -152,7 +152,7 @@ const _handleResponse = async ({
                     {
                       dynamicFieldValueOperands: {
                         response,
-                        fields: form.fields ?? [],
+                        fields: form.fields || [],
                       },
                       attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
                       fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,

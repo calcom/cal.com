@@ -333,7 +333,7 @@ export const ComponentForField = ({
           readOnly={readOnly}
           value={value as string[]}
           setValue={setValue as (arg: typeof value) => void}
-          options={field.options.map((o) => ({ ...o, title: o.label, value: o.label }))}
+          options={field.options.map((o) => ({ ...o, title: o.label }))}
         />
       </WithLabel>
     );

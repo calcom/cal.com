@@ -379,7 +379,6 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     );
     return fields;
   }
-
   function assertIfInvalidRouter(router: App_RoutingForms_Form) {
     const routesOfRouter = zodRoutes.parse(router.routes);
     if (routesOfRouter) {
