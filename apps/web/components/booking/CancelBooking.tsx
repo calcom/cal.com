@@ -11,6 +11,7 @@ import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];
@@ -128,6 +129,13 @@ export default function CancelBooking(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleCancelEvent = (value: string) => {
+    if (value.length <= 2) {
+      showToast("Enter valid reason", "warning");
+      setCancellationReason(value);
+    } else setCancellationReason(value);
+  };
+
   return (
     <>
       {error && (
@@ -175,7 +183,7 @@ export default function CancelBooking(props: Props) {
             ref={cancelBookingRef}
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
-            onChange={(e) => setCancellationReason(e.target.value)}
+            onChange={(e) => handleCancelEvent(e.target.value)}
             className="mb-4 mt-2 w-full "
             rows={3}
           />
@@ -199,7 +207,9 @@ export default function CancelBooking(props: Props) {
                 data-testid="confirm_cancel"
                 disabled={
                   props.isHost &&
-                  (!cancellationReason || (props.internalNotePresets.length > 0 && !internalNote?.id))
+                  (!cancellationReason ||
+                    cancellationReason.length < 3 ||
+                    (props.internalNotePresets.length > 0 && !internalNote?.id))
                 }
                 onClick={async () => {
                   setLoading(true);
