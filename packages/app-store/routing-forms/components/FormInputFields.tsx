@@ -37,14 +37,13 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         return (
           <div key={field.id} className="my-5 block flex-col sm:flex ">
             <ComponentForField
-              field={field}
-              // @ts-expect-error FIXME @hariombalhara
-              value={response[field.id]?.value ?? undefined}
-              setValue={(val: any) => {
+              field={{ ...field, name: field.name ?? "" }}
+              value={response[field.id ?? ""]?.value ?? undefined}
+              setValue={(val: unknown) => {
                 setResponse(() => {
                   return {
                     ...response,
-                    [field.id]: {
+                    [field.id ?? ""]: {
                       label: field.label,
                       identifier: field?.identifier,
                       fieldType: field.type,

@@ -52,12 +52,6 @@ function getTypes(configFor: ConfigFor) {
         },
       },
     },
-    boolean: {
-      ...BasicConfig.types.boolean,
-      widgets: {
-        ...BasicConfig.types.boolean.widgets,
-      },
-    },
   };
   return types;
 }

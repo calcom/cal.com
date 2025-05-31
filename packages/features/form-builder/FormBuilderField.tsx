@@ -46,6 +46,10 @@ type ValueProps =
   | {
       value: boolean;
       setValue: (value: boolean) => void;
+    }
+  | {
+      value: number;
+      setValue: (value: number) => void;
     };
 
 export const FormBuilderField = ({

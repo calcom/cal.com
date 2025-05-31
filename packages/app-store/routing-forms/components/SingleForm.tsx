@@ -112,7 +112,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     },
     onError(e) {
       if (e.message) {
-        console.error(e);
         showToast(e.message, "error");
         return;
       }
@@ -139,7 +138,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
       fields: data?.fields?.map((field) => {
         const options = field.options?.map((option) => ({
           ...option,
-          id: option.value || option.label,
+          id: option.value ?? option.label,
         }));
 
         return { ...field, ...(!!options && { options }), id: field.name };
