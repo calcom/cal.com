@@ -8,7 +8,6 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { withPrismaPage } from "@calcom/prisma/store/withPrismaPage";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
@@ -82,4 +81,4 @@ const Page = async ({ params, searchParams }: PageProps) => {
   );
 };
 
-export default withPrismaPage(Page);
+export default Page;

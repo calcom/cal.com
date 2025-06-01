@@ -5,6 +5,7 @@ import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { AppCategories } from "@calcom/prisma/enums";
+import { withPrismaPage } from "@calcom/prisma/store/withPrismaPage";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -59,4 +60,4 @@ const ServerPage = async () => {
   return <AppsPage {...props} isAdmin={session?.user?.role === "ADMIN"} />;
 };
 
-export default ServerPage;
+export default withPrismaPage(ServerPage);

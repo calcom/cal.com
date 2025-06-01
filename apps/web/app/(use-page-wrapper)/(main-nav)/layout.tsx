@@ -4,6 +4,7 @@ import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import Shell from "@calcom/features/shell/Shell";
+import { withPrismaPage } from "@calcom/prisma/store/withPrismaPage";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -18,4 +19,4 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default Layout;
+export default withPrismaPage(Layout);
