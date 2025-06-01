@@ -161,14 +161,7 @@ export type CustomClassNames = {
     eventMetaTimezoneSelect?: string;
     eventMetaChildren?: string;
   };
-  datePickerCustomClassNames?: {
-    datePickerContainer?: string;
-    datePickerTitle?: string;
-    datePickerDays?: string;
-    datePickerDate?: string;
-    datePickerDatesActive?: string;
-    datePickerToggle?: string;
-  };
+  datePickerCustomClassNames?: DatePickerClassNames;
   availableTimeSlotsCustomClassNames?: {
     availableTimeSlotsContainer?: string;
     availableTimeSlotsHeaderContainer?: string;
@@ -181,4 +174,13 @@ export type CustomClassNames = {
     confirmButton?: string;
     backButton?: string;
   };
+};
+
+export type DatePickerClassNames = {
+  datePickerContainer?: string;
+  datePickerTitle?: string;
+  datePickerDays?: string;
+  datePickerDate?: string;
+  datePickerDatesActive?: string;
+  datePickerToggle?: string;
 };
