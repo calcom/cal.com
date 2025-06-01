@@ -28,7 +28,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   url.searchParams.append("redirect_uri", redirect_uris);
   url.searchParams.append("response_type", "code");
   url.searchParams.append("scope", scopeString);
-  if (teamId && !Number.isNaN(teamId)) {
+  if (typeof teamId === "string" && !Number.isNaN(Number(teamId))) {
     url.searchParams.append("state", JSON.stringify({ teamId: Number(teamId) }));
   }
   const oauthUrl = url.toString();
