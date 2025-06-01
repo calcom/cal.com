@@ -10,7 +10,7 @@ type dynamicFieldValueOperandsResponse = Record<
   // Field ID
   string,
   {
-    value: number | string | string[];
+    value: number | string | string[] | boolean;
     label: string;
   }
 >;

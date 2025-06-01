@@ -110,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Make Header
   res.write(
     `${headerFields
-      .map((field) => `${field.label}${field.deleted ? "(Deleted)" : ""}`)
+      .map((field) => `${field.label}`)
       .concat(["Submission Time"])
       .join(",")}\n`
   );

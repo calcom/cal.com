@@ -76,9 +76,6 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     ({ teamId, routes, fields } = await getRoutesAndFieldsForDuplication({ duplicateFrom, userId: user.id }));
   } else {
     [fields, routes] = [inputFields, inputRoutes];
-    if (dbSerializedForm) {
-      fields = markMissingFieldsDeleted(dbSerializedForm, fields);
-    }
   }
 
   if (dbSerializedForm) {
@@ -163,13 +160,6 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       }
       routerLinkedFields[field.routerId] = true;
 
-      if (!routes.some((route) => route.id === field.routerId)) {
-        // If the field is from a router that is not available anymore, mark it as deleted
-        field.deleted = true;
-        continue;
-      }
-      // Get back deleted field as now the Router is there for it.
-      if (field.deleted) field.deleted = false;
       const router = await prisma.app_RoutingForms_Form.findFirst({
         where: {
           id: field.routerId,
@@ -206,14 +196,12 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       if (router) {
         assertIfInvalidRouter(router);
         const parsedRouterFields = zodFields.parse(router.fields);
-        const fieldsFromRouter = parsedRouterFields
-          ?.filter((f) => !f.deleted)
-          .map((f) => {
-            return {
-              ...f,
-              routerId: route.id,
-            };
-          });
+        const fieldsFromRouter = parsedRouterFields?.map((f) => {
+          return {
+            ...f,
+            routerId: route.id,
+          };
+        });
 
         if (fieldsFromRouter) {
           fields = fields.concat(fieldsFromRouter);
@@ -339,46 +327,24 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
         }),
       ];
       fields =
-        fieldsParsed.data
-          // Deleted fields in the form shouldn't be added to the new form
-          ?.filter((f) => !f.deleted)
-          .map((f) => {
-            return {
-              id: f.id,
-              routerId: sourceForm.id,
-              label: "",
-              type: "",
-            };
-          }) || [];
+        fieldsParsed.data?.map((f) => {
+          return {
+            id: f.id,
+            routerId: sourceForm.id,
+            label: "",
+            type: "",
+          };
+        }) || [];
     } else {
       // Duplicate just routes and fields
       // We don't want name, description and responses to be copied
       routes = routesParsed.data || [];
       // FIXME: Deleted fields shouldn't come in duplicate
-      fields = fieldsParsed.data ? fieldsParsed.data.filter((f) => !f.deleted) : [];
+      fields = fieldsParsed.data ?? [];
     }
     return { teamId: sourceForm.teamId, routes, fields };
   }
 
-  function markMissingFieldsDeleted(
-    serializedForm: SerializableForm<App_RoutingForms_Form>,
-    fields: InputFields
-  ) {
-    // Find all fields that are in DB(including deleted) but not in the mutation
-    // e.g. inputFields is [A,B,C]. DB is [A,B,C,D,E,F]. It means D,E,F got deleted
-    const deletedFields =
-      serializedForm.fields?.filter((f) => !fields.find((field) => field.id === f.id)) || [];
-
-    // Add back deleted fields in the end and mark them deleted.
-    // Fields mustn't be deleted, to make sure columns never decrease which hugely simplifies CSV generation
-    fields = fields.concat(
-      deletedFields.map((f) => {
-        f.deleted = true;
-        return f;
-      })
-    );
-    return fields;
-  }
   function assertIfInvalidRouter(router: App_RoutingForms_Form) {
     const routesOfRouter = zodRoutes.parse(router.routes);
     if (routesOfRouter) {

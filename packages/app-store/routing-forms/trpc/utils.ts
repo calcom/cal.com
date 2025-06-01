@@ -107,7 +107,7 @@ async function _onFormSubmission(
     // Use the label lowercased as the key to identify a field.
     // TODO: We seem to be using label from the response, Can we not use the field.label
     const key =
-      form.fields.find((f) => f.id === fieldId)?.identifier ||
+      form.fields.find((f) => f.id === fieldId)?.id ||
       (fieldResponse.label as keyof typeof fieldResponsesByIdentifier);
     fieldResponsesByIdentifier[key] = getFieldResponse({
       fieldResponseValue: fieldResponse.value,
