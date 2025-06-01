@@ -6,6 +6,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { expect, vi } from "vitest";
 
 import PhoneInput from "@calcom/features/components/phone-input/PhoneInput";
+import { MultiEmail } from "@calcom/ui/components/address";
 
 import { getBookingFieldsWithSystemFields } from "../../../lib/getBookingFields";
 import { BookingFields } from "./BookingFields";
@@ -22,6 +23,7 @@ vi.mock("@calcom/ui/components/address", async (originalImport) => {
   // Dynamic imports of Components are not supported in Vitest. So, we use the non-lazy version of the components
   return {
     AddressInput: AddressInputNonLazy,
+    MultiEmail,
   };
 });
 
