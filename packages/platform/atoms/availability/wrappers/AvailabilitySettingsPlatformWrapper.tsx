@@ -60,6 +60,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
   disableToasts,
   isDryRun = false,
   noScheduleChildren,
+  loadingStateChildren,
 }: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
