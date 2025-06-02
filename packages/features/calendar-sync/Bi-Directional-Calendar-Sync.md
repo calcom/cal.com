@@ -31,11 +31,11 @@ No additional configuration is needed. Once Google Calendar is connected as your
    - The booking is updated or cancelled to match the Google Calendar event
 
 ## Limitations
-- Only time/date changes and deletions are currently synchronized
 - Past events are not affected by changes in Google Calendar
 - Notifications from Google Calendar may occasionally be delayed
 - Sync is not 100% reliable - occasional dropped notifications may occur
 - Currently only supports Google Calendar (Outlook support coming in the future)
+- Time/date rescheduling doesn't check for availability conflicts (may be improved in future)
 
 ## Troubleshooting
 
@@ -62,6 +62,7 @@ FAQ:
 TODO:
 - [x] Subscription renewal support
 - [x] Reuse subscription from SelectedCalendar
+- [x] Basic reschedule support when calendar event time changes
 - [ ] Ensure that a subscription record is never deleted, unless it has been expired by Cal.com itself, then it is safe to be deleted. This is important because otherwise we wouldn't be able to stop subscription on that if needed and such channels could cause increased push notification delay. 
 - [ ] Review indices carefully on DB. Maybe use explain analyze to check if they are being used.
 - [ ] When does updateEvent return an array of NewCalendarEventType?

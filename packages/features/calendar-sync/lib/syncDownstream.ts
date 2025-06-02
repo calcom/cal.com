@@ -6,7 +6,7 @@ import type { Booking } from "@calcom/prisma/client";
 import type { CalendarEventsToSync } from "@calcom/types/Calendar";
 
 import type { CancellationBySyncReason } from "../types";
-import { cancelBooking } from "./downstreamActions";
+import { cancelBooking, rescheduleBooking } from "./downstreamActions";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSync"] });
 
@@ -204,7 +204,7 @@ export async function syncDownstream({
         const booking = bookingMap.get(calendarEvent.id) || null;
         if (!booking) {
           // The calendar event wasn't created in Cal.com, so we don't need to sync it
-          log.error(
+          log.debug(
             `No booking found for Calendar Event ${calendarEvent.id}. Nothing to sync for this event.`
           );
           continue;
@@ -226,22 +226,19 @@ export async function syncDownstream({
               });
               break;
             case "UPDATE_BOOKING_TIMES":
-              log.debug(
-                `Calendar Event ${calendarEvent.id} has time change, but it is ignored temporarily for booking ${action.bookingId}.`,
+              log.info(
+                `Calendar Event ${calendarEvent.id} triggered RESCHEDULE for Cal.com booking ${action.bookingId}.`,
                 safeStringify({
                   newStart: action.startTime,
                   newEnd: action.endTime,
                 })
               );
-              // TODO: To be enabled in a follow up PR
-              // dbUpdatePromise = prisma.booking.update({
-              //   where: { id: action.bookingId },
-              //   data: {
-              //     startTime: action.startTime,
-              //     endTime: action.endTime,
-              //     rescheduledBy: action.rescheduledBy,
-              //   },
-              // });
+              await rescheduleBooking({
+                bookingId: action.bookingId,
+                startTime: action.startTime,
+                endTime: action.endTime,
+                rescheduledBy: action.rescheduledBy,
+              });
               break;
             case "NO_CHANGE":
             case "IGNORE_CHANGE":
