@@ -149,7 +149,7 @@ describe("buildResponsesForReporting", () => {
     ];
 
     const expectedResponses = [["value1", "Option 1, Option 2"]];
-    const expectedHeaders = ["Field 1", "Field 2(Deleted)"];
+    const expectedHeaders = ["Field 1", "Field 2"];
 
     const { responses, headers } = buildResponsesForReporting({ responsesFromDb, fields });
     expect(responses).toEqual(expectedResponses);

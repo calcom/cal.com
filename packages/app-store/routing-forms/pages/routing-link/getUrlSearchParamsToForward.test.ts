@@ -54,8 +54,8 @@ describe("getUrlSearchParamsToForward", () => {
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
     const expectedParams = {
-      f1: "value1",
-      f2: ["Option 1", "Option 2"],
+      [field1Id]: "value1",
+      [field2Id]: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -88,8 +88,8 @@ describe("getUrlSearchParamsToForward", () => {
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
 
     const expectedParams = {
-      "Field 1": "value1",
-      "Field 2": "value2",
+      [field1Id]: "value1",
+      [field2Id]: "value2",
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -139,8 +139,8 @@ describe("getUrlSearchParamsToForward", () => {
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
 
     const expectedParams = {
-      "Field 1": "Option 1",
-      "Field 2": ["Option 1", "Option 2"],
+      [field1Id]: "Option 1",
+      [field2Id]: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -190,8 +190,8 @@ describe("getUrlSearchParamsToForward", () => {
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
 
     const expectedParams = {
-      "Field 1": "Option 1",
-      "Field 2": ["Option 1", "Option 2"],
+      [field1Id]: "Option 1",
+      [field2Id]: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -218,7 +218,7 @@ describe("getUrlSearchParamsToForward", () => {
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
     const expectedParams = {
-      "Field 1": "123",
+      [field1Id]: "123",
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -259,8 +259,8 @@ describe("getUrlSearchParamsToForward", () => {
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
     const expectedParams = {
-      f1: "value1",
-      f2: ["Option 1", "Option 2"],
+      [field1Id]: "value1",
+      [field2Id]: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -304,8 +304,8 @@ describe("getUrlSearchParamsToForward", () => {
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
     const expectedParams = {
-      f1: "value1",
-      f2: ["Option 1", "Option 2"],
+      [field1Id]: "value1",
+      [field2Id]: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
