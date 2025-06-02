@@ -21,7 +21,7 @@ test.describe("Team", () => {
     const teamOwner = await users.create(undefined, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.goto(`/settings/teams/${team.id}/settings`);
 
     await test.step("To the team by email (external user)", async () => {
       const invitedUserEmail = users.trackEmail({
@@ -66,7 +66,7 @@ test.describe("Team", () => {
 
       // Check newly invited member is not pending anymore
       await page.bringToFront();
-      await page.goto(`/settings/teams/${team.id}/members`);
+      await page.goto(`/settings/teams/${team.id}/settings`);
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(0);
@@ -102,7 +102,7 @@ test.describe("Team", () => {
     const teamOwner = await users.create({ name: `team-owner-${Date.now()}` }, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.goto(`/settings/teams/${team.id}/settings`);
 
     await test.step("To the organization by email (internal user)", async () => {
       const invitedUserEmail = users.trackEmail({
@@ -153,7 +153,7 @@ test.describe("Team", () => {
     const { team } = await teamOwner.getFirstTeamMembership();
 
     await teamOwner.apiLogin();
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.goto(`/settings/teams/${team.id}/settings`);
     await page.getByTestId("new-member-button").click();
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
     await page.getByText(t("send_invite")).click();

@@ -105,7 +105,7 @@ test.describe("Organization", () => {
       const { team: org } = await orgOwner.getOrgMembership();
 
       await test.step("By email", async () => {
-        await page.goto(`/settings/teams/${team.id}/members`);
+        await page.goto(`/settings/teams/${team.id}/settings`);
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
@@ -168,7 +168,7 @@ test.describe("Organization", () => {
       });
 
       await test.step("By invite link", async () => {
-        await page.goto(`/settings/teams/${team.id}/members`);
+        await page.goto(`/settings/teams/${team.id}/settings`);
         const inviteLink = await copyInviteLink(page, true);
         const email = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
@@ -339,7 +339,7 @@ test.describe("Organization", () => {
       await orgOwner.apiLogin();
 
       await test.step("By email", async () => {
-        await page.goto(`/settings/teams/${team.id}/members`);
+        await page.goto(`/settings/teams/${team.id}/settings`);
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
         await inviteAnEmail(page, invitedUserEmail, true);
@@ -400,7 +400,7 @@ test.describe("Organization", () => {
       });
 
       await test.step("By invite link", async () => {
-        await page.goto(`/settings/teams/${team.id}/members`);
+        await page.goto(`/settings/teams/${team.id}/settings`);
 
         const inviteLink = await copyInviteLink(page, true);
         const email = users.trackEmail({ username: "rick", domain: "example.com" });
@@ -447,7 +447,7 @@ test.describe("Organization", () => {
       const { team } = await orgOwner.getFirstTeamMembership();
 
       await orgOwner.apiLogin();
-      await page.goto(`/settings/teams/${team.id}/members`);
+      await page.goto(`/settings/teams/${team.id}/settings`);
       const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
       await inviteAnEmail(page, invitedUserEmail, true);
 
@@ -596,7 +596,7 @@ async function expectUserToBeAMemberOfTeam({
   email: string;
 }) {
   // Check newly invited member is not pending anymore
-  await page.goto(`/settings/teams/${teamId}/members`);
+  await page.goto(`/settings/teams/${teamId}/settings`);
   await page.reload();
   await page.waitForLoadState("domcontentloaded");
   expect(
