@@ -34,6 +34,7 @@ export const getAllWorkflows = async (
   orgId?: number | null,
   workflowsLockedForUser = true
 ) => {
+  console.log("getAllWorkflows", { eventTypeWorkflows, userId, teamId, orgId, workflowsLockedForUser });
   const allWorkflows = eventTypeWorkflows;
 
   if (orgId) {

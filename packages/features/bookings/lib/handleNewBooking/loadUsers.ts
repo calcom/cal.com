@@ -53,6 +53,7 @@ export const loadUsers = async ({
       isPlatform,
     });
 
+    console.log("LOADING USERS", { eventTypeId: eventType.id });
     const users = eventType.id
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
@@ -78,6 +79,7 @@ export const loadUsers = async ({
 };
 
 const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
+  console.log("LOADING USERS BY EVENT TYPE", { eventType });
   const { hosts, fallbackHosts } = getNormalizedHosts({
     eventType: { ...eventType, hosts: eventType.hosts.filter(Boolean) },
   });
@@ -120,6 +122,8 @@ export const findUsersByUsername = async ({
     orgSlug,
     usernameList,
   });
+  console.log("USERSWHERE", { where: safeStringify(where), profiles: safeStringify(profiles) });
+  console.log("ALLUSERSINDB", await prisma.user.findMany({}));
   return (
     await prisma.user.findMany({
       where,

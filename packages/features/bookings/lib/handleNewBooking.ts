@@ -1,17 +1,12 @@
-import type { DestinationCalendar, User } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
-import { getLocationValueForDB, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
-import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -23,7 +18,6 @@ import {
 } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { getEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -37,13 +31,11 @@ import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
-import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
+import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
@@ -56,24 +48,19 @@ import { createBooking } from "./handleNewBooking/createBooking";
 import type { Booking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
-import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
 import { getEventType } from "./handleNewBooking/getEventType";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
-import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
-import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
-import type { Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
+import type { Invitee, IsFixedAwareUser, PlatformParams } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
 import { onBookingCreationInDb } from "./onBookingCreationInDb";
-import { buildEvent } from "./wip-utils";
-
-// Added import for the new function
+import { buildEvent, getDestinationCalendar, getICalSequence } from "./wip-utils";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -86,21 +73,6 @@ function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
   if (arr.length === 0) {
     throw new Error("Array should have at least one item, but it's empty");
   }
-}
-
-function getICalSequence(originalRescheduledBooking: BookingType | null) {
-  // If new booking set the sequence to 0
-  if (!originalRescheduledBooking) {
-    return 0;
-  }
-
-  // If rescheduling and there is no sequence set, assume sequence should be 1
-  if (!originalRescheduledBooking.iCalSequence) {
-    return 1;
-  }
-
-  // If rescheduling then increment sequence by 1
-  return originalRescheduledBooking.iCalSequence + 1;
 }
 
 type BookingDataSchemaGetter =
@@ -208,79 +180,6 @@ export const buildDryRunBooking = ({
   };
 };
 
-export const buildEventForTeamEventType = async ({
-  existingEvent: evt,
-  users,
-  organizerUser,
-  schedulingType,
-  team,
-}: {
-  existingEvent: Partial<CalendarEvent>;
-  users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
-    destinationCalendar: DestinationCalendar | null;
-    isFixed?: boolean;
-  })[];
-  organizerUser: { email: string };
-  schedulingType: SchedulingType | null;
-  team?: {
-    id: number;
-    name: string;
-  } | null;
-}) => {
-  // not null assertion.
-  if (!schedulingType) {
-    throw new Error("Scheduling type is required for team event type");
-  }
-  const teamDestinationCalendars: DestinationCalendar[] = [];
-  const fixedUsers = users.filter((user) => user.isFixed);
-  const nonFixedUsers = users.filter((user) => !user.isFixed);
-  const filteredUsers =
-    schedulingType === SchedulingType.ROUND_ROBIN
-      ? [...fixedUsers, ...(nonFixedUsers.length > 0 ? [nonFixedUsers[0]] : [])]
-      : users;
-
-  // Organizer or user owner of this event type it's not listed as a team member.
-  const teamMemberPromises = filteredUsers
-    .filter((user) => user.email !== organizerUser.email)
-    .map(async (user) => {
-      // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
-      // push to teamDestinationCalendars if it's a team event but collective only
-      if (schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-        teamDestinationCalendars.push({
-          ...user.destinationCalendar,
-          externalId: processExternalId(user.destinationCalendar),
-        });
-      }
-
-      return {
-        id: user.id,
-        email: user.email ?? "",
-        name: user.name ?? "",
-        firstName: "",
-        lastName: "",
-        timeZone: user.timeZone,
-        language: {
-          translate: await getTranslation(user.locale ?? "en", "common"),
-          locale: user.locale ?? "en",
-        },
-      };
-    });
-
-  const teamMembers = await Promise.all(teamMemberPromises);
-
-  evt = CalendarEventBuilder.fromEvent(evt)
-    .withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
-    .build();
-
-  return CalendarEventBuilder.fromEvent(evt)
-    .withTeam({
-      members: teamMembers,
-      name: team?.name || "Nameless",
-      id: team?.id ?? 0,
-    })
-    .build();
-};
-
 function buildTroubleshooterData({
   eventType,
 }: {
@@ -323,14 +222,6 @@ function buildTroubleshooterData({
   return troubleshooterData;
 }
 
-export type PlatformParams = {
-  platformClientId?: string;
-  platformCancelUrl?: string;
-  platformBookingUrl?: string;
-  platformRescheduleUrl?: string;
-  platformBookingLocation?: string;
-};
-
 export type BookingHandlerInput = {
   bookingData: Record<string, any>;
   userId?: number;
@@ -362,6 +253,12 @@ async function handler(
     eventTypeSlug: rawBookingData.eventTypeSlug,
   });
 
+  console.log("GOT EVENT TYPE", {
+    eventType,
+    eventTypeId: rawBookingData.eventTypeId,
+    eventTypeSlug: rawBookingData.eventTypeSlug,
+  });
+
   const bookingDataSchema = bookingDataSchemaGetter({
     view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
     bookingFields: eventType.bookingFields,
@@ -378,7 +275,6 @@ async function handler(
     noEmail,
     eventTypeId,
     eventTypeSlug,
-    hasHashedBookingLink,
     language,
     appsStatus: reqAppsStatus,
     name: bookerName,
@@ -584,11 +480,11 @@ async function handler(
 
   const firstUser = users[0];
 
-  let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb({
-    dynamicUserList,
-    users,
-    location,
-  });
+  // let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb({
+  //   dynamicUserList,
+  //   users,
+  //   location,
+  // });
 
   await checkBookingAndDurationLimits({
     eventType,
@@ -870,37 +766,37 @@ async function handler(
 
   const isManagedEventType = !!eventType.parentId;
 
-  // If location passed is empty , use default location of event
-  // If location of event is not set , use host default
-  if (locationBodyString.trim().length == 0) {
-    if (eventType.locations.length > 0) {
-      locationBodyString = eventType.locations[0].type;
-    } else {
-      locationBodyString = OrganizerDefaultConferencingAppType;
-    }
-  }
+  // // If location passed is empty , use default location of event
+  // // If location of event is not set , use host default
+  // if (locationBodyString.trim().length == 0) {
+  //   if (eventType.locations.length > 0) {
+  //     locationBodyString = eventType.locations[0].type;
+  //   } else {
+  //     locationBodyString = OrganizerDefaultConferencingAppType;
+  //   }
+  // }
 
   const organizationDefaultLocation = getFirstDelegationConferencingCredentialAppLocation({
     credentials: firstUser.credentials,
   });
 
-  // use host default
-  if (locationBodyString == OrganizerDefaultConferencingAppType) {
-    const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
-    const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
-    if (organizerMetadata?.defaultConferencingApp?.appSlug) {
-      const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
-      locationBodyString = app?.appData?.location?.type || locationBodyString;
-      if (isManagedEventType || isTeamEventType) {
-        organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-          organizerMetadata?.defaultConferencingApp?.appLink;
-      }
-    } else if (organizationDefaultLocation) {
-      locationBodyString = organizationDefaultLocation;
-    } else {
-      locationBodyString = "integrations:daily";
-    }
-  }
+  // // use host default
+  // if (locationBodyString == OrganizerDefaultConferencingAppType) {
+  //   const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
+  //   const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
+  //   if (organizerMetadata?.defaultConferencingApp?.appSlug) {
+  //     const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
+  //     locationBodyString = app?.appData?.location?.type || locationBodyString;
+  //     if (isManagedEventType || isTeamEventType) {
+  //       organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+  //         organizerMetadata?.defaultConferencingApp?.appLink;
+  //     }
+  //   } else if (organizationDefaultLocation) {
+  //     locationBodyString = organizationDefaultLocation;
+  //   } else {
+  //     locationBodyString = "integrations:daily";
+  //   }
+  // }
 
   const invitee: Invitee = [
     {
@@ -947,37 +843,28 @@ async function handler(
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
-  // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
-  const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
-    ? {
-        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-        conferenceCredentialId: undefined,
-      }
-    : getLocationValueForDB(locationBodyString, eventType.locations);
+  // // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
+  // // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
+  // const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
+  //   ? {
+  //       bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+  //       conferenceCredentialId: undefined,
+  //     }
+  //   : getLocationValueForDB(locationBodyString, eventType.locations);
 
-  log.info("locationBodyString", locationBodyString);
-  log.info("event type locations", eventType.locations);
+  const { bookingLocation, conferenceCredentialId } = decideLocation({
+    dynamicUserList,
+    users,
+    location: reqBody.location,
+    eventType,
+    organizerUser,
+    isManagedEventType,
+    isTeamEventType,
+  });
 
-  const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const attendeesList = [...invitee, ...guests];
 
   const responses = reqBody.responses || null;
-  const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
-  const eventNameObject = {
-    //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
-    attendeeName: fullName || "Nameless",
-    eventType: eventType.title,
-    eventName: evtName,
-    // we send on behalf of team if >1 round robin attendee | collective
-    teamName: eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.team?.name : null,
-    // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
-    host: organizerUser.name || "Nameless",
-    location: bookingLocation,
-    eventDuration: dayjs(reqBody.end).diff(reqBody.start, "minutes"),
-    bookingFields: { ...responses },
-    t: tOrganizer,
-  };
 
   const iCalUID = getICalUID({
     event: { iCalUID: originalRescheduledBooking?.iCalUID, uid: originalRescheduledBooking?.uid },
@@ -997,11 +884,7 @@ async function handler(
     ? await getBookerBaseUrl(eventType.team.parentId)
     : await getBookerBaseUrl(organizerOrganizationId ?? null);
 
-  const destinationCalendar = eventType.destinationCalendar
-    ? [eventType.destinationCalendar]
-    : organizerUser.destinationCalendar
-    ? [organizerUser.destinationCalendar]
-    : null;
+  const destinationCalendar = getDestinationCalendar({ eventType, organizerUser });
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1017,24 +900,31 @@ async function handler(
       optionValue: "",
     };
 
-  const eventName = getEventName(eventNameObject);
-
-  const evt = buildEvent({
-    reqBody,
+  console.log("Calling buildEvent", {
+    fullName,
+    responses,
     eventType,
     organizerUser,
     organizerEmail,
     attendeesList,
-    additionalNotes,
-    customInputs,
-    bookerUrl,
+    input,
+  });
+  const {
+    evt: basicEvt,
+    eventNameObject,
     eventName,
+  } = await buildEvent({
+    fullName,
+    eventType,
+    organizerUser,
+    organizerEmail,
+    attendeesList,
+    bookerUrl,
     platformBookingLocation,
     bookingLocation,
     conferenceCredentialId,
     destinationCalendar,
     tOrganizer,
-    getTimeFormatStringFromUserTimeFormat,
     isConfirmedByDefault,
     iCalUID,
     iCalSequence,
@@ -1043,12 +933,13 @@ async function handler(
     platformCancelUrl,
     platformBookingUrl,
     isTeamEventType,
-    schedulingType: eventType.schedulingType,
     users,
-    team: eventType.team,
-    organizerUser,
-    input,
+    bookingData,
   });
+
+  let evt = basicEvt;
+
+  console.log("buildEvent returned", { evt, eventNameObject });
 
   // data needed for triggering webhooks
   const eventTypeInfo: EventTypeInfo = {
@@ -1081,24 +972,6 @@ async function handler(
     : WebhookTriggerEvents.BOOKING_CREATED;
 
   subscriberOptions.triggerEvent = eventTrigger;
-
-  const subscriberOptionsMeetingEnded = {
-    userId: triggerForUser ? organizerUser.id : null,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-    teamId,
-    orgId,
-    oAuthClientId: platformClientId,
-  };
-
-  const subscriberOptionsMeetingStarted = {
-    userId: triggerForUser ? organizerUser.id : null,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-    teamId,
-    orgId,
-    oAuthClientId: platformClientId,
-  };
 
   const workflows = await getAllWorkflowsFromEventType(
     {
@@ -1179,7 +1052,6 @@ async function handler(
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
     eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
-    evt.recurringEvent = eventType.recurringEvent;
   }
 
   let booking: CreatedBooking | null = null;
@@ -1194,8 +1066,6 @@ async function handler(
       userReschedulingIsOwner,
     })
   );
-
-  let assignmentReason: { reasonEnum: AssignmentReasonEnum; reasonString: string } | undefined;
 
   try {
     if (!isDryRun) {
@@ -1233,34 +1103,6 @@ async function handler(
         const usersRepository = new UsersRepository();
         await usersRepository.updateLastActiveAt(booking.userId);
       }
-
-      // If it's a round robin event, record the reason for the host assignment
-      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-        if (reqBody.crmOwnerRecordType && reqBody.crmAppSlug && contactOwnerEmail && routingFormResponseId) {
-          assignmentReason = await AssignmentReasonRecorder.CRMOwnership({
-            bookingId: booking.id,
-            crmAppSlug: reqBody.crmAppSlug,
-            teamMemberEmail: contactOwnerEmail,
-            recordType: reqBody.crmOwnerRecordType,
-            routingFormResponseId,
-          });
-        } else if (routingFormResponseId && teamId) {
-          assignmentReason = await AssignmentReasonRecorder.routingFormRoute({
-            bookingId: booking.id,
-            routingFormResponseId,
-            organizerId: organizerUser.id,
-            teamId,
-          });
-        }
-      }
-
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withUid(booking.uid ?? null)
-        .build();
-
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withOneTimePassword(booking.oneTimePassword ?? null)
-        .build();
 
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
@@ -1330,41 +1172,60 @@ async function handler(
   const credentials = await refreshCredentials(allCredentials);
 
   // Call the new abstracted function
-  const { videoCallUrl, paymentDetails } = await onBookingCreationInDb({
-    booking,
-    credentials,
+  const { videoCallUrl, paymentDetails, referencesToCreate } = await onBookingCreationInDb({
+    // It would be null for fresh booking
+    bookingBeingRescheduled: originalRescheduledBooking,
+    newBooking: booking,
+    // TODO: This eventType already has workflows populated and we repeat that in OnBookingCreationInDb
     eventType,
-    organizerUser,
-    isDryRun,
-    originalRescheduledBooking,
-    reqBody,
-    bookingLocationFromHandler: bookingLocation,
-    organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-    reqAppsStatus,
-    noEmail,
-    isConfirmedByDefault,
-    rescheduleReason,
-    loggerWithEventDetails,
-    tOrganizer,
-    tAttendees,
-    eventNameObject,
-    paymentAppData,
-    platformClientId,
-    workflows,
-    hasHashedBookingLink,
-    organizerOrganizationId,
-    inputBookingData: input.bookingData, // Pass the original input.bookingData
-    triggerForUser,
-    eventTypeId,
-    teamId,
-    orgId,
-    attendeesListParam: attendeesList, // Pass attendeesList as attendeesListParam
-    additionalNotes,
-    customInputs,
-    uid,
-    bookingSeat,
-    fullName,
-    attendeeLanguage,
+    userIdMakingBooking: userId ?? null,
+    platformParams: {
+      platformClientId,
+      platformCancelUrl,
+      platformBookingUrl,
+      platformRescheduleUrl,
+      platformBookingLocation,
+    },
+    configurationData: {
+      isDryRun,
+      noEmail,
+      triggerForUser: !!triggerForUser,
+      bookerUrl,
+    },
+    preloadedData: {
+      credentials,
+    },
+    // Ideally below data should be derivable from the newBooking itself
+    bookingData,
+    legacyData: {
+      organizationData: {
+        teamId,
+        orgId,
+      },
+      userData: {
+        organizerUser: {
+          id: organizerUser.id,
+          name: organizerUser.name,
+          username: organizerUser.username,
+          organizationId: organizerOrganizationId,
+          email: organizerEmail,
+          locale: organizerUser.locale,
+          destinationCalendar: organizerUser.destinationCalendar ?? null,
+          credentials: organizerUser.credentials,
+        },
+        attendeesList: attendeesList,
+        attendeeLanguage,
+        users: users.map((user) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          timeZone: user.timeZone,
+          locale: user.locale,
+          destinationCalendar: user.destinationCalendar ?? null,
+          isFixed: user.isFixed ?? false,
+        })),
+      },
+    },
   });
 
   loggerWithEventDetails.debug(`Booking ${organizerUser.username} completed`);

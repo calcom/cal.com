@@ -95,6 +95,8 @@ const _loadAndValidateUsers = async ({
     contactOwnerEmail,
   });
 
+  console.log("USERS", { users, eventTypeUsers: eventType.users, eventTypeId });
+
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     logger.warn({
@@ -202,6 +204,7 @@ const _loadAndValidateUsers = async ({
   );
 
   if (!qualifiedRRUsers.length && !fixedUsers.length) {
+    console.log("FIRSTUSER", users[0]);
     const firstUser = users[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
       memberId: firstUser.id ?? null,

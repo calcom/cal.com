@@ -184,6 +184,7 @@ const processWorkflowStep = async (
 };
 
 const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) => {
+  console.log("scheduleWorkflowReminders", { args });
   const {
     workflows,
     smsReminderNumber,

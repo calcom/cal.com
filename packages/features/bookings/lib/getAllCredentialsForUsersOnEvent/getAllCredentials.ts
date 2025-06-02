@@ -24,7 +24,10 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
   eventType: EventType
 ) => {
   let allCredentials = user.credentials;
-
+  console.log("getAllCredentialsIncludeServiceAccountKey", {
+    allCredentialsInitial: allCredentials,
+    eventType,
+  });
   // If it's a team event type query for team credentials
   if (eventType?.team?.id) {
     const teamCredentialsQuery = await prisma.credential.findMany({

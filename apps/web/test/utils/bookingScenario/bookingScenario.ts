@@ -692,7 +692,7 @@ export async function addWorkflowReminders(workflowReminders: InputWorkflowRemin
 }
 
 export async function addUsersToDb(users: InputUser[]) {
-  log.silly("TestData: Creating Users", JSON.stringify(users));
+  log.error("TestData: Creating Users", JSON.stringify(users));
   await prismock.user.createMany({
     data: users,
   });
