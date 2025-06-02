@@ -45,6 +45,11 @@ interface BookingData {
   endTime: Date;
   description: string | null;
   location: string | null;
+  customInputs?: any;
+  responses?: any;
+  metadata?: any;
+  oneTimePassword?: string | null;
+  recurringEventId?: string | null;
   attendees: Array<{
     id: number;
     name: string;
@@ -105,6 +110,9 @@ interface BookingData {
 }
 
 /**
+ * TODO: This function could be broken down into functions.
+ * 1. Update booking in DB
+ * 2. onBookingUpsertInDb -> It would take care of workflows, emails, webhooks etc and then it could be reused by handleNewBooking
  * Handles booking time changes for calendar sync scenarios.
  * Only performs essential operations: DB update, calendar sync, workflows, emails, webhooks.
  */
@@ -122,8 +130,30 @@ export async function handleBookingTimeChange(input: BookingTimeChangeInput) {
   // 1. Get the current booking with all needed relations
   const originalBooking = (await prisma.booking.findUnique({
     where: { uid: bookingUid },
-    include: {
-      attendees: true,
+    select: {
+      id: true,
+      uid: true,
+      title: true,
+      startTime: true,
+      endTime: true,
+      description: true,
+      location: true,
+      customInputs: true,
+      responses: true,
+      metadata: true,
+      oneTimePassword: true,
+      recurringEventId: true,
+      eventTypeId: true,
+      userId: true,
+      attendees: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          timeZone: true,
+          locale: true,
+        },
+      },
       user: {
         include: {
           credentials: true,
@@ -215,6 +245,13 @@ export async function handleBookingTimeChange(input: BookingTimeChangeInput) {
       description: originalBooking.eventType.description,
       id: originalBooking.eventType.id,
       schedulingType: originalBooking.eventType.schedulingType,
+      hideCalendarNotes: originalBooking.eventType.metadata?.hideCalendarNotes,
+      hideCalendarEventDetails: originalBooking.eventType.metadata?.hideCalendarEventDetails,
+      hideOrganizerEmail: originalBooking.eventType.metadata?.hideOrganizerEmail,
+      seatsPerTimeSlot: originalBooking.eventType.metadata?.seatsPerTimeSlot,
+      seatsShowAttendees: originalBooking.eventType.metadata?.seatsShowAttendees,
+      seatsShowAvailabilityCount: originalBooking.eventType.metadata?.seatsShowAvailabilityCount,
+      customReplyToEmail: originalBooking.eventType.metadata?.customReplyToEmail,
     })
     .withOrganizer({
       id: organizerUser.id,
@@ -233,7 +270,48 @@ export async function handleBookingTimeChange(input: BookingTimeChangeInput) {
       iCalUID: originalBooking.uid,
       iCalSequence: 1, // Increment sequence for reschedule
     })
+    .withUid(originalBooking.uid)
+    .withMetadataAndResponses({
+      additionalNotes: originalBooking.description,
+      customInputs: originalBooking.customInputs,
+      responses: originalBooking.responses,
+      userFieldsResponses: null, // Not available in simplified booking data
+    })
+    .withOneTimePassword(originalBooking.oneTimePassword)
     .build();
+
+  // Handle recurring events
+  if (originalBooking.recurringEventId) {
+    evt = CalendarEventBuilder.fromEvent(evt).withRecurringEventId(originalBooking.recurringEventId).build();
+  }
+
+  // Handle team event types
+  if (originalBooking.eventType.team && originalBooking.eventType.schedulingType) {
+    const teamMembers = originalBooking.attendees
+      .filter((attendee) => attendee.email !== organizerUser.email)
+      .map(async (attendee) => {
+        const tAttendee = await getTranslation(attendee.locale ?? "en", "common");
+        return {
+          id: attendee.id,
+          email: attendee.email,
+          name: attendee.name,
+          firstName: "",
+          lastName: "",
+          timeZone: attendee.timeZone,
+          language: { translate: tAttendee, locale: attendee.locale ?? "en" },
+        };
+      });
+
+    const resolvedTeamMembers = await Promise.all(teamMembers);
+
+    evt = CalendarEventBuilder.fromEvent(evt)
+      .withTeam({
+        members: resolvedTeamMembers,
+        name: originalBooking.eventType.team.name,
+        id: originalBooking.eventType.team.id,
+      })
+      .build();
+  }
 
   evt.rescheduledBy = rescheduledBy;
 
