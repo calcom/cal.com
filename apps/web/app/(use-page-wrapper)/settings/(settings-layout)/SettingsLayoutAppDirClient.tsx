@@ -456,9 +456,11 @@ const SettingsSidebarContainer = ({
   >();
   const session = useSession();
 
+  const memoizedTeamId = useMemo(() => session.data?.user?.org?.id, [session.data?.user?.org?.id]);
+
   const isDelegationCredentialEnabled = useIsFeatureEnabledForTeam({
     teamFeatures,
-    teamId: session.data?.user?.org?.id,
+    teamId: memoizedTeamId,
     feature: "delegation-credential",
   });
 

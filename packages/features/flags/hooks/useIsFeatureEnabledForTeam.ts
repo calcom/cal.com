@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+
 import type { AppFlags } from "../config";
 
 type TeamFeatures = Record<number, Record<keyof AppFlags, boolean>> | null;
@@ -11,6 +13,8 @@ export const useIsFeatureEnabledForTeam = ({
   teamId?: number;
   feature: keyof AppFlags;
 }) => {
-  if (!teamId || !teamFeatures?.[teamId]) return false;
-  return teamFeatures[teamId][feature];
+  return useMemo(() => {
+    if (!teamId || !teamFeatures?.[teamId]) return false;
+    return teamFeatures[teamId][feature];
+  }, [teamFeatures, teamId, feature]);
 };
