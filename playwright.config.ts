@@ -5,6 +5,7 @@ import * as os from "os";
 import * as path from "path";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getDatabaseUrl, Tenant } from "@calcom/prisma/store/tenants";
 
 dotEnv.config({ path: ".env" });
 
@@ -24,6 +25,10 @@ const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
 const IS_EMBED_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-core"));
 const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-react"));
+
+if (!getDatabaseUrl(Tenant.US)) {
+  throw new Error(`Missing DB URL for tenant: ${Tenant.US}`);
+}
 
 const webServer: PlaywrightTestConfig["webServer"] = [
   {

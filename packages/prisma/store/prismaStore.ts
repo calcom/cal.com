@@ -75,8 +75,7 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
 
 export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) {
   if (process.env.NODE_ENV === "test") {
-    const url = getDatabaseUrl(tenant);
-    if (!url) throw new Error(`Missing DB URL for tenant: ${tenant}`);
+    const url = getDatabaseUrl(tenant) || "";
 
     return getPrismaClient({
       ...options,
