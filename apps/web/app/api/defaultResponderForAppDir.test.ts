@@ -24,7 +24,7 @@ const mockRequest = {
   headers: new Headers({
     host: "example.com",
   }),
-} satisfies NextRequest;
+} as NextRequest;
 
 describe("defaultResponderForAppDir", () => {
   it("should return a JSON response when handler resolves with a result", async () => {

@@ -13,7 +13,7 @@ const mockRequest = {
   headers: new Headers({
     host: "example.com",
   }),
-} satisfies NextApiRequest;
+} as NextApiRequest;
 
 describe("defaultResponder", () => {
   it("should call res.json when response is still writable and result is not null", async () => {
