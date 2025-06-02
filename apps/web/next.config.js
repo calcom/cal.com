@@ -331,12 +331,6 @@ const nextConfig = {
     ].filter(Boolean);
 
     let afterFiles = [
-      ...(Boolean(process.env.NEXT_PUBLIC_API_V2_URL)
-        ? {
-            source: "/api/v2/:path*",
-            destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
-          }
-        : {}),
       {
         source: "/org/:slug",
         destination: "/team/:slug",
@@ -372,6 +366,13 @@ const nextConfig = {
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
     ];
+
+    if (Boolean(process.env.NEXT_PUBLIC_API_V2_URL)) {
+      afterFiles.push({
+        source: "/api/v2/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
+      });
+    }
 
     return {
       beforeFiles,
