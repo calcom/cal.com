@@ -9,7 +9,7 @@ import { excludeLockedUsersExtension } from "../extensions/exclude-locked-users"
 import { excludePendingPaymentsExtension } from "../extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "../extensions/usage-tracking";
 import { bookingReferenceMiddleware } from "../middleware";
-import { Tenant, getTenantFromHost, tenantToDatabaseUrl } from "./tenants";
+import { Tenant, getDatabaseUrl, getTenantFromHost } from "./tenants";
 
 export type PrismaClientWithExtensions = ReturnType<typeof getPrismaClient>;
 
@@ -71,7 +71,7 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
 
 export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) {
   if (process.env.NODE_ENV === "test") {
-    const url = tenantToDatabaseUrl[tenant];
+    const url = getDatabaseUrl(tenant);
     if (!url) throw new Error(`Missing DB URL for tenant: ${tenant}`);
 
     return getPrismaClient({
@@ -85,7 +85,7 @@ export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) 
     throw new Error("Prisma Store not initialized. You must wrap your handler with runWithTenants.");
 
   if (!store.clients[tenant]) {
-    const url = tenantToDatabaseUrl[tenant];
+    const url = getDatabaseUrl(tenant);
 
     if (!url) throw new Error(`Missing DB URL for tenant: ${tenant}`);
 
