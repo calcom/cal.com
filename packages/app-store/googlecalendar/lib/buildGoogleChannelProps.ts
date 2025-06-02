@@ -7,7 +7,7 @@ export type GoogleChannelProps = {
   id?: string | null;
   resourceId?: string | null;
   resourceUri?: string | null;
-  expiration?: string | null;
+  expiration?: number | null;
 };
 
 export async function buildGoogleChannelProps({
@@ -26,7 +26,7 @@ export async function buildGoogleChannelProps({
       kind: calendarSubscription.providerSubscriptionKind,
       resourceId: calendarSubscription.providerResourceId,
       resourceUri: calendarSubscription.providerResourceUri,
-      expiration: calendarSubscription.providerExpiration?.toISOString() ?? null,
+      expiration: calendarSubscription.providerExpiration?.getTime() ?? null,
     };
     logger.info(
       `Calendar is already being watched via CalendarSubscription. Reusing existing channel.`,
@@ -41,7 +41,9 @@ export async function buildGoogleChannelProps({
       id: selectedCalendar.googleChannelId,
       resourceId: selectedCalendar.googleChannelResourceId,
       resourceUri: selectedCalendar.googleChannelResourceUri,
-      expiration: selectedCalendar.googleChannelExpiration,
+      expiration: selectedCalendar.googleChannelExpiration
+        ? Number(selectedCalendar.googleChannelExpiration)
+        : null,
     };
     logger.info(
       `Calendar is already being watched via otherSelectedCalendar. Reusing existing channel.`,

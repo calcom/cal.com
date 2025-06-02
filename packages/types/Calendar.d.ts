@@ -343,7 +343,10 @@ export interface Calendar {
     kind: string | null;
     resourceId: string | null;
     resourceUri: string | null;
-    expiration: string | null;
+    /**
+     * Unix timestamp in milliseconds
+     */
+    expiration: number | null;
   }>;
 
   unsubscribeFromCalendar?(options: {

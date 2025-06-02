@@ -899,7 +899,7 @@ export default class GoogleCalendarService implements Calendar {
         kind: watchResponse.kind ?? null,
         resourceId: watchResponse.resourceId ?? null,
         resourceUri: watchResponse.resourceUri ?? null,
-        expiration: watchResponse.expiration ?? null,
+        expiration: watchResponse.expiration ? Number(watchResponse.expiration) : null,
       };
     } catch (error) {
       this.log.error(`Failed to subscribe to calendar ${calendarId}`, error);
@@ -987,7 +987,8 @@ export default class GoogleCalendarService implements Calendar {
         googleChannelKind: googleChannelProps.kind,
         googleChannelResourceId: googleChannelProps.resourceId,
         googleChannelResourceUri: googleChannelProps.resourceUri,
-        googleChannelExpiration: googleChannelProps.expiration,
+        // Unix timestamp in milliseconds as string
+        googleChannelExpiration: String(googleChannelProps.expiration),
       },
       eventTypeIds
     );

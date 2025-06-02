@@ -6,12 +6,13 @@ import { CalendarSubscriptionStatus } from "@calcom/prisma/enums";
 import { CalendarSubscriptionRepository } from "./calendarSubscription.repository";
 
 const log = logger.getSubLogger({ prefix: ["[CalendarSubscriptionService]"] });
+type Timestamp = number;
 type ProviderSubscriptionDetails = {
   id: string | null;
   kind: string | null;
   resourceId: string | null;
   resourceUri: string | null;
-  expiration: string | null;
+  expiration: Timestamp | null;
 };
 /**
  * CalendarSubscriptionService centralizes subscription management logic across calendar providers
@@ -75,7 +76,7 @@ export class CalendarSubscriptionService {
           kind: existingSubscription.providerSubscriptionKind,
           resourceId: existingSubscription.providerResourceId,
           resourceUri: existingSubscription.providerResourceUri,
-          expiration: existingSubscription.providerExpiration?.toISOString() ?? null,
+          expiration: existingSubscription.providerExpiration?.getTime() ?? null,
         },
       };
     }
@@ -129,7 +130,8 @@ export class CalendarSubscriptionService {
           kind: selectedCalendarWithSubscription.googleChannelKind,
           resourceId: selectedCalendarWithSubscription.googleChannelResourceId,
           resourceUri: selectedCalendarWithSubscription.googleChannelResourceUri,
-          expiration: selectedCalendarWithSubscription.googleChannelExpiration,
+          // googleChannelExpiration is a timestamp as string
+          expiration: Number(selectedCalendarWithSubscription.googleChannelExpiration),
         },
       };
     }
