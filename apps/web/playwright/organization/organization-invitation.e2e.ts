@@ -596,7 +596,7 @@ async function expectUserToBeAMemberOfTeam({
   email: string;
 }) {
   // Check newly invited member is not pending anymore
-  await page.goto(`/settings/teams/${teamId}/settings`);
+  await page.goto(`/settings/teams/${teamId}/members`);
   await page.reload();
   await page.waitForLoadState("domcontentloaded");
   expect(
