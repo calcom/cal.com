@@ -141,7 +141,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           id: option.value ?? option.label,
         }));
 
-        return { ...field, ...(!!options && { options }), id: field.name };
+        return { ...field, ...(!!options && { options }), id: field.id };
       }),
     });
   };

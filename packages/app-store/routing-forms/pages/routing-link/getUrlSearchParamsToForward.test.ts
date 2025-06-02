@@ -214,7 +214,7 @@ describe("getUrlSearchParamsToForward", () => {
       [field1Id]: { value: 123 },
     };
 
-    const fields = [{ id: field1Id, label: "Field 1", type: "number" }];
+    const fields: Fields = [{ id: field1Id, label: "Field 1", type: "number" }];
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
     const expectedParams = {

@@ -11,6 +11,7 @@ import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
 import isRouterLinkedField from "@calcom/routing-forms/lib/isRouterLinkedField";
+import type { Field } from "@calcom/routing-forms/types/types";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -172,7 +173,7 @@ export const FormBuilder = function FormBuilder({
               !isFieldEditableSystem && !isFieldEditableSystemButOptional && !isFieldEditableSystemButHidden;
 
             // Disable delete for router fields
-            const isRouterField = isRouterLinkedField(field);
+            const isRouterField = isRouterLinkedField(field as Field);
 
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
