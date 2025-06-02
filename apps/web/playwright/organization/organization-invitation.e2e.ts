@@ -544,6 +544,8 @@ async function inviteAnEmail(page: Page, invitedUserEmail: string, teamPage?: bo
     const teamIdMatch = url.match(/\/settings\/teams\/(\d+)/);
     if (teamIdMatch && teamIdMatch[1]) {
       await page.goto(`/settings/teams/${teamIdMatch[1]}/members`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
     }
     await page.getByTestId("new-member-button").click();
   } else {
@@ -632,6 +634,8 @@ async function copyInviteLink(page: Page, teamPage?: boolean) {
     const teamIdMatch = url.match(/\/settings\/teams\/(\d+)/);
     if (teamIdMatch && teamIdMatch[1]) {
       await page.goto(`/settings/teams/${teamIdMatch[1]}/members`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
     }
     await page.getByTestId("new-member-button").click();
   } else {
