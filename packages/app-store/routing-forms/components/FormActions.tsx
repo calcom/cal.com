@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
+import type { Fields } from "routing-forms/types/types";
 import { v4 as uuidv4 } from "uuid";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -48,7 +49,7 @@ type RoutingForm = {
   id: string;
   name: string;
   disabled: boolean;
-  fields?: FormField[];
+  fields?: Fields;
 };
 
 export type NewFormDialogState = { action: "new" | "duplicate"; target: string | null } | null;

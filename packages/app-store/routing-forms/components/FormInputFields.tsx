@@ -37,9 +37,15 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         return (
           <div key={field.id} className="my-5 block flex-col sm:flex ">
             <ComponentForField
-              field={{ ...field, name: field.name ?? "" }}
+              field={{
+                ...field,
+                name: field.name ?? "",
+                options: field.options?.map((o) => {
+                  return { ...o, value: o.value ?? "" };
+                }),
+              }}
               value={response[field.id ?? ""]?.value ?? undefined}
-              setValue={(val: unknown) => {
+              setValue={(val: any) => {
                 setResponse(() => {
                   return {
                     ...response,

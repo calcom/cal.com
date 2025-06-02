@@ -30,7 +30,7 @@ export const zodNonRouterField = fieldSchema.extend({
 });
 
 export const zodRouterField = zodNonRouterField.extend({
-  routerId: z.string(),
+  routerId: z.string().optional(),
 });
 
 // This ordering is important - If routerId is present then it should be in the parsed object. Moving zodNonRouterField to first position doesn't do that
