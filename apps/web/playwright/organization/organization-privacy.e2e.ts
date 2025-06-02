@@ -93,7 +93,7 @@ test.describe("Organization - Privacy", () => {
     const teamId = membership.team.id;
 
     // Update team to be private
-    await page.goto(`/settings/teams/${teamId}/members`);
+    await page.goto(`/settings/teams/${teamId}/settings`);
     await page.waitForLoadState("domcontentloaded");
     const togglePrivateSwitch = await page.getByTestId("make-team-private-check");
     await togglePrivateSwitch.click();
@@ -121,7 +121,7 @@ test.describe("Organization - Privacy", () => {
     const memberOfTeam = await users.set(memberUser?.user.email);
     await memberOfTeam.apiLogin();
 
-    await page.goto(`/settings/teams/${teamId}/members`);
+    await page.goto(`/settings/teams/${teamId}/settings`);
     await page.waitForLoadState("domcontentloaded");
 
     // As a user we can not see the user list when a team is private
@@ -159,7 +159,7 @@ test.describe("Organization - Privacy", () => {
     const teamId = membership.team.id;
 
     // Update team to be private
-    await page.goto(`/settings/teams/${teamId}/members`);
+    await page.goto(`/settings/teams/${teamId}/settings`);
     await page.waitForLoadState("domcontentloaded");
 
     // As admin/owner we can see the user list
@@ -185,7 +185,7 @@ test.describe("Organization - Privacy", () => {
     const memberOfTeam = await users.set(memberUser?.user.email);
     await memberOfTeam.apiLogin();
 
-    await page.goto(`/settings/teams/${teamId}/members`);
+    await page.goto(`/settings/teams/${teamId}/settings`);
     await page.waitForLoadState("domcontentloaded");
 
     // As a user we can not see the user list when a team is private
