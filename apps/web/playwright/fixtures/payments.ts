@@ -2,10 +2,9 @@ import type { Page } from "@playwright/test";
 import type { Payment } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
-import { getPrisma } from "@calcom/prisma/store/prismaStore";
-import { Tenant } from "@calcom/prisma/store/tenants";
+import { prismaClientForTest } from "@calcom/prisma/store/prismaStore";
 
-const prisma = getPrisma(Tenant.US, {});
+const prisma = prismaClientForTest;
 
 type PaymentFixture = ReturnType<typeof createPaymentFixture>;
 

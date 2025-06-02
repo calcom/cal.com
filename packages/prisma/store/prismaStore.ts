@@ -43,6 +43,10 @@ const getPrismaClient = (options?: Prisma.PrismaClientOptions) => {
     .$extends(withAccelerate());
 };
 
+export const prismaClientForTest = getPrismaClient({
+  datasources: { db: { url: process.env.DATABASE_URL } },
+});
+
 export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () => Promise<T>) {
   if (process.env.NODE_ENV === "test") {
     if (fn === undefined && typeof tenant === "function") {

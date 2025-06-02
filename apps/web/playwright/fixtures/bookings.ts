@@ -4,10 +4,9 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import _dayjs from "@calcom/dayjs";
-import { getPrisma } from "@calcom/prisma/store/prismaStore";
-import { Tenant } from "@calcom/prisma/store/tenants";
+import { prismaClientForTest } from "@calcom/prisma/store/prismaStore";
 
-const prisma = getPrisma(Tenant.US, {});
+const prisma = prismaClientForTest;
 const translator = short();
 
 type BookingFixture = ReturnType<typeof createBookingFixture>;

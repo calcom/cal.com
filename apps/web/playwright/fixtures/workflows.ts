@@ -2,12 +2,11 @@ import type { Locator } from "@playwright/test";
 import { expect, type Page } from "@playwright/test";
 
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { getPrisma } from "@calcom/prisma/store/prismaStore";
-import { Tenant } from "@calcom/prisma/store/tenants";
+import { prismaClientForTest } from "@calcom/prisma/store/prismaStore";
 
 import { localize } from "../lib/localize";
 
-const prisma = getPrisma(Tenant.US, {});
+const prisma = prismaClientForTest;
 
 type CreateWorkflowProps = {
   name?: string;
