@@ -47,7 +47,7 @@ type BookingUpdateAction =
 type getBookingUpdateActionsParams = {
   calendarEvent: CalendarEventsToSync[number];
   booking: BookingDataForSync;
-  appName: string;
+  appSlug: string;
 };
 
 /**
@@ -57,7 +57,7 @@ type getBookingUpdateActionsParams = {
 export function getBookingUpdateActions({
   calendarEvent,
   booking,
-  appName,
+  appSlug,
 }: getBookingUpdateActionsParams): BookingUpdateAction[] {
   const calendarEventId = calendarEvent.id;
   const actions: BookingUpdateAction[] = [];
@@ -86,12 +86,15 @@ export function getBookingUpdateActions({
     return actions;
   }
 
+  // This format that starts with appStore.calendar. is whitelisted and can be used as cancelledBy/rescheduledBy
+  const actionTakenBy = `appStore.calendar.${appSlug}`;
+
   if (calendarEvent.status === "cancelled" || calendarEvent.organizerResponseStatus === "declined") {
     // Cancel the booking, we know here that the booking is ACCEPTED, so we should cancel
     actions.push({
       type: "CANCEL_BOOKING",
       bookingId: booking.id,
-      cancelledBy: appName,
+      cancelledBy: actionTakenBy,
       cancellationReason:
         calendarEvent.organizerResponseStatus === "declined"
           ? "organizer_declined_in_calendar"
@@ -123,7 +126,7 @@ export function getBookingUpdateActions({
         bookingId: booking.id,
         startTime: calendarEventStartTime.toDate(),
         endTime: calendarEventEndTime.toDate(),
-        rescheduledBy: appName,
+        rescheduledBy: actionTakenBy,
       });
     }
   } else {
@@ -177,7 +180,7 @@ export async function syncDownstream({
   calendarEvents: CalendarEventsToSync;
   app: {
     type: "google_calendar";
-    name: "Google Calendar";
+    slug: "google-calendar";
   };
 }) {
   if (!calendarEvents.length) {
@@ -206,7 +209,7 @@ export async function syncDownstream({
           );
           continue;
         }
-        const actions = getBookingUpdateActions({ calendarEvent, booking, appName: app.name });
+        const actions = getBookingUpdateActions({ calendarEvent, booking, appSlug: app.slug });
 
         for (const action of actions) {
           const dbUpdatePromise: Promise<unknown> = Promise.resolve(); // Default to no DB operation
