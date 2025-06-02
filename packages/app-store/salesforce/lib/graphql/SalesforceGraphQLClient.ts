@@ -37,7 +37,7 @@ export class SalesforceGraphQLClient {
    * 3. If no account is found, then find contacts that match the email domain and find the account that the majority of contacts are connect to
    */
   async GetAccountRecordsForRRSkip(email: string): Promise<Contact[]> {
-    const log = logger.getSubLogger({ prefix: ["[getAccountRecordsForRRSkip]:${email}"] });
+    const log = logger.getSubLogger({ prefix: [`[getAccountRecordsForRRSkip]:${email}`] });
     const emailDomain = email.split("@")[1];
     const websites = this.getAllPossibleAccountWebsiteFromEmailDomain(emailDomain);
 

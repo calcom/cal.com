@@ -1,3 +1,5 @@
+import type React from "react";
+
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import type { BookerStore } from "@calcom/features/bookings/Booker/store";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
@@ -78,6 +80,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   confirmButtonDisabled?: boolean;
   timeZones?: Timezone[];
   isBookingDryRun?: boolean;
+  eventMetaChildren?: React.ReactNode;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;

@@ -217,6 +217,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
 
+  // Filter out organizer information if hideOrganizerEmail is true
+  const sanitizedPreviousBooking =
+    eventType.hideOrganizerEmail &&
+    previousBooking &&
+    previousBooking.rescheduledBy === bookingInfo.user?.email
+      ? { ...previousBooking, rescheduledBy: bookingInfo.user?.name }
+      : previousBooking;
+
   return {
     props: {
       orgSlug: currentOrgDomain,
@@ -227,7 +235,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
-      previousBooking,
+      previousBooking: sanitizedPreviousBooking,
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,
