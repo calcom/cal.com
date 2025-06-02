@@ -158,7 +158,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       if (!isRouterLinkedField(field)) {
         continue;
       }
-      routerLinkedFields[field.routerId] = true;
+      routerLinkedFields[field.routerId ?? ""] = true;
 
       const router = await prisma.app_RoutingForms_Form.findFirst({
         where: {
