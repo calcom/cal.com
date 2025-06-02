@@ -1,7 +1,6 @@
 import { useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
-import type { Fields } from "routing-forms/types/types";
 import { v4 as uuidv4 } from "uuid";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -36,6 +35,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
+import type { Fields } from "../types/types";
 
 type FormField = {
   identifier?: string;
