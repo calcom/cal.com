@@ -86,7 +86,7 @@ const config: PlaywrightTestConfig = {
   retries: process.env.CI ? 2 : 0,
   // While debugging it should be focussed mode
   // eslint-disable-next-line turbo/no-undeclared-env-vars
-  workers: process.env.PWDEBUG ? 1 : os.cpus().length,
+  workers: process.env.PWDEBUG ? 1 : process.env.CI ? 4 : Math.min(4, os.cpus().length),
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
   fullyParallel: true,
