@@ -125,6 +125,14 @@ test.describe("Organization - Privacy", () => {
 
     // As a user we can not see the privacy settings when a team is private
     await expect(page.getByTestId("make-team-private-check")).toBeHidden();
+
+    await page.goto(`/settings/teams/${teamId}/members`);
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+
+    // As a user we can not see the member list when a team is private
+    const hiddenTableLocator = await page.getByTestId("team-member-list-container");
+    await expect(hiddenTableLocator).toBeHidden();
   });
   test(`Private Org - Public Team\n 
         1) All team members can see members in team \n
@@ -187,5 +195,13 @@ test.describe("Organization - Privacy", () => {
 
     // As a regular member we can see the privacy settings in a public team
     await expect(page.getByTestId("make-team-private-check")).toBeVisible();
+
+    await page.goto(`/settings/teams/${teamId}/members`);
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+
+    // As a user we can see the member list when a team is public
+    const tableLocator = await page.getByTestId("team-member-list-container");
+    await expect(tableLocator).toBeVisible();
   });
 });
