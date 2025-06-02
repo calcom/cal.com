@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import type { Team } from "@prisma/client";
 
-import { prismaClientForTest } from "@calcom/prisma/store/prismaStore";
+import { prismaClientForTest } from "@calcom/prisma/e2e-client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const prisma = prismaClientForTest;

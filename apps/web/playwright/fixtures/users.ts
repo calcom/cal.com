@@ -13,7 +13,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { prismaClientForTest } from "@calcom/prisma/store/prismaStore";
+import { prismaClientForTest } from "@calcom/prisma/e2e-client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 

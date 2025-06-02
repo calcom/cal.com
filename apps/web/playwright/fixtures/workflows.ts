@@ -1,8 +1,8 @@
 import type { Locator } from "@playwright/test";
 import { expect, type Page } from "@playwright/test";
 
+import { prismaClientForTest } from "@calcom/prisma/e2e-client";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { prismaClientForTest } from "@calcom/prisma/store/prismaStore";
 
 import { localize } from "../lib/localize";
 

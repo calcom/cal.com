@@ -29,7 +29,7 @@ function getClientsMap(): ClientsMap {
 
 const als = new AsyncLocalStorage<Store>();
 
-const getPrismaClient = (options?: Prisma.PrismaClientOptions) => {
+export const getPrismaClient = (options?: Prisma.PrismaClientOptions) => {
   const _prisma = new PrismaClient(options);
   // If any changed on middleware server restart is required
   // TODO: Migrate it to $extends

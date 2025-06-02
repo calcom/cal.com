@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { prismaClientForTest } from "@calcom/prisma/store/prismaStore";
+import { prismaClientForTest } from "@calcom/prisma/e2e-client";
 
 const prisma = prismaClientForTest;
 
