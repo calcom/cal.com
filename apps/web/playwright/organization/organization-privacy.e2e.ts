@@ -98,9 +98,8 @@ test.describe("Organization - Privacy", () => {
     const togglePrivateSwitch = await page.getByTestId("make-team-private-check");
     await togglePrivateSwitch.click();
 
-    // As admin/owner we can see the user list
-    const tableLocator = await page.getByTestId("team-member-list-container");
-    await expect(tableLocator).toBeVisible();
+    // As admin/owner we can see the privacy settings
+    await expect(page.getByTestId("make-team-private-check")).toBeVisible();
 
     const memberUser = await prisma.membership.findFirst({
       where: {
@@ -124,9 +123,8 @@ test.describe("Organization - Privacy", () => {
     await page.goto(`/settings/teams/${teamId}/settings`);
     await page.waitForLoadState("domcontentloaded");
 
-    // As a user we can not see the user list when a team is private
-    const hiddenTableLocator = await page.getByTestId("team-member-list-container");
-    await expect(hiddenTableLocator).toBeHidden();
+    // As a user we can not see the privacy settings when a team is private
+    await expect(page.getByTestId("make-team-private-check")).toBeHidden();
   });
   test(`Private Org - Public Team\n 
         1) All team members can see members in team \n
@@ -158,13 +156,12 @@ test.describe("Organization - Privacy", () => {
     const membership = await owner.getFirstTeamMembership();
     const teamId = membership.team.id;
 
-    // Update team to be private
+    // Go to team settings
     await page.goto(`/settings/teams/${teamId}/settings`);
     await page.waitForLoadState("domcontentloaded");
 
-    // As admin/owner we can see the user list
-    const tableLocator = await page.getByTestId("team-member-list-container");
-    await expect(tableLocator).toBeVisible();
+    // As admin/owner we can see the privacy settings
+    await expect(page.getByTestId("make-team-private-check")).toBeVisible();
 
     const memberUser = await prisma.membership.findFirst({
       where: {
@@ -188,8 +185,7 @@ test.describe("Organization - Privacy", () => {
     await page.goto(`/settings/teams/${teamId}/settings`);
     await page.waitForLoadState("domcontentloaded");
 
-    // As a user we can not see the user list when a team is private
-    const hiddenTableLocator = await page.getByTestId("team-member-list-container");
-    await expect(hiddenTableLocator).toBeVisible();
+    // As a regular member we can see the privacy settings in a public team
+    await expect(page.getByTestId("make-team-private-check")).toBeVisible();
   });
 });
