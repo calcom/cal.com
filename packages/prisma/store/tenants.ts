@@ -15,6 +15,15 @@ export const tenantToDatabaseUrl: Record<Tenant, string | undefined> = {
   [Tenant.INSIGHTS]: process.env.INSIGHTS_DATABASE_URL,
 };
 
+export function getDatabaseUrl(tenant: Tenant) {
+  const url = tenantToDatabaseUrl[tenant];
+  if (!url) {
+    console.error(`No database URL found for tenant ${tenant}`);
+    return tenantToDatabaseUrl[Tenant.US];
+  }
+  return url;
+}
+
 export const getTenantFromHost = (host: string) => {
   for (const [tenant, domainList] of Object.entries(TENANT_ENV_MAP)) {
     const domains = domainList
