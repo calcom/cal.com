@@ -11,7 +11,7 @@ import { withPrismaRoute } from "@calcom/prisma/store/withPrismaRoute";
 
 type Handler<T extends NextResponse | Response = NextResponse> = (
   req: NextRequest,
-  options?: { params: Promise<Params> }
+  options: { params: Promise<Params> }
 ) => Promise<T>;
 
 export const defaultResponderForAppDir = <T extends NextResponse | Response = NextResponse>(

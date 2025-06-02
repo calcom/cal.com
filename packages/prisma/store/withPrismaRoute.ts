@@ -27,11 +27,14 @@ type HandlerFn = (req: NextRequest, options: { params: Promise<Params> }) => Pro
  * ```
  */
 export function withPrismaRoute(handler: HandlerFn) {
-  return async function wrappedHandler(req: NextRequest): Promise<Response> {
+  return async function wrappedHandler(
+    req: NextRequest,
+    options: { params: Promise<Params> }
+  ): Promise<Response> {
     try {
       const host = req.headers.get("host") || "";
       const tenant = getTenantFromHost(host);
-      return runWithTenants(tenant, async () => handler(req));
+      return runWithTenants(tenant, async () => handler(req, options));
     } catch (error) {
       console.error(`[withPrismaRoute] Error:`, error);
       return new Response(
