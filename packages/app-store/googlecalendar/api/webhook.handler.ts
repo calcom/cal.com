@@ -13,6 +13,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
+import { metadata as googleAppMetadata } from "../_metadata";
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarWebhook"] });
 class IgnorableError extends Error {
@@ -257,8 +258,8 @@ export async function postHandler(req: NextApiRequest) {
       await syncDownstream({
         calendarEvents: result.eventsToSync,
         app: {
-          type: "google_calendar",
-          name: "Google Calendar",
+          type: googleAppMetadata.type,
+          slug: googleAppMetadata.slug,
         },
       });
     }
