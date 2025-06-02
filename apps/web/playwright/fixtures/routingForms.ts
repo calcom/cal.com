@@ -1,8 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { prismaClientForTest } from "@calcom/prisma/e2e-client";
-
-const prisma = prismaClientForTest;
+import { prisma } from "@calcom/prisma";
 
 type Route = {
   id: string;

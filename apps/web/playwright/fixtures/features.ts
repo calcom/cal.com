@@ -2,9 +2,7 @@ import type { Page } from "@playwright/test";
 import type { Feature } from "@prisma/client";
 
 import type { AppFlags } from "@calcom/features/flags/config";
-import { prismaClientForTest } from "@calcom/prisma/e2e-client";
-
-const prisma = prismaClientForTest;
+import { prisma } from "@calcom/prisma";
 
 type FeatureSlugs = keyof AppFlags;
 
