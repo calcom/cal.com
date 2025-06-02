@@ -27,23 +27,21 @@ if (!isNaN(loggerLevel)) {
   }
 }
 
-export const prisma = new Proxy({} as PrismaClientWithExtensions, {
-  get(_target, prop) {
-    if (process.env.NODE_ENV === "test") {
-      const defaultPrisma = getPrisma(Tenant.US, prismaOptions);
-      return Reflect.get(defaultPrisma, prop);
-    }
-
-    try {
-      const tenantPrisma = getTenantAwarePrisma(prismaOptions);
-      return Reflect.get(tenantPrisma, prop);
-    } catch (error) {
-      throw new Error(
-        "Prisma was called outside of runWithTenants. Please wrap your code with runWithTenants or use a tenant-aware approach."
-      );
-    }
-  },
-});
+export const prisma =
+  process.env.NODE_ENV === "test"
+    ? getPrisma(Tenant.US, prismaOptions)
+    : new Proxy({} as PrismaClientWithExtensions, {
+        get(_target, prop) {
+          try {
+            const tenantPrisma = getTenantAwarePrisma(prismaOptions);
+            return Reflect.get(tenantPrisma, prop);
+          } catch (error) {
+            throw new Error(
+              "Prisma was called outside of runWithTenants. Please wrap your code with runWithTenants or use a tenant-aware approach."
+            );
+          }
+        },
+      });
 
 const insightsPrismaProxy = new Proxy({} as PrismaClientWithExtensions, {
   get(_target, prop) {
