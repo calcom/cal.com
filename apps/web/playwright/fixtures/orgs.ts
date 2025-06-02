@@ -1,8 +1,11 @@
 import type { Page } from "@playwright/test";
 import type { Team } from "@prisma/client";
 
-import { prisma } from "@calcom/prisma";
+import { getPrisma } from "@calcom/prisma/store/prismaStore";
+import { Tenant } from "@calcom/prisma/store/tenants";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+
+const prisma = getPrisma(Tenant.US, {});
 
 const getRandomSlug = () => `org-${Math.random().toString(36).substring(7)}`;
 

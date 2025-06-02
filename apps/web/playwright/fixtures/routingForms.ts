@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { prisma } from "@calcom/prisma";
+import { getPrisma } from "@calcom/prisma/store/prismaStore";
+import { Tenant } from "@calcom/prisma/store/tenants";
+
+const prisma = getPrisma(Tenant.US, {});
 
 type Route = {
   id: string;
