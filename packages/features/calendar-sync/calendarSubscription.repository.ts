@@ -2,6 +2,25 @@ import prisma from "@calcom/prisma";
 import type { CalendarSubscriptionStatus } from "@calcom/prisma/enums";
 
 type ProviderType = string;
+const safeCalendarSubscriptionSelect = {
+  id: true,
+  credentialId: true,
+  externalCalendarId: true,
+  providerType: true,
+  providerSubscriptionId: true,
+  providerSubscriptionKind: true,
+  providerResourceId: true,
+  providerResourceUri: true,
+  providerExpiration: true,
+  status: true,
+  lastSyncAt: true,
+  lastError: true,
+  createdAt: true,
+  updatedAt: true,
+  activatedAt: true,
+  calendarSyncId: true,
+};
+
 export class CalendarSubscriptionRepository {
   static async create({
     data,
@@ -21,6 +40,7 @@ export class CalendarSubscriptionRepository {
   }) {
     return prisma.calendarSubscription.create({
       data,
+      select: safeCalendarSubscriptionSelect,
     });
   }
 
@@ -39,11 +59,14 @@ export class CalendarSubscriptionRepository {
       providerExpiration?: Date | null;
       activatedAt?: Date;
       status?: CalendarSubscriptionStatus;
+      lastSyncAt?: Date;
+      lastError?: string;
     };
   }) {
     return await prisma.calendarSubscription.update({
       where,
       data,
+      select: safeCalendarSubscriptionSelect,
     });
   }
 
@@ -74,12 +97,14 @@ export class CalendarSubscriptionRepository {
       where,
       update: updateData,
       create: createData,
+      select: safeCalendarSubscriptionSelect,
     });
   }
 
   static async findUniqueById({ id }: { id: string }) {
     return prisma.calendarSubscription.findUnique({
       where: { id },
+      select: safeCalendarSubscriptionSelect,
     });
   }
 
@@ -95,6 +120,7 @@ export class CalendarSubscriptionRepository {
         providerSubscriptionId,
         providerResourceId,
       },
+      select: safeCalendarSubscriptionSelect,
     });
   }
 
@@ -110,6 +136,7 @@ export class CalendarSubscriptionRepository {
   }) {
     return prisma.calendarSubscription.findMany({
       where,
+      select: safeCalendarSubscriptionSelect,
     });
   }
 
@@ -136,6 +163,7 @@ export class CalendarSubscriptionRepository {
         { status: "desc" },
         { providerExpiration: "asc" },
       ],
+      select: safeCalendarSubscriptionSelect,
     });
 
     return requiringRenewalOrActivation;
@@ -148,10 +176,13 @@ export class CalendarSubscriptionRepository {
       providerType?: ProviderType;
       status?: CalendarSubscriptionStatus;
       externalCalendarId?: string;
+      providerSubscriptionId?: string;
+      providerResourceId?: string;
     };
   }) {
     return prisma.calendarSubscription.findFirst({
       where,
+      select: safeCalendarSubscriptionSelect,
     });
   }
 }

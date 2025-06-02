@@ -241,4 +241,11 @@ export class CalendarSubscriptionService {
   static async findAllRequiringRenewalOrActivation({ batchSize }: { batchSize: number }) {
     return CalendarSubscriptionRepository.findManyRequiringRenewalOrActivation({ batchSize });
   }
+
+  static async markAsUsedForSync({ subscriptionId }: { subscriptionId: string }) {
+    return CalendarSubscriptionRepository.update({
+      where: { id: subscriptionId },
+      data: { lastSyncAt: new Date() },
+    });
+  }
 }

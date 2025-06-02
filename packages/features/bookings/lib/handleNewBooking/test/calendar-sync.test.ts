@@ -29,7 +29,7 @@ export type CustomNextApiResponse = NextApiResponse & Response;
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
 
-async function createOrganizationAneEnableCalendarSyncFeature() {
+async function createOrganizationAndEnableCalendarSyncFeature() {
   const org = await createOrganization({
     name: "Test Org",
     slug: "testorg",
@@ -66,7 +66,7 @@ describe("handleNewBooking-Calendar Sync:", () => {
     test(
       `should create a 'createCalendarSync' task with externalId of the eventType's destinationCalendar`,
       async () => {
-        const { payloadToMakePartOfOrganization } = await createOrganizationAneEnableCalendarSyncFeature();
+        const { payloadToMakePartOfOrganization } = await createOrganizationAndEnableCalendarSyncFeature();
 
         const targetCalendar = {
           integration: "google_calendar",
@@ -183,7 +183,7 @@ describe("handleNewBooking-Calendar Sync:", () => {
     test(
       `should create a 'createCalendarSync' task with externalId from the CalendarService for the case when externalId isn't explicitly passed to CalendarService`,
       async () => {
-        const { payloadToMakePartOfOrganization } = await createOrganizationAneEnableCalendarSyncFeature();
+        const { payloadToMakePartOfOrganization } = await createOrganizationAndEnableCalendarSyncFeature();
 
         const targetCalendar = {
           integration: "google_calendar",
@@ -288,7 +288,7 @@ describe("handleNewBooking-Calendar Sync:", () => {
     test(
       `should create a 'createCalendarSync' task with externalId of the eventType's destinationCalendar`,
       async () => {
-        const { payloadToMakePartOfOrganization } = await createOrganizationAneEnableCalendarSyncFeature();
+        const { payloadToMakePartOfOrganization } = await createOrganizationAndEnableCalendarSyncFeature();
         const targetCalendar = {
           integration: "google_calendar",
           externalId: "google-calendar-id@example.com",
@@ -417,7 +417,7 @@ describe("handleNewBooking-Calendar Sync:", () => {
     test(
       `should create a 'createCalendarSync' task with externalId from the previous booking's BookingReference if it was set`,
       async () => {
-        const { payloadToMakePartOfOrganization } = await createOrganizationAneEnableCalendarSyncFeature();
+        const { payloadToMakePartOfOrganization } = await createOrganizationAndEnableCalendarSyncFeature();
         const targetCalendar = {
           integration: "google_calendar",
         };
@@ -544,7 +544,7 @@ describe("handleNewBooking-Calendar Sync:", () => {
     test(
       `should create a 'createCalendarSync' task with fallback externalId when previous booking's BookingReference externalCalendarId is null`,
       async () => {
-        const { payloadToMakePartOfOrganization } = await createOrganizationAneEnableCalendarSyncFeature();
+        const { payloadToMakePartOfOrganization } = await createOrganizationAndEnableCalendarSyncFeature();
         const targetCalendar = {
           integration: "google_calendar",
         };

@@ -1,14 +1,16 @@
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
+import { CalendarSubscriptionRepository } from "@calcom/features/calendar-sync/calendarSubscription.repository";
+import { CalendarSubscriptionService } from "@calcom/features/calendar-sync/calendarSubscription.service";
 import { CalendarSyncRepository } from "@calcom/features/calendar-sync/calendarSync.repository";
+import { CalendarSyncService } from "@calcom/features/calendar-sync/calendarSync.service";
 import { syncDownstream } from "@calcom/features/calendar-sync/lib/syncDownstream";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import prisma from "@calcom/prisma";
 
 import { getCalendar } from "../../_utils/getCalendar";
 
@@ -223,7 +225,7 @@ export async function postHandler(req: NextApiRequest) {
       throw new HttpError({ statusCode: 403, message: "Invalid API key" });
     }
 
-    const subscription = await prisma.calendarSubscription.findFirst({
+    const subscription = await CalendarSubscriptionRepository.findFirst({
       where: {
         providerSubscriptionId: channelId,
         providerResourceId: resourceId,
@@ -264,17 +266,8 @@ export async function postHandler(req: NextApiRequest) {
     if (subscription?.id) {
       try {
         await Promise.all([
-          // Update the CalendarSubscription was used
-          prisma.calendarSubscription.update({
-            where: { id: subscription.id },
-            data: { lastSyncAt: new Date() },
-          }),
-          // Update that CalendarSync was used
-          calendarSyncId &&
-            prisma.calendarSync.update({
-              where: { id: calendarSyncId },
-              data: { lastSyncedDownAt: new Date(), lastSyncDirection: "DOWNSTREAM" },
-            }),
+          CalendarSubscriptionService.markAsUsedForSync({ subscriptionId: subscription.id }),
+          calendarSyncId && CalendarSyncService.markAsUsedForDownstreamSync({ calendarSyncId }),
         ]);
         log.debug(
           "Updated lastSyncAt for subscription",

@@ -92,22 +92,6 @@ const createOrRenewThirdPartySubscription = async (
     throw new Error("subscribeToCalendar is not implemented");
   }
 
-  if (isRenewal && subscription.providerSubscriptionId && subscription.providerResourceId) {
-    try {
-      // Unsubscribe from the old subscription as it might be still receive webhooks for some time causing duplicate webhook events
-      await calendarService.unsubscribeFromCalendar?.({
-        providerSubscriptionId: subscription.providerSubscriptionId,
-        providerResourceId: subscription.providerResourceId,
-      });
-    } catch (error) {
-      // We are okay if we are unable to unsubscribe from the old subscription as it was about to expire anyway
-      log.error(
-        `Error unsubscribing from CalendarSubscription ${subscription.id} (credential ${subscription.credentialId}, externalId ${subscription.externalCalendarId}):`,
-        safeStringify(error)
-      );
-    }
-  }
-
   const thirdPartySubscriptionResponse = await calendarService.subscribeToCalendar({
     calendarId: subscription.externalCalendarId,
   });
@@ -123,6 +107,22 @@ const createOrRenewThirdPartySubscription = async (
         subscription.id
       }: Invalid response from provider.`
     );
+  }
+
+  if (isRenewal && subscription.providerSubscriptionId && subscription.providerResourceId) {
+    try {
+      // Unsubscribe from the old subscription as it might still receive webhooks for some time causing duplicate webhook events
+      await calendarService.unsubscribeFromCalendar?.({
+        providerSubscriptionId: subscription.providerSubscriptionId,
+        providerResourceId: subscription.providerResourceId,
+      });
+    } catch (error) {
+      // We are okay if we are unable to unsubscribe from the old subscription as it was about to expire anyway
+      log.warn(
+        `Error unsubscribing from CalendarSubscription ${subscription.id} (credential ${subscription.credentialId}, externalId ${subscription.externalCalendarId}):`,
+        safeStringify(error)
+      );
+    }
   }
 
   // Update the subscription to ACTIVE using our service

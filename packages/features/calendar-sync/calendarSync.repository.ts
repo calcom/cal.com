@@ -1,5 +1,6 @@
 import prisma from "@calcom/prisma";
 import type { CalendarSync } from "@calcom/prisma/client";
+import type { CalendarSyncDirection } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 type CalendarSyncCreateOrUpdatePossibleData = Omit<CalendarSync, "id" | "createdAt" | "updatedAt">;
@@ -39,7 +40,17 @@ export class CalendarSyncRepository {
     });
   }
 
-  static async update({ where, data }: { where: { id: string }; data: { subscriptionId?: string | null } }) {
+  static async update({
+    where,
+    data,
+  }: {
+    where: { id: string };
+    data: {
+      subscriptionId?: string | null;
+      lastSyncedDownAt?: Date | null;
+      lastSyncDirection?: CalendarSyncDirection | null;
+    };
+  }) {
     return prisma.calendarSync.update({
       where,
       data,
