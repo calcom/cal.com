@@ -540,6 +540,11 @@ export async function signupFromEmailInviteLink({
 
 async function inviteAnEmail(page: Page, invitedUserEmail: string, teamPage?: boolean) {
   if (teamPage) {
+    const url = page.url();
+    const teamIdMatch = url.match(/\/settings\/teams\/(\d+)/);
+    if (teamIdMatch && teamIdMatch[1]) {
+      await page.goto(`/settings/teams/${teamIdMatch[1]}/members`);
+    }
     await page.getByTestId("new-member-button").click();
   } else {
     await page.getByTestId("new-organization-member-button").click();
