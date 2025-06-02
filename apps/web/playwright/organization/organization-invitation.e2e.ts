@@ -603,6 +603,7 @@ async function expectUserToBeAMemberOfTeam({
   // Check newly invited member is not pending anymore
   await page.goto(`/settings/teams/${teamId}/members`);
   await page.waitForLoadState("domcontentloaded");
+  await page.waitForTimeout(1000); // Add a small delay to ensure UI is fully loaded
   expect(
     (
       await page
