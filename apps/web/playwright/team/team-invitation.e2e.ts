@@ -28,6 +28,9 @@ test.describe("Team", () => {
         username: "rick",
         domain: `domain-${Date.now()}.com`,
       });
+      await page.goto(`/settings/teams/${team.id}/members`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.getByText(t("send_invite")).click();
@@ -78,6 +81,9 @@ test.describe("Team", () => {
         password: "P4ssw0rd!",
       });
 
+      await page.goto(`/settings/teams/${team.id}/members`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
       await page.getByTestId("new-member-button").click();
       const inviteLink = await getInviteLink(page);
 
@@ -109,6 +115,9 @@ test.describe("Team", () => {
         username: "rick",
         domain: `example.com`,
       });
+      await page.goto(`/settings/teams/${team.id}/members`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.getByText(t("send_invite")).click();
@@ -154,6 +163,9 @@ test.describe("Team", () => {
 
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/settings`);
+    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
     await page.getByTestId("new-member-button").click();
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
     await page.getByText(t("send_invite")).click();
