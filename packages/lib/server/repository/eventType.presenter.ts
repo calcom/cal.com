@@ -45,3 +45,5 @@ export function presentEventType<T>(data: T) {
     [K in keyof T | keyof Output]: K extends keyof Output ? Output[K] : K extends keyof T ? T[K] : never;
   };
 }
+
+export const presentEventTypes = <T>(data: T[]) => data.map(presentEventType);

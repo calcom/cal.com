@@ -2,14 +2,14 @@ import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { baseEventTypeSelect } from "@calcom/prisma/selects";
 
-import { presentEventType } from "../server/repository/eventType.presenter";
+import { presentEventTypes } from "../server/repository/eventType.presenter";
 
 export type EventTypesPublic = Awaited<ReturnType<typeof getEventTypesPublic>>;
 
 export async function getEventTypesPublic(userId: number) {
   const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(userId);
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
-  return eventTypesRaw.map(presentEventType);
+  return presentEventTypes(eventTypesRaw);
 }
 
 type BaseEventType = Prisma.EventTypeGetPayload<{

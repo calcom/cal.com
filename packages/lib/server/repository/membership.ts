@@ -1,3 +1,4 @@
+import { presentEventTypes } from "@calcom/lib/server/repository/eventType.presenter";
 import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
@@ -107,7 +108,7 @@ export class MembershipRepository {
       })
     );
 
-    return await prisma.membership.findMany({
+    const memberships = await prisma.membership.findMany({
       where: prismaWhere,
       include: {
         team: {
@@ -148,6 +149,17 @@ export class MembershipRepository {
         },
       },
     });
+
+    const presenter = (_memberships: typeof memberships) =>
+      _memberships.map((m) => ({
+        ...m,
+        team: {
+          ...m.team,
+          eventTypes: presentEventTypes(m.team.eventTypes),
+        },
+      }));
+
+    return presenter(memberships);
   }
 
   static async findAllByUpIdIncludeMinimalEventTypes(

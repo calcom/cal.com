@@ -12,7 +12,7 @@ import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
-import { presentEventType } from "./eventType.presenter";
+import { presentEventType, presentEventTypes } from "./eventType.presenter";
 import { MembershipRepository } from "./membership";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
@@ -195,7 +195,7 @@ export class EventTypeRepository {
           take,
           orderBy,
         })
-        .then((result) => result.map(presentEventType));
+        .then(presentEventTypes);
     }
 
     const profile = await ProfileRepository.findById(profileId);
@@ -230,7 +230,7 @@ export class EventTypeRepository {
           take,
           orderBy,
         })
-        .then((result) => result.map(presentEventType));
+        .then(presentEventTypes);
     } else {
       return await prisma.eventType
         .findMany({
@@ -254,7 +254,7 @@ export class EventTypeRepository {
           take,
           orderBy,
         })
-        .then((result) => result.map(presentEventType));
+        .then(presentEventTypes);
     }
   }
 
@@ -305,7 +305,7 @@ export class EventTypeRepository {
           take,
           orderBy,
         })
-        .then((result) => result.map(presentEventType));
+        .then(presentEventTypes);
     }
 
     const profile = await ProfileRepository.findById(profileId);
@@ -340,7 +340,7 @@ export class EventTypeRepository {
           take,
           orderBy,
         })
-        .then((result) => result.map(presentEventType));
+        .then(presentEventTypes);
     } else {
       return await prisma.eventType
         .findMany({
@@ -364,7 +364,7 @@ export class EventTypeRepository {
           take,
           orderBy,
         })
-        .then((result) => result.map(presentEventType));
+        .then(presentEventTypes);
     }
   }
 
@@ -448,7 +448,7 @@ export class EventTypeRepository {
         take: limit ? limit + 1 : undefined, // We take +1 as itll be used for the next cursor
         orderBy,
       })
-      .then((result) => result.map(presentEventType));
+      .then(presentEventTypes);
   }
 
   static async findAllByUserId({ userId }: { userId: number }) {
@@ -458,7 +458,7 @@ export class EventTypeRepository {
           userId,
         },
       })
-      .then((result) => result.map(presentEventType));
+      .then(presentEventTypes);
   }
 
   static async findTitleById({ id }: { id: number }) {
@@ -819,7 +819,7 @@ export class EventTypeRepository {
           ],
         },
       })
-      .then((result) => result.map(presentEventType));
+      .then(presentEventTypes);
   }
 
   static async findForSlots({ id }: { id: number }) {
