@@ -75,11 +75,11 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
 
 export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) {
   if (process.env.NODE_ENV === "test") {
-    const url = getDatabaseUrl(tenant) || "";
+    const url = getDatabaseUrl(tenant);
 
     return getPrismaClient({
       ...options,
-      datasources: { db: { url } },
+      ...(url ? { datasources: { db: { url } } } : {}),
     });
   }
 
