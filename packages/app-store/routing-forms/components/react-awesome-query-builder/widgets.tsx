@@ -22,6 +22,7 @@ export type CommonProps<
   TVal extends
     | string
     | boolean
+    | number
     | string[]
     | {
         value: string;
@@ -66,11 +67,12 @@ export type SelectLikeComponentPropsRAQB<TVal extends string | string[] = string
   listValues: { title: string; value: TVal extends (infer P)[] ? P : TVal }[];
 } & CommonProps<TVal>;
 
-export type TextLikeComponentProps<TVal extends string | string[] | boolean = string> = CommonProps<TVal> & {
-  name?: string;
-};
+export type TextLikeComponentProps<TVal extends string | string[] | boolean | number = string> =
+  CommonProps<TVal> & {
+    name?: string;
+  };
 
-export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
+export type TextLikeComponentPropsRAQB<TVal extends string | boolean | number = string> =
   TextLikeComponentProps<TVal> & {
     customProps?: object;
     type?: "text" | "number" | "email" | "tel" | "url";
@@ -133,7 +135,7 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   );
 };
 
-function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB<number>) {
   return (
     <TextField
       size="sm"
@@ -143,7 +145,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       className="mb-2"
       value={value}
       onChange={(e) => {
-        setValue(e.target.value);
+        setValue(parseInt(e.target.value, 10));
       }}
       {...remainingProps}
     />

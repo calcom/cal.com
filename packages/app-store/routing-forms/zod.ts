@@ -9,6 +9,7 @@ import { routingFormAppDataSchemas } from "./appDataSchemas";
 export const zodNonRouterField = fieldSchema.extend({
   id: z.string(),
   identifier: z.string().optional(),
+  label: z.string(),
   /**
    * @deprecated in favour of `options`
    */

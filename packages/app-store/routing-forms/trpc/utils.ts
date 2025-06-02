@@ -64,7 +64,7 @@ export function getFieldResponse({
     if (foundOptionById) {
       return {
         label: foundOptionById.label,
-        id: foundOptionById.id,
+        id: foundOptionById.id ?? null,
       };
     } else {
       return {

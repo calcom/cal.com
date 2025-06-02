@@ -39,7 +39,7 @@ type Component =
     }
   | {
       propsType: "number";
-      factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
+      factory: <TProps extends TextLikeComponentProps<number>>(props: TProps) => JSX.Element;
     }
   | {
       propsType: "textList";

@@ -332,7 +332,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
             id: f.id,
             routerId: sourceForm.id,
             label: "",
-            type: "",
+            type: f.type,
           };
         }) || [];
     } else {
