@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
+import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -67,13 +68,7 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
           in: [teamId, ...(orgQuery?.parentId ? [orgQuery.parentId] : [])],
         },
       },
-      include: {
-        team: {
-          select: {
-            name: true,
-          },
-        },
-      },
+      select: safeCredentialSelect,
     });
 
     return { incompleteBookingActions, credentials };
