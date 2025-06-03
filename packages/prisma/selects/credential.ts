@@ -8,6 +8,12 @@ export const credentialForCalendarServiceSelect = Prisma.validator<Prisma.Creden
   user: {
     select: {
       email: true,
+      name: true,
+    },
+  },
+  team: {
+    select: {
+      name: true,
     },
   },
   teamId: true,
