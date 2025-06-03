@@ -1,11 +1,12 @@
 import { getPrismaClient } from "./store/prismaStore";
 
-let prisma: ReturnType<typeof getPrismaClient>;
+let _prisma: ReturnType<typeof getPrismaClient>;
 export const getPrisma = () => {
-  if (!prisma) {
-    prisma = getPrismaClient();
+  if (!_prisma) {
+    _prisma = getPrismaClient();
   }
-  return prisma;
+  return _prisma;
 };
 // Only export one instance
-export { prisma };
+
+export const prisma = getPrisma();
