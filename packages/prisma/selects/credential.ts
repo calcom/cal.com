@@ -25,12 +25,6 @@ export const safeCredentialSelect = Prisma.validator<Prisma.CredentialSelect>()(
   user: {
     select: {
       email: true,
-      name: true,
-    },
-  },
-  team: {
-    select: {
-      name: true,
     },
   },
   teamId: true,

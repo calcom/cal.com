@@ -17,6 +17,7 @@ type AppCredentialsByTypeOptions = {
 export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentialsByTypeOptions) => {
   const { user } = ctx;
   const userAdminTeams = await UserRepository.getUserAdminTeams(ctx.user.id);
+  const { user: _, ...safeCredentialSelectWithoutUser } = safeCredentialSelect;
   const userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
 
   const credentials = await prisma.credential.findMany({
@@ -31,7 +32,19 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
       ],
       type: input.appType,
     },
-    select: safeCredentialSelect,
+    select: {
+      ...safeCredentialSelectWithoutUser,
+      user: {
+        select: {
+          name: true,
+        },
+      },
+      team: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 
   const delegationCredentials = await getAllDelegationCredentialsForUserByAppType({
