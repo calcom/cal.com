@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { AppCategories } from "@calcom/prisma/enums";
+import { withPrismaPage } from "@calcom/prisma/store/withPrismaPage";
 
 import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
 
@@ -23,4 +24,4 @@ async function Page({ params, searchParams }: PageProps) {
   return <CategoryPage {...props} />;
 }
 
-export default Page;
+export default withPrismaPage(Page);
