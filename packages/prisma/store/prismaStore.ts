@@ -15,7 +15,7 @@ export type PrismaClientWithExtensions = ReturnType<typeof getPrismaClient>;
 
 type Store = { clients: Record<Tenant, PrismaClientWithExtensions>; currentTenant?: Tenant };
 
-// DRY & KISS: Utility to get the clients map, using globalThis in dev
+// DRY & KISS: Utility to get the clients map, using globalThis in dev and test
 type ClientsMap = Partial<Record<Tenant, PrismaClientWithExtensions>>;
 function getClientsMap(): ClientsMap {
   if (process.env.NODE_ENV === "production") {
@@ -45,6 +45,8 @@ export const getPrismaClient = (options?: Prisma.PrismaClientOptions) => {
 
 export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () => Promise<T>) {
   if (process.env.NODE_ENV === "test") {
+    // In test environment, we'll execute the function directly
+    // but still ensure we're using a shared connection
     if (fn === undefined && typeof tenant === "function") {
       return (tenant as () => Promise<T>)();
     }
@@ -72,11 +74,17 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
 export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) {
   if (process.env.NODE_ENV === "test") {
     const url = getDatabaseUrl(tenant);
+    const clientsMap = getClientsMap();
 
-    return getPrismaClient({
-      ...options,
-      ...(url ? { datasources: { db: { url } } } : {}),
-    });
+    // Reuse existing client for this tenant in test environment
+    if (!clientsMap[tenant]) {
+      clientsMap[tenant] = getPrismaClient({
+        ...options,
+        ...(url ? { datasources: { db: { url } } } : {}),
+      });
+    }
+
+    return clientsMap[tenant] as PrismaClientWithExtensions;
   }
 
   const store = als.getStore();
@@ -109,6 +117,7 @@ export function getPrismaFromHost(host: string) {
  */
 export function getTenantAwarePrisma(options?: Prisma.PrismaClientOptions) {
   if (process.env.NODE_ENV === "test") {
+    // In test environment, we'll reuse the US tenant connection
     return getPrisma(Tenant.US, options);
   }
 
@@ -127,14 +136,27 @@ export function getTenantAwarePrisma(options?: Prisma.PrismaClientOptions) {
  * @param tenant Optional tenant to cleanup connections for. If not provided, all connections will be cleaned up.
  */
 export async function cleanupPrismaConnections(tenant?: Tenant) {
+  // Clean up store connections
   const store = als.getStore();
-  if (!store) return;
+  if (store) {
+    if (tenant && store.clients[tenant]) {
+      await store.clients[tenant].$disconnect();
+      delete store.clients[tenant];
+    } else if (!tenant) {
+      await Promise.all(Object.values(store.clients).map((client) => client.$disconnect()));
+      store.clients = {} as Record<Tenant, PrismaClientWithExtensions>;
+    }
+  }
 
-  if (tenant && store.clients[tenant]) {
-    await store.clients[tenant].$disconnect();
-    delete store.clients[tenant];
-  } else if (!tenant) {
-    await Promise.all(Object.values(store.clients).map((client) => client.$disconnect()));
-    store.clients = {} as Record<Tenant, PrismaClientWithExtensions>;
+  // Clean up global clients map in test environment
+  if (process.env.NODE_ENV !== "production") {
+    const clientsMap = getClientsMap();
+    if (tenant && clientsMap[tenant]) {
+      await clientsMap[tenant]?.$disconnect();
+      delete clientsMap[tenant];
+    } else if (!tenant) {
+      await Promise.all(Object.values(clientsMap).map((client) => client?.$disconnect()));
+      (globalThis as any).__prismaClients = {};
+    }
   }
 }
