@@ -941,7 +941,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
-      utils.viewer.bookings.invalidate();
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1034,7 +1034,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(t(data.message), "success");
-      utils.viewer.bookings.invalidate();
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
