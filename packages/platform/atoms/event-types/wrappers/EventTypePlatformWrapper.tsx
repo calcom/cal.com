@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import type { AvailabilityFormValues } from "availability/types";
 import { useRef, useState, useEffect } from "react";
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
@@ -57,6 +58,7 @@ export type EventTypePlatformWrapperProps = {
   customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
   isDryRun?: boolean;
+  onFormStateChange?: (formState: AvailabilityFormValues) => void;
 };
 
 const EventType = ({
@@ -320,6 +322,7 @@ export const EventTypePlatformWrapper = ({
   allowDelete = true,
   customClassNames,
   isDryRun,
+  onFormStateChange,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
   const queryClient = useQueryClient();
@@ -352,6 +355,7 @@ export const EventTypePlatformWrapper = ({
       allowDelete={allowDelete}
       customClassNames={customClassNames}
       isDryRun={isDryRun}
+      onFormStateChange={onFormStateChange}
     />
   );
 };
