@@ -1,8 +1,11 @@
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
+import { headers } from "next/headers";
 
 import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
+import { runWithTenants } from "@calcom/prisma/store/prismaStore";
+import { getTenantFromHost, type Tenant } from "@calcom/prisma/store/tenants";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { MembersView } from "~/members/members-view";
@@ -17,8 +20,10 @@ export const generateMetadata = async () =>
   );
 
 const getCachedAttributes = unstable_cache(
-  async (orgId: number) => {
-    return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
+  async (orgId: number, tenant: Tenant) => {
+    return runWithTenants(tenant, async () => {
+      return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
+    });
   },
   undefined,
   { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour
@@ -31,7 +36,11 @@ const Page = async () => {
     orgCaller.getTeams(),
     orgCaller.getFacetedValues(),
   ]);
-  const attributes = await getCachedAttributes(org.id);
+  const headersList = await headers();
+  const host = headersList.get("host") ?? "";
+  const tenant = getTenantFromHost(host);
+
+  const attributes = await getCachedAttributes(org.id, tenant);
   return (
     <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
   );

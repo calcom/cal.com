@@ -6,6 +6,8 @@ import { cookies, headers } from "next/headers";
 
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { runWithTenants } from "@calcom/prisma/store/prismaStore";
+import { getTenantFromHost } from "@calcom/prisma/store/tenants";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
@@ -70,10 +72,15 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
     })),
   };
 
+  const host = _headers.get("host") ?? "";
+  const tenant = getTenantFromHost(host);
+
   const organizationId = me.organization?.id ?? me.profiles[0]?.organizationId;
   const isOrgPrivate = organizationId
-    ? await OrganizationRepository.checkIfPrivate({
-        orgId: organizationId,
+    ? await runWithTenants(tenant, async () => {
+        return await OrganizationRepository.checkIfPrivate({
+          orgId: organizationId,
+        });
       })
     : false;
   const canViewTeamAvailability = me.organization?.isOrgAdmin || !isOrgPrivate;
