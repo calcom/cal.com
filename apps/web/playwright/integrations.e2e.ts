@@ -5,7 +5,7 @@ import { rest } from "msw";
 import { setupServer } from "msw/node";
 import { v4 as uuidv4 } from "uuid";
 
-import { prisma } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 
 import { test, todo } from "./lib/fixtures";
 import { submitAndWaitForJsonResponse } from "./lib/testUtils";

@@ -2,8 +2,8 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
-import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
+import { prisma } from "@calcom/prisma/e2e";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 

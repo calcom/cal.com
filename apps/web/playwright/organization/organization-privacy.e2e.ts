@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 
 import { test } from "../lib/fixtures";
 
@@ -12,7 +12,7 @@ test.afterEach(async ({ users, orgs }) => {
 });
 
 test.describe("Organization - Privacy", () => {
-  test(`Private Org \n 
+  test(`Private Org \n
         1) Org Member cannot see members of orgs\n
         2) Org Owner/Admin can see members`, async ({ page, users, orgs }) => {
     const org = await orgs.create({
@@ -61,7 +61,7 @@ test.describe("Organization - Privacy", () => {
     await expect(userDataTable).toBeHidden();
     await expect(membersPrivacyWarning).toBeVisible();
   });
-  test(`Private Org - Private Team\n 
+  test(`Private Org - Private Team\n
         1) Team Member cannot see members in team\n
         2) Team Admin/Owner can see members in team`, async ({ page, users, orgs }) => {
     const org = await orgs.create({
@@ -128,7 +128,7 @@ test.describe("Organization - Privacy", () => {
     const hiddenTableLocator = await page.getByTestId("team-member-list-container");
     await expect(hiddenTableLocator).toBeHidden();
   });
-  test(`Private Org - Public Team\n 
+  test(`Private Org - Public Team\n
         1) All team members can see members in team \n
         2) Team Admin/Owner can see members in team`, async ({ page, users, orgs }) => {
     const org = await orgs.create({

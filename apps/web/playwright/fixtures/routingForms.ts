@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { prisma } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 
 type Route = {
   id: string;

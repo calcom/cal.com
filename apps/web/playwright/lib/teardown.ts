@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 
 /**
  * @deprecated
