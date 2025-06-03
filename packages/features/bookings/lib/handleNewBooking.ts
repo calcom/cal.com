@@ -652,7 +652,7 @@ async function handler(
       },
       select: {
         userId: true,
-        attendees: true,
+        attendees: { select: { email: true } },
       },
     });
 
