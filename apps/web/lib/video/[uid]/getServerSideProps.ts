@@ -54,7 +54,7 @@ const shouldEnableAutomaticTranscription = ({
   if (!hasTeamPlan) return false;
   if (!calVideoSettings) return false;
 
-  return calVideoSettings.enableAutomaticTranscription;
+  return !!calVideoSettings.enableAutomaticTranscription;
 };
 
 const checkIfUserIsHost = async ({
