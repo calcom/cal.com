@@ -9,11 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import dayjs from "@calcom/dayjs";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import {
-  TRANSCRIPTION_STOPPED_ICON,
-  TRANSCRIPTION_STARTED_ICON,
-  RECORDING_DEFAULT_ICON,
-} from "@calcom/lib/constants";
+import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -86,12 +82,8 @@ export default function JoinCall(props: PageProps) {
             transcription: {
               label: "Cal.ai",
               tooltip: "Transcription powered by AI",
-              iconPath: enableAutomaticTranscription
-                ? TRANSCRIPTION_STARTED_ICON
-                : TRANSCRIPTION_STOPPED_ICON,
-              iconPathDarkMode: enableAutomaticTranscription
-                ? TRANSCRIPTION_STARTED_ICON
-                : TRANSCRIPTION_STOPPED_ICON,
+              iconPath: TRANSCRIPTION_STOPPED_ICON,
+              iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
             },
           },
         }),
@@ -109,18 +101,15 @@ export default function JoinCall(props: PageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useDailyEvent("joined-meeting", () => {
-    if (enableAutomaticTranscription) {
-      daily?.startTranscription();
-    }
-  });
-
   return (
     <DailyProvider callObject={daily}>
       <div
         className="mx-auto hidden sm:block"
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe showRecordingButton={showRecordingButton} />
+        <CalAiTranscribe
+          showRecordingButton={showRecordingButton}
+          enableAutomaticTranscription={enableAutomaticTranscription}
+        />
       </div>
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
