@@ -1171,6 +1171,8 @@
   "confirm_delete_api_key": "Revoke this API key",
   "disable_rescheduling": "Disable Rescheduling",
   "description_disable_rescheduling": "Guests can no longer reschedule the event with calendar invite or email",
+  "disable_auto_fill": "Disable Auto Fill",
+  "description_disable_auto_fill": "Guests can no longer auto fills details on booking page",
   "disable_cancelling": "Disable Cancelling",
   "description_disable_cancelling": "Guests can no longer cancel the event with calendar invite or email",
   "revoke_api_key": "Revoke API key",

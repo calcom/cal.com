@@ -104,9 +104,9 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   const bookerForm = useBookingForm({
     event: event.data,
-    sessionEmail: session?.user.email,
-    sessionUsername: session?.user.username,
-    sessionName: session?.user.name,
+    sessionEmail: props.eventData?.disableAutoFill ? null : session?.user.email,
+    sessionUsername: props.eventData?.disableAutoFill ? null : session?.user.username,
+    sessionName: props.eventData?.disableAutoFill ? null : session?.user.name,
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
