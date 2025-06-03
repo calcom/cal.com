@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
@@ -13,7 +14,8 @@ const translator = short();
 // The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
 
 export const getWhat = (calEvent: Pick<CalendarEvent, "title">, t: TFunction) => {
-  return `${t("what")}:\n${calEvent.title}`;
+  const result = `${t("what")}:\n${sanitizeText(calEvent.title)}`;
+  return result;
 };
 
 export const getWhen = (
@@ -27,6 +29,18 @@ export const getWhen = (
   return calEvent.seatsPerTimeSlot
     ? `${t("organizer_timezone")}:\n${organizerTimezone}`
     : `${t("invitee_timezone")}:\n${attendeeTimezone}`;
+};
+
+const sanitizeText = (input: string | null | undefined): string => {
+  if (!input) return "";
+  const processed = markdownToSafeHTML(input);
+  const stripped = processed.replace(/<\/?[^>]+(>|$)/g, "");
+  const result = breakUrl(stripped);
+  return result;
+};
+
+const breakUrl = (input: string): string => {
+  return input.replace(/(https?:\/\/)/g, "hxxp://").replace(/(?<!\[)\./g, "[.]");
 };
 
 export const getWho = (
@@ -43,32 +57,36 @@ export const getWho = (
   const attendees = attendeesFromCalEvent
     .map(
       (attendee) =>
-        `${attendee?.name || t("guest")}${attendee.phoneNumber ? ` - ${attendee.phoneNumber}` : ""}\n${
-          !isSmsCalEmail(attendee.email) ? attendee.email : ""
-        }`
+        `${sanitizeText(attendee?.name) || t("guest")}${
+          attendee.phoneNumber ? ` - ${sanitizeText(attendee.phoneNumber)}` : ""
+        }\n${!isSmsCalEmail(attendee.email) ? sanitizeText(attendee.email) : ""}`
     )
     .join("\n");
 
   const organizer = calEvent.hideOrganizerEmail
-    ? `${calEvent.organizer.name} - ${t("organizer")}`
-    : `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
+    ? `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}`
+    : `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}\n${sanitizeText(
+        calEvent.organizer.email
+      )}`;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
-        .map((member) => `${member.name} - ${t("team_member")}\n${member.email}`)
+        .map((member) => `${sanitizeText(member.name)} - ${t("team_member")}\n${sanitizeText(member.email)}`)
         .join("\n")
     : [];
 
-  return `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
+  const result = `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
     teamMembers.length ? `\n${teamMembers}` : ""
   }`;
+  return result;
 };
 
 export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
   if (!calEvent.additionalNotes) {
     return "";
   }
-  return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
+  const result = `${t("additional_notes")}:\n${breakUrl(sanitizeText(calEvent.additionalNotes))}`;
+  return result;
 };
 
 export const getUserFieldsResponses = (
@@ -312,6 +330,8 @@ type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
   Parameters<typeof getUserFieldsResponses>[0] &
   Parameters<typeof getAppsStatus>[0] &
   Parameters<typeof getManageLink>[0] &
+  Parameters<typeof getSanitizedFields>[0] &
+  Parameters<typeof getSanitizedCalEvent>[0] &
   Pick<CalendarEvent, "organizer" | "paymentInfo">;
 
 export const getRichDescriptionHTML = (
@@ -437,4 +457,33 @@ export const getVideoCallUrlFromCalEvent = (
 
 export const getVideoCallPassword = (calEvent: CalendarEvent): string => {
   return isDailyVideoCall(calEvent) ? "" : calEvent?.videoCallData?.password ?? "";
+};
+
+export const getSanitizedCalEvent = (calEvent: CalendarEvent): CalendarEvent => {
+  const sanitized = { ...calEvent };
+
+  sanitized.title = sanitizeText(sanitized.title);
+  sanitized.organizer = {
+    ...sanitized.organizer,
+    name: sanitizeText(sanitized.organizer.name),
+    email: sanitizeText(sanitized.organizer.email),
+  };
+  sanitized.attendees = sanitized.attendees.map((attendee) => ({
+    ...attendee,
+    name: sanitizeText(attendee.name),
+    email: sanitizeText(attendee.email),
+  }));
+  if (sanitized.team?.members) {
+    sanitized.team = {
+      ...sanitized.team,
+      members: sanitized.team.members.map((member) => ({
+        ...member,
+        name: sanitizeText(member.name),
+        email: sanitizeText(member.email),
+      })),
+    };
+  }
+  sanitized.additionalNotes = sanitizeText(sanitized.additionalNotes);
+
+  return sanitized;
 };

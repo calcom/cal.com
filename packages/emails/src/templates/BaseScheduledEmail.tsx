@@ -1,6 +1,7 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
+import { getSanitizedCalEvent } from "@calcom/lib/CalEventParser";
 import { formatPrice } from "@calcom/lib/price";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -61,6 +62,11 @@ export const BaseScheduledEmail = (
     );
     rescheduledBy = personWhoRescheduled?.name;
   }
+
+  const sanitizedCalEvent = getSanitizedCalEvent(props.calEvent);
+  const additionalNotesDescription = props.calEvent.additionalNotes
+    ? sanitizedCalEvent.additionalNotes || ""
+    : "";
 
   return (
     <BaseEmailHtml
@@ -126,7 +132,9 @@ export const BaseScheduledEmail = (
       <WhoInfo calEvent={props.calEvent} t={t} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
-      <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer formatted />
+      {props.calEvent.additionalNotes && (
+        <Info label={t("additional_notes")} description={additionalNotesDescription} withSpacer />
+      )}
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
       <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
       {props.calEvent.paymentInfo?.amount && (
