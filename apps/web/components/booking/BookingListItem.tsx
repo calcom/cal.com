@@ -1145,7 +1145,7 @@ const NoShowAttendeesDialog = ({
         )
       );
       showToast(t(data.message), "success");
-      utils.viewer.bookings.invalidate();
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1176,7 +1176,7 @@ const NoShowAttendeesDialog = ({
             </div>
           </form>
         ))}
-        <DialogFooter>
+        <DialogFooter noSticky>
           <DialogClose>{t("done")}</DialogClose>
         </DialogFooter>
       </DialogContent>
