@@ -527,7 +527,6 @@ export const getPublicEvent = async (
     instantMeetingParameters: eventWithUserProfiles.instantMeetingParameters,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
-    disableAutoFill: event.disableAutoFill,
     disableCancelling: event.disableCancelling,
     disableRescheduling: event.disableRescheduling,
     interfaceLanguage: event.interfaceLanguage,
