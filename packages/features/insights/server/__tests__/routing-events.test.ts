@@ -104,8 +104,6 @@ describe("InsightsAuthRepository", () => {
       });
 
       it("should handle null userId by using default value", async () => {
-        vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([{ teamId: 5 }]);
-
         const result = await InsightsAuthRepository.getWhereForTeamOrAllTeams({
           userId: null,
           teamId: 5,
@@ -113,9 +111,7 @@ describe("InsightsAuthRepository", () => {
         });
 
         expect(result).toEqual({
-          teamId: {
-            in: [5],
-          },
+          teamId: undefined,
         });
       });
 
@@ -125,7 +121,6 @@ describe("InsightsAuthRepository", () => {
         });
 
         expect(result).toEqual({
-          userId: -1,
           teamId: undefined,
         });
       });
@@ -224,23 +219,13 @@ describe("InsightsAuthRepository", () => {
     });
 
     it("should handle null userId", async () => {
-      vi.mocked(readonlyPrisma.team.findMany).mockResolvedValue([{ id: 2 }]);
-      vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([]);
-
       const result = await InsightsAuthRepository.getAccessibleTeamIds({
         userId: null,
         organizationId: 1,
       });
 
       expect(result).toEqual([]);
-      expect(readonlyPrisma.membership.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: -1,
-          teamId: { in: [1, 2] },
-          accepted: true,
-        },
-        select: { teamId: true },
-      });
+      expect(readonlyPrisma.membership.findMany).not.toHaveBeenCalled();
     });
   });
 
@@ -265,22 +250,13 @@ describe("InsightsAuthRepository", () => {
     });
 
     it("should handle null userId for team access", async () => {
-      vi.mocked(readonlyPrisma.membership.findMany).mockResolvedValue([]);
-
       const result = await InsightsAuthRepository.getAccessibleTeamIdsForTeam({
         userId: null,
         teamId: 5,
       });
 
       expect(result).toEqual([]);
-      expect(readonlyPrisma.membership.findMany).toHaveBeenCalledWith({
-        where: {
-          userId: -1,
-          teamId: 5,
-          accepted: true,
-        },
-        select: { teamId: true },
-      });
+      expect(readonlyPrisma.membership.findMany).not.toHaveBeenCalled();
     });
   });
 });

@@ -12,14 +12,9 @@ type RoutingFormInsightsTeamFilter = {
 
 type WhereForTeamOrAllTeams = Prisma.App_RoutingForms_FormWhereInput;
 
-/**
- * Repository class for handling authentication and team access logic for insights.
- * Follows cal.com repository pattern with static methods.
- */
+// Repository class for handling authentication and team access logic for insights.
 export class InsightsAuthRepository {
-  /**
-   * Gets accessible team IDs for a user within an organization
-   */
+  // Gets accessible team IDs for a user within an organization
   static async getAccessibleTeamIds({
     userId,
     organizationId,
@@ -27,6 +22,10 @@ export class InsightsAuthRepository {
     userId: number | null;
     organizationId: number;
   }): Promise<number[]> {
+    if (userId === null) {
+      return [];
+    }
+
     const teamsFromOrg = await prisma.team.findMany({
       where: {
         parentId: organizationId,
@@ -41,7 +40,7 @@ export class InsightsAuthRepository {
     // Filter teamIds to only include teams the user has access to
     const accessibleTeams = await prisma.membership.findMany({
       where: {
-        userId: userId ?? -1,
+        userId: userId,
         teamId: {
           in: teamIds,
         },
@@ -55,9 +54,7 @@ export class InsightsAuthRepository {
     return accessibleTeams.map((membership) => membership.teamId);
   }
 
-  /**
-   * Gets accessible team IDs for a specific team
-   */
+  // Gets accessible team IDs for a specific team
   static async getAccessibleTeamIdsForTeam({
     userId,
     teamId,
@@ -65,9 +62,13 @@ export class InsightsAuthRepository {
     userId: number | null;
     teamId: number;
   }): Promise<number[]> {
+    if (userId === null) {
+      return [];
+    }
+
     const accessibleTeams = await prisma.membership.findMany({
       where: {
-        userId: userId ?? -1,
+        userId: userId,
         teamId: teamId,
         accepted: true,
       },
@@ -79,9 +80,7 @@ export class InsightsAuthRepository {
     return accessibleTeams.map((membership) => membership.teamId);
   }
 
-  /**
-   * Builds the where clause for routing form queries based on team access
-   */
+  // Builds the where clause for routing form queries based on team access
   static async getWhereForTeamOrAllTeams({
     userId,
     teamId,
@@ -98,7 +97,6 @@ export class InsightsAuthRepository {
       teamIds = await this.getAccessibleTeamIdsForTeam({ userId: userId ?? null, teamId });
     }
 
-    // Base where condition for forms
     const formsWhereCondition: WhereForTeamOrAllTeams = {};
 
     if (teamIds.length > 0) {
@@ -106,11 +104,9 @@ export class InsightsAuthRepository {
         in: teamIds,
       };
     } else {
-      // Only set userId if it's not null, otherwise leave it undefined
       if (userId !== null) {
-        formsWhereCondition.userId = userId ?? -1;
+        formsWhereCondition.userId = userId;
       }
-      // Don't set teamId to null, use undefined instead or omit it
       formsWhereCondition.teamId = undefined;
     }
 
