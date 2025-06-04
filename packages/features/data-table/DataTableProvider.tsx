@@ -126,7 +126,7 @@ export function DataTableProvider({
     if (sharedFilters.columnSizing) setColumnSizing(sharedFilters.columnSizing);
     if (sharedFilters.pageSize) setPageSize(sharedFilters.pageSize);
     if (sharedFilters.searchTerm) setSearchTerm(sharedFilters.searchTerm);
-  }, [tableIdentifier]);
+  }, [tableIdentifier, getFilters]);
 
   // Save filters to shared state when they change
   useEffect(() => {
@@ -138,7 +138,7 @@ export function DataTableProvider({
       pageSize,
       searchTerm,
     });
-  }, [activeFilters, sorting, columnVisibility, columnSizing, pageSize, searchTerm]);
+  }, [activeFilters, sorting, columnVisibility, columnSizing, pageSize, searchTerm, setFilters]);
 
   const addFilter = useCallback(
     (columnId: string) => {

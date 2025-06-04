@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -17,7 +19,7 @@ interface SharedFilters {
 }
 
 export function useSharedFilters(tableIdentifier: string) {
-  const pathname = usePathname();
+  // const pathname = usePathname(); // removed - variable was unused
   const [sharedFilters, setSharedFilters] = useState<SharedFilters>({});
 
   // Load filters from localStorage on mount
