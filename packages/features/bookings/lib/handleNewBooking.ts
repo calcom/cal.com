@@ -398,6 +398,9 @@ async function handler(
     platformBookingLocation,
     hostname,
     forcedSlug,
+    skipEventLimitsCheck,
+    skipAvailabilityCheck,
+    skipCalendarSyncTaskCreation,
   } = input;
 
   const isPlatformBooking = !!platformClientId;
@@ -635,11 +638,13 @@ async function handler(
     location,
   });
 
-  await checkBookingAndDurationLimits({
-    eventType,
-    reqBodyStart: reqBody.start,
-    reqBodyRescheduleUid: reqBody.rescheduleUid,
-  });
+  if (!skipEventLimitsCheck) {
+    await checkBookingAndDurationLimits({
+      eventType,
+      reqBodyStart: reqBody.start,
+      reqBodyRescheduleUid: reqBody.rescheduleUid,
+    });
+  }
 
   let luckyUserResponse;
   let isFirstSeat = true;
@@ -699,7 +704,8 @@ async function handler(
                 originalRescheduledBooking: originalRescheduledBooking ?? null,
               },
               loggerWithEventDetails,
-              shouldServeCache
+              shouldServeCache,
+              skipAvailabilityCheck
             );
           }
         } else {
@@ -713,7 +719,8 @@ async function handler(
               originalRescheduledBooking,
             },
             loggerWithEventDetails,
-            shouldServeCache
+            shouldServeCache,
+            skipAvailabilityCheck
           );
         }
       }
@@ -731,7 +738,8 @@ async function handler(
             originalRescheduledBooking,
           },
           loggerWithEventDetails,
-          shouldServeCache
+          shouldServeCache,
+          skipAvailabilityCheck
         );
       } catch {
         if (additionalFallbackRRUsers.length) {
@@ -756,7 +764,8 @@ async function handler(
               originalRescheduledBooking,
             },
             loggerWithEventDetails,
-            shouldServeCache
+            shouldServeCache,
+            skipAvailabilityCheck
           );
         } else {
           loggerWithEventDetails.debug(
@@ -843,7 +852,8 @@ async function handler(
                   originalRescheduledBooking,
                 },
                 loggerWithEventDetails,
-                shouldServeCache
+                shouldServeCache,
+                skipAvailabilityCheck
               );
             }
             // if no error, then lucky user is available for the next slots
@@ -2092,13 +2102,15 @@ async function handler(
 
   try {
     if (!isDryRun) {
-      await createCalendarSyncTask({
-        results,
-        organizer: {
-          id: organizerUser.id,
-          organizationId: organizerOrganizationId ?? null,
-        },
-      });
+      if (!skipCalendarSyncTaskCreation) {
+        await createCalendarSyncTask({
+          results,
+          organizer: {
+            id: organizerUser.id,
+            organizationId: organizerOrganizationId ?? null,
+          },
+        });
+      }
 
       await prisma.booking.update({
         where: {
