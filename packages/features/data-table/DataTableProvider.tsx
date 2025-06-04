@@ -25,6 +25,7 @@ import {
   type FilterSegmentOutput,
   type ActiveFilters,
   type UseSegments,
+  type FilterState,
 } from "./lib/types";
 import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
@@ -137,7 +138,7 @@ export function DataTableProvider({
       columnSizing: columnSizing ?? {},
       pageSize: pageSize ?? DEFAULT_PAGE_SIZE,
       searchTerm: searchTerm ?? "",
-    });
+    } as FilterState);
   }, [activeFilters, sorting, columnVisibility, columnSizing, pageSize, searchTerm, setFilters]);
 
   const addFilter = useCallback(

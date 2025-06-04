@@ -395,18 +395,18 @@ function BookingsContent({ status }: BookingsProps) {
                 variant="compact"
                 paginationMode="standard"
                 tableIdentifier={tableIdentifier}
-                ToolbarLeft={
+                ToolbarLeft={() => (
                   <>
                     <DataTableFilters.FilterBar table={table} />
                   </>
-                }
-                ToolbarRight={
+                )}
+                ToolbarRight={() => (
                   <>
                     <DataTableFilters.ClearFiltersButton />
                     <DataTableSegment.SaveButton />
                     <DataTableSegment.Select />
                   </>
-                }
+                )}
                 EmptyView={
                   <div className="flex items-center justify-center pt-2 xl:pt-0">
                     <EmptyScreen
