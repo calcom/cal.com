@@ -84,7 +84,7 @@ function BookingsContent({ status }: BookingsProps) {
 
   // Generate dynamic tabs that preserve query parameters
   const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
-    const currentParams = new URLSearchParams(searchParams?.toString() || "");
+    const queryString = searchParams?.toString() || "";
 
     const baseTabConfigs = [
       {
@@ -116,10 +116,10 @@ function BookingsContent({ status }: BookingsProps) {
 
     return baseTabConfigs.map((tabConfig) => ({
       name: tabConfig.name,
-      href: currentParams.toString() ? `${tabConfig.path}?${currentParams.toString()}` : tabConfig.path,
+      href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
       "data-testid": tabConfig["data-testid"],
     }));
-  }, [searchParams]);
+  }, [searchParams?.toString()]);
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
