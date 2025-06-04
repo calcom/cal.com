@@ -4,6 +4,7 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getSafe } from "@calcom/lib/getSafe";
@@ -139,7 +140,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (isBookingInPast && !eventType.allowReschedulingPastBookings) {
     const destinationUrlSearchParams = new URLSearchParams();
     const responses = bookingSeat ? getSafe<string>(bookingSeat.data, ["responses"]) : booking.responses;
-    const name = getSafe<string>(responses, ["name"]);
+    const name = getFullName(getSafe<string | { firstName: string; lastName?: string }>(responses, ["name"]));
     const email = getSafe<string>(responses, ["email"]);
 
     if (name) destinationUrlSearchParams.set("name", name);
