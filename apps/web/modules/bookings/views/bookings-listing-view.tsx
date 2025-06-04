@@ -1,6 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -107,6 +108,8 @@ function BookingsContent({ status }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+  const queryString = searchParams.toString();
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
@@ -360,11 +363,17 @@ function BookingsContent({ status }: BookingsProps) {
     getFacetedUniqueValues,
   });
 
+  // tabs include query parameters
+  const tabsWithQuery = tabs.map((tab) => ({
+    ...tab,
+    href: `${tab.href}${queryString ? `?${queryString}` : ""}`,
+  }));
+
   return (
     <div className="flex flex-col">
       <div className="flex flex-row flex-wrap justify-between">
         <HorizontalTabs
-          tabs={tabs.map((tab) => ({
+          tabs={tabsWithQuery.map((tab) => ({
             ...tab,
             name: t(tab.name),
           }))}
