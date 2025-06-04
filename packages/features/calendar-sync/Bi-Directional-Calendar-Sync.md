@@ -67,10 +67,6 @@ TODO:
 - [ ] Review indices carefully on DB. Maybe use explain analyze to check if they are being used.
 - [ ] When does updateEvent return an array of NewCalendarEventType?
 - [ ] Tests for Google CalendarService
-- [ ] Refactor handleNewBooking
-- [ ] Before going live revert handleNewBooking to original state and add a TODO to reuse the handleBookingCreationInDb
-- [ ] Test events with seat when that event is dragged in Google Calendar.
-   - Maybe don't support this for now.
 
 - Tests:
    - [ ] Subscription renewal
