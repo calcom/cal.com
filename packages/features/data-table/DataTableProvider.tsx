@@ -131,12 +131,12 @@ export function DataTableProvider({
   // Save filters to shared state when they change
   useEffect(() => {
     setFilters({
-      activeFilters,
-      sorting,
-      columnVisibility,
-      columnSizing,
-      pageSize,
-      searchTerm,
+      activeFilters: activeFilters ?? [],
+      sorting: sorting ?? [],
+      columnVisibility: columnVisibility ?? {},
+      columnSizing: columnSizing ?? {},
+      pageSize: pageSize ?? DEFAULT_PAGE_SIZE,
+      searchTerm: searchTerm ?? "",
     });
   }, [activeFilters, sorting, columnVisibility, columnSizing, pageSize, searchTerm, setFilters]);
 

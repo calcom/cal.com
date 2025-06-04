@@ -391,7 +391,7 @@ function BookingsContent({ status }: BookingsProps) {
                 bodyTestId="bookings"
                 headerClassName="hidden"
                 isPending={query.isPending}
-                totalRowCount={query.data?.totalCount}
+                totalRowCount={query.data?.totalCount || 0}
                 variant="compact"
                 paginationMode="standard"
                 tableIdentifier={tableIdentifier}
@@ -407,7 +407,6 @@ function BookingsContent({ status }: BookingsProps) {
                     <DataTableSegment.Select />
                   </>
                 }
-                LoaderView={<SkeletonLoader />}
                 EmptyView={
                   <div className="flex items-center justify-center pt-2 xl:pt-0">
                     <EmptyScreen
@@ -420,6 +419,7 @@ function BookingsContent({ status }: BookingsProps) {
                     />
                   </div>
                 }
+                LoaderView={<SkeletonLoader />}
               />
             </>
           )}
