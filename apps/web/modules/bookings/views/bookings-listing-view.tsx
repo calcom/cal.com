@@ -108,6 +108,9 @@ function BookingsContent({ status }: BookingsProps) {
   const user = useMeQuery().data;
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
+  // Use a consistent table identifier for all booking tabs
+  const tableIdentifier = "bookings";
+
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
@@ -391,6 +394,7 @@ function BookingsContent({ status }: BookingsProps) {
                 totalRowCount={query.data?.totalCount}
                 variant="compact"
                 paginationMode="standard"
+                tableIdentifier={tableIdentifier}
                 ToolbarLeft={
                   <>
                     <DataTableFilters.FilterBar table={table} />

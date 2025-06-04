@@ -8,6 +8,7 @@ import { useQueryState } from "nuqs";
 import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
+import { useSharedFilters } from "./hooks/useSharedFilters";
 import {
   activeFiltersParser,
   sortingParser,
@@ -113,6 +114,31 @@ export function DataTableProvider({
   if (!tableIdentifier) {
     throw new Error("tableIdentifier is required");
   }
+
+  const { getFilters, setFilters } = useSharedFilters(tableIdentifier);
+
+  // Load shared filters on mount
+  useEffect(() => {
+    const sharedFilters = getFilters();
+    if (sharedFilters.activeFilters) setActiveFilters(sharedFilters.activeFilters);
+    if (sharedFilters.sorting) setSorting(sharedFilters.sorting);
+    if (sharedFilters.columnVisibility) setColumnVisibility(sharedFilters.columnVisibility);
+    if (sharedFilters.columnSizing) setColumnSizing(sharedFilters.columnSizing);
+    if (sharedFilters.pageSize) setPageSize(sharedFilters.pageSize);
+    if (sharedFilters.searchTerm) setSearchTerm(sharedFilters.searchTerm);
+  }, [tableIdentifier]);
+
+  // Save filters to shared state when they change
+  useEffect(() => {
+    setFilters({
+      activeFilters,
+      sorting,
+      columnVisibility,
+      columnSizing,
+      pageSize,
+      searchTerm,
+    });
+  }, [activeFilters, sorting, columnVisibility, columnSizing, pageSize, searchTerm]);
 
   const addFilter = useCallback(
     (columnId: string) => {
