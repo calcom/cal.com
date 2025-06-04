@@ -25,7 +25,6 @@ import {
   type FilterSegmentOutput,
   type ActiveFilters,
   type UseSegments,
-  type FilterState,
 } from "./lib/types";
 import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
@@ -132,13 +131,13 @@ export function DataTableProvider({
   // Save filters to shared state when they change
   useEffect(() => {
     setFilters({
-      activeFilters: activeFilters ?? [],
-      sorting: sorting ?? [],
+      activeFilters: (activeFilters ?? []) as ActiveFilters,
+      sorting: (sorting ?? []) as SortingState,
       columnVisibility: columnVisibility ?? {},
       columnSizing: columnSizing ?? {},
       pageSize: pageSize ?? DEFAULT_PAGE_SIZE,
       searchTerm: searchTerm ?? "",
-    } as FilterState);
+    });
   }, [activeFilters, sorting, columnVisibility, columnSizing, pageSize, searchTerm, setFilters]);
 
   const addFilter = useCallback(
