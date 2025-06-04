@@ -1,6 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
+import { useRouter } from "next/navigation";
 import { useMemo, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -106,6 +107,7 @@ type RowData =
 function BookingsContent({ status }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
+  const router = useRouter();
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
@@ -117,6 +119,18 @@ function BookingsContent({ status }: BookingsProps) {
   const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
 
   const { limit, offset } = useDataTable();
+
+  function navigateWithFilters(href: string) {
+    const url = new URL(window.location.href);
+    const activeFilters = url.searchParams.get("activeFilters");
+
+    const newUrl = new URL(href, window.location.origin);
+    if (activeFilters) {
+      newUrl.searchParams.set("activeFilters", activeFilters);
+    }
+
+    router.push(newUrl.toString());
+  }
 
   const query = trpc.viewer.bookings.get.useQuery({
     limit,
@@ -367,6 +381,7 @@ function BookingsContent({ status }: BookingsProps) {
           tabs={tabs.map((tab) => ({
             ...tab,
             name: t(tab.name),
+            onClick: (_name) => navigateWithFilters(tab.href),
           }))}
         />
       </div>
