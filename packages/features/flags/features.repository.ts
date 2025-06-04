@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 
-import kysely from "@calcom/kysely";
 import db from "@calcom/prisma";
 
 import type { AppFlags } from "./config";
@@ -65,20 +64,29 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<{ [slug: string]: boolean } | null>
    */
   public async getTeamFeatures(teamId: number) {
-    const result = await kysely
-      .selectFrom("TeamFeatures")
-      .innerJoin("Feature", "Feature.slug", "TeamFeatures.featureId")
-      .select(["Feature.slug", "Feature.enabled"])
-      .where("TeamFeatures.teamId", "=", teamId)
-      .execute();
+    const result = await db.teamFeatures.findMany({
+      where: {
+        teamId,
+      },
+      select: {
+        feature: {
+          select: {
+            slug: true,
+          },
+        },
+      },
+    });
 
-    if (!result.length) return null;
+    const transformedResult = result.map((item) => ({
+      slug: item.feature.slug,
+    }));
 
-    return null;
-    // return result.reduce<Record<keyof AppFlags, boolean>>((acc, feature) => {
-    //   acc[feature.slug as keyof AppFlags] = true;
-    //   return acc;
-    // }, {} as Record<keyof AppFlags, boolean>);
+    if (!transformedResult.length) return null;
+
+    return transformedResult.reduce<Record<keyof AppFlags, boolean>>((acc, feature) => {
+      acc[feature.slug as keyof AppFlags] = true;
+      return acc;
+    }, {} as Record<keyof AppFlags, boolean>);
   }
 
   /**
