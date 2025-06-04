@@ -174,7 +174,7 @@ describe("calendarSync", () => {
           type: "CANCEL_BOOKING",
           bookingId: baseBooking.id,
           cancelledBy: appName,
-          cancellationReason: "organizer_declined_in_calendar",
+          cancellationReason: "event_declined_by_organizer_in_calendar",
         })
       );
     });

@@ -2,6 +2,7 @@ import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooki
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 
 import type { CancellationBySyncReason } from "../types";
@@ -87,6 +88,7 @@ export async function rescheduleBooking({
       booking: currentBooking,
       newStartTime: startTime,
       newEndTime: endTime,
+      rescheduledBy,
     });
     return rescheduleResult;
   } catch (error) {
@@ -101,6 +103,7 @@ async function handleBookingTimeChange({
   booking,
   newStartTime,
   newEndTime,
+  rescheduledBy,
 }: {
   booking: {
     id: number;
@@ -118,7 +121,9 @@ async function handleBookingTimeChange({
   };
   newStartTime: Date;
   newEndTime: Date;
+  rescheduledBy: string;
 }) {
+  const tEnglish = await getTranslation("en", "common");
   await handleNewBooking({
     bookingData: {
       bookingUid: booking.uid,
@@ -127,7 +132,7 @@ async function handleBookingTimeChange({
       eventTypeSlug: booking.eventType.slug,
       start: newStartTime.toISOString(),
       end: newEndTime.toISOString(),
-      rescheduledBy: "appStore.calendar.google-calendar",
+      rescheduledBy,
       rescheduleUid: booking.uid,
       hasHashedBookingLink: false,
       language: "en",
@@ -135,7 +140,7 @@ async function handleBookingTimeChange({
       metadata: {},
       responses: {
         ...booking.responses,
-        rescheduleReason: "Rescheduled via calendar sync",
+        rescheduleReason: tEnglish("event_moved_in_calendar"),
       },
     },
     skipAvailabilityCheck: true,

@@ -3231,6 +3231,7 @@
   "members_affected_by_disabling_delegation_credential": "Affected members",
   "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
   "event_cancelled_in_calendar": "Event cancelled in calendar",
-  "organizer_declined_in_calendar": "Organizer declined in calendar", 
+  "event_declined_by_organizer_in_calendar": "Organizer declined in calendar", 
+  "event_moved_in_calendar": "Event moved in calendar",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
