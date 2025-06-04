@@ -1,5 +1,5 @@
-import { handleBookingTimeChange } from "@calcom/features/bookings/lib/handleBookingTimeChange";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -46,10 +46,16 @@ export async function rescheduleBooking({
         select: {
           id: true,
           slug: true,
-          length: true,
         },
       },
-      attendees: true,
+      attendees: {
+        select: {
+          timeZone: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+      },
       user: {
         select: {
           username: true,
@@ -78,13 +84,10 @@ export async function rescheduleBooking({
 
   try {
     const rescheduleResult = await handleBookingTimeChange({
-      bookingUid: currentBooking.uid,
-      startTime,
-      endTime,
-      rescheduledBy,
-      rescheduleReason: "Rescheduled via calendar sync",
+      booking: currentBooking,
+      newStartTime: startTime,
+      newEndTime: endTime,
     });
-
     return rescheduleResult;
   } catch (error) {
     log.error("Failed to reschedule booking", { bookingId }, safeStringify(error));
@@ -92,4 +95,51 @@ export async function rescheduleBooking({
       `Failed to reschedule booking ${bookingId}: ${error instanceof Error ? error.message : "Unknown error"}`
     );
   }
+}
+
+async function handleBookingTimeChange({
+  booking,
+  newStartTime,
+  newEndTime,
+}: {
+  booking: {
+    id: number;
+    eventType: {
+      id: number;
+      slug: string;
+    };
+    uid: string;
+    attendees: {
+      timeZone: string;
+    }[];
+    responses: Record<string, any> & {
+      rescheduleReason: string;
+    };
+  };
+  newStartTime: Date;
+  newEndTime: Date;
+}) {
+  await handleNewBooking({
+    bookingData: {
+      bookingUid: booking.uid,
+      bookingId: booking.id,
+      eventTypeId: booking.eventType.id,
+      eventTypeSlug: booking.eventType.slug,
+      start: newStartTime.toISOString(),
+      end: newEndTime.toISOString(),
+      rescheduledBy: "appStore.calendar.google-calendar",
+      rescheduleUid: booking.uid,
+      hasHashedBookingLink: false,
+      language: "en",
+      timeZone: booking.attendees[0].timeZone,
+      metadata: {},
+      responses: {
+        ...booking.responses,
+        rescheduleReason: "Rescheduled via calendar sync",
+      },
+    },
+    skipAvailabilityCheck: true,
+    skipEventLimitsCheck: true,
+    skipCalendarSyncTaskCreation: true,
+  });
 }

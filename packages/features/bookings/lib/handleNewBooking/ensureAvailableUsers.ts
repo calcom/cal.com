@@ -57,7 +57,8 @@ const _ensureAvailableUsers = async (
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
   loggerWithEventDetails: Logger<unknown>,
-  shouldServeCache?: boolean
+  shouldServeCache?: boolean,
+  skipAvailabilityCheck?: boolean
   // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
 ): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> => {
   const availableUsers: IsFixedAwareUser[] = [];
@@ -83,6 +84,10 @@ const _ensureAvailableUsers = async (
           durationLimits,
         })
       : [];
+
+  if (skipAvailabilityCheck) {
+    return eventType.users;
+  }
 
   const usersAvailability = await getUsersAvailability({
     users: eventType.users,
