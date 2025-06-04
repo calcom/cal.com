@@ -397,15 +397,6 @@ test.describe("Reschedule Tests", async () => {
     const user = await users.create();
     const eventType = user.eventTypes[0];
 
-    await prisma.eventType.update({
-      where: {
-        id: eventType.id,
-      },
-      data: {
-        disableReschedulingCancelledBookings: true,
-      },
-    });
-
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       status: BookingStatus.CANCELLED,
     });
