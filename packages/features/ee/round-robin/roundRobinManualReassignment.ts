@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
+import { v5 as uuidv5 } from "uuid";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -181,6 +182,10 @@ export const roundRobinManualReassignment = async ({
         userPrimaryEmail: newUser.email,
         reassignReason,
         reassignById: reassignedById,
+        idempotencyKey: uuidv5(
+          `${eventTypeId}.${booking.startTime.valueOf()}.${booking.endTime.valueOf()}.${newUserId}`,
+          uuidv5.URL
+        ),
       },
       select: bookingSelect,
     });
