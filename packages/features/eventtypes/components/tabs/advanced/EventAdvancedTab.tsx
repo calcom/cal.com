@@ -512,7 +512,7 @@ export const EventAdvancedTab = ({
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
   const [disableReschedulingCancelledBookings, setDisableReschedulingCancelledBookings] = useState(
-    eventType.disableReschedulingCancelledBookings || false
+    eventType.disableReschedulingCancelledBookings ?? true
   );
 
   const closeEventNameTip = () => setShowEventNameTip(false);

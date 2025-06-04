@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "EventType" ADD COLUMN     "disableReschedulingCancelledBookings" BOOLEAN DEFAULT false;
+ALTER TABLE "EventType" ADD COLUMN     "disableReschedulingCancelledBookings" BOOLEAN DEFAULT true;
