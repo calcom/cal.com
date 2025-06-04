@@ -3,6 +3,7 @@ import { router } from "../../../trpc";
 import { ZCreateFilterSegmentInputSchema } from "./create.schema";
 import { ZDeleteFilterSegmentInputSchema } from "./delete.schema";
 import { ZListFilterSegmentsInputSchema } from "./list.schema";
+import { ZSetFilterSegmentPreferenceInputSchema } from "./preference.schema";
 import { ZUpdateFilterSegmentInputSchema } from "./update.schema";
 
 type FilterSegmentsRouterHandlerCache = {
@@ -48,4 +49,15 @@ export const filterSegmentsRouter = router({
       input,
     });
   }),
+
+  setPreference: authedProcedure
+    .input(ZSetFilterSegmentPreferenceInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { setPreferenceHandler } = await import("./preference.handler");
+
+      return setPreferenceHandler({
+        ctx,
+        input,
+      });
+    }),
 });
