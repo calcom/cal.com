@@ -12,7 +12,11 @@ export async function getOriginalRescheduledBooking(uid: string, seatsEventType?
     throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
   }
 
-  if (originalBooking.status === BookingStatus.CANCELLED && !originalBooking.rescheduled) {
+  if (
+    originalBooking.status === BookingStatus.CANCELLED &&
+    !originalBooking.rescheduled &&
+    (originalBooking.eventType?.disableReschedulingCancelledBookings ?? true)
+  ) {
     throw new HttpError({ statusCode: 400, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
   }
 

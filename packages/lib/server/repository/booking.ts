@@ -668,6 +668,11 @@ export class BookingRepository {
             },
           },
         },
+        eventType: {
+          select: {
+            disableReschedulingCancelledBookings: true,
+          },
+        },
         destinationCalendar: true,
         payment: true,
         references: true,
