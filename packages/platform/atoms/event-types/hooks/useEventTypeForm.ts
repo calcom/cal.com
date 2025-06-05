@@ -130,6 +130,7 @@ export const useEventTypeForm = ({
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
       customReplyToEmail: eventType.customReplyToEmail || null,
+      calVideoSettings: eventType.calVideoSettings,
     };
   }, [eventType, periodDates]);
 
@@ -162,6 +163,14 @@ export const useEventTypeForm = ({
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFieldsSchema,
           locations: locationsResolver(t),
+          calVideoSettings: z
+            .object({
+              redirectUrlOnExit: z.string().url().nullish(),
+              disableRecordingForOrganizer: z.boolean().nullable(),
+              disableRecordingForGuests: z.boolean().nullable(),
+            })
+            .optional()
+            .nullable(),
         })
         // TODO: Add schema for other fields later.
         .passthrough()
