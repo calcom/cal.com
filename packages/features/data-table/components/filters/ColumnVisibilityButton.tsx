@@ -2,7 +2,7 @@
 
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
-import { forwardRef, useState } from "react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -23,16 +23,17 @@ export interface ColumnVisiblityProps<TData> {
   table: Table<TData>;
 }
 
-function ColumnVisibilityButtonComponent<TData>(
-  {
-    children,
-    color = "secondary",
-    StartIcon = "sliders-vertical",
-    table,
-    ...rest
-  }: ColumnVisiblityProps<TData> & ButtonProps,
-  ref: React.Ref<HTMLButtonElement>
-) {
+function ColumnVisibilityButtonComponent<TData>({
+  ref: forwardedRef,
+  children,
+  color = "secondary",
+  StartIcon = "sliders-vertical",
+  table,
+  ...rest
+}: ColumnVisiblityProps<TData> &
+  ButtonProps & {
+    ref: React.RefObject<HTMLButtonElement>;
+  }) {
   const { t } = useLocale();
   const allColumns = table.getAllLeafColumns();
   const [open, setOpen] = useState(false);
@@ -40,7 +41,7 @@ function ColumnVisibilityButtonComponent<TData>(
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button ref={ref} color={color} StartIcon={StartIcon} {...rest}>
+        <Button ref={forwardedRef} color={color} StartIcon={StartIcon} {...rest}>
           {children ? children : t("display")}
         </Button>
       </PopoverTrigger>
@@ -93,6 +94,6 @@ function ColumnVisibilityButtonComponent<TData>(
   );
 }
 
-export const ColumnVisibilityButton = forwardRef(ColumnVisibilityButtonComponent) as <TData>(
-  props: ColumnVisiblityProps<TData> & ButtonProps & { ref?: React.Ref<HTMLButtonElement> }
+export const ColumnVisibilityButton = ColumnVisibilityButtonComponent as <TData>(
+  props: ColumnVisiblityProps<TData> & ButtonProps & { ref?: React.RefObject<HTMLButtonElement> }
 ) => ReturnType<typeof ColumnVisibilityButtonComponent>;

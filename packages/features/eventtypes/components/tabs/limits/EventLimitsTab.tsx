@@ -274,12 +274,15 @@ function RollingLimitRadioItem({
   );
 }
 
-const MinimumBookingNoticeInput = React.forwardRef<
-  HTMLInputElement,
-  Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref"> & {
-    customClassNames?: SelectClassNames & { input?: string };
-  }
->(function MinimumBookingNoticeInput({ customClassNames, ...passThroughProps }, ref) {
+const MinimumBookingNoticeInput = function MinimumBookingNoticeInput({
+  ref: forwardedRef,
+  customClassNames,
+  ...passThroughProps
+}: Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref"> & {
+  customClassNames?: SelectClassNames & { input?: string };
+} & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
   const { t } = useLocale();
   const { setValue, getValues } = useFormContext<FormValues>();
   const durationTypeOptions: {
@@ -343,7 +346,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
           className={classNames("mb-0 h-9 ltr:mr-2 rtl:ml-2", customClassNames?.input)}
           min={0}
         />
-        <input type="hidden" ref={ref} {...passThroughProps} />
+        <input type="hidden" ref={forwardedRef} {...passThroughProps} />
       </div>
       <Select
         isSearchable={false}
@@ -368,7 +371,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
       />
     </div>
   );
-});
+};
 
 export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabProps) => {
   const { t, i18n } = useLocale();

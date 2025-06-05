@@ -1,8 +1,14 @@
-import React, { forwardRef } from "react";
+import React from "react";
 
-export const Spinner = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function Spinner(props) {
+export const Spinner = function Spinner({
+  ref: forwardedRef,
+  ...props
+}: React.SVGProps<SVGSVGElement> & {
+  ref: React.RefObject<SVGSVGElement>;
+}) {
   return (
     <svg
+      ref={forwardedRef}
       className={props.className}
       id="Layer_1"
       data-name="Layer 1"
@@ -19,4 +25,4 @@ export const Spinner = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
       />
     </svg>
   );
-});
+};

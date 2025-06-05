@@ -1,7 +1,7 @@
 "use client";
 
 import { cva } from "class-variance-authority";
-import React, { forwardRef, useId, useState } from "react";
+import React, { useId, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -52,18 +52,23 @@ export const inputStyles = cva(
   }
 );
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { isFullWidth = true, size = "md", className, ...props },
-  ref
-) {
+export const Input = function Input({
+  ref: forwardedRef,
+  isFullWidth = true,
+  size = "md",
+  className,
+  ...props
+}: InputProps & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
   return (
     <input
       {...props}
-      ref={ref}
+      ref={forwardedRef}
       className={classNames(inputStyles({ size }), isFullWidth && "w-full", className)}
     />
   );
-});
+};
 
 type AddonProps = {
   children: React.ReactNode;
@@ -74,7 +79,14 @@ type AddonProps = {
   position?: "start" | "end";
 };
 
-const Addon = ({ children, className, error, onClickAddon, size = "md", position = "start" }: AddonProps) => (
+const Addon = ({
+  children,
+  className,
+  error,
+  onClickAddon,
+  size: _size = "md",
+  position: _position = "start",
+}: AddonProps) => (
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
@@ -92,7 +104,12 @@ const Addon = ({ children, className, error, onClickAddon, size = "md", position
   </div>
 );
 
-export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
+export const InputField = function InputField({
+  ref: forwardedRef,
+  ...props
+}: InputFieldProps & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
   const id = useId();
   const { t: _t, isLocaleReady, i18n } = useLocale();
   const t = props.t || _t;
@@ -178,7 +195,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               value: inputValue,
             })}
             disabled={readOnly || disabled}
-            ref={ref}
+            ref={forwardedRef}
           />
           {addOnSuffix && (
             <Addon
@@ -212,7 +229,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           )}
           {...passThrough}
           readOnly={readOnly}
-          ref={ref}
+          ref={forwardedRef}
           isFullWidth={inputIsFullWidth}
           disabled={readOnly || disabled}
         />
@@ -221,8 +238,13 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {hint && <div className="text-default mt-2 flex items-center text-sm">{hint}</div>}
     </div>
   );
-});
+};
 
-export const TextField = forwardRef<HTMLInputElement, InputFieldProps>(function TextField(props, ref) {
-  return <InputField ref={ref} {...props} />;
-});
+export const TextField = function TextField({
+  ref: forwardedRef,
+  ...props
+}: InputFieldProps & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
+  return <InputField ref={forwardedRef} {...props} />;
+};

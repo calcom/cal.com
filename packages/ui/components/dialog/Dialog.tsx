@@ -2,7 +2,7 @@
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
-import type { ForwardRefExoticComponent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -53,68 +53,66 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
 } & VariantProps<typeof dialogClasses>;
 
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
-export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  (
-    {
-      children,
-      title,
-      Icon: icon,
-      enableOverflow,
-      forceOverlayWhenNoModal,
-      type = "creation",
-      preventCloseOnOutsideClick,
-      ...props
-    },
-    forwardedRef
-  ) => {
-    return (
-      <DialogPrimitive.Portal>
-        {forceOverlayWhenNoModal ? (
-          <div className="fadeIn fixed inset-0 z-50  bg-neutral-800 bg-opacity-70 transition-opacity" />
-        ) : (
-          <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-80" />
+export const DialogContent = function DialogContent({
+  ref: forwardedRef,
+  children,
+  title,
+  Icon: icon,
+  enableOverflow,
+  forceOverlayWhenNoModal,
+  type = "creation",
+  preventCloseOnOutsideClick,
+  ...props
+}: DialogContentProps & {
+  ref: React.RefObject<HTMLDivElement>;
+}) {
+  return (
+    <DialogPrimitive.Portal>
+      {forceOverlayWhenNoModal ? (
+        <div className="fadeIn fixed inset-0 z-50  bg-neutral-800 bg-opacity-70 transition-opacity" />
+      ) : (
+        <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-80" />
+      )}
+      <DialogPrimitive.Content
+        {...props}
+        onPointerDownOutside={(e) => {
+          if (preventCloseOnOutsideClick) {
+            e.preventDefault();
+          }
+        }}
+        className={classNames(
+          dialogClasses({ size: props.size }),
+          "max-h-[95vh]",
+          enableOverflow ? "overflow-y-auto" : "overflow-visible",
+          `${props.className || ""}`
         )}
-        <DialogPrimitive.Content
-          {...props}
-          onPointerDownOutside={(e) => {
-            if (preventCloseOnOutsideClick) {
-              e.preventDefault();
-            }
-          }}
-          className={classNames(
-            dialogClasses({ size: props.size }),
-            "max-h-[95vh]",
-            enableOverflow ? "overflow-y-auto" : "overflow-visible",
-            `${props.className || ""}`
-          )}
-          ref={forwardedRef}>
-          {type === "creation" && (
-            <div>
+        ref={forwardedRef}>
+        {type === "creation" && (
+          <div>
+            <DialogHeader title={title} subtitle={props.description} />
+            <div data-testid="dialog-creation" className="flex flex-col">
+              {children}
+            </div>
+          </div>
+        )}
+        {type === "confirmation" && (
+          <div className="flex">
+            {icon && (
+              <div className="bg-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+                <Icon name={icon} className="text-emphasis h-4 w-4" />
+              </div>
+            )}
+            <div className="ml-4 flex-grow">
               <DialogHeader title={title} subtitle={props.description} />
-              <div data-testid="dialog-creation" className="flex flex-col">
-                {children}
-              </div>
+              <div data-testid="dialog-confirmation">{children}</div>
             </div>
-          )}
-          {type === "confirmation" && (
-            <div className="flex">
-              {icon && (
-                <div className="bg-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                  <Icon name={icon} className="text-emphasis h-4 w-4" />
-                </div>
-              )}
-              <div className="ml-4 flex-grow">
-                <DialogHeader title={title} subtitle={props.description} />
-                <div data-testid="dialog-confirmation">{children}</div>
-              </div>
-            </div>
-          )}
-          {!type && children}
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    );
-  }
-);
+          </div>
+        )}
+        {!type && children}
+      </DialogPrimitive.Content>
+    </DialogPrimitive.Portal>
+  );
+};
 
 type DialogHeaderProps = {
   title: React.ReactNode;
@@ -165,11 +163,14 @@ export function DialogFooter(props: DialogFooterProps) {
 
 DialogContent.displayName = "DialogContent";
 
-export const DialogTrigger: ForwardRefExoticComponent<
-  DialogPrimitive.DialogTriggerProps & React.RefAttributes<HTMLButtonElement>
-> = React.forwardRef((props, ref) => {
-  return <DialogPrimitive.Trigger {...props} ref={ref} />;
-});
+export const DialogTrigger = function DialogTrigger({
+  ref: forwardedRef,
+  ...props
+}: DialogPrimitive.DialogTriggerProps & {
+  ref: React.RefObject<HTMLButtonElement>;
+}) {
+  return <DialogPrimitive.Trigger {...props} ref={forwardedRef} />;
+};
 
 DialogTrigger.displayName = "DialogTrigger";
 

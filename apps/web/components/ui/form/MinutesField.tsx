@@ -1,12 +1,18 @@
 import classNames from "classnames";
 import type { InputHTMLAttributes, ReactNode } from "react";
-import React, { forwardRef } from "react";
+import React from "react";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: ReactNode;
 };
 
-const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, ref) => {
+const MinutesField = function MinutesField({
+  ref: forwardedRef,
+  label,
+  ...rest
+}: Props & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
   return (
     <div className="block sm:flex">
       {!!label && (
@@ -20,7 +26,7 @@ const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, re
         <div className="relative rounded-sm">
           <input
             {...rest}
-            ref={ref}
+            ref={forwardedRef}
             type="number"
             className={classNames(
               "border-default block w-full rounded-sm pl-2 pr-12 text-sm",
@@ -36,7 +42,7 @@ const MinutesField = forwardRef<HTMLInputElement, Props>(({ label, ...rest }, re
       </div>
     </div>
   );
-});
+};
 
 MinutesField.displayName = "MinutesField";
 

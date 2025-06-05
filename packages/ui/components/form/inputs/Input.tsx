@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import React, { forwardRef, useCallback, useId, useState } from "react";
+import React, { useCallback, useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,15 +22,12 @@ export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   );
 }
 
-type PasswordFieldTranslations = {
-  showPasswordText?: string;
-  hidePasswordText?: string;
-};
-
-export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
-  props,
-  ref
-) {
+export const PasswordField = function PasswordField({
+  ref: forwardedRef,
+  ...props
+}: InputFieldProps & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
   const { t } = useLocale();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const toggleIsPasswordVisible = useCallback(
@@ -43,7 +40,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
     <InputField
       type={isPasswordVisible ? "text" : "password"}
       placeholder={props.placeholder || "•••••••••••••"}
-      ref={ref}
+      ref={forwardedRef}
       {...props}
       className={classNames(
         "addon-wrapper mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10",
@@ -67,12 +64,17 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
       }
     />
   );
-});
+};
 
-export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function EmailInput(props, ref) {
+export const EmailInput = function EmailInput({
+  ref: forwardedRef,
+  ...props
+}: InputFieldProps & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
   return (
     <Input
-      ref={ref}
+      ref={forwardedRef}
       type="email"
       autoCapitalize="none"
       autoComplete="email"
@@ -81,12 +83,17 @@ export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function
       {...props}
     />
   );
-});
+};
 
-export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function EmailField(props, ref) {
+export const EmailField = function EmailField({
+  ref: forwardedRef,
+  ...props
+}: InputFieldProps & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
   return (
     <InputField
-      ref={ref}
+      ref={forwardedRef}
       type="email"
       autoCapitalize="none"
       autoComplete="email"
@@ -95,19 +102,24 @@ export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {...props}
     />
   );
-});
+};
 
 type TextAreaProps = JSX.IntrinsicElements["textarea"];
 
-export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
+export const TextArea = function TextAreaInput({
+  ref: forwardedRef,
+  ...props
+}: TextAreaProps & {
+  ref: React.RefObject<HTMLTextAreaElement>;
+}) {
   return (
     <textarea
       {...props}
-      ref={ref}
+      ref={forwardedRef}
       className={classNames(inputStyles(), "min-h-[80px] w-full", props.className)}
     />
   );
-});
+};
 
 type TextAreaFieldProps = {
   label?: ReactNode;
@@ -117,10 +129,12 @@ type TextAreaFieldProps = {
     labelProps?: React.ComponentProps<typeof Label>;
   };
 
-export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(function TextField(
-  props,
-  ref
-) {
+export const TextAreaField = function TextField({
+  ref: forwardedRef,
+  ...props
+}: TextAreaFieldProps & {
+  ref: React.RefObject<HTMLTextAreaElement>;
+}) {
   const id = useId();
   const { t: _t } = useLocale();
   const t = props.t || _t;
@@ -141,7 +155,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
           {label}
         </Label>
       )}
-      <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
+      <TextArea ref={forwardedRef} placeholder={placeholder} {...passThrough} />
       {methods?.formState?.errors[props.name]?.message && (
         <Alert
           className="mt-1"
@@ -151,7 +165,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
       )}
     </div>
   );
-});
+};
 
 export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
   return (
@@ -171,10 +185,15 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   );
 }
 
-export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(function NumberInput(props, ref) {
+export const NumberInput = function NumberInput({
+  ref: forwardedRef,
+  ...props
+}: InputFieldProps & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
   return (
     <Input
-      ref={ref}
+      ref={forwardedRef}
       type="number"
       autoCapitalize="none"
       autoComplete="numeric"
@@ -183,19 +202,21 @@ export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(functio
       {...props}
     />
   );
-});
+};
 
-export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
-  props,
-  ref
-) {
+export const FilterSearchField = function PasswordField({
+  ref: forwardedRef,
+  ...props
+}: InputFieldProps & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
   return (
     <InputField
-      ref={ref}
+      ref={forwardedRef}
       addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
       placeholder="Search"
       containerClassName="mx-3 mt-2"
       {...props}
     />
   );
-});
+};

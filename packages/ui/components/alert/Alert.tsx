@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority";
 import classNames from "classnames";
 import type { ReactNode } from "react";
-import { forwardRef } from "react";
+import React from "react";
 
 import { Icon } from "../icon";
 import type { IconName } from "../icon";
@@ -31,11 +31,19 @@ export interface AlertProps {
   customIconColor?: string;
 }
 
-export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
+export const Alert = function Alert({
+  ref: forwardedRef,
+  ...props
+}: AlertProps & {
+  ref: React.RefObject<HTMLDivElement>;
+}) {
   const { severity, iconClassName, CustomIcon, customIconColor } = props;
 
   return (
-    <div data-testid="alert" ref={ref} className={alertStyles({ severity, className: props.className })}>
+    <div
+      data-testid="alert"
+      ref={forwardedRef}
+      className={alertStyles({ severity, className: props.className })}>
       <div className="relative flex md:flex-row">
         {CustomIcon ? (
           <div className="flex-shrink-0">
@@ -94,6 +102,6 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
       </div>
     </div>
   );
-});
+};
 
 Alert.displayName = "Alert";

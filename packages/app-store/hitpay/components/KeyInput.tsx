@@ -2,7 +2,7 @@
 
 import classNames from "classnames";
 import type { FormEvent } from "react";
-import React, { forwardRef, useState, useEffect, useId, useCallback } from "react";
+import React, { useState, useEffect, useId, useCallback } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "@calcom/ui/components/form";
@@ -43,10 +43,12 @@ const Addon = ({ children, className, error }: AddonProps) => (
   </div>
 );
 
-export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = forwardRef<
-  HTMLInputElement,
-  InputFieldProps & { defaultValue: string }
->(function KeyField(props, ref) {
+export const KeyField = function KeyField({
+  ref: forwardedRef,
+  ...props
+}: InputFieldProps & { defaultValue: string } & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
   const id = useId();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [currentValue, setCurrentValue] = useState<string>("");
@@ -148,7 +150,7 @@ export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = fo
             "!my-0 !ring-0"
           )}
           {...passThrough}
-          ref={ref}
+          ref={forwardedRef}
           onInput={onInput}
         />
         <Input
@@ -181,6 +183,6 @@ export const KeyField: React.FC<InputFieldProps & { defaultValue: string }> = fo
       </div>
     </div>
   );
-});
+};
 
 export default KeyField;

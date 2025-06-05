@@ -1,7 +1,7 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
-import { forwardRef, useEffect } from "react";
+import { useEffect } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 import { useState, type Ref, type ChangeEvent } from "react";
 
@@ -16,19 +16,22 @@ interface DataTableToolbarProps extends ComponentPropsWithoutRef<"div"> {
   children: React.ReactNode;
 }
 
-const Root = forwardRef<HTMLDivElement, DataTableToolbarProps>(function DataTableToolbar(
-  { children, className },
-  ref
-) {
+const Root = function DataTableToolbar({
+  ref: _forwardedRef,
+  children,
+  className,
+}: DataTableToolbarProps & {
+  ref: React.RefObject<HTMLDivElement>;
+}) {
   return (
     <div
-      ref={ref}
+      ref={_forwardedRef}
       className={classNames("grid w-full items-center gap-2 py-4", className)}
       style={{ gridArea: "header" }}>
       {children}
     </div>
   );
-});
+};
 
 interface SearchBarProps {
   className?: string;
@@ -60,9 +63,14 @@ function SearchBarComponent({ className }: SearchBarProps, ref: Ref<HTMLInputEle
   );
 }
 
-const SearchBar = forwardRef(SearchBarComponent) as (
-  props: SearchBarProps & { ref?: React.Ref<HTMLInputElement> }
-) => ReturnType<typeof SearchBarComponent>;
+const SearchBar = function SearchBar({
+  ref: forwardedRef,
+  ...props
+}: SearchBarProps & {
+  ref: React.RefObject<HTMLInputElement>;
+}) {
+  return SearchBarComponent(props, forwardedRef);
+};
 
 interface ClearFiltersButtonProps<TData> {
   table: Table<TData>;
@@ -70,7 +78,7 @@ interface ClearFiltersButtonProps<TData> {
 
 function ClearFiltersButtonComponent<TData>(
   { table }: ClearFiltersButtonProps<TData>,
-  ref: React.Ref<HTMLButtonElement>
+  _ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
   const columnFilters = useColumnFilters();
@@ -78,7 +86,7 @@ function ClearFiltersButtonComponent<TData>(
   if (!isFiltered) return null;
   return (
     <Button
-      ref={ref}
+      ref={_ref}
       color="minimal"
       EndIcon="x"
       onClick={() => table.resetColumnFilters()}
@@ -88,23 +96,33 @@ function ClearFiltersButtonComponent<TData>(
   );
 }
 
-const ClearFiltersButton = forwardRef(ClearFiltersButtonComponent) as <TData>(
-  props: ClearFiltersButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement> }
-) => ReturnType<typeof ClearFiltersButtonComponent>;
+const ClearFiltersButton = function ClearFiltersButton<TData>({
+  ref: forwardedRef,
+  ...props
+}: ClearFiltersButtonProps<TData> & {
+  ref: React.RefObject<HTMLButtonElement>;
+}) {
+  return ClearFiltersButtonComponent(props, forwardedRef);
+};
 
 function CTAComponent(
   { children, onClick, color = "primary", ...rest }: ButtonProps,
-  ref: React.Ref<HTMLButtonElement>
+  _ref: React.Ref<HTMLButtonElement>
 ) {
   return (
-    <Button ref={ref} color={color} onClick={onClick} {...rest}>
+    <Button ref={_ref} color={color} onClick={onClick} {...rest}>
       {children}
     </Button>
   );
 }
 
-const CTA = forwardRef(CTAComponent) as (
-  props: ButtonProps & { ref?: React.Ref<HTMLButtonElement> }
-) => ReturnType<typeof CTAComponent>;
+const CTA = function CTA({
+  ref: forwardedRef,
+  ...props
+}: ButtonProps & {
+  ref: React.RefObject<HTMLButtonElement>;
+}) {
+  return CTAComponent(props, forwardedRef);
+};
 
 export const DataTableToolbar = { Root, SearchBar, ClearFiltersButton, CTA };

@@ -2,7 +2,7 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { LinkProps } from "next/link";
 import Link from "next/link";
-import React, { forwardRef } from "react";
+import React from "react";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -218,10 +218,12 @@ export const buttonClasses = cva(
   }
 );
 
-export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonProps>(function Button(
-  props: ButtonProps,
-  forwardedRef
-) {
+export const Button = function Button({
+  ref: forwardedRef,
+  ...props
+}: ButtonProps & {
+  ref: React.RefObject<HTMLAnchorElement | HTMLButtonElement>;
+}) {
   const {
     loading = false,
     color = "primary",
@@ -346,7 +348,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       {element}
     </Wrapper>
   );
-});
+};
 
 const Wrapper = ({
   children,

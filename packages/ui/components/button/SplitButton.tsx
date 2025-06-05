@@ -2,7 +2,7 @@
 
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import type { ReactNode } from "react";
-import { forwardRef } from "react";
+import React from "react";
 
 import { Icon } from "../icon";
 import type { ButtonBaseProps, ButtonProps } from "./Button";
@@ -20,10 +20,16 @@ export interface SplitButtonProps extends ButtonBaseProps {
   };
 }
 
-export const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(function SplitButton(
-  { children, dropdown, StartIcon, color = "primary", ...mainButtonProps },
-  forwardedRef
-) {
+export const SplitButton = function SplitButton({
+  ref: forwardedRef,
+  children,
+  dropdown,
+  StartIcon,
+  color = "primary",
+  ...mainButtonProps
+}: SplitButtonProps & {
+  ref: React.RefObject<HTMLButtonElement>;
+}) {
   if (!dropdown) {
     return (
       <Button ref={forwardedRef} StartIcon={StartIcon} color={color} {...mainButtonProps}>
@@ -73,4 +79,4 @@ export const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(funct
       </DropdownMenuPrimitive.Root>
     </div>
   );
-});
+};

@@ -25,18 +25,18 @@ interface BarListProps<T = unknown> extends React.HTMLAttributes<HTMLDivElement>
   sortOrder?: "ascending" | "descending" | "none";
 }
 
-function BarListInner<T>(
-  {
-    data = [],
-    valueFormatter = (value) => value.toString(),
-    showAnimation = false,
-    onValueChange,
-    sortOrder = "descending",
-    className,
-    ...props
-  }: BarListProps<T>,
-  forwardedRef: React.ForwardedRef<HTMLDivElement>
-) {
+function BarListInner<T>({
+  ref: forwardedRef,
+  data = [],
+  valueFormatter = (value) => value.toString(),
+  showAnimation = false,
+  onValueChange,
+  sortOrder = "descending",
+  className,
+  ...props
+}: BarListProps<T> & {
+  ref: React.RefObject<HTMLDivElement>;
+}) {
   const Component = onValueChange ? "button" : "div";
   const sortedData = React.useMemo(() => {
     if (sortOrder === "none") {
@@ -158,8 +158,6 @@ function BarListInner<T>(
 
 BarListInner.displayName = "BarList";
 
-const BarList = React.forwardRef(BarListInner) as <T>(
-  p: BarListProps<T> & { ref?: React.ForwardedRef<HTMLDivElement> }
-) => ReturnType<typeof BarListInner>;
+const BarList = BarListInner;
 
 export { BarList, type BarListProps };

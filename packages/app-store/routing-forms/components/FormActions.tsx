@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { createContext, forwardRef, useContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
@@ -421,10 +421,12 @@ type FormActionProps<T> = {
   extraClassNames?: string;
 } & ButtonProps;
 
-export const FormAction = forwardRef(function FormAction<T extends typeof Button>(
-  props: FormActionProps<T>,
-  forwardedRef: React.ForwardedRef<HTMLAnchorElement | HTMLButtonElement>
-) {
+export const FormAction = function FormAction<T extends typeof Button>({
+  ref: forwardedRef,
+  ...props
+}: FormActionProps<T> & {
+  ref: React.RefObject<HTMLAnchorElement | HTMLButtonElement>;
+}) {
   const {
     action: actionName,
     routingForm,
@@ -566,4 +568,4 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       </Component>
     </DropdownMenuItem>
   );
-});
+};

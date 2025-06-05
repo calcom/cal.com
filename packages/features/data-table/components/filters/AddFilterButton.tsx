@@ -3,7 +3,7 @@
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
-import { forwardRef, useState } from "react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -21,15 +21,15 @@ export interface AddFilterButtonProps<TData> {
   showWhenFilterApplied?: boolean;
 }
 
-function AddFilterButtonComponent<TData>(
-  {
-    table,
-    variant = "base",
-    hideWhenFilterApplied = false,
-    showWhenFilterApplied = false,
-  }: AddFilterButtonProps<TData>,
-  ref: React.Ref<HTMLButtonElement>
-) {
+function AddFilterButtonComponent<TData>({
+  ref: forwardedRef,
+  table,
+  variant = "base",
+  hideWhenFilterApplied = false,
+  showWhenFilterApplied = false,
+}: AddFilterButtonProps<TData> & {
+  ref: React.RefObject<HTMLButtonElement>;
+}) {
   const { t } = useLocale();
   const { activeFilters, addFilter } = useDataTable();
   const [open, setOpen] = useState(false);
@@ -57,7 +57,7 @@ function AddFilterButtonComponent<TData>(
         {variant === "base" && (
           <PopoverTrigger asChild>
             <Button
-              ref={ref}
+              ref={forwardedRef}
               color="secondary"
               data-testid="add-filter-button"
               StartIcon="sliders-horizontal"
@@ -69,7 +69,7 @@ function AddFilterButtonComponent<TData>(
         {variant === "sm" && (
           <Tooltip content={t("add_filter")}>
             <PopoverTrigger asChild>
-              <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
+              <Button ref={forwardedRef} color="secondary" data-testid="add-filter-button" className="h-full">
                 <span className="sr-only">{t("filter")}</span>
                 <Icon name="plus" />
               </Button>
@@ -108,6 +108,4 @@ function AddFilterButtonComponent<TData>(
   );
 }
 
-export const AddFilterButton = forwardRef(AddFilterButtonComponent) as <TData>(
-  props: AddFilterButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement> }
-) => ReturnType<typeof AddFilterButtonComponent>;
+export const AddFilterButton = AddFilterButtonComponent;

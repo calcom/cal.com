@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
-import React, { forwardRef, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { useForm } from "react-hook-form";
@@ -61,64 +61,67 @@ type EventTypeAppSettingsFormProps = Pick<
 };
 type TUpdatedEventTypesStatus = { id: number; updated: boolean }[][];
 
-const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSettingsFormProps>(
-  function EventTypeAppSettingsForm(props, ref) {
-    const { handleDelete, onSubmit, eventType, loading, isConferencing } = props;
-    const { t } = useLocale();
+const EventTypeAppSettingsForm = function EventTypeAppSettingsForm({
+  ref: forwardedRef,
+  ...props
+}: EventTypeAppSettingsFormProps & {
+  ref: React.RefObject<HTMLButtonElement>;
+}) {
+  const { handleDelete, onSubmit, eventType, loading, isConferencing } = props;
+  const { t } = useLocale();
 
-    const formMethods = useForm<TFormType>({
-      defaultValues: {
-        id: eventType.id,
-        metadata: eventType?.metadata ?? undefined,
-        locations: eventType?.locations ?? undefined,
-        bookingFields: eventType?.bookingFields ?? undefined,
-        seatsPerTimeSlot: eventType?.seatsPerTimeSlot ?? undefined,
-      },
-      resolver: zodResolver(
-        z.object({
-          locations: locationsResolver(t),
-        })
-      ),
-    });
+  const formMethods = useForm<TFormType>({
+    defaultValues: {
+      id: eventType.id,
+      metadata: eventType?.metadata ?? undefined,
+      locations: eventType?.locations ?? undefined,
+      bookingFields: eventType?.bookingFields ?? undefined,
+      seatsPerTimeSlot: eventType?.seatsPerTimeSlot ?? undefined,
+    },
+    resolver: zodResolver(
+      z.object({
+        locations: locationsResolver(t),
+      })
+    ),
+  });
 
-    return (
-      <Form
-        form={formMethods}
-        id={`eventtype-${eventType.id}`}
-        handleSubmit={() => {
-          const metadata = formMethods.getValues("metadata");
-          const locations = formMethods.getValues("locations");
-          const bookingFields = formMethods.getValues("bookingFields");
-          onSubmit({ metadata, locations, bookingFields });
-        }}>
-        <div>
-          <div className="sm:border-subtle bg-default relative border p-4 dark:bg-black sm:rounded-md">
-            <div>
-              <span className="text-default font-semibold ltr:mr-1 rtl:ml-1">{eventType.title}</span>{" "}
-              <small className="text-subtle hidden font-normal sm:inline">
-                /{eventType.team ? eventType.team.slug : props.userName}/{eventType.slug}
-              </small>
-            </div>
-            {isConferencing ? (
-              <EventTypeConferencingAppSettings {...props} />
-            ) : (
-              <EventTypeAppSettingsWrapper {...props} />
-            )}
-            <Icon
-              name="x"
-              data-testid={`remove-event-type-${eventType.id}`}
-              className="absolute right-4 top-4 h-4 w-4 cursor-pointer"
-              onClick={() => !loading && handleDelete()}
-            />
-            <button type="submit" className="hidden" form={`eventtype-${eventType.id}`} ref={ref}>
-              Save
-            </button>
+  return (
+    <Form
+      form={formMethods}
+      id={`eventtype-${eventType.id}`}
+      handleSubmit={() => {
+        const metadata = formMethods.getValues("metadata");
+        const locations = formMethods.getValues("locations");
+        const bookingFields = formMethods.getValues("bookingFields");
+        onSubmit({ metadata, locations, bookingFields });
+      }}>
+      <div>
+        <div className="sm:border-subtle bg-default relative border p-4 dark:bg-black sm:rounded-md">
+          <div>
+            <span className="text-default font-semibold ltr:mr-1 rtl:ml-1">{eventType.title}</span>{" "}
+            <small className="text-subtle hidden font-normal sm:inline">
+              /{eventType.team ? eventType.team.slug : props.userName}/{eventType.slug}
+            </small>
           </div>
+          {isConferencing ? (
+            <EventTypeConferencingAppSettings {...props} />
+          ) : (
+            <EventTypeAppSettingsWrapper {...props} />
+          )}
+          <Icon
+            name="x"
+            data-testid={`remove-event-type-${eventType.id}`}
+            className="absolute right-4 top-4 h-4 w-4 cursor-pointer"
+            onClick={() => !loading && handleDelete()}
+          />
+          <button type="submit" className="hidden" form={`eventtype-${eventType.id}`} ref={forwardedRef}>
+            Save
+          </button>
         </div>
-      </Form>
-    );
-  }
-);
+      </div>
+    </Form>
+  );
+};
 
 const EventTypeGroup = ({
   groupIndex,

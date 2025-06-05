@@ -1,5 +1,5 @@
 import type { MutableRefObject } from "react";
-import { forwardRef } from "react";
+import React from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -28,10 +28,15 @@ export const tabs = [
     icon: "code" as const,
     type: "code",
     "data-testid": "HTML",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedHtml({ embedType, calLink, previewState, namespace }, ref) {
+    Component: function EmbedHtml({
+      ref: _forwardedRef,
+      embedType,
+      calLink,
+      previewState,
+      namespace,
+    }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
+      ref: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
+    }) {
       const { t } = useLocale();
       const embedSnippetString = useGetEmbedSnippetString(namespace);
       const embedCalOrigin = useEmbedCalOrigin();
@@ -77,7 +82,7 @@ export const tabs = [
           <p className="text-subtle hidden text-sm">{t("need_help_embedding")}</p>
         </>
       );
-    }),
+    },
   },
   {
     name: "React (iframe)",
@@ -85,10 +90,15 @@ export const tabs = [
     "data-testid": "react",
     icon: "code" as const,
     type: "code",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedReact({ embedType, calLink, previewState, namespace }, ref) {
+    Component: function EmbedReact({
+      ref: _forwardedRef,
+      embedType,
+      calLink,
+      previewState,
+      namespace,
+    }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
+      ref: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
+    }) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
@@ -127,7 +137,7 @@ export const tabs = [
           />
         </>
       );
-    }),
+    },
   },
   {
     name: "React (Atom)",
@@ -135,10 +145,15 @@ export const tabs = [
     "data-testid": "react-atom",
     icon: "code" as const,
     type: "code",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedReactAtom({ embedType, calLink, previewState, namespace }, ref) {
+    Component: function EmbedReactAtom({
+      ref: _forwardedRef,
+      embedType,
+      calLink,
+      previewState,
+      namespace,
+    }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
+      ref: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
+    }) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
@@ -176,7 +191,7 @@ ${getEmbedTypeSpecificString({
           />
         </>
       );
-    }),
+    },
   },
   {
     name: "Preview",
@@ -184,21 +199,24 @@ ${getEmbedTypeSpecificString({
     icon: "trello" as const,
     type: "iframe",
     "data-testid": "Preview",
-    Component: forwardRef<
-      HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }
-    >(function Preview({ calLink, embedType }, ref) {
+    Component: function Preview({
+      ref: forwardedRef,
+      calLink,
+      embedType,
+    }: { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string } & {
+      ref: React.RefObject<HTMLIFrameElement | HTMLTextAreaElement | null>;
+    }) {
       const bookerUrl = useBookerUrl();
       const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
-      if (ref instanceof Function || !ref) {
+      if (forwardedRef instanceof Function || !forwardedRef) {
         return null;
       }
-      if (ref.current && !(ref.current instanceof HTMLIFrameElement)) {
+      if (forwardedRef.current && !(forwardedRef.current instanceof HTMLIFrameElement)) {
         return null;
       }
       return (
         <iframe
-          ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
+          ref={forwardedRef as typeof forwardedRef & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
           className="rounded-md border"
           width="100%"
@@ -207,7 +225,7 @@ ${getEmbedTypeSpecificString({
           key={iframeSrc}
         />
       );
-    }),
+    },
   },
 ];
 

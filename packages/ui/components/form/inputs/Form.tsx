@@ -1,5 +1,5 @@
 import type { ReactElement, Ref } from "react";
-import React, { forwardRef } from "react";
+import React from "react";
 import type { FieldValues, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { FormProvider } from "react-hook-form";
 
@@ -12,13 +12,18 @@ type FormProps<T extends object> = { form: UseFormReturn<T>; handleSubmit: Submi
   "onSubmit"
 >;
 
-const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLFormElement>) => {
-  const { form, handleSubmit, ...passThrough } = props;
-
+const PlainForm = <T extends FieldValues>({
+  ref: forwardedRef,
+  form,
+  handleSubmit,
+  ...passThrough
+}: FormProps<T> & {
+  ref: Ref<HTMLFormElement>;
+}) => {
   return (
     <FormProvider {...form}>
       <form
-        ref={ref}
+        ref={forwardedRef}
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -31,12 +36,12 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
             });
         }}
         {...passThrough}>
-        {props.children}
+        {passThrough.children}
       </form>
     </FormProvider>
   );
 };
 
-export const Form = forwardRef(PlainForm) as <T extends FieldValues>(
+export const Form = PlainForm as <T extends FieldValues>(
   p: FormProps<T> & { ref?: Ref<HTMLFormElement> }
 ) => ReactElement;

@@ -10,30 +10,39 @@ const Sheet = (props: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Root
 };
 Sheet.displayName = "Sheet";
 
-const SheetTrigger = React.forwardRef<
-  React.ElementRef<typeof SheetPrimitives.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitives.Trigger>
->(({ className, ...props }, ref) => {
-  return <SheetPrimitives.Trigger ref={ref} className={classNames(className)} {...props} />;
-});
+const SheetTrigger = function SheetTrigger({
+  ref: forwardedRef,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Trigger> & {
+  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Trigger>>;
+}) {
+  return <SheetPrimitives.Trigger ref={forwardedRef} className={classNames(className)} {...props} />;
+};
 SheetTrigger.displayName = "Sheet.Trigger";
 
-const SheetClose = React.forwardRef<
-  React.ElementRef<typeof SheetPrimitives.Close>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitives.Close>
->(({ className, ...props }, ref) => {
-  return <SheetPrimitives.Close ref={ref} className={classNames(className)} {...props} />;
-});
+const SheetClose = function SheetClose({
+  ref: forwardedRef,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Close> & {
+  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Close>>;
+}) {
+  return <SheetPrimitives.Close ref={forwardedRef} className={classNames(className)} {...props} />;
+};
 SheetClose.displayName = "Sheet.Close";
 
 const SheetPortal = SheetPrimitives.Portal;
 
 SheetPortal.displayName = "SheetPortal";
 
-const SheetOverlay = React.forwardRef<
-  React.ElementRef<typeof SheetPrimitives.Overlay>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitives.Overlay>
->(({ className, ...props }, forwardedRef) => {
+const SheetOverlay = function SheetOverlay({
+  ref: forwardedRef,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Overlay> & {
+  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Overlay>>;
+}) {
   return (
     <SheetPrimitives.Overlay
       ref={forwardedRef}
@@ -53,14 +62,17 @@ const SheetOverlay = React.forwardRef<
       }}
     />
   );
-});
+};
 
 SheetOverlay.displayName = "SheetOverlay";
 
-const SheetContent = React.forwardRef<
-  React.ElementRef<typeof SheetPrimitives.Content>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitives.Content>
->(({ className, ...props }, forwardedRef) => {
+const SheetContent = function SheetContent({
+  ref: forwardedRef,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Content> & {
+  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Content>>;
+}) {
   return (
     <SheetPortal>
       <SheetOverlay>
@@ -83,16 +95,21 @@ const SheetContent = React.forwardRef<
       </SheetOverlay>
     </SheetPortal>
   );
-});
+};
 
 SheetContent.displayName = "SheetContent";
 
-const SheetHeader = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<"div"> & { showCloseButton?: boolean }
->(({ children, className, showCloseButton = true, ...props }, ref) => {
+const SheetHeader = function SheetHeader({
+  ref: forwardedRef,
+  children,
+  className,
+  showCloseButton = true,
+  ...props
+}: React.ComponentPropsWithoutRef<"div"> & { showCloseButton?: boolean } & {
+  ref: React.RefObject<HTMLDivElement>;
+}) {
   return (
-    <div ref={ref} className="flex items-start justify-between gap-x-4 pb-2" {...props}>
+    <div ref={forwardedRef} className="flex items-start justify-between gap-x-4 pb-2" {...props}>
       <div className={classNames("mt-1 flex flex-col gap-y-1", className)}>{children}</div>
       {showCloseButton && (
         <SheetPrimitives.Close asChild>
@@ -101,41 +118,55 @@ const SheetHeader = React.forwardRef<
       )}
     </div>
   );
-});
+};
 
 SheetHeader.displayName = "Sheet.Header";
 
-const SheetTitle = React.forwardRef<
-  React.ElementRef<typeof SheetPrimitives.Title>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitives.Title>
->(({ className, ...props }, forwardedRef) => (
-  <SheetPrimitives.Title
-    ref={forwardedRef}
-    className={classNames(
-      // base
-      "font-sans text-xl font-semibold",
-      // text color
-      "text-emphasis",
-      className
-    )}
-    {...props}
-  />
-));
+const SheetTitle = function SheetTitle({
+  ref: forwardedRef,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Title> & {
+  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Title>>;
+}) {
+  return (
+    <SheetPrimitives.Title
+      ref={forwardedRef}
+      className={classNames(
+        // base
+        "font-sans text-xl font-semibold",
+        // text color
+        "text-emphasis",
+        className
+      )}
+      {...props}
+    />
+  );
+};
 
 SheetTitle.displayName = "SheetTitle";
 
-const SheetBody = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
-  ({ className, ...props }, ref) => {
-    return <div ref={ref} className={classNames("flex-1 overflow-y-auto py-4", className)} {...props} />;
-  }
-);
+const SheetBody = function SheetBody({
+  ref: forwardedRef,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"div"> & {
+  ref: React.RefObject<HTMLDivElement>;
+}) {
+  return (
+    <div ref={forwardedRef} className={classNames("flex-1 overflow-y-auto py-4", className)} {...props} />
+  );
+};
 
 SheetBody.displayName = "Sheet.Body";
 
-const SheetDescription = React.forwardRef<
-  React.ElementRef<typeof SheetPrimitives.Description>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitives.Description>
->(({ className, ...props }, forwardedRef) => {
+const SheetDescription = function SheetDescription({
+  ref: forwardedRef,
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Description> & {
+  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Description>>;
+}) {
   return (
     <SheetPrimitives.Description
       ref={forwardedRef}
@@ -143,7 +174,7 @@ const SheetDescription = React.forwardRef<
       {...props}
     />
   );
-});
+};
 
 SheetDescription.displayName = "SheetDescription";
 

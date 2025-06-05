@@ -11,21 +11,28 @@ const HoverCardTrigger = HoverCardPrimitive.Trigger;
 
 const HoverCardPortal = HoverCardPrimitive.Portal;
 
-const HoverCardContent = React.forwardRef<
-  React.ElementRef<typeof HoverCardPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <HoverCardPrimitive.Content
-    ref={ref}
-    align={align}
-    sideOffset={sideOffset}
-    className={classNames(
-      "bg-default text-default data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 border-subtle z-50 w-64 rounded-md border p-2 shadow-sm outline-none",
-      className
-    )}
-    {...props}
-  />
-));
+const HoverCardContent = function HoverCardContent({
+  ref: forwardedRef,
+  className,
+  align = "center",
+  sideOffset = 4,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Content> & {
+  ref: React.RefObject<React.ElementRef<typeof HoverCardPrimitive.Content>>;
+}) {
+  return (
+    <HoverCardPrimitive.Content
+      ref={forwardedRef}
+      align={align}
+      sideOffset={sideOffset}
+      className={classNames(
+        "bg-default text-default data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 border-subtle z-50 w-64 rounded-md border p-2 shadow-sm outline-none",
+        className
+      )}
+      {...props}
+    />
+  );
+};
 HoverCardContent.displayName = HoverCardPrimitive.Content.displayName;
 
 export { HoverCard, HoverCardTrigger, HoverCardContent, HoverCardPortal };
