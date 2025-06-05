@@ -836,4 +836,45 @@ export class BookingRepository {
       },
     });
   }
+
+  static async findBookingByIdForReschedule({ bookingId }: { bookingId: number }) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        eventType: {
+          select: {
+            id: true,
+            slug: true,
+          },
+        },
+        attendees: {
+          select: {
+            timeZone: true,
+          },
+          take: 1,
+          orderBy: {
+            id: "asc",
+          },
+        },
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (!booking) {
+      return null;
+    }
+
+    const { eventType, attendees, user, ...rest } = booking;
+
+    return {
+      ...rest,
+      eventType,
+      bookerAttendee: attendees[0],
+      user,
+    };
+  }
 }

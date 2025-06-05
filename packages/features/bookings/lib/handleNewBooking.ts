@@ -28,8 +28,6 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
-import { createCalendarSyncTask } from "@calcom/features/calendar-sync/tasks/createCalendarSync/createTask";
-import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -66,7 +64,6 @@ import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -104,7 +101,6 @@ import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConf
 import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
-import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
@@ -401,6 +397,9 @@ async function handler(
     hostname,
     forcedSlug,
     areCalendarEventsEnabled = true,
+    skipEventLimitsCheck,
+    skipAvailabilityCheck,
+    skipCalendarSyncTaskCreation,
   } = input;
 
   const isPlatformBooking = !!platformClientId;
@@ -632,6 +631,8 @@ async function handler(
     });
   }
 
+  const { loadAndValidateUsers } = await import("./handleNewBooking/loadAndValidateUsers");
+
   const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
     hostname,
     forcedSlug,
@@ -657,11 +658,13 @@ async function handler(
     location,
   });
 
-  await checkBookingAndDurationLimits({
-    eventType,
-    reqBodyStart: reqBody.start,
-    reqBodyRescheduleUid: reqBody.rescheduleUid,
-  });
+  if (!skipEventLimitsCheck) {
+    await checkBookingAndDurationLimits({
+      eventType,
+      reqBodyStart: reqBody.start,
+      reqBodyRescheduleUid: reqBody.rescheduleUid,
+    });
+  }
 
   let luckyUserResponse;
   let isFirstSeat = true;
@@ -734,31 +737,34 @@ async function handler(
         if (isTeamEvent) {
           // each fixed user must be available
           for (const key in fixedUsers) {
+            if (!skipAvailabilityCheck) {
+              await ensureAvailableUsers(
+                { ...eventTypeWithUsers, users: [fixedUsers[key]] },
+                {
+                  dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                  dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                  timeZone: reqBody.timeZone,
+                  originalRescheduledBooking: originalRescheduledBooking ?? null,
+                },
+                loggerWithEventDetails,
+                shouldServeCache
+              );
+            }
+          }
+        } else {
+          if (!skipAvailabilityCheck) {
             await ensureAvailableUsers(
-              { ...eventTypeWithUsers, users: [fixedUsers[key]] },
+              eventTypeWithUsers,
               {
                 dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
                 dateTo: dayjs(end).tz(reqBody.timeZone).format(),
                 timeZone: reqBody.timeZone,
-                originalRescheduledBooking: originalRescheduledBooking ?? null,
+                originalRescheduledBooking,
               },
               loggerWithEventDetails,
               shouldServeCache
             );
           }
-        } else {
-          eventTypeWithUsers.users[0].credentials;
-          await ensureAvailableUsers(
-            eventTypeWithUsers,
-            {
-              dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-              dateTo: dayjs(end).tz(reqBody.timeZone).format(),
-              timeZone: reqBody.timeZone,
-              originalRescheduledBooking,
-            },
-            loggerWithEventDetails,
-            shouldServeCache
-          );
         }
       }
     }
@@ -766,17 +772,20 @@ async function handler(
     if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
       let availableUsers: IsFixedAwareUser[] = [];
       try {
-        availableUsers = await ensureAvailableUsers(
-          { ...eventTypeWithUsers, users: [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
-          {
-            dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
-            dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
-            timeZone: reqBody.timeZone,
-            originalRescheduledBooking,
-          },
-          loggerWithEventDetails,
-          shouldServeCache
-        );
+        const eventTypeUsers = [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
+        availableUsers = skipAvailabilityCheck
+          ? eventTypeUsers
+          : await ensureAvailableUsers(
+              { ...eventTypeWithUsers, users: eventTypeUsers },
+              {
+                dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+                dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
+                timeZone: reqBody.timeZone,
+                originalRescheduledBooking,
+              },
+              loggerWithEventDetails,
+              shouldServeCache
+            );
       } catch {
         if (additionalFallbackRRUsers.length) {
           loggerWithEventDetails.debug(
@@ -786,22 +795,25 @@ async function handler(
               additionalFallbackRRUsers: additionalFallbackRRUsers.map((user) => user.id),
             })
           );
+          const eventTypeUsers = [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[];
           // can happen when contact owner not available for 2 weeks or fairness would block at least 2 weeks
           // use fallback instead
-          availableUsers = await ensureAvailableUsers(
-            {
-              ...eventTypeWithUsers,
-              users: [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[],
-            },
-            {
-              dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
-              dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
-              timeZone: reqBody.timeZone,
-              originalRescheduledBooking,
-            },
-            loggerWithEventDetails,
-            shouldServeCache
-          );
+          availableUsers = skipAvailabilityCheck
+            ? eventTypeUsers
+            : await ensureAvailableUsers(
+                {
+                  ...eventTypeWithUsers,
+                  users: eventTypeUsers,
+                },
+                {
+                  dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+                  dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
+                  timeZone: reqBody.timeZone,
+                  originalRescheduledBooking,
+                },
+                loggerWithEventDetails,
+                shouldServeCache
+              );
         } else {
           loggerWithEventDetails.debug(
             "Qualified users not available, no fallback users",
@@ -848,6 +860,8 @@ async function handler(
           memberId: eventTypeWithUsers.users[0].id ?? null,
           teamId: eventType.teamId,
         });
+
+        const getLuckyUser = await import("@calcom/lib/server/getLuckyUser");
         const newLuckyUser = await getLuckyUser({
           // find a lucky user that is not already in the luckyUsers array
           availableUsers: freeUsers,
@@ -879,17 +893,19 @@ async function handler(
               const start = input.bookingData.allRecurringDates[i].start;
               const end = input.bookingData.allRecurringDates[i].end;
 
-              await ensureAvailableUsers(
-                { ...eventTypeWithUsers, users: [newLuckyUser] },
-                {
-                  dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-                  dateTo: dayjs(end).tz(reqBody.timeZone).format(),
-                  timeZone: reqBody.timeZone,
-                  originalRescheduledBooking,
-                },
-                loggerWithEventDetails,
-                shouldServeCache
-              );
+              if (!skipAvailabilityCheck) {
+                await ensureAvailableUsers(
+                  { ...eventTypeWithUsers, users: [newLuckyUser] },
+                  {
+                    dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                    dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                    timeZone: reqBody.timeZone,
+                    originalRescheduledBooking,
+                  },
+                  loggerWithEventDetails,
+                  shouldServeCache
+                );
+              }
             }
             // if no error, then lucky user is available for the next slots
             luckyUsers.push(newLuckyUser);
@@ -1390,6 +1406,10 @@ async function handler(
         const usersRepository = new UsersRepository();
         await usersRepository.updateLastActiveAt(booking.userId);
       }
+
+      const AssignmentReasonRecorder = await import(
+        "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder"
+      );
 
       // If it's a round robin event, record the reason for the host assignment
       if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
@@ -2134,7 +2154,7 @@ async function handler(
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
-  if (!isDryRun) {
+  if (!isDryRun && !skipCalendarSyncTaskCreation) {
     await createCalendarSyncTask({
       results,
       organizer: {
