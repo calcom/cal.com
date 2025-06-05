@@ -419,7 +419,7 @@ const LazySelect = ({
   const defaultFilter = React.useMemo(() => createFilter(), []);
   const filteredOptions = React.useMemo(() => {
     const regex = /^(\d{1,2})(a|p|am|pm)$/i;
-    const match = inputValue.match(regex);
+    const match = inputValue.replaceAll(" ", "").match(regex);
     if (!match) {
       return options.filter((option) =>
         defaultFilter({ ...option, data: option.label, value: option.label }, inputValue)
