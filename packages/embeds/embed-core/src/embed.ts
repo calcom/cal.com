@@ -970,11 +970,16 @@ class CalApi {
       config["cal.skipSlotsFetch"] = "true";
     }
 
+    // Enable optimistic loading for better performance if explicitly requested
+    if (config.enableOptimisticLoad) {
+      config["cal.enableOptimisticLoad"] = "true";
+    }
+
     const configWithGuestKeyAndColorScheme = withColorScheme(
       Cal.ensureGuestKey({
         ...config,
         embedType: "modal",
-      }),
+      } as any),
       containerEl
     );
 
@@ -1395,6 +1400,11 @@ let currentColorScheme: string | null = null;
 
 (function watchAndActOnColorSchemeChange() {
   // TODO: Maybe find a better way to identify change in color-scheme, a mutation observer seems overkill for this. Settle with setInterval for now.
+  // Guard against test environments where document might not be defined
+  if (typeof document === "undefined") {
+    return;
+  }
+
   setInterval(() => {
     const colorScheme = getColorScheme(document.body);
     if (colorScheme && colorScheme !== currentColorScheme) {

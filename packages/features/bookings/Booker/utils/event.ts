@@ -122,5 +122,7 @@ export const useScheduleForEvent = ({
     isSuccess: schedule?.isSuccess,
     isLoading: schedule?.isLoading,
     invalidate: schedule?.invalidate,
+    isOptimisticLoad: schedule?.isOptimisticLoad,
+    hasEssentialData: schedule?.hasEssentialData,
   };
 };

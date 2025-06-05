@@ -387,6 +387,15 @@ function isLinkReady() {
 }
 
 function isBookerReady() {
+  // Check if optimistic loading is enabled via URL params
+  const url = new URL(document.URL);
+  const enableOptimisticLoad = url.searchParams.get("cal.enableOptimisticLoad") === "true";
+
+  if (enableOptimisticLoad) {
+    const bookerState = window._embedBookerState;
+    return bookerState && bookerState !== "initializing";
+  }
+
   return window._embedBookerState === "slotsDone";
 }
 
@@ -819,6 +828,35 @@ export function getEmbedBookerState({
 }): EmbedBookerState {
   if (bookerState === "loading") {
     return "initializing";
+  }
+
+  let enableOptimisticLoad = false;
+  try {
+    if (typeof document !== "undefined" && document.URL) {
+      const url = new URL(document.URL);
+      enableOptimisticLoad = url.searchParams.get("cal.enableOptimisticLoad") === "true";
+    }
+  } catch (error) {
+    enableOptimisticLoad = false;
+  }
+
+  if (enableOptimisticLoad) {
+    if (slotsQuery.isLoading) {
+      return "slotsLoading";
+    }
+
+    if (slotsQuery.isPending) {
+      return "slotsPending";
+    }
+
+    if (slotsQuery.isSuccess) {
+      return "slotsDone";
+    }
+    if (slotsQuery.isError) {
+      return "slotsLoadingError";
+    }
+
+    return "slotsPending";
   }
 
   if (slotsQuery.isLoading) {
