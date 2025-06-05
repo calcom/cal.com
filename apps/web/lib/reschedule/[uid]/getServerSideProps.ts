@@ -117,7 +117,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (
     isDisabledRescheduling ||
     (!allowRescheduleForCancelledBooking &&
-      (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED))
+      (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) &&
+      booking.eventType?.disableReschedulingCancelledBookings)
   ) {
     return {
       redirect: {

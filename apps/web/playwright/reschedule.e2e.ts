@@ -412,8 +412,9 @@ test.describe("Reschedule Tests", async () => {
 
     await page.goto(`/reschedule/${booking.uid}`);
 
-    await expect(page.url()).toContain(`/booking/${booking.uid}`);
-    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+    expect(page.url()).not.toContain("rescheduleUid");
+    const formerTimeElement = await page.locator('[data-testid="former_time_p"]');
+    await expect(formerTimeElement).toBeHidden();
   });
 
   test("Should allow rescheduling when disableReschedulingCancelledBookings is false", async ({
@@ -438,6 +439,9 @@ test.describe("Reschedule Tests", async () => {
     });
 
     await page.goto(`/reschedule/${booking.uid}`);
+
+    const formerTimeElement = await page.locator('[data-testid="former_time_p"]');
+    await expect(formerTimeElement).toBeVisible();
 
     await selectFirstAvailableTimeSlotNextMonth(page);
     await confirmReschedule(page);
