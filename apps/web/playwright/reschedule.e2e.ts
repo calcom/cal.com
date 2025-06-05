@@ -389,7 +389,7 @@ test.describe("Reschedule Tests", async () => {
     // It is tested in teams.e2e.ts
   });
 
-  test("Should redirect to cancelled page when disableReschedulingCancelledBookings is true (default)", async ({
+  test("Should redirect to cancelled page when allowReschedulingCancelledBookings is false (default)", async ({
     page,
     users,
     bookings,
@@ -402,7 +402,7 @@ test.describe("Reschedule Tests", async () => {
         id: eventType.id,
       },
       data: {
-        disableReschedulingCancelledBookings: true,
+        allowReschedulingCancelledBookings: false,
       },
     });
 
@@ -417,7 +417,7 @@ test.describe("Reschedule Tests", async () => {
     await expect(formerTimeElement).toBeHidden();
   });
 
-  test("Should allow rescheduling when disableReschedulingCancelledBookings is false", async ({
+  test("Should allow rescheduling when allowReschedulingCancelledBookings is true", async ({
     page,
     users,
     bookings,
@@ -430,7 +430,7 @@ test.describe("Reschedule Tests", async () => {
         id: eventType.id,
       },
       data: {
-        disableReschedulingCancelledBookings: false,
+        allowReschedulingCancelledBookings: true,
       },
     });
 

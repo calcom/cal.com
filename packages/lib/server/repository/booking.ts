@@ -670,7 +670,7 @@ export class BookingRepository {
         },
         eventType: {
           select: {
-            disableReschedulingCancelledBookings: true,
+            allowReschedulingCancelledBookings: true,
           },
         },
         destinationCalendar: true,

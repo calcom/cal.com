@@ -15,7 +15,7 @@ export async function getOriginalRescheduledBooking(uid: string, seatsEventType?
   if (
     originalBooking.status === BookingStatus.CANCELLED &&
     !originalBooking.rescheduled &&
-    (originalBooking.eventType?.disableReschedulingCancelledBookings ?? true)
+    !(originalBooking.eventType?.allowReschedulingCancelledBookings ?? false)
   ) {
     throw new HttpError({ statusCode: 400, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
   }

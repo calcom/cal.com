@@ -497,9 +497,7 @@ export const EventAdvancedTab = ({
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
   const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
-  const disableReschedulingCancelledBookingsLocked = shouldLockDisableProps(
-    "disableReschedulingCancelledBookings"
-  );
+  const allowReschedulingCancelledBookingsLocked = shouldLockDisableProps("allowReschedulingCancelledBookings");
 
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
@@ -511,8 +509,8 @@ export const EventAdvancedTab = ({
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
-  const [disableReschedulingCancelledBookings, setDisableReschedulingCancelledBookings] = useState(
-    eventType.disableReschedulingCancelledBookings ?? true
+  const [allowReschedulingCancelledBookings, setallowReschedulingCancelledBookings] = useState(
+    eventType.allowReschedulingCancelledBookings ?? false
   );
 
   const closeEventNameTip = () => setShowEventNameTip(false);
@@ -650,19 +648,19 @@ export const EventAdvancedTab = ({
           />
 
           <Controller
-            name="disableReschedulingCancelledBookings"
+            name="allowReschedulingCancelledBookings"
             render={({ field: { onChange } }) => (
               <SettingsToggle
                 labelClassName="text-sm"
                 toggleSwitchAtTheEnd={true}
                 switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_rescheduling_cancelled_bookings")}
-                data-testid="disable-rescheduling-cancelled-bookings-toggle"
-                {...disableReschedulingCancelledBookingsLocked}
-                description={t("description_disable_rescheduling_cancelled_bookings")}
-                checked={disableReschedulingCancelledBookings}
+                title={t("allow_rescheduling_cancelled_bookings")}
+                data-testid="allow-rescheduling-cancelled-bookings-toggle"
+                {...allowReschedulingCancelledBookingsLocked}
+                description={t("description_allow_rescheduling_cancelled_bookings")}
+                checked={allowReschedulingCancelledBookings}
                 onCheckedChange={(val) => {
-                  setDisableReschedulingCancelledBookings(val);
+                  setallowReschedulingCancelledBookings(val);
                   onChange(val);
                 }}
               />

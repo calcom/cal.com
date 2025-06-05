@@ -517,7 +517,7 @@ export class EventTypeRepository {
       disableGuests: true,
       disableCancelling: true,
       disableRescheduling: true,
-      disableReschedulingCancelledBookings: true,
+      allowReschedulingCancelledBookings: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,

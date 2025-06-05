@@ -74,7 +74,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     if (
       booking?.status === BookingStatus.CANCELLED &&
       !allowRescheduleForCancelledBooking &&
-      eventData.disableReschedulingCancelledBookings
+      !eventData.allowReschedulingCancelledBookings
     ) {
       return {
         redirect: {
@@ -216,7 +216,7 @@ const getTeamWithEventsData = async (
           hidden: true,
           disableCancelling: true,
           disableRescheduling: true,
-          disableReschedulingCancelledBookings: true,
+          allowReschedulingCancelledBookings: true,
           interfaceLanguage: true,
           hosts: {
             take: 3,

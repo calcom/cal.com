@@ -59,7 +59,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           allowReschedulingPastBookings: true,
           disableRescheduling: true,
-          disableReschedulingCancelledBookings: true,
+          allowReschedulingCancelledBookings: true,
           team: {
             select: {
               parentId: true,
@@ -114,12 +114,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // If the booking is CANCELLED and allowRescheduleForCancelledBooking is false, we redirect the user to the original event link.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
+  console.log({
+    isDisabledRescheduling,
+    allowRescheduleForCancelledBooking,
+    bookingStatus: booking.status,
+    allowReschedulingCancelledBookings: booking.eventType?.allowReschedulingCancelledBookings,
+  });
   if (
     isDisabledRescheduling ||
     (!allowRescheduleForCancelledBooking &&
       (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) &&
-      booking.eventType?.disableReschedulingCancelledBookings)
+      !booking.eventType?.allowReschedulingCancelledBookings)
   ) {
+    console.log("redirecting");
     return {
       redirect: {
         destination: booking.status === BookingStatus.CANCELLED ? eventUrl : `/booking/${uid}`,
