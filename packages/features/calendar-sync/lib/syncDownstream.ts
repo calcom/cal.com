@@ -7,7 +7,8 @@ import type { Booking } from "@calcom/prisma/client";
 import type { CalendarEventsToSync } from "@calcom/types/Calendar";
 
 import type { CancellationBySyncReason } from "../types";
-import { cancelBooking } from "./downstreamActions";
+import { cancelBooking } from "./downstreamActions/cancelBooking";
+import { rescheduleBooking } from "./downstreamActions/rescheduleBooking";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSync"] });
 
@@ -256,12 +257,12 @@ export async function syncDownstream({
                   newEnd: action.endTime,
                 })
               );
-              // await rescheduleBooking({
-              //   bookingId: action.bookingId,
-              //   startTime: action.startTime,
-              //   endTime: action.endTime,
-              //   rescheduledBy: action.rescheduledBy,
-              // });
+              await rescheduleBooking({
+                bookingId: action.bookingId,
+                startTime: action.startTime,
+                endTime: action.endTime,
+                rescheduledBy: action.rescheduledBy,
+              });
               break;
             case "NO_CHANGE":
             case "IGNORE_CHANGE":

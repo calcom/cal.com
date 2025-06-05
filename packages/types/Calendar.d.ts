@@ -268,11 +268,12 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
  * null is to refer to user-level SelectedCalendar
  */
 export type SelectedCalendarEventTypeIds = (number | null)[];
+export type UnixTimestampMs = number;
 export type CalendarEventsToSync = {
   id: string;
   status: string;
-  startTime: Dayjs;
-  endTime: Dayjs;
+  startTime: UnixTimestampMs;
+  endTime: UnixTimestampMs;
   organizerResponseStatus: "needsAction" | "declined" | "tentative" | "accepted";
 }[];
 

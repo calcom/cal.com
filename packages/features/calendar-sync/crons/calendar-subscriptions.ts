@@ -76,8 +76,10 @@ const createOrRenewThirdPartySubscription = async (
 
   log.debug(`Attempting to ${logPrefix} subscription for CalendarSubscription ${subscription.id}`);
 
+  console.log("Calling getCalendar", getCalendar);
   // Create or renew the subscription with the provider (e.g., Google Calendar watch)
   const calendarService = await getCalendar(credentialForCalendarCache);
+  console.log("calendarService1", calendarService);
   if (!calendarService) {
     log.error(
       `Calendar service not found for CalendarSubscription ${subscription.id} (credential ${subscription.credentialId}, externalId ${subscription.externalCalendarId})`
@@ -85,6 +87,7 @@ const createOrRenewThirdPartySubscription = async (
     throw new Error("CalendarService couldn't be initialized");
   }
 
+  console.log("calendarService", calendarService);
   if (!calendarService.subscribeToCalendar) {
     log.error(
       `subscribeToCalendar is not implemented for CalendarSubscription ${subscription.id} (credential ${subscription.credentialId}, externalId ${subscription.externalCalendarId})`
