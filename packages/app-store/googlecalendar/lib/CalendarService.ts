@@ -882,7 +882,13 @@ export default class GoogleCalendarService implements Calendar {
 
     log.debug("concernedEvents", safeStringify(concernedEvents));
 
-    return concernedEvents.filter((e): e is CalendarEventsToSync[number] => e !== null);
+    return concernedEvents
+      .map((event) => {
+        // We need htmlLink only for debugging purposes. It's not needed for downstream sync.
+        const { htmlLink: _, ...restEvent } = event;
+        return restEvent;
+      })
+      .filter((e): e is CalendarEventsToSync[number] => e !== null);
   }
 
   // It would error if the delegation credential is not set up correctly

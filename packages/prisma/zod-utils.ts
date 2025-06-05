@@ -288,12 +288,7 @@ export const bookingCancelSchema = z.object({
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
   seatReferenceUid: z.string().optional(),
-  cancelledBy: z
-    .union([
-      z.string().email({ message: "Invalid email" }),
-      z.string().refine((v) => v.startsWith("appStore.calendar."), "Invalid cancelledBy"),
-    ])
-    .optional(),
+  cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
   internalNote: z
     .object({
       id: z.number(),
