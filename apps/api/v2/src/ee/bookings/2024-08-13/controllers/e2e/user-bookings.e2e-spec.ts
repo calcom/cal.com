@@ -2229,15 +2229,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       it("should update booking location via PATCH", async () => {
         const mockBooking = await bookingsRepositoryFixture.create({
+          uid: `booking-uid-${eventTypeId}`,
+          title: "booking title",
+          startTime: "2050-09-05T11:00:00.000Z",
+          endTime: "2050-09-05T12:00:00.000Z",
           user: {
             connect: {
               id: user.id,
             },
           },
-          startTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
-          endTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
-          title: "peer coding lets goo",
-          uid: `booking-in-the-past-${randomString()}`,
           eventType: {
             connect: {
               id: eventTypeId,
