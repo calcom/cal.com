@@ -84,6 +84,11 @@ export class BookingReferenceRepository {
             startTime: true,
             endTime: true,
             status: true,
+            eventType: {
+              select: {
+                length: true,
+              },
+            },
           },
         },
       },

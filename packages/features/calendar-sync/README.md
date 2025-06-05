@@ -35,7 +35,7 @@ No additional configuration is needed. Once Google Calendar is connected as your
 - Notifications from Google Calendar may occasionally be delayed
 - Sync is not 100% reliable - occasional dropped notifications may occur
 - Currently only supports Google Calendar (Outlook support coming in the future)
-- Time/date rescheduling doesn't check for availability conflicts (may be improved in future)
+- Time/date rescheduling doesn't care about availability conflicts (may be improved in future)
 
 ## Troubleshooting
 
@@ -67,6 +67,7 @@ TODO:
 - [ ] Review indices carefully on DB. Maybe use explain analyze to check if they are being used.
 - [ ] When does updateEvent return an array of NewCalendarEventType?
 - [ ] Tests for Google CalendarService
+- [ ] Timezone testing for Calendar event time change sync
 
 - Tests:
    - [ ] Subscription renewal

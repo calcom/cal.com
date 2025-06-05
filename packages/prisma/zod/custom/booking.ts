@@ -10,9 +10,7 @@ export const bookingCreateBodySchema = z.object({
   eventTypeSlug: z.string().optional(),
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
-  rescheduledBy: z
-    .union([z.string().email({ message: "Invalid email" }), z.string().startsWith("appStore.calendar.")])
-    .optional(),
+  rescheduledBy: z.string().email({ message: "Invalid email" }).optional(),
   start: z.string(),
   timeZone: timeZoneSchema,
   user: z.union([z.string(), z.array(z.string())]).optional(),
