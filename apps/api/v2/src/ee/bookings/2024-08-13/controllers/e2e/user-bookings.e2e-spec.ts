@@ -2238,28 +2238,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
               id: user.id,
             },
           },
-          eventType: {
-            connect: {
-              id: eventTypeId,
-            },
-          },
           location: "integrations:daily",
           customInputs: {},
           metadata: {},
-          responses: {
-            name: "Oldie",
-            email: "oldie@gmail.com",
-          },
-          attendees: {
-            create: {
-              email: "oldie@gmail.com",
-              name: "Oldie",
-              locale: "lv",
-              timeZone: "Europe/Rome",
-            },
-          },
-          rating: 10,
-          iCalUID: "ics-uid",
         });
 
         const body: UpdateBookingLocationInput_2024_08_13 = {
