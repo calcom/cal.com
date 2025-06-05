@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { doesServiceIdExist } from "@calcom/features/services/services";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
@@ -6,18 +7,23 @@ import type { Booking } from "@calcom/prisma/client";
 import type { CalendarEventsToSync } from "@calcom/types/Calendar";
 
 import type { CancellationBySyncReason } from "../types";
-import { cancelBooking, rescheduleBooking } from "./downstreamActions";
+import { cancelBooking } from "./downstreamActions";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSync"] });
 
 // Define complex types for function parameters
-type BookingDataForSync = Pick<Booking, "id" | "startTime" | "endTime" | "status"> | null;
+type BookingDataForSync =
+  | (Pick<Booking, "id" | "startTime" | "endTime" | "status"> & {
+      eventType: { length: number } | null;
+    })
+  | null;
 type ReasonCode =
   | "NO_BOOKING_FOUND"
   | "BOOKING_NOT_ACCEPTED"
   | "BOOKING_ALREADY_CANCELLED"
   | "NEW_TIME_IN_PAST"
-  | "NO_TIME_CHANGE";
+  | "NO_TIME_CHANGE"
+  | "DURATION_CHANGE_NOT_ALLOWED";
 
 type BookingUpdateAction =
   | { type: "NO_CHANGE"; bookingId?: number; reason: { code: ReasonCode; message: string }; notes?: string[] }
@@ -47,7 +53,7 @@ type BookingUpdateAction =
 type getBookingUpdateActionsParams = {
   calendarEvent: CalendarEventsToSync[number];
   booking: BookingDataForSync;
-  appSlug: string;
+  actionTakenBy: string;
 };
 
 /**
@@ -57,7 +63,7 @@ type getBookingUpdateActionsParams = {
 export function getBookingUpdateActions({
   calendarEvent,
   booking,
-  appSlug,
+  actionTakenBy,
 }: getBookingUpdateActionsParams): BookingUpdateAction[] {
   const calendarEventId = calendarEvent.id;
   const actions: BookingUpdateAction[] = [];
@@ -86,9 +92,6 @@ export function getBookingUpdateActions({
     return actions;
   }
 
-  // This format that starts with appStore.calendar. is whitelisted and can be used as cancelledBy/rescheduledBy
-  const actionTakenBy = `appStore.calendar.${appSlug}`;
-
   if (calendarEvent.status === "cancelled" || calendarEvent.organizerResponseStatus === "declined") {
     // Cancel the booking, we know here that the booking is ACCEPTED, so we should cancel
     actions.push({
@@ -97,7 +100,7 @@ export function getBookingUpdateActions({
       cancelledBy: actionTakenBy,
       cancellationReason:
         calendarEvent.organizerResponseStatus === "declined"
-          ? "organizer_declined_in_calendar"
+          ? "event_declined_by_organizer_in_calendar"
           : "event_cancelled_in_calendar",
       notes: ["Ignoring every other change as the booking has been cancelled"],
     });
@@ -121,13 +124,28 @@ export function getBookingUpdateActions({
         },
       });
     } else {
-      actions.push({
-        type: "UPDATE_BOOKING_TIMES",
-        bookingId: booking.id,
-        startTime: calendarEventStartTime.toDate(),
-        endTime: calendarEventEndTime.toDate(),
-        rescheduledBy: actionTakenBy,
-      });
+      // Check if the new duration matches the EventType length
+      const newDurationMinutes = calendarEventEndTime.diff(calendarEventStartTime, "minutes");
+      const expectedDurationMinutes = booking.eventType?.length;
+
+      if (expectedDurationMinutes && newDurationMinutes !== expectedDurationMinutes) {
+        actions.push({
+          type: "IGNORE_CHANGE",
+          bookingId: booking.id,
+          reason: {
+            code: "DURATION_CHANGE_NOT_ALLOWED",
+            message: `Calendar Event ${calendarEventId} duration change (${newDurationMinutes} min) doesn't match EventType length (${expectedDurationMinutes} min). Duration changes are not allowed.`,
+          },
+        });
+      } else {
+        actions.push({
+          type: "UPDATE_BOOKING_TIMES",
+          bookingId: booking.id,
+          startTime: calendarEventStartTime.toDate(),
+          endTime: calendarEventEndTime.toDate(),
+          rescheduledBy: actionTakenBy,
+        });
+      }
     }
   } else {
     actions.push({
@@ -181,8 +199,13 @@ export async function syncDownstream({
   app: {
     type: "google_calendar";
     slug: "google-calendar";
+    serviceId: string;
   };
 }) {
+  if (!doesServiceIdExist(app.serviceId)) {
+    throw new Error(`App serviceId ${app.serviceId} is not valid`);
+  }
+  const actionTakenBy = app.serviceId;
   if (!calendarEvents.length) {
     log.debug("No calendar events to sync.");
     return [];
@@ -209,7 +232,7 @@ export async function syncDownstream({
           );
           continue;
         }
-        const actions = getBookingUpdateActions({ calendarEvent, booking, appSlug: app.slug });
+        const actions = getBookingUpdateActions({ calendarEvent, booking, actionTakenBy });
 
         for (const action of actions) {
           const dbUpdatePromise: Promise<unknown> = Promise.resolve(); // Default to no DB operation
@@ -227,18 +250,18 @@ export async function syncDownstream({
               break;
             case "UPDATE_BOOKING_TIMES":
               log.info(
-                `Calendar Event ${calendarEvent.id} triggered RESCHEDULE for Cal.com booking ${action.bookingId}.`,
+                `Calendar Event ${calendarEvent.id} triggered RESCHEDULE(but ignored) for Cal.com booking ${action.bookingId}.`,
                 safeStringify({
                   newStart: action.startTime,
                   newEnd: action.endTime,
                 })
               );
-              await rescheduleBooking({
-                bookingId: action.bookingId,
-                startTime: action.startTime,
-                endTime: action.endTime,
-                rescheduledBy: action.rescheduledBy,
-              });
+              // await rescheduleBooking({
+              //   bookingId: action.bookingId,
+              //   startTime: action.startTime,
+              //   endTime: action.endTime,
+              //   rescheduledBy: action.rescheduledBy,
+              // });
               break;
             case "NO_CHANGE":
             case "IGNORE_CHANGE":
