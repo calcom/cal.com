@@ -110,26 +110,31 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     profileEnrichedBookingUser: enrichedBookingUser,
   });
 
+  const isForcedRescheduleForCancelledBooking = allowRescheduleForCancelledBooking;
   // If booking is already REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // If the booking is CANCELLED and allowRescheduleForCancelledBooking is false, we redirect the user to the original event link.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
-  console.log({
-    isDisabledRescheduling,
-    allowRescheduleForCancelledBooking,
-    bookingStatus: booking.status,
-    allowReschedulingCancelledBookings: booking.eventType?.allowReschedulingCancelledBookings,
-  });
-  if (
-    isDisabledRescheduling ||
-    (!allowRescheduleForCancelledBooking &&
-      (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) &&
-      !booking.eventType?.allowReschedulingCancelledBookings)
-  ) {
-    console.log("redirecting");
+  // This comes from query param and thus is considered forced
+  const canRescheduleCancelledBooking =
+    isForcedRescheduleForCancelledBooking || booking.eventType?.allowReschedulingCancelledBookings;
+  const isNonRescheduleableBooking =
+    booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
+
+  if (isDisabledRescheduling) {
     return {
       redirect: {
-        destination: booking.status === BookingStatus.CANCELLED ? eventUrl : `/booking/${uid}`,
+        destination: `/booking/${uid}`,
+        permanent: false,
+      },
+    };
+  }
+
+  if (isNonRescheduleableBooking) {
+    const canReschedule = booking.status === BookingStatus.CANCELLED && canRescheduleCancelledBooking;
+    return {
+      redirect: {
+        destination: canReschedule ? eventUrl : `/booking/${uid}`,
         permanent: false,
       },
     };
