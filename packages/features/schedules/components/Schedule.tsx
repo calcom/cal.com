@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   ArrayPath,
   Control,
@@ -10,7 +10,7 @@ import type {
   UseFieldArrayRemove,
 } from "react-hook-form";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
-import type { GroupBase, Props } from "react-select";
+import { createFilter, type GroupBase, type Props } from "react-select";
 
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -19,13 +19,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
-import { Select } from "@calcom/ui/components/form";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
+import { Select } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type { TimeRange };
 
@@ -415,9 +415,36 @@ const LazySelect = ({
     filter({ current: value });
   }, [filter, value]);
 
+  const [inputValue, setInputValue] = React.useState("");
+  const defaultFilter = React.useMemo(() => createFilter(), []);
+  const filteredOptions = React.useMemo(() => {
+    const regex = /^(\d{1,2})(a|p|am|pm)$/i;
+    const match = inputValue.match(regex);
+    if (!match) {
+      return options.filter((option) =>
+        defaultFilter({ ...option, data: option.label, value: option.label }, inputValue)
+      );
+    }
+
+    const [, numberPart, periodPart] = match;
+    const periodLower = periodPart.toLowerCase();
+    const scoredOptions = options
+      .filter((option) => option.label && option.label.toLowerCase().includes(periodLower))
+      .map((option) => {
+        const labelLower = option.label.toLowerCase();
+        const index = labelLower.indexOf(numberPart);
+        const score = index >= 0 ? index + labelLower.length : Infinity;
+        return { score, option };
+      })
+      .sort((a, b) => a.score - b.score);
+
+    const maxScore = scoredOptions[0]?.score;
+    return scoredOptions.filter((item) => item.score === maxScore).map((item) => item.option);
+  }, [inputValue, options, defaultFilter]);
+
   return (
     <Select
-      options={options}
+      options={filteredOptions}
       onMenuOpen={() => {
         if (min) filter({ offset: min });
         if (max) filter({ limit: max });
@@ -427,6 +454,8 @@ const LazySelect = ({
       value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
       onMenuClose={() => filter({ current: value })}
       components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}
+      onInputChange={setInputValue}
+      filterOption={() => true}
       {...props}
     />
   );
