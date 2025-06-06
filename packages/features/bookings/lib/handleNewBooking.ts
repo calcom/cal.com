@@ -28,6 +28,7 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { createCalendarSyncTask } from "@calcom/features/calendar-sync/tasks/createCalendarSync/createTask";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -2154,7 +2155,7 @@ async function handler(
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
-  if (!isDryRun && !skipCalendarSyncTaskCreation) {
+  if (!skipCalendarSyncTaskCreation && !isDryRun) {
     await createCalendarSyncTask({
       results,
       organizer: {
