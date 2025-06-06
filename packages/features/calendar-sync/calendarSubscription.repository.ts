@@ -61,6 +61,7 @@ export class CalendarSubscriptionRepository {
       status?: CalendarSubscriptionStatus;
       lastSyncAt?: Date;
       lastError?: string;
+      lastErrorAt?: Date;
     };
   }) {
     return await prisma.calendarSubscription.update({
