@@ -388,12 +388,16 @@ function isLinkReady() {
 
 function isBookerReady() {
   // Check if optimistic loading is enabled via URL params
+  if (typeof document === "undefined") {
+    return false;
+  }
+
   const url = new URL(document.URL);
   const enableOptimisticLoad = url.searchParams.get("cal.enableOptimisticLoad") === "true";
 
   if (enableOptimisticLoad) {
     const bookerState = window._embedBookerState;
-    return bookerState && bookerState !== "initializing";
+    return bookerState !== undefined && bookerState !== "initializing";
   }
 
   return window._embedBookerState === "slotsDone";
