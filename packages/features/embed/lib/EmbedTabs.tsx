@@ -29,7 +29,7 @@ export const tabs = [
     type: "code",
     "data-testid": "HTML",
     Component: function EmbedHtml({
-      ref: _forwardedRef,
+      ref: forwardedRef,
       embedType,
       calLink,
       previewState,
@@ -40,10 +40,10 @@ export const tabs = [
       const { t } = useLocale();
       const embedSnippetString = useGetEmbedSnippetString(namespace);
       const embedCalOrigin = useEmbedCalOrigin();
-      if (ref instanceof Function || !ref) {
+      if (!forwardedRef || forwardedRef instanceof Function) {
         return null;
       }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+      if (forwardedRef.current && !(forwardedRef.current instanceof HTMLTextAreaElement)) {
         return null;
       }
       return (
@@ -55,7 +55,7 @@ export const tabs = [
           </div>
           <TextArea
             data-testid="embed-code"
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+            ref={forwardedRef as typeof forwardedRef & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
             className="text-default bg-default h-[calc(100%-50px)] font-mono"
             style={{ resize: "none", overflow: "auto" }}
@@ -91,7 +91,7 @@ export const tabs = [
     icon: "code" as const,
     type: "code",
     Component: function EmbedReact({
-      ref: _forwardedRef,
+      ref: forwardedRef,
       embedType,
       calLink,
       previewState,
@@ -102,10 +102,10 @@ export const tabs = [
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
-      if (ref instanceof Function || !ref) {
+      if (!forwardedRef || forwardedRef instanceof Function) {
         return null;
       }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+      if (forwardedRef.current && !(forwardedRef.current instanceof HTMLTextAreaElement)) {
         return null;
       }
       return (
@@ -113,7 +113,7 @@ export const tabs = [
           <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
           <TextArea
             data-testid="embed-react"
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+            ref={forwardedRef as typeof forwardedRef & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
             className="text-default bg-default h-[calc(100%-50px)] font-mono"
             readOnly
@@ -146,7 +146,7 @@ export const tabs = [
     icon: "code" as const,
     type: "code",
     Component: function EmbedReactAtom({
-      ref: _forwardedRef,
+      ref: forwardedRef,
       embedType,
       calLink,
       previewState,
@@ -157,10 +157,10 @@ export const tabs = [
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
-      if (ref instanceof Function || !ref) {
+      if (!forwardedRef || forwardedRef instanceof Function) {
         return null;
       }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+      if (forwardedRef.current && !(forwardedRef.current instanceof HTMLTextAreaElement)) {
         return null;
       }
       return (
@@ -168,7 +168,7 @@ export const tabs = [
           <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
           <TextArea
             data-testid={`${EmbedTabName.ATOM_REACT}`}
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+            ref={forwardedRef as typeof forwardedRef & MutableRefObject<HTMLTextAreaElement>}
             name={`${EmbedTabName.ATOM_REACT}`}
             className="text-default bg-default h-[calc(100%-50px)] font-mono"
             readOnly
@@ -218,7 +218,7 @@ ${getEmbedTypeSpecificString({
       }
       return (
         <iframe
-          ref={forwardedRef}
+          ref={forwardedRef as React.LegacyRef<HTMLIFrameElement>}
           data-testid="embed-preview"
           className="rounded-md border"
           width="100%"
