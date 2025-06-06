@@ -174,22 +174,25 @@ export const DialogTrigger = function DialogTrigger({
 
 DialogTrigger.displayName = "DialogTrigger";
 
-export function DialogClose(
-  props: {
-    "data-testid"?: string;
-    dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
-    children?: ReactNode;
-    onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-    disabled?: boolean;
-    color?: ButtonProps["color"];
-  } & React.ComponentProps<typeof Button>
-) {
+export function DialogClose({
+  ref: forwardedRef,
+  ...props
+}: {
+  "data-testid"?: string;
+  dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
+  children?: ReactNode;
+  onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  disabled?: boolean;
+  color?: ButtonProps["color"];
+  ref?: React.Ref<HTMLButtonElement>;
+} & React.ComponentProps<typeof Button>) {
   const { t } = useLocale();
   const { className, ...buttonProps } = props;
 
   return (
     <DialogPrimitive.Close asChild {...props.dialogCloseProps}>
       <Button
+        ref={forwardedRef}
         data-testid={props["data-testid"] || "dialog-rejection"}
         color={props.color || "minimal"}
         className={classNames(props.color === "destructive" && "destructive", className)}

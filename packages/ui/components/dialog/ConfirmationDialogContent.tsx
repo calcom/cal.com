@@ -21,9 +21,8 @@ export type ConfirmationDialogContentProps = {
 } & ConfirmBtnType;
 
 export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
-  const dialogRef = React.useRef<HTMLDivElement>(null);
   return (
-    <DialogContent ref={dialogRef} type="creation">
+    <DialogContent type="creation">
       <ConfirmationContent {...props} />
     </DialogContent>
   );
