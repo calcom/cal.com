@@ -495,6 +495,7 @@ export const EventAdvancedTab = ({
   const hideOrganizerEmailLocked = shouldLockDisableProps("hideOrganizerEmail");
   const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
+  const disableAutoFillLocked = shouldLockDisableProps("disableAutoFill");
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
   const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
 
@@ -644,6 +645,22 @@ export const EventAdvancedTab = ({
         </>
       )}
 
+      <Controller
+        name="disableAutoFill"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("disable_auto_fill")}
+            data-testid="disable-auto-fill"
+            {...disableAutoFillLocked}
+            description={t("description_disable_auto_fill")}
+            checked={value}
+            onCheckedChange={(val) => onChange(val)}
+          />
+        )}
+      />
       <Controller
         name="canSendCalVideoTranscriptionEmails"
         render={({ field: { value, onChange } }) => (

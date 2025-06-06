@@ -31,6 +31,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   disableGuests: true,
+  disableAutoFill: true,
   disableCancelling: true,
   disableRescheduling: true,
   hideCalendarNotes: true,

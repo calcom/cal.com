@@ -45,6 +45,7 @@ export const useEventTypeForm = ({
       slug: eventType.slug,
       afterEventBuffer: eventType.afterEventBuffer,
       beforeEventBuffer: eventType.beforeEventBuffer,
+      disableAutoFill: eventType.disableAutoFill,
       eventName: eventType.eventName || "",
       scheduleName: eventType.scheduleName,
       periodDays: eventType.periodDays,
