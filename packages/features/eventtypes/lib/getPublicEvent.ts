@@ -325,6 +325,7 @@ export const getPublicEvent = async (
       instantMeetingParameters: [],
       showInstantEventConnectNowModal: false,
       autoTranslateDescriptionEnabled: false,
+      allowReschedulingCancelledBookings: false,
       fieldTranslations: [],
     };
   }
