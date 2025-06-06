@@ -18,7 +18,7 @@ const CheckboxField = function CheckboxField({
   informationIconText,
   ...rest
 }: Props & {
-  ref: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement>;
 }) {
   const descriptionAsLabel = !label || rest.descriptionAsLabel;
   return (

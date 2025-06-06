@@ -26,7 +26,7 @@ export const PasswordField = function PasswordField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement>;
 }) {
   const { t } = useLocale();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -70,7 +70,7 @@ export const EmailInput = function EmailInput({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement>;
 }) {
   return (
     <Input
@@ -89,7 +89,7 @@ export const EmailField = function EmailField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement>;
 }) {
   return (
     <InputField
@@ -110,7 +110,7 @@ export const TextArea = function TextAreaInput({
   ref: forwardedRef,
   ...props
 }: TextAreaProps & {
-  ref: React.RefObject<HTMLTextAreaElement>;
+  ref?: React.RefObject<HTMLTextAreaElement>;
 }) {
   return (
     <textarea
@@ -133,7 +133,7 @@ export const TextAreaField = function TextField({
   ref: forwardedRef,
   ...props
 }: TextAreaFieldProps & {
-  ref: React.RefObject<HTMLTextAreaElement>;
+  ref?: React.RefObject<HTMLTextAreaElement>;
 }) {
   const id = useId();
   const { t: _t } = useLocale();
@@ -189,7 +189,7 @@ export const NumberInput = function NumberInput({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement>;
 }) {
   return (
     <Input
@@ -208,7 +208,7 @@ export const FilterSearchField = function PasswordField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement>;
 }) {
   return (
     <InputField

@@ -21,7 +21,7 @@ const Root = function DataTableToolbar({
   children,
   className,
 }: DataTableToolbarProps & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   return (
     <div
@@ -67,7 +67,7 @@ const SearchBar = function SearchBar({
   ref: forwardedRef,
   ...props
 }: SearchBarProps & {
-  ref: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement>;
 }) {
   return SearchBarComponent(props, forwardedRef);
 };
@@ -100,7 +100,7 @@ const ClearFiltersButton = function ClearFiltersButton<TData>({
   ref: forwardedRef,
   ...props
 }: ClearFiltersButtonProps<TData> & {
-  ref: React.RefObject<HTMLButtonElement>;
+  ref?: React.RefObject<HTMLButtonElement>;
 }) {
   return ClearFiltersButtonComponent(props, forwardedRef);
 };
@@ -120,7 +120,7 @@ const CTA = function CTA({
   ref: forwardedRef,
   ...props
 }: ButtonProps & {
-  ref: React.RefObject<HTMLButtonElement>;
+  ref?: React.RefObject<HTMLButtonElement>;
 }) {
   return CTAComponent(props, forwardedRef);
 };

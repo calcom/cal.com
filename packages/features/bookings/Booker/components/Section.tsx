@@ -48,7 +48,7 @@ export const BookerSection = function BookerSection({
   className,
   ...props
 }: BookerSectionProps & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   const layout = useBookerStore((state) => state.layout);
   let gridClassName: string;

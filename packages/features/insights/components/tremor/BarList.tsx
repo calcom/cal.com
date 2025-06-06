@@ -35,7 +35,7 @@ function BarListInner<T>({
   className,
   ...props
 }: BarListProps<T> & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   const Component = onValueChange ? "button" : "div";
   const sortedData = React.useMemo(() => {

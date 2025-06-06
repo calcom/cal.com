@@ -159,7 +159,7 @@ export const FilterCheckboxField = function FilterCheckboxField({
   testId,
   ...rest
 }: Props & {
-  ref: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement>;
 }) {
   return (
     <div

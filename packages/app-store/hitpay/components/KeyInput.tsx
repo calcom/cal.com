@@ -47,7 +47,7 @@ export const KeyField = function KeyField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & { defaultValue: string } & {
-  ref: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement>;
 }) {
   const id = useId();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);

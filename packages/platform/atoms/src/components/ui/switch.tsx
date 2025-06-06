@@ -7,7 +7,7 @@ const Switch = function Switch({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root> & {
-  ref: React.RefObject<React.ElementRef<typeof SwitchPrimitives.Root>>;
+  ref?: React.RefObject<React.ElementRef<typeof SwitchPrimitives.Root>>;
 }) {
   return (
     <SwitchPrimitives.Root

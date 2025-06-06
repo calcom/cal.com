@@ -17,7 +17,7 @@ export const DropdownMenuTrigger = function DropdownMenuTrigger({
   className = "",
   ...props
 }: DropdownMenuTriggerProps & {
-  ref: React.RefObject<HTMLButtonElement>;
+  ref?: React.RefObject<HTMLButtonElement>;
 }) {
   return (
     <DropdownMenuPrimitive.Trigger
@@ -44,7 +44,7 @@ export const DropdownMenuContent = function DropdownMenuContent({
   align = "end",
   ...props
 }: DropdownMenuContentProps & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   return (
     <DropdownMenuPrimitive.Content
@@ -77,7 +77,7 @@ export const DropdownMenuItem = function DropdownMenuItem({
   className = "",
   ...props
 }: DropdownMenuItemProps & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   return (
     <DropdownMenuPrimitive.Item
@@ -99,7 +99,7 @@ export const DropdownMenuCheckboxItem = function DropdownMenuCheckboxItem({
   onCheckedChange,
   ...props
 }: DropdownMenuCheckboxItemProps & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   return (
     <DropdownMenuPrimitive.CheckboxItem
@@ -142,7 +142,7 @@ export const DropdownMenuRadioItem = function DropdownMenuRadioItem({
   children,
   ...props
 }: DropdownMenuRadioItemProps & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   return (
     <DropdownMenuPrimitive.RadioItem {...props} ref={forwardedRef}>
@@ -214,7 +214,7 @@ export const DropdownMenuSeparator = function DropdownMenuSeparator({
   className = "",
   ...props
 }: DropdownMenuSeparatorProps & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   return (
     <DropdownMenuPrimitive.Separator

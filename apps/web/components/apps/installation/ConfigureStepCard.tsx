@@ -65,7 +65,7 @@ const EventTypeAppSettingsForm = function EventTypeAppSettingsForm({
   ref: forwardedRef,
   ...props
 }: EventTypeAppSettingsFormProps & {
-  ref: React.RefObject<HTMLButtonElement>;
+  ref?: React.RefObject<HTMLButtonElement>;
 }) {
   const { handleDelete, onSubmit, eventType, loading, isConferencing } = props;
   const { t } = useLocale();

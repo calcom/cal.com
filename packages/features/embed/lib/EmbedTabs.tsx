@@ -35,7 +35,7 @@ export const tabs = [
       previewState,
       namespace,
     }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
-      ref: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
+      ref?: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
     }) {
       const { t } = useLocale();
       const embedSnippetString = useGetEmbedSnippetString(namespace);
@@ -97,7 +97,7 @@ export const tabs = [
       previewState,
       namespace,
     }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
-      ref: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
+      ref?: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
     }) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
@@ -152,7 +152,7 @@ export const tabs = [
       previewState,
       namespace,
     }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
-      ref: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
+      ref?: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
     }) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
@@ -204,19 +204,21 @@ ${getEmbedTypeSpecificString({
       calLink,
       embedType,
     }: { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string } & {
-      ref: React.RefObject<HTMLIFrameElement | HTMLTextAreaElement | null>;
+      ref?: React.RefObject<HTMLIFrameElement | HTMLTextAreaElement | null>;
     }) {
       const bookerUrl = useBookerUrl();
       const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
-      if (forwardedRef instanceof Function || !forwardedRef) {
-        return null;
-      }
-      if (forwardedRef.current && !(forwardedRef.current instanceof HTMLIFrameElement)) {
+      if (
+        !forwardedRef ||
+        forwardedRef instanceof Function ||
+        !forwardedRef.current ||
+        !(forwardedRef.current instanceof HTMLIFrameElement)
+      ) {
         return null;
       }
       return (
         <iframe
-          ref={forwardedRef as typeof forwardedRef & MutableRefObject<HTMLIFrameElement>}
+          ref={forwardedRef}
           data-testid="embed-preview"
           className="rounded-md border"
           width="100%"

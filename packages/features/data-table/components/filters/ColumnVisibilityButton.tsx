@@ -32,7 +32,7 @@ function ColumnVisibilityButtonComponent<TData>({
   ...rest
 }: ColumnVisiblityProps<TData> &
   ButtonProps & {
-    ref: React.RefObject<HTMLButtonElement>;
+    ref?: React.RefObject<HTMLButtonElement>;
   }) {
   const { t } = useLocale();
   const allColumns = table.getAllLeafColumns();

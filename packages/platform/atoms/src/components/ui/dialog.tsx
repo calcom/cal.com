@@ -39,7 +39,7 @@ const DialogOverlay = function DialogOverlay({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof DialogPrimitives.Overlay> & {
-  ref: React.RefObject<React.ElementRef<typeof DialogPrimitives.Overlay>>;
+  ref?: React.RefObject<React.ElementRef<typeof DialogPrimitives.Overlay>>;
 }) {
   return (
     <DialogPrimitives.Overlay
@@ -60,7 +60,7 @@ const DialogContent = function DialogContent({
   children,
   ...props
 }: React.ComponentPropsWithoutRef<typeof DialogPrimitives.Content> & {
-  ref: React.RefObject<React.ElementRef<typeof DialogPrimitives.Content>>;
+  ref?: React.RefObject<React.ElementRef<typeof DialogPrimitives.Content>>;
 }) {
   return (
     <>
@@ -105,7 +105,7 @@ const DialogTitle = function DialogTitle({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof DialogPrimitives.Title> & {
-  ref: React.RefObject<React.ElementRef<typeof DialogPrimitives.Title>>;
+  ref?: React.RefObject<React.ElementRef<typeof DialogPrimitives.Title>>;
 }) {
   return (
     <DialogPrimitives.Title
@@ -122,7 +122,7 @@ const DialogDescription = function DialogDescription({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof DialogPrimitives.Description> & {
-  ref: React.RefObject<React.ElementRef<typeof DialogPrimitives.Description>>;
+  ref?: React.RefObject<React.ElementRef<typeof DialogPrimitives.Description>>;
 }) {
   return (
     <DialogPrimitives.Description

@@ -36,7 +36,7 @@ const ResponsiveButton = function ResponsiveButton({
   children,
   ...rest
 }: ResponsiveButtonProps & {
-  ref: React.RefObject<HTMLButtonElement>;
+  ref?: React.RefObject<HTMLButtonElement>;
 }) {
   return (
     <Button ref={forwardedRef} onClick={onClick} title={children} {...rest}>
@@ -54,7 +54,7 @@ const Root = function Root({
   children,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & { showSelectionCount?: boolean } & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   const { className, style, ...rest } = props;
   return createPortal(

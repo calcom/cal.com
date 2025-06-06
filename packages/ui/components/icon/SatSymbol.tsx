@@ -4,7 +4,7 @@ export const SatSymbol = function SatSymbol({
   ref: forwardedRef,
   ...props
 }: React.SVGProps<SVGSVGElement> & {
-  ref: React.RefObject<SVGSVGElement>;
+  ref?: React.RefObject<SVGSVGElement>;
 }) {
   return (
     <svg

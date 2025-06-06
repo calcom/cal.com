@@ -15,7 +15,7 @@ const SheetTrigger = function SheetTrigger({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Trigger> & {
-  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Trigger>>;
+  ref?: React.RefObject<React.ElementRef<typeof SheetPrimitives.Trigger>>;
 }) {
   return <SheetPrimitives.Trigger ref={forwardedRef} className={classNames(className)} {...props} />;
 };
@@ -26,7 +26,7 @@ const SheetClose = function SheetClose({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Close> & {
-  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Close>>;
+  ref?: React.RefObject<React.ElementRef<typeof SheetPrimitives.Close>>;
 }) {
   return <SheetPrimitives.Close ref={forwardedRef} className={classNames(className)} {...props} />;
 };
@@ -41,7 +41,7 @@ const SheetOverlay = function SheetOverlay({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Overlay> & {
-  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Overlay>>;
+  ref?: React.RefObject<React.ElementRef<typeof SheetPrimitives.Overlay>>;
 }) {
   return (
     <SheetPrimitives.Overlay
@@ -71,7 +71,7 @@ const SheetContent = function SheetContent({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Content> & {
-  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Content>>;
+  ref?: React.RefObject<React.ElementRef<typeof SheetPrimitives.Content>>;
 }) {
   return (
     <SheetPortal>
@@ -106,7 +106,7 @@ const SheetHeader = function SheetHeader({
   showCloseButton = true,
   ...props
 }: React.ComponentPropsWithoutRef<"div"> & { showCloseButton?: boolean } & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   return (
     <div ref={forwardedRef} className="flex items-start justify-between gap-x-4 pb-2" {...props}>
@@ -127,7 +127,7 @@ const SheetTitle = function SheetTitle({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Title> & {
-  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Title>>;
+  ref?: React.RefObject<React.ElementRef<typeof SheetPrimitives.Title>>;
 }) {
   return (
     <SheetPrimitives.Title
@@ -151,7 +151,7 @@ const SheetBody = function SheetBody({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div"> & {
-  ref: React.RefObject<HTMLDivElement>;
+  ref?: React.RefObject<HTMLDivElement>;
 }) {
   return (
     <div ref={forwardedRef} className={classNames("flex-1 overflow-y-auto py-4", className)} {...props} />
@@ -165,7 +165,7 @@ const SheetDescription = function SheetDescription({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Description> & {
-  ref: React.RefObject<React.ElementRef<typeof SheetPrimitives.Description>>;
+  ref?: React.RefObject<React.ElementRef<typeof SheetPrimitives.Description>>;
 }) {
   return (
     <SheetPrimitives.Description
