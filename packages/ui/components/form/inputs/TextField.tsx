@@ -52,23 +52,18 @@ export const inputStyles = cva(
   }
 );
 
-export const Input = function Input({
-  ref: forwardedRef,
-  isFullWidth = true,
-  size = "md",
-  className,
-  ...props
-}: InputProps & {
-  ref?: React.Ref<HTMLInputElement>;
-}) {
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(
+  { isFullWidth = true, size = "md", className, ...props },
+  ref
+) {
   return (
     <input
       {...props}
-      ref={forwardedRef}
+      ref={ref}
       className={classNames(inputStyles({ size }), isFullWidth && "w-full", className)}
     />
   );
-};
+});
 
 type AddonProps = {
   children: React.ReactNode;
@@ -104,12 +99,10 @@ const Addon = ({
   </div>
 );
 
-export const InputField = function InputField({
-  ref: forwardedRef,
-  ...props
-}: InputFieldProps & {
-  ref?: React.Ref<HTMLInputElement>;
-}) {
+export const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(function InputField(
+  props,
+  ref
+) {
   const id = useId();
   const { t: _t, isLocaleReady, i18n } = useLocale();
   const t = props.t || _t;
@@ -195,7 +188,7 @@ export const InputField = function InputField({
               value: inputValue,
             })}
             disabled={readOnly || disabled}
-            ref={forwardedRef}
+            ref={ref}
           />
           {addOnSuffix && (
             <Addon
@@ -229,7 +222,7 @@ export const InputField = function InputField({
           )}
           {...passThrough}
           readOnly={readOnly}
-          ref={forwardedRef}
+          ref={ref}
           isFullWidth={inputIsFullWidth}
           disabled={readOnly || disabled}
         />
@@ -238,13 +231,8 @@ export const InputField = function InputField({
       {hint && <div className="text-default mt-2 flex items-center text-sm">{hint}</div>}
     </div>
   );
-};
+});
 
-export const TextField = function TextField({
-  ref: forwardedRef,
-  ...props
-}: InputFieldProps & {
-  ref?: React.Ref<HTMLInputElement>;
-}) {
-  return <InputField ref={forwardedRef} {...props} />;
-};
+export const TextField = React.forwardRef<HTMLInputElement, InputFieldProps>(function TextField(props, ref) {
+  return <InputField ref={ref} {...props} />;
+});
