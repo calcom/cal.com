@@ -1,7 +1,7 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import tasker from "@calcom/features/tasker";
 // eslint-disable-next-line no-restricted-imports
-import { isCalendarLikeResult } from "@calcom/lib/EventManager";
+import { isCalendarResult } from "@calcom/lib/EventManager";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { AdditionalInformation } from "@calcom/types/Calendar";
@@ -9,7 +9,7 @@ import type { EventResult } from "@calcom/types/EventManager";
 
 import { featureName } from "../../feature";
 
-const log = logger.getSubLogger({ prefix: [featureName, "tasks"] });
+const log = logger.getSubLogger({ prefix: [featureName, "tasks", "createCalendarSync"] });
 type CalendarResults = EventResult<
   AdditionalInformation & {
     id?: string | null;
@@ -129,9 +129,9 @@ export const createCalendarSyncTask = async ({
       );
       return defaultReturnValue;
     }
-    const calendarResults = results.filter((result) => isCalendarLikeResult(result));
+    const calendarResults = results.filter((result) => isCalendarResult(result));
     if (calendarResults.length === 0) {
-      // No calendars are connected it seems, so there is no need for calendar sync
+      log.debug("No calendars are connected it seems, so there is no need for calendar sync");
       return {
         calendarSync: null,
         calendarEventId: null,
