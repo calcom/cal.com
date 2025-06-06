@@ -27,7 +27,7 @@ import { useColumnResizing } from "../hooks/useColumnResizing";
 
 export type DataTablePropsFromWrapper<TData> = {
   table: ReactTableType<TData>;
-  tableContainerRef: React.RefObject<HTMLDivElement>;
+  tableContainerRef: React.RefObject<HTMLDivElement> | React.Ref<HTMLDivElement>;
   isPending?: boolean;
   variant?: "default" | "compact";
   testId?: string;
@@ -73,7 +73,10 @@ export function DataTable<TData>({
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     estimateSize: () => 100,
-    getScrollElement: () => tableContainerRef.current,
+    getScrollElement: () =>
+      tableContainerRef && typeof tableContainerRef === "object" && "current" in tableContainerRef
+        ? tableContainerRef.current
+        : null,
     measureElement:
       typeof window !== "undefined" && navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
@@ -84,8 +87,12 @@ export function DataTable<TData>({
   const virtualItemsCount = rowVirtualizer.getVirtualItems().length;
 
   useEffect(() => {
-    if (paginationMode === "infinite" && virtualItemsCount >= rows.length && tableContainerRef.current) {
-      const target = tableContainerRef.current;
+    const current =
+      tableContainerRef && typeof tableContainerRef === "object" && "current" in tableContainerRef
+        ? tableContainerRef.current
+        : null;
+    if (paginationMode === "infinite" && virtualItemsCount >= rows.length && current) {
+      const target = current;
       // Right after the last row is rendered, tableContainer's scrollHeight is
       // temporarily larger than the actual height of the table, so we need to
       // wait for a short time before calling onScroll to ensure the scrollHeight
@@ -94,7 +101,7 @@ export function DataTable<TData>({
         onScroll?.({ target });
       }, 100);
     }
-  }, [virtualItemsCount, rows.length, tableContainerRef.current, paginationMode, onScroll]);
+  }, [virtualItemsCount, rows.length, tableContainerRef, paginationMode, onScroll]);
 
   const columnSizingVars = useColumnSizingVars({ table });
 

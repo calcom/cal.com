@@ -27,7 +27,7 @@ const Checkbox = function Checkbox({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> & {
-  ref?: React.RefObject<React.ElementRef<typeof CheckboxPrimitive.Root>>;
+  ref?: React.Ref<React.ElementRef<typeof CheckboxPrimitive.Root>>;
 }) {
   return (
     <CheckboxPrimitive.Root
@@ -54,7 +54,7 @@ const CheckboxField = function CheckboxField({
   descriptionAsSafeHtml,
   ...rest
 }: Props & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   const descriptionAsLabel = !label || rest.descriptionAsLabel;
   const id = useId();

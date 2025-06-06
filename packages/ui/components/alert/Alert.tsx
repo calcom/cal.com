@@ -35,7 +35,7 @@ export const Alert = function Alert({
   ref: forwardedRef,
   ...props
 }: AlertProps & {
-  ref?: React.RefObject<HTMLDivElement>;
+  ref?: React.Ref<HTMLDivElement>;
 }) {
   const { severity, iconClassName, CustomIcon, customIconColor } = props;
 

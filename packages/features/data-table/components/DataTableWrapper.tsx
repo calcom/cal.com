@@ -21,7 +21,7 @@ type BaseDataTableWrapperProps<TData> = Omit<
   ToolbarRight?: React.ReactNode;
   EmptyView?: React.ReactNode;
   LoaderView?: React.ReactNode;
-  tableContainerRef?: React.RefObject<HTMLDivElement>;
+  tableContainerRef?: React.Ref<HTMLDivElement>;
   onRowMouseclick?: (row: Row<TData>) => void;
 };
 

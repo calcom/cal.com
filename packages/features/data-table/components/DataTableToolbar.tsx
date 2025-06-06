@@ -21,7 +21,7 @@ const Root = function DataTableToolbar({
   children,
   className,
 }: DataTableToolbarProps & {
-  ref?: React.RefObject<HTMLDivElement>;
+  ref?: React.Ref<HTMLDivElement>;
 }) {
   return (
     <div
@@ -67,9 +67,9 @@ const SearchBar = function SearchBar({
   ref: forwardedRef,
   ...props
 }: SearchBarProps & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
-  return SearchBarComponent(props, forwardedRef);
+  return SearchBarComponent(props, forwardedRef || null);
 };
 
 interface ClearFiltersButtonProps<TData> {
@@ -100,9 +100,9 @@ const ClearFiltersButton = function ClearFiltersButton<TData>({
   ref: forwardedRef,
   ...props
 }: ClearFiltersButtonProps<TData> & {
-  ref?: React.RefObject<HTMLButtonElement>;
+  ref?: React.Ref<HTMLButtonElement>;
 }) {
-  return ClearFiltersButtonComponent(props, forwardedRef);
+  return ClearFiltersButtonComponent(props, forwardedRef || null);
 };
 
 function CTAComponent(
@@ -120,9 +120,9 @@ const CTA = function CTA({
   ref: forwardedRef,
   ...props
 }: ButtonProps & {
-  ref?: React.RefObject<HTMLButtonElement>;
+  ref?: React.Ref<HTMLButtonElement>;
 }) {
-  return CTAComponent(props, forwardedRef);
+  return CTAComponent(props, forwardedRef || null);
 };
 
 export const DataTableToolbar = { Root, SearchBar, ClearFiltersButton, CTA };

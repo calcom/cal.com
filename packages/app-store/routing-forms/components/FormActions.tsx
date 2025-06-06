@@ -425,7 +425,7 @@ export const FormAction = function FormAction<T extends typeof Button>({
   ref: forwardedRef,
   ...props
 }: FormActionProps<T> & {
-  ref?: React.RefObject<HTMLAnchorElement | HTMLButtonElement>;
+  ref?: React.Ref<HTMLAnchorElement | HTMLButtonElement>;
 }) {
   const {
     action: actionName,

@@ -11,7 +11,7 @@ const Command = function Command({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive> & {
-  ref?: React.RefObject<React.ElementRef<typeof CommandPrimitive>>;
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive>>;
 }) {
   return (
     <CommandPrimitive
@@ -45,7 +45,7 @@ const CommandInput = function CommandInput({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
-  ref?: React.RefObject<React.ElementRef<typeof CommandPrimitive.Input>>;
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Input>>;
 }) {
   return (
     <div className="flex items-center border-b px-3 py-2" cmdk-input-wrapper="">
@@ -68,7 +68,7 @@ const CommandList = function CommandList({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.List> & {
-  ref?: React.RefObject<React.ElementRef<typeof CommandPrimitive.List>>;
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.List>>;
 }) {
   return (
     <CommandPrimitive.List
@@ -85,7 +85,7 @@ const CommandEmpty = function CommandEmpty({
   ref: forwardedRef,
   ...props
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty> & {
-  ref?: React.RefObject<React.ElementRef<typeof CommandPrimitive.Empty>>;
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Empty>>;
 }) {
   return <CommandPrimitive.Empty ref={forwardedRef} className="py-6 text-center text-sm" {...props} />;
 };
@@ -97,7 +97,7 @@ const CommandGroup = function CommandGroup({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group> & {
-  ref?: React.RefObject<React.ElementRef<typeof CommandPrimitive.Group>>;
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Group>>;
 }) {
   return (
     <CommandPrimitive.Group
@@ -118,7 +118,7 @@ const CommandSeparator = function CommandSeparator({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator> & {
-  ref?: React.RefObject<React.ElementRef<typeof CommandPrimitive.Separator>>;
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Separator>>;
 }) {
   return (
     <CommandPrimitive.Separator
@@ -135,7 +135,7 @@ const CommandItem = function CommandItem({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item> & {
-  ref?: React.RefObject<React.ElementRef<typeof CommandPrimitive.Item>>;
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Item>>;
 }) {
   return (
     <CommandPrimitive.Item

@@ -17,7 +17,7 @@ export const Input = function Input({
   ref: forwardedRef,
   ...props
 }: InputProps & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return (
     <input
@@ -59,7 +59,7 @@ const InputField = function InputField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement> | React.Ref<HTMLInputElement>;
 }) {
   const id = useId();
   const { t } = useLocale();
@@ -112,7 +112,7 @@ export const TextField = function TextField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return <InputField ref={forwardedRef} {...props} />;
 };
@@ -121,7 +121,7 @@ export const PasswordField = function PasswordField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return (
     <InputField
@@ -138,7 +138,7 @@ export const EmailInput = function EmailInput({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return (
     <Input
@@ -157,7 +157,7 @@ export const EmailField = function EmailField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return (
     <InputField
@@ -178,7 +178,7 @@ export const TextArea = function TextAreaInput({
   ref: forwardedRef,
   ...props
 }: TextAreaProps & {
-  ref?: React.RefObject<HTMLTextAreaElement>;
+  ref?: React.Ref<HTMLTextAreaElement>;
 }) {
   return (
     <textarea
@@ -202,7 +202,7 @@ export const TextAreaField = function TextField({
   ref: forwardedRef,
   ...props
 }: TextAreaFieldProps & {
-  ref?: React.RefObject<HTMLTextAreaElement>;
+  ref?: React.Ref<HTMLTextAreaElement>;
 }) {
   const id = useId();
   const { t } = useLocale();

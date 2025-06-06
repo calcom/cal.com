@@ -14,7 +14,7 @@ const ToastViewport = function ToastViewport({
   className,
   ...props
 }: ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport> & {
-  ref?: React.RefObject<ElementRef<typeof ToastPrimitives.Viewport>>;
+  ref?: React.Ref<ElementRef<typeof ToastPrimitives.Viewport>>;
 }) {
   return (
     <ToastPrimitives.Viewport
@@ -51,7 +51,7 @@ const Toast = function Toast({
   ...props
 }: ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
   VariantProps<typeof toastVariants> & {
-    ref?: React.RefObject<ElementRef<typeof ToastPrimitives.Root>>;
+    ref?: React.Ref<ElementRef<typeof ToastPrimitives.Root>>;
   }) {
   return (
     <ToastPrimitives.Root
@@ -68,7 +68,7 @@ const ToastAction = function ToastAction({
   className,
   ...props
 }: ComponentPropsWithoutRef<typeof ToastPrimitives.Action> & {
-  ref?: React.RefObject<ElementRef<typeof ToastPrimitives.Action>>;
+  ref?: React.Ref<ElementRef<typeof ToastPrimitives.Action>>;
 }) {
   return (
     <ToastPrimitives.Action
@@ -88,7 +88,7 @@ const ToastClose = function ToastClose({
   className,
   ...props
 }: ComponentPropsWithoutRef<typeof ToastPrimitives.Close> & {
-  ref?: React.RefObject<ElementRef<typeof ToastPrimitives.Close>>;
+  ref?: React.Ref<ElementRef<typeof ToastPrimitives.Close>>;
 }) {
   return (
     <ToastPrimitives.Close
@@ -110,7 +110,7 @@ const ToastTitle = function ToastTitle({
   className,
   ...props
 }: ComponentPropsWithoutRef<typeof ToastPrimitives.Title> & {
-  ref?: React.RefObject<ElementRef<typeof ToastPrimitives.Title>>;
+  ref?: React.Ref<ElementRef<typeof ToastPrimitives.Title>>;
 }) {
   return (
     <ToastPrimitives.Title ref={forwardedRef} className={cn("text-sm font-semibold", className)} {...props} />
@@ -123,7 +123,7 @@ const ToastDescription = function ToastDescription({
   className,
   ...props
 }: ComponentPropsWithoutRef<typeof ToastPrimitives.Description> & {
-  ref?: React.RefObject<ElementRef<typeof ToastPrimitives.Description>>;
+  ref?: React.Ref<ElementRef<typeof ToastPrimitives.Description>>;
 }) {
   return (
     <ToastPrimitives.Description

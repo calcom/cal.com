@@ -9,7 +9,7 @@ export const useFetchMoreOnBottomReached = ({
   isFetching,
   enabled = true,
 }: {
-  tableContainerRef: React.RefObject<HTMLDivElement>;
+  tableContainerRef: React.RefObject<HTMLDivElement> | React.Ref<HTMLDivElement>;
   hasNextPage: boolean;
   fetchNextPage: () => void;
   isFetching: boolean;
@@ -30,7 +30,11 @@ export const useFetchMoreOnBottomReached = ({
 
   useEffect(() => {
     if (!enabled) return;
-    fetchMoreOnBottomReached(tableContainerRef.current);
+    const current =
+      tableContainerRef && typeof tableContainerRef === "object" && "current" in tableContainerRef
+        ? tableContainerRef.current
+        : null;
+    fetchMoreOnBottomReached(current);
   }, [fetchMoreOnBottomReached, tableContainerRef, enabled]);
 
   return fetchMoreOnBottomReached;

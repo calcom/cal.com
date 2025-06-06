@@ -10,7 +10,7 @@ import { useDebouncedWidth, useDataTable } from ".";
 type UseColumnResizingProps<TData> = {
   enabled: boolean;
   table: Table<TData>;
-  tableContainerRef: React.RefObject<HTMLDivElement>;
+  tableContainerRef: React.RefObject<HTMLDivElement> | React.Ref<HTMLDivElement>;
 };
 
 function getAdjustedColumnSizing<TData>({
@@ -103,7 +103,10 @@ export function useColumnResizing<TData>({
         let newColumnSizing = typeof updater === "function" ? updater(oldTableState.columnSizing) : updater;
         newColumnSizing = getAdjustedColumnSizing({
           headers: table.getFlatHeaders(),
-          containerWidth: tableContainerRef.current?.clientWidth || 0,
+          containerWidth:
+            (tableContainerRef && typeof tableContainerRef === "object" && "current" in tableContainerRef
+              ? tableContainerRef.current?.clientWidth
+              : 0) || 0,
           initialColumnSizing: initialColumnSizing.current,
           currentColumnSizing: newColumnSizing,
           resizedColumns: resizedColumns.current,

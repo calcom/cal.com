@@ -11,7 +11,7 @@ const MinutesField = function MinutesField({
   label,
   ...rest
 }: Props & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return (
     <div className="block sm:flex">

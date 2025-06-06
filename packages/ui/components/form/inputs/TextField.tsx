@@ -59,7 +59,7 @@ export const Input = function Input({
   className,
   ...props
 }: InputProps & {
-  ref?: React.RefObject<HTMLInputElement> | React.Ref<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return (
     <input
@@ -108,7 +108,7 @@ export const InputField = function InputField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref?: React.RefObject<HTMLInputElement> | React.Ref<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   const id = useId();
   const { t: _t, isLocaleReady, i18n } = useLocale();
@@ -244,7 +244,7 @@ export const TextField = function TextField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & {
-  ref?: React.RefObject<HTMLInputElement> | React.Ref<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return <InputField ref={forwardedRef} {...props} />;
 };

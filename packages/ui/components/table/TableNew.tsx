@@ -7,7 +7,7 @@ const Table = function Table({
   className,
   ...props
 }: React.HTMLAttributes<HTMLTableElement> & {
-  ref?: React.RefObject<HTMLTableElement>;
+  ref?: React.Ref<HTMLTableElement>;
 }) {
   return (
     <table
@@ -24,7 +24,7 @@ const TableHeader = function TableHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLTableSectionElement> & {
-  ref?: React.RefObject<HTMLTableSectionElement>;
+  ref?: React.Ref<HTMLTableSectionElement>;
 }) {
   return <thead ref={forwardedRef} className={classNames("md:z-10", className)} {...props} />;
 };
@@ -35,7 +35,7 @@ const TableBody = function TableBody({
   className,
   ...props
 }: React.HTMLAttributes<HTMLTableSectionElement> & {
-  ref?: React.RefObject<HTMLTableSectionElement>;
+  ref?: React.Ref<HTMLTableSectionElement>;
 }) {
   return (
     <tbody ref={forwardedRef} className={classNames("[&_tr:last-child]:border-0", className)} {...props} />
@@ -48,7 +48,7 @@ const TableFooter = function TableFooter({
   className,
   ...props
 }: React.HTMLAttributes<HTMLTableSectionElement> & {
-  ref?: React.RefObject<HTMLTableSectionElement>;
+  ref?: React.Ref<HTMLTableSectionElement>;
 }) {
   return (
     <tfoot
@@ -65,7 +65,7 @@ const TableRow = function TableRow({
   className,
   ...props
 }: React.HTMLAttributes<HTMLTableRowElement> & {
-  ref?: React.RefObject<HTMLTableRowElement>;
+  ref?: React.Ref<HTMLTableRowElement>;
 }) {
   return (
     <tr
@@ -85,7 +85,7 @@ const TableHead = function TableHead({
   className,
   ...props
 }: React.ThHTMLAttributes<HTMLTableCellElement> & {
-  ref?: React.RefObject<HTMLTableCellElement>;
+  ref?: React.Ref<HTMLTableCellElement>;
 }) {
   return (
     <th
@@ -105,7 +105,7 @@ const TableCell = function TableCell({
   className,
   ...props
 }: React.TdHTMLAttributes<HTMLTableCellElement> & {
-  ref?: React.RefObject<HTMLTableCellElement>;
+  ref?: React.Ref<HTMLTableCellElement>;
 }) {
   return (
     <td
@@ -122,7 +122,7 @@ const TableCaption = function TableCaption({
   className,
   ...props
 }: React.HTMLAttributes<HTMLTableCaptionElement> & {
-  ref?: React.RefObject<HTMLTableCaptionElement>;
+  ref?: React.Ref<HTMLTableCaptionElement>;
 }) {
   return (
     <caption ref={forwardedRef} className={classNames("text-default mt-4 text-sm", className)} {...props} />

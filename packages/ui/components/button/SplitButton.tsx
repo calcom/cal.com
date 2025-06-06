@@ -28,7 +28,7 @@ export const SplitButton = function SplitButton({
   color = "primary",
   ...mainButtonProps
 }: SplitButtonProps & {
-  ref?: React.RefObject<HTMLButtonElement>;
+  ref?: React.Ref<HTMLButtonElement>;
 }) {
   if (!dropdown) {
     return (

@@ -281,7 +281,7 @@ const MinimumBookingNoticeInput = function MinimumBookingNoticeInput({
 }: Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref"> & {
   customClassNames?: SelectClassNames & { input?: string };
 } & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   const { t } = useLocale();
   const { setValue, getValues } = useFormContext<FormValues>();

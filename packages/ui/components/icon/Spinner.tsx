@@ -4,7 +4,7 @@ export const Spinner = function Spinner({
   ref: forwardedRef,
   ...props
 }: React.SVGProps<SVGSVGElement> & {
-  ref?: React.RefObject<SVGSVGElement>;
+  ref?: React.Ref<SVGSVGElement>;
 }) {
   return (
     <svg

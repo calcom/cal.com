@@ -28,7 +28,7 @@ function AddFilterButtonComponent<TData>({
   hideWhenFilterApplied = false,
   showWhenFilterApplied = false,
 }: AddFilterButtonProps<TData> & {
-  ref?: React.RefObject<HTMLButtonElement>;
+  ref?: React.Ref<HTMLButtonElement>;
 }) {
   const { t } = useLocale();
   const { activeFilters, addFilter } = useDataTable();

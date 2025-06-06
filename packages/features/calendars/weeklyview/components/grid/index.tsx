@@ -14,7 +14,7 @@ export const SchedulerColumns = function SchedulerColumns({
   children,
   zIndex,
 }: Props & {
-  ref?: React.RefObject<HTMLOListElement>;
+  ref?: React.Ref<HTMLOListElement>;
 }) {
   return (
     <ol

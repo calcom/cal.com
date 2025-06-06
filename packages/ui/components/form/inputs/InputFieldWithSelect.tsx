@@ -8,7 +8,7 @@ export const InputFieldWithSelect = function EmailField({
   ref: forwardedRef,
   ...props
 }: InputFieldProps & { selectProps: typeof UnstyledSelect } & {
-  ref?: React.RefObject<HTMLInputElement>;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   return (
     <InputField

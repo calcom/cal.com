@@ -35,7 +35,7 @@ export const tabs = [
       previewState,
       namespace,
     }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
-      ref?: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
+      ref?: React.Ref<HTMLTextAreaElement | HTMLIFrameElement | null>;
     }) {
       const { t } = useLocale();
       const embedSnippetString = useGetEmbedSnippetString(namespace);
@@ -97,7 +97,7 @@ export const tabs = [
       previewState,
       namespace,
     }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
-      ref?: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
+      ref?: React.Ref<HTMLTextAreaElement | HTMLIFrameElement | null>;
     }) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
@@ -152,7 +152,7 @@ export const tabs = [
       previewState,
       namespace,
     }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
-      ref?: React.RefObject<HTMLTextAreaElement | HTMLIFrameElement | null>;
+      ref?: React.Ref<HTMLTextAreaElement | HTMLIFrameElement | null>;
     }) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
@@ -204,7 +204,7 @@ ${getEmbedTypeSpecificString({
       calLink,
       embedType,
     }: { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string } & {
-      ref?: React.RefObject<HTMLIFrameElement | HTMLTextAreaElement | null>;
+      ref?: React.Ref<HTMLIFrameElement | HTMLTextAreaElement | null>;
     }) {
       const bookerUrl = useBookerUrl();
       const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
