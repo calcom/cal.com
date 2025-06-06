@@ -53,21 +53,7 @@ Actors Involved:
 - handleNewBooking.ts
 - CalendarService#onWatchedCalendarChange
 
-Flow:
-- 'calendar-sync' feature is enabled for User's organization
-- On creating a booking we push task 'createCalendarSync' to Tasker that would 
-   - Create a CalendarSync record. 
-   - Create a CalendarSubscription record.
-   - Connect both CalendarSubscription and BookingReference records to CalendarSync record.
-   _NOTE: Creation of CalendarSync record could be delayed by a few minutes, due to how the tasker works. So, if a booking is created for the first time in a calendar, it could take a few minutes for sync to actually get enabled. We could improve this further by creating CalendarSync records when a destination calendar is created_
-- `CRON:calendar-subscriptions` runs every few minutes and it does the following.
-   - Ensures that all Subscriptions are active. Those that are to be expired soon are also renewed.
-- Now, lets say a booking is created in Cal.com, it would be added to Google Calendar as well. At this moment, BookingReference table holds uid that refers to the eventId in third party calendar(in this case Google Calendar). This uid is used to identify the eventId in third party calendar when we receive a webhook event.
-- Now let's say that the booking's time changes, we will receive a webhook event that will be handled by webhook.handler.ts.
-   - It identifies that for the particular channel, if there is associated CalendarSync, if yes it means that there might be something to sync from the third party calendar events to Cal.com bookings.
-   - We delegate the work to CalendarService#onWatchedCalendarChange method, which will do the following:
-      - It fetches latest updated few events from the third party calendar.
-      - For every such third party calendar event, that has corresponding BookingReference.uid, it updates the corresponding Booking record in Cal.com with the new details from the third party calendar event.
+See [the flow diagram](./flow.mermaid) for more details.
 
 FAQ:
 - Existing bookings in the system that are re-scheduled, will they be synced back from the third party calendar?
