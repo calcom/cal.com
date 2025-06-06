@@ -65,7 +65,7 @@ function getActionsToTake({
 
   if (!selectedCalendar && !calendarSync) {
     // The channel isn't registered with us
-    throw new IgnorableError("No selectedCalendar or calendarSync found for push notification");
+    throw new IgnorableError("This channel is not registered with us now, ignoring it");
   }
 
   if (selectedCalendar) {
@@ -260,7 +260,8 @@ export async function postHandler(req: NextApiRequest) {
         calendarEvents: result.eventsToSync,
         app: {
           type: "google_calendar",
-          name: "Google Calendar",
+          slug: "google-calendar",
+          serviceId: "google-calendar-app@cal.internal",
         },
       });
     }

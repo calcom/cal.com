@@ -1,20 +1,29 @@
 import dayjs from "@calcom/dayjs";
+import { doesServiceIdExist } from "@calcom/features/services/services";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import type { Booking } from "@calcom/prisma/client";
 import type { CalendarEventsToSync } from "@calcom/types/Calendar";
+
+import type { CancellationBySyncReason } from "../types";
+import { cancelBooking } from "./downstreamActions";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSync"] });
 
 // Define complex types for function parameters
-type BookingDataForSync = Pick<Booking, "id" | "startTime" | "endTime" | "status"> | null;
+type BookingDataForSync =
+  | (Pick<Booking, "id" | "startTime" | "endTime" | "status"> & {
+      eventType: { length: number } | null;
+    })
+  | null;
 type ReasonCode =
   | "NO_BOOKING_FOUND"
   | "BOOKING_NOT_ACCEPTED"
   | "BOOKING_ALREADY_CANCELLED"
   | "NEW_TIME_IN_PAST"
-  | "NO_TIME_CHANGE";
+  | "NO_TIME_CHANGE"
+  | "DURATION_CHANGE_NOT_ALLOWED";
 
 type BookingUpdateAction =
   | { type: "NO_CHANGE"; bookingId?: number; reason: { code: ReasonCode; message: string }; notes?: string[] }
@@ -29,7 +38,7 @@ type BookingUpdateAction =
       type: "CANCEL_BOOKING";
       bookingId: number;
       cancelledBy: string;
-      cancellationReason: "organizer_declined_in_calendar" | "event_cancelled_in_calendar";
+      cancellationReason: CancellationBySyncReason;
       notes?: string[];
     }
   | {
@@ -44,7 +53,7 @@ type BookingUpdateAction =
 type getBookingUpdateActionsParams = {
   calendarEvent: CalendarEventsToSync[number];
   booking: BookingDataForSync;
-  appName: string;
+  actionTakenBy: string;
 };
 
 /**
@@ -54,7 +63,7 @@ type getBookingUpdateActionsParams = {
 export function getBookingUpdateActions({
   calendarEvent,
   booking,
-  appName,
+  actionTakenBy,
 }: getBookingUpdateActionsParams): BookingUpdateAction[] {
   const calendarEventId = calendarEvent.id;
   const actions: BookingUpdateAction[] = [];
@@ -88,10 +97,10 @@ export function getBookingUpdateActions({
     actions.push({
       type: "CANCEL_BOOKING",
       bookingId: booking.id,
-      cancelledBy: appName,
+      cancelledBy: actionTakenBy,
       cancellationReason:
         calendarEvent.organizerResponseStatus === "declined"
-          ? "organizer_declined_in_calendar"
+          ? "event_declined_by_organizer_in_calendar"
           : "event_cancelled_in_calendar",
       notes: ["Ignoring every other change as the booking has been cancelled"],
     });
@@ -115,13 +124,28 @@ export function getBookingUpdateActions({
         },
       });
     } else {
-      actions.push({
-        type: "UPDATE_BOOKING_TIMES",
-        bookingId: booking.id,
-        startTime: calendarEventStartTime.toDate(),
-        endTime: calendarEventEndTime.toDate(),
-        rescheduledBy: appName,
-      });
+      // Check if the new duration matches the EventType length
+      const newDurationMinutes = calendarEventEndTime.diff(calendarEventStartTime, "minutes");
+      const expectedDurationMinutes = booking.eventType?.length;
+
+      if (expectedDurationMinutes && newDurationMinutes !== expectedDurationMinutes) {
+        actions.push({
+          type: "IGNORE_CHANGE",
+          bookingId: booking.id,
+          reason: {
+            code: "DURATION_CHANGE_NOT_ALLOWED",
+            message: `Calendar Event ${calendarEventId} duration change (${newDurationMinutes} min) doesn't match EventType length (${expectedDurationMinutes} min). Duration changes are not allowed.`,
+          },
+        });
+      } else {
+        actions.push({
+          type: "UPDATE_BOOKING_TIMES",
+          bookingId: booking.id,
+          startTime: calendarEventStartTime.toDate(),
+          endTime: calendarEventEndTime.toDate(),
+          rescheduledBy: actionTakenBy,
+        });
+      }
     }
   } else {
     actions.push({
@@ -174,9 +198,14 @@ export async function syncDownstream({
   calendarEvents: CalendarEventsToSync;
   app: {
     type: "google_calendar";
-    name: "Google Calendar";
+    slug: "google-calendar";
+    serviceId: string;
   };
 }) {
+  if (!doesServiceIdExist(app.serviceId)) {
+    throw new Error(`App serviceId ${app.serviceId} is not valid`);
+  }
+  const actionTakenBy = app.serviceId;
   if (!calendarEvents.length) {
     log.debug("No calendar events to sync.");
     return [];
@@ -185,25 +214,9 @@ export async function syncDownstream({
   try {
     const calendarEventIds = calendarEvents.map((event) => event.id).filter(Boolean) as string[];
 
-    const bookingReferences = await prisma.bookingReference.findMany({
-      where: {
-        uid: {
-          in: calendarEventIds,
-        },
-        type: app.type,
-      },
-      select: {
-        uid: true,
-        type: true,
-        booking: {
-          select: {
-            id: true,
-            startTime: true,
-            endTime: true,
-            status: true,
-          },
-        },
-      },
+    const bookingReferences = await BookingReferenceRepository.findManyWhereUidsAndTypeIncludeBooking({
+      uids: calendarEventIds,
+      type: app.type,
     });
 
     const bookingMap = getBookingMap(bookingReferences);
@@ -214,46 +227,40 @@ export async function syncDownstream({
         const booking = bookingMap.get(calendarEvent.id) || null;
         if (!booking) {
           // The calendar event wasn't created in Cal.com, so we don't need to sync it
-          log.error(
+          log.debug(
             `No booking found for Calendar Event ${calendarEvent.id}. Nothing to sync for this event.`
           );
           continue;
         }
-        const actions = getBookingUpdateActions({ calendarEvent, booking, appName: app.name });
+        const actions = getBookingUpdateActions({ calendarEvent, booking, actionTakenBy });
 
         for (const action of actions) {
-          let dbUpdatePromise: Promise<unknown> = Promise.resolve(); // Default to no DB operation
+          const dbUpdatePromise: Promise<unknown> = Promise.resolve(); // Default to no DB operation
 
           switch (action.type) {
             case "CANCEL_BOOKING":
               log.info(
                 `Calendar Event ${calendarEvent.id} triggered CANCEL for Cal.com booking ${action.bookingId}.`
               );
-              dbUpdatePromise = prisma.booking.update({
-                where: { id: action.bookingId },
-                data: {
-                  status: "CANCELLED",
-                  cancelledBy: action.cancelledBy,
-                  cancellationReason: action.cancellationReason,
-                },
+              await cancelBooking({
+                bookingId: action.bookingId,
+                cancelledBy: action.cancelledBy,
+                cancellationReason: action.cancellationReason,
               });
               break;
             case "UPDATE_BOOKING_TIMES":
-              log.debug(
-                `Calendar Event ${calendarEvent.id} has time change, but it is ignored temporarily for booking ${action.bookingId}.`,
+              log.info(
+                `Calendar Event ${calendarEvent.id} triggered RESCHEDULE(but ignored) for Cal.com booking ${action.bookingId}.`,
                 safeStringify({
                   newStart: action.startTime,
                   newEnd: action.endTime,
                 })
               );
-              // TODO: To be enabled in a follow up PR
-              // dbUpdatePromise = prisma.booking.update({
-              //   where: { id: action.bookingId },
-              //   data: {
-              //     startTime: action.startTime,
-              //     endTime: action.endTime,
-              //     rescheduledBy: action.rescheduledBy,
-              //   },
+              // await rescheduleBooking({
+              //   bookingId: action.bookingId,
+              //   startTime: action.startTime,
+              //   endTime: action.endTime,
+              //   rescheduledBy: action.rescheduledBy,
               // });
               break;
             case "NO_CHANGE":
