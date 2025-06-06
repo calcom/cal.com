@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
+import { getReschedulePreventionRedirect } from "@calcom/features/bookings/lib/getReschedulePreventionRedirect";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
@@ -45,25 +46,12 @@ async function processReschedule({
   if (!rescheduleUid) return;
 
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-
-  if (booking?.eventType?.disableRescheduling) {
-    return {
-      redirect: {
-        destination: `/booking/${rescheduleUid}`,
-        permanent: false,
-      },
-    };
+  if (!booking) {
+    return;
   }
 
-  // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
-  if (
-    booking === null ||
-    !booking.eventTypeId ||
-    (booking?.eventTypeId === props.eventData?.id &&
-      (booking.status !== BookingStatus.CANCELLED ||
-        allowRescheduleForCancelledBooking ||
-        !!(props.eventData as any)?.allowReschedulingCancelledBookings))
-  ) {
+  // We allow rescheduling to go through for dynamic event
+  if (!booking.eventTypeId) {
     props.booking = booking;
     props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
     return;
@@ -82,6 +70,32 @@ async function processReschedule({
       notFound: true,
     } as const;
   }
+
+  const reschedulePreventionRedirect = getReschedulePreventionRedirect({
+    booking: {
+      ...booking,
+      eventType: {
+        ...booking.eventType,
+        url: redirectEventTypeTarget.slug,
+        disableRescheduling: booking.eventType?.disableRescheduling ?? false,
+        allowReschedulingCancelledBookings: props.eventData?.allowReschedulingCancelledBookings ?? false,
+      },
+    },
+    allowRescheduleForCancelledBooking: allowRescheduleForCancelledBooking ?? false,
+  });
+
+  if (reschedulePreventionRedirect) {
+    return reschedulePreventionRedirect;
+  }
+
+  // If the booking being rescheduled and the eventType page currently opened are same, we allow it
+  if (booking?.eventTypeId === props.eventData?.id) {
+    props.booking = booking;
+    props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
+    return;
+  }
+
+  // Otherwise go to the booking's event's booking page
   return {
     redirect: {
       permanent: false,
@@ -191,6 +205,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       session,
       allowRescheduleForCancelledBooking,
     });
+    console.log("processRescheduleResult", processRescheduleResult);
     if (processRescheduleResult) {
       return processRescheduleResult;
     }
@@ -284,6 +299,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       session,
       allowRescheduleForCancelledBooking,
     });
+    console.log("processRescheduleResult", processRescheduleResult);
     if (processRescheduleResult) {
       return processRescheduleResult;
     }

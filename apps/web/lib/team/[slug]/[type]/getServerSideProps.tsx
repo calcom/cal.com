@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { getReschedulePreventionRedirect } from "@calcom/features/bookings/lib/getReschedulePreventionRedirect";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -11,7 +12,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { BookingStatus, RedirectType } from "@calcom/prisma/client";
+import { RedirectType } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -55,10 +56,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventData = team.eventTypes[0];
 
-  if (rescheduleUid && eventData.disableRescheduling) {
-    return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
-  }
-
   const eventTypeId = eventData.id;
   const eventHostsUserData = await getUsersData(
     team.isPrivate,
@@ -71,17 +68,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
     booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-    if (
-      booking?.status === BookingStatus.CANCELLED &&
-      !allowRescheduleForCancelledBooking &&
-      !eventData.allowReschedulingCancelledBookings
-    ) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: `/team/${teamSlug}/${meetingSlug}`,
+    const reschedulePreventionRedirect = getReschedulePreventionRedirect({
+      booking: {
+        ...booking,
+        eventType: {
+          ...eventData,
+          disableRescheduling: eventData.disableRescheduling ?? false,
+          allowReschedulingCancelledBookings: eventData.allowReschedulingCancelledBookings ?? false,
+          url: `/team/${teamSlug}/${meetingSlug}`,
         },
-      };
+      },
+      allowRescheduleForCancelledBooking,
+    });
+    if (reschedulePreventionRedirect) {
+      return reschedulePreventionRedirect;
     }
   }
 
