@@ -64,7 +64,7 @@ export const DialogContent = function DialogContent({
   preventCloseOnOutsideClick,
   ...props
 }: DialogContentProps & {
-  ref?: React.RefObject<HTMLDivElement>;
+  ref?: React.Ref<HTMLDivElement>;
 }) {
   return (
     <DialogPrimitive.Portal>
@@ -167,7 +167,7 @@ export const DialogTrigger = function DialogTrigger({
   ref: forwardedRef,
   ...props
 }: DialogPrimitive.DialogTriggerProps & {
-  ref?: React.RefObject<HTMLButtonElement>;
+  ref?: React.Ref<HTMLButtonElement>;
 }) {
   return <DialogPrimitive.Trigger {...props} ref={forwardedRef} />;
 };

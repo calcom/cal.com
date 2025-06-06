@@ -8,12 +8,12 @@ function rounded(x: number, dayCellWidth: number) {
   n = Math.min(24, n);
   return n * dayCellWidth;
 }
-function useElementBounding<T extends HTMLDivElement>(ref: React.RefObject<T>): DOMRect | null {
+function useElementBounding<T extends HTMLDivElement>(ref?: React.RefObject<T>): DOMRect | null {
   const [boundingRect, setBoundingRect] = useState<DOMRect | null>(null);
   const observer = useRef<ResizeObserver | null>(null);
 
   useEffect(() => {
-    const target = ref.current;
+    const target = ref?.current;
 
     function updateBoundingRect() {
       if (target) {

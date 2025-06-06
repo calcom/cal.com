@@ -10,7 +10,7 @@ export const HorizontalLines = ({
 }: {
   hours: dayjs.Dayjs[];
   numberOfGridStopsPerCell: number;
-  containerOffsetRef: React.RefObject<HTMLDivElement>;
+  containerOffsetRef?: React.RefObject<HTMLDivElement>;
 }) => {
   const { timeFormat } = useTimePreferences();
   // We need to force the minute to zero, because otherwise in ex GMT+5.5, it would show :30 minute times (but at the positino of :00)

@@ -222,7 +222,7 @@ export const Button = function Button({
   ref: forwardedRef,
   ...props
 }: ButtonProps & {
-  ref?: React.RefObject<HTMLAnchorElement | HTMLButtonElement>;
+  ref?: React.Ref<HTMLAnchorElement | HTMLButtonElement>;
 }) {
   const {
     loading = false,

@@ -37,7 +37,7 @@ export type ConfigureStepCardProps = {
   credentialId?: number;
   loading?: boolean;
   isConferencing: boolean;
-  formPortalRef: React.RefObject<HTMLDivElement>;
+  formPortalRef?: React.RefObject<HTMLDivElement>;
   eventTypeGroups: TEventTypeGroup[];
   setConfigureStep: Dispatch<SetStateAction<boolean>>;
   handleSetUpLater: () => void;
@@ -65,7 +65,7 @@ const EventTypeAppSettingsForm = function EventTypeAppSettingsForm({
   ref: forwardedRef,
   ...props
 }: EventTypeAppSettingsFormProps & {
-  ref?: React.RefObject<HTMLButtonElement>;
+  ref?: React.Ref<HTMLButtonElement>;
 }) {
   const { handleDelete, onSubmit, eventType, loading, isConferencing } = props;
   const { t } = useLocale();
