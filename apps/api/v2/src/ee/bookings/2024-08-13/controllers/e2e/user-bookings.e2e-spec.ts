@@ -2231,8 +2231,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
         const mockBooking = await bookingsRepositoryFixture.create({
           uid: `booking-uid-${eventTypeId}`,
           title: "booking title",
-          startTime: "2050-09-05T11:00:00.000Z",
-          endTime: "2050-09-05T12:00:00.000Z",
+          startTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
           user: {
             connect: {
               id: user.id,
