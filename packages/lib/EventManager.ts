@@ -56,10 +56,22 @@ const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
+/**
+ * Includes legacy CRM integrations which has other_calendar type
+ */
 export const isCalendarLikeResult = <T extends { type: string }>(
   result: T
 ): result is T & EventResult<NewCalendarEventType> => {
   return result.type.includes("_calendar");
+};
+
+/**
+ * Excludes legacy CRM integrations which has other_calendar type
+ */
+export const isCalendarResult = <T extends { type: string }>(
+  result: T
+): result is T & EventResult<NewCalendarEventType> => {
+  return result.type.includes("_calendar") && !result.type.includes("other_calendar");
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {

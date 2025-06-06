@@ -248,12 +248,14 @@ export async function postHandler(req: NextApiRequest) {
         subscription,
         resourceState,
       });
-
+    console.log("calendarService", calendarService);
     if (!calendarService?.onWatchedCalendarChange) {
       // Log error with more context
       log.error("Google Calendar service does not have onWatchedCalendarChange");
       throw new Error("Google Calendar service does not have onWatchedCalendarChange");
     }
+
+    console.log("calendarService.onWatchedCalendarChange", calendarService.onWatchedCalendarChange);
 
     // Pass the correct Google Calendar ID, resourceId, resourceState and the relevant syncActions
     const result = await calendarService.onWatchedCalendarChange({
