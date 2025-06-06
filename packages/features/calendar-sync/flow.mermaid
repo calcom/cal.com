@@ -1,0 +1,25 @@
+graph TD
+    A["User Creates Booking"] --> B["handleNewBooking.ts"]
+    B --> C["Push 'createCalendarSync' task to Tasker"]
+    
+    T1["TASKER: 'createCalendarSync' task processed"]
+    T1 --> D["Create CalendarSync Record and connect to BookingReference"]
+    T1 --> E["Create CalendarSubscription Record and connect to CalendarSync"]
+    
+    H["CRON: calendar-subscriptions<br/>(runs every few minutes)"] 
+    H    --> J["Renew Expiring CalendarSubscriptions"]
+    H    --> K["Ensure all CalendarSubscriptions are active"]
+    
+    N["User Modifies Event in Google Calendar"]
+    N --> O["Google Calendar sends webhook notification"]
+    
+    O --> P["webhook.handler.ts receives notification"]
+    P --> Q{"Subscription exists in DB<br/>(check  SelectedCalendar and CalendarSubscription)?"}
+    Q -->|Yes| R["CalendarService#onWatchedCalendarChange(availability-cache OR events-sync OR BOTH)"]
+    Q -->|No| S["Ignore notification"]
+    R -->|availability-cache| T["Fetch and set availability in CalendarCache"]
+    R -->|events-sync| U["Fetch latest updated events<br/>from Calendar"]
+    U --> V["Find events with matching<br/>BookingReference.uid"]
+    subgraph DownstreamSync
+        V --> W["Trigger cancellation/reschedule<br/>"]
+    end
