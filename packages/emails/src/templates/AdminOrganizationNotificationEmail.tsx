@@ -31,7 +31,7 @@ const dnsTable = (type: string, name: string, value: string, t: TFunction) => (
           style={{
             backgroundColor: "black",
             color: "white",
-            fontSize: "14px",
+            fontSize: "16px",
             lineHeight: "24px",
           }}>
           <td

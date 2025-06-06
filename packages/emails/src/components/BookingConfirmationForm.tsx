@@ -63,7 +63,7 @@ export const BookingConfirmationForm = (props: { action: string; children: React
             boxSizing: "border-box",
             color: "rgb(56, 66, 82)",
             display: "block",
-            fontSize: "14px",
+            fontSize: "16px",
             lineHeight: "20px",
             marginBottom: "16px",
             marginLeft: "0px",

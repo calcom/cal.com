@@ -129,11 +129,11 @@ function Field({
                     styles={{
                       singleValue: (baseStyles) => ({
                         ...baseStyles,
-                        fontSize: "14px",
+                        fontSize: "16px",
                       }),
                       option: (baseStyles) => ({
                         ...baseStyles,
-                        fontSize: "14px",
+                        fontSize: "16px",
                       }),
                     }}
                     label="Type"

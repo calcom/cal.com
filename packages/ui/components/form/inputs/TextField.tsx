@@ -42,8 +42,8 @@ export const inputStyles = cva(
   {
     variants: {
       size: {
-        sm: "h-7 px-2 py-1 text-xs",
-        md: "h-8 px-3 py-2 text-sm",
+        sm: "h-7 px-2 py-1 text-sm",
+        md: "h-8 px-3 py-2 text-base",
       },
     },
     defaultVariants: {
@@ -163,7 +163,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             placeholder={placeholder}
             className={classNames(
               "w-full min-w-0 truncate border-0 bg-transparent focus:outline-none focus:ring-0",
-              "text-default rounded-lg text-sm font-medium leading-none",
+              "text-default rounded-lg text-base font-medium leading-none",
               "placeholder:text-muted disabled:cursor-not-allowed disabled:bg-transparent",
               addOnLeading && "pl-0.5 pr-0",
               addOnSuffix && "pl-0",
