@@ -110,35 +110,44 @@ export const createCalendarSyncTask = async ({
     calendarSync: null,
     calendarEventId: null,
   };
-  const organizationId = organizer.organizationId;
-  if (!organizationId) {
-    log.debug("Organizer is not part of an organization, skipping calendar sync task");
-    return defaultReturnValue;
-  }
-  const featuresRepository = new FeaturesRepository();
-  const isBiDirectionalSyncEnabled = await featuresRepository.checkIfTeamDirectlyHasFeature({
-    teamId: organizationId,
-    featureId: "calendar-sync",
-  });
+  try {
+    const organizationId = organizer.organizationId;
+    if (!organizationId) {
+      log.debug("Organizer is not part of an organization, skipping calendar sync task");
+      return defaultReturnValue;
+    }
+    const featuresRepository = new FeaturesRepository();
+    const isBiDirectionalSyncEnabled = await featuresRepository.checkIfTeamDirectlyHasFeature({
+      teamId: organizationId,
+      featureId: "calendar-sync",
+    });
 
-  if (!isBiDirectionalSyncEnabled) {
-    log.debug(
-      `Calendar sync is not enabled for organizationId  ${organizationId}, skipping calendar sync task`
+    if (!isBiDirectionalSyncEnabled) {
+      log.debug(
+        `Calendar sync is not enabled for organizationId  ${organizationId}, skipping calendar sync task`
+      );
+      return defaultReturnValue;
+    }
+    const calendarResults = results.filter((result) => isCalendarLikeResult(result));
+    if (calendarResults.length === 0) {
+      // No calendars are connected it seems, so there is no need for calendar sync
+      return {
+        calendarSync: null,
+        calendarEventId: null,
+      };
+    }
+    const { calendarEventId, data } = getCalendarSyncData({ calendarResults, organizer });
+    if (!calendarEventId || !data) {
+      return defaultReturnValue;
+    }
+    log.debug("Creating calendar sync task", safeStringify({ calendarEventId, calendarSyncData: data }));
+    return tasker.create(
+      "createCalendarSync",
+      { calendarEventId, calendarSyncData: data },
+      { maxAttempts: 3 }
     );
+  } catch (error) {
+    log.error("Error while creating calendar sync task", safeStringify(error));
     return defaultReturnValue;
   }
-  const calendarResults = results.filter((result) => isCalendarLikeResult(result));
-  if (calendarResults.length === 0) {
-    // No calendars are connected it seems, so there is no need for calendar sync
-    return {
-      calendarSync: null,
-      calendarEventId: null,
-    };
-  }
-  const { calendarEventId, data } = getCalendarSyncData({ calendarResults, organizer });
-  if (!calendarEventId || !data) {
-    return defaultReturnValue;
-  }
-  log.debug("Creating calendar sync task", safeStringify({ calendarEventId, calendarSyncData: data }));
-  return tasker.create("createCalendarSync", { calendarEventId, calendarSyncData: data }, { maxAttempts: 3 });
 };

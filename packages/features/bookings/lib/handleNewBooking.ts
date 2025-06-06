@@ -2089,17 +2089,18 @@ async function handler(
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
+  if (!isDryRun) {
+    await createCalendarSyncTask({
+      results,
+      organizer: {
+        id: organizerUser.id,
+        organizationId: organizerOrganizationId ?? null,
+      },
+    });
+  }
 
   try {
     if (!isDryRun) {
-      await createCalendarSyncTask({
-        results,
-        organizer: {
-          id: organizerUser.id,
-          organizationId: organizerOrganizationId ?? null,
-        },
-      });
-
       await prisma.booking.update({
         where: {
           uid: booking.uid,
@@ -2116,7 +2117,7 @@ async function handler(
       });
     }
   } catch (error) {
-    loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
+    loggerWithEventDetails.error("Error while creating booking references", JSON.stringify(error));
   }
 
   const evtWithMetadata = {
