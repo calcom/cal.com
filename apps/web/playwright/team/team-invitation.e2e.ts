@@ -21,13 +21,16 @@ test.describe("Team", () => {
     const teamOwner = await users.create(undefined, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.goto(`/settings/teams/${team.id}/settings`);
 
     await test.step("To the team by email (external user)", async () => {
       const invitedUserEmail = users.trackEmail({
         username: "rick",
         domain: `domain-${Date.now()}.com`,
       });
+      await page.goto(`/settings/teams/${team.id}/members`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.getByText(t("send_invite")).click();
@@ -66,7 +69,7 @@ test.describe("Team", () => {
 
       // Check newly invited member is not pending anymore
       await page.bringToFront();
-      await page.goto(`/settings/teams/${team.id}/members`);
+      await page.goto(`/settings/teams/${team.id}/settings`);
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(0);
@@ -78,6 +81,9 @@ test.describe("Team", () => {
         password: "P4ssw0rd!",
       });
 
+      await page.goto(`/settings/teams/${team.id}/members`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
       await page.getByTestId("new-member-button").click();
       const inviteLink = await getInviteLink(page);
 
@@ -102,13 +108,16 @@ test.describe("Team", () => {
     const teamOwner = await users.create({ name: `team-owner-${Date.now()}` }, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.goto(`/settings/teams/${team.id}/settings`);
 
     await test.step("To the organization by email (internal user)", async () => {
       const invitedUserEmail = users.trackEmail({
         username: "rick",
         domain: `example.com`,
       });
+      await page.goto(`/settings/teams/${team.id}/members`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.getByText(t("send_invite")).click();
@@ -153,7 +162,10 @@ test.describe("Team", () => {
     const { team } = await teamOwner.getFirstTeamMembership();
 
     await teamOwner.apiLogin();
+    await page.goto(`/settings/teams/${team.id}/settings`);
     await page.goto(`/settings/teams/${team.id}/members`);
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
     await page.getByTestId("new-member-button").click();
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
     await page.getByText(t("send_invite")).click();
