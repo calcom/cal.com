@@ -8,7 +8,7 @@ import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
 const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
 
-const fieldTypeEnum = z.enum([
+export const fieldTypeEnum = z.enum([
   "name",
   "text",
   "textarea",
@@ -25,6 +25,8 @@ const fieldTypeEnum = z.enum([
   "boolean",
   "url",
 ]);
+
+export const FieldTypeArray = fieldTypeEnum.options;
 
 export type FieldType = z.infer<typeof fieldTypeEnum>;
 
@@ -170,6 +172,7 @@ export const fieldTypeConfigSchema = z
       "boolean",
       "objectiveWithInput",
       "variants",
+      "number",
     ]),
     // It is the config that can tweak what an existing or a new field shows in the App UI or booker UI.
     variantsConfig: z
@@ -266,6 +269,8 @@ export const fieldSchema = baseFieldSchema.merge(
     disableOnPrefill: z.boolean().default(false).optional(),
   })
 );
+
+export type FormField = z.infer<typeof fieldSchema>;
 
 export const fieldsSchema = z.array(fieldSchema);
 

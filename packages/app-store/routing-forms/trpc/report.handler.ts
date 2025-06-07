@@ -153,9 +153,9 @@ export function buildResponsesForReporting({
   fields,
 }: {
   responsesFromDb: App_RoutingForms_FormResponse["response"][];
-  fields: Pick<z.infer<typeof zodFieldView>, "id" | "options" | "label" | "deleted">[];
+  fields: Pick<z.infer<typeof zodFieldView>, "id" | "options" | "label">[];
 }) {
-  const headers = fields.map((f) => f.label + (f.deleted ? "(Deleted)" : ""));
+  const headers = fields.map((f) => f.label);
   const responses: string[][] = [];
   responsesFromDb.forEach((r) => {
     const rowResponses: string[] = [];

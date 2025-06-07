@@ -135,6 +135,14 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const handleSubmit = (data: RoutingFormWithResponseCount) => {
     mutation.mutate({
       ...data,
+      fields: data?.fields?.map((field) => {
+        const options = field.options?.map((option) => ({
+          ...option,
+          id: option.value ?? option.label,
+        }));
+
+        return { ...field, ...(!!options && { options }), id: field.id };
+      }),
     });
   };
 

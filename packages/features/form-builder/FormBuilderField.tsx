@@ -46,6 +46,10 @@ type ValueProps =
   | {
       value: boolean;
       setValue: (value: boolean) => void;
+    }
+  | {
+      value: number;
+      setValue: (value: number) => void;
     };
 
 export const FormBuilderField = ({
@@ -333,7 +337,7 @@ export const ComponentForField = ({
           readOnly={readOnly}
           value={value as string[]}
           setValue={setValue as (arg: typeof value) => void}
-          options={field.options.map((o) => ({ ...o, title: o.label }))}
+          options={field.options.map((o) => ({ ...o, title: o.label, value: o.label }))}
         />
       </WithLabel>
     );
@@ -365,6 +369,21 @@ export const ComponentForField = ({
         />
       </WithLabel>
     ) : null;
+  }
+
+  if (componentConfig.propsType === "number") {
+    return (
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
+        <componentConfig.factory
+          placeholder={field.placeholder}
+          name={field.name}
+          label={field.label}
+          readOnly={readOnly}
+          value={value as number}
+          setValue={setValue as (arg: typeof value) => void}
+        />
+      </WithLabel>
+    );
   }
 
   if (componentConfig.propsType === "variants") {
