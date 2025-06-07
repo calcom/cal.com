@@ -29,13 +29,15 @@ export default function generateIcsFile({
   )
     return null;
 
+  const icsContent = generateIcsString({
+    event: calEvent,
+    status,
+    t,
+  });
+
   return {
     filename: "event.ics",
-    content: generateIcsString({
-      event: calEvent,
-      status,
-      t,
-    }),
+    content: icsContent,
     method: "REQUEST",
   };
 }
