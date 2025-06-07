@@ -74,10 +74,11 @@ export class FeaturesRepository implements IFeaturesRepository {
 
     if (!result.length) return null;
 
-    return result.reduce<Record<keyof AppFlags, boolean>>((acc, feature) => {
-      acc[feature.slug as keyof AppFlags] = true;
-      return acc;
-    }, {} as Record<keyof AppFlags, boolean>);
+    const features: Record<keyof AppFlags, boolean> = Object.fromEntries(
+      result.map((feature) => [feature.slug, true])
+    ) as Record<keyof AppFlags, boolean>;
+
+    return features;
   }
 
   /**
@@ -148,7 +149,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Start with teams the user belongs to
           SELECT DISTINCT t.id, t."parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = t.id AND tf."featureId" = ${slug}
             ) THEN true ELSE false END as has_feature
           FROM "Team" t
@@ -160,7 +161,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Recursively get parent teams
           SELECT DISTINCT p.id, p."parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = p.id AND tf."featureId" = ${slug}
             ) THEN true ELSE false END as has_feature
           FROM "Team" p
@@ -205,7 +206,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Start with the initial team
           SELECT id, "parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = id AND tf."featureId" = ${featureId}
             ) THEN true ELSE false END as has_feature
           FROM "Team"
@@ -216,7 +217,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Recursively get parent teams
           SELECT p.id, p."parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = p.id AND tf."featureId" = ${featureId}
             ) THEN true ELSE false END as has_feature
           FROM "Team" p
