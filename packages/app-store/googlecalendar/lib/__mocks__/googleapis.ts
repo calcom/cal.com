@@ -3,6 +3,7 @@ import { vi } from "vitest";
 const setCredentialsMock = vi.fn();
 const freebusyQueryMock = vi.fn();
 const calendarListMock = vi.fn();
+const calendarEventsListMock = vi.fn();
 const calendarMockImplementation = {
   channels: {
     stop: vi.fn().mockResolvedValue(undefined),
@@ -20,6 +21,7 @@ const calendarMockImplementation = {
         expiration: "1111111111",
       },
     }),
+    list: calendarEventsListMock,
   },
   freebusy: {
     query: freebusyQueryMock,
@@ -122,6 +124,7 @@ const setLastCreatedOAuth2Client = (oauth2Client: MockOAuth2Client | null) => {
 };
 export {
   calendarMock,
+  calendarEventsListMock,
   adminMock,
   setCredentialsMock,
   freebusyQueryMock,

@@ -49,4 +49,21 @@ export class BookingReferenceRepository {
       }),
     });
   }
+
+  static async setCalendarSyncIdForBookingReferences({
+    calendarEventId,
+    calendarSyncId,
+  }: {
+    calendarEventId: string;
+    calendarSyncId: string;
+  }) {
+    return prisma.bookingReference.updateMany({
+      where: {
+        uid: calendarEventId,
+      },
+      data: {
+        calendarSyncId,
+      },
+    });
+  }
 }
