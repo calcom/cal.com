@@ -1,4 +1,3 @@
-import type { EventType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
@@ -77,7 +76,7 @@ export default function CreateEventTypeDialog({
 
   const isTeamAdminOrOwner = teamId !== undefined && checkAdminOrOwner(teamProfile?.membershipRole);
 
-  const onSuccessMutation = (eventType: EventType) => {
+  const onSuccessMutation = (eventType: { id: number; title: string }) => {
     router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
     showToast(
       t("event_type_created_successfully", {
