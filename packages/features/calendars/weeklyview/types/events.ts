@@ -14,5 +14,9 @@ export interface CalendarEvent {
     borderColor?: string;
     className?: string;
     "data-test-id"?: string;
+    multiDayEvent?: {
+      start: Date | string;
+      end: Date | string;
+    };
   };
 }
