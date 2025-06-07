@@ -26,6 +26,7 @@ import { Select } from "@calcom/ui/components/form";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -92,6 +93,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     async onSuccess({ inviteLink }) {
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
+      revalidateTeamsList();
     },
     onError: (error) => {
       showToast(error.message, "error");
