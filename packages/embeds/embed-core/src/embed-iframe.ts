@@ -102,7 +102,7 @@ export const embedStore = {
           // Avoid unnecessary history push
           window.history.replaceState({}, "", currentUrl.toString());
         }
-        requestAnimationFrame(updateIfNeeded);
+        runAsap(updateIfNeeded);
         return {
           hasChanged,
         };
@@ -167,11 +167,8 @@ if (isBrowser) {
 }
 
 function runAsap(fn: (...arg: unknown[]) => void) {
-  if (isSafariBrowser) {
-    // https://adpiler.com/blog/the-full-solution-why-do-animations-run-slower-in-safari/
-    return setTimeout(fn, 50);
-  }
-  return requestAnimationFrame(fn);
+  // We don't use rAF because it runs slower in Safari plus doesn't run if the iframe is hidden sometimes
+  return setTimeout(fn, 50);
 }
 
 function log(...args: unknown[]) {
