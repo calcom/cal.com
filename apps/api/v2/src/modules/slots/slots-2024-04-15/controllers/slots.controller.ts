@@ -2,8 +2,10 @@ import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/
 import type { RangeSlots, TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res, BadRequestException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
+import { serialize } from "cookie";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import {
@@ -25,7 +27,8 @@ import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform
 export class SlotsController_2024_04_15 {
   constructor(
     private readonly slotsService: SlotsService_2024_04_15,
-    private readonly slotsOutputService: SlotsOutputService_2024_04_15
+    private readonly slotsOutputService: SlotsOutputService_2024_04_15,
+    private readonly configService: ConfigService
   ) {}
 
   @Post("/reserve")
@@ -51,8 +54,18 @@ export class SlotsController_2024_04_15 {
     @Req() req: ExpressRequest
   ): Promise<ApiResponse<string>> {
     const uid = await this.slotsService.reserveSlot(body, req.cookies?.uid);
+    const webAppUrl = this.configService.get("app.baseUrl") ?? "https://app.cal.com";
+    const useSecureCookies = webAppUrl.startsWith("https://");
+    res.setHeader(
+      "Set-Cookie",
+      serialize("uid", uid, {
+        path: "/",
+        httpOnly: true,
+        sameSite: useSecureCookies ? "none" : "lax",
+        secure: useSecureCookies,
+      })
+    );
 
-    res.cookie("uid", uid);
     return {
       status: SUCCESS_STATUS,
       data: uid,
@@ -158,19 +171,19 @@ export class SlotsController_2024_04_15 {
     @Req() req: ExpressRequest
   ): Promise<ApiResponse<{ slots: TimeSlots["slots"] | RangeSlots["slots"] }>> {
     try {
-    const isTeamEvent =
-      query.isTeamEvent === undefined
-        ? await this.slotsService.checkIfIsTeamEvent(query.eventTypeId)
-        : query.isTeamEvent;
-    const availableSlots = await getAvailableSlots({
-      input: {
-        ...query,
-        isTeamEvent,
-      },
-      ctx: {
-        req,
-      },
-    });
+      const isTeamEvent =
+        query.isTeamEvent === undefined
+          ? await this.slotsService.checkIfIsTeamEvent(query.eventTypeId)
+          : query.isTeamEvent;
+      const availableSlots = await getAvailableSlots({
+        input: {
+          ...query,
+          isTeamEvent,
+        },
+        ctx: {
+          req,
+        },
+      });
 
       const { slots } = await this.slotsOutputService.getOutputSlots(
         availableSlots,
