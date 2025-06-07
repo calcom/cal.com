@@ -63,8 +63,10 @@ function SimplePermissionItem({ resource, value, onChange }: SimplePermissionIte
   const { t } = useLocale();
 
   return (
-    <div className="flex items-center justify-between border-b py-4 last:border-b-0">
-      <span className="text-sm">{t(RESOURCE_CONFIG[resource as Resource]?.i18nKey || resource)}</span>
+    <div className="flex items-center justify-between px-3 py-2">
+      <span className="text-default text-sm font-medium leading-none">
+        {t(RESOURCE_CONFIG[resource as Resource]?.i18nKey || resource)}
+      </span>
       <ToggleGroup
         onValueChange={(val) => {
           if (val) onChange(val as PermissionLevel);
@@ -190,7 +192,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
       });
       form.setValue("permissions", newPermissions);
     }
-  }, [isAdvancedMode]);
+  }, [isAdvancedMode, form]);
 
   const filteredResources = useMemo(() => {
     return Object.keys(RESOURCE_CONFIG).filter((resource) =>
@@ -253,57 +255,55 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
               {...form.register("name")}
               placeholder={t("role_name_placeholder")}
             />
-            <TextField
-              label={t("role_description")}
-              {...form.register("description")}
-              placeholder={t("role_description_placeholder")}
-            />
 
-            <div className="flex items-center justify-between">
-              <Label>{t("permissions")}</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-sm">{t("advanced")}</span>
-                <Checkbox
-                  checked={form.watch("isAdvancedMode")}
-                  onCheckedChange={(checked: boolean) => form.setValue("isAdvancedMode", checked)}
-                />
-              </div>
-            </div>
-
-            {isAdvancedMode ? (
-              <div className="space-y-4">
-                <div className="relative">
-                  <Icon name="search" className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                  <input
-                    type="text"
-                    className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4"
-                    placeholder={t("search_permissions")}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+            <div className="bg-muted rounded-xl p-1">
+              <div className="flex items-center justify-between px-3 py-2">
+                <Label>{t("permissions")}</Label>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={form.watch("isAdvancedMode")}
+                    onCheckedChange={(checked: boolean) => form.setValue("isAdvancedMode", checked)}
                   />
+                  <span className="text-sm">{t("advanced")}</span>
                 </div>
-                {filteredResources.map((resource) => (
-                  <AdvancedPermissionGroup
-                    key={resource}
-                    resource={resource as Resource}
-                    selectedPermissions={permissions}
-                    onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
-                  />
-                ))}
               </div>
-            ) : (
-              <div className="space-y-2">
-                {Object.keys(RESOURCE_CONFIG).map((resource) => (
-                  <SimplePermissionItem
-                    key={resource}
-                    resource={resource}
-                    value={form.watch(`simplePermissions.${resource}`)}
-                    onChange={(value) => form.setValue(`simplePermissions.${resource}`, value)}
-                  />
-                ))}
-              </div>
-            )}
+
+              {isAdvancedMode ? (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Icon name="search" className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+                    <input
+                      type="text"
+                      className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4"
+                      placeholder={t("search_permissions")}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  {filteredResources.map((resource) => (
+                    <AdvancedPermissionGroup
+                      key={resource}
+                      resource={resource as Resource}
+                      selectedPermissions={permissions}
+                      onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-default border-subtle divide-subtle divide-y rounded-[10px] border">
+                  {Object.keys(RESOURCE_CONFIG).map((resource) => (
+                    <SimplePermissionItem
+                      key={resource}
+                      resource={resource}
+                      value={form.watch(`simplePermissions.${resource}`)}
+                      onChange={(value) => form.setValue(`simplePermissions.${resource}`, value)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+
           <SheetFooter>
             <Button
               type="button"
