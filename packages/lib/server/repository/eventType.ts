@@ -533,6 +533,7 @@ export class EventTypeRepository {
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
+      roundRobinHostsCount: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
       forwardParamsSuccessRedirect: true,

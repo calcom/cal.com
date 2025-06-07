@@ -150,6 +150,7 @@ export type FormValues = {
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
+  roundRobinHostsCount: number;
   maxLeadThreshold?: number;
   calVideoSettings?: {
     disableRecordingForOrganizer?: boolean;
