@@ -1,5 +1,5 @@
 import type { MutableRefObject } from "react";
-import { forwardRef } from "react";
+import React from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -28,17 +28,22 @@ export const tabs = [
     icon: "code" as const,
     type: "code",
     "data-testid": "HTML",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedHtml({ embedType, calLink, previewState, namespace }, ref) {
+    Component: function EmbedHtml({
+      ref: forwardedRef,
+      embedType,
+      calLink,
+      previewState,
+      namespace,
+    }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
+      ref?: React.Ref<HTMLTextAreaElement | HTMLIFrameElement | null>;
+    }) {
       const { t } = useLocale();
       const embedSnippetString = useGetEmbedSnippetString(namespace);
       const embedCalOrigin = useEmbedCalOrigin();
-      if (ref instanceof Function || !ref) {
+      if (!forwardedRef || forwardedRef instanceof Function) {
         return null;
       }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+      if (forwardedRef.current && !(forwardedRef.current instanceof HTMLTextAreaElement)) {
         return null;
       }
       return (
@@ -50,7 +55,7 @@ export const tabs = [
           </div>
           <TextArea
             data-testid="embed-code"
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+            ref={forwardedRef as typeof forwardedRef & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
             className="text-default bg-default h-[calc(100%-50px)] font-mono"
             style={{ resize: "none", overflow: "auto" }}
@@ -77,7 +82,7 @@ export const tabs = [
           <p className="text-subtle hidden text-sm">{t("need_help_embedding")}</p>
         </>
       );
-    }),
+    },
   },
   {
     name: "React (iframe)",
@@ -85,17 +90,22 @@ export const tabs = [
     "data-testid": "react",
     icon: "code" as const,
     type: "code",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedReact({ embedType, calLink, previewState, namespace }, ref) {
+    Component: function EmbedReact({
+      ref: forwardedRef,
+      embedType,
+      calLink,
+      previewState,
+      namespace,
+    }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
+      ref?: React.Ref<HTMLTextAreaElement | HTMLIFrameElement | null>;
+    }) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
-      if (ref instanceof Function || !ref) {
+      if (!forwardedRef || forwardedRef instanceof Function) {
         return null;
       }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+      if (forwardedRef.current && !(forwardedRef.current instanceof HTMLTextAreaElement)) {
         return null;
       }
       return (
@@ -103,7 +113,7 @@ export const tabs = [
           <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
           <TextArea
             data-testid="embed-react"
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+            ref={forwardedRef as typeof forwardedRef & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
             className="text-default bg-default h-[calc(100%-50px)] font-mono"
             readOnly
@@ -127,7 +137,7 @@ export const tabs = [
           />
         </>
       );
-    }),
+    },
   },
   {
     name: "React (Atom)",
@@ -135,17 +145,22 @@ export const tabs = [
     "data-testid": "react-atom",
     icon: "code" as const,
     type: "code",
-    Component: forwardRef<
-      HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
-    >(function EmbedReactAtom({ embedType, calLink, previewState, namespace }, ref) {
+    Component: function EmbedReactAtom({
+      ref: forwardedRef,
+      embedType,
+      calLink,
+      previewState,
+      namespace,
+    }: { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string } & {
+      ref?: React.Ref<HTMLTextAreaElement | HTMLIFrameElement | null>;
+    }) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
-      if (ref instanceof Function || !ref) {
+      if (!forwardedRef || forwardedRef instanceof Function) {
         return null;
       }
-      if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
+      if (forwardedRef.current && !(forwardedRef.current instanceof HTMLTextAreaElement)) {
         return null;
       }
       return (
@@ -153,7 +168,7 @@ export const tabs = [
           <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
           <TextArea
             data-testid={`${EmbedTabName.ATOM_REACT}`}
-            ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
+            ref={forwardedRef as typeof forwardedRef & MutableRefObject<HTMLTextAreaElement>}
             name={`${EmbedTabName.ATOM_REACT}`}
             className="text-default bg-default h-[calc(100%-50px)] font-mono"
             readOnly
@@ -176,7 +191,7 @@ ${getEmbedTypeSpecificString({
           />
         </>
       );
-    }),
+    },
   },
   {
     name: "Preview",
@@ -184,21 +199,26 @@ ${getEmbedTypeSpecificString({
     icon: "trello" as const,
     type: "iframe",
     "data-testid": "Preview",
-    Component: forwardRef<
-      HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }
-    >(function Preview({ calLink, embedType }, ref) {
+    Component: function Preview({
+      ref: forwardedRef,
+      calLink,
+      embedType,
+    }: { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string } & {
+      ref?: React.Ref<HTMLIFrameElement | HTMLTextAreaElement | null>;
+    }) {
       const bookerUrl = useBookerUrl();
       const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
-      if (ref instanceof Function || !ref) {
-        return null;
-      }
-      if (ref.current && !(ref.current instanceof HTMLIFrameElement)) {
+      if (
+        !forwardedRef ||
+        forwardedRef instanceof Function ||
+        !forwardedRef.current ||
+        !(forwardedRef.current instanceof HTMLIFrameElement)
+      ) {
         return null;
       }
       return (
         <iframe
-          ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
+          ref={forwardedRef as React.LegacyRef<HTMLIFrameElement>}
           data-testid="embed-preview"
           className="rounded-md border"
           width="100%"
@@ -207,7 +227,7 @@ ${getEmbedTypeSpecificString({
           key={iframeSrc}
         />
       );
-    }),
+    },
   },
 ];
 

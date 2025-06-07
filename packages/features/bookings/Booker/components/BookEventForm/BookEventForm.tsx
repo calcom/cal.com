@@ -23,7 +23,7 @@ import { FormSkeleton } from "./Skeleton";
 type BookEventFormProps = {
   onCancel?: () => void;
   onSubmit: () => void;
-  errorRef: React.RefObject<HTMLDivElement>;
+  errorRef?: React.RefObject<HTMLDivElement>;
   errors: UseBookingFormReturnType["errors"] & IUseBookingErrors;
   loadingStates: IUseBookingLoadingStates;
   children?: React.ReactNode;

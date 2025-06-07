@@ -13,7 +13,7 @@ export interface Timezone {
 export interface TimezoneBuddyProps {
   browsingDate: Date;
   timeMode?: "12h" | "24h";
-  containerRef?: React.RefObject<HTMLElement>;
+  containerRef?: React.Ref<HTMLElement>;
   x: number;
   height: number;
   y: number;
@@ -24,7 +24,7 @@ type TimezoneBuddyState = TimezoneBuddyProps & {
   addToDate: (amount: number) => void;
   subtractFromDate: (amount: number) => void;
   setBrowseDate: (date: Date) => void;
-  setContainerRef: (ref: React.RefObject<HTMLElement>) => void;
+  setContainerRef: (ref?: React.RefObject<HTMLElement>) => void;
   emitCellPosition: (x: number) => void;
   updateDimensions: () => void;
 };
@@ -61,11 +61,15 @@ export const createTimezoneBuddyStore = (initProps?: Partial<TimezoneBuddyProps>
     setBrowseDate: (date: Date) => {
       set({ browsingDate: date });
     },
-    setContainerRef: (ref: React.RefObject<HTMLElement>) => {
+    setContainerRef: (ref?: React.RefObject<HTMLElement>) => {
       set({ containerRef: ref });
     },
     emitCellPosition: (x: number) => {
-      const container = get().containerRef?.current;
+      const containerRef = get().containerRef;
+      const container =
+        containerRef && typeof containerRef === "object" && "current" in containerRef
+          ? containerRef.current
+          : null;
       if (x < 0) {
         // If x is less than 0, we are outside the container
         set({ isHover: false });
@@ -75,7 +79,11 @@ export const createTimezoneBuddyStore = (initProps?: Partial<TimezoneBuddyProps>
       }
     },
     updateDimensions: () => {
-      const container = get().containerRef?.current;
+      const containerRef = get().containerRef;
+      const container =
+        containerRef && typeof containerRef === "object" && "current" in containerRef
+          ? containerRef.current
+          : null;
       let x = get().x;
       if (container) {
         const containerRect = container.getBoundingClientRect();

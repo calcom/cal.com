@@ -616,7 +616,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
       {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
 
-      {ctaContainerRef.current &&
+      {ctaContainerRef?.current &&
         createPortal(
           <div className="flex items-center gap-2">
             <DataTableToolbar.CTA

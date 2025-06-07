@@ -6,7 +6,7 @@ import classNames from "@calcom/ui/classNames";
 
 type Props = {
   days: dayjs.Dayjs[];
-  containerNavRef: React.RefObject<HTMLDivElement>;
+  containerNavRef?: React.RefObject<HTMLDivElement>;
 };
 
 export function DateValues({ days, containerNavRef }: Props) {
