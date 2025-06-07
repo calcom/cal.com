@@ -22,7 +22,7 @@ import { CheckboxField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
-import RoundRobinResetInterval from "../components/RoundRobinResetInterval";
+import RoundRobinSettings from "../components/RoundRobinSettings";
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
@@ -175,7 +175,7 @@ const TeamSettingsViewWrapper = () => {
     <>
       <BookingLimitsView team={team} />
       <InternalNotePresetsView team={team} />
-      <RoundRobinResetInterval team={team} />
+      <RoundRobinSettings team={team} />
     </>
   );
 };
