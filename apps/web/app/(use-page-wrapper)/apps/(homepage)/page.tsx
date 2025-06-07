@@ -1,14 +1,18 @@
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
-import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { AppCategories } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import AppsPage from "~/apps/apps-view";
+
+import {
+  getCachedAppRegistry,
+  getCachedAppRegistryWithCredentials,
+  getCachedUserAdminTeams,
+} from "./page-cache-exports";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -25,11 +29,11 @@ const ServerPage = async () => {
   const session = await getServerSession({ req });
   let appStore, userAdminTeamsIds: number[];
   if (session?.user?.id) {
-    const userAdminTeams = await UserRepository.getUserAdminTeams(session.user.id);
+    const userAdminTeams = await getCachedUserAdminTeams(session.user.id);
     userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
-    appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeamsIds);
+    appStore = await getCachedAppRegistryWithCredentials(session.user.id, userAdminTeamsIds);
   } else {
-    appStore = await getAppRegistry();
+    appStore = await getCachedAppRegistry();
     userAdminTeamsIds = [];
   }
 
@@ -42,7 +46,6 @@ const ServerPage = async () => {
     }
     return c;
   }, {} as Record<string, number>);
-
   const props = {
     categories: Object.entries(categories)
       .map(([name, count]): { name: AppCategories; count: number } => ({
@@ -55,8 +58,6 @@ const ServerPage = async () => {
     appStore,
     userAdminTeams: userAdminTeamsIds,
   };
-
   return <AppsPage {...props} isAdmin={session?.user?.role === "ADMIN"} />;
 };
-
 export default ServerPage;
