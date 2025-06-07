@@ -1033,17 +1033,17 @@ export class BookingsService_2024_08_13 {
     const bookingUid = existingBooking.uid;
     let bookingLocation = "";
 
-    if (existingBooking.userId === null) {
+    if (!existingBooking.userId) {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
     }
 
-    if (existingBooking.eventTypeId === null) {
+    if (!existingBooking.eventTypeId) {
       throw new NotFoundException(`No event type found for booking with uid=${bookingUid}`);
     }
 
     const existingBookingHost = await this.usersRepository.findById(existingBooking.userId);
 
-    if (existingBookingHost === null) {
+    if (!existingBookingHost) {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
     }
 
@@ -1053,7 +1053,7 @@ export class BookingsService_2024_08_13 {
 
     if (typeof location === "object" && location.type === "organizersDefaultApp") {
       const existingBookingHostCredentials = await this.credentialsRepository.getAllUserCredentialsById(
-        existingBookingHost?.id
+        existingBookingHost.id
       );
       const existingBookingUserOrgId = await getOrgIdFromMemberOrTeamId({
         memberId: existingBooking.userId ?? null,

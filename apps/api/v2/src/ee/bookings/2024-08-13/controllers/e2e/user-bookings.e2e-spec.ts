@@ -54,7 +54,6 @@ import {
 import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
 import { Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
-// add a new test here to test the patch endpoint
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("User bookings", () => {
     let app: INestApplication;
@@ -1939,7 +1938,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         eventTypeWithAllLocationsId = createdEventType.id;
       });
 
-      describe("can book with multiple locations", async () => {
+      describe("can book with different locations", async () => {
         it("can book with cal video location", async () => {
           const bookingBody: CreateBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
@@ -2229,10 +2228,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
       });
 
-      // then add one more test below
-      // describe("can update booking with multiple locations")
-      describe("Can update booking with multiple locations", async () => {
-        // this is where we write test for updating booking locations
+      describe("Can update booking with different locations", async () => {
         const email = `user-booking-locations-${randomString(10)}@gmail.com`;
         const username = `user-bookings-locations-${randomString(10)}`;
         const locale = "en";
