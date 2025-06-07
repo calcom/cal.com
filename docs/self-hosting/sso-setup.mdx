@@ -11,7 +11,8 @@ You need an Enterprise License to avail this when self-hosting
 
 ### Setting up SAML login
 
-1. Set SAML_DATABASE_URL to a Postgres database. Please use a different database than the main Cal instance since the migrations are separate for this database. For example `postgresql://postgres:@localhost:5450/cal-saml`. If you are using a self-signed certificate for Postgres then use the `sslmode=no-verify` query param in the database URL. For example `postgresql://postgres:@localhost:5450/cal-saml?sslmode=no-verify`.
+1. Set SAML_DATABASE_URL to a Postgres database. Please use a different database than the main Cal instance since the migrations are separate for this database. For example `postgresql://postgres:@localhost:5450/cal-saml`. If you are using a self-signed certificate for Postgres then use the `sslmode=no-verify` query param in the database URL. For example `postgresql://postgres:@localhost:5450/cal-saml?sslmode=no-verify`. 
+<Note>You would need to create a blank DB here with the name as in the URL, for example, `cal-saml` in this case.</Note>
 
 2. Set SAML_ADMINS to a comma separated list of admin emails from where the SAML metadata can be uploaded and configured.
 
@@ -59,6 +60,8 @@ This guide explains the settings you need to use to configure SAML with your Ide
 ### Setting up OIDC login
 
 1. Set SAML_DATABASE_URL to a Postgres database. Please use a different database than the main Cal instance since the migrations are separate for this database. For example `postgresql://postgres:@localhost:5450/cal-saml`. If you are using a self-signed certificate for Postgres then use the `sslmode=no-verify` query param in the database URL. For example `postgresql://postgres:@localhost:5450/cal-saml?sslmode=no-verify`.
+<Note>You would need to create a blank DB here with the name as in the URL, for example, `cal-saml` in this case.</Note>
+
 2. Set SAML_ADMINS to a comma separated list of admin emails who can configure the OIDC.
 3. Keep handy the Client Secret, Client ID and Well Known URL with you for the next step.
 4. Spin up cal.com on your server and login with the Admin user (the email ID of which was provided in step 2 for SAML_ADMINS environment variable).
