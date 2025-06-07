@@ -21,7 +21,6 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
@@ -125,14 +124,17 @@ function EventTypeSingleLayout({
                   }
                   side="bottom">
                   <div className="self-center rounded-md p-2">
-                    <Switch
-                      id="hiddenSwitch"
-                      disabled={eventTypesLockedByOrg}
-                      checked={!formMethods.watch("hidden")}
-                      onCheckedChange={(e) => {
-                        formMethods.setValue("hidden", !e, { shouldDirty: true });
-                      }}
-                    />
+                    <button
+                      className="text-emphasis h-9"
+                      onClick={() => {
+                        formMethods.setValue("hidden", !formMethods.watch("hidden"), { shouldDirty: true });
+                      }}>
+                      {formMethods.watch("hidden") ? (
+                        <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+                      ) : (
+                        <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+                      )}
+                    </button>
                   </div>
                 </Tooltip>
               </div>
@@ -250,13 +252,17 @@ function EventTypeSingleLayout({
                   className="mt-2 inline cursor-pointer self-center pr-2 ">
                   {formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                 </Skeleton>
-                <Switch
-                  id="hiddenSwitch"
-                  checked={!formMethods.watch("hidden")}
-                  onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", !e, { shouldDirty: true });
-                  }}
-                />
+                <button
+                  className="text-emphasis h-9"
+                  onClick={() => {
+                    formMethods.setValue("hidden", !formMethods.watch("hidden"), { shouldDirty: true });
+                  }}>
+                  {formMethods.watch("hidden") ? (
+                    <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+                  ) : (
+                    <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+                  )}
+                </button>
               </div>
             </DropdownMenuContent>
           </Dropdown>

@@ -47,7 +47,6 @@ import {
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
@@ -530,14 +529,17 @@ export const InfiniteEventTypeList = ({
                                   type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")
                                 }>
                                 <div className="self-center rounded-md p-2">
-                                  <Switch
-                                    name="Hidden"
-                                    disabled={lockedByOrg}
-                                    checked={!type.hidden}
-                                    onCheckedChange={() => {
+                                  <button
+                                    className="text-emphasis h-9"
+                                    onClick={() => {
                                       setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
-                                    }}
-                                  />
+                                    }}>
+                                    {type.hidden ? (
+                                      <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+                                    ) : (
+                                      <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+                                    )}
+                                  </button>
                                 </div>
                               </Tooltip>
                             </>
@@ -765,14 +767,17 @@ export const InfiniteEventTypeList = ({
                                 className="mt-2 inline cursor-pointer self-center pr-2 ">
                                 {type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                               </Skeleton>
-                              <Switch
-                                id="hiddenSwitch"
-                                name="Hidden"
-                                checked={!type.hidden}
-                                onCheckedChange={() => {
+                              <button
+                                className="text-emphasis h-9"
+                                onClick={() => {
                                   setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
-                                }}
-                              />
+                                }}>
+                                {type.hidden ? (
+                                  <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
+                                ) : (
+                                  <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
+                                )}
+                              </button>
                             </div>
                           )}
                         </DropdownMenuContent>
