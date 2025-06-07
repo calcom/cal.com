@@ -4,9 +4,10 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { calculatePeriodLimits, isTimeViolatingFutureLimit } from "@calcom/lib/isOutOfBounds";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { PeriodData } from "@calcom/types/Event";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 
 // Determines if the next month will pass the booking limits for 'ROLLING' and 'RANGE' period types
 const useNoFutureAvailability = (browsingDate: Dayjs, periodData: PeriodData) => {
@@ -54,49 +55,77 @@ const NoAvailabilityDialog = ({
   nextMonthButton,
   browsingDate,
   periodData,
+  eventTypeId,
 }: {
   month: string | null;
   nextMonthButton: () => void;
   browsingDate: Dayjs;
   periodData: PeriodData;
+  eventTypeId?: number;
 }) => {
   const { t } = useLocale();
   const [isOpenDialog, setIsOpenDialog] = useState(true);
+  const { data: user } = useMeQuery();
+  const isAdmin = user?.isTeamAdminOrOwner;
+
   const noFutureAvailability = useNoFutureAvailability(browsingDate, periodData);
   const description = useDescription(noFutureAvailability, periodData);
 
   const closeDialog = () => {
     setIsOpenDialog(false);
   };
+
   return (
     <Dialog
       open={isOpenDialog}
       onOpenChange={(open) => {
         setIsOpenDialog(open);
       }}>
-      <DialogContent
-        title={t("no_availability_in_month", { month: month })}
-        type="creation"
-        description={description}
-        preventCloseOnOutsideClick={false}>
-        <DialogFooter>
-          <DialogClose
-            color={noFutureAvailability ? "primary" : "secondary"}
-            onClick={closeDialog}
-            data-testid="close_dialog_button">
-            {t("close")}
-          </DialogClose>
-          {!noFutureAvailability && (
-            <Button
-              color="primary"
-              onClick={nextMonthButton}
-              data-testid="view_next_month"
-              EndIcon="arrow-right">
-              {t("view_next_month")}
-            </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
+      {isAdmin ? (
+        <DialogContent
+          title={t("admin_no_hosts_assigned")}
+          type="creation"
+          description={t("admin_no_hosts_assigned_description")}
+          preventCloseOnOutsideClick={false}>
+          <DialogFooter>
+            <DialogClose color="secondary" onClick={closeDialog} data-testid="cancel_dialog_button">
+              {t("cancel")}
+            </DialogClose>
+            {!noFutureAvailability && eventTypeId && (
+              <Button
+                color="primary"
+                href={`/event-types/${eventTypeId}?tabName=team`}
+                data-testid="view_event_type_settings_team">
+                {t("add_host")}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      ) : (
+        <DialogContent
+          title={t("no_availability_in_month", { month: month })}
+          type="creation"
+          description={description}
+          preventCloseOnOutsideClick={false}>
+          <DialogFooter>
+            <DialogClose
+              color={noFutureAvailability ? "primary" : "secondary"}
+              onClick={closeDialog}
+              data-testid="close_dialog_button">
+              {t("close")}
+            </DialogClose>
+            {!noFutureAvailability && (
+              <Button
+                color="primary"
+                onClick={nextMonthButton}
+                data-testid="view_next_month"
+                EndIcon="arrow-right">
+                {t("view_next_month")}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      )}
     </Dialog>
   );
 };
