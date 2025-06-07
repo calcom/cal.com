@@ -973,7 +973,7 @@ export const getOptions = ({
               return true;
             }
           }
-          return `auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
+          return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
         // Associate with organization if enabled by flag and idP is Google (for now)
