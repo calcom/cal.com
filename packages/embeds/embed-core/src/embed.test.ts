@@ -965,6 +965,72 @@ describe("Cal", () => {
             expect(calModalBox.getAttribute("data-message")).toBe("Fallback Route Error");
           })();
         });
+
+        it("should handle optimistic loading configuration correctly", () => {
+          const modalArg = buildModalArg({
+            ...baseModalArgs,
+            config: {
+              ...baseModalArgs.config,
+              enableOptimisticLoad: "true",
+            },
+          });
+
+          calInstance.api.modal(modalArg);
+
+          expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
+            expectedModalBoxAttrs: {
+              state: "loading",
+              theme: baseModalArgs.config.theme,
+              layout: baseModalArgs.config.layout,
+              pageType: null,
+            },
+            expectedIframeUrlObject: {
+              pathname: `/${modalArg.calLink}`,
+              searchParams: new URLSearchParams({
+                theme: baseModalArgs.config.theme,
+                layout: baseModalArgs.config.layout,
+                embedType: "modal",
+                enableOptimisticLoad: "true",
+                "cal.enableOptimisticLoad": "true",
+              }),
+              origin: null,
+            },
+          });
+        });
+
+        it("should handle optimistic loading with prerender correctly", () => {
+          const modalArg = buildModalArg({
+            ...baseModalArgs,
+            config: {
+              ...baseModalArgs.config,
+              enableOptimisticLoad: "true",
+            },
+          });
+
+          calInstance.api.modal({ ...modalArg, __prerender: true });
+
+          expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
+            expectedModalBoxAttrs: {
+              state: "prerendering",
+              theme: baseModalArgs.config.theme,
+              layout: baseModalArgs.config.layout,
+              pageType: null,
+            },
+            expectedIframeUrlObject: {
+              pathname: `/${modalArg.calLink}`,
+              searchParams: new URLSearchParams({
+                theme: baseModalArgs.config.theme,
+                layout: baseModalArgs.config.layout,
+                embedType: "modal",
+                enableOptimisticLoad: "true",
+                prerender: "true",
+                "cal.skipSlotsFetch": "true",
+                "cal.enableOptimisticLoad": "true",
+              }),
+              origin: null,
+            },
+          });
+        });
       });
     });
 

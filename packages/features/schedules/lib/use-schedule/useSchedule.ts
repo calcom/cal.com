@@ -70,6 +70,8 @@ export const useSchedule = ({
   // We allow skipping the schedule fetch as a requirement for prerendering in iframe through embed as when the pre-rendered iframe is connected, then we would fetch the availability, which would be upto-date
   // Also, a reuse through Headless Router could completely change the availability as different team members are selected and thus it is unnecessary to fetch the schedule
   const skipGetSchedule = searchParams?.get("cal.skipSlotsFetch") === "true";
+  // Enable optimistic loading for embeds - allows page to show immediately while schedule loads in background
+  const enableOptimisticLoad = searchParams?.get("cal.enableOptimisticLoad") === "true";
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
@@ -101,6 +103,20 @@ export const useSchedule = ({
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
   };
 
+  // When optimistic loading is enabled, we relax the enabled conditions to allow immediate rendering
+  // The schedule query will still be enabled but won't block the UI from showing
+  const baseEnabled = !skipGetSchedule && Boolean(username) && enabledProp;
+
+  // For optimistic loading, we only require username to be present
+  // For normal loading, we maintain the existing strict requirements
+  const strictEnabled =
+    baseEnabled &&
+    Boolean(month) &&
+    Boolean(timezone) &&
+    (Boolean(eventSlug) || Boolean(eventId) || eventId === 0);
+
+  const queryEnabled = enableOptimisticLoad ? baseEnabled : strictEnabled;
+
   const options = {
     trpc: {
       context: {
@@ -113,14 +129,7 @@ export const useSchedule = ({
     refetchOnWindowFocus: true,
     // It allows long sitting users to get latest available slots
     refetchInterval: PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS * 1000,
-    enabled:
-      !skipGetSchedule &&
-      Boolean(username) &&
-      Boolean(month) &&
-      Boolean(timezone) &&
-      // Should only wait for one or the other, not both.
-      (Boolean(eventSlug) || Boolean(eventId) || eventId === 0) &&
-      enabledProp,
+    enabled: queryEnabled,
   };
 
   const isCallingApiV2Slots = useApiV2 && Boolean(isTeamEvent) && options.enabled;
@@ -151,6 +160,8 @@ export const useSchedule = ({
 
     return {
       ...teamScheduleV2,
+      isOptimisticLoad: enableOptimisticLoad,
+      hasEssentialData: Boolean(month && timezone && (eventSlug || eventId || eventId === 0)),
       /**
        * Invalidates the request and resends it regardless of any other configuration including staleTime
        */
@@ -167,6 +178,8 @@ export const useSchedule = ({
 
   return {
     ...schedule,
+    isOptimisticLoad: enableOptimisticLoad,
+    hasEssentialData: Boolean(month && timezone && (eventSlug || eventId || eventId === 0)),
     /**
      * Invalidates the request and resends it regardless of any other configuration including staleTime
      */
