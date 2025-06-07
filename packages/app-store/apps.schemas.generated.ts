@@ -11,6 +11,7 @@ import { appDataSchema as feishucalendar_zod_ts } from "./feishucalendar/zod";
 import { appDataSchema as ga4_zod_ts } from "./ga4/zod";
 import { appDataSchema as giphy_zod_ts } from "./giphy/zod";
 import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
+import { appDataSchema as googlesheets_zod_ts } from "./googlesheets/zod";
 import { appDataSchema as googlevideo_zod_ts } from "./googlevideo/zod";
 import { appDataSchema as gtm_zod_ts } from "./gtm/zod";
 import { appDataSchema as hitpay_zod_ts } from "./hitpay/zod";
@@ -60,6 +61,7 @@ export const appDataSchemas = {
   ga4: ga4_zod_ts,
   giphy: giphy_zod_ts,
   googlecalendar: googlecalendar_zod_ts,
+  googlesheets: googlesheets_zod_ts,
   googlevideo: googlevideo_zod_ts,
   gtm: gtm_zod_ts,
   hitpay: hitpay_zod_ts,
