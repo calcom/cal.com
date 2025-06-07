@@ -19,11 +19,14 @@ import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@calc
 import { showToast } from "@calcom/ui/components/toast";
 import { Form, TextField, Checkbox, Label } from "@calcom/ui/form";
 
+import RoleColorPicker from "./RoleColorPicker";
+
 type Role = {
   id: string;
   name: string;
   description?: string;
   teamId?: number;
+  color?: string;
   createdAt: Date;
   updatedAt: Date;
   type: "SYSTEM" | "CUSTOM";
@@ -48,6 +51,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   isAdvancedMode: z.boolean().default(false),
   permissions: z.array(z.string()),
+  color: z.string().default("#FF5733"),
   simplePermissions: z.record(z.enum(["none", "read", "all"])),
 });
 
@@ -163,6 +167,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
     defaultValues: {
       name: role?.name || "",
       description: role?.description || "",
+      color: role?.color || "#FF5733",
       isAdvancedMode: false,
       permissions: role?.permissions.map((p) => `${p.resource}.${p.action}`) || [],
       simplePermissions: Object.fromEntries(
@@ -171,7 +176,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
     },
   });
 
-  const { isAdvancedMode, permissions } = form.watch();
+  const { isAdvancedMode, permissions, color } = form.watch();
 
   // Convert between simple and advanced permissions
   useEffect(() => {
@@ -226,18 +231,22 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
   });
 
   const onSubmit = (values: FormValues) => {
+    // Store the color in localStorage
+    const roleKey = isEditing && role ? role.id : `new_role_${values.name}`;
+    localStorage.setItem(`role_color_${roleKey}`, values.color);
+
     if (isEditing && role) {
       updateMutation.mutate({
         teamId,
         roleId: role.id,
-        permissions: values.permissions,
+        permissions: values.permissions as any,
       });
     } else {
       createMutation.mutate({
         teamId,
         name: values.name,
         description: values.description,
-        permissions: values.permissions,
+        permissions: values.permissions as any,
       });
     }
   };
@@ -250,11 +259,19 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
         </SheetHeader>
         <Form form={form} handleSubmit={onSubmit}>
           <div className="space-y-4 py-5">
-            <TextField
-              label={t("role_name")}
-              {...form.register("name")}
-              placeholder={t("role_name_placeholder")}
-            />
+            <div className="flex items-end justify-end gap-2">
+              <div className="flex-1">
+                <TextField
+                  label={t("role_name")}
+                  {...form.register("name")}
+                  placeholder={t("role_name_placeholder")}
+                />
+              </div>
+              <RoleColorPicker
+                value={color}
+                onChange={(value) => form.setValue("color", value, { shouldDirty: true })}
+              />
+            </div>
 
             <div className="bg-muted rounded-xl p-1">
               <div className="flex items-center justify-between px-3 py-2">
