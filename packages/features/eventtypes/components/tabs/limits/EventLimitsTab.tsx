@@ -526,39 +526,22 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             </Label>
             <Controller
               name="slotInterval"
-              render={() => {
-                const slotIntervalOptions = [
-                  {
-                    label: t("slot_interval_default"),
-                    value: -1,
-                  },
-                  ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
-                    label: `${minutes} ${t("minutes")}`,
-                    value: minutes,
-                  })),
-                ];
-                return (
-                  <Select
-                    isSearchable={false}
-                    isDisabled={shouldLockDisableProps("slotInterval").disabled}
-                    onChange={(val) => {
-                      formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null, {
-                        shouldDirty: true,
-                      });
-                    }}
-                    defaultValue={
-                      slotIntervalOptions.find(
-                        (option) => option.value === formMethods.getValues("slotInterval")
-                      ) || slotIntervalOptions[0]
-                    }
-                    options={slotIntervalOptions}
-                    className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select}
-                    innerClassNames={
-                      customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.innerClassNames
-                    }
-                  />
-                );
-              }}
+              render={({ field }) => (
+                <InputField
+                  type="number"
+                  min={1}
+                  step={1}
+                  id="slotInterval"
+                  disabled={shouldLockDisableProps("slotInterval").disabled}
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10);
+                    formMethods.setValue("slotInterval", val > 0 ? val : null, { shouldDirty: true });
+                  }}
+                  placeholder={t("Enter Custom Slot Interval")}
+                  className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select}
+                />
+              )}
             />
           </div>
         </div>
