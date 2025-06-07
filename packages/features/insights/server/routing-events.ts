@@ -20,6 +20,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 
 import { type ResponseValue, ZResponse } from "../lib/types";
+import { InsightsAuthRepository } from "./repositories/insights-auth.repository";
 
 type RoutingFormInsightsTeamFilter = {
   userId?: number | null;
@@ -37,69 +38,7 @@ type RoutingFormResponsesFilter = RoutingFormResponsesInput & {
   organizationId: number | null;
 };
 
-type WhereForTeamOrAllTeams = Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId">;
-
 class RoutingEventsInsights {
-  private static async getWhereForTeamOrAllTeams({
-    userId,
-    teamId,
-    isAll,
-    organizationId,
-    routingFormId,
-  }: RoutingFormInsightsTeamFilter): Promise<WhereForTeamOrAllTeams> {
-    // Get team IDs based on organization if applicable
-    let teamIds: number[] = [];
-    if (isAll && organizationId) {
-      const teamsFromOrg = await prisma.team.findMany({
-        where: {
-          parentId: organizationId,
-        },
-        select: {
-          id: true,
-        },
-      });
-      teamIds = [organizationId, ...teamsFromOrg.map((t) => t.id)];
-    } else if (teamId) {
-      teamIds = [teamId];
-    }
-
-    // Filter teamIds to only include teams the user has access to
-    if (teamIds.length > 0) {
-      const accessibleTeams = await prisma.membership.findMany({
-        where: {
-          userId: userId ?? -1,
-          teamId: {
-            in: teamIds,
-          },
-          accepted: true,
-        },
-        select: {
-          teamId: true,
-        },
-      });
-      teamIds = accessibleTeams.map((membership) => membership.teamId);
-    }
-
-    // Base where condition for forms
-    const formsWhereCondition: WhereForTeamOrAllTeams = {
-      ...(teamIds.length > 0
-        ? {
-            teamId: {
-              in: teamIds,
-            },
-          }
-        : {
-            userId: userId ?? -1,
-            teamId: null,
-          }),
-      ...(routingFormId && {
-        id: routingFormId,
-      }),
-    };
-
-    return formsWhereCondition;
-  }
-
   static async getRoutingFormStats({
     teamId,
     startDate,
@@ -163,7 +102,7 @@ class RoutingEventsInsights {
     organizationId?: number | undefined;
     routingFormId?: string | undefined;
   }) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await InsightsAuthRepository.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -194,7 +133,7 @@ class RoutingEventsInsights {
     memberUserIds,
     columnFilters,
   }: RoutingFormResponsesFilter) {
-    const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsTeamWhereCondition = await InsightsAuthRepository.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -470,7 +409,7 @@ class RoutingEventsInsights {
     routingFormId,
     organizationId,
   }: RoutingFormInsightsTeamFilter) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await InsightsAuthRepository.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -498,7 +437,7 @@ class RoutingEventsInsights {
     routingFormId,
     organizationId,
   }: RoutingFormInsightsTeamFilter) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await InsightsAuthRepository.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -635,7 +574,7 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
   }: RoutingFormInsightsTeamFilter) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await InsightsAuthRepository.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -722,7 +661,7 @@ class RoutingEventsInsights {
     const endDate = dayjs(_endDate).endOf(dayjsPeriod).toDate();
 
     // Build the team conditions for the WHERE clause
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await InsightsAuthRepository.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -977,7 +916,7 @@ class RoutingEventsInsights {
     const endDate = dayjs(_endDate).endOf(dayjsPeriod).toDate();
 
     // Build the team conditions for the WHERE clause
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await InsightsAuthRepository.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
