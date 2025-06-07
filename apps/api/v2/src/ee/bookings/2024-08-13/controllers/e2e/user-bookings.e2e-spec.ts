@@ -2578,6 +2578,146 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
+    describe("cant't reschedule cancelled booking", () => {
+      it("should not be able to reschedule cancelled booking", async () => {
+        const cancelledBooking = await bookingsRepositoryFixture.create({
+          status: "CANCELLED",
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          startTime: new Date(Date.UTC(2050, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2050, 0, 8, 14, 0, 0)),
+          title: "peer coding lets goo",
+          uid: `cancelled-booking-${randomString()}`,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          location: "integrations:daily",
+          customInputs: {},
+          metadata: {},
+          responses: {
+            name: "Oldie",
+            email: "oldie@gmail.com",
+          },
+          attendees: {
+            create: {
+              email: "oldie@gmail.com",
+              name: "Oldie",
+              locale: "lv",
+              timeZone: "Europe/Rome",
+            },
+          },
+        });
+
+        const body: RescheduleBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 14, 0, 0)).toISOString(),
+          reschedulingReason: "Flying to mars that day",
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings/${cancelledBooking.uid}/reschedule`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+
+        expect(response.body.error.message).toEqual(
+          `Can't reschedule booking with uid=${cancelledBooking.uid} because it has been cancelled. Please provide uid of a booking that is not cancelled.`
+        );
+        await bookingsRepositoryFixture.deleteById(cancelledBooking.id);
+      });
+
+      it("should not be able to reschedule rescheduled booking", async () => {
+        const rescheduledBooking = await bookingsRepositoryFixture.create({
+          status: "CANCELLED",
+          rescheduled: true,
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          startTime: new Date(Date.UTC(2050, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2050, 0, 8, 14, 0, 0)),
+          title: "peer coding lets goo",
+          uid: `cancelled-booking-${randomString()}`,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          location: "integrations:daily",
+          customInputs: {},
+          metadata: {},
+          responses: {
+            name: "Oldie",
+            email: "oldie@gmail.com",
+          },
+          attendees: {
+            create: {
+              email: "oldie@gmail.com",
+              name: "Oldie",
+              locale: "lv",
+              timeZone: "Europe/Rome",
+            },
+          },
+        });
+
+        const newBooking = await bookingsRepositoryFixture.create({
+          status: "ACCEPTED",
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          fromReschedule: rescheduledBooking.uid,
+          startTime: new Date(Date.UTC(2050, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2050, 0, 8, 14, 0, 0)),
+          title: "peer coding lets goo",
+          uid: `new-booking-${randomString()}`,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          location: "integrations:daily",
+          customInputs: {},
+          metadata: {},
+          responses: {
+            name: "Oldie",
+            email: "oldie@gmail.com",
+          },
+          attendees: {
+            create: {
+              email: "oldie@gmail.com",
+              name: "Oldie",
+              locale: "lv",
+              timeZone: "Europe/Rome",
+            },
+          },
+        });
+
+        const body: RescheduleBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2040, 0, 9, 14, 0, 0)).toISOString(),
+          reschedulingReason: "Flying to mars that day",
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings/${rescheduledBooking.uid}/reschedule`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+
+        expect(response.body.error.message).toEqual(
+          `Can't reschedule booking with uid=${rescheduledBooking.uid} because it has been cancelled and rescheduled already to booking with uid=${newBooking.uid}. You probably want to reschedule ${newBooking.uid} instead by passing it within the request URL.`
+        );
+        await bookingsRepositoryFixture.deleteById(rescheduledBooking.id);
+        await bookingsRepositoryFixture.deleteById(newBooking.id);
+      });
+    });
+
     function responseDataIsRecurranceBooking(data: any): data is RecurringBookingOutput_2024_08_13 {
       return (
         !Array.isArray(data) &&

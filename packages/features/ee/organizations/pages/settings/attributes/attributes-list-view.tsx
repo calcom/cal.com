@@ -19,6 +19,7 @@ import {
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 import { DeleteAttributeModal } from "./DeleteAttributeModal";
 import { ListSkeleton } from "./ListSkeleton";
@@ -44,6 +45,7 @@ function AttributeItem({
   const mutation = trpc.viewer.attributes.toggleActive.useMutation({
     onSuccess: () => {
       showToast(t("attribute_updated_successfully"), "success");
+      revalidateAttributesList();
     },
     onError: (err) => {
       showToast(err.message, "error");
