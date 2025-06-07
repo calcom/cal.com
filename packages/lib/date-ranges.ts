@@ -9,6 +9,7 @@ export type DateRange = {
 };
 
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
+export type TimeBlock = Pick<Availability, "startTime" | "endTime"> & { isTimeBlock: boolean };
 export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 
 type TravelSchedule = { startDate: Dayjs; endDate?: Dayjs; timeZone: string };
@@ -90,7 +91,7 @@ export function processWorkingHours({
   return results;
 }
 
-export function processDateOverride({
+export function processDateItem({
   item,
   itemDateAsUtc,
   timeZone,
@@ -101,9 +102,9 @@ export function processDateOverride({
   timeZone: string;
   travelSchedules: TravelSchedule[];
 }) {
-  const overrideDate = dayjs(item.date);
+  const itemDate = dayjs(item.date);
 
-  const adjustedTimezone = getAdjustedTimezone(overrideDate, timeZone, travelSchedules);
+  const adjustedTimezone = getAdjustedTimezone(itemDate, timeZone, travelSchedules);
 
   const itemDateStartOfDay = itemDateAsUtc.startOf("day");
   const startDate = itemDateStartOfDay
@@ -153,7 +154,7 @@ export function buildDateRanges({
   outOfOffice,
 }: {
   timeZone: string;
-  availability: (DateOverride | WorkingHours)[];
+  availability: (DateOverride | WorkingHours | TimeBlock)[];
   dateFrom: Dayjs;
   dateTo: Dayjs;
   travelSchedules: TravelSchedule[];
@@ -162,10 +163,39 @@ export function buildDateRanges({
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
-      if ("days" in item) {
+      if ("days" in item && item.days.length > 0) {
         processed = processed.concat(
           processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo, travelSchedules })
         );
+      } else if ("isTimeBlock" in item && !!item.isTimeBlock) {
+        // porcess multi-day time blocks
+        const daysDiff = dayjs(item.endTime).diff(item.startTime, "day");
+        for (let i = 0; i <= daysDiff; i++) {
+          const currentDate = dayjs.utc(item.startTime).startOf("day").add(i, "day");
+          const timeBlockItem = {
+            ...item,
+            date: currentDate.toDate(),
+            startTime: i == 0 ? item.startTime : currentDate.toDate(),
+            endTime: i == daysDiff ? item.endTime : currentDate.endOf("day").toDate(),
+          };
+          if (
+            currentDate.isBetween(
+              dateFrom.subtract(1, "day").startOf("day"),
+              dateTo.add(1, "day").endOf("day"),
+              null,
+              "[]"
+            )
+          ) {
+            processed.push(
+              processDateItem({
+                item: timeBlockItem,
+                itemDateAsUtc: currentDate,
+                timeZone,
+                travelSchedules,
+              })
+            );
+          }
+        }
       }
       return processed;
     }, [])
@@ -193,7 +223,7 @@ export function buildDateRanges({
             "[]"
           )
         ) {
-          processed.push(processDateOverride({ item, itemDateAsUtc, timeZone, travelSchedules }));
+          processed.push(processDateItem({ item, itemDateAsUtc, timeZone, travelSchedules }));
         }
       }
       return processed;

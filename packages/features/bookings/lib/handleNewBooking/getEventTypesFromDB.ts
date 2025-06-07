@@ -117,6 +117,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           id: true,
           availability: true,
           timeZone: true,
+          timeBlocks: true,
         },
       },
       hosts: {
@@ -145,6 +146,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
               },
               timeZone: true,
               id: true,
+              timeBlocks: true,
             },
           },
         },
