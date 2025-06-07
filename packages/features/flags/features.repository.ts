@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 
+import kysely from "@calcom/kysely";
 import db from "@calcom/prisma";
 
 import type { AppFlags } from "./config";
@@ -56,6 +57,28 @@ export class FeaturesRepository implements IFeaturesRepository {
       acc[flag.slug as keyof AppFlags] = flag.enabled;
       return acc;
     }, {} as AppFlags);
+  }
+
+  /**
+   * Gets all features enabled for a specific team in a map format.
+   * @param teamId - The ID of the team to get features for
+   * @returns Promise<{ [slug: string]: boolean } | null>
+   */
+  public async getTeamFeatures(teamId: number) {
+    const result = await kysely
+      .selectFrom("TeamFeatures")
+      .innerJoin("Feature", "Feature.slug", "TeamFeatures.featureId")
+      .select(["Feature.slug", "Feature.enabled"])
+      .where("TeamFeatures.teamId", "=", teamId)
+      .execute();
+
+    if (!result.length) return null;
+
+    const features: Record<keyof AppFlags, boolean> = Object.fromEntries(
+      result.map((feature) => [feature.slug, true])
+    ) as Record<keyof AppFlags, boolean>;
+
+    return features;
   }
 
   /**
@@ -126,7 +149,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Start with teams the user belongs to
           SELECT DISTINCT t.id, t."parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = t.id AND tf."featureId" = ${slug}
             ) THEN true ELSE false END as has_feature
           FROM "Team" t
@@ -138,7 +161,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Recursively get parent teams
           SELECT DISTINCT p.id, p."parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = p.id AND tf."featureId" = ${slug}
             ) THEN true ELSE false END as has_feature
           FROM "Team" p
@@ -183,7 +206,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Start with the initial team
           SELECT id, "parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = id AND tf."featureId" = ${featureId}
             ) THEN true ELSE false END as has_feature
           FROM "Team"
@@ -194,7 +217,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           -- Recursively get parent teams
           SELECT p.id, p."parentId",
             CASE WHEN EXISTS (
-              SELECT 1 FROM "TeamFeatures" tf 
+              SELECT 1 FROM "TeamFeatures" tf
               WHERE tf."teamId" = p.id AND tf."featureId" = ${featureId}
             ) THEN true ELSE false END as has_feature
           FROM "Team" p
