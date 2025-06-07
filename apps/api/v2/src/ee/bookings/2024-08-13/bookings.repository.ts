@@ -175,9 +175,7 @@ export class BookingsRepository_2024_08_13 {
       where: {
         uid: bookingUid,
       },
-      data: {
-        location: body.location,
-      },
+      data: body,
     });
   }
 }
