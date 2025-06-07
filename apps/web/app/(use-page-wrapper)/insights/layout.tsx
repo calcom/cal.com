@@ -1,15 +1,24 @@
 import { getTranslate } from "app/_utils";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import Shell from "@calcom/features/shell/Shell";
+import { runWithTenants } from "@calcom/prisma/store/prismaStore";
+import { getTenantFromHost } from "@calcom/prisma/store/tenants";
 
 import UpgradeTipWrapper from "./UpgradeTipWrapper";
 
 export default async function InsightsLayout({ children }: { children: React.ReactNode }) {
-  const featuresRepository = new FeaturesRepository();
-  const insightsEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("insights");
+  const headersList = await headers();
+  const host = headersList.get("host") ?? "";
+  const tenant = getTenantFromHost(host);
+
+  const insightsEnabled = await runWithTenants(tenant, async () => {
+    const featuresRepository = new FeaturesRepository();
+    return await featuresRepository.checkIfFeatureIsEnabledGlobally("insights");
+  });
 
   if (!insightsEnabled) {
     return notFound();

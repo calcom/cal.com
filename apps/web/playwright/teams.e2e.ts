@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { test, todo } from "./lib/fixtures";

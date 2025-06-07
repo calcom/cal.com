@@ -4,7 +4,7 @@ import { authenticator } from "otplib";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
-import { prisma } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 
 import { test } from "./lib/fixtures";
 
