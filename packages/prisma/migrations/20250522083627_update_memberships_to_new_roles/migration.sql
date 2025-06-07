@@ -1,34 +1,34 @@
 -- Create default roles
-INSERT INTO "Role" (id, name, description, type, "createdAt", "updatedAt")
-VALUES 
-  ('owner_role', 'Owner', 'Full access to all resources', 'SYSTEM', NOW(), NOW()),
-  ('admin_role', 'Admin', 'Administrative access to most resources', 'SYSTEM', NOW(), NOW()),
-  ('member_role', 'Member', 'Basic member access', 'SYSTEM', NOW(), NOW())
+INSERT INTO "Role" (id, name, description, type, "createdAt", "updatedAt",color)
+VALUES
+  ('owner_role', 'Owner', 'Full access to all resources', 'SYSTEM', NOW(), NOW(),'#1BA774'),
+  ('admin_role', 'Admin', 'Administrative access to most resources', 'SYSTEM', NOW(), NOW(),'#6633EE'),
+  ('member_role', 'Member', 'Basic member access', 'SYSTEM', NOW(), NOW(),'#EAB308')
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert permissions for owner role (has access to everything via wildcard)
 INSERT INTO "RolePermission" (id, "roleId", resource, action, "createdAt")
-VALUES 
+VALUES
   (gen_random_uuid(), 'owner_role', '*', '*', NOW());
 
 -- Insert permissions for admin role
 INSERT INTO "RolePermission" (id, "roleId", resource, action, "createdAt")
-SELECT 
+SELECT
   gen_random_uuid(), 'admin_role', resource, action, NOW()
 FROM (
-  VALUES 
+  VALUES
     -- Event Type permissions
     ('eventType', 'create'),
     ('eventType', 'read'),
     ('eventType', 'update'),
     ('eventType', 'delete'),
-    
+
     -- Role Permissions
     ('role', 'create'),
     ('role', 'read'),
     ('role', 'update'),
-    ('role', 'delete'), 
-    
+    ('role', 'delete'),
+
     -- Team permissions
     ('team', 'create'),
     ('team', 'read'),
@@ -36,7 +36,7 @@ FROM (
     ('team', 'invite'),
     ('team', 'remove'),
     ('team', 'changeMemberRole'),
-    
+
     -- Organization permissions
     ('organization', 'read'),
     ('organization', 'update'),
@@ -44,34 +44,34 @@ FROM (
     ('organization', 'invite'),
     ('organization', 'remove'),
     ('organization', 'manageBilling'),
-    
+
     -- Booking permissions
     ('booking', 'read'),
     ('booking', 'update'),
     ('booking', 'readTeamBookings'),
     ('booking', 'readOrgBookings'),
     ('booking', 'readRecordings'),
-    
+
     -- Insights permissions
     ('insights', 'read'),
-    
+
     -- Availability permissions
     ('availability', 'read'),
     ('availability', 'update'),
     ('availability', 'override'),
-    
+
     -- Workflow permissions
     ('workflow', 'create'),
     ('workflow', 'read'),
     ('workflow', 'update'),
     ('workflow', 'delete'),
-    
+
     -- Routing Form permissions
     ('routingForm', 'create'),
     ('routingForm', 'read'),
     ('routingForm', 'update'),
     ('routingForm', 'delete'),
-    
+
     -- API Key permissions
     ('apiKey', 'create'),
     ('apiKey', 'read'),
@@ -81,34 +81,34 @@ FROM (
 
 -- Insert permissions for member role (basic read access)
 INSERT INTO "RolePermission" (id, "roleId", resource, action, "createdAt")
-SELECT 
+SELECT
   gen_random_uuid(), 'member_role', resource, action, NOW()
 FROM (
-  VALUES 
+  VALUES
     -- Event Type permissions
     ('eventType', 'read'),
-    
+
     -- Team permissions
     ('team', 'read'),
 
     -- Role Permissions
     ('role', 'read'),
-    
+
     -- Organization permissions
     ('organization', 'read'),
     ('organization', 'listMembers'),
-    
+
     -- Booking permissions
     ('booking', 'read'),
     ('booking', 'update'), -- For their own bookings
-    
+
     -- Availability permissions
     ('availability', 'read'),
     ('availability', 'update'), -- For their own availability
-    
+
     -- Workflow permissions
     ('workflow', 'read'),
-    
+
     -- Routing Form permissions
     ('routingForm', 'read')
 ) AS permissions(resource, action);
@@ -130,7 +130,7 @@ BEGIN
             -- For any other role, keep the existing customRoleId
             NEW."customRoleId" = NEW."customRoleId";
     END CASE;
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -152,11 +152,11 @@ CREATE TRIGGER membership_role_change_trigger
 -- BEGIN
 --     -- Get the maximum id we need to process
 --     SELECT COALESCE(MAX(id), 0) INTO max_id FROM "Membership" WHERE "customRoleId" IS NULL;
-    
+
 --     -- Process in batches until we've covered all records
 --     LOOP
 --         UPDATE "Membership"
---         SET "customRoleId" = 
+--         SET "customRoleId" =
 --             CASE role
 --                 WHEN 'OWNER' THEN 'owner_role'
 --                 WHEN 'ADMIN' THEN 'admin_role'
@@ -165,13 +165,13 @@ CREATE TRIGGER membership_role_change_trigger
 --         WHERE id > current_id
 --         AND id <= current_id + batch_size
 --         AND "customRoleId" IS NULL;
-        
+
 --         GET DIAGNOSTICS affected_rows = ROW_COUNT;
-        
+
 --         EXIT WHEN current_id >= max_id;
-        
+
 --         current_id := current_id + batch_size;
-        
+
 --         -- Optional: Add a small delay between batches if needed
 --         -- PERFORM pg_sleep(0.1);
 --     END LOOP;
