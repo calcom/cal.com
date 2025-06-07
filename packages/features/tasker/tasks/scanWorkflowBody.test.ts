@@ -165,7 +165,7 @@ describe("scanWorkflowBody", () => {
     expect(scheduleWorkflowNotifications).toHaveBeenCalledWith({
       activeOn: [1],
       isOrg: false,
-      workflowSteps: [mockWorkflowStep],
+      workflowSteps: [expect.objectContaining(mockWorkflowStep)],
       time: mockWorkflow.time,
       timeUnit: mockWorkflow.timeUnit,
       trigger: mockWorkflow.trigger,

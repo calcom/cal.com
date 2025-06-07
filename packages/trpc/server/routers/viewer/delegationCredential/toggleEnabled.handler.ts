@@ -69,16 +69,31 @@ export async function toggleDelegationCredentialEnabled(
 
   if (!shouldBeEnabled) {
     const affectedMemberships = await getAffectedMembersForDisable({ delegationCredentialId: input.id });
-    const connectionName = currentDelegationCredential.workspacePlatform?.name;
-    if (!connectionName) {
-      log.error(`Delegation credential ${input.id} has no workspace platform name`);
+    const slug = currentDelegationCredential.workspacePlatform?.slug;
+    if (!slug) {
+      log.error(`Delegation credential ${input.id} has no workspace platform slug`);
     }
+
+    let calendarAppName;
+    let conferencingAppName;
+
+    if (slug === "google") {
+      calendarAppName = "Google Calendar";
+      conferencingAppName = "Google Meet";
+    } else if (slug === "microsoft") {
+      calendarAppName = "Microsoft 365";
+      conferencingAppName = "Microsoft Teams";
+    } else {
+      throw new Error(`Unsupported workspace platform slug: ${slug}`);
+    }
+
     for (const membership of affectedMemberships) {
       if (membership.email) {
         await sendDelegationCredentialDisabledEmail({
           recipientEmail: membership.email,
           recipientName: membership.name || undefined,
-          connectionName,
+          calendarAppName,
+          conferencingAppName,
         });
       }
     }
