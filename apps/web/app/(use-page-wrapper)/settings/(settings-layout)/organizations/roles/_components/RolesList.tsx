@@ -20,6 +20,7 @@ type Role = {
   name: string;
   description?: string;
   teamId?: number;
+  color?: string;
   createdAt: Date;
   updatedAt: Date;
   type: "SYSTEM" | "CUSTOM";
@@ -136,7 +137,7 @@ function RoleItem({
       <div className="flex w-full items-center gap-3 truncate">
         {/* Icon */}
         <div className="flex items-center justify-center">
-          <div className="h-3 w-3 rounded-full bg-red-500" />
+          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: role.color ?? "gray" }} />
         </div>
         {/* Role Name */}
         <div className="text-deafult w-24 truncate text-sm font-semibold leading-none">
