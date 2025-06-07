@@ -40,6 +40,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import { _AccountModel } from "@calcom/prisma/zod";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
@@ -1001,7 +1002,16 @@ export const getOptions = ({
               creationSource: CreationSource.WEBAPP,
             },
           });
-          const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
+
+          const accountData = {
+            ...account,
+            userId: newUser.id,
+            providerEmail: user.email,
+          };
+
+          // Validate account data
+          const linkAccountNewUserData = _AccountModel.omit({ id: true }).parse(accountData);
+
           await calcomAdapter.linkAccount(linkAccountNewUserData);
 
           if (account.twoFactorEnabled) {
