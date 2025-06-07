@@ -564,7 +564,11 @@ export function AvailabilitySettings({
           }}
           className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
           <div className="flex-1 flex-row xl:mr-0">
-            <div className="border-subtle mb-6 rounded-md border">
+            <div
+              className={cn(
+                "border-subtle mb-6 rounded-md border",
+                customClassNames?.scheduleClassNames?.scheduleContainer
+              )}>
               <div>
                 {typeof weekStart === "string" && (
                   <Schedule
