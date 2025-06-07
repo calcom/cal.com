@@ -47,7 +47,7 @@ export const VerifyEmailChangeEmail = (
           <span
             style={{
               display: "block",
-              fontSize: "14px",
+              fontSize: "16px",
               lineHeight: 0.5,
             }}>
             {props.language("old_email_address")}
@@ -68,7 +68,7 @@ export const VerifyEmailChangeEmail = (
           <span
             style={{
               display: "block",
-              fontSize: "14px",
+              fontSize: "16px",
               lineHeight: 0.5,
             }}>
             {props.language("new_email_address")}

@@ -314,7 +314,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
         </div>
         <h1
           className={classNames(
-            "mb-2 text-[14px] font-medium leading-4",
+            "mb-2 text-[16px] font-medium leading-4",
             customClassNames?.previewSection?.header
           )}>
           {t("preview")}

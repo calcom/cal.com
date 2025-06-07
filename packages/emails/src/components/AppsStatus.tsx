@@ -18,7 +18,7 @@ export const AppsStatus = (props: { calEvent: CalendarEvent; t: TFunction }) => 
               {status.success >= 1 && `✅ ${status.success > 1 ? `(x${status.success})` : ""}`}
               {status.failures >= 1 && `❌ ${status.failures > 1 ? `(x${status.failures})` : ""}`}
               {status.warnings && status.warnings.length >= 1 && (
-                <ul style={{ fontSize: "14px" }}>
+                <ul style={{ fontSize: "16px" }}>
                   {status.warnings.map((warning, i) => (
                     <li key={i}>{warning}</li>
                   ))}

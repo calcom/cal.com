@@ -496,7 +496,7 @@ const EmailEmbedPreview = ({
             style={{
               fontStyle: "normal",
               fontWeight: "normal",
-              fontSize: "14px",
+              fontSize: "16px",
               lineHeight: "17px",
               color: "#333333",
             }}>
@@ -508,7 +508,7 @@ const EmailEmbedPreview = ({
                 style={{
                   fontStyle: "normal",
                   fontWeight: "normal",
-                  fontSize: "14px",
+                  fontSize: "16px",
                   lineHeight: "17px",
                   color: "#333333",
                 }}>
