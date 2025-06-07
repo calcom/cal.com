@@ -104,7 +104,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
               disabled={disabled}
               classNames={{
                 dayRanges: classNames?.dayRanges,
-                timeRanges: classNames?.timeRanges,
+                timeRangeField: classNames?.timeRangeField,
               }}
             />
             {!disabled && <div className="block">{CopyButton}</div>}
@@ -237,7 +237,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   disabled?: boolean;
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
-  classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRanges">;
+  classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRangeField">;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -258,7 +258,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
               name={`${name}.${index}`}
               render={({ field }) => (
                 <TimeRangeField
-                  className={classNames?.timeRanges}
+                  className={classNames?.timeRangeField}
                   userTimeFormat={userTimeFormat}
                   {...field}
                 />
