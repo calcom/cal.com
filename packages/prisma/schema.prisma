@@ -74,6 +74,7 @@ model CalVideoSettings {
 
   disableRecordingForOrganizer Boolean @default(false)
   disableRecordingForGuests    Boolean @default(false)
+  enableAutomaticTranscription Boolean @default(false)
   redirectUrlOnExit            String?
 
   createdAt DateTime @default(now())
