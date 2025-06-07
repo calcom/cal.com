@@ -1,12 +1,9 @@
-import type { ChangeEvent } from "react";
 import type {
   Settings,
   SelectWidgetProps,
   SelectWidget as SelectWidgetType,
   WidgetProps,
 } from "react-awesome-query-builder";
-
-import { EmailField as EmailWidget } from "@calcom/ui/components/form";
 
 import widgetsComponents from "../widgets";
 import type { Widgets, WidgetsWithoutFactory } from "./types";
@@ -32,6 +29,13 @@ const {
   Button,
   ButtonGroup,
   Provider,
+  AddressWidget,
+  UrlWidget,
+  RadioWidget,
+  MultiEmailWidget,
+  BooleanWidget,
+  CheckBoxWidget,
+  EmailWidget,
 } = widgetsComponents;
 
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
@@ -59,22 +63,26 @@ const PhoneFactory = (props: WidgetProps | undefined) => {
   return <TextWidget type="tel" {...props} />;
 };
 
-const EmailFactory = (props: WidgetProps | undefined) => {
-  if (!props) {
-    return <div />;
-  }
+const EmailFactory = (props: WidgetProps | undefined) => renderComponent(props, EmailWidget);
 
-  return (
-    <EmailWidget
-      onChange={(e: ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        props.setValue(val);
-      }}
-      containerClassName="w-full mb-2"
-      {...props}
-    />
-  );
-};
+const MultiEmailFactory = (props: WidgetProps | undefined) => renderComponent(props, MultiEmailWidget);
+const BooleanFactory = (props: WidgetProps | undefined) => renderComponent(props, BooleanWidget);
+const AddressFactory = (props: WidgetProps | undefined) => renderComponent(props, AddressWidget);
+const UrlFactory = (props: WidgetProps | undefined) => renderComponent(props, UrlWidget);
+const RadioFactory = (
+  props:
+    | (SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      })
+    | undefined
+) => renderComponent(props, RadioWidget);
+const CheckBoxFactory = (
+  props:
+    | (SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      })
+    | undefined
+) => renderComponent(props, CheckBoxWidget);
 
 // react-query-builder types have missing type property on Widget
 //TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
@@ -111,6 +119,30 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
       ...widgets.text,
       factory: EmailFactory,
     },
+    multiemail: {
+      ...widgets.text,
+      factory: MultiEmailFactory,
+    },
+    boolean: {
+      ...widgets.text,
+      factory: BooleanFactory,
+    },
+    address: {
+      ...widgets.text,
+      factory: AddressFactory,
+    },
+    url: {
+      ...widgets.text,
+      factory: UrlFactory,
+    },
+    radio: {
+      ...widgets.text,
+      factory: RadioFactory,
+    } as SelectWidgetType,
+    checkbox: {
+      ...widgets.text,
+      factory: CheckBoxFactory,
+    } as SelectWidgetType,
   };
   return widgetsWithFactory;
 }

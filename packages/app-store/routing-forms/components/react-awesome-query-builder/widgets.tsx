@@ -8,11 +8,14 @@ import type {
   ProviderProps,
 } from "react-awesome-query-builder";
 
+import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { AddressInput } from "@calcom/ui/components/address";
+import { MultiEmail } from "@calcom/ui/components/address";
 import { Button as CalButton } from "@calcom/ui/components/button";
-import { TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { TextField, CheckboxField, TextArea, Checkbox, InputField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui/components/form")).SelectWithValidation
@@ -70,7 +73,7 @@ export type TextLikeComponentProps<TVal extends string | string[] | boolean = st
   name?: string;
 };
 
-export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
+export type TextLikeComponentPropsRAQB<TVal extends string | string[] | boolean = string> =
   TextLikeComponentProps<TVal> & {
     customProps?: object;
     type?: "text" | "number" | "email" | "tel" | "url";
@@ -150,6 +153,32 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
   );
 }
 
+function multiSelectLikeField(
+  listValues: SelectLikeComponentPropsRAQB<string[]>["listValues"],
+  value: SelectLikeComponentPropsRAQB<string[]>["value"],
+  setValue: SelectLikeComponentPropsRAQB<string[]>["setValue"]
+) {
+  const selectItems = listValues.map((item) => {
+    return {
+      label: item.title,
+      value: item.value,
+    };
+  });
+  const optionsFromList = selectItems.filter((item) => value?.includes(item.value));
+  // If no value could be found in the list, then we set the value to undefined.
+  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
+  // Do it only when it is not already empty, this is to avoid infinite state updates
+  // NOTE: value is some times sent as undefined even though the type will tell you that it can't be
+  if (optionsFromList.length === 0 && value?.length) {
+    setValue([]);
+  }
+
+  return {
+    selectItems,
+    optionsFromList,
+  };
+}
+
 const MultiSelectWidget = ({
   listValues,
   setValue,
@@ -159,22 +188,8 @@ const MultiSelectWidget = ({
   if (!listValues) {
     return null;
   }
-  const selectItems = listValues.map((item) => {
-    return {
-      label: item.title,
-      value: item.value,
-    };
-  });
 
-  const optionsFromList = selectItems.filter((item) => value?.includes(item.value));
-
-  // If no value could be found in the list, then we set the value to undefined.
-  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
-  // Do it only when it is not already empty, this is to avoid infinite state updates
-  // NOTE: value is some times sent as undefined even though the type will tell you that it can't be
-  if (optionsFromList.length === 0 && value?.length) {
-    setValue([]);
-  }
+  const { selectItems, optionsFromList } = multiSelectLikeField(listValues, value, setValue);
 
   return (
     <Select
@@ -193,24 +208,38 @@ const MultiSelectWidget = ({
   );
 };
 
-function SelectWidget({ listValues, setValue, value, ...remainingProps }: SelectLikeComponentPropsRAQB) {
-  if (!listValues) {
-    return null;
-  }
+function selectLikeField(
+  listValues: SelectLikeComponentPropsRAQB["listValues"],
+  value: SelectLikeComponentPropsRAQB["value"],
+  setValue: SelectLikeComponentPropsRAQB["setValue"]
+) {
   const selectItems = listValues.map((item) => {
     return {
       label: item.title,
       value: item.value,
     };
   });
-  const optionFromList = selectItems.find((item) => item.value === value);
 
+  const optionFromList = selectItems.find((item) => item.value === value);
   // If the value is not in the list, then we set the value to undefined.
   // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
   // Do it only when it is not already empty string, this is to avoid infinite state updates
   if (!optionFromList && value) {
     setValue("");
   }
+
+  return {
+    selectItems,
+    optionFromList,
+  };
+}
+
+function SelectWidget({ listValues, setValue, value, ...remainingProps }: SelectLikeComponentPropsRAQB) {
+  if (!listValues) {
+    return null;
+  }
+
+  const { selectItems, optionFromList } = selectLikeField(listValues, value, setValue);
 
   return (
     <Select
@@ -366,6 +395,150 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
   );
 };
 
+function AddressWidget(props: TextLikeComponentPropsRAQB) {
+  return (
+    <AddressInput
+      id={props.name}
+      onChange={(val) => {
+        props.setValue(val);
+      }}
+      {...props}
+    />
+  );
+}
+
+function UrlWidget(props: TextLikeComponentPropsRAQB) {
+  return <TextWidget type="url" {...props} noLabel={true} {...props} />;
+}
+
+function RadioWidget({ listValues, value, setValue, name, ...remainingProps }: SelectLikeComponentPropsRAQB) {
+  const { selectItems, optionFromList } = selectLikeField(listValues, value, setValue);
+
+  return (
+    <RadioGroup
+      disabled={remainingProps.readOnly}
+      value={optionFromList?.value}
+      onValueChange={(e) => {
+        setValue(e);
+      }}
+      {...remainingProps}>
+      <>
+        {selectItems.map((option, i) => (
+          <RadioField
+            label={option.label}
+            key={`option.${i}.radio`}
+            value={option.label}
+            id={`${name}.option.${i}.radio`}
+          />
+        ))}
+      </>
+    </RadioGroup>
+  );
+}
+
+function BooleanWidget({ readOnly, name, label, value, setValue }: TextLikeComponentPropsRAQB<boolean>) {
+  return (
+    <div className="flex">
+      <CheckboxField
+        name={name}
+        onChange={(e) => {
+          if (e.target.checked) {
+            setValue(true);
+          } else {
+            setValue(false);
+          }
+        }}
+        placeholder=""
+        checked={value}
+        disabled={readOnly}
+        description=""
+        // Form Builder ensures that it would be safe HTML in here if the field type supports it. So, we can safely use label value in `descriptionAsSafeHtml`
+        descriptionAsSafeHtml={label ?? ""}
+      />
+    </div>
+  );
+}
+
+function MultiEmailWidget({
+  value,
+  readOnly,
+  label,
+  setValue,
+  ...props
+}: TextLikeComponentPropsRAQB<string[]>) {
+  const placeholder = props.placeholder;
+  value = value || [];
+  return (
+    <MultiEmail
+      value={value}
+      readOnly={readOnly}
+      label={label}
+      setValue={setValue}
+      placeholder={placeholder}
+      {...props}
+    />
+  );
+}
+
+function CheckBoxWidget({ listValues, readOnly, setValue, value }: SelectLikeComponentPropsRAQB<string[]>) {
+  const { selectItems, optionsFromList } = multiSelectLikeField(listValues, value, setValue);
+  value = value || [];
+  return (
+    <div>
+      {selectItems.map((option, i) => {
+        return (
+          <label key={i} className="block">
+            <Checkbox
+              disabled={readOnly}
+              onCheckedChange={(checked) => {
+                const newValue = value.filter((v) => v !== option.value);
+                if (checked) {
+                  newValue.push(option.value);
+                }
+                setValue(newValue);
+              }}
+              value={option.value}
+              checked={optionsFromList.map((option) => option.value).includes(option.value)}
+            />
+            <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
+function PhoneWidget({ setValue, readOnly, ...props }: TextLikeComponentPropsRAQB<string>) {
+  if (!props) {
+    return <div />;
+  }
+  return (
+    <PhoneInput
+      disabled={readOnly}
+      onChange={(val: string) => {
+        setValue(val);
+      }}
+      {...props}
+    />
+  );
+}
+
+function EmailWidget(props: TextLikeComponentPropsRAQB) {
+  return (
+    <InputField
+      type="email"
+      autoCapitalize="none"
+      autoComplete="email"
+      autoCorrect="off"
+      inputMode="email"
+      id={props.name}
+      noLabel={true}
+      {...props}
+      onChange={(e) => props.setValue(e.target.value)}
+    />
+  );
+}
+
 const Provider = ({ children }: ProviderProps) => children;
 
 const widgets = {
@@ -379,6 +552,14 @@ const widgets = {
   ButtonGroup,
   Conjs,
   Provider,
+  AddressWidget,
+  UrlWidget,
+  RadioWidget,
+  MultiEmailWidget,
+  BooleanWidget,
+  CheckBoxWidget,
+  PhoneWidget,
+  EmailWidget,
 };
 
 export default widgets;
