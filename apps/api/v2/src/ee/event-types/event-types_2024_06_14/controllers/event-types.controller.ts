@@ -14,19 +14,19 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  Post,
   Body,
-  NotFoundException,
-  Patch,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
-  Delete,
-  Query,
+  NotFoundException,
+  Param,
   ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
@@ -37,10 +37,10 @@ import {
   VERSION_2024_06_14,
 } from "@calcom/platform-constants";
 import {
-  UpdateEventTypeInput_2024_06_14,
-  GetEventTypesQuery_2024_06_14,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
+  GetEventTypesQuery_2024_06_14,
+  UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -109,11 +109,15 @@ export class EventTypesController_2024_06_14 {
   }
 
   @Get("/")
+  @Permissions([EVENT_TYPE_READ])
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get all event types" })
   async getEventTypes(
-    @Query() queryParams: GetEventTypesQuery_2024_06_14
+    @Query() queryParams: GetEventTypesQuery_2024_06_14,
+    @GetUser() user: UserWithProfile
   ): Promise<GetEventTypesOutput_2024_06_14> {
-    const eventTypes = await this.eventTypesService.getEventTypes(queryParams);
+    const eventTypes = await this.eventTypesService.getEventTypes(queryParams, user);
     const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
     const eventTypesWithoutHiddenFields = eventTypesFormatted.map((eventType) => {
       return {
