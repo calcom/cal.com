@@ -5,6 +5,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
+import { addFilter, openFilter } from "./filter-helpers";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
@@ -76,9 +77,8 @@ test.describe("Bookings", () => {
       await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
       await bookingsGetResponse;
 
-      await page.locator('[data-testid="add-filter-button"]').click();
-      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+      await addFilter(page, "dateRange");
+      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeHidden();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeHidden();
@@ -243,9 +243,8 @@ test.describe("Bookings", () => {
       await page.goto(`/bookings/past`);
       await bookingsGetResponse;
 
-      await page.locator('[data-testid="add-filter-button"]').click();
-      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+      await addFilter(page, "dateRange");
+      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible();
@@ -354,9 +353,8 @@ test.describe("Bookings", () => {
     await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
     await bookingsGetResponse;
 
-    await page.locator('[data-testid="add-filter-button"]').click();
-    await page.locator('[data-testid="add-filter-item-userId"]').click();
-    await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
+    await addFilter(page, "userId");
+    await openFilter(page, "userId");
 
     const bookingsGetResponse2 = page.waitForResponse(
       (response) => response.url().includes("/api/trpc/bookings/get?batch=1") && response.status() === 200
@@ -461,9 +459,8 @@ test.describe("Bookings", () => {
     await page.goto("/bookings/upcoming", { waitUntil: "domcontentloaded" });
     await bookingsGetResponse1;
 
-    await page.locator('[data-testid="add-filter-button"]').click();
-    await page.locator('[data-testid="add-filter-item-userId"]').click();
-    await page.locator('[data-testid="filter-popover-trigger-userId"]').click();
+    await addFilter(page, "userId");
+    await openFilter(page, "userId");
     await page
       .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${anotherUser}")`)
       .click();
