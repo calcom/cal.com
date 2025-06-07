@@ -22,6 +22,7 @@ export default defineConfig({
         emails: resolve(__dirname, "./emails.ts"),
         "event-types": resolve(__dirname, "./event-types.ts"),
         "app-store": resolve(__dirname, "./app-store.ts"),
+        workflows: resolve(__dirname, "./workflows.ts"),
         slots: resolve(__dirname, "./slots.ts"),
       },
       name: "calcom-lib",
