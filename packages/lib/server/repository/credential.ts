@@ -23,6 +23,7 @@ type CredentialUpdateInput = {
   userId?: number;
   appId?: string;
   delegationCredentialId?: string | null;
+  invalid?: boolean;
 };
 
 export class CredentialRepository {
