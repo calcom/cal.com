@@ -130,7 +130,7 @@ export const useSlots = (event: { id: number; length: number } | null) => {
   const timeSlotToBeBooked = selectedTimeslot ?? allSelectedTimeslots.at(-1);
 
   const handleReserveSlot = () => {
-    if (eventTypeId && timeSlotToBeBooked && eventDuration) {
+    if (eventTypeId && timeSlotToBeBooked && eventDuration && slotReservationId !== null) {
       reserveSlotMutation.mutate({
         slotUtcStartDate: dayjs(timeSlotToBeBooked).utc().toISOString(),
         eventTypeId,
@@ -141,18 +141,20 @@ export const useSlots = (event: { id: number; length: number } | null) => {
   };
 
   useEffect(() => {
-    handleReserveSlot();
-
-    const interval = setInterval(() => {
+    if (slotReservationId !== null) {
       handleReserveSlot();
-    }, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
 
-    return () => {
-      handleRemoveSlot();
-      clearInterval(interval);
-    };
+      const interval = setInterval(() => {
+        handleReserveSlot();
+      }, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
+
+      return () => {
+        handleRemoveSlot();
+        clearInterval(interval);
+      };
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event?.id, timeSlotToBeBooked]);
+  }, [event?.id, timeSlotToBeBooked, slotReservationId]);
 
   return {
     setSelectedTimeslot,
