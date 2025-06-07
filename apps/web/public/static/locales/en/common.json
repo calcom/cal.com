@@ -3232,5 +3232,8 @@
   "available_credits": "Available credits",
   "members_affected_by_disabling_delegation_credential": "Affected members",
   "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
+  "enable_multi_rr_hosts": "Enable multiple Round Robin hosts",
+  "number_of_rr_hosts": "Number of Round Robin hosts",
+  "multi_rr_hosts_description": "Assign more than one Round Robin host to attend.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
