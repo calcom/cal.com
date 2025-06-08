@@ -113,14 +113,10 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
   const recurringEvent = event.recurringEvent;
   const maxOccurences = recurringEvent?.count;
 
-  // Always call hook: effect for clamping initial value
   useEffect(() => {
     if (!recurringEvent || !maxOccurences) return;
 
-    const current = Math.min(recurringEventCount ?? Infinity, maxOccurences);
-    if (validateCount(current, maxOccurences)) {
-      setRecurringEventCount(current);
-    }
+    setRecurringEventCount(Math.max(1, Math.min(recurringEventCount ?? Infinity, maxOccurences)));
   }, [recurringEvent, recurringEventCount, maxOccurences, setRecurringEventCount]);
 
   if (!recurringEvent || recurringEventCount === null) return null;
