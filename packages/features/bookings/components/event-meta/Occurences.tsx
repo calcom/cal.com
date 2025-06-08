@@ -74,10 +74,7 @@ const RecurrenceForm = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = parseInt(e.target.value, 10);
     const isValid = validateCount(inputValue, maxOccurences);
-
-    if (isValid) {
-      setRecurringEventCount(inputValue);
-    }
+    setRecurringEventCount(isValid ? inputValue : inputValue < 1 ? 1 : maxOccurences);
   };
 
   return (
