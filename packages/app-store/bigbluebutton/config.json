@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "BigBlueButton",
+  "slug": "bigbluebutton",
+  "type": "bigbluebutton_conferencing",
+  "logo": "icon.svg",
+  "url": "https://example.com/link",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "Moonbeeper",
+  "email": "arandomtoaster@hotmail.com",
+  "description": "it's bigbluebutton the video app",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic"
+}

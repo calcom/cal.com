@@ -2777,6 +2777,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/bigbluebutton@workspace:packages/app-store/bigbluebutton":
+  version: 0.0.0-use.local
+  resolution: "@calcom/bigbluebutton@workspace:packages/app-store/bigbluebutton"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/bolna@workspace:packages/app-store/bolna":
   version: 0.0.0-use.local
   resolution: "@calcom/bolna@workspace:packages/app-store/bolna"
