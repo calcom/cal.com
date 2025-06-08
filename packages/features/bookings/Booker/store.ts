@@ -112,11 +112,6 @@ export type BookerStore = {
   recurringEventCount: number | null;
   setRecurringEventCount(count: number | null): void;
   /**
-   * Input occurrence count.
-   */
-  occurenceCount: number | null;
-  setOccurenceCount(count: number | null): void;
-  /**
    * The number of days worth of schedules to load.
    */
   dayCount: number | null;
@@ -141,8 +136,8 @@ export type BookerStore = {
    * forth between timeslots and form. Gets cleared on submit
    * to prevent sticky data.
    */
-  formValues: Record<string, any>;
-  setFormValues: (values: Record<string, any>) => void;
+  formValues: Record<string, unknown>;
+  setFormValues: (values: Record<string, unknown>) => void;
   /**
    * Force event being a team event, so we only query for team events instead
    * of also include 'user' events and return the first event that matches with
@@ -408,10 +403,8 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
   setBookingData: (bookingData: GetBookingType | null | undefined) => {
     set({ bookingData: bookingData ?? null });
   },
-  recurringEventCount: null,
+  recurringEventCount: Number(getQueryParam("cal.occurenceCount")),
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
-  occurenceCount: null,
-  setOccurenceCount: (occurenceCount: number | null) => set({ occurenceCount }),
   rescheduleUid: null,
   bookingData: null,
   bookingUid: null,
@@ -427,7 +420,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
     }
   },
   formValues: {},
-  setFormValues: (formValues: Record<string, any>) => {
+  setFormValues: (formValues: Record<string, unknown>) => {
     set({ formValues });
   },
   org: null,
