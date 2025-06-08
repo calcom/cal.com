@@ -273,30 +273,28 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
               />
             </div>
 
-            <div className="bg-muted rounded-xl p-1">
-              <div className="flex items-center justify-between px-3 py-2">
-                <Label>{t("permissions")}</Label>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={form.watch("isAdvancedMode")}
-                    onCheckedChange={(checked: boolean) => form.setValue("isAdvancedMode", checked)}
-                  />
-                  <span className="text-sm">{t("advanced")}</span>
-                </div>
-              </div>
-
+            <div className="">
               {isAdvancedMode ? (
                 <div className="space-y-4">
-                  <div className="relative">
-                    <Icon name="search" className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                    <input
-                      type="text"
-                      className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-4"
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <Label className="mb-0">{t("permissions")}</Label>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={form.watch("isAdvancedMode")}
+                          onCheckedChange={(checked: boolean) => form.setValue("isAdvancedMode", checked)}
+                        />
+                        <span className="text-sm">{t("advanced")}</span>
+                      </div>
+                    </div>
+                    <TextField
+                      id="permissions_search"
                       placeholder={t("search_permissions")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
+
                   {filteredResources.map((resource) => (
                     <AdvancedPermissionGroup
                       key={resource}
@@ -307,15 +305,27 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
                   ))}
                 </div>
               ) : (
-                <div className="bg-default border-subtle divide-subtle divide-y rounded-[10px] border">
-                  {Object.keys(RESOURCE_CONFIG).map((resource) => (
-                    <SimplePermissionItem
-                      key={resource}
-                      resource={resource}
-                      value={form.watch(`simplePermissions.${resource}`)}
-                      onChange={(value) => form.setValue(`simplePermissions.${resource}`, value)}
-                    />
-                  ))}
+                <div className="bg-muted rounded-xl p-1">
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <Label>{t("permissions")}</Label>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={form.watch("isAdvancedMode")}
+                        onCheckedChange={(checked: boolean) => form.setValue("isAdvancedMode", checked)}
+                      />
+                      <span className="text-sm">{t("advanced")}</span>
+                    </div>
+                  </div>
+                  <div className="bg-default border-subtle divide-subtle divide-y rounded-[10px] border">
+                    {Object.keys(RESOURCE_CONFIG).map((resource) => (
+                      <SimplePermissionItem
+                        key={resource}
+                        resource={resource}
+                        value={form.watch(`simplePermissions.${resource}`)}
+                        onChange={(value) => form.setValue(`simplePermissions.${resource}`, value)}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
