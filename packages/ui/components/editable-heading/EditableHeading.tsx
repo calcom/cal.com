@@ -21,8 +21,8 @@ export const EditableHeading = function EditableHeading({
   const enableEditing = () => setIsEditing(!disabled);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value.trim();
-    if (newValue && onChange) {
+    const newValue = e.target.value;
+    if (onChange) {
       onChange(newValue);
     }
   };
@@ -50,6 +50,10 @@ export const EditableHeading = function EditableHeading({
               passThroughProps.onFocus && passThroughProps.onFocus(e);
             }}
             onBlur={(e) => {
+              const trimmedValue = e.target.value.trim();
+              if (trimmedValue !== e.target.value && onChange) {
+                onChange(trimmedValue);
+              }
               setIsEditing(false);
               passThroughProps.onBlur && passThroughProps.onBlur(e);
             }}

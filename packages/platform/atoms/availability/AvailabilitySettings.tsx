@@ -323,7 +323,7 @@ export function AvailabilitySettings({
               isReady={!isLoading}
               disabled={disableEditableHeading}
               {...field}
-              data-testid="availability-title"
+              data-testid="availablity-title"
             />
           )}
         />

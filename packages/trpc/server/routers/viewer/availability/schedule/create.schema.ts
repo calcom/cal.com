@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZCreateInputSchema = z.object({
-  name: z.string().min(1, { message: "Availability name is required" }),
+  name: z.string().trim().min(1, { message: "Availability name is required" }),
   schedule: z
     .array(
       z.array(
