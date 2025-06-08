@@ -109,32 +109,33 @@ function AdvancedPermissionGroup({ resource, selectedPermissions, onChange }: Ad
   };
 
   return (
-    <div className="mb-2 rounded-lg border">
-      <div
-        className="flex cursor-pointer items-center justify-between p-4"
+    <div className="bg-muted border-subtle mb-2 rounded-xl border">
+      <button
+        type="button"
+        className="flex cursor-pointer items-center justify-between gap-1.5 p-4"
         onClick={() => setIsExpanded(!isExpanded)}>
+        <Icon
+          name="chevron-down"
+          className={classNames("h-4 w-4 transition-transform", isExpanded ? "rotate-180" : "")}
+        />
         <div className="flex items-center gap-2">
           <Checkbox
             checked={isAllSelected}
             onCheckedChange={handleToggleAll}
             onClick={(e) => e.stopPropagation()}
           />
-          <span>{t(resourceConfig.i18nKey)}</span>
-          <span className="text-sm text-gray-500">{t("all_permissions")}</span>
+          <span className="text-default text-sm font-medium leading-none">{t(resourceConfig.i18nKey)}</span>
+          <span className="text-muted text-sm font-medium leading-none">{t("all_permissions")}</span>
         </div>
-        <Button variant="icon" onClick={() => setIsExpanded(!isExpanded)}>
-          <Icon
-            name="chevron-down"
-            className={classNames("h-4 w-4 transition-transform", isExpanded ? "rotate-180" : "")}
-          />
-        </Button>
-      </div>
+      </button>
       {isExpanded && (
-        <div className="border-t p-4 pt-0">
+        <div className="bg-default border-muted m-1 flex flex-col gap-2.5 rounded-xl border p-3">
           {Object.entries(resourceConfig.actions).map(([action, actionConfig]) => (
-            <div key={action} className="flex items-center gap-2 py-2">
+            <div key={action} className="flex items-center">
               <Checkbox
+                id={`${resource}.${action}`}
                 checked={selectedPermissions.includes(`${resource}.${action}`)}
+                className="mr-2"
                 onCheckedChange={(checked) => {
                   const permission = `${resource}.${action}`;
                   onChange(
@@ -144,10 +145,12 @@ function AdvancedPermissionGroup({ resource, selectedPermissions, onChange }: Ad
                   );
                 }}
               />
-              <Label className="flex items-center gap-2">
-                <span>{t(actionConfig.i18nKey)}</span>
+              <div className="flex items-center gap-2">
+                <Label htmlFor={`${resource}.${action}`} className="mb-0">
+                  <span>{t(actionConfig.i18nKey)}</span>
+                </Label>
                 <span className="text-sm text-gray-500">{t(actionConfig.descriptionKey)}</span>
-              </Label>
+              </div>
             </div>
           ))}
         </div>
