@@ -19,6 +19,14 @@ export const EditableHeading = function EditableHeading({
   ControllerRenderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const enableEditing = () => setIsEditing(!disabled);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value.trim();
+    if (newValue && onChange) {
+      onChange(newValue);
+    }
+  };
+
   return (
     <div className="group pointer-events-auto relative truncate" onClick={enableEditing}>
       <div className={classNames(!disabled && "cursor-pointer", "flex items-center")}>
@@ -30,10 +38,11 @@ export const EditableHeading = function EditableHeading({
             type="text"
             value={value}
             required
+            minLength={1}
             className={classNames(
               !disabled &&
                 "hover:text-default focus:text-emphasis cursor-pointer focus:outline-none focus:ring-0",
-              "text-emphasis absolute left-0 top-0 w-full truncate border-none bg-transparent p-0 align-top text-xl ",
+              "text-emphasis absolute left-0 top-0 w-full truncate border-none bg-transparent p-0 align-top text-xl",
               passThroughProps.className
             )}
             onFocus={(e) => {
@@ -44,10 +53,10 @@ export const EditableHeading = function EditableHeading({
               setIsEditing(false);
               passThroughProps.onBlur && passThroughProps.onBlur(e);
             }}
-            onChange={(e) => onChange && onChange(e.target.value)}
+            onChange={handleChange}
           />
           {!isEditing && isReady && !disabled && (
-            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-1 inline  h-3 w-3" />
+            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-1 inline h-3 w-3" />
           )}
         </label>
       </div>
