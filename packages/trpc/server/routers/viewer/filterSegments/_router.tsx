@@ -3,6 +3,7 @@ import { router } from "../../../trpc";
 import { ZCreateFilterSegmentInputSchema } from "./create.schema";
 import { ZDeleteFilterSegmentInputSchema } from "./delete.schema";
 import { ZListFilterSegmentsInputSchema } from "./list.schema";
+import { ZSetFilterSegmentPreferenceInputSchema } from "./preference.schema";
 import { ZUpdateFilterSegmentInputSchema } from "./update.schema";
 
 type FilterSegmentsRouterHandlerCache = {
@@ -12,70 +13,51 @@ type FilterSegmentsRouterHandlerCache = {
   delete?: typeof import("./delete.handler").deleteHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: FilterSegmentsRouterHandlerCache = {};
-
 export const filterSegmentsRouter = router({
   list: authedProcedure.input(ZListFilterSegmentsInputSchema).query(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.list) {
-      UNSTABLE_HANDLER_CACHE.list = await import("./list.handler").then((mod) => mod.listHandler);
-    }
+    const { listHandler } = await import("./list.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.list) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.list({
+    return listHandler({
       ctx,
       input,
     });
   }),
 
   create: authedProcedure.input(ZCreateFilterSegmentInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.create) {
-      UNSTABLE_HANDLER_CACHE.create = await import("./create.handler").then((mod) => mod.createHandler);
-    }
+    const { createHandler } = await import("./create.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.create) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.create({
+    return createHandler({
       ctx,
       input,
     });
   }),
 
   update: authedProcedure.input(ZUpdateFilterSegmentInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      UNSTABLE_HANDLER_CACHE.update = await import("./update.handler").then((mod) => mod.updateHandler);
-    }
+    const { updateHandler } = await import("./update.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.update({
+    return updateHandler({
       ctx,
       input,
     });
   }),
 
   delete: authedProcedure.input(ZDeleteFilterSegmentInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.delete) {
-      UNSTABLE_HANDLER_CACHE.delete = await import("./delete.handler").then((mod) => mod.deleteHandler);
-    }
+    const { deleteHandler } = await import("./delete.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.delete) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.delete({
+    return deleteHandler({
       ctx,
       input,
     });
   }),
+
+  setPreference: authedProcedure
+    .input(ZSetFilterSegmentPreferenceInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { setPreferenceHandler } = await import("./preference.handler");
+
+      return setPreferenceHandler({
+        ctx,
+        input,
+      });
+    }),
 });

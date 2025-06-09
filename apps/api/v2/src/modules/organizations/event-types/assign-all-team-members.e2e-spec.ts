@@ -1,10 +1,5 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
-import {
-  GetBookingsDataEntry,
-  GetBookingsOutput_2024_04_15,
-} from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { Locales } from "@/lib/enums/locales";
@@ -15,7 +10,7 @@ import {
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
-import { OrgTeamMembershipOutputDto } from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
+import { OrgTeamMembershipOutputResponseDto } from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -32,18 +27,10 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
-import {
-  CAL_API_VERSION_HEADER,
-  SUCCESS_STATUS,
-  VERSION_2024_06_14,
-  X_CAL_CLIENT_ID,
-  X_CAL_SECRET_KEY,
-} from "@calcom/platform-constants";
+import { SUCCESS_STATUS, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 import {
   ApiSuccessResponse,
-  CreateEventTypeInput_2024_06_14,
   CreateTeamEventTypeInput_2024_06_14,
-  EventTypeOutput_2024_06_14,
   Host,
   OrgTeamOutputDto,
   TeamEventTypeOutput_2024_06_14,
@@ -238,7 +225,7 @@ describe("Assign all team members", () => {
         .set(X_CAL_CLIENT_ID, oAuthClient.id)
         .expect(201)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
+          const responseBody: OrgTeamMembershipOutputResponseDto = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
         });
     });
@@ -257,7 +244,7 @@ describe("Assign all team members", () => {
         .set(X_CAL_CLIENT_ID, oAuthClient.id)
         .expect(201)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<OrgTeamMembershipOutputDto> = response.body;
+          const responseBody: OrgTeamMembershipOutputResponseDto = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
         });
     });

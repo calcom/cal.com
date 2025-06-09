@@ -15,15 +15,15 @@ export class IsUserInOrgTeam implements CanActivate {
     const userId: string = request.params.userId;
 
     if (!userId) {
-      throw new ForbiddenException("No user id found in request params.");
+      throw new ForbiddenException("IsUserInOrgTeam - No user id found in request params.");
     }
 
     if (!orgId) {
-      throw new ForbiddenException("No org id found in request params.");
+      throw new ForbiddenException("IsUserInOrgTeam - No org id found in request params.");
     }
 
     if (!teamId) {
-      throw new ForbiddenException("No team id found in request params.");
+      throw new ForbiddenException("IsUserInOrgTeam - No team id found in request params.");
     }
 
     const user = await this.organizationsRepository.findOrgTeamUser(
@@ -37,6 +37,8 @@ export class IsUserInOrgTeam implements CanActivate {
       return true;
     }
 
-    return false;
+    throw new ForbiddenException(
+      `IsUserInOrgTeam - user with id=(${userId}) is not part of the team with id=(${teamId}) in the organization with id=(${orgId})`
+    );
   }
 }

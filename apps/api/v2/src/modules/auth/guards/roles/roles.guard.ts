@@ -25,8 +25,27 @@ export class RolesGuard implements CanActivate {
     const user = request.user as ApiAuthGuardUser;
     const allowedRole = this.reflector.get(Roles, context.getHandler());
     const { canAccess } = await this.checkUserRoleAccess(user, orgId, teamId, allowedRole);
-    return canAccess;
+
+    if (!canAccess) {
+      this.throwForbiddenError(user, orgId, teamId, allowedRole);
+    }
+
+    return true;
   }
+
+  throwForbiddenError(user: ApiAuthGuardUser, orgId: string, teamId: string, allowedRole: string) {
+    let errorMessage = `RolesGuard - user with id=${user.id} does not have the minimum required role=${allowedRole} within`;
+    if (orgId) {
+      errorMessage += ` organization with id=${orgId}`;
+    }
+    if (teamId) {
+      errorMessage += ` team with id=${teamId}`;
+    }
+    errorMessage += `.`;
+
+    throw new ForbiddenException(errorMessage);
+  }
+
   async checkUserRoleAccess(
     user: ApiAuthGuardUser,
     orgId: string,
@@ -67,7 +86,9 @@ export class RolesGuard implements CanActivate {
       const membership = await this.membershipRepository.findMembershipByOrgId(Number(orgId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the organization (${orgId}), denying access.`);
-        throw new ForbiddenException(`User is not a member of the organization.`);
+        throw new ForbiddenException(
+          `RolesGuard - User is not a member of the organization with id=${orgId}.`
+        );
       }
 
       if (ORG_ROLES.includes(allowedRole as unknown as (typeof ORG_ROLES)[number])) {
@@ -84,7 +105,7 @@ export class RolesGuard implements CanActivate {
       const membership = await this.membershipRepository.findMembershipByTeamId(Number(teamId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the team (${teamId}), denying access.`);
-        throw new ForbiddenException(`User is not a member of the team.`);
+        throw new ForbiddenException(`RolesGuard - User is not a member of the team with id=${teamId}.`);
       }
       if (TEAM_ROLES.includes(allowedRole as unknown as (typeof TEAM_ROLES)[number])) {
         canAccess = hasMinimumRole({
@@ -102,7 +123,7 @@ export class RolesGuard implements CanActivate {
 
       if (!orgMembership) {
         this.logger.log(`User (${user.id}) is not part of the organization (${orgId}), denying access.`);
-        throw new ForbiddenException(`User is not part of the organization.`);
+        throw new ForbiddenException(`RolesGuard - User is not part of the organization with id=${orgId}.`);
       }
 
       // if the role checked is a TEAM role
@@ -116,7 +137,7 @@ export class RolesGuard implements CanActivate {
               `User (${user.id}) is not part of the team (${teamId}) and/or, is not an admin nor an owner of the organization (${orgId}).`
             );
             throw new ForbiddenException(
-              "User is not part of the team and/or, is not an admin nor an owner of the organization."
+              `RolesGuard - User is not part of the team with id=${teamId} and/or, is not an admin nor an owner of the organization with id=${orgId}.`
             );
           }
 
@@ -138,7 +159,11 @@ export class RolesGuard implements CanActivate {
         });
       }
     }
-    await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
+
+    if (canAccess) {
+      await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
+    }
+
     return { canAccess };
   }
 }
@@ -165,7 +190,7 @@ export function hasMinimumRole(props: HasMinimumRoleProp): boolean {
 
   // minimum role given does not exist
   if (checkedRoleIndex === -1 || requiredRoleIndex === -1) {
-    throw new Error("Invalid role");
+    throw new Error("RolesGuard - Invalid role");
   }
 
   return checkedRoleIndex <= requiredRoleIndex;

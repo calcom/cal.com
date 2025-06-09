@@ -44,7 +44,7 @@ const obtainNewUsernameChangeCondition = ({
 }: {
   userIsPremium: boolean;
   isNewUsernamePremium: boolean;
-  stripeCustomer: RouterOutputs["viewer"]["stripeCustomer"] | undefined;
+  stripeCustomer: RouterOutputs["viewer"]["loggedInViewerRouter"]["stripeCustomer"] | undefined;
 }) => {
   if (!userIsPremium && isNewUsernamePremium) {
     return UsernameChangeStatusEnum.UPGRADE;
@@ -72,7 +72,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const [markAsError, setMarkAsError] = useState(false);
   const recentAttemptPaymentStatus = searchParams?.get("recentAttemptPaymentStatus");
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
-  const { data: stripeCustomer } = trpc.viewer.stripeCustomer.useQuery();
+  const { data: stripeCustomer } = trpc.viewer.loggedInViewerRouter.stripeCustomer.useQuery();
   const isCurrentUsernamePremium =
     user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
@@ -102,7 +102,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     checkUsername(debouncedUsername);
   }, [debouncedUsername, currentUsername]);
 
-  const updateUsername = trpc.viewer.updateProfile.useMutation({
+  const updateUsername = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       await update({ username: inputUsernameValue });

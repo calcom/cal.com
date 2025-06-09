@@ -1,6 +1,7 @@
 // !IMPORTANT! changes to this file requires publishing new version of platform libraries in order for the changes to be applied to APIV2
 import type { GetServerSidePropsContext } from "next";
 import { stringify } from "querystring";
+import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
@@ -17,8 +18,9 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
-import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { TRPCError } from "@trpc/server";
 
@@ -34,10 +36,6 @@ function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-export const getRoutedUrl = (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
-  return monitorCallbackAsync(_getRoutedUrl, context);
-};
-
 const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
@@ -46,7 +44,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   };
 
   if (!queryParsed.success) {
-    log.warn("Error parsing query", queryParsed.error);
+    log.warn("Error parsing query", { issues: queryParsed.error.issues });
     return {
       notFound: true,
     };
@@ -76,7 +74,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     };
   }
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
   const profileEnrichmentStart = performance.now();
   const formWithUserProfile = {
     ...form,
@@ -119,7 +116,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
 
   const decidedAction = matchingRoute.action;
 
-  const { v4: uuidv4 } = await import("uuid");
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
@@ -150,7 +146,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         props: {
           ...pageProps,
           form: serializableForm,
-          message: e.message,
+          message: null,
+          errorMessage: e.message,
         },
       };
     }
@@ -166,6 +163,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         ...pageProps,
         form: serializableForm,
         message: decidedAction.value,
+        errorMessage: null,
       },
     };
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
@@ -214,7 +212,10 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     props: {
       ...pageProps,
       form: serializableForm,
-      message: "Unhandled type of action",
+      message: null,
+      errorMessage: "Unhandled type of action",
     },
   };
 };
+
+export const getRoutedUrl = withReporting(_getRoutedUrl, "getRoutedUrl");

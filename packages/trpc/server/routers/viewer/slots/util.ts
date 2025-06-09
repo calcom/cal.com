@@ -1,5 +1,4 @@
 // eslint-disable-next-line no-restricted-imports
-import { countBy } from "lodash";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -12,14 +11,25 @@ import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShou
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
-import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
+import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
-import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
-import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
-import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
+import { getBusyTimesForLimitChecks, getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
+import type {
+  CurrentSeats,
+  EventType,
+  GetAvailabilityUser,
+  IFromUser,
+  IToUser,
+} from "@calcom/lib/getUserAvailability";
+import { getPeriodStartDatesBetween, getUsersAvailability } from "@calcom/lib/getUserAvailability";
+import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
+import LimitManager from "@calcom/lib/intervalLimits/limitManager";
+import { checkBookingLimit } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import { getUnitFromBusyTime, isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -27,7 +37,8 @@ import {
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/lib/sentryWrapper";
+import { withReporting } from "@calcom/lib/sentryWrapper";
+import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
@@ -36,8 +47,8 @@ import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { EventBusyDate } from "@calcom/types/Calendar";
-import type { CredentialPayload, CredentialForCalendarService } from "@calcom/types/Credential";
+import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -146,10 +157,10 @@ async function _getReservedSlotsAndCleanupExpired({
   }
 }
 
-export async function getEventType(
+const _getEventType = async (
   input: TGetScheduleInputSchema,
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
-) {
+) => {
   const { eventTypeSlug, usernameList, isTeamEvent } = input;
   log.info("getEventType", safeStringify({ usernameList, eventTypeSlug, isTeamEvent, organizationDetails }));
   const eventTypeId =
@@ -167,12 +178,14 @@ export async function getEventType(
   }
 
   return await EventTypeRepository.findForSlots({ id: eventTypeId });
-}
+};
 
-export async function getDynamicEventType(
+export const getEventType = withReporting(_getEventType, "getEventType");
+
+const _getDynamicEventType = async (
   input: TGetScheduleInputSchema,
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
-) {
+) => {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
   // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
   if (!input.eventTypeSlug) {
@@ -214,27 +227,41 @@ export async function getDynamicEventType(
   return Object.assign({}, dynamicEventType, {
     users,
   });
-}
+};
 
-export async function getRegularOrDynamicEventType(
+export const getDynamicEventType = withReporting(_getDynamicEventType, "getDynamicEventType");
+
+const _getRegularOrDynamicEventType = async (
   input: TGetScheduleInputSchema,
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
-) {
+) => {
   const isDynamicBooking = input.usernameList && input.usernameList.length > 1;
   return isDynamicBooking
     ? await getDynamicEventType(input, organizationDetails)
     : await getEventType(input, organizationDetails);
-}
+};
+
+export const getRegularOrDynamicEventType = withReporting(
+  _getRegularOrDynamicEventType,
+  "getRegularOrDynamicEventType"
+);
 
 function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSeats: SelectedSlots[]) {
-  const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
-  Object.keys(occupiedSeatsCount).forEach((date) => {
+  const occupiedSeatsMap = new Map<string, number>();
+
+  occupiedSeats.forEach((item) => {
+    const dateKey = item.slotUtcStartDate.toISOString();
+    occupiedSeatsMap.set(dateKey, (occupiedSeatsMap.get(dateKey) || 0) + 1);
+  });
+
+  occupiedSeatsMap.forEach((count, date) => {
     currentSeats.push({
       uid: uuid(),
       startTime: dayjs(date).toDate(),
-      _count: { attendees: occupiedSeatsCount[date] },
+      _count: { attendees: count },
     });
   });
+
   return currentSeats;
 }
 
@@ -255,16 +282,18 @@ export interface IGetAvailableSlots {
   troubleshooter?: any;
 }
 
-export function getUsersWithCredentials({
+const _getUsersWithCredentials = ({
   hosts,
 }: {
   hosts: {
     isFixed?: boolean;
     user: GetAvailabilityUserWithDelegationCredentials;
   }[];
-}) {
+}) => {
   return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
-}
+};
+
+export const getUsersWithCredentials = withReporting(_getUsersWithCredentials, "getUsersWithCredentials");
 
 const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) => {
   const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
@@ -273,13 +302,7 @@ const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingN
   return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
 };
 
-export const getAvailableSlots = async (
-  ...args: Parameters<typeof _getAvailableSlots>
-): Promise<ReturnType<typeof _getAvailableSlots>> => {
-  return monitorCallbackAsync(_getAvailableSlots, ...args);
-};
-
-async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> => {
   const {
     _enableTroubleshooter: enableTroubleshooter = false,
     _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
@@ -297,7 +320,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     logger.settings.minLevel = 2;
   }
 
-  const eventType = await monitorCallbackAsync(getRegularOrDynamicEventType, input, orgDetails);
+  const eventType = await getRegularOrDynamicEventType(input, orgDetails);
 
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
@@ -368,16 +391,14 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     });
   }
 
-  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await monitorCallbackAsync(
-    findQualifiedHostsWithDelegationCredentials<GetAvailabilityUserWithoutDelegationCredentials>,
-    {
+  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
+    await findQualifiedHostsWithDelegationCredentials({
       eventType,
       rescheduleUid: input.rescheduleUid ?? null,
       routedTeamMemberIds,
       contactOwnerEmail,
       routingFormResponse,
-    }
-  );
+    });
 
   const allHosts = [...qualifiedRRHosts, ...fixedHosts];
 
@@ -469,7 +490,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
-  const timeSlots = monitorCallbackSync(getSlots, {
+  const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
@@ -527,15 +548,15 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
       currentSeats = availabilityCheckProps.currentSeats;
     }
+    const busySlotsFromReservedSlots = reservedSlots.reduce<EventBusyDate[]>((r, c) => {
+      if (!c.isSeat) {
+        r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
+      }
+      return r;
+    }, []);
+
     availableTimeSlots = availableTimeSlots
       .map((slot) => {
-        const busySlotsFromReservedSlots = reservedSlots.reduce<EventBusyDate[]>((r, c) => {
-          if (!c.isSeat) {
-            r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
-          }
-          return r;
-        }, []);
-
         if (
           !checkForConflicts({
             time: slot.time,
@@ -572,47 +593,56 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     timeZone: input.timeZone,
   });
 
-  const slotsMappedToDate = monitorCallbackSync(function mapSlotsToDate() {
+  function _mapSlotsToDate() {
+    const currentSeatsMap = new Map();
+
+    if (currentSeats && currentSeats.length > 0) {
+      currentSeats.forEach((booking) => {
+        const timeKey = booking.startTime.toISOString();
+        currentSeatsMap.set(timeKey, {
+          attendees: booking._count.attendees,
+          uid: booking.uid,
+        });
+      });
+    }
+
     return availableTimeSlots.reduce(
       (
         r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
         { time, ...passThroughProps }
       ) => {
-        // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
-
         // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
         // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
         const dateString = formatter.format(time.toDate());
+        const timeISO = time.toISOString();
 
         r[dateString] = r[dateString] || [];
-        if (eventType.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
+        if (eventType?.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
           return r;
         }
+
+        const existingBooking = currentSeatsMap.get(timeISO);
+
         r[dateString].push({
           ...passThroughProps,
-          time: time.toISOString(),
-          // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-          ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-            attendees:
-              currentSeats[
-                currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-              ]._count.attendees,
-            bookingUid:
-              currentSeats[
-                currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-              ].uid,
+          time: timeISO,
+          ...(existingBooking && {
+            attendees: existingBooking.attendees,
+            bookingUid: existingBooking.uid,
           }),
         });
         return r;
       },
       Object.create(null)
     );
-  });
+  }
+  const mapSlotsToDate = withReporting(_mapSlotsToDate, "mapSlotsToDate");
+  const slotsMappedToDate = mapSlotsToDate();
 
   loggerWithEventDetails.debug({ slotsMappedToDate });
 
   const availableDates = Object.keys(slotsMappedToDate);
-  const allDatesWithBookabilityStatus = monitorCallbackSync(getAllDatesWithBookabilityStatus, availableDates);
+  const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
   loggerWithEventDetails.debug({ availableDates });
 
   // timeZone isn't directly set on eventType now(So, it is legacy)
@@ -634,21 +664,28 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     bookerUtcOffset,
   });
   let foundAFutureLimitViolation = false;
-  const withinBoundsSlotsMappedToDate = monitorCallbackSync(function mapWithinBoundsSlotsToDate() {
-    return Object.entries(slotsMappedToDate).reduce((withinBoundsSlotsMappedToDate, [date, slots]) => {
-      // Computation Optimization: If a future limit violation has been found, we just consider all slots to be out of bounds beyond that slot.
-      // We can't do the same for periodType=RANGE because it can start from a day other than today and today will hit the violation then.
-      if (foundAFutureLimitViolation && doesRangeStartFromToday(eventType.periodType)) {
-        return withinBoundsSlotsMappedToDate;
+  function _mapWithinBoundsSlotsToDate() {
+    // This should never happen. Just for type safety, we already check in the upper scope
+    if (!eventType) throw new TRPCError({ code: "NOT_FOUND" });
+
+    const withinBoundsSlotsMappedToDate = {} as typeof slotsMappedToDate;
+    const doesStartFromToday = doesRangeStartFromToday(eventType.periodType);
+
+    for (const [date, slots] of Object.entries(slotsMappedToDate)) {
+      if (foundAFutureLimitViolation && doesStartFromToday) {
+        break; // Instead of continuing the loop, we can break since all future dates will be skipped
       }
+
       const filteredSlots = slots.filter((slot) => {
         const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
           time: slot.time,
           periodLimits,
         });
+
         if (isFutureLimitViolationForTheSlot) {
           foundAFutureLimitViolation = true;
         }
+
         return (
           !isFutureLimitViolationForTheSlot &&
           // TODO: Perf Optimization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
@@ -656,15 +693,15 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         );
       });
 
-      if (!filteredSlots.length) {
-        // If there are no slots available, we don't set that date, otherwise having an empty slots array makes frontend consider it as an all day OOO case
-        return withinBoundsSlotsMappedToDate;
+      if (filteredSlots.length) {
+        withinBoundsSlotsMappedToDate[date] = filteredSlots;
       }
+    }
 
-      withinBoundsSlotsMappedToDate[date] = filteredSlots;
-      return withinBoundsSlotsMappedToDate;
-    }, {} as typeof slotsMappedToDate);
-  });
+    return withinBoundsSlotsMappedToDate;
+  }
+  const mapWithinBoundsSlotsToDate = withReporting(_mapWithinBoundsSlotsToDate, "mapWithinBoundsSlotsToDate");
+  const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
   // We only want to run this on single targeted events and not dynamic
   if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
@@ -712,7 +749,9 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     slots: withinBoundsSlotsMappedToDate,
     ...troubleshooterData,
   };
-}
+};
+
+export const getAvailableSlots = withReporting(_getAvailableSlots, "getAvailableSlots");
 
 function doesRangeStartFromToday(periodType: PeriodType) {
   return periodType === PeriodType.ROLLING_WINDOW || periodType === PeriodType.ROLLING;
@@ -748,7 +787,7 @@ async function getTeamIdFromSlug(
   return team?.id;
 }
 
-async function getOOODates(startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) {
+const _getOOODates = async (startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) => {
   return await prisma.outOfOfficeEntry.findMany({
     where: {
       userId: {
@@ -815,9 +854,11 @@ async function getOOODates(startTimeDate: Date, endTimeDate: Date, allUserIds: n
       },
     },
   });
-}
+};
 
-export function getAllDatesWithBookabilityStatus(availableDates: string[]) {
+export const getOOODates = withReporting(_getOOODates, "getOOODates");
+
+const _getAllDatesWithBookabilityStatus = (availableDates: string[]) => {
   const availableDatesSet = new Set(availableDates);
   const firstDate = dayjs(availableDates[0]);
   const lastDate = dayjs(availableDates[availableDates.length - 1]);
@@ -832,7 +873,350 @@ export function getAllDatesWithBookabilityStatus(availableDates: string[]) {
     currentDate = currentDate.add(1, "day");
   }
   return allDates;
-}
+};
+
+export const getAllDatesWithBookabilityStatus = withReporting(
+  _getAllDatesWithBookabilityStatus,
+  "getAllDatesWithBookabilityStatus"
+);
+
+const _getBusyTimesFromLimitsForUsers = async (
+  users: { id: number; email: string }[],
+  bookingLimits: IntervalLimit | null,
+  durationLimits: IntervalLimit | null,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  duration: number | undefined,
+  eventType: NonNullable<EventType>,
+  timeZone: string,
+  rescheduleUid?: string
+) => {
+  const userBusyTimesMap = new Map<number, EventBusyDetails[]>();
+
+  if (!bookingLimits && !durationLimits) {
+    return userBusyTimesMap;
+  }
+
+  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+    dateFrom.toISOString(),
+    dateTo.toISOString(),
+    bookingLimits || durationLimits
+  );
+
+  const busyTimesFromLimitsBookings = await getBusyTimesForLimitChecks({
+    userIds: users.map((user) => user.id),
+    eventTypeId: eventType.id,
+    startDate: limitDateFrom.format(),
+    endDate: limitDateTo.format(),
+    rescheduleUid,
+    bookingLimits,
+    durationLimits,
+  });
+
+  const globalLimitManager = new LimitManager();
+
+  if (bookingLimits) {
+    for (const key of descendingLimitKeys) {
+      const limit = bookingLimits?.[key];
+      if (!limit) continue;
+
+      const unit = intervalLimitKeyToUnit(key);
+      const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+
+      for (const periodStart of periodStartDates) {
+        if (globalLimitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
+
+        const periodEnd = periodStart.endOf(unit);
+        let totalBookings = 0;
+
+        for (const booking of busyTimesFromLimitsBookings) {
+          if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+            continue;
+          }
+
+          totalBookings++;
+          if (totalBookings >= limit) {
+            globalLimitManager.addBusyTime(periodStart, unit, timeZone);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  for (const user of users) {
+    const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
+    const limitManager = new LimitManager();
+
+    for (const busyTime of globalLimitManager.getBusyTimes()) {
+      const start = dayjs(busyTime.start);
+      const end = dayjs(busyTime.end);
+      const unit = getUnitFromBusyTime(start, end);
+
+      limitManager.addBusyTime(start, unit, timeZone);
+    }
+
+    if (bookingLimits) {
+      for (const key of descendingLimitKeys) {
+        const limit = bookingLimits?.[key];
+        if (!limit) continue;
+
+        const unit = intervalLimitKeyToUnit(key);
+        const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+
+        for (const periodStart of periodStartDates) {
+          if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
+
+          if (unit === "year") {
+            try {
+              await checkBookingLimit({
+                eventStartDate: periodStart.toDate(),
+                limitingNumber: limit,
+                eventId: eventType.id,
+                key,
+                user,
+                rescheduleUid,
+                timeZone,
+              });
+            } catch (_) {
+              limitManager.addBusyTime(periodStart, unit, timeZone);
+              if (
+                periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
+              ) {
+                break;
+              }
+            }
+            continue;
+          }
+
+          const periodEnd = periodStart.endOf(unit);
+          let totalBookings = 0;
+
+          for (const booking of userBookings) {
+            if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+              continue;
+            }
+
+            totalBookings++;
+            if (totalBookings >= limit) {
+              limitManager.addBusyTime(periodStart, unit, timeZone);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (durationLimits) {
+      for (const key of descendingLimitKeys) {
+        const limit = durationLimits?.[key];
+        if (!limit) continue;
+
+        const unit = intervalLimitKeyToUnit(key);
+        const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+
+        for (const periodStart of periodStartDates) {
+          if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
+
+          const selectedDuration = (duration || eventType.length) ?? 0;
+
+          if (selectedDuration > limit) {
+            limitManager.addBusyTime(periodStart, unit, timeZone);
+            continue;
+          }
+
+          if (unit === "year") {
+            const totalYearlyDuration = await getTotalBookingDuration({
+              eventId: eventType.id,
+              startDate: periodStart.toDate(),
+              endDate: periodStart.endOf(unit).toDate(),
+              rescheduleUid,
+            });
+            if (totalYearlyDuration + selectedDuration > limit) {
+              limitManager.addBusyTime(periodStart, unit, timeZone);
+              if (
+                periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
+              ) {
+                break;
+              }
+            }
+            continue;
+          }
+
+          const periodEnd = periodStart.endOf(unit);
+          let totalDuration = selectedDuration;
+
+          for (const booking of userBookings) {
+            if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+              continue;
+            }
+            totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
+            if (totalDuration > limit) {
+              limitManager.addBusyTime(periodStart, unit, timeZone);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    userBusyTimesMap.set(user.id, limitManager.getBusyTimes());
+  }
+
+  return userBusyTimesMap;
+};
+
+export const getBusyTimesFromLimitsForUsers = withReporting(
+  _getBusyTimesFromLimitsForUsers,
+  "getBusyTimesFromLimitsForUsers"
+);
+
+const _getBusyTimesFromTeamLimitsForUsers = async (
+  users: { id: number; email: string }[],
+  bookingLimits: IntervalLimit,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  teamId: number,
+  includeManagedEvents: boolean,
+  timeZone: string,
+  rescheduleUid?: string
+) => {
+  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+    dateFrom.toISOString(),
+    dateTo.toISOString(),
+    bookingLimits
+  );
+
+  const bookings = await BookingRepo.getAllAcceptedTeamBookingsOfUsers({
+    users,
+    teamId,
+    startDate: limitDateFrom.toDate(),
+    endDate: limitDateTo.toDate(),
+    excludedUid: rescheduleUid,
+    includeManagedEvents,
+  });
+
+  const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
+    start: dayjs(startTime).toDate(),
+    end: dayjs(endTime).toDate(),
+    title,
+    source: `eventType-${eventTypeId}-booking-${id}`,
+    userId,
+  }));
+
+  const globalLimitManager = new LimitManager();
+
+  for (const key of descendingLimitKeys) {
+    const limit = bookingLimits?.[key];
+    if (!limit) continue;
+
+    const unit = intervalLimitKeyToUnit(key);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+
+    for (const periodStart of periodStartDates) {
+      if (globalLimitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
+
+      const periodEnd = periodStart.endOf(unit);
+      let totalBookings = 0;
+
+      for (const booking of busyTimes) {
+        if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+          continue;
+        }
+
+        totalBookings++;
+        if (totalBookings >= limit) {
+          globalLimitManager.addBusyTime(periodStart, unit, timeZone);
+          break;
+        }
+      }
+    }
+  }
+
+  const userBusyTimesMap = new Map();
+
+  for (const user of users) {
+    const userBusyTimes = busyTimes.filter((busyTime) => busyTime.userId === user.id);
+    const limitManager = new LimitManager();
+
+    for (const busyTime of globalLimitManager.getBusyTimes()) {
+      const start = dayjs(busyTime.start);
+      const end = dayjs(busyTime.end);
+      const unit = getUnitFromBusyTime(start, end);
+
+      limitManager.addBusyTime(start, unit, timeZone);
+    }
+    const bookingLimitsParams = {
+      bookings: userBusyTimes,
+      bookingLimits,
+      dateFrom,
+      dateTo,
+      limitManager,
+      rescheduleUid,
+      teamId,
+      user,
+      includeManagedEvents,
+      timeZone,
+    };
+
+    for (const key of descendingLimitKeys) {
+      const limit = bookingLimits?.[key];
+      if (!limit) continue;
+
+      const unit = intervalLimitKeyToUnit(key);
+      const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+
+      for (const periodStart of periodStartDates) {
+        if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
+
+        if (unit === "year") {
+          try {
+            await checkBookingLimit({
+              eventStartDate: periodStart.toDate(),
+              limitingNumber: limit,
+              key,
+              teamId,
+              user,
+              rescheduleUid,
+              includeManagedEvents,
+              timeZone,
+            });
+          } catch (_) {
+            limitManager.addBusyTime(periodStart, unit, timeZone);
+            if (periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))) {
+              return;
+            }
+          }
+          continue;
+        }
+
+        const periodEnd = periodStart.endOf(unit);
+        let totalBookings = 0;
+
+        for (const booking of userBusyTimes) {
+          if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+            continue;
+          }
+
+          totalBookings++;
+          if (totalBookings >= limit) {
+            limitManager.addBusyTime(periodStart, unit, timeZone);
+            break;
+          }
+        }
+      }
+    }
+
+    userBusyTimesMap.set(user.id, limitManager.getBusyTimes());
+  }
+
+  return userBusyTimesMap;
+};
+
+export const getBusyTimesFromTeamLimitsForUsers = withReporting(
+  _getBusyTimesFromTeamLimitsForUsers,
+  "getBusyTimesFromTeamLimitsForUsers"
+);
 
 const calculateHostsAndAvailabilities = async ({
   input,
@@ -856,7 +1240,7 @@ const calculateHostsAndAvailabilities = async ({
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
 }) => {
-  const usersWithCredentials = monitorCallbackSync(getUsersWithCredentials, {
+  const usersWithCredentials = getUsersWithCredentials({
     hosts,
   });
 
@@ -879,14 +1263,14 @@ const calculateHostsAndAvailabilities = async ({
   const allUserIds = Array.from(userIdAndEmailMap.keys());
 
   const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
-    monitorCallbackAsync(BookingRepo.findAllExistingBookingsForEventTypeBetween, {
+    BookingRepo.findAllExistingBookingsForEventTypeBetween({
       startDate: startTimeDate,
       endDate: endTimeDate,
       eventTypeId: eventType.id,
       seatedEvent: Boolean(eventType.seatsPerTimeSlot),
       userIdAndEmailMap,
     }),
-    monitorCallbackAsync(getOOODates, startTimeDate, endTimeDate, allUserIds),
+    getOOODates(startTimeDate, endTimeDate, allUserIds),
   ]);
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
@@ -894,7 +1278,7 @@ const calculateHostsAndAvailabilities = async ({
   let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
 
   if (eventType && (bookingLimits || durationLimits)) {
-    busyTimesFromLimitsBookingsAllUsers = await monitorCallbackAsync(getBusyTimesForLimitChecks, {
+    busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
       userIds: allUserIds,
       eventTypeId: eventType.id,
       startDate: startTime.format(),
@@ -905,7 +1289,44 @@ const calculateHostsAndAvailabilities = async ({
     });
   }
 
-  const users = monitorCallbackSync(function enrichUsersWithData() {
+  let busyTimesFromLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
+  if (eventType && (bookingLimits || durationLimits)) {
+    const usersForLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
+    busyTimesFromLimitsMap = await getBusyTimesFromLimitsForUsers(
+      usersForLimits,
+      bookingLimits,
+      durationLimits,
+      startTime,
+      endTime,
+      typeof input.duration === "number" ? input.duration : undefined,
+      eventType,
+      usersWithCredentials[0]?.timeZone || "UTC",
+      input.rescheduleUid || undefined
+    );
+  }
+
+  const teamForBookingLimits =
+    eventType?.team ??
+    (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
+
+  const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
+
+  let teamBookingLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
+  if (teamForBookingLimits && teamBookingLimits) {
+    const usersForTeamLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
+    teamBookingLimitsMap = await getBusyTimesFromTeamLimitsForUsers(
+      usersForTeamLimits,
+      teamBookingLimits,
+      startTime,
+      endTime,
+      teamForBookingLimits.id,
+      teamForBookingLimits.includeManagedEventsInLimits,
+      usersWithCredentials[0]?.timeZone || "UTC",
+      input.rescheduleUid || undefined
+    );
+  }
+
+  function _enrichUsersWithData() {
     return usersWithCredentials.map((currentUser) => {
       return {
         ...currentUser,
@@ -920,7 +1341,9 @@ const calculateHostsAndAvailabilities = async ({
         outOfOfficeDays: outOfOfficeDaysAllUsers.filter((o) => o.user.id === currentUser.id),
       };
     });
-  });
+  }
+  const enrichUsersWithData = withReporting(_enrichUsersWithData, "enrichUsersWithData");
+  const users = enrichUsersWithData();
 
   const premappedUsersAvailability = await getUsersAvailability({
     users,
@@ -940,6 +1363,10 @@ const calculateHostsAndAvailabilities = async ({
       currentSeats,
       rescheduleUid: input.rescheduleUid,
       busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+      busyTimesFromLimits: busyTimesFromLimitsMap,
+      eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
+      teamBookingLimits: teamBookingLimitsMap,
+      teamForBookingLimits: teamForBookingLimits,
     },
   });
   /* We get all users working hours and busy slots */

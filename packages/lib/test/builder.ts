@@ -88,6 +88,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     title: faker.lorem.sentence(),
     slug: faker.lorem.slug(),
     description: faker.lorem.paragraph(),
+    interfaceLanguage: null,
     position: 1,
     isInstantEvent: false,
     instantMeetingParameters: [],
@@ -125,8 +126,10 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     seatsShowAttendees: null,
     disableCancelling: false,
     disableRescheduling: false,
+    allowReschedulingCancelledBookings: false,
     seatsShowAvailabilityCount: null,
     maxLeadThreshold: null,
+    includeNoShowInRRCalculation: false,
     schedulingType: null,
     scheduleId: null,
     bookingLimits: null,
@@ -150,6 +153,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     autoTranslateDescriptionEnabled: false,
     useEventLevelSelectedCalendars: false,
     allowReschedulingPastBookings: false,
+    hideOrganizerEmail: false,
+    customReplyToEmail: null,
     ...eventType,
   };
 };

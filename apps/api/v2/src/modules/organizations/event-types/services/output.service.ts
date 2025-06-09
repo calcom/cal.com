@@ -70,6 +70,7 @@ type Input = Pick<
   | "eventName"
   | "useEventTypeDestinationCalendarEmail"
   | "hideCalendarEventDetails"
+  | "hideOrganizerEmail"
   | "team"
 >;
 
@@ -92,7 +93,7 @@ export class OutputOrganizationsEventTypesService {
     const hosts =
       databaseEventType.schedulingType === "MANAGED"
         ? await this.getManagedEventTypeHosts(databaseEventType.id)
-        : await this.transformHosts(databaseEventType.hosts, databaseEventType.schedulingType);
+        : await this.getNonManagedEventTypeHosts(databaseEventType.hosts, databaseEventType.schedulingType);
 
     return {
       ...rest,
@@ -137,13 +138,18 @@ export class OutputOrganizationsEventTypesService {
     for (const child of children) {
       if (child.userId) {
         const user = await this.usersRepository.findById(child.userId);
-        transformedHosts.push({ userId: child.userId, name: user?.name || "" });
+        transformedHosts.push({
+          userId: child.userId,
+          name: user?.name || "",
+          username: user?.username || "",
+          avatarUrl: user?.avatarUrl,
+        });
       }
     }
     return transformedHosts;
   }
 
-  async transformHosts(
+  async getNonManagedEventTypeHosts(
     databaseHosts: Host[],
     schedulingType: SchedulingType | null
   ): Promise<TeamEventTypeResponseHost[]> {
@@ -159,6 +165,7 @@ export class OutputOrganizationsEventTypesService {
         transformedHosts.push({
           userId: databaseHost.userId,
           name: databaseUser?.name || "",
+          username: databaseUser?.username || "",
           mandatory: !!databaseHost.isFixed,
           priority: getPriorityLabel(databaseHost.priority || 2),
           avatarUrl: databaseUser?.avatarUrl,
@@ -167,6 +174,7 @@ export class OutputOrganizationsEventTypesService {
         transformedHosts.push({
           userId: databaseHost.userId,
           name: databaseUser?.name || "",
+          username: databaseUser?.username || "",
           avatarUrl: databaseUser?.avatarUrl,
         });
       }

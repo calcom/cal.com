@@ -13,7 +13,7 @@ import type { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
-import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
+import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
 import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
@@ -1276,7 +1276,7 @@ export const TestData = {
         },
       ];
 
-      // Generate dateoverride for each day in thes first two weeks
+      // Generate dateoverride for each day in the first two weeks
       for (let i = 0; i < 15; i++) {
         const dateString = date.toISOString().split("T")[0];
         availability.push({

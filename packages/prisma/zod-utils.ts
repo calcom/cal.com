@@ -13,7 +13,6 @@ import type {
 } from "zod";
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import dayjs from "@calcom/dayjs";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
@@ -246,14 +245,6 @@ export const stringOrNumber = z.union([
   }),
   z.number().int(),
 ]);
-
-export const stringToDayjs = (val: string) => {
-  const matches = val.match(/([+-]\d{2}:\d{2})$/);
-  const timezone = matches ? matches[1] : "+00:00";
-  return dayjs(val).utcOffset(timezone);
-};
-
-export const stringToDayjsZod = z.string().transform(stringToDayjs);
 
 export const requiredCustomInputSchema = z.union([
   // string must be given & nonempty
@@ -618,6 +609,7 @@ export const downloadLinkSchema = z.object({
 export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
   title: true,
   description: true,
+  interfaceLanguage: true,
   isInstantEvent: true,
   instantMeetingParameters: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
@@ -637,6 +629,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
@@ -674,8 +667,10 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   isRRWeightsEnabled: true,
   eventTypeColor: true,
   allowReschedulingPastBookings: true,
+  hideOrganizerEmail: true,
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
+  customReplyToEmail: true,
 };
 
 // All properties that are defined as unlocked based on all managed props

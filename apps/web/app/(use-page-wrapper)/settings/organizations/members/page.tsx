@@ -1,28 +1,40 @@
-import SettingsLayoutAppDir from "app/(use-page-wrapper)/settings/(settings-layout)/layout";
-import { _generateMetadata, getTranslate } from "app/_utils";
+import { createRouterCaller } from "app/_trpc/context";
+import { _generateMetadata } from "app/_utils";
+import { unstable_cache } from "next/cache";
 
-import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
-import LegacyPage from "@calcom/features/ee/organizations/pages/members";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
+import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
+
+import { MembersView } from "~/members/members-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("organization_members"),
-    (t) => t("organization_description")
+    (t) => t("organization_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/members"
   );
+
+const getCachedAttributes = unstable_cache(
+  async (orgId: number) => {
+    return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
+  },
+  undefined,
+  { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour
+);
 
 const Page = async () => {
-  const t = await getTranslate();
-
-  const children = (
-    <SettingsHeader
-      title={t("organization_members")}
-      description={t("organization_description")}
-      ctaClassName={CTA_CONTAINER_CLASS_NAME}>
-      <LegacyPage />
-    </SettingsHeader>
+  const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
+  const [org, teams, facetedTeamValues] = await Promise.all([
+    orgCaller.listCurrent(),
+    orgCaller.getTeams(),
+    orgCaller.getFacetedValues(),
+  ]);
+  const attributes = await getCachedAttributes(org.id);
+  return (
+    <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
   );
-  return await SettingsLayoutAppDir({ children, containerClassName: "lg:max-w-screen-2xl" });
 };
 
 export default Page;

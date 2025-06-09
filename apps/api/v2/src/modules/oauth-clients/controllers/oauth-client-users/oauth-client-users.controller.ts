@@ -12,6 +12,7 @@ import { TOKENS_DOCS } from "@/modules/oauth-clients/controllers/oauth-flow/oaut
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
@@ -34,6 +35,7 @@ import {
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
 import { User, MembershipRole } from "@prisma/client";
+import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
@@ -55,7 +57,8 @@ export class OAuthClientUsersController {
     private readonly userRepository: UsersRepository,
     private readonly oAuthClientUsersService: OAuthClientUsersService,
     private readonly oauthRepository: OAuthClientRepository,
-    private readonly tokensRepository: TokensRepository
+    private readonly tokensRepository: TokensRepository,
+    private readonly oAuthClientUsersOutputService: OAuthClientUsersOutputService
   ) {}
 
   @Get("/")
@@ -70,7 +73,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: managedUsers.map((user) => this.getResponseUser(user)),
+      data: managedUsers.map((user) => this.oAuthClientUsersOutputService.getResponseUser(user)),
     };
   }
 
@@ -94,8 +97,11 @@ export class OAuthClientUsersController {
     return {
       status: SUCCESS_STATUS,
       data: {
-        user: this.getResponseUser(user),
-        ...tokens,
+        user: this.oAuthClientUsersOutputService.getResponseUser(user),
+        accessToken: tokens.accessToken,
+        accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
+        refreshToken: tokens.refreshToken,
+        refreshTokenExpiresAt: tokens.refreshTokenExpiresAt.valueOf(),
       },
     };
   }
@@ -112,7 +118,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: this.getResponseUser(user),
+      data: this.oAuthClientUsersOutputService.getResponseUser(user),
     };
   }
 
@@ -132,7 +138,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: this.getResponseUser(user),
+      data: this.oAuthClientUsersOutputService.getResponseUser(user),
     };
   }
 
@@ -151,7 +157,7 @@ export class OAuthClientUsersController {
 
     return {
       status: SUCCESS_STATUS,
-      data: this.getResponseUser(user),
+      data: this.oAuthClientUsersOutputService.getResponseUser(user),
     };
   }
 
@@ -168,16 +174,19 @@ export class OAuthClientUsersController {
   ): Promise<KeysResponseDto> {
     this.logger.log(`Forcing new access tokens for managed user with ID ${userId}`);
 
-    await this.validateManagedUserOwnership(oAuthClientId, userId);
+    const { id } = await this.validateManagedUserOwnership(oAuthClientId, userId);
 
-    const { accessToken, refreshToken } = await this.tokensRepository.refreshOAuthTokens(
-      userId,
-      oAuthClientId
-    );
+    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
+      await this.tokensRepository.forceRefreshOAuthTokens(oAuthClientId, id);
 
     return {
       status: SUCCESS_STATUS,
-      data: this.oAuthClientUsersService.getResponseOAuthTokens(accessToken, refreshToken),
+      data: {
+        accessToken,
+        refreshToken,
+        accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
+        refreshTokenExpiresAt: refreshTokenExpiresAt.valueOf(),
+      },
     };
   }
 
@@ -188,21 +197,5 @@ export class OAuthClientUsersController {
     }
 
     return user;
-  }
-
-  private getResponseUser(user: User): ManagedUserOutput {
-    return {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      name: user.name,
-      timeZone: user.timeZone,
-      weekStart: user.weekStart,
-      createdDate: user.createdDate,
-      timeFormat: user.timeFormat,
-      defaultScheduleId: user.defaultScheduleId,
-      locale: user.locale as Locales,
-      avatarUrl: user.avatarUrl,
-    };
   }
 }

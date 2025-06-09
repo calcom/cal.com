@@ -187,6 +187,7 @@ export default async function handleChildrenEventTypes({
             rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
             useEventLevelSelectedCalendars: false,
+            allowReschedulingCancelledBookings: managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
           },
         });
       })
@@ -252,13 +253,14 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            ...(eventType.scheduleId ? { schedule: { connect: { id: eventType.scheduleId } } } : {}),
+            scheduleId: eventType.scheduleId || null,
             hashedLink:
               "multiplePrivateLinks" in unlockedFieldProps
                 ? undefined
                 : {
                     deleteMany: {},
                   },
+            allowReschedulingCancelledBookings: managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
             metadata: {
               ...(eventType.metadata as Prisma.JsonObject),
               ...(metadata?.multipleDuration && "length" in unlockedFieldProps

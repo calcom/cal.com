@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
 import type {
   ApiErrorResponse,
@@ -33,9 +35,13 @@ type AvailabilitySettingsPlatformWrapperProps = {
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
   onBeforeUpdate?: (updateBody: UpdateScheduleInput_2024_06_11) => boolean | Promise<boolean>;
+  onFormStateChange?: (formState: AvailabilityFormValues) => void;
   allowDelete?: boolean;
   allowSetToDefault?: boolean;
   disableToasts?: boolean;
+  isDryRun?: boolean;
+  noScheduleChildren?: ReactNode;
+  loadingStateChildren?: ReactNode;
 };
 
 export const AvailabilitySettingsPlatformWrapper = ({
@@ -48,9 +54,13 @@ export const AvailabilitySettingsPlatformWrapper = ({
   disableEditableHeading = false,
   enableOverrides = false,
   onBeforeUpdate,
+  onFormStateChange,
   allowDelete,
   allowSetToDefault,
   disableToasts,
+  isDryRun = false,
+  noScheduleChildren,
+  loadingStateChildren,
 }: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
@@ -115,19 +125,47 @@ export const AvailabilitySettingsPlatformWrapper = ({
     }
   };
 
-  if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;
+  if (isLoading) {
+    return (
+      <>
+        {loadingStateChildren ? loadingStateChildren : <div className="px-10 py-4 text-xl">Loading...</div>}
+      </>
+    );
+  }
 
-  if (!atomSchedule) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
+  if (!atomSchedule) {
+    return noScheduleChildren ? (
+      <>{noScheduleChildren}</>
+    ) : (
+      <div className="px-10 py-4 text-xl">No user schedule present</div>
+    );
+  }
 
   return (
     <AtomsWrapper>
       <AvailabilitySettings
         disableEditableHeading={disableEditableHeading}
         handleDelete={() => {
-          atomSchedule.id && handleDelete(atomSchedule.id);
+          if (isDryRun) {
+            toast({
+              description: "Schedule deleted successfully",
+            });
+          }
+
+          if (!isDryRun && atomSchedule.id) {
+            handleDelete(atomSchedule.id);
+          }
         }}
         handleSubmit={async (data) => {
-          atomSchedule.id && handleUpdate(atomSchedule.id, data);
+          if (isDryRun) {
+            toast({
+              description: "Schedule updated successfully",
+            });
+          }
+
+          if (!isDryRun && atomSchedule.id) {
+            handleUpdate(atomSchedule.id, data);
+          }
         }}
         weekStart={me?.data?.weekStart || "Sunday"}
         timeFormat={timeFormat}
@@ -158,6 +196,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
         customClassNames={customClassNames}
         allowDelete={allowDelete}
         allowSetToDefault={allowSetToDefault}
+        onFormStateChange={onFormStateChange}
       />
     </AtomsWrapper>
   );

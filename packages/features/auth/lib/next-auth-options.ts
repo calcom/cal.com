@@ -32,6 +32,7 @@ import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -712,7 +713,8 @@ export const getOptions = ({
     },
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
-      const licenseKeyService = await LicenseKeySingleton.getInstance();
+      const deploymentRepo = new DeploymentRepository(prisma);
+      const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
       const hasValidLicense = await licenseKeyService.checkLicense();
       const profileId = token.profileId;
       const calendsoSession: Session = {
@@ -950,7 +952,7 @@ export const getOptions = ({
               return true;
             }
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
-            return "/auth/error?error=use-password-login";
+            return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
           } else if (
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
             idP === IdentityProvider.SAML
@@ -971,8 +973,7 @@ export const getOptions = ({
               return true;
             }
           }
-
-          return "/auth/error?error=use-identity-login";
+          return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
         // Associate with organization if enabled by flag and idP is Google (for now)
@@ -1010,7 +1011,7 @@ export const getOptions = ({
           }
         } catch (err) {
           log.error("Error creating a new user", err);
-          return "/auth/error?error=use-identity-login";
+          return `/auth/error?error=user-creation-error`;
         }
       }
 
@@ -1054,7 +1055,7 @@ export const getOptions = ({
               dub.track.lead({
                 clickId,
                 eventName: "Sign Up",
-                customerId: user.id.toString(),
+                externalId: user.id.toString(),
                 customerName: user.name,
                 customerEmail: user.email,
                 customerAvatar: user.image,

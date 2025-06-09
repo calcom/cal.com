@@ -23,7 +23,7 @@ export default function DisconnectIntegration(props: {
   const [modalOpen, setModalOpen] = useState(false);
   const utils = trpc.useUtils();
 
-  const mutation = trpc.viewer.deleteCredential.useMutation({
+  const mutation = trpc.viewer.credentials.delete.useMutation({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
       setModalOpen(false);
@@ -34,7 +34,7 @@ export default function DisconnectIntegration(props: {
       setModalOpen(false);
     },
     async onSettled() {
-      await utils.viewer.connectedCalendars.invalidate();
+      await utils.viewer.calendars.connectedCalendars.invalidate();
       await utils.viewer.apps.integrations.invalidate();
     },
   });

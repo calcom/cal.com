@@ -421,12 +421,24 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsBoolean()
   @ApiPropertyOptional()
   hideCalendarEventDetails?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    description:
+      "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
+  })
+  hideOrganizerEmail?: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
   @IsString()
   @DocsProperty({ example: "John Doe" })
   name!: string;
+
+  @IsString()
+  @DocsProperty({ example: "john-doe" })
+  username!: string;
 
   @IsString()
   @IsOptional()
