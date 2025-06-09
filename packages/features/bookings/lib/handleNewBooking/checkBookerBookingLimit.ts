@@ -1,4 +1,5 @@
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 export const checkBookerBookingLimit = async ({
   eventTypeId,
@@ -29,6 +30,8 @@ export const checkBookerBookingLimit = async ({
       },
     },
   });
+
+  console.log(" -------- bookingsCount", bookingsCount);
 
   if (bookingsCount >= bookerBookingLimit) {
     throw new Error("booker_booking_limit_exceeded");
