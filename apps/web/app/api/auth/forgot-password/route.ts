@@ -37,12 +37,10 @@ async function handler(req: NextRequest) {
       select: { name: true, email: true, locale: true },
     });
     // Don't leak info about whether the user exists
-    if (!user) return NextResponse.json({ message: "password_reset_email_sent" }, { status: 201 });
-    await passwordResetRequest(user);
+    if (user) passwordResetRequest(user);
     return NextResponse.json({ message: "password_reset_email_sent" }, { status: 201 });
   } catch (reason) {
     console.error(reason);
-    return NextResponse.json({ message: "Unable to create password reset request" }, { status: 500 });
   }
 }
 
