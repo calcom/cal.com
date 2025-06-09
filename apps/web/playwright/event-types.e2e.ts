@@ -7,7 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
-  createNewEventType,
+  createNewUserEventType,
   gotoBookingPage,
   gotoFirstEventType,
   saveEventType,
@@ -55,7 +55,7 @@ test.describe("Event Types tests", () => {
     test("can add new event type", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `hello ${nonce}`;
-      await createNewEventType(page, { eventTitle });
+      await createNewUserEventType(page, { eventTitle });
       await page.goto("/event-types");
       await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
     });
@@ -63,7 +63,7 @@ test.describe("Event Types tests", () => {
     test("new event type appears first in the list", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `hello ${nonce}`;
-      await createNewEventType(page, { eventTitle });
+      await createNewUserEventType(page, { eventTitle });
       await page.goto("/event-types");
       const firstEvent = page.locator("[data-testid=event-types] > li a").first();
       const firstEventTitle = await firstEvent.getAttribute("title");
@@ -73,7 +73,7 @@ test.describe("Event Types tests", () => {
     test("enabling recurring event comes with default options", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `my recurring event ${nonce}`;
-      await createNewEventType(page, { eventTitle });
+      await createNewUserEventType(page, { eventTitle });
 
       // fix the race condition
       await page.waitForSelector('[data-testid="event-title"]');
@@ -393,7 +393,7 @@ test.describe("Event Types tests", () => {
     }) => {
       const nonce = randomString(3);
       const eventTitle = `Conflict event ${nonce}`;
-      await createNewEventType(page, { eventTitle });
+      await createNewUserEventType(page, { eventTitle });
       await page.goto("/event-types");
       await page.click(`text=${eventTitle}`);
 

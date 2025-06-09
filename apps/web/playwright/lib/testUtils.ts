@@ -177,11 +177,14 @@ export async function expectSlotNotAllowedToBook(page: Page) {
   await expect(page.locator("[data-testid=slot-not-allowed-to-book]")).toBeVisible();
 }
 
-export const createNewEventType = async (
+export const createNewUserEventType = async (
   page: Page,
-  args: { eventTitle: string; eventDescription?: string }
+  args: { eventTitle: string; eventDescription?: string; username?: string }
 ) => {
   await page.click("[data-testid=new-event-type]");
+  if (args.username) {
+    await page.getByRole("button", { name: args.username }).click();
+  }
   await page.fill("[name=title]", args.eventTitle);
   await page.fill("[name=length]", "10");
   if (args.eventDescription) {
@@ -221,7 +224,7 @@ export async function setupManagedEvent({
 
 export const createNewSeatedEventType = async (page: Page, args: { eventTitle: string }) => {
   const eventTitle = args.eventTitle;
-  await createNewEventType(page, { eventTitle });
+  await createNewUserEventType(page, { eventTitle });
   await page.waitForSelector('[data-testid="event-title"]');
   await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
     "aria-current",
@@ -567,4 +570,8 @@ export async function bookTeamEvent({
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
   await expect(page.getByTestId(`404-page`)).toBeVisible();
+}
+
+export async function selectFirstAvailableTimeSlot(page: Page) {
+  // ... existing code ...
 }

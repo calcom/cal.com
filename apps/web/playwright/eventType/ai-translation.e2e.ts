@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
+import { setupOrgMember } from "playwright/fixtures/orgs";
 import { loginUser } from "playwright/fixtures/regularBookings";
-import { createNewEventType, doOnOrgDomain } from "playwright/lib/testUtils";
+import { createNewUserEventType, doOnOrgDomain } from "playwright/lib/testUtils";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -46,26 +47,23 @@ test.describe("AI Translation - Event Type", () => {
 
   test("Enable the AI translation and test in browser in Korean (ko-KR)", async ({
     page,
-    orgs,
     users,
     bookingPage,
     context,
   }) => {
-    const org = await orgs.create({
-      name: "acme",
+    const { orgMember, org } = await setupOrgMember(users);
+
+    await page.goto("/event-types");
+    await createNewUserEventType(page, {
+      eventTitle: "5 min",
+      eventDescription: "A quick 5 minute chat.",
+      username: orgMember.username ?? undefined,
     });
-    const user = await users.create({
-      organizationId: org.id,
-      roleInOrganization: MembershipRole.MEMBER,
-    });
-    await user.apiLogin();
-    await page.goto("/event-types?noTeam");
-    await createNewEventType(page, { eventTitle: "5 min", eventDescription: "A quick 5 minute chat." });
     expect(await bookingPage.getAITranslationToggleDisabled()).toBe(false);
     await bookingPage.toggleAITranslation();
     await bookingPage.updateEventType();
 
-    // await user.logout(); // logging out because user locale overrides the browser locale otherwise
+    await orgMember.logout(); // logging out because user locale overrides the browser locale otherwise
     await context.setExtraHTTPHeaders({
       "Accept-Language": "ko-KR",
     });
@@ -75,7 +73,7 @@ test.describe("AI Translation - Event Type", () => {
         page,
       },
       async () => {
-        await page.goto(`/${user.username}/5-min`);
+        await page.goto(`/${orgMember.username}/5-min`);
         await expect(page.locator('[data-testid="event-meta-description"] p')).toHaveText("빠른 5분 대화.");
       }
     );
