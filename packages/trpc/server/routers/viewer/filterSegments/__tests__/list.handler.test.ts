@@ -3,7 +3,7 @@ import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
 import { describe, expect, it } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { listHandler } from "../list.handler";
 import { type TListFilterSegmentsInputSchema } from "../list.schema";
@@ -53,8 +53,8 @@ describe("listHandler", () => {
       input,
     });
 
-    expect(result).toHaveLength(2);
-    expect(result).toEqual(
+    expect(result.segments).toHaveLength(2);
+    expect(result.segments).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           name: "My Other Bookings",
@@ -137,8 +137,8 @@ describe("listHandler", () => {
       input,
     });
 
-    expect(result).toHaveLength(2);
-    expect(result).toEqual(
+    expect(result.segments).toHaveLength(2);
+    expect(result.segments).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           name: "Other Team Bookings",
@@ -221,8 +221,8 @@ describe("listHandler", () => {
       input,
     });
 
-    expect(result).toHaveLength(2);
-    expect(result).toEqual(
+    expect(result.segments).toHaveLength(2);
+    expect(result.segments).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           name: "My Bookings",
@@ -256,6 +256,9 @@ describe("listHandler", () => {
       input,
     });
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({
+      segments: [],
+      preferredSegmentId: null,
+    });
   });
 });
