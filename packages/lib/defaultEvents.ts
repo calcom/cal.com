@@ -102,6 +102,7 @@ const commons = {
   lockTimeZoneToggleOnBookingPage: false,
   requiresConfirmation: false,
   requiresConfirmationForFreeEmail: false,
+  requiresBookerEmailVerification: false,
   bookingLimits: null,
   bookerBookingLimit: null,
   durationLimits: null,
