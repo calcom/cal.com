@@ -7,7 +7,6 @@ import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
-import type { CreateUsersFixture } from "playwright/fixtures/users";
 import { v4 as uuid } from "uuid";
 
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -15,6 +14,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import type { createEmailsFixture } from "../fixtures/emails";
+import type { CreateUsersFixture } from "../fixtures/users";
 import type { Fixtures } from "./fixtures";
 
 type Request = IncomingMessage & { body?: unknown };
