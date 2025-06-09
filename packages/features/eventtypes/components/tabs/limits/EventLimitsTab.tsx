@@ -683,18 +683,16 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
       <Controller
         name="bookerBookingLimit"
         render={({ field: { onChange, value } }) => {
-          const isChecked = value > 0;
+          const isChecked = value && value > 0;
           return (
             <SettingsToggle
-              labelClassName={classNames("text-sm", customClassNames?.totalDurationLimit?.label)}
+              labelClassName={classNames("text-sm")}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none",
-                customClassNames?.totalDurationLimit?.container
+                isChecked && "rounded-b-none"
               )}
-              childrenClassName={classNames("lg:ml-0", customClassNames?.totalDurationLimit?.children)}
-              descriptionClassName={customClassNames?.totalDurationLimit?.description}
+              childrenClassName={classNames("lg:ml-0")}
               title={t("booker_booking_limit")}
               description={t("booker_booking_limit_description")}
               checked={isChecked}
@@ -702,7 +700,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                 if (active) {
                   onChange(1);
                 } else {
-                  onChange(0);
+                  onChange(null);
                 }
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">

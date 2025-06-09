@@ -31,8 +31,6 @@ export const checkBookerBookingLimit = async ({
     },
   });
 
-  console.log(" -------- bookingsCount", bookingsCount);
-
   if (bookingsCount >= bookerBookingLimit) {
     throw new Error("Booker booking limit exceeded");
   }
