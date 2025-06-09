@@ -16,4 +16,8 @@ export class BookingSeatRepositoryFixture {
   async create(bookingSeat: Prisma.BookingSeatCreateInput) {
     return this.prismaWriteClient.bookingSeat.create({ data: bookingSeat });
   }
+
+  async findAllByBookingId(bookingId: number) {
+    return this.prismaReadClient.bookingSeat.findMany({ where: { bookingId } });
+  }
 }
