@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-import {
-  checkUserPermissionInTeam,
-  checkMultiplePermissionsInTeam,
-} from "@calcom/features/pbac/lib/server/checkPermissions";
+import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { CrudAction, CustomAction, Resource } from "@calcom/features/pbac/types/permission-registry";
-import type { PermissionString } from "@calcom/features/pbac/types/permission-registry";
+import { RoleService } from "@calcom/features/pbac/services/role.service";
+import { RoleType, MembershipRole } from "@calcom/prisma/enums";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
@@ -26,12 +24,19 @@ const permissionStringSchema = z.custom<PermissionString>((val) => {
   return isValidResource && isValidAction;
 }, "Invalid permission string format. Must be 'resource.action' where resource and action are valid enums");
 
+// Schema for creating/updating roles
+const roleInputSchema = z.object({
+  teamId: z.number(),
+  name: z.string().min(1),
+  description: z.string().optional(),
+  permissions: z.array(permissionStringSchema),
+});
+
 export const permissionsRouter = router({
   getUserPermissions: authedProcedure.query(async ({ ctx }) => {
     if (!ctx.user?.id) return {};
 
     const permissionCheckService = new PermissionCheckService();
-
     return await permissionCheckService.getUserPermissions(ctx.user.id);
   }),
 
@@ -46,10 +51,13 @@ export const permissionsRouter = router({
       if (!ctx.user?.id) {
         return false;
       }
-      return checkUserPermissionInTeam({
+
+      const permissionCheckService = new PermissionCheckService();
+      return permissionCheckService.checkPermission({
         userId: ctx.user.id,
         teamId: input.teamId,
         permission: input.permission,
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN], // Default fallback roles for backward compatibility
       });
     }),
 
@@ -64,10 +72,101 @@ export const permissionsRouter = router({
       if (!ctx.user?.id) {
         return false;
       }
-      return checkMultiplePermissionsInTeam({
+
+      const permissionCheckService = new PermissionCheckService();
+      return permissionCheckService.checkPermissions({
         userId: ctx.user.id,
         teamId: input.teamId,
         permissions: input.permissions,
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN], // Default fallback roles for backward compatibility
       });
+    }),
+
+  createRole: authedProcedure.input(roleInputSchema).mutation(async ({ ctx, input }) => {
+    if (!ctx.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    // Check if user has permission to create roles
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
+      userId: ctx.user.id,
+      teamId: input.teamId,
+      permission: "role.create",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+
+    if (!hasPermission) {
+      throw new Error("You don't have permission to create roles");
+    }
+
+    const roleService = new RoleService();
+    return roleService.createRole({
+      ...input,
+      type: RoleType.CUSTOM,
+    });
+  }),
+
+  updateRole: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        roleId: z.string(),
+        permissions: z.array(permissionStringSchema),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user?.id) {
+        throw new Error("Unauthorized");
+      }
+
+      // Check if user has permission to update roles
+      const permissionCheckService = new PermissionCheckService();
+      const hasPermission = await permissionCheckService.checkPermission({
+        userId: ctx.user.id,
+        teamId: input.teamId,
+        permission: "role.update",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+
+      if (!hasPermission) {
+        throw new Error("You don't have permission to update roles");
+      }
+
+      const roleService = new RoleService();
+      return roleService.updateRolePermissions({
+        roleId: input.roleId,
+        permissions: input.permissions,
+      });
+    }),
+
+  deleteRole: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        roleId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user?.id) {
+        throw new Error("Unauthorized");
+      }
+
+      // Check if user has permission to delete roles
+      const permissionCheckService = new PermissionCheckService();
+      const hasPermission = await permissionCheckService.checkPermission({
+        userId: ctx.user.id,
+        teamId: input.teamId,
+        permission: "role.delete",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+
+      if (!hasPermission) {
+        throw new Error("You don't have permission to delete roles");
+      }
+
+      const roleService = new RoleService();
+      await roleService.deleteRole(input.roleId);
+      return { success: true };
     }),
 });
