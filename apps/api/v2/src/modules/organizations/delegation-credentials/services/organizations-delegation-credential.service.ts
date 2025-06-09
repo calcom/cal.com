@@ -56,6 +56,14 @@ export class OrganizationsDelegationCredentialService {
       throw new NotFoundException(`DelegationCredential with id ${delegationCredentialId} not found`);
     }
 
+    let credentialEnabled = delegationCredential.enabled;
+
+    if (body.serviceAccountKey !== undefined) {
+      await this.updateDelegationCredentialServiceAccountKey(delegationCredentialId, body.serviceAccountKey);
+      // when updating serviceAccountKey, enabled is forced to false in DB
+      credentialEnabled = false;
+    }
+
     if (body.enabled !== undefined) {
       await this.updateDelegationCredentialEnabled(
         orgId,
@@ -64,16 +72,13 @@ export class OrganizationsDelegationCredentialService {
         body.enabled
       );
     }
-    if (body.serviceAccountKey !== undefined) {
-      await this.updateDelegationCredentialServiceAccountKey(delegationCredentialId, body.serviceAccountKey);
-    }
 
     // once delegation credentials are enabled, slowly set all the destination calendars of delegated users
-    if (body.enabled === true && delegationCredential.enabled === false) {
+    if (body.enabled === true && credentialEnabled === false) {
       await this.ensureDefaultCalendars(orgId, delegationCredential.domain);
     }
 
-    return { ...delegationCredential, enabled: body?.enabled ?? delegationCredential?.enabled };
+    return { ...delegationCredential, enabled: body?.enabled ?? credentialEnabled };
   }
 
   async ensureDefaultCalendars(orgId: number, domain: string) {
@@ -132,6 +137,7 @@ export class OrganizationsDelegationCredentialService {
         delegationCredentialId,
         {
           serviceAccountKey: encryptedServiceAccountKey,
+          enabled: false,
         }
       );
     return delegationCredential;
