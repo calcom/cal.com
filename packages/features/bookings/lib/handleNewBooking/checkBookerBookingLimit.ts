@@ -19,6 +19,9 @@ export const checkBookerBookingLimit = async ({
       startTime: {
         gte: new Date(),
       },
+      status: {
+        in: [BookingStatus.PENDING, BookingStatus.ACCEPTED],
+      },
       attendees: {
         some: {
           email: bookerEmail,
