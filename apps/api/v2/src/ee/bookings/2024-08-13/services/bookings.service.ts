@@ -1022,11 +1022,11 @@ export class BookingsService_2024_08_13 {
     }
     const { location } = body;
 
-    if (!location) {
-      return this.getBooking(existingBooking.uid);
+    if (!!location) {
+      return await this.updateBookingLocation(existingBooking, location);
     }
 
-    return await this.updateBookingLocation(existingBooking, location);
+    return this.getBooking(existingBooking.uid);
   }
 
   async updateBookingLocation(existingBooking: Booking, location: BookingInputLocation_2024_08_13) {
