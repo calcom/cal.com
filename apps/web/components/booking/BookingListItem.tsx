@@ -975,7 +975,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
-      utils.viewer.bookings.invalidate();
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1064,9 +1064,11 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     };
   });
   const { t } = useLocale();
+  const utils = trpc.useUtils();
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(t(data.message), "success");
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1167,6 +1169,7 @@ const NoShowAttendeesDialog = ({
     }))
   );
 
+  const utils = trpc.useUtils();
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       const newValue = data.attendees[0];
@@ -1176,6 +1179,7 @@ const NoShowAttendeesDialog = ({
         )
       );
       showToast(t(data.message), "success");
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1206,7 +1210,7 @@ const NoShowAttendeesDialog = ({
             </div>
           </form>
         ))}
-        <DialogFooter>
+        <DialogFooter noSticky>
           <DialogClose>{t("done")}</DialogClose>
         </DialogFooter>
       </DialogContent>
