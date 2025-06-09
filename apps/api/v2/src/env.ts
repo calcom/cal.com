@@ -32,6 +32,7 @@ export type Environment = {
   AXIOM_TOKEN: string;
   STRIPE_TEAM_MONTHLY_PRICE_ID: string;
   IS_TEAM_BILLING_ENABLED: boolean;
+  REWRITE_API_V2_PREFIX: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {
