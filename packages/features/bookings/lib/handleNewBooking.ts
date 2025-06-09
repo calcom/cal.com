@@ -1,4 +1,5 @@
 import type { DestinationCalendar, User } from "@prisma/client";
+import { checkBookerBookingLimit } from "bookings/lib/handleNewBooking/checkBookerBookingLimit";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import short, { uuid } from "short-uuid";
@@ -88,7 +89,6 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
-import { checkBookerBookingLimit } from "./handleNewBooking/checkBookerBookingLimit";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -453,6 +453,7 @@ async function handler(
 
   await checkBookerBookingLimit({
     eventTypeId,
+    bookerBookingLimit: eventType.bookerBookingLimit,
     bookerEmail,
   });
 

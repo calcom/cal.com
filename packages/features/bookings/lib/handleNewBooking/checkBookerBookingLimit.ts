@@ -2,31 +2,34 @@ import prisma from "@calcom/prisma";
 
 export const checkBookerBookingLimit = async ({
   eventTypeId,
+  bookerBookingLimit,
   bookerEmail,
 }: {
   eventTypeId: number;
+  bookerBookingLimit: number | null;
   bookerEmail: string;
 }) => {
-  const bookings = await prisma.booking.count({
-    where: {
-      eventTypeId,
-    },
-  });
-
-  const bookerBookingLimit = eventType.bookerBookingLimit;
-
   if (!bookerBookingLimit) {
     return;
   }
 
-  const bookingCount = await prisma.booking.count({
+  const bookingsCount = await prisma.booking.count({
     where: {
       eventTypeId,
-      bookerEmail,
+      startTime: {
+        gte: new Date(),
+      },
+      attendees: {
+        some: {
+          email: bookerEmail,
+        },
+      },
     },
   });
 
-  if (bookingCount >= bookerBookingLimit) {
+  if (bookingsCount >= bookerBookingLimit) {
     throw new Error("booker_booking_limit_exceeded");
   }
+
+  return;
 };
