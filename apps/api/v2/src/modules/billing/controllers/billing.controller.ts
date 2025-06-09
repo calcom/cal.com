@@ -124,8 +124,14 @@ export class BillingController {
       case "checkout.session.completed":
         await this.billingService.handleStripeCheckoutEvents(event);
         break;
+      case "customer.subscription.updated":
+        await this.billingService.handleStripePaymentPastDue(event);
+        break;
       case "customer.subscription.deleted":
         await this.billingService.handleStripeSubscriptionDeleted(event);
+        break;
+      case "invoice.created":
+        await this.billingService.handleStripeSubscriptionForActiveManagedUsers(event);
         break;
       case "invoice.payment_failed":
         await this.billingService.handleStripePaymentFailed(event);

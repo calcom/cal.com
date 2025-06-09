@@ -317,4 +317,73 @@ export class UsersRepository {
       },
     });
   }
+
+  async getOrgsManagedUserEmailsBySubscriptionId(subscriptionId: string) {
+    return await this.dbRead.prisma.user.findMany({
+      distinct: ["email"],
+      where: {
+        isPlatformManaged: true,
+        profiles: {
+          some: {
+            organization: {
+              platformBilling: {
+                subscriptionId,
+              },
+            },
+          },
+        },
+      },
+      select: {
+        email: true,
+      },
+    });
+  }
+
+  async getActiveManagedUsersAsHost(subscriptionId: string, startTime: Date, endTime: Date) {
+    return await this.dbRead.prisma.user.findMany({
+      distinct: ["email"],
+      where: {
+        isPlatformManaged: true,
+        profiles: {
+          some: {
+            organization: {
+              platformBilling: {
+                subscriptionId,
+              },
+            },
+          },
+        },
+        bookings: {
+          some: {
+            userId: { not: null },
+            startTime: {
+              gte: startTime,
+              lte: endTime,
+            },
+          },
+        },
+      },
+      select: {
+        email: true,
+      },
+    });
+  }
+
+  async getActiveManagedUsersAsAttendee(managedUsersEmails: string[], startTime: Date, endTime: Date) {
+    return await this.dbRead.prisma.attendee.findMany({
+      distinct: ["email"],
+      where: {
+        email: { in: managedUsersEmails },
+        booking: {
+          startTime: {
+            gte: startTime,
+            lte: endTime,
+          },
+        },
+      },
+      select: {
+        email: true,
+      },
+    });
+  }
 }

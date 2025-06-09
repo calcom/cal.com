@@ -395,7 +395,7 @@ export const createUsersFixture = (
               },
               {
                 id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: "https://cal.com" },
+                action: { type: "externalRedirectUrl", value: "https://cal.com/peer" },
                 queryValue: {
                   id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
                   type: "group",

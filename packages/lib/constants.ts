@@ -5,8 +5,9 @@ const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.REND
 export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
 export const IS_PRODUCTION = CALCOM_ENV === "production";
 export const IS_PRODUCTION_BUILD = process.env.NODE_ENV === "production";
+export const ORGANIZER_EMAIL_EXEMPT_DOMAINS = process.env.ORGANIZER_EMAIL_EXEMPT_DOMAINS || "";
 const IS_DEV = CALCOM_ENV === "development";
-
+export const SINGLE_ORG_SLUG = process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG;
 /** https://app.cal.com */
 export const WEBAPP_URL =
   process.env.NEXT_PUBLIC_WEBAPP_URL ||
@@ -53,9 +54,9 @@ export const CONSOLE_URL =
   process.env.NODE_ENV !== "production"
     ? `https://console.cal.dev`
     : `https://console.cal.com`;
-export const IS_SELF_HOSTED = !(
-  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
-);
+const CAL_DOMAINS = [".cal.com", ".cal.dev", ".cal.eu", ".cal.qa"];
+const WEBAPP_HOSTNAME = new URL(WEBAPP_URL).hostname;
+export const IS_SELF_HOSTED = !CAL_DOMAINS.some((domain) => WEBAPP_HOSTNAME.endsWith(domain));
 export const EMBED_LIB_URL = process.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 export const TRIAL_LIMIT_DAYS = 14;
 export const MAX_SEATS_PER_TIME_SLOT = 1000;
@@ -208,7 +209,7 @@ export const GOOGLE_CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
 ];
 export const DIRECTORY_IDS_TO_LOG = process.env.DIRECTORY_IDS_TO_LOG?.split(",") || [];
-export const SCANNING_WORKFLOW_STEPS = !IS_SELF_HOSTED && process.env.AKISMET_API_KEY;
+export const SCANNING_WORKFLOW_STEPS = !!(!IS_SELF_HOSTED && process.env.IFFY_API_KEY);
 
 export const IS_PLAIN_CHAT_ENABLED =
   !!process.env.NEXT_PUBLIC_PLAIN_CHAT_ID && process.env.NEXT_PUBLIC_PLAIN_CHAT_ID !== "";
@@ -218,4 +219,5 @@ export const IS_DUB_REFERRALS_ENABLED =
 
 export const CAL_VIDEO_MEETING_LINK_FOR_TESTING = process.env.CAL_VIDEO_MEETING_LINK_FOR_TESTING;
 
+export const IS_SMS_CREDITS_ENABLED = !!process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID;
 export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "25", 10);

@@ -1,4 +1,5 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
+import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
 import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
@@ -181,7 +182,7 @@ export class BookingsController_2024_08_13 {
   ): Promise<GetBookingsOutput_2024_08_13> {
     const profile = this.usersService.getUserMainProfile(user);
 
-    const bookings = await this.bookingsService.getBookings(queryParams, {
+    const { bookings, pagination } = await this.bookingsService.getBookings(queryParams, {
       email: user.email,
       id: user.id,
       orgId: profile?.organizationId,
@@ -190,6 +191,7 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 
@@ -288,7 +290,8 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to auto-selected host",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
@@ -309,7 +312,8 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to a specific host",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
@@ -403,9 +407,14 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   async getBookingReferences(
     @Param("bookingUid") bookingUid: string,
-    @GetUser("id") userId: number
+    @GetUser("id") userId: number,
+    @Query() filter: BookingReferencesFilterInput_2024_08_13
   ): Promise<BookingReferencesOutput_2024_08_13> {
-    const bookingReferences = await this.bookingReferencesService.getBookingReferences(bookingUid, userId);
+    const bookingReferences = await this.bookingReferencesService.getBookingReferences(
+      bookingUid,
+      userId,
+      filter
+    );
 
     return {
       status: SUCCESS_STATUS,

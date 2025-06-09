@@ -446,9 +446,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -456,9 +459,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -654,9 +659,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -664,9 +672,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -1527,6 +1537,16 @@
             }
           },
           {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "eventTypeIds",
             "required": false,
             "in": "query",
@@ -1689,6 +1709,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -1699,6 +1720,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           },
@@ -1926,9 +1948,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -1936,9 +1961,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -2627,9 +2654,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -2637,9 +2667,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -2705,9 +2737,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -2715,9 +2750,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -2849,9 +2886,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -2859,9 +2899,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -3319,6 +3361,24 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter booking references by type",
+            "example": "google_calendar",
+            "schema": {
+              "enum": [
+                "google_calendar",
+                "office365_calendar",
+                "daily_video",
+                "google_video",
+                "office365_video",
+                "zoom_video"
+              ],
               "type": "string"
             }
           }
@@ -4165,9 +4225,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -4175,9 +4238,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -4251,9 +4316,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -4261,9 +4329,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -5423,6 +5493,16 @@
             }
           },
           {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "eventTypeIds",
             "required": false,
             "in": "query",
@@ -5585,6 +5665,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -5595,6 +5676,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           }
@@ -5653,9 +5735,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -5663,9 +5748,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -5929,9 +6016,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -5939,9 +6029,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -6366,9 +6458,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -6376,9 +6471,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -6798,6 +6895,16 @@
             }
           },
           {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "example": "2NtaeaVcKfpmSZ4CthFdfk",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "eventTypeIds",
             "required": false,
             "in": "query",
@@ -6960,6 +7067,7 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "default": 100,
               "type": "number"
             }
           },
@@ -6970,6 +7078,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "default": 0,
               "type": "number"
             }
           },
@@ -7227,7 +7336,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBooking",
         "summary": "Reassign a booking to auto-selected host",
-        "description": "The provided authorization header refers to the owner of the booking.",
+        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -7278,7 +7387,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
         "summary": "Reassign a booking to a specific host",
-        "description": "The provided authorization header refers to the owner of the booking.",
+        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -7526,6 +7635,24 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter booking references by type",
+            "example": "google_calendar",
+            "schema": {
+              "enum": [
+                "google_calendar",
+                "office365_calendar",
+                "daily_video",
+                "google_video",
+                "office365_video",
+                "zoom_video"
+              ],
               "type": "string"
             }
           },
@@ -8699,9 +8826,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -8709,9 +8839,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -8968,6 +9100,31 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -9628,9 +9785,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -9638,9 +9798,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -9688,9 +9850,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -9698,9 +9863,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -10464,7 +10631,7 @@
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
         "summary": "Find out when is an event type ready to be booked.",
-        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
+        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10541,7 +10708,7 @@
             "schema": {}
           },
           {
-            "name": "slotFormat",
+            "name": "format",
             "required": false,
             "in": "query",
             "description": "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
@@ -11531,9 +11698,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11541,9 +11711,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -11920,9 +12092,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11930,9 +12105,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -11980,9 +12157,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11990,9 +12170,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -12300,9 +12482,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -12310,9 +12495,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -12352,9 +12539,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -12362,9 +12552,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -12534,9 +12726,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -12544,9 +12739,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -14504,6 +14701,22 @@
           "slug"
         ]
       },
+      "LocationDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "location",
+            "description": "only allowed value for type is `location`. This booking field is displayed only when event type has 2 or more locations in order to allow person doing the booking pick the location."
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      },
       "NotesDefaultFieldInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -14716,6 +14929,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
@@ -14968,6 +15184,7 @@
           },
           "address": {
             "type": "string",
+            "minLength": 1,
             "example": "123 Example St, City, Country"
           },
           "public": {
@@ -15063,7 +15280,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
+              "campfire-video"
             ],
             "example": "cal-video"
           },
@@ -15308,6 +15525,9 @@
           "hidden": {
             "type": "boolean",
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
           }
         },
         "required": [
@@ -15324,11 +15544,11 @@
           "slug": {
             "type": "string",
             "enum": [
-              "name",
-              "email",
               "title",
+              "location",
               "notes",
-              "guests"
+              "guests",
+              "rescheduleReason"
             ],
             "example": "rescheduleReason",
             "description": "only allowed value for type is `rescheduleReason`",
@@ -15374,11 +15594,11 @@
           "slug": {
             "type": "string",
             "enum": [
-              "name",
-              "email",
               "title",
+              "location",
               "notes",
-              "guests"
+              "guests",
+              "rescheduleReason"
             ],
             "example": "title",
             "description": "only allowed value for type is `title`",
@@ -15424,11 +15644,11 @@
           "slug": {
             "type": "string",
             "enum": [
-              "name",
-              "email",
               "title",
+              "location",
               "notes",
-              "guests"
+              "guests",
+              "rescheduleReason"
             ],
             "example": "notes",
             "description": "only allowed value for type is `notes`",
@@ -15474,11 +15694,11 @@
           "slug": {
             "type": "string",
             "enum": [
-              "name",
-              "email",
               "title",
+              "location",
               "notes",
-              "guests"
+              "guests",
+              "rescheduleReason"
             ],
             "example": "guests",
             "description": "only allowed value for type is `guests`",
@@ -16708,6 +16928,9 @@
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
                 },
                 {
@@ -17060,154 +17283,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "ConferencingAppsOutputDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "description": "Id of the conferencing app credentials"
-          },
-          "type": {
-            "type": "string",
-            "example": "google_video",
-            "description": "Type of conferencing app"
-          },
-          "userId": {
-            "type": "number",
-            "description": "Id of the user associated to the conferencing app"
-          },
-          "invalid": {
-            "type": "boolean",
-            "nullable": true,
-            "example": true,
-            "description": "Whether if the connection is working or not."
-          }
-        },
-        "required": [
-          "id",
-          "type",
-          "userId"
-        ]
-      },
-      "ConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetConferencingAppsOauthUrlResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
-      "ConferencingAppsOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ConferencingAppsOutputDto"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "SetDefaultConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
-      "DefaultConferencingAppsOutputDto": {
-        "type": "object",
-        "properties": {
-          "appSlug": {
-            "type": "string"
-          },
-          "appLink": {
-            "type": "string"
-          }
-        }
-      },
-      "GetDefaultConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/DefaultConferencingAppsOutputDto"
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
-      "DisconnectConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          }
-        },
-        "required": [
-          "status"
         ]
       },
       "OrgTeamOutputDto": {
@@ -18224,6 +18299,143 @@
         "type": "object",
         "properties": {}
       },
+      "BaseAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "TextAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "option": {
+            "type": "string"
+          },
+          "optionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "option",
+          "optionId"
+        ]
+      },
+      "NumberAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "option": {
+            "type": "number"
+          },
+          "optionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "option",
+          "optionId"
+        ]
+      },
+      "SingleSelectAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "option": {
+            "type": "string"
+          },
+          "optionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "option",
+          "optionId"
+        ]
+      },
+      "MultiSelectAttributeOption": {
+        "type": "object",
+        "properties": {
+          "optionId": {
+            "type": "string"
+          },
+          "option": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "optionId",
+          "option"
+        ]
+      },
+      "MultiSelectAttribute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MultiSelectAttributeOption"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "options"
+        ]
+      },
       "MembershipUserOutputDto": {
         "type": "object",
         "properties": {
@@ -18253,7 +18465,7 @@
           "email"
         ]
       },
-      "TeamMembershipOutput": {
+      "OrganizationMembershipOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -18281,6 +18493,25 @@
           },
           "user": {
             "$ref": "#/components/schemas/MembershipUserOutputDto"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TextAttribute"
+                },
+                {
+                  "$ref": "#/components/schemas/NumberAttribute"
+                },
+                {
+                  "$ref": "#/components/schemas/SingleSelectAttribute"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectAttribute"
+                }
+              ]
+            }
           }
         },
         "required": [
@@ -18289,7 +18520,8 @@
           "teamId",
           "accepted",
           "role",
-          "user"
+          "user",
+          "attributes"
         ]
       },
       "GetAllOrgMemberships": {
@@ -18304,7 +18536,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": [
@@ -18354,7 +18586,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": [
@@ -18374,7 +18606,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": [
@@ -18394,7 +18626,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": [
@@ -18433,7 +18665,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamMembershipOutput"
+            "$ref": "#/components/schemas/OrganizationMembershipOutput"
           }
         },
         "required": [
@@ -18511,6 +18743,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
@@ -18825,6 +19060,10 @@
             "type": "string",
             "example": "John Doe"
           },
+          "username": {
+            "type": "string",
+            "example": "john-doe"
+          },
           "avatarUrl": {
             "type": "string",
             "nullable": true,
@@ -18833,7 +19072,8 @@
         },
         "required": [
           "userId",
-          "name"
+          "name",
+          "username"
         ]
       },
       "EventTypeTeam": {
@@ -19371,6 +19611,9 @@
                   "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/LocationDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
                 },
                 {
@@ -19654,6 +19897,45 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "TeamMembershipOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
+          },
+          "disableImpersonation": {
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MembershipUserOutputDto"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "teamId",
+          "accepted",
+          "role",
+          "user"
         ]
       },
       "OrgTeamMembershipsOutputResponseDto": {
@@ -20905,6 +21187,154 @@
           "data"
         ]
       },
+      "ConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Id of the conferencing app credentials"
+          },
+          "type": {
+            "type": "string",
+            "example": "google_video",
+            "description": "Type of conferencing app"
+          },
+          "userId": {
+            "type": "number",
+            "description": "Id of the user associated to the conferencing app"
+          },
+          "invalid": {
+            "type": "boolean",
+            "nullable": true,
+            "example": true,
+            "description": "Whether if the connection is working or not."
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "userId"
+        ]
+      },
+      "ConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetConferencingAppsOauthUrlResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ConferencingAppsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "SetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "DefaultConferencingAppsOutputDto": {
+        "type": "object",
+        "properties": {
+          "appSlug": {
+            "type": "string"
+          },
+          "appLink": {
+            "type": "string"
+          }
+        }
+      },
+      "GetDefaultConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DefaultConferencingAppsOutputDto"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "DisconnectConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
       "GoogleServiceAccountKeyInput": {
         "type": "object",
         "properties": {
@@ -21698,6 +22128,66 @@
           "data"
         ]
       },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "totalItems": {
+            "type": "number",
+            "description": "The total number of items available across all pages, matching the query criteria.",
+            "example": 123,
+            "minimum": 0
+          },
+          "remainingItems": {
+            "type": "number",
+            "description": "The number of items remaining to be fetched *after* the current page. Calculated as: `totalItems - (skip + itemsPerPage)`.",
+            "example": 103,
+            "minimum": 0
+          },
+          "returnedItems": {
+            "type": "number",
+            "description": "The number of items returned in the current page.",
+            "example": 10
+          },
+          "itemsPerPage": {
+            "type": "number",
+            "description": "The maximum number of items requested per page.",
+            "example": 10,
+            "minimum": 1
+          },
+          "currentPage": {
+            "type": "number",
+            "description": "The current page number being returned.",
+            "example": 2,
+            "minimum": 1
+          },
+          "totalPages": {
+            "type": "number",
+            "description": "The total number of pages available.",
+            "example": 13,
+            "minimum": 0
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a subsequent page available after the current one.",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a preceding page available before the current one.",
+            "example": true
+          }
+        },
+        "required": [
+          "totalItems",
+          "remainingItems",
+          "returnedItems",
+          "itemsPerPage",
+          "currentPage",
+          "totalPages",
+          "hasNextPage",
+          "hasPreviousPage"
+        ]
+      },
       "GetManagedOrganizationsOutput": {
         "type": "object",
         "properties": {
@@ -21714,11 +22204,15 @@
             "items": {
               "$ref": "#/components/schemas/ManagedOrganizationOutput"
             }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
           }
         },
         "required": [
           "status",
-          "data"
+          "data",
+          "pagination"
         ]
       },
       "UpdateOrganizationInput": {
@@ -21743,7 +22237,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "number"
           },
           "formId": {
             "type": "string"
@@ -22296,7 +22790,7 @@
               "eightxeight-video",
               "discord-video",
               "demodesk-video",
-              "campfire-video",
+              "campfire-video"
             ]
           }
         },
@@ -23936,13 +24430,17 @@
             },
             "description": "Array of booking data, which can contain either BookingOutput objects or RecurringBookingOutput objects"
           },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          },
           "error": {
             "type": "object"
           }
         },
         "required": [
           "status",
-          "data"
+          "data",
+          "pagination"
         ]
       },
       "RescheduleBookingInput_2024_08_13": {
@@ -24257,9 +24755,14 @@
             "type": "string",
             "description": "The type of the booking reference"
           },
-          "externalUid": {
+          "eventUid": {
             "type": "string",
-            "description": "The external uid of the booking reference"
+            "description": "The event uid of the booking"
+          },
+          "destinationCalendarId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The id of the calendar the event is created in"
           },
           "id": {
             "type": "number",
@@ -24268,7 +24771,8 @@
         },
         "required": [
           "type",
-          "externalUid",
+          "eventUid",
+          "destinationCalendarId",
           "id"
         ]
       },

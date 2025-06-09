@@ -121,7 +121,7 @@ const ProfileView = () => {
       }
     },
   });
-  const unlinkConnectedAccountMutation = trpc.viewer.unlinkConnectedAccount.useMutation({
+  const unlinkConnectedAccountMutation = trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
     onSuccess: async (res) => {
       showToast(t(res.message), "success");
       utils.viewer.me.invalidate();
@@ -131,7 +131,7 @@ const ProfileView = () => {
     },
   });
 
-  const addSecondaryEmailMutation = trpc.viewer.addSecondaryEmail.useMutation({
+  const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
     onSuccess: (res) => {
       setShowSecondaryEmailModalOpen(false);
       setNewlyAddedSecondaryEmail(res?.data?.email);

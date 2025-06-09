@@ -72,6 +72,7 @@ export type FormValues = {
   eventTitle: string;
   eventName: string;
   slug: string;
+  interfaceLanguage: string | null;
   isInstantEvent: boolean;
   instantMeetingParameters: string[];
   instantMeetingExpiryTimeOffsetInSeconds: number;
@@ -150,6 +151,11 @@ export type FormValues = {
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
+  calVideoSettings?: {
+    disableRecordingForOrganizer?: boolean;
+    disableRecordingForGuests?: boolean;
+    redirectUrlOnExit?: string;
+  };
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
