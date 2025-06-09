@@ -47,7 +47,6 @@ interface EventMetaProps extends React.HTMLAttributes<HTMLDivElement> {
   customIcon?: React.ReactNode;
   icon?: IconName;
   iconUrl?: string;
-  children: React.ReactNode;
   // Emphasises the text in the block. For now only
   // applying in dark mode.
   highlight?: boolean;
