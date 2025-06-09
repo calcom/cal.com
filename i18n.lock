@@ -46,6 +46,10 @@ checksums:
     event_cancelled_subject: 3370b9760bee4fdec5904dc6a823fa99
     event_reassigned_subject: e03f9cbbb45fa388e54b6445ff1ea49f
     event_request_declined: c9073a992aa0f82ad7059037507632db
+    customize_calvideo_settings: feeec6034a9e8b07cffcb0eacf1343e4
+    calvideo_settings_description: ea62d26cbfcad5d0bf4d27a32866dc50
+    disable_recording_for_guests: d8598c68957f6d46d926adae375d2e95
+    disable_recording_for_organizer: b58736c25ed97f0b88c4f69cb0346f7d
     event_request_declined_recurring: d1cbc5a80ca61e7b15fab0ebd8782bdf
     event_request_cancelled: 130fd0087bd535dc755eec339732dcaf
     event_request_reassigned: 75288fd880682c0ffe6d1266ac1ff2a6
@@ -1600,6 +1604,7 @@ checksums:
     team_url: 29e1dfe4aef6e2ad84f0828ad60b1d3b
     team_members: d148d3e9f3d013feddc4f41bb620ec28
     more: ee5e035ee328a8947be2ea44e338a57d
+    and_count_more: 307b4b3b3d8b441b35142907df4197fa
     more_page_footer: e2deddfbcc810846fd0cded621687b73
     workflow_example_1: 5f72e83ced3d7155fbf3d5bbc86ac868
     workflow_example_2: c1153c28e0ec440735b0e19ee680cba9
@@ -1776,6 +1781,7 @@ checksums:
     number_sms_notifications: ad31276ea0a7846797a93fcc86d36d11
     attendee_email_variable: 31a830ea056b94cd705c86954c3312a9
     attendee_email_info: 682f8767c3a870a20fc3b82c3f7ebdb7
+    booking_uid: b15ff03d1f75a6f45f582a6aec8835c3
     kbar_search_placeholder: 1df07536a83ad006b7aafd795e233748
     invalid_credential: b250515b8a75c34919a2376a07fcd4cc
     invalid_credential_action: 127776c374b77c1b3883d5cb7f9a8817
@@ -2001,6 +2007,7 @@ checksums:
     add_a_booking_question: 7db7665e4d56b231b4012b650477672d
     identifier: 9e8ed8445c2507ba0f9deac1260dafce
     duplicate_email: 5e8280ca94bc03b927f62aa30357f7b9
+    enter_redirect_url_on_exit_description: ef659b6801aae3a7d42f07ee129c0d41
     booking_with_payment_cancelled: 1f2436bb21c864f063a8560d0eef608e
     booking_with_payment_cancelled_already_paid: 27e02c756a46e580e60474cf130eacf3
     booking_with_payment_cancelled_refunded: ccdfcd6ec8408d23c3edc2d0bcda6730
@@ -2887,6 +2894,7 @@ checksums:
     routing_form_insights_booking_at: ca8a804eb7068845bede9adbb6bb7d3b
     routing_form_insights_submitted_at: b95063c78796a32900c35743237512c4
     copy_redirect_url: fe8a7495a0c603851e00750342721f4e
+    redirect_url_on_exit: 7cbeb65b589e03d34fa4626c2bf2fac1
     total_bookings_per_period: 4ddd62a03c104739a99c23bf60545367
     routed_to_per_period: a950330d2a551b4840bf77f044d4dd64
     per_day: 861a51979a317ed5ce9e2a584c4d85a3
@@ -2999,6 +3007,12 @@ checksums:
     asc: 859eb73e4d1bda5351ca36472efe6492
     desc: 55089d006e5eb530227e6f1c41707fc9
     verify_email_change: b7a83c7a3100b128e8d1a8f36a8171ba
+    buy_credits: d5c34a6e8829e3a475dd5cda6d7e10ac
+    credits: b21b88917ea0c8e2a71888756f71d0be
+    view_and_manage_credits: 4d483027287e2349b3d68cd0643c96f8
+    view_and_manage_credits_description: d6cdd13f5eec3810bc0c697d3ca4dd0e
+    buy_additional_credits: 4a3b39af3e55b16d932bb0b4b3e0f8b1
+    overview: 30c54e4dc4ce599b87d94be34a8617f5
     organization_slug_taken: 492cc9dd76b78c9210c0c7dfafbfd040
     you_cannot_create_an_organization_as_you_are_already_part_of_an_organization: f7df69b7f201bdfc1f26eb41006102a2
     you_need_to_complete_user_onboarding_before_creating_an_organization: c1489f3a1ddc3859fd07e83b3b07be66
@@ -3090,8 +3104,12 @@ checksums:
     could_not_find_slug_to_publish_org: 86399c898effaf4d2b6113e91ffebb95
     picklist: 5a3d44808605be31190c9956ecc5e412
     most_cancelled_bookings: ad8362bfa418808b784435e1b3f013c8
+    interface_language: a5c8eaac0640a27d6805c86b3faecd16
+    visitors_browser_language: bda926411281203feec4334bc43a15f6
     name_or_email: d6e1cc7612211a2f7080b5096510f282
     salesforce_round_robin_skip_fallback_to_lead_owner: 95ba66cdc5f1422c48d907e9d4d442b9
+    credit_purchase_failed: a55a743ea071dadcc5e59921c4b303ca
+    minimum_of_credits_required: 3620f8415aa038110d2529d7fddaa408
     enable_delegation_credential: 444d27809dd4b53d6d4159361109fc69
     enable_delegation_credential_description: c713439db9cc156b5a381f60b58b83c7
     disable_delegation_credential: 3e2100b538dc75842cb06842eec4ac19
@@ -3162,6 +3180,20 @@ checksums:
     results: 1a8f50c90d0a0d500624dd3a62aab6ee
     view_form: 4c60dbda532d24ff38f8b41333543a3a
     sms_opt_out_message: 51959b7ca038e02d867701bfe02e0347
+    team_credits_low_warning: 3ebc7812714842a0d2ad10b364243f76
+    user_credits_low_warning: 239f90e2fe4d66e62a97100a59a29e03
+    action_required_out_of_credits: 93d1fa52db6acb8c4f445052ce73d622
+    action_required_user_out_of_credits: 112c1ee5e5ae06ad289684ecb3934ee4
+    low_credits_warning_message: d3194620077e2dfaa1e198c225e767f3
+    low_credits_warning_message_user: 4c9536a4463fd75fd5c15d8e1e7c9869
+    credit_limit_reached_message: d12b88a279d619ad18ff3c286ebec2b3
+    credit_limit_reached_message_user: d5446b226f841605083f7b2dd7b81065
+    current_credit_balance: 53c4f4d7c65f327c56483735a5df9831
+    notification_about_your_booking: a98d4c351d6ec6042e488f90b0864d41
+    monthly_credits: a95229fd9020089dfad6fb6cd92f7952
+    total_credits: b834a4f211978381eca9bdc33ea5e357
+    remaining_credits: 60a3f4d78699e2e60c69da9cecde9226
+    additional_credits: 1c05adf1d03583d8ae1bbdb4ed609687
     routing_form_next_in_queue: 47946873f93e70e61476646edc7e5f1e
     routing_form_select_members_to_email: be35ce1ba18d8d6ed66c043cfe812a8b
     routing_incomplete_booking_tab: 8d30d258714176df4fae2826ebb1973a
@@ -3169,4 +3201,9 @@ checksums:
     matching: f46e191931edeb7df0ddfc6d50001851
     event_redirect: c7962c0568581ec66d24f799de53356c
     reset_form: d4bf98db642dedeaf71f3c18353b2200
+    requires_credits: 02b9411ac23abf3dac48ff348ca1a89f
+    requires_credits_tooltip: 4368005e0d2453e8a99a3d3dbc2634bb
+    available_credits: 943bb58ad49bb2242c61d345565bb28c
+    members_affected_by_disabling_delegation_credential: 693f7323afd369947660403297a3f1dc
+    no_members_affected_by_disabling_delegation_credential: 0ec66caddbcbe0c935a75e4114ff6629
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

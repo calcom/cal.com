@@ -7,8 +7,9 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
+import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 import { AttributeForm } from "./AttributesForm";
 
@@ -37,6 +38,7 @@ function CreateAttributesPage() {
         id,
       });
       utils.viewer.attributes.list.invalidate();
+      revalidateAttributesList();
     },
     onError: (err) => {
       showToast(err.message, "error");
