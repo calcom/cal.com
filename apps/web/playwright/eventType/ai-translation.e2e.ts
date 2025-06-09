@@ -1,7 +1,6 @@
 import { expect } from "@playwright/test";
-import { setupOrgMember } from "playwright/fixtures/orgs";
 import { loginUser } from "playwright/fixtures/regularBookings";
-import { createNewUserEventType, doOnOrgDomain } from "playwright/lib/testUtils";
+import { setupOrgMember, createNewUserEventType, doOnOrgDomain } from "playwright/lib/testUtils";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 

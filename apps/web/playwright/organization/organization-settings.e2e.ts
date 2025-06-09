@@ -1,8 +1,7 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { doOnOrgDomain } from "playwright/lib/testUtils";
+import { doOnOrgDomain, setupOrgMember } from "playwright/lib/testUtils";
 
-import { setupOrgMember } from "../fixtures/orgs";
 import { test } from "../lib/fixtures";
 
 type TestContext = Awaited<ReturnType<typeof setupOrgMember>>;

@@ -7,6 +7,8 @@ import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
+import type { CreateUsersFixture } from "playwright/fixtures/users";
+import { v4 as uuid } from "uuid";
 
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { Prisma } from "@calcom/prisma/client";
@@ -574,4 +576,27 @@ export async function expectPageToBeNotFound({ page, url }: { page: Page; url: s
 
 export async function selectFirstAvailableTimeSlot(page: Page) {
   // ... existing code ...
+}
+
+export async function setupOrgMember(users: CreateUsersFixture) {
+  const orgRequestedSlug = `example-${uuid()}`;
+
+  const orgMember = await users.create(undefined, {
+    hasTeam: true,
+    isOrg: true,
+    hasSubteam: true,
+    isOrgVerified: true,
+    isDnsSetup: true,
+    orgRequestedSlug,
+    schedulingType: SchedulingType.ROUND_ROBIN,
+  });
+
+  const { team: org } = await orgMember.getOrgMembership();
+  const { team } = await orgMember.getFirstTeamMembership();
+  const teamEvent = await orgMember.getFirstTeamEvent(team.id);
+  const userEvent = orgMember.eventTypes[0];
+
+  await orgMember.apiLogin();
+
+  return { orgMember, org, team, teamEvent, userEvent };
 }

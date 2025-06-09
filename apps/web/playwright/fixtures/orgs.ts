@@ -1,12 +1,8 @@
 import type { Page } from "@playwright/test";
 import type { Team } from "@prisma/client";
-import { v4 as uuid } from "uuid";
 
 import { prisma } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
-import type { CreateUsersFixture } from "./users";
 
 const getRandomSlug = () => `org-${Math.random().toString(36).substring(7)}`;
 
@@ -69,27 +65,4 @@ export async function createOrgInDb({
       organizationSettings: true,
     },
   });
-}
-
-export async function setupOrgMember(users: CreateUsersFixture) {
-  const orgRequestedSlug = `example-${uuid()}`;
-
-  const orgMember = await users.create(undefined, {
-    hasTeam: true,
-    isOrg: true,
-    hasSubteam: true,
-    isOrgVerified: true,
-    isDnsSetup: true,
-    orgRequestedSlug,
-    schedulingType: SchedulingType.ROUND_ROBIN,
-  });
-
-  const { team: org } = await orgMember.getOrgMembership();
-  const { team } = await orgMember.getFirstTeamMembership();
-  const teamEvent = await orgMember.getFirstTeamEvent(team.id);
-  const userEvent = orgMember.eventTypes[0];
-
-  await orgMember.apiLogin();
-
-  return { orgMember, org, team, teamEvent, userEvent };
 }
