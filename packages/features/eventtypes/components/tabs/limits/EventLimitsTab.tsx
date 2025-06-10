@@ -709,7 +709,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                   type="number"
                   value={value}
                   onChange={(e) => {
-                    onChange(Number(e.target.value));
+                    onChange(Math.max(Number(e.target.value), 1));
                   }}
                   min={1}
                   containerClassName={classNames("max-w-80")}
