@@ -1,5 +1,4 @@
 import { Title } from "@tremor/react";
-import { useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -12,15 +11,7 @@ import { LoadingInsight } from "./LoadingInsights";
 
 export const BookingStatusLineChart = () => {
   const { t } = useLocale();
-  const { isAll, teamId, userId, startDate, endDate, dateRangePreset, eventTypeId } = useInsightsParameters();
-
-  const selectedTimeView = useMemo(() => {
-    if (dateRangePreset === "tdy") return "day";
-    else if (dateRangePreset === "w") return "week";
-    else if (dateRangePreset === "m") return "month";
-    else if (dateRangePreset === "y") return "year";
-    else return "week";
-  }, [dateRangePreset]);
+  const { isAll, teamId, userId, startDate, endDate, eventTypeId } = useInsightsParameters();
 
   const {
     data: eventsTimeLine,
@@ -28,7 +19,6 @@ export const BookingStatusLineChart = () => {
     isPending,
   } = trpc.viewer.insights.eventsTimeline.useQuery(
     {
-      timeView: selectedTimeView,
       startDate,
       endDate,
       teamId,

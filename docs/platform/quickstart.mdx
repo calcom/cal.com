@@ -29,10 +29,13 @@ In order for atoms to handle scheduling on behalf of your users, you have to cre
 
 #### What is a “Managed user”?
 It is a representation of your user within our database containing basic information like email and is used to manage the setup of Google Calendar.
-After creating a “managed user” you will receive the user ID, an access and a refresh token that are used by atoms to handle scheduling and can be used to modify the “managed user” information, so make sure to store the tokens and the [cal.com](http://cal.com) user ID in your database. Also, you will have to connect each user on your end with the access and refresh tokens by adding new properties on your User model in database that store the tokens, for example.
+After creating a “managed user” you will receive the user ID, an access and a refresh token that are used by atoms to handle scheduling and can be used to modify the “managed user” information, so make sure to store the tokens and the [cal.com](https://cal.com) user ID in your database. Also, you will have to connect each user on your end with the access and refresh tokens by adding new properties on your User model in database that store the tokens, for example.
 
 #### What is it not?
 It's important to clarify that a "managed user" is completely independent of a regular user account on cal.com, meaning you don't need your users to register on cal.com web application.
+
+❗Managed users do not get a public cal.com page like normal cal.com users do aka if you create a managed user the managed user won't have cal.com/managed-user page, because the point of platform solution is to integrate scheduling into your platform,
+so instead the managed user public page will be at your-platform.com/managed-user and there you fetch event types of the managed user using our api or react hooks and display them.
 
 ### Create managed users via our API
 
