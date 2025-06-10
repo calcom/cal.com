@@ -30,6 +30,11 @@ export default function BBBSetup() {
 
   const form = useForm<bbbOptions>({
     resolver: zodResolver(bbbOptionsSchema),
+    defaultValues: {
+      url: "",
+      secret: "",
+      hash: "sha1",
+    },
   });
 
   const {

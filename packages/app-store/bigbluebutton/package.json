@@ -11,5 +11,5 @@
   "devDependencies": {
     "@calcom/types": "*"
   },
-  "description": "it's bigbluebutton the video app"
+  "description": "BigBlueButton is an web-based video conferencing platform for hosting and joining video meetings, with features for online classes and collaboration"
 }
