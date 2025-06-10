@@ -77,6 +77,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
     [CustomAction.Invite]: { description: "Invite organization members", category: "org" },
     [CustomAction.Remove]: { description: "Remove organization members", category: "org" },
     [CustomAction.ManageBilling]: { description: "Manage organization billing", category: "org" },
+    [CustomAction.ChangeMemberRole]: { description: "Change role of team members", category: "org" },
     [CrudAction.Update]: { description: "Edit organization settings", category: "org" },
     [CustomAction.Manage]: { description: "All actions on organizations", category: "org" },
   },

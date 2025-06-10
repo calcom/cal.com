@@ -2,9 +2,11 @@ import type { Prisma, PrismaPromise, User, Membership, Profile } from "@prisma/c
 
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
-import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -43,22 +45,38 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   if (!organizationId)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a member of an organizaiton" });
 
-  if (!(await isOrganisationAdmin(userId, organizationId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+  const featuresRepository = new FeaturesRepository();
+  const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
+
+  const permissionCheckService = new PermissionCheckService();
+
+  if (isPBACEnabled) {
+    const hasPermissionToChangeMemberRole = await permissionCheckService.checkPermission({
+      userId,
+      teamId: organizationId,
+      permission: "organization.changeMemberRole",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    });
+
+    if (!hasPermissionToChangeMemberRole) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+  } else {
+    const isUpdaterAnOwner = await isOrganisationOwner(userId, organizationId);
+    // only OWNER can update the role to OWNER
+    if (input.role === MembershipRole.OWNER && !isUpdaterAnOwner) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const isUserBeingUpdatedOwner = await isOrganisationOwner(input.userId, organizationId);
+
+    // only owner can update the role of another owner
+    if (isUserBeingUpdatedOwner && !isUpdaterAnOwner) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+  }
 
   await ensureOrganizationIsReviewed(organizationId);
-
-  const isUpdaterAnOwner = await isOrganisationOwner(userId, organizationId);
-  // only OWNER can update the role to OWNER
-  if (input.role === MembershipRole.OWNER && !isUpdaterAnOwner) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  const isUserBeingUpdatedOwner = await isOrganisationOwner(input.userId, organizationId);
-
-  // only owner can update the role of another owner
-  if (isUserBeingUpdatedOwner && !isUpdaterAnOwner) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
 
   // Is requested user a member of the organization?
   const requestedMember = await prisma.membership.findFirst({

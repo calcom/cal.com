@@ -44,6 +44,7 @@ FROM (
     ('organization', 'invite'),
     ('organization', 'remove'),
     ('organization', 'manageBilling'),
+    ('organization', 'changeMemberRole'),
 
     -- Booking permissions
     ('booking', 'read'),

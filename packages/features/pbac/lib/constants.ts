@@ -103,6 +103,7 @@ export const PERMISSION_DESCRIPTION_I18N_KEYS = {
   "organization.manageBilling": "pbac_desc_manage_organization_billing",
   "organization.update": "pbac_desc_edit_organization_settings",
   "organization.manage": "pbac_desc_manage_organizations",
+  "organization.changeMemberRole": "pbac_desc_change_organization_member_role",
 
   // Bookings
   "booking.read": "pbac_desc_view_bookings",
@@ -251,6 +252,10 @@ export const RESOURCE_CONFIG = {
       [CustomAction.Manage]: {
         i18nKey: CUSTOM_ACTION_I18N_KEYS[CustomAction.Manage],
         descriptionKey: PERMISSION_DESCRIPTION_I18N_KEYS["organization.manage"],
+      },
+      [CustomAction.ChangeMemberRole]: {
+        i18nKey: CUSTOM_ACTION_I18N_KEYS[CustomAction.ChangeMemberRole],
+        descriptionKey: PERMISSION_DESCRIPTION_I18N_KEYS["organization.changeMemberRole"],
       },
     },
   },
