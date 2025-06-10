@@ -1,13 +1,85 @@
-import { CalendarEventOutput, DateTimeWithZone } from "@/ee/calendars/outputs/get-calendar-event";
-import { GoogleCalendarEventResponse } from "@/ee/calendars/services/gcal.service";
+import {
+  DateTimeWithZone,
+  UnifiedCalendarEventOutput,
+} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event";
 import { PipeTransform, Injectable } from "@nestjs/common";
+
+export interface GoogleCalendarEventResponse {
+  kind: string;
+  etag: string;
+  id: string;
+  status: string;
+  htmlLink: string;
+  created: string;
+  updated: string;
+  summary: string;
+  description?: string;
+  location?: string;
+  creator: {
+    email: string;
+    displayName?: string;
+  };
+  organizer: {
+    email: string;
+    displayName?: string;
+    self?: boolean;
+  };
+  start: {
+    dateTime: string;
+    timeZone: string;
+  };
+  end: {
+    dateTime: string;
+    timeZone: string;
+  };
+  iCalUID: string;
+  sequence: number;
+  attendees?: Array<{
+    email: string;
+    displayName?: string;
+    organizer?: boolean;
+    self?: boolean;
+    responseStatus?: string;
+  }>;
+  hangoutLink?: string;
+  conferenceData?: {
+    createRequest?: {
+      requestId: string;
+      conferenceSolutionKey: {
+        type: string;
+      };
+      status: {
+        statusCode: string;
+      };
+    };
+    entryPoints?: Array<{
+      entryPointType: string;
+      uri: string;
+      label?: string;
+      pin?: string;
+      regionCode?: string;
+    }>;
+    conferenceSolution?: {
+      key: {
+        type: string;
+      };
+      name: string;
+      iconUri: string;
+    };
+    conferenceId: string;
+  };
+  reminders?: {
+    useDefault: boolean;
+  };
+  eventType?: string;
+}
 
 @Injectable()
 export class GoogleCalendarEventOutputPipe
-  implements PipeTransform<GoogleCalendarEventResponse, CalendarEventOutput>
+  implements PipeTransform<GoogleCalendarEventResponse, UnifiedCalendarEventOutput>
 {
-  transform(googleEvent: GoogleCalendarEventResponse): CalendarEventOutput {
-    const calendarEvent = new CalendarEventOutput();
+  transform(googleEvent: GoogleCalendarEventResponse): UnifiedCalendarEventOutput {
+    const calendarEvent = new UnifiedCalendarEventOutput();
 
     calendarEvent.id = googleEvent.id;
     calendarEvent.summary = googleEvent.summary;

@@ -8,8 +8,6 @@ import {
   DeletedCalendarCredentialsOutputResponseDto,
   DeletedCalendarCredentialsOutputDto,
 } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
-import { GetCalendarEventOutput } from "@/ee/calendars/outputs/get-calendar-event";
-import { GoogleCalendarEventOutputPipe } from "@/ee/calendars/pipes/get-calendar-event-details-output-pipe";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
@@ -300,43 +298,6 @@ export class CalendarsController {
         { id, type, userId, teamId, appId, invalid },
         { strategy: "excludeAll" }
       ),
-    };
-  }
-
-  @ApiParam({
-    name: "calendar",
-    enum: [GOOGLE_CALENDAR],
-    type: String,
-  })
-  @ApiParam({
-    name: "eventUid",
-    description: "The Google Calendar event ID",
-    type: String,
-  })
-  @Get("/:calendar/event-details/:eventUid")
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({
-    summary: "Get detailed metrics for a specific meeting",
-    description:
-      "Returns detailed information about a meeting including attendance metrics and reschedule history",
-  })
-  async getCalendarEventDetails(
-    @Param("calendar") calendar: string,
-    @Param("eventUid") eventUid: string
-  ): Promise<GetCalendarEventOutput> {
-    if (calendar !== GOOGLE_CALENDAR) {
-      throw new BadRequestException("Meeting details are currently only available for Google Calendar");
-    }
-
-    const eventDetails = await this.googleCalendarService.getEventDetails(eventUid);
-
-    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(eventDetails);
-
-    return {
-      status: SUCCESS_STATUS,
-      data: transformedEvent,
     };
   }
 }

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
+import { Type } from "class-transformer";
 import { IsEnum, IsISO8601, IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
@@ -12,7 +12,7 @@ export class DateTimeWithZone {
   timeZone!: string;
 }
 
-export class CalendarEventOutput {
+export class UnifiedCalendarEventOutput {
   @ValidateNested()
   @Type(() => DateTimeWithZone)
   @ApiProperty({
@@ -140,13 +140,13 @@ export class CalendarEventOutput {
   source?: string | null;
 }
 
-export class GetCalendarEventOutput {
+export class GetUnifiedCalendarEventOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ValidateNested()
-  @Type(() => CalendarEventOutput)
-  @ApiProperty({ type: CalendarEventOutput })
-  data!: CalendarEventOutput;
+  @Type(() => UnifiedCalendarEventOutput)
+  @ApiProperty({ type: UnifiedCalendarEventOutput })
+  data!: UnifiedCalendarEventOutput;
 }

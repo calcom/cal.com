@@ -1,5 +1,3 @@
-import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
@@ -17,86 +15,15 @@ import { OAuth2Client, JWT } from "googleapis-common";
 import { z } from "zod";
 
 import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
-import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
   "https://www.googleapis.com/auth/calendar.events",
 ];
 
-export interface GoogleCalendarEventResponse {
-  kind: string;
-  etag: string;
-  id: string;
-  status: string;
-  htmlLink: string;
-  created: string;
-  updated: string;
-  summary: string;
-  description?: string;
-  location?: string;
-  creator: {
-    email: string;
-    displayName?: string;
-  };
-  organizer: {
-    email: string;
-    displayName?: string;
-    self?: boolean;
-  };
-  start: {
-    dateTime: string;
-    timeZone: string;
-  };
-  end: {
-    dateTime: string;
-    timeZone: string;
-  };
-  iCalUID: string;
-  sequence: number;
-  attendees?: Array<{
-    email: string;
-    displayName?: string;
-    organizer?: boolean;
-    self?: boolean;
-    responseStatus?: string;
-  }>;
-  hangoutLink?: string;
-  conferenceData?: {
-    createRequest?: {
-      requestId: string;
-      conferenceSolutionKey: {
-        type: string;
-      };
-      status: {
-        statusCode: string;
-      };
-    };
-    entryPoints?: Array<{
-      entryPointType: string;
-      uri: string;
-      label?: string;
-      pin?: string;
-      regionCode?: string;
-    }>;
-    conferenceSolution?: {
-      key: {
-        type: string;
-      };
-      name: string;
-      iconUri: string;
-    };
-    conferenceId: string;
-  };
-  reminders?: {
-    useDefault: boolean;
-  };
-  eventType?: string;
-}
-
 @Injectable()
 export class GoogleCalendarService implements OAuthCalendarApp {
-  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
+  public redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
   private gcalResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
   private logger = new Logger("GcalService");
 
@@ -106,9 +33,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     private readonly credentialRepository: CredentialsRepository,
     private readonly calendarsService: CalendarsService,
     private readonly tokensRepository: TokensRepository,
-    private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
-    private readonly bookingsRepository: BookingsRepository_2024_08_13,
-    private readonly bookingReferencesRepository: BookingReferencesRepository_2024_08_13
+    private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
 
   async connect(
@@ -273,106 +198,5 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     }
 
     return { url: redir || origin };
-  }
-
-  async getEventDetails(eventUid: string): Promise<GoogleCalendarEventResponse> {
-    const bookingReference =
-      await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
-
-    if (!bookingReference) {
-      throw new NotFoundException("Booking reference not found");
-    }
-
-    const ownerUserEmail = bookingReference?.booking?.user?.email;
-
-    // Get authenticated calendar instance
-    const calendar = await this.getAuthorizedCalendarInstance(
-      ownerUserEmail,
-      bookingReference.credential?.key,
-      bookingReference.delegationCredential
-    );
-
-    try {
-      const event = await calendar.events.get({
-        calendarId: bookingReference?.externalCalendarId ?? "primary",
-        eventId: bookingReference?.uid,
-        // fields: "id,status,created,updated,summary,description,location,creator,organizer,start,end,attendees,conferenceData"
-      });
-
-      if (!event.data) {
-        throw new NotFoundException("Meeting not found");
-      }
-      return event.data as GoogleCalendarEventResponse;
-    } catch (error) {
-      throw new NotFoundException("Failed to retrieve meeting details");
-    }
-  }
-
-  /**
-   * Gets an authorized Google Calendar instance
-   * Tries delegation credentials first, falls back to direct OAuth
-   */
-  async getAuthorizedCalendarInstance(
-    userEmail?: string,
-    oAuthCredentials?: Prisma.JsonValue | undefined,
-    delegationCredential?: { id: string } | null
-  ): Promise<calendar_v3.Calendar> {
-    if (userEmail && delegationCredential?.id) {
-      const delegatedCalendar = await this.getDelegatedCalendarInstance(delegationCredential, userEmail);
-      if (delegatedCalendar) {
-        return delegatedCalendar;
-      }
-    }
-
-    // Fall back to direct OAuth authentication
-    if (!oAuthCredentials) {
-      throw new UnauthorizedException("No valid credentials available for Google Calendar");
-    }
-    const parsedOAuthCredentials = OAuth2UniversalSchema.parse(oAuthCredentials);
-    const oAuth2Client = await this.getOAuthClient(this.redirectUri);
-    oAuth2Client.setCredentials(parsedOAuthCredentials);
-
-    return new calendar_v3.Calendar({ auth: oAuth2Client });
-  }
-
-  async getDelegatedCalendarInstance(
-    delegationCredential: { id: string },
-    emailToImpersonate: string
-  ): Promise<calendar_v3.Calendar | null> {
-    try {
-      const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
-      const cleanEmail = emailToImpersonate.replace(oauthClientIdAliasRegex, "");
-
-      const serviceAccountCreds =
-        await DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({
-          id: delegationCredential.id,
-        });
-
-      if (
-        !serviceAccountCreds?.serviceAccountKey?.client_email ||
-        !serviceAccountCreds?.serviceAccountKey?.private_key
-      ) {
-        this.logger.error("Missing service account credentials for delegation", {
-          delegationCredentialId: delegationCredential.id,
-        });
-        return null;
-      }
-
-      const authClient = new JWT({
-        email: serviceAccountCreds.serviceAccountKey.client_email,
-        key: serviceAccountCreds.serviceAccountKey.private_key,
-        scopes: ["https://www.googleapis.com/auth/calendar"],
-        subject: cleanEmail,
-      });
-
-      await authClient.authorize();
-      return new calendar_v3.Calendar({ auth: authClient });
-    } catch (error) {
-      // this.logger.error(`Failed to get delegated calendar: ${error.message}`, {
-      //   delegationId: delegationCredential.id,
-      //   email: emailToImpersonate
-      // });
-      return null;
-    }
   }
 }
