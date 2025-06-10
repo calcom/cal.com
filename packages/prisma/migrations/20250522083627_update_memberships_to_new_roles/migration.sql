@@ -1,9 +1,9 @@
 -- Create default roles
-INSERT INTO "Role" (id, name, description, type, "createdAt", "updatedAt",color)
+INSERT INTO "Role" (id, name, description, type, "createdAt", "updatedAt")
 VALUES
-  ('owner_role', 'Owner', 'Full access to all resources', 'SYSTEM', NOW(), NOW(),'#1BA774'),
-  ('admin_role', 'Admin', 'Administrative access to most resources', 'SYSTEM', NOW(), NOW(),'#6633EE'),
-  ('member_role', 'Member', 'Basic member access', 'SYSTEM', NOW(), NOW(),'#EAB308')
+  ('owner_role', 'Owner', 'Full access to all resources', 'SYSTEM', NOW(), NOW()),
+  ('admin_role', 'Admin', 'Administrative access to most resources', 'SYSTEM', NOW(), NOW()),
+  ('member_role', 'Member', 'Basic member access', 'SYSTEM', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert permissions for owner role (has access to everything via wildcard)
