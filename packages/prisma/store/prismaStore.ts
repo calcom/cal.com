@@ -1,3 +1,4 @@
+// Prisma Store: Ensures a singleton Prisma client per tenant across all contexts to prevent connection leaks.
 import type { Prisma } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
@@ -13,18 +14,29 @@ import { Tenant, getDatabaseUrl, getTenantFromHost } from "./tenants";
 
 export type PrismaClientWithExtensions = ReturnType<typeof getPrismaClient>;
 
-type Store = { clients: Record<Tenant, PrismaClientWithExtensions>; currentTenant?: Tenant };
+type Store = { clients: Record<Tenant, PrismaClientWithExtensions | undefined>; currentTenant?: Tenant };
 
-// DRY & KISS: Utility to get the clients map, using globalThis in dev and test
-type ClientsMap = Partial<Record<Tenant, PrismaClientWithExtensions>>;
-function getClientsMap(): ClientsMap {
-  if (process.env.NODE_ENV === "production") {
-    return {};
+function createEmptyClients(): Record<Tenant, PrismaClientWithExtensions | undefined> {
+  return {
+    [Tenant.US]: undefined,
+    [Tenant.EU]: undefined,
+    [Tenant.INSIGHTS]: undefined,
+  };
+}
+
+// Singleton Store logic
+let singletonStore: Store | undefined;
+function getStore(): Store {
+  if (process.env.NODE_ENV !== "production") {
+    if (!(globalThis as any).__prismaStore) {
+      (globalThis as any).__prismaStore = { clients: createEmptyClients() };
+    }
+    return (globalThis as any).__prismaStore;
   }
-  if (!(globalThis as any).__prismaClients) {
-    (globalThis as any).__prismaClients = {};
+  if (!singletonStore) {
+    singletonStore = { clients: createEmptyClients() };
   }
-  return (globalThis as any).__prismaClients;
+  return singletonStore;
 }
 
 const als = new AsyncLocalStorage<Store>();
@@ -45,63 +57,48 @@ export const getPrismaClient = (options?: Prisma.PrismaClientOptions) => {
 
 export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () => Promise<T>) {
   if (process.env.NODE_ENV === "test") {
-    // In test environment, we'll execute the function directly
-    // but still ensure we're using a shared connection
     if (fn === undefined && typeof tenant === "function") {
       return (tenant as () => Promise<T>)();
     }
     return fn!();
   }
-
   if (fn === undefined && typeof tenant === "function") {
     fn = tenant as () => Promise<T>;
     tenant = undefined;
   }
+  const store = getStore();
   const existingStore = als.getStore();
   if (existingStore && existingStore.currentTenant === tenant) {
-    // Already in the right context, just run the function
     return fn!();
   }
   if (existingStore) {
-    // Update currentTenant in the existing context
     existingStore.currentTenant = tenant as Tenant | undefined;
     return fn!();
   }
-  // Otherwise, create a new context
-  return als.run({ clients: getClientsMap(), currentTenant: tenant as Tenant | undefined } as Store, fn!);
+  return als.run(store, fn!);
 }
 
 export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) {
   if (process.env.NODE_ENV === "test") {
     const url = getDatabaseUrl(tenant);
     const clientsMap = getClientsMap();
-
-    // Reuse existing client for this tenant in test environment
     if (!clientsMap[tenant]) {
       clientsMap[tenant] = getPrismaClient({
         ...options,
         ...(url ? { datasources: { db: { url } } } : {}),
       });
     }
-
     return clientsMap[tenant] as PrismaClientWithExtensions;
   }
-
-  const store = als.getStore();
-  if (!store)
-    throw new Error("Prisma Store not initialized. You must wrap your handler with runWithTenants.");
-
+  const store = getStore();
   if (!store.clients[tenant]) {
     const url = getDatabaseUrl(tenant);
-
     if (!url) throw new Error(`Missing DB URL for tenant: ${tenant}`);
-
     store.clients[tenant] = getPrismaClient({
       ...options,
       datasources: { db: { url } },
     });
   }
-
   return store.clients[tenant];
 }
 
@@ -117,16 +114,11 @@ export function getPrismaFromHost(host: string) {
  */
 export function getTenantAwarePrisma(options?: Prisma.PrismaClientOptions) {
   if (process.env.NODE_ENV === "test") {
-    // In test environment, we'll reuse the US tenant connection
     return getPrisma(Tenant.US, options);
   }
-
-  const store = als.getStore();
-  if (!store)
-    throw new Error("Prisma Store not initialized. You must wrap your handler with runWithTenants.");
+  const store = getStore();
   if (!store.currentTenant)
     throw new Error("Current tenant not set. You must specify a tenant when calling runWithTenants.");
-
   return getPrisma(store.currentTenant, options);
 }
 
@@ -136,27 +128,35 @@ export function getTenantAwarePrisma(options?: Prisma.PrismaClientOptions) {
  * @param tenant Optional tenant to cleanup connections for. If not provided, all connections will be cleaned up.
  */
 export async function cleanupPrismaConnections(tenant?: Tenant) {
-  // Clean up store connections
-  const store = als.getStore();
+  const store = getStore();
   if (store) {
     if (tenant && store.clients[tenant]) {
-      await store.clients[tenant].$disconnect();
-      delete store.clients[tenant];
+      await store.clients[tenant]?.$disconnect();
+      store.clients[tenant] = undefined;
     } else if (!tenant) {
-      await Promise.all(Object.values(store.clients).map((client) => client.$disconnect()));
-      store.clients = {} as Record<Tenant, PrismaClientWithExtensions>;
+      await Promise.all(Object.values(store.clients).map((client) => client?.$disconnect()));
+      store.clients = createEmptyClients();
     }
   }
-
-  // Clean up global clients map in test environment
   if (process.env.NODE_ENV !== "production") {
     const clientsMap = getClientsMap();
     if (tenant && clientsMap[tenant]) {
       await clientsMap[tenant]?.$disconnect();
-      delete clientsMap[tenant];
+      clientsMap[tenant] = undefined;
     } else if (!tenant) {
       await Promise.all(Object.values(clientsMap).map((client) => client?.$disconnect()));
       (globalThis as any).__prismaClients = {};
     }
   }
+}
+
+// Utility to get the clients map, using globalThis in dev and test
+function getClientsMap(): Partial<Record<Tenant, PrismaClientWithExtensions>> {
+  if (process.env.NODE_ENV === "production") {
+    return {};
+  }
+  if (!(globalThis as any).__prismaClients) {
+    (globalThis as any).__prismaClients = {};
+  }
+  return (globalThis as any).__prismaClients;
 }
