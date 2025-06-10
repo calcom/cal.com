@@ -681,7 +681,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
         }}
       />
       <Controller
-        name="bookerBookingLimit"
+        name="maxActiveBookingsPerBooker"
         render={({ field: { onChange, value } }) => {
           const isChecked = value && value > 0;
           return (
