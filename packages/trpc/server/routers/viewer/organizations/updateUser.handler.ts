@@ -55,7 +55,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
       userId,
       teamId: organizationId,
       permission: "organization.changeMemberRole",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
 
     if (!hasPermissionToChangeMemberRole) {
