@@ -668,10 +668,10 @@ async function handler(
           const attendeeEmailSet = new Set(booking.attendees.map((attendee) => attendee.email));
 
           // In this case, the first booking user is a fixed host, so the chosen non-fixed host is added as an attendee of the booking
-          const nonFixedAttendeeHosts = users.filter(
+          const nonFixedAttendeeHost = users.find(
             (user) => !user.isFixed && attendeeEmailSet.has(user.email)
           );
-          users = [...fixedHosts, ...nonFixedAttendeeHosts];
+          users = [...fixedHosts, ...(nonFixedAttendeeHost ? [nonFixedAttendeeHost] : [])];
         }
       }
     }
