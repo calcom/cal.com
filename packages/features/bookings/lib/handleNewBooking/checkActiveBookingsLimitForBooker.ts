@@ -32,7 +32,7 @@ export const checkActiveBookingsLimitForBooker = async ({
   });
 
   if (bookingsCount >= maxActiveBookingsPerBooker) {
-    throw new Error("Booker booking limit exceeded");
+    throw new Error("Booker maximum active booking limit exceeded");
   }
 
   return;
