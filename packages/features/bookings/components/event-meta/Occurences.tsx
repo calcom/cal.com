@@ -1,3 +1,4 @@
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -16,8 +17,11 @@ const validateCount = (value: number | string, max: number | null): boolean => {
   if (isNaN(value)) return false;
   return value >= 1 && (max === null || value <= max);
 };
-const getValidCount = (value: number | null, max: number): number => {
-  const num = !value || isNaN(value) ? Infinity : value;
+const getValidCount = (value: number | null, max: number, defaultValue: string | null): number => {
+  const parsedDefaultValue =
+    defaultValue != null && !isNaN(Number(defaultValue)) ? Number(defaultValue) : null;
+  const num = value && !isNaN(value) ? value : parsedDefaultValue ?? Infinity;
+
   return Math.max(1, Math.min(num, max));
 };
 
@@ -66,10 +70,12 @@ const RecurringDatesView = ({
 };
 
 const RecurrenceForm = ({
+  defaultCount,
   recurringEvent,
   recurringEventCount,
   setRecurringEventCount,
 }: {
+  defaultCount: string | null;
   recurringEvent: NonNullable<BookerEvent["recurringEvent"]>;
   recurringEventCount: number;
   setRecurringEventCount: (val: number | null) => void;
@@ -80,7 +86,7 @@ const RecurrenceForm = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
     const inputValue = parseInt(e.target.value, 10);
-    setRecurringEventCount(getValidCount(inputValue, maxOccurences));
+    setRecurringEventCount(getValidCount(inputValue, maxOccurences, defaultCount));
   };
   const [inputValue, setInputValue] = useState(recurringEventCount.toString());
 
@@ -115,14 +121,16 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
     s.recurringEventCount,
   ]);
   const bookerState = useBookerStore((s) => s.state);
+  const params = useSearchParams();
 
+  const defaultCount = params.get("occurenceCount");
   const recurringEvent = event.recurringEvent;
   const maxOccurences = recurringEvent?.count;
 
   useEffect(() => {
     if (!recurringEvent || !maxOccurences) return;
 
-    setRecurringEventCount(getValidCount(recurringEventCount, maxOccurences));
+    setRecurringEventCount(getValidCount(recurringEventCount, maxOccurences, defaultCount));
   }, [recurringEvent, recurringEventCount, maxOccurences, setRecurringEventCount]);
 
   if (
@@ -138,6 +146,7 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
 
   return (
     <RecurrenceForm
+      defaultCount={defaultCount}
       recurringEvent={recurringEvent}
       recurringEventCount={recurringEventCount}
       setRecurringEventCount={setRecurringEventCount}
