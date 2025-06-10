@@ -12,26 +12,30 @@ import type { IRoleRepository } from "../../domain/repositories/IRoleRepository"
 import type { PermissionString } from "../../domain/types/permission-registry";
 
 export class RoleRepository implements IRoleRepository {
+  private getRoleSelect() {
+    return [
+      "Role.id",
+      "Role.name",
+      "Role.description",
+      "Role.teamId",
+      "Role.type",
+      "Role.color",
+      "Role.createdAt",
+      "Role.updatedAt",
+      (eb) =>
+        jsonArrayFrom(
+          eb
+            .selectFrom("RolePermission")
+            .select(["id", "resource", "action"])
+            .whereRef("RolePermission.roleId", "=", "Role.id")
+        ).as("permissions"),
+    ] as const;
+  }
+
   async findByName(name: string, teamId?: number) {
     const role = await kysely
       .selectFrom("Role")
-      .select([
-        "Role.id",
-        "Role.name",
-        "Role.description",
-        "Role.teamId",
-        "Role.type",
-        "Role.color",
-        "Role.createdAt",
-        "Role.updatedAt",
-        (eb) =>
-          jsonArrayFrom(
-            eb
-              .selectFrom("RolePermission")
-              .select(["id", "resource", "action"])
-              .whereRef("RolePermission.roleId", "=", "Role.id")
-          ).as("permissions"),
-      ])
+      .select(this.getRoleSelect())
       .where("name", "=", name)
       .where((eb) => (teamId ? eb("teamId", "=", teamId) : eb("teamId", "is", null)))
       .executeTakeFirst();
@@ -42,23 +46,7 @@ export class RoleRepository implements IRoleRepository {
   async findById(id: string) {
     const role = await kysely
       .selectFrom("Role")
-      .select([
-        "Role.id",
-        "Role.name",
-        "Role.description",
-        "Role.teamId",
-        "Role.type",
-        "Role.color",
-        "Role.createdAt",
-        "Role.updatedAt",
-        (eb) =>
-          jsonArrayFrom(
-            eb
-              .selectFrom("RolePermission")
-              .select(["id", "resource", "action"])
-              .whereRef("RolePermission.roleId", "=", "Role.id")
-          ).as("permissions"),
-      ])
+      .select(this.getRoleSelect())
       .where("id", "=", id)
       .executeTakeFirst();
 
@@ -68,23 +56,7 @@ export class RoleRepository implements IRoleRepository {
   async findByTeamId(teamId: number) {
     const roles = await kysely
       .selectFrom("Role")
-      .select([
-        "Role.id",
-        "Role.name",
-        "Role.description",
-        "Role.teamId",
-        "Role.type",
-        "Role.color",
-        "Role.createdAt",
-        "Role.updatedAt",
-        (eb) =>
-          jsonArrayFrom(
-            eb
-              .selectFrom("RolePermission")
-              .select(["id", "resource", "action"])
-              .whereRef("RolePermission.roleId", "=", "Role.id")
-          ).as("permissions"),
-      ])
+      .select(this.getRoleSelect())
       .where((eb) => eb.or([eb("Role.teamId", "=", teamId), eb("Role.type", "=", RoleType.SYSTEM)]))
       .execute();
 
@@ -95,9 +67,8 @@ export class RoleRepository implements IRoleRepository {
     const roleId = uuidv4();
 
     return await kysely.transaction().execute(async (trx) => {
-      console.log("data", data);
       // Create role
-      const role = await trx
+      await trx
         .insertInto("Role")
         .values({
           id: roleId,
@@ -108,8 +79,7 @@ export class RoleRepository implements IRoleRepository {
           createdAt: new Date(),
           updatedAt: new Date(),
         })
-        .returning(["id", "name", "description", "teamId", "type", "createdAt", "updatedAt"])
-        .executeTakeFirstOrThrow();
+        .execute();
 
       // Create permissions
       const permissionData = data.permissions.map((permission) => {
@@ -122,15 +92,18 @@ export class RoleRepository implements IRoleRepository {
         };
       });
 
-      console.log("permissionData", permissionData);
-
       await trx.insertInto("RolePermission").values(permissionData).execute();
 
       // Fetch complete role with permissions
-      const completeRole = await this.findById(roleId);
+      const completeRole = await trx
+        .selectFrom("Role")
+        .select(this.getRoleSelect())
+        .where("id", "=", roleId)
+        .executeTakeFirst();
+
       if (!completeRole) throw new Error("Failed to create role");
 
-      return completeRole;
+      return RoleMapper.toDomain(completeRole);
     });
   }
 
@@ -160,10 +133,15 @@ export class RoleRepository implements IRoleRepository {
       await trx.insertInto("RolePermission").values(permissionData).execute();
 
       // Fetch updated role
-      const updatedRole = await this.findById(roleId);
+      const updatedRole = await trx
+        .selectFrom("Role")
+        .select(this.getRoleSelect())
+        .where("id", "=", roleId)
+        .executeTakeFirst();
+
       if (!updatedRole) throw new Error("Failed to update role permissions");
 
-      return updatedRole;
+      return RoleMapper.toDomain(updatedRole);
     });
   }
 
