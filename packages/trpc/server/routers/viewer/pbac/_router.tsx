@@ -29,6 +29,7 @@ const roleInputSchema = z.object({
   teamId: z.number(),
   name: z.string().min(1),
   description: z.string().optional(),
+  color: z.string().optional(),
   permissions: z.array(permissionStringSchema),
 });
 
@@ -112,7 +113,9 @@ export const permissionsRouter = router({
       z.object({
         teamId: z.number(),
         roleId: z.string(),
+        name: z.string().optional(),
         permissions: z.array(permissionStringSchema),
+        color: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

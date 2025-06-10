@@ -76,6 +76,7 @@ export class RoleRepository implements IRoleRepository {
           description: data.description || null,
           teamId: data.teamId || null,
           type: data.type || RoleType.CUSTOM,
+          color: data.color || null,
           createdAt: new Date(),
           updatedAt: new Date(),
         })
@@ -114,8 +115,32 @@ export class RoleRepository implements IRoleRepository {
     });
   }
 
-  async updatePermissions(roleId: string, permissions: PermissionString[]) {
+  async updatePermissions(
+    roleId: string,
+    permissions: PermissionString[],
+    updates?: {
+      color?: string;
+      name?: string;
+    }
+  ) {
     return await kysely.transaction().execute(async (trx) => {
+      // Update role metadata if provided
+      if (updates) {
+        const updateData: Record<string, any> = { updatedAt: new Date() };
+
+        if (updates.color !== undefined) {
+          updateData.color = updates.color || null;
+        }
+        if (updates.name !== undefined) {
+          updateData.name = updates.name;
+        }
+        if (updates.description !== undefined) {
+          updateData.description = updates.description || null;
+        }
+
+        await trx.updateTable("Role").set(updateData).where("id", "=", roleId).execute();
+      }
+
       // Delete existing permissions
       await trx.deleteFrom("RolePermission").where("roleId", "=", roleId).execute();
 

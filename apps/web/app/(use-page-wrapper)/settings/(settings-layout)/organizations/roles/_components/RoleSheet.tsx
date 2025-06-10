@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -59,16 +59,45 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
   const isEditing = Boolean(role);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  const defaultValues = useMemo(
+    () => ({
       name: role?.name || "",
       description: role?.description || "",
       color: role?.color || "#FF5733",
       isAdvancedMode: false,
-      permissions: role?.permissions.map((p) => `${p.resource}.${p.action}`) || [],
-    },
+      permissions: role?.permissions?.map((p) => `${p.resource}.${p.action}`) || [],
+    }),
+    [role]
+  ); // Memoize default values based on role
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues,
   });
+
+  // Update form values when role changes
+  useEffect(() => {
+    // Only reset if the sheet is open to prevent unnecessary resets
+    if (open) {
+      if (role) {
+        form.reset({
+          name: role.name,
+          description: role.description || "",
+          color: role.color || "#FF5733",
+          isAdvancedMode: form.getValues("isAdvancedMode"), // Preserve the current mode
+          permissions: role.permissions.map((p) => `${p.resource}.${p.action}`),
+        });
+      } else {
+        form.reset({
+          name: "",
+          description: "",
+          color: "#FF5733",
+          isAdvancedMode: false,
+          permissions: [],
+        });
+      }
+    }
+  }, [role, form, open]);
 
   const { isAdvancedMode, permissions, color } = form.watch();
 
@@ -114,13 +143,16 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
       updateMutation.mutate({
         teamId,
         roleId: role.id,
+        name: values.name,
         permissions: values.permissions as any,
+        color: values.color,
       });
     } else {
       createMutation.mutate({
         teamId,
         name: values.name,
         description: values.description,
+        color: values.color,
         permissions: values.permissions as any,
       });
     }
