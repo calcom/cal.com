@@ -20,7 +20,7 @@ const validateCount = (value: number | string, max: number | null): boolean => {
 const getValidCount = (value: number | null, max: number, defaultValue: string | null): number => {
   const parsedDefaultValue =
     defaultValue != null && !isNaN(Number(defaultValue)) ? Number(defaultValue) : null;
-  const num = value && !isNaN(value) ? value : parsedDefaultValue ?? Infinity;
+  const num = value && !isNaN(value) ? value : parsedDefaultValue ?? 1;
 
   return Math.max(1, Math.min(num, max));
 };
