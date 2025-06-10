@@ -21,6 +21,10 @@ const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),
 });
 
+function hasApiV2RouteInEnv() {
+  return Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
+}
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, params, query } = context;
   const session = await getServerSession({ req });
@@ -67,7 +71,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
     booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-    if (booking?.status === BookingStatus.CANCELLED && !allowRescheduleForCancelledBooking) {
+    if (
+      booking?.status === BookingStatus.CANCELLED &&
+      !allowRescheduleForCancelledBooking &&
+      !eventData.allowReschedulingCancelledBookings
+    ) {
       return {
         redirect: {
           permanent: false,
@@ -115,7 +123,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
   const featureRepo = new FeaturesRepository();
-  const useApiV2 = await featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots");
+  const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots");
+  const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
 
   return {
     props: {
@@ -207,6 +216,7 @@ const getTeamWithEventsData = async (
           hidden: true,
           disableCancelling: true,
           disableRescheduling: true,
+          allowReschedulingCancelledBookings: true,
           interfaceLanguage: true,
           hosts: {
             take: 3,

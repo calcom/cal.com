@@ -17933,13 +17933,17 @@
             "type": "string",
             "example": "John Doe"
           },
+          "username": {
+            "type": "string",
+            "example": "john-doe"
+          },
           "avatarUrl": {
             "type": "string",
             "nullable": true,
             "example": "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png"
           }
         },
-        "required": ["userId", "name"]
+        "required": ["userId", "name", "username"]
       },
       "EventTypeTeam": {
         "type": "object",
