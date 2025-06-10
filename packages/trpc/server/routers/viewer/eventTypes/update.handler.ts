@@ -64,7 +64,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     locations,
     bookingLimits,
     durationLimits,
-    bookerBookingLimit,
+    maxActiveBookingsPerBooker,
     destinationCalendar,
     customInputs,
     recurringEvent,
@@ -254,11 +254,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.bookingLimits = bookingLimits;
   }
 
-  if (bookerBookingLimit !== undefined) {
-    if (bookerBookingLimit !== null && bookerBookingLimit < 1) {
+  if (maxActiveBookingsPerBooker !== undefined) {
+    if (maxActiveBookingsPerBooker !== null && maxActiveBookingsPerBooker < 1) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booker booking limit must be greater than 0." });
     }
-    data.bookerBookingLimit = bookerBookingLimit;
+    data.maxActiveBookingsPerBooker = maxActiveBookingsPerBooker;
   }
 
   if (durationLimits) {

@@ -104,7 +104,7 @@ const commons = {
   requiresConfirmationForFreeEmail: false,
   requiresBookerEmailVerification: false,
   bookingLimits: null,
-  bookerBookingLimit: null,
+  maxActiveBookingsPerBooker: null,
   durationLimits: null,
   hidden: false,
   userId: 0,
