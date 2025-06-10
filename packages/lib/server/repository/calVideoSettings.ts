@@ -15,7 +15,8 @@ export class CalVideoSettingsRepository {
     calVideoSettings: {
       disableRecordingForGuests?: boolean | null;
       disableRecordingForOrganizer?: boolean | null;
-      enableAutomaticTranscription?: boolean | null;
+      disableTranscriptionForGuests?: boolean | null;
+      disableTranscriptionForOrganizer?: boolean | null;
       redirectUrlOnExit?: string | null;
     };
   }) {
@@ -25,6 +26,8 @@ export class CalVideoSettingsRepository {
         disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
         disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
         enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+        disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+        disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
         updatedAt: new Date(),
       },
@@ -32,6 +35,8 @@ export class CalVideoSettingsRepository {
         disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
         disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
         enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+        disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+        disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
         eventTypeId,
       },
