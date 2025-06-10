@@ -10,6 +10,8 @@ import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { DropdownItem } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { revalidateTeamRoles } from "../actions";
+
 interface DeleteRoleModalProps {
   roleId: string;
   roleName: string;
@@ -23,9 +25,10 @@ export function DeleteRoleModal({ roleId, roleName, teamId, onDeleted }: DeleteR
   const router = useRouter();
 
   const deleteMutation = trpc.viewer.pbac.deleteRole.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       showToast(t("role_deleted_successfully"), "success");
       setIsModalOpen(false);
+      await revalidateTeamRoles();
       router.refresh();
       onDeleted?.();
     },
