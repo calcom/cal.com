@@ -66,7 +66,7 @@ export class RoleRepository implements IRoleRepository {
   async create(data: CreateRoleData) {
     const roleId = uuidv4();
 
-    return await kysely.transaction().execute(async (trx) => {
+    await kysely.transaction().execute(async (trx) => {
       // Create role
       await trx
         .insertInto("Role")
@@ -95,17 +95,16 @@ export class RoleRepository implements IRoleRepository {
 
       await trx.insertInto("RolePermission").values(permissionData).execute();
 
-      // Fetch complete role with permissions
-      const completeRole = await trx
-        .selectFrom("Role")
-        .select(this.getRoleSelect())
-        .where("id", "=", roleId)
-        .executeTakeFirst();
-
-      if (!completeRole) throw new Error("Failed to create role");
-
-      return RoleMapper.toDomain(completeRole);
+      return roleId;
     });
+
+    // Fetch complete role with permissions
+    const completeRole = await this.findById(roleId);
+
+    // This should never happen
+    if (!completeRole) throw new Error("Failed to create role");
+
+    return RoleMapper.toDomain(completeRole);
   }
 
   async delete(id: string) {
@@ -123,7 +122,7 @@ export class RoleRepository implements IRoleRepository {
       name?: string;
     }
   ) {
-    return await kysely.transaction().execute(async (trx) => {
+    await kysely.transaction().execute(async (trx) => {
       // Update role metadata if provided
       if (updates) {
         const updateData: Record<string, any> = { updatedAt: new Date() };
@@ -157,17 +156,19 @@ export class RoleRepository implements IRoleRepository {
 
       await trx.insertInto("RolePermission").values(permissionData).execute();
 
-      // Fetch updated role
-      const updatedRole = await trx
-        .selectFrom("Role")
-        .select(this.getRoleSelect())
-        .where("id", "=", roleId)
-        .executeTakeFirst();
-
-      if (!updatedRole) throw new Error("Failed to update role permissions");
-
-      return RoleMapper.toDomain(updatedRole);
+      return roleId;
     });
+
+    // Fetch updated role
+    const updatedRole = await trx
+      .selectFrom("Role")
+      .select(this.getRoleSelect())
+      .where("id", "=", roleId)
+      .executeTakeFirst();
+
+    if (!updatedRole) throw new Error("Failed to update role permissions");
+
+    return RoleMapper.toDomain(updatedRole);
   }
 
   async transaction<T>(
