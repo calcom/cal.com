@@ -24,7 +24,7 @@ export function getDatabaseUrl(tenant: Tenant) {
   return url;
 }
 
-export const getTenantFromHost = (host: string) => {
+export const getTenantFromHost = (host: string): Tenant => {
   for (const [tenant, domainList] of Object.entries(TENANT_ENV_MAP)) {
     const domains = domainList
       .split(",")

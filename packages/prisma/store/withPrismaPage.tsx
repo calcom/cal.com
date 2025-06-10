@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 
 import type { PrismaClient as ExtendedPrismaClient } from "@calcom/prisma";
 
-import { getPrismaFromHost, runWithTenants } from "./prismaStore";
+import { getPrisma, runWithTenants } from "./prismaStore";
+import { getTenantFromHost } from "./tenants";
 
 interface WithPrismaPageInjectedProps {
   prisma: ExtendedPrismaClient;
@@ -22,9 +23,9 @@ export function withPrismaPage<P>(
       // or redirect, depending on how you want to handle missing host.
       throw new Error("Host header is missing");
     }
-
-    return runWithTenants(async () => {
-      const prisma = getPrismaFromHost(host);
+    const tenant = getTenantFromHost(host);
+    return runWithTenants(tenant, async () => {
+      const prisma = getPrisma(tenant);
       // Pass the props to the component and await the result
       const componentProps = { ...props, prisma, host };
       return await Promise.resolve(WrappedPageComponent(componentProps));

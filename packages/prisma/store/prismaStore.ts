@@ -10,7 +10,7 @@ import { excludeLockedUsersExtension } from "../extensions/exclude-locked-users"
 import { excludePendingPaymentsExtension } from "../extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "../extensions/usage-tracking";
 import { bookingReferenceMiddleware } from "../middleware";
-import { Tenant, getDatabaseUrl, getTenantFromHost } from "./tenants";
+import { Tenant, getDatabaseUrl } from "./tenants";
 
 export type PrismaClientWithExtensions = ReturnType<typeof getPrismaClient>;
 
@@ -34,7 +34,9 @@ function getStore(): Store {
     return (globalThis as any).__prismaStore;
   }
   if (!singletonStore) {
-    singletonStore = { clients: createEmptyClients() };
+    singletonStore = {
+      clients: createEmptyClients(),
+    };
   }
   return singletonStore;
 }
@@ -75,7 +77,14 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
     existingStore.currentTenant = tenant as Tenant | undefined;
     return fn!();
   }
-  return als.run(store, fn!);
+  return als.run(store, () => {
+    const store = als.getStore();
+    if (!store) {
+      throw new Error("AsyncLocalStorage store is not initialized");
+    }
+    store.currentTenant = tenant as Tenant | undefined;
+    return fn!();
+  });
 }
 
 export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) {
@@ -100,11 +109,6 @@ export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) 
     });
   }
   return store.clients[tenant];
-}
-
-export function getPrismaFromHost(host: string) {
-  const tenant = getTenantFromHost(host);
-  return getPrisma(tenant);
 }
 
 /**

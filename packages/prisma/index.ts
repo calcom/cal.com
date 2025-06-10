@@ -36,6 +36,7 @@ export const prisma =
             const tenantPrisma = getTenantAwarePrisma(prismaOptions);
             return Reflect.get(tenantPrisma, prop);
           } catch (error) {
+            console.error(error);
             throw new Error(
               "Prisma was called outside of runWithTenants. Please wrap your code with runWithTenants or use a tenant-aware approach."
             );

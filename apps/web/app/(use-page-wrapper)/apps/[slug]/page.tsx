@@ -4,7 +4,6 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { runWithTenants } from "@calcom/prisma/store/prismaStore";
 import { getTenantFromHost } from "@calcom/prisma/store/tenants";
 
 import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
@@ -26,10 +25,7 @@ export const generateMetadata = async ({ params }: _PageProps) => {
   const host = headersList.get("host") ?? "";
   const tenant = getTenantFromHost(host);
 
-  const props = await runWithTenants(tenant, async () => {
-    return await getStaticProps(p.data.slug);
-  });
-
+  const props = await getStaticProps(p.data.slug);
   if (!props) {
     notFound();
   }
@@ -52,14 +48,7 @@ async function Page({ params }: _PageProps) {
     return notFound();
   }
 
-  const headersList = await headers();
-  const host = headersList.get("host") ?? "";
-  const tenant = getTenantFromHost(host);
-
-  const props = await runWithTenants(tenant, async () => {
-    return await getStaticProps(p.data.slug);
-  });
-
+  const props = await getStaticProps(p.data.slug);
   if (!props) {
     notFound();
   }

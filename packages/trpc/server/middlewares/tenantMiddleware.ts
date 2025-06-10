@@ -1,4 +1,4 @@
-import { getPrismaFromHost, runWithTenants } from "@calcom/prisma/store/prismaStore";
+import { getPrisma, runWithTenants } from "@calcom/prisma/store/prismaStore";
 import { getTenantFromHost } from "@calcom/prisma/store/tenants";
 
 import { middleware } from "../trpc";
@@ -13,7 +13,7 @@ const prismaMiddleware = middleware(async ({ ctx, next }) => {
   const host = ctx.req.headers.host || "";
   const tenant = getTenantFromHost(host);
   return runWithTenants(tenant, async () => {
-    const prisma = getPrismaFromHost(host);
+    const prisma = getPrisma(tenant);
     return next({
       ctx: {
         ...ctx,
