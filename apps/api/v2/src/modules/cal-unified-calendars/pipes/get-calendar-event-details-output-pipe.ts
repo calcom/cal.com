@@ -40,6 +40,7 @@ export interface GoogleCalendarEventResponse {
     organizer?: boolean;
     self?: boolean;
     responseStatus?: string;
+    optional?: boolean;
   }>;
   hangoutLink?: string;
   conferenceData?: {
@@ -82,29 +83,32 @@ export class GoogleCalendarEventOutputPipe
     const calendarEvent = new UnifiedCalendarEventOutput();
 
     calendarEvent.id = googleEvent.id;
-    calendarEvent.summary = googleEvent.summary;
+    calendarEvent.title = googleEvent.summary;
     calendarEvent.description = googleEvent.description || null;
     calendarEvent.location = googleEvent.location || null;
 
     calendarEvent.start = this.transformDateTimeWithZone(googleEvent.start);
     calendarEvent.end = this.transformDateTimeWithZone(googleEvent.end);
 
-    calendarEvent.meetingUrl = googleEvent.hangoutLink || null;
-
-    if (googleEvent.conferenceData) {
-      calendarEvent.conferenceData = googleEvent.conferenceData;
+    if (googleEvent?.conferenceData?.entryPoints) {
+      calendarEvent.locations = googleEvent.conferenceData.entryPoints;
+    } else if (googleEvent.hangoutLink) {
+      calendarEvent.locations = [{ entryPointType: "video", uri: googleEvent.hangoutLink }];
     }
 
     if (googleEvent.attendees && googleEvent.attendees.length > 0) {
-      calendarEvent.attendees = googleEvent.attendees.map((attendee) => {
-        return {
-          email: attendee.email,
-          name: attendee.displayName,
-          responseStatus: attendee.responseStatus,
-          organizer: attendee.organizer,
-          self: attendee.self,
-        };
-      });
+      calendarEvent.attendees = googleEvent.attendees
+        .filter((attendee) => !attendee.organizer)
+        .map((attendee) => {
+          return {
+            email: attendee.email,
+            name: attendee.displayName,
+            responseStatus: attendee.responseStatus,
+            organizer: attendee.organizer,
+            self: attendee.self,
+            optional: attendee.optional,
+          };
+        });
     }
 
     calendarEvent.status = googleEvent.status || null;
@@ -114,6 +118,15 @@ export class GoogleCalendarEventOutputPipe
         email: googleEvent.organizer.email,
         name: googleEvent.organizer.displayName,
       };
+    } else if (googleEvent.attendees) {
+      // If no explicit organizer, find the first attendee with organizer flag
+      const organizerAttendee = googleEvent.attendees.find((attendee) => attendee.organizer);
+      if (organizerAttendee) {
+        calendarEvent.organizer = {
+          email: organizerAttendee.email,
+          name: organizerAttendee.displayName,
+        };
+      }
     }
 
     calendarEvent.source = "google";

@@ -35,7 +35,7 @@ export class CalUnifiedCalendarsController {
     description: "The Google Calendar event ID",
     type: String,
   })
-  @Get("/:calendar/event-details/:eventUid")
+  @Get("/:calendar/event/:eventUid")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)

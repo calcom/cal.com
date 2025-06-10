@@ -47,9 +47,9 @@ export class UnifiedCalendarEventOutput {
   @IsString()
   @ApiProperty({
     type: String,
-    description: "Title or summary of the calendar event",
+    description: "Title of the calendar event",
   })
-  summary!: string;
+  title!: string;
 
   @IsString()
   @IsOptional()
@@ -69,22 +69,29 @@ export class UnifiedCalendarEventOutput {
   })
   location?: string | null;
 
-  @IsString()
   @IsOptional()
   @ApiPropertyOptional({
-    type: String,
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        entryPointType: { type: "string" },
+        uri: { type: "string" },
+        label: { type: "string" },
+        pin: { type: "string", nullable: true },
+        regionCode: { type: "string", nullable: true },
+      },
+    },
     nullable: true,
-    description: "URL to access the video conference",
+    description: "Conference locations with entry points (video, phone, etc.)",
   })
-  meetingUrl?: string | null;
-
-  @IsOptional()
-  @ApiPropertyOptional({
-    type: "object",
-    nullable: true,
-    description: "Conference data including entry points (video, phone, etc.)",
-  })
-  conferenceData?: Record<string, any>;
+  locations?: Array<{
+    entryPointType: string;
+    uri: string;
+    label?: string;
+    pin?: string;
+    regionCode?: string;
+  }> | null;
 
   @IsOptional()
   @ApiPropertyOptional({
@@ -94,9 +101,10 @@ export class UnifiedCalendarEventOutput {
       properties: {
         email: { type: "string" },
         name: { type: "string" },
-        responseStatus: { type: "string" },
-        organizer: { type: "boolean" },
-        self: { type: "boolean" },
+        responseStatus: { type: "string", nullable: true },
+        organizer: { type: "boolean", nullable: true },
+        self: { type: "boolean", nullable: true },
+        optional: { type: "boolean", nullable: true },
       },
     },
     nullable: true,
@@ -123,7 +131,7 @@ export class UnifiedCalendarEventOutput {
   @ApiPropertyOptional({
     type: "object",
     nullable: true,
-    description: "Information about the event organizer",
+    description: "Information about the event organizer/host",
   })
   organizer?: {
     email: string;
