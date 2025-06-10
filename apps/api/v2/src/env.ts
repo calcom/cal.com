@@ -32,6 +32,7 @@ export type Environment = {
   AXIOM_TOKEN: string;
   STRIPE_TEAM_MONTHLY_PRICE_ID: string;
   IS_TEAM_BILLING_ENABLED: boolean;
+  // Used to enable/disable the rewrite of /api/v2 to /v2, active by default.
   REWRITE_API_V2_PREFIX: string;
 };
 
