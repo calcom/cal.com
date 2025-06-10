@@ -1,7 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-import { prisma } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";

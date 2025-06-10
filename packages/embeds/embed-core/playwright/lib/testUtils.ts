@@ -1,7 +1,7 @@
 import type { Page, Frame } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 
 export const deleteAllBookingsByEmail = async (email: string) =>
   await prisma.booking.deleteMany({
