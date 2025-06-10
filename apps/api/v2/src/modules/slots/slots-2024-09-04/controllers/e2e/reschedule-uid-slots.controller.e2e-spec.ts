@@ -35,6 +35,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
 
     const userEmail = `slots-reschedule-uid-${randomString()}@example.com`;
+    const bookedStartTime = "2050-09-05T11:00:00.000Z";
     let user: User;
     let eventTypeId: number;
     let eventTypeSlug: string;
@@ -88,7 +89,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
       eventTypeSlug = event.slug;
 
       // Create an existing booking that will be used for reschedule testing
-      const bookedStartTime = "2050-09-05T11:00:00.000Z";
       existingBooking = await bookingsRepositoryFixture.create({
         uid: `reschedule-booking-uid-${randomString()}`,
         title: "existing booking for reschedule",
@@ -118,11 +118,11 @@ describe("Slots 2024-09-04 Endpoints", () => {
       await app.init();
     });
 
-    describe("rescheduleUid parameter validation", () => {
-      it("should accept rescheduleUid as optional string parameter", async () => {
+    describe("bookingUidToReschedule parameter validation", () => {
+      it("should accept bookingUidToReschedule as optional string parameter", async () => {
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&rescheduleUid=${existingBooking.uid}`
+            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=${existingBooking.uid}`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
@@ -132,21 +132,23 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(responseBody.data).toBeDefined();
       });
 
-      it("should accept numeric rescheduleUid parameter and convert to string", async () => {
+      it("should accept numeric bookingUidToReschedule parameter and convert to string", async () => {
         const response = await request(app.getHttpServer())
-          .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&rescheduleUid=12345`)
+          .get(
+            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=12345`
+          )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
 
-        // Note: The API accepts numeric rescheduleUid and converts it to string
+        // Note: The API accepts numeric bookingUidToReschedule and converts it to string
         // This is expected behavior for query parameters
         const responseBody: GetSlotsOutput_2024_09_04 = response.body;
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
       });
 
-      it("should handle empty rescheduleUid parameter gracefully", async () => {
+      it("should handle empty bookingUidToReschedule parameter gracefully", async () => {
         const response = await request(app.getHttpServer())
-          .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&rescheduleUid=`)
+          .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
 
@@ -155,8 +157,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
     });
 
-    describe("rescheduleUid slot availability behavior", () => {
-      it("should exclude booked slot when rescheduleUid is not provided", async () => {
+    describe("bookingUidToReschedule slot availability behavior", () => {
+      it("should exclude booked slot when bookingUidToReschedule is not provided", async () => {
         const response = await request(app.getHttpServer())
           .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
@@ -171,22 +173,21 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(days.length).toEqual(5);
 
         // Check that the booked slot time is NOT available
-        const bookedSlotTime = "2050-09-05T11:00:00.000Z";
         const slotsForBookedDay = slots["2050-09-05"];
         expect(slotsForBookedDay).toBeDefined();
 
         // Verify the booked slot is excluded
-        const bookedSlotExists = slotsForBookedDay.some((slot: any) => slot.start === bookedSlotTime);
+        const bookedSlotExists = slotsForBookedDay.some((slot: any) => slot.start === bookedStartTime);
         expect(bookedSlotExists).toBe(false);
 
         // Verify we still have slots for that day (just not the booked one)
         expect(slotsForBookedDay.length).toBeGreaterThan(0);
       });
 
-      it("should include booked slot when matching rescheduleUid is provided", async () => {
+      it("should include booked slot when matching bookingUidToReschedule is provided", async () => {
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&rescheduleUid=${existingBooking.uid}`
+            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=${existingBooking.uid}`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
@@ -200,20 +201,19 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(days.length).toEqual(5);
 
         // Check that the booked slot time IS available when rescheduling
-        const bookedSlotTime = "2050-09-05T11:00:00.000Z";
         const slotsForBookedDay = slots["2050-09-05"];
         expect(slotsForBookedDay).toBeDefined();
 
-        // Verify the booked slot is now included due to rescheduleUid
-        const bookedSlotExists = slotsForBookedDay.some((slot: any) => slot.start === bookedSlotTime);
+        // Verify the booked slot is now included due to bookingUidToReschedule
+        const bookedSlotExists = slotsForBookedDay.some((slot: any) => slot.start === bookedStartTime);
         expect(bookedSlotExists).toBe(true);
       });
 
-      it("should work with non-existent rescheduleUid without errors", async () => {
+      it("should work with non-existent bookingUidToReschedule without errors", async () => {
         const nonExistentUid = `non-existent-${randomString()}`;
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&rescheduleUid=${nonExistentUid}`
+            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=${nonExistentUid}`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
@@ -224,22 +224,21 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
         expect(slots).toBeDefined();
 
-        // Should behave like normal slots query when rescheduleUid doesn't match any booking
-        const bookedSlotTime = "2050-09-05T11:00:00.000Z";
+        // Should behave like normal slots query when bookingUidToReschedule doesn't match any booking
         const slotsForBookedDay = slots["2050-09-05"];
         expect(slotsForBookedDay).toBeDefined();
 
-        // Verify the booked slot is excluded (same as without rescheduleUid)
-        const bookedSlotExists = slotsForBookedDay.some((slot: any) => slot.start === bookedSlotTime);
+        // Verify the booked slot is excluded (same as without bookingUidToReschedule)
+        const bookedSlotExists = slotsForBookedDay.some((slot: any) => slot.start === bookedStartTime);
         expect(bookedSlotExists).toBe(false);
       });
     });
 
-    describe("rescheduleUid with different query types", () => {
-      it("should work with rescheduleUid using event type slug query", async () => {
+    describe("bookingUidToReschedule with different query types", () => {
+      it("should work with bookingUidToReschedule using event type slug query", async () => {
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&rescheduleUid=${existingBooking.uid}`
+            `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=${existingBooking.uid}`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
@@ -252,10 +251,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(slots).toEqual(expectedSlotsUTC);
       });
 
-      it("should work with rescheduleUid in range format", async () => {
+      it("should work with bookingUidToReschedule in range format", async () => {
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&format=range&rescheduleUid=${existingBooking.uid}`
+            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&format=range&bookingUidToReschedule=${existingBooking.uid}`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
@@ -275,10 +274,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
         }
       });
 
-      it("should work with rescheduleUid and timezone parameter", async () => {
+      it("should work with bookingUidToReschedule and timezone parameter", async () => {
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome&rescheduleUid=${existingBooking.uid}`
+            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome&bookingUidToReschedule=${existingBooking.uid}`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
@@ -291,7 +290,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         const days = Object.keys(slots);
         expect(days.length).toEqual(5);
 
-        // Verify timezone conversion works with rescheduleUid
+        // Verify timezone conversion works with bookingUidToReschedule
         const daySlots = slots["2050-09-05"];
         if (daySlots && daySlots.length > 0) {
           // Should contain timezone info (+02:00 for Europe/Rome)
@@ -305,12 +304,12 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
     });
 
-    describe("rescheduleUid edge cases", () => {
-      it("should handle rescheduleUid with special characters", async () => {
+    describe("bookingUidToReschedule edge cases", () => {
+      it("should handle bookingUidToReschedule with special characters", async () => {
         const specialUid = `special-uid-${randomString()}-with-dashes`;
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&rescheduleUid=${specialUid}`
+            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=${specialUid}`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
@@ -319,11 +318,11 @@ describe("Slots 2024-09-04 Endpoints", () => {
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
       });
 
-      it("should handle very long rescheduleUid", async () => {
+      it("should handle very long bookingUidToReschedule", async () => {
         const longUid = `very-long-uid-${randomString()}-${"x".repeat(100)}`;
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&rescheduleUid=${longUid}`
+            `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&bookingUidToReschedule=${longUid}`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
