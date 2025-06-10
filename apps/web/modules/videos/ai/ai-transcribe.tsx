@@ -70,7 +70,13 @@ export interface DailyCustomTrayButton {
   tooltip: string;
   visualState?: DailyCustomTrayButtonVisualState;
 }
-export const CalAiTranscribe = ({ showRecordingButton }: { showRecordingButton: boolean }) => {
+export const CalAiTranscribe = ({
+  showRecordingButton,
+  showTranscriptionButton,
+}: {
+  showRecordingButton: boolean;
+  showTranscriptionButton: boolean;
+}) => {
   const daily = useDaily();
   const { t } = useLocale();
 
@@ -95,7 +101,11 @@ export const CalAiTranscribe = ({ showRecordingButton }: { showRecordingButton: 
             recording,
           }
         : {}),
-      transcription,
+      ...(showTranscriptionButton
+        ? {
+            transcription,
+          }
+        : {}),
     });
   };
 

@@ -691,6 +691,8 @@ export class EventTypeRepository {
         select: {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
         },
       },

@@ -22,6 +22,8 @@ const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true }
 type CalVideoSettings = {
   disableRecordingForGuests: boolean;
   disableRecordingForOrganizer: boolean;
+  disableTranscriptionForGuests: boolean;
+  disableTranscriptionForOrganizer: boolean;
 };
 
 const shouldEnableRecordButton = ({
@@ -41,6 +43,25 @@ const shouldEnableRecordButton = ({
   }
 
   return !calVideoSettings.disableRecordingForGuests;
+};
+
+const shouldEnableTranscriptionButton = ({
+  hasTeamPlan,
+  calVideoSettings,
+  isOrganizer,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+  isOrganizer: boolean;
+}) => {
+  if (!hasTeamPlan) return false;
+  if (!calVideoSettings) return true;
+
+  if (isOrganizer) {
+    return !calVideoSettings.disableTranscriptionForOrganizer;
+  }
+
+  return !calVideoSettings.disableTranscriptionForGuests;
 };
 
 const checkIfUserIsHost = async ({
@@ -204,6 +225,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     isOrganizer: sessionUserId === bookingObj.user?.id,
   });
 
+  const showTranscriptionButton = shouldEnableTranscriptionButton({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+    isOrganizer: sessionUserId === bookingObj.user?.id,
+  });
+
   return {
     props: {
       meetingUrl: videoReference.meetingUrl ?? "",
@@ -225,6 +252,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       displayLogInOverlay,
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
       showRecordingButton,
+      showTranscriptionButton,
       rediectAttendeeToOnExit: isOrganizer
         ? undefined
         : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
