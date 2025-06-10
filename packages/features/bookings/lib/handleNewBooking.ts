@@ -88,7 +88,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
-import { checkBookerBookingLimit } from "./handleNewBooking/checkBookerBookingLimit";
+import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -451,9 +451,9 @@ async function handler(
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
-  await checkBookerBookingLimit({
+  await checkActiveBookingsLimitForBooker({
     eventTypeId,
-    bookerBookingLimit: eventType.bookerBookingLimit,
+    maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
     bookerEmail,
   });
 

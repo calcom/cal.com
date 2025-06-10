@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "EventType" ADD COLUMN     "bookerBookingLimit" INTEGER;
+ALTER TABLE "EventType" ADD COLUMN     "maxActiveBookingsPerBooker" INTEGER;

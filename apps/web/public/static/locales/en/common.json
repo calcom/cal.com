@@ -1697,7 +1697,7 @@
   "limit_total_booking_duration": "Limit total booking duration",
   "limit_total_booking_duration_description": "Limit total amount of time that this event can be booked",
   "booker_booking_limit": "Booker booking limit",
-  "booker_booking_limit_description": "Limit the number of bookings a booker can make for this event type",
+  "booker_booking_limit_description": "Limit the number of active bookings a booker can make for this event type",
   "add_limit": "Add Limit",
   "team_name_required": "Team name required",
   "show_attendees": "Share attendee information between guests",

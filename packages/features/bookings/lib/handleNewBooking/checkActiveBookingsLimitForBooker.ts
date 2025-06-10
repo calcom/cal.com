@@ -1,16 +1,16 @@
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-export const checkBookerBookingLimit = async ({
+export const checkActiveBookingsLimitForBooker = async ({
   eventTypeId,
-  bookerBookingLimit,
+  maxActiveBookingsPerBooker,
   bookerEmail,
 }: {
   eventTypeId: number;
-  bookerBookingLimit: number | null;
+  maxActiveBookingsPerBooker: number | null;
   bookerEmail: string;
 }) => {
-  if (!bookerBookingLimit) {
+  if (!maxActiveBookingsPerBooker) {
     return;
   }
 
@@ -31,7 +31,7 @@ export const checkBookerBookingLimit = async ({
     },
   });
 
-  if (bookingsCount >= bookerBookingLimit) {
+  if (bookingsCount >= maxActiveBookingsPerBooker) {
     throw new Error("Booker booking limit exceeded");
   }
 
