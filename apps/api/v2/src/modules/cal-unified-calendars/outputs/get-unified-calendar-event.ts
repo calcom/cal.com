@@ -60,15 +60,6 @@ export class UnifiedCalendarEventOutput {
   })
   description?: string | null;
 
-  @IsString()
-  @IsOptional()
-  @ApiPropertyOptional({
-    type: String,
-    nullable: true,
-    description: "Location of the calendar event",
-  })
-  location?: string | null;
-
   @IsOptional()
   @ApiPropertyOptional({
     type: "array",

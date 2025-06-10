@@ -85,7 +85,6 @@ export class GoogleCalendarEventOutputPipe
     calendarEvent.id = googleEvent.id;
     calendarEvent.title = googleEvent.summary;
     calendarEvent.description = googleEvent.description || null;
-    calendarEvent.location = googleEvent.location || null;
 
     calendarEvent.start = this.transformDateTimeWithZone(googleEvent.start);
     calendarEvent.end = this.transformDateTimeWithZone(googleEvent.end);
