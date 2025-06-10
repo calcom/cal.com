@@ -526,6 +526,7 @@ export class EventTypeRepository {
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
+      bookerBookingLimit: true,
       assignAllTeamMembers: true,
       allowReschedulingPastBookings: true,
       hideOrganizerEmail: true,
