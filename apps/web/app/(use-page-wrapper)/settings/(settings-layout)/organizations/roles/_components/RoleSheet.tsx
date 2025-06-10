@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@calc
 import { showToast } from "@calcom/ui/components/toast";
 import { Form, TextField, Checkbox, Label } from "@calcom/ui/form";
 
+import { revalidateTeamRoles } from "../actions";
 import { AdvancedPermissionGroup } from "./AdvancedPermissionGroup";
 import RoleColorPicker from "./RoleColorPicker";
 import { SimplePermissionItem } from "./SimplePermissionItem";
@@ -80,10 +81,11 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
   }, [searchQuery, t]);
 
   const createMutation = trpc.viewer.pbac.createRole.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       showToast(t("role_created_successfully"), "success");
       form.reset();
       onOpenChange(false);
+      await revalidateTeamRoles();
       router.refresh();
     },
     onError: (error) => {
@@ -92,9 +94,10 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
   });
 
   const updateMutation = trpc.viewer.pbac.updateRole.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       showToast(t("role_updated_successfully"), "success");
       onOpenChange(false);
+      await revalidateTeamRoles();
       router.refresh();
     },
     onError: (error) => {
