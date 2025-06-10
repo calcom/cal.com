@@ -41,7 +41,7 @@ export class RoleService {
 
   async assignRoleToMember(roleId: string, membershipId: number) {
     return this.repository.transaction(async (repo, trx) => {
-      const role = await repo.findById(roleId);
+      const role = await trx.selectFrom("Role").select("id").where("id", "=", roleId).executeTakeFirst();
       if (!role) throw new Error("Role not found");
 
       // TODO: Move this to a MembershipRepository - bit difficult due to the trx record here.
