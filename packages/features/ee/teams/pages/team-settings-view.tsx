@@ -149,6 +149,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
 const PrivacySettingsView = ({ team }: ProfileViewProps) => {
   const session = useSession();
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
+  const isOrgAdminOrOwner = checkAdminOrOwner(session?.data?.user.org?.role);
   const isInviteOpen = !team?.membership.accepted;
   const { t } = useLocale();
 
@@ -163,7 +164,7 @@ const PrivacySettingsView = ({ team }: ProfileViewProps) => {
           />
         )}
 
-        {team && team.id && isAdmin && (
+        {team && team.id && (isAdmin || isOrgAdminOrOwner) && (
           <MakeTeamPrivateSwitch
             isOrg={false}
             teamId={team.id}
