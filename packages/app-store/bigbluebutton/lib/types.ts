@@ -5,6 +5,7 @@ export const bbbOptionsSchema = z.object({
   secret: z.string(),
   hash: z.enum(["sha1", "sha256", "sha384", "sha512"]),
 });
+export type bbbOptions = z.infer<typeof bbbOptionsSchema>;
 
 export enum Action {
   CREATE = "create",
@@ -23,6 +24,7 @@ export enum GuestPolicy {
   ALWAYS_DENY = "ALWAYS_DENY",
   ASK_MODERATOR = "ASK_MODERATOR",
 }
+
 // typical node fetch client
 // speedy schema goes in, url encoded schema with sha-1 hash goes out
 export const bbbCreateMeetingSchema = z.object({
@@ -65,7 +67,7 @@ Create meeting response
 */
 
 export const bbbCreateMeetingResponseSchema = z.object({
-  returncode: z.literal("SUCCESS"), // will be always successs when its successful. nice right?
+  returncode: z.literal("SUCCESS"),
   meetingID: z.string(),
   internalMeetingID: z.string(),
   parentMeetingID: z.string(),
@@ -95,7 +97,7 @@ Getting info about the bbb instance
 */
 
 export const bbbInstanceInfoSchema = z.object({
-  returncode: z.literal("SUCCESS"), // will be always successs when its successful. nice right?
+  returncode: z.literal("SUCCESS"),
   version: z.number(),
   apiVersion: z.number(), // needed to stop people from using an old versions of bbb
   bbbVersion: z.string(),
@@ -119,7 +121,7 @@ Join meeting response
 */
 
 export const bbbJoinMeetingResponseSchema = z.object({
-  returncode: z.literal("SUCCESS"), // will be always successs when its successful. nice right?
+  returncode: z.literal("SUCCESS"),
   messageKey: z.string(),
   message: z.string(),
   meeting_id: z.string(),
@@ -129,8 +131,6 @@ export const bbbJoinMeetingResponseSchema = z.object({
   guestStatus: z.string(),
   url: z.string().url(),
 });
-
-export type bbbOptions = z.infer<typeof bbbOptionsSchema>;
 
 /*
 (any) Error response

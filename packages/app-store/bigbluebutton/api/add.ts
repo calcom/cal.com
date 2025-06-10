@@ -14,22 +14,6 @@ import metadata from "../_metadata";
 import { BBBApi } from "../lib/bbbapi";
 import { bbbOptionsSchema } from "../lib/types";
 
-// const handler: AppDeclarativeHandler = {
-//   appType: metadata.type,
-//   variant: metadata.variant,
-//   slug: metadata.slug,
-//   supportsMultipleInstalls: false,
-//   handlerType: "add",
-//   redirect: {
-//     newTab: true,
-//     url: "/apps/bigbluebutton/setup",
-//   },
-//   createCredential: ({ appType, user, slug, teamId }) =>
-//     createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
-// };
-
-// export default handler;
-
 async function getHandler(req: NextApiRequest) {
   const session = checkSession(req);
   await checkInstalled(metadata.slug, session.user?.id);

@@ -10,10 +10,6 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { BBBApi } from "../lib/bbbapi";
 import { bbbEncryptedSchema, bbbOptionsSchema, Role } from "../lib/types";
 
-// this api endpoint is used to create and join a meeting, because by default bbb deletes meetings after a certain time.
-// alright, this should also differentiate between an attendee joining or the actual team member joining.
-// -----
-// find by id if the user is inside the attendee list in the db, if not, check if it's the actual user of the meeting.
 async function joinHandler(req: NextApiRequest, res: NextApiResponse) {
   const { meetingID } = req.query;
   if (!meetingID || typeof meetingID !== "string")

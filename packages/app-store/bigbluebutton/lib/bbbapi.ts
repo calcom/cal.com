@@ -32,7 +32,6 @@ const withFetch = async (url: string, init?: RequestInit | undefined) => {
   if (!response.ok) throw new BBBError(bbbError.CANNOT_REACH_SERVER);
 
   const responseBody = await response.text();
-  console.log(`[BBB] response body is: ${responseBody}`);
 
   const valid = XMLValidator.validate(responseBody);
   if (!valid) {
@@ -51,7 +50,7 @@ const withFetch = async (url: string, init?: RequestInit | undefined) => {
     throw new BBBError(bbbError.INVALID_CHECKSUM);
   } else {
     log.info(`[BBB] unhandled error from server: ${schema.data.response.messageKey}`);
-    throw new BBBError(bbbError.INVALID_XML_FORMAT); //Should this be a different error? Like internal beep boop error?
+    throw new BBBError(bbbError.INVALID_XML_FORMAT);
   }
 };
 
@@ -70,9 +69,7 @@ class BBBError extends Error {
 // The BBB API is a bit quirky about accepting either GET or POST requests. I'll just use the GET requests, simple.
 // The API expects a GET request with the checksum appended to the URL params.
 export class BBBApi {
-  constructor(private options: bbbOptions) {
-    this.checkValidOptions();
-  }
+  constructor(private options: bbbOptions) {}
 
   private handleError(err: unknown) {
     if (err instanceof BBBError)
@@ -86,7 +83,7 @@ export class BBBApi {
 
   /// Creates a URL with the checksum appended to the URL params.
   createUrl(action: Action, params: URLSearchParams): string {
-    // api call + params(without any spaces) + shared secret (the actual secret) into the pot to create the sha1 hash
+    // api call + params(without any spaces) + shared secret (the actual secret) into the pot to create the sha-? hash
     const to_hash = `${action.toString()}${params.toString().trim()}${this.options.secret}`;
     const checksum = createHash(this.options.hash).update(to_hash).digest("hex");
 
@@ -109,7 +106,7 @@ export class BBBApi {
 
       const data = await withFetch(url, { method: "GET" });
       const dataSchema = bbbCreateMeetingResponseSchema.safeParse(data);
-      if (!dataSchema.success) throw new BBBError(bbbError.INVALID_XML_FORMAT); // redundant?s
+      if (!dataSchema.success) throw new BBBError(bbbError.INVALID_XML_FORMAT); // redundant?
 
       return {
         success: true,
@@ -138,7 +135,7 @@ export class BBBApi {
 
       const data = await withFetch(url, { method: "GET" });
       const dataSchema = bbbJoinMeetingResponseSchema.safeParse(data);
-      if (!dataSchema.success) throw new BBBError(bbbError.INVALID_XML_FORMAT); // redundant?s
+      if (!dataSchema.success) throw new BBBError(bbbError.INVALID_XML_FORMAT); // redundant?
 
       return {
         success: true,
@@ -150,9 +147,6 @@ export class BBBApi {
     }
   }
 
-  // first we try to get the instance info, so we don't interact with a server that isn't using api version 2.0 or more.
-  // then, we try to create a meeting, if it fails with a checksum error, we know the secret is invalid.
-  // if it fails with any other error, we know the secret is valid. (yay)
   /// Checks if the options (the secret) are valid.
   async checkValidOptions() {
     const isInstanceValid = await this.validateInstanceInfo();
