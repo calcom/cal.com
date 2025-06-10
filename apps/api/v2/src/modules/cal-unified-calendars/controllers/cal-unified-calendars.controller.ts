@@ -40,7 +40,7 @@ export class CalUnifiedCalendarsController {
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Get detailed metrics for a specific meeting",
+    summary: "Get meeting Detailss from calendar",
     description:
       "Returns detailed information about a meeting including attendance metrics and reschedule history",
   })
