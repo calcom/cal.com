@@ -56,39 +56,39 @@ export function usePermissions(): UsePermissionsReturn {
     level: PermissionLevel,
     currentPermissions: string[]
   ): string[] => {
-    let newPermissions: string[];
+    // First, remove *.* since we're modifying permissions
+    let newPermissions = currentPermissions.filter((p) => p !== "*.*");
 
     if (resource === "*") {
       if (level === "all") {
         // When selecting all resources, add *.* and all individual permissions
-        newPermissions = ["*.*", ...getAllPossiblePermissions()];
-      } else {
-        // When deselecting all resources, remove *.* and keep individual selections
-        newPermissions = currentPermissions.filter((p) => p !== "*.*");
+        const allPossiblePerms = getAllPossiblePermissions();
+        newPermissions = ["*.*", ...allPossiblePerms];
       }
+      // When deselecting all resources, we've already removed *.* above
     } else {
       // Filter out current resource permissions
-      const otherPermissions = currentPermissions.filter((p) => !p.startsWith(`${resource}.`));
+      newPermissions = newPermissions.filter((p) => !p.startsWith(`${resource}.`));
       const resourceConfig = RESOURCE_CONFIG[resource as keyof typeof RESOURCE_CONFIG];
 
       if (!resourceConfig) return currentPermissions;
 
       switch (level) {
         case "none":
-          newPermissions = otherPermissions;
+          // No permissions to add, just keep other permissions
           break;
         case "read":
-          newPermissions = [...otherPermissions, `${resource}.${CrudAction.Read}`];
+          newPermissions.push(`${resource}.${CrudAction.Read}`);
           break;
         case "all":
           const allResourcePerms = Object.keys(resourceConfig.actions).map(
             (action) => `${resource}.${action}`
           );
-          newPermissions = [...otherPermissions, ...allResourcePerms];
+          newPermissions.push(...allResourcePerms);
           break;
       }
 
-      // Check if all resources now have all permissions
+      // Only add *.* back if all permissions are now selected
       if (hasAllPermissions(newPermissions)) {
         newPermissions.push("*.*");
       }
@@ -102,15 +102,19 @@ export function usePermissions(): UsePermissionsReturn {
     enabled: boolean,
     currentPermissions: string[]
   ): string[] => {
-    const newPermissions = enabled
-      ? [...currentPermissions, permission]
-      : currentPermissions.filter((p) => p !== permission);
+    // First, remove *.* since we're modifying individual permissions
+    let newPermissions = currentPermissions.filter((p) => p !== "*.*");
 
-    // Update *.* based on whether all permissions are selected
-    if (hasAllPermissions(newPermissions) && !newPermissions.includes("*.*")) {
+    // Then toggle the permission
+    if (enabled) {
+      newPermissions.push(permission);
+    } else {
+      newPermissions = newPermissions.filter((p) => p !== permission);
+    }
+
+    // Only add *.* back if all permissions are now selected
+    if (hasAllPermissions(newPermissions)) {
       newPermissions.push("*.*");
-    } else if (!hasAllPermissions(newPermissions) && newPermissions.includes("*.*")) {
-      newPermissions.splice(newPermissions.indexOf("*.*"), 1);
     }
 
     return newPermissions;
