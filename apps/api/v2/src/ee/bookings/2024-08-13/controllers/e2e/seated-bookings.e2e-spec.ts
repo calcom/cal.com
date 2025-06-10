@@ -448,6 +448,160 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    it("should allow host to cancel individual seat without cancellation reason", async () => {
+      // First, create a new seated booking for this test
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 9, 10, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: "Test Host Seat Cancel",
+          email: `host-seat-cancel-${randomString()}@api.com`,
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createdBooking = createResponse.body.data as CreateSeatedBookingOutput_2024_08_13;
+
+      // Host cancels individual seat - should work without cancellation reason
+      const cancelBody: CancelSeatedBookingInput_2024_08_13 = {
+        seatUid: createdBooking.seatUid,
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${createdBooking.uid}/cancel`)
+        .send(cancelBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+        });
+    });
+
+    it("should require cancellation reason when host cancels entire seated booking", async () => {
+      // First, create a new seated booking for this test
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 9, 11, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: "Test Host Full Cancel",
+          email: `host-full-cancel-${randomString()}@api.com`,
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createdBooking = createResponse.body.data as CreateSeatedBookingOutput_2024_08_13;
+
+      // Host tries to cancel entire booking without cancellation reason - should fail
+      const cancelBodyWithoutReason = {};
+
+      await request(app.getHttpServer())
+        .post(`/v2/bookings/${createdBooking.uid}/cancel`)
+        .send(cancelBodyWithoutReason)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(400)
+        .then((response) => {
+          expect(response.body.message).toContain("Cancellation reason is required when you are the host");
+        });
+    });
+
+    it("should allow host to cancel entire seated booking with cancellation reason", async () => {
+      // First, create a new seated booking for this test
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 9, 12, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: "Test Host Full Cancel Success",
+          email: `host-full-cancel-success-${randomString()}@api.com`,
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createdBooking = createResponse.body.data as CreateSeatedBookingOutput_2024_08_13;
+
+      // Host cancels entire booking with cancellation reason - should work
+      const cancelBody = {
+        cancellationReason: "Host decided to cancel the entire event",
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${createdBooking.uid}/cancel`)
+        .send(cancelBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.status).toEqual("cancelled");
+            // For full booking cancellation, all attendees should be removed
+            expect(data.attendees.length).toEqual(0);
+          }
+        });
+    });
+
+    it("should reject seated booking cancellation with both seatUid and cancellationReason", async () => {
+      // First, create a new seated booking for this test
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 9, 13, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: "Test Invalid Combination",
+          email: `invalid-combo-${randomString()}@api.com`,
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createdBooking = createResponse.body.data as CreateSeatedBookingOutput_2024_08_13;
+
+      // Try to send both seatUid and cancellationReason - should fail validation
+      const invalidBody = {
+        seatUid: createdBooking.seatUid,
+        cancellationReason: "This should not be allowed",
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${createdBooking.uid}/cancel`)
+        .send(invalidBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(400)
+        .then((response) => {
+          expect(response.body.message).toContain("cancellationReason property is wrong");
+        });
+    });
+
     function responseDataIsCreateSeatedBooking(data: any): data is CreateSeatedBookingOutput_2024_08_13 {
       return data.hasOwnProperty("seatUid");
     }
