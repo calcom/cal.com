@@ -67,7 +67,7 @@ describe("Event types Endpoints", () => {
     });
 
     it(`/GET/:id`, () => {
-      return request(app.getHttpServer()).get("/api/v2/event-types/100").expect(401);
+      return request(app.getHttpServer()).get("/api/v2/event-types/1000").expect(401);
     });
 
     afterAll(async () => {
@@ -1225,6 +1225,51 @@ describe("Event types Endpoints", () => {
         // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(404);
+    });
+
+    it("should handle disableGuests property correctly", async () => {
+      // Test 1: Create with disableGuests: true
+      const createBody = {
+        title: "Meeting with Guests Disabled",
+        slug: `no-guests-meeting-${randomString()}`,
+        description: "A meeting where guests cannot be added.",
+        lengthInMinutes: 30,
+        disableGuests: true,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(createBody)
+        .expect(201);
+
+      expect(createResponse.body.data.disableGuests).toEqual(true);
+      const createdEventTypeId = createResponse.body.data.id;
+
+      // Test 2: Update to disable guests (the main issue from the bug report)
+      const updateResponse = await request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventTypeId}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({ disableGuests: true })
+        .expect(200);
+
+      // This should now return disableGuests: true (was returning false before the fix)
+      expect(updateResponse.body.data.disableGuests).toEqual(true);
+
+      // Test 3: Update to enable guests
+      const enableResponse = await request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventTypeId}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({ disableGuests: false })
+        .expect(200);
+
+      expect(enableResponse.body.data.disableGuests).toEqual(false);
     });
 
     it("should delete event type", async () => {
