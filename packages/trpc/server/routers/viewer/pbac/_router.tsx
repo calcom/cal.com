@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -171,5 +172,40 @@ export const permissionsRouter = router({
       const roleService = new RoleService();
       await roleService.deleteRole(input.roleId);
       return { success: true };
+    }),
+
+  getTeamRoles: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (!ctx.user?.id) {
+        throw new Error("Unauthorized");
+      }
+
+      const featureRepo = new FeaturesRepository();
+      const teamHasPBACFeature = await featureRepo.checkIfTeamHasFeature(input.teamId, "pbac");
+
+      if (!teamHasPBACFeature) {
+        throw new Error("PBAC is not enabled for this team");
+      }
+
+      // Check if user has permission to view roles
+      const permissionCheckService = new PermissionCheckService();
+      const hasPermission = await permissionCheckService.checkPermission({
+        userId: ctx.user.id,
+        teamId: input.teamId,
+        permission: "role.read",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+
+      if (!hasPermission) {
+        throw new Error("You don't have permission to view roles");
+      }
+
+      const roleService = new RoleService();
+      return roleService.getTeamRoles(input.teamId);
     }),
 });

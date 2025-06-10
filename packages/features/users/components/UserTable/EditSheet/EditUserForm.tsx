@@ -30,10 +30,11 @@ import { showToast } from "@calcom/ui/components/toast";
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";
 
-type MembershipOption = {
-  value: MembershipRole;
+interface MembershipOption {
+  value: MembershipRole | string; // Updated to allow custom role IDs
   label: string;
-};
+  isCustomRole?: boolean;
+}
 
 const stringOrNumber = z.string().or(z.number());
 
@@ -58,7 +59,10 @@ const editSchema = z.object({
   email: emailSchema,
   avatar: z.string(),
   bio: z.string(),
-  role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]),
+  role: z.union(
+    [z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]), z.string()],
+    z.string()
+  ),
   timeZone: timeZoneSchema,
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),
@@ -99,6 +103,16 @@ export function EditForm({
 
   const isOwner = org?.role === MembershipRole.OWNER;
 
+  const { data: teamRoles, isLoading: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
+    { teamId: org.id },
+    {
+      enabled: true, // We can add a feature flag check here if needed
+      staleTime: 30000, // Cache for 30 seconds
+    }
+  );
+
+  const customRoles = teamRoles?.filter((role) => role.type === "CUSTOM") ?? [];
+
   const membershipOptions = useMemo<MembershipOption[]>(() => {
     const options: MembershipOption[] = [
       {
@@ -118,8 +132,20 @@ export function EditForm({
       });
     }
 
+    // Add custom roles if they exist
+    if (customRoles.length > 0) {
+      // Add custom roles
+      customRoles.forEach((role) => {
+        options.push({
+          value: role.id,
+          label: role.name,
+          isCustomRole: true,
+        });
+      });
+    }
+
     return options;
-  }, [t, isOwner]);
+  }, [t, isOwner, customRoles]);
 
   const mutation = trpc.viewer.organizations.updateUser.useMutation({
     onSuccess: () => {
@@ -198,15 +224,30 @@ export function EditForm({
           <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24 mb-6" />
           <div className="mb-6">
             <Label>{t("role")}</Label>
-            <ToggleGroup
-              isFullWidth
-              defaultValue={selectedUser?.role ?? "MEMBER"}
-              value={form.watch("role")}
-              options={membershipOptions}
-              onValueChange={(value: EditSchema["role"]) => {
-                form.setValue("role", value);
-              }}
-            />
+            {customRoles.length > 0 ? (
+              <SelectField
+                defaultValue={membershipOptions.find(
+                  (option) => option.value === (selectedUser?.role ?? "MEMBER")
+                )}
+                value={membershipOptions.find((option) => option.value === form.watch("role"))}
+                options={membershipOptions}
+                onChange={(option) => {
+                  if (option) {
+                    form.setValue("role", option.value as EditSchema["role"]);
+                  }
+                }}
+              />
+            ) : (
+              <ToggleGroup
+                isFullWidth
+                defaultValue={selectedUser?.role ?? "MEMBER"}
+                value={form.watch("role")}
+                options={membershipOptions}
+                onValueChange={(value: EditSchema["role"]) => {
+                  form.setValue("role", value);
+                }}
+              />
+            )}
           </div>
           <div className="mb-6">
             <Label>{t("timezone")}</Label>
