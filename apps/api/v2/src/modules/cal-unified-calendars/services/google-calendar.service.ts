@@ -57,7 +57,7 @@ export class GoogleCalendarService {
    * Gets an authorized Google Calendar instance
    * Tries delegation credentials first, falls back to direct OAuth
    */
-  async getAuthorizedCalendarInstance(
+  private async getAuthorizedCalendarInstance(
     userEmail?: string,
     oAuthCredentials?: Prisma.JsonValue | undefined,
     delegationCredential?: { id: string } | null
@@ -80,7 +80,7 @@ export class GoogleCalendarService {
     return new calendar_v3.Calendar({ auth: oAuth2Client });
   }
 
-  async getDelegatedCalendarInstance(
+  private async getDelegatedCalendarInstance(
     delegationCredential: { id: string },
     emailToImpersonate: string
   ): Promise<calendar_v3.Calendar | null> {
