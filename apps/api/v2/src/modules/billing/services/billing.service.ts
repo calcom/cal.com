@@ -216,6 +216,30 @@ export class BillingService implements OnModuleDestroy {
     }
   }
 
+  async handleStripePaymentPastDue(event: Stripe.Event) {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
+    const customerId = this.getCustomerIdFromInvoice(invoice);
+
+    if (subscriptionId && customerId) {
+      const existingUserSubscription = await this.stripeService
+        .getStripe()
+        .subscriptions.retrieve(subscriptionId);
+
+      if (existingUserSubscription.status === "past_due") {
+        await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, true);
+      }
+
+      if (existingUserSubscription.status === "active") {
+        await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, false);
+      }
+    }
+
+    if (!subscriptionId || !customerId) {
+      this.logger.log(`SubscriptionId: ${subscriptionId} or customerId: ${customerId} missing`);
+    }
+  }
+
   async handleStripeCheckoutEvents(event: Stripe.Event) {
     const checkoutSession = event.data.object as Stripe.Checkout.Session;
 

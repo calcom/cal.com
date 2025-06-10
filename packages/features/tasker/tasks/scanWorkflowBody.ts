@@ -151,7 +151,10 @@ export async function scanWorkflowBody(payload: string) {
   await scheduleWorkflowNotifications({
     activeOn: workflow.activeOn.map((activeOn) => activeOn.eventTypeId) ?? [],
     isOrg,
-    workflowSteps,
+    workflowSteps: workflowSteps.map((step) => ({
+      ...step,
+      verifiedAt: new Date(),
+    })),
     time: workflow.time,
     timeUnit: workflow.timeUnit,
     trigger: workflow.trigger,
