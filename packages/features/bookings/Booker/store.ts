@@ -403,7 +403,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
   setBookingData: (bookingData: GetBookingType | null | undefined) => {
     set({ bookingData: bookingData ?? null });
   },
-  recurringEventCount: Number(getQueryParam("cal.occurenceCount")),
+  recurringEventCount: Number(getQueryParam("occurenceCount")),
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
   rescheduleUid: null,
   bookingData: null,
