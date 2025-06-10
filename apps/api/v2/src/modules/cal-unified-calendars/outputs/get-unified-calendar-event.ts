@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsISO8601, IsOptional, IsString, ValidateNested } from "class-validator";
 
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { CALENDARS, SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 export class DateTimeWithZone {
   @IsISO8601()
@@ -138,14 +138,20 @@ export class UnifiedCalendarEventOutput {
     name?: string;
   } | null;
 
+  /**
+   * Source or origin of the calendar event
+   */
   @IsOptional()
-  @IsString()
+  @IsEnum(CALENDARS)
   @ApiPropertyOptional({
-    type: String,
+    enum: CALENDARS,
+    enumName: "CalendarSource",
     nullable: true,
-    description: 'Source or origin of the calendar event, e.g., "google", "outlook"',
+    description:
+      "Calendar integration source (e.g., Google Calendar, Office 365, Apple Calendar). Currently only Google Calendar is supported.",
+    example: "google",
   })
-  source?: string | null;
+  source?: (typeof CALENDARS)[number] | null;
 }
 
 export class GetUnifiedCalendarEventOutput {
