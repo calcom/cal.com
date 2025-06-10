@@ -95,6 +95,7 @@ export class RoleRepository implements IRoleRepository {
     const roleId = uuidv4();
 
     return await kysely.transaction().execute(async (trx) => {
+      console.log("data", data);
       // Create role
       const role = await trx
         .insertInto("Role")
@@ -120,6 +121,8 @@ export class RoleRepository implements IRoleRepository {
           action,
         };
       });
+
+      console.log("permissionData", permissionData);
 
       await trx.insertInto("RolePermission").values(permissionData).execute();
 
