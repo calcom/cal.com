@@ -143,6 +143,9 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       }
 
       const membership = await prisma.membership.findFirst({
+        select: {
+          id: true,
+        },
         where: {
           userId,
           teamId,
