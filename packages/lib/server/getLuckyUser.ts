@@ -1,6 +1,6 @@
 import type { Prisma, User } from "@prisma/client";
 
-import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
+import type { Fields, FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
@@ -10,8 +10,7 @@ import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
-import type { Booking } from "@calcom/prisma/client";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { Booking, SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { BookingStatus, RRResetInterval } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
@@ -66,6 +65,8 @@ interface GetLuckyUserParams<T extends PartialUser> {
   eventType: {
     id: number;
     isRRWeightsEnabled: boolean;
+    multipleRRHosts?: boolean;
+    rrHostCount?: number;
     team: { parentId?: number | null; rrResetInterval: RRResetInterval | null } | null;
     includeNoShowInRRCalculation: boolean;
   };
@@ -103,26 +104,33 @@ function leastRecentlyBookedUser<T extends PartialUser>({
   availableUsers,
   bookingsOfAvailableUsers,
   organizersWithLastCreated,
+  eventType,
 }: GetLuckyUserParams<T> & {
   bookingsOfAvailableUsers: PartialBooking[];
   organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
 }) {
   const organizerIdAndAtCreatedPair = organizersWithLastCreated.reduce(
-    (keyValuePair: { [userId: number]: Date }, user) => {
-      keyValuePair[user.id] = user.bookings[0]?.createdAt || new Date(0);
+    (keyValuePair: { [userId: number]: { mostRecentBooking: Date; count: number } }, user) => {
+      keyValuePair[user.id] = {
+        mostRecentBooking:
+          keyValuePair[user.id]?.mostRecentBooking || user.bookings[0]?.createdAt || new Date(0),
+        count: (keyValuePair[user.id]?.count || 0) + 1,
+      };
       return keyValuePair;
     },
     {}
   );
 
   const attendeeUserIdAndAtCreatedPair = bookingsOfAvailableUsers.reduce(
-    (aggregate: { [userId: number]: Date }, booking) => {
+    (aggregate: { [userId: number]: { mostRecentBooking: Date; count: number } }, booking) => {
       availableUsers.forEach((user) => {
-        if (aggregate[user.id]) return; // Bookings are ordered DESC, so if the reducer aggregate
-        // contains the user id, it's already got the most recent booking marked.
         if (!booking.attendees.map((attendee) => attendee.email).includes(user.email)) return;
-        if (organizerIdAndAtCreatedPair[user.id] > booking.createdAt) return; // only consider bookings if they were created after organizer bookings
-        aggregate[user.id] = booking.createdAt;
+        if (organizerIdAndAtCreatedPair[user.id].mostRecentBooking > booking.createdAt) return; // only consider bookings if they were created after organizer bookings
+
+        aggregate[user.id] = {
+          mostRecentBooking: booking.createdAt,
+          count: (aggregate[user.id]?.count || 0) + 1,
+        };
       });
       return aggregate;
     },
@@ -148,9 +156,14 @@ function leastRecentlyBookedUser<T extends PartialUser>({
   }
 
   const leastRecentlyBookedUser = availableUsers.sort((a, b) => {
-    if (userIdAndAtCreatedPair[a.id] > userIdAndAtCreatedPair[b.id]) return 1;
-    else if (userIdAndAtCreatedPair[a.id] < userIdAndAtCreatedPair[b.id]) return -1;
-    // if two (or more) dates are identical, we randomize the order
+    if ((eventType.rrHostCount ?? 1) > 1) {
+      if (userIdAndAtCreatedPair[a.id].count > userIdAndAtCreatedPair[b.id].count) return 1;
+      else if (userIdAndAtCreatedPair[a.id].count < userIdAndAtCreatedPair[b.id].count) return -1;
+    }
+    if (userIdAndAtCreatedPair[a.id].mostRecentBooking > userIdAndAtCreatedPair[b.id].mostRecentBooking)
+      return 1;
+    else if (userIdAndAtCreatedPair[a.id].mostRecentBooking < userIdAndAtCreatedPair[b.id].mostRecentBooking)
+      return -1;
     else return 0;
   })[0];
 
