@@ -90,9 +90,14 @@ export class GoogleCalendarEventOutputPipe
     calendarEvent.end = this.transformDateTimeWithZone(googleEvent.end);
 
     if (googleEvent?.conferenceData?.entryPoints) {
-      calendarEvent.locations = googleEvent.conferenceData.entryPoints;
+      calendarEvent.locations = googleEvent.conferenceData.entryPoints.map((entryPoint) => {
+        return {
+          type: entryPoint.entryPointType,
+          ...entryPoint,
+        };
+      });
     } else if (googleEvent.hangoutLink) {
-      calendarEvent.locations = [{ entryPointType: "video", uri: googleEvent.hangoutLink }];
+      calendarEvent.locations = [{ type: "video", uri: googleEvent.hangoutLink }];
     }
 
     if (googleEvent.attendees && googleEvent.attendees.length > 0) {

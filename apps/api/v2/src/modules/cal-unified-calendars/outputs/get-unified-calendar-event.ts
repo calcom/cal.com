@@ -4,6 +4,99 @@ import { IsEnum, IsISO8601, IsOptional, IsString, ValidateNested } from "class-v
 
 import { CALENDARS, SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
+/**
+ * Base interface for all calendar event locations
+ */
+interface ICalendarEventLocation {
+  type: string;
+  uri: string;
+  label?: string;
+}
+
+export class CalendarEventVideoLocation implements ICalendarEventLocation {
+  @IsString()
+  type = "video";
+
+  @IsString()
+  uri!: string;
+
+  @IsString()
+  @IsOptional()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  password?: string;
+
+  @IsString()
+  @IsOptional()
+  meetingCode?: string;
+
+  @IsString()
+  @IsOptional()
+  accessCode?: string;
+}
+
+export class CalendarEventPhoneLocation implements ICalendarEventLocation {
+  @IsString()
+  type = "phone";
+
+  @IsString()
+  uri!: string;
+
+  @IsString()
+  @IsOptional()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  pin?: string;
+
+  @IsString()
+  @IsOptional()
+  password?: string;
+
+  @IsString()
+  @IsOptional()
+  accessCode?: string;
+
+  @IsString()
+  @IsOptional()
+  regionCode?: string;
+}
+
+export class CalendarEventSipLocation implements ICalendarEventLocation {
+  @IsString()
+  type = "sip";
+
+  @IsString()
+  uri!: string;
+
+  @IsString()
+  @IsOptional()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  pin?: string;
+
+  @IsString()
+  @IsOptional()
+  password?: string;
+}
+
+export class CalendarEventMoreLocation implements ICalendarEventLocation {
+  @IsString()
+  type = "more";
+
+  @IsString()
+  uri!: string;
+
+  @IsString()
+  @IsOptional()
+  label?: string;
+}
+
 export class DateTimeWithZone {
   @IsISO8601()
   time!: string;
@@ -64,25 +157,62 @@ export class UnifiedCalendarEventOutput {
   @ApiPropertyOptional({
     type: "array",
     items: {
-      type: "object",
-      properties: {
-        entryPointType: { type: "string" },
-        uri: { type: "string" },
-        label: { type: "string" },
-        pin: { type: "string", nullable: true },
-        regionCode: { type: "string", nullable: true },
+      oneOf: [
+        {
+          type: "object",
+          properties: {
+            type: { type: "string", enum: ["video"] },
+            uri: { type: "string" },
+            label: { type: "string", nullable: true },
+            password: { type: "string", nullable: true },
+            meetingCode: { type: "string", nullable: true },
+            accessCode: { type: "string", nullable: true },
+          },
+        },
+        {
+          type: "object",
+          properties: {
+            type: { type: "string", enum: ["phone"] },
+            uri: { type: "string" },
+            label: { type: "string", nullable: true },
+            pin: { type: "string", nullable: true },
+            password: { type: "string", nullable: true },
+            accessCode: { type: "string", nullable: true },
+            regionCode: { type: "string", nullable: true },
+          },
+        },
+        {
+          type: "object",
+          properties: {
+            type: { type: "string", enum: ["sip"] },
+            uri: { type: "string" },
+            label: { type: "string", nullable: true },
+            pin: { type: "string", nullable: true },
+            password: { type: "string", nullable: true },
+          },
+        },
+        {
+          type: "object",
+          properties: {
+            type: { type: "string", enum: ["more"] },
+            uri: { type: "string" },
+            label: { type: "string", nullable: true },
+          },
+        },
+      ],
+      discriminator: {
+        propertyName: "type",
       },
     },
     nullable: true,
-    description: "Conference locations with entry points (video, phone, etc.)",
+    description: "Conference locations with entry points (video, phone, sip, more)",
   })
-  locations?: Array<{
-    entryPointType: string;
-    uri: string;
-    label?: string;
-    pin?: string;
-    regionCode?: string;
-  }> | null;
+  locations?: Array<
+    | CalendarEventVideoLocation
+    | CalendarEventPhoneLocation
+    | CalendarEventSipLocation
+    | CalendarEventMoreLocation
+  > | null;
 
   @IsOptional()
   @ApiPropertyOptional({
