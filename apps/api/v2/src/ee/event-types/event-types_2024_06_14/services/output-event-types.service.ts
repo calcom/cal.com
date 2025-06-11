@@ -38,7 +38,7 @@ type EventTypeRelations = {
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
 };
-export type DatabaseEventType = EventType & EventTypeRelations;
+export type DatabaseEventType = Omit<EventType, "allowReschedulingCancelledBookings"> & EventTypeRelations;
 
 type Input = Pick<
   DatabaseEventType,
