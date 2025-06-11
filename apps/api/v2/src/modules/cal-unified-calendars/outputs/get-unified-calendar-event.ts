@@ -171,42 +171,94 @@ export class UnifiedCalendarEventOutput {
         {
           type: "object",
           properties: {
-            type: { type: "string", enum: ["video"] },
-            uri: { type: "string" },
-            label: { type: "string", nullable: true },
-            password: { type: "string", nullable: true },
-            meetingCode: { type: "string", nullable: true },
-            accessCode: { type: "string", nullable: true },
+            type: {
+              type: "string",
+              enum: ["video"],
+              description: "Indicates this is a video conference location",
+            },
+            uri: { type: "string", description: "URL for joining the video conference" },
+            label: { type: "string", nullable: true, description: "Display name for the video conference" },
+            password: {
+              type: "string",
+              nullable: true,
+              description: "Password required to join the video conference",
+            },
+            meetingCode: {
+              type: "string",
+              nullable: true,
+              description: "Meeting code or ID required to join the conference",
+            },
+            accessCode: {
+              type: "string",
+              nullable: true,
+              description: "Access code required to join the conference",
+            },
           },
         },
         {
           type: "object",
           properties: {
-            type: { type: "string", enum: ["phone"] },
-            uri: { type: "string" },
-            label: { type: "string", nullable: true },
-            pin: { type: "string", nullable: true },
-            password: { type: "string", nullable: true },
-            accessCode: { type: "string", nullable: true },
-            regionCode: { type: "string", nullable: true },
+            type: {
+              type: "string",
+              enum: ["phone"],
+              description: "Indicates this is a phone conference location",
+            },
+            uri: { type: "string", description: "Phone number or URI for dialing into the conference" },
+            label: { type: "string", nullable: true, description: "Display name for the phone conference" },
+            pin: {
+              type: "string",
+              nullable: true,
+              description: "PIN number required for the phone conference",
+            },
+            password: {
+              type: "string",
+              nullable: true,
+              description: "Password required for the phone conference",
+            },
+            accessCode: {
+              type: "string",
+              nullable: true,
+              description: "Access code required for the phone conference",
+            },
+            regionCode: {
+              type: "string",
+              nullable: true,
+              description: "Country/region code for the phone number",
+            },
           },
         },
         {
           type: "object",
           properties: {
-            type: { type: "string", enum: ["sip"] },
-            uri: { type: "string" },
-            label: { type: "string", nullable: true },
-            pin: { type: "string", nullable: true },
-            password: { type: "string", nullable: true },
+            type: {
+              type: "string",
+              enum: ["sip"],
+              description: "Indicates this is a SIP (Session Initiation Protocol) conference location",
+            },
+            uri: { type: "string", description: "SIP URI for joining the conference" },
+            label: { type: "string", nullable: true, description: "Display name for the SIP conference" },
+            pin: {
+              type: "string",
+              nullable: true,
+              description: "PIN number required for the SIP conference",
+            },
+            password: {
+              type: "string",
+              nullable: true,
+              description: "Password required for the SIP conference",
+            },
           },
         },
         {
           type: "object",
           properties: {
-            type: { type: "string", enum: ["more"] },
-            uri: { type: "string" },
-            label: { type: "string", nullable: true },
+            type: {
+              type: "string",
+              enum: ["more"],
+              description: "Indicates this is an additional conference location type",
+            },
+            uri: { type: "string", description: "URI for accessing this location" },
+            label: { type: "string", nullable: true, description: "Display name for this location" },
           },
         },
       ],
@@ -230,12 +282,23 @@ export class UnifiedCalendarEventOutput {
     items: {
       type: "object",
       properties: {
-        email: { type: "string" },
-        name: { type: "string" },
-        responseStatus: { type: "string", nullable: true },
-        organizer: { type: "boolean", nullable: true },
-        self: { type: "boolean", nullable: true },
-        optional: { type: "boolean", nullable: true },
+        email: { type: "string", description: "Email address of the attendee" },
+        name: { type: "string", description: "Display name of the attendee" },
+        responseStatus: {
+          type: "string",
+          nullable: true,
+          description: "Attendee's response to the invitation (accepted, declined, tentative, needs_action)",
+        },
+        self: {
+          type: "boolean",
+          nullable: true,
+          description: "Indicates if this attendee is the current user",
+        },
+        optional: {
+          type: "boolean",
+          nullable: true,
+          description: "Indicates if this attendee's attendance is optional",
+        },
       },
     },
     nullable: true,
@@ -245,7 +308,6 @@ export class UnifiedCalendarEventOutput {
     email: string;
     name?: string;
     responseStatus?: string;
-    organizer?: boolean;
     self?: boolean;
   }> | null;
 
@@ -263,6 +325,10 @@ export class UnifiedCalendarEventOutput {
   @IsOptional()
   @ApiPropertyOptional({
     type: "object",
+    properties: {
+      email: { type: "string", description: "Email address of the event organizer" },
+      name: { type: "string", nullable: true, description: "Display name of the event organizer" },
+    },
     nullable: true,
     description: "Information about the event organizer/host",
   })
