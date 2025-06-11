@@ -124,6 +124,7 @@ export type FormValues = {
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
   bookerBookingLimit: number | null;
+  maxActiveBookingsPerBooker: number | null;
   beforeEventBuffer: number;
   afterEventBuffer: number;
   slotInterval: number | null;
