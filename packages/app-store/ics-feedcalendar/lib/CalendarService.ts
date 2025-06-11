@@ -169,7 +169,7 @@ export default class ICSFeedCalendarService implements Calendar {
         const isUTC = timezone === "Z";
         
         // Fix precedence: prioritize TZID from DTSTART property, then check for UTC, then fallback
-        const tzid: string | undefined = tzidFromDtstart || (isUTC ? "UTC" : timezone);
+        const tzid: string | undefined = tzidFromDtstart || vevent?.getFirstPropertyValue("tzid") || (isUTC ? "UTC" : timezone);
         // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
         if (!vcalendar.getFirstSubcomponent("vtimezone")) {
           const timezoneToUse = tzid || userTimeZone;
