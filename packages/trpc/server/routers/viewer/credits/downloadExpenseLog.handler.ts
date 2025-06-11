@@ -7,6 +7,8 @@ import { TRPCError } from "@trpc/server";
 
 const downloadExpenseLogSchema = z.object({
   teamId: z.number().optional(),
+  startDate: z.string(),
+  endDate: z.string(),
 });
 
 type DownloadExpenseLogOptions = {
@@ -17,7 +19,7 @@ type DownloadExpenseLogOptions = {
 };
 
 export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseLogOptions) => {
-  const { teamId } = input;
+  const { teamId, startDate, endDate } = input;
 
   if (teamId) {
     const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
@@ -36,6 +38,12 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
     },
     include: {
       expenseLogs: {
+        where: {
+          date: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          },
+        },
         orderBy: {
           date: "desc",
         },

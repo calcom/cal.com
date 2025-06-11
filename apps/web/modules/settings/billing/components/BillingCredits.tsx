@@ -3,8 +3,10 @@
 import { ProgressBar } from "@tremor/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import dayjs from "@calcom/dayjs";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
@@ -12,14 +14,47 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
+import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/toast";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 
+type MonthOption = {
+  value: string;
+  label: string;
+  startDate: string;
+  endDate: string;
+};
+
+const getMonthOptions = (): MonthOption[] => {
+  const options: MonthOption[] = [];
+  const currentDate = dayjs();
+  const minDate = dayjs("2025-05-01");
+
+  let date = currentDate;
+  let count = 0;
+  while ((date.isAfter(minDate) || date.isSame(minDate, "month")) && count < 12) {
+    const startDate = date.startOf("month");
+    const endDate = date.endOf("month");
+    options.push({
+      value: date.format("MMMM YYYY"),
+      label: date.format("MMMM YYYY"),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    });
+    date = date.subtract(1, "month");
+    count++;
+  }
+
+  return options;
+};
+
 export default function BillingCredits() {
   const { t } = useLocale();
   const router = useRouter();
+  const monthOptions = getMonthOptions();
+  const [selectedMonth, setSelectedMonth] = useState<MonthOption>(monthOptions[0]);
 
   const {
     register,
@@ -29,8 +64,8 @@ export default function BillingCredits() {
   } = useForm<{ quantity: number }>({ defaultValues: { quantity: 50 } });
 
   const params = useParamsWithFallback();
-
   const teamId = params.id ? Number(params.id) : undefined;
+
   const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery({ teamId });
 
   const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
@@ -47,7 +82,7 @@ export default function BillingCredits() {
   const downloadExpenseLogMutation = trpc.viewer.credits.downloadExpenseLog.useMutation({
     onSuccess: (data) => {
       if (data.csvData) {
-        const filename = `credit-expense-log-${new Date().toISOString().split("T")[0]}.csv`;
+        const filename = `credit-expense-log-${selectedMonth.value.toLowerCase().replace(" ", "-")}.csv`;
         downloadAsCsv(data.csvData, filename);
       }
     },
@@ -55,6 +90,14 @@ export default function BillingCredits() {
       showToast(t("error_downloading_expense_log"), "error");
     },
   });
+
+  const handleDownload = () => {
+    downloadExpenseLogMutation.mutate({
+      teamId,
+      startDate: selectedMonth.startDate,
+      endDate: selectedMonth.endDate,
+    });
+  };
 
   if (!IS_SMS_CREDITS_ENABLED) {
     return null;
@@ -126,7 +169,7 @@ export default function BillingCredits() {
           </div>
           <form onSubmit={handleSubmit(onSubmit)} className="flex">
             <div className="mr-auto">
-              <div className="mb-2 font-semibold">{t("buy_additional_credits")}</div>
+              <Label>{t("buy_additional_credits")}</Label>
               <div className="flex flex-col">
                 <TextField
                   required
@@ -154,12 +197,26 @@ export default function BillingCredits() {
           <div className="-mx-6 mb-6 mt-6">
             <hr className="border-subtle mb-3 mt-3" />
           </div>
-          <Button
-            onClick={() => downloadExpenseLogMutation.mutate({ teamId })}
-            loading={downloadExpenseLogMutation.isPending}
-            StartIcon="file-down">
-            {t("download_expense_log")}
-          </Button>
+          <div className="flex">
+            <div className="mr-auto">
+              <Label>{t("download_expense_logs")}</Label>
+              <div className="flex flex-col">
+                <Select
+                  options={monthOptions}
+                  value={selectedMonth}
+                  onChange={(option) => option && setSelectedMonth(option)}
+                />
+              </div>
+            </div>
+            <div className="mb-1 mt-auto">
+              <Button
+                onClick={handleDownload}
+                loading={downloadExpenseLogMutation.isPending}
+                StartIcon="file-down">
+                {t("download")}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
