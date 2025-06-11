@@ -12,7 +12,7 @@ import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewe
 
 export const scanWorkflowBodySchema = z.object({
   userId: z.number(),
-  // @deprecated: use workflowStepId instead
+  // deprecated: use workflowStepId instead
   workflowStepIds: z.array(z.number()).optional(),
   workflowStepId: z.number().optional(),
   createdAt: z.string().optional(),
