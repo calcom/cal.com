@@ -2195,6 +2195,7 @@ async function handler(
         email: bookerEmail,
         eventName: "Cal.com lead",
       },
+      isTeamEventType,
     });
   }
 

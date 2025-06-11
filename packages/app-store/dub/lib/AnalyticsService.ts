@@ -73,6 +73,19 @@ export default class DubService implements AnalyticsService {
               "Content-Type": "application/x-www-form-urlencoded",
             },
           });
+
+          if (!response.ok) {
+            const res = await response.json();
+            if (response.status === 401) {
+              await CredentialRepository.updateCredentialById({
+                id: this.credential.id,
+                data: {
+                  invalid: true,
+                },
+              });
+            }
+            throw new Error(`Error refreshing dub token: ${res?.error?.message ?? response.statusText}`);
+          }
           return await response.json();
         },
         "dub",
@@ -89,6 +102,7 @@ export default class DubService implements AnalyticsService {
       return newToken;
     } catch (err) {
       this.log.error(err);
+      throw err;
     }
   }
 
