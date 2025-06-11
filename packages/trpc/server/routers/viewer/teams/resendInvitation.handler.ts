@@ -23,11 +23,17 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
     isOrg: input.isOrg,
   });
 
-  const verificationToken = await VerificationTokenRepository.updateTeamInviteTokenExpirationDate({
-    email: input.email,
-    teamId: input.teamId,
-    expiresInDays: 7,
-  });
+  let verificationToken;
+
+  try {
+    verificationToken = await VerificationTokenRepository.updateTeamInviteTokenExpirationDate({
+      email: input.email,
+      teamId: input.teamId,
+      expiresInDays: 7,
+    });
+  } catch (error) {
+    console.error("[resendInvitationHandler]Error updating verification token:", error);
+  }
 
   const inviteTeamOptions = {
     joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
