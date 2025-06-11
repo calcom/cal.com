@@ -12,19 +12,29 @@ import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewe
 
 export const scanWorkflowBodySchema = z.object({
   userId: z.number(),
-  workflowStepIds: z.array(z.number()),
-  createdAt: z.string(),
+  // @deprecated: use workflowStepId instead
+  workflowStepIds: z.array(z.number()).optional(),
+  workflowStepId: z.number().optional(),
+  createdAt: z.string().optional(),
 });
 
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
 
 export async function scanWorkflowBody(payload: string) {
-  const { workflowStepIds, userId, createdAt } = scanWorkflowBodySchema.parse(JSON.parse(payload));
+  const { workflowStepIds, userId, createdAt, workflowStepId } = scanWorkflowBodySchema.parse(
+    JSON.parse(payload)
+  );
 
-  const stepIdsToScan: number[] = [];
-  for (const workflowStepId of workflowStepIds) {
-    const newerTask = await Task.findNewerScanTaskForStepId(workflowStepId, createdAt);
-    if (!newerTask) stepIdsToScan.push(workflowStepId);
+  const stepIdsToScan: number[] = workflowStepIds ? workflowStepIds : [];
+
+  if (workflowStepId && !workflowStepIds) {
+    if (createdAt) {
+      const newerTask = await Task.findNewerScanTaskForStepId(workflowStepId, createdAt);
+
+      if (!newerTask) stepIdsToScan.push(workflowStepId);
+    } else {
+      stepIdsToScan.push(workflowStepId);
+    }
   }
 
   if (stepIdsToScan.length === 0) return;

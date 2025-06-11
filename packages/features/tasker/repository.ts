@@ -3,6 +3,7 @@ import { type Prisma } from "@prisma/client";
 import db from "@calcom/prisma";
 
 import { type TaskTypes } from "./tasker";
+import { scanWorkflowBodySchema } from "./tasks/scanWorkflowBody";
 
 const whereSucceeded: Prisma.TaskWhereInput = {
   succeededAt: { not: null },
@@ -189,17 +190,22 @@ export class Task {
   }
 
   static async findNewerScanTaskForStepId(workflowStepId: number, createdAt: string) {
-    return db.task.findFirst({
-      where: {
-        type: "scanWorkflowBody",
-        payload: {
-          path: ["workflowStepIds"],
-          array_contains: workflowStepId,
-        },
-        createdAt: {
-          gt: new Date(createdAt),
-        },
-      },
+    const tasks = await db.$queryRaw<{ payload: string; createdAt: Date }[]>`
+      SELECT "payload"
+      FROM "Task"
+      WHERE "type" = 'scanWorkflowBody'
+        AND "succeededAt" IS NULL
+        AND (payload::jsonb ->> 'workflowStepId')::int = ${workflowStepId}
+        `;
+
+    return tasks.find((task) => {
+      try {
+        const parsed = scanWorkflowBodySchema.parse(JSON.parse(task.payload));
+        if (!parsed.createdAt) return false;
+        return new Date(parsed.createdAt) > new Date(createdAt);
+      } catch {
+        return false;
+      }
     });
   }
 }
