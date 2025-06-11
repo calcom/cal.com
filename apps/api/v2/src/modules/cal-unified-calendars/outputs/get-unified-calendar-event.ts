@@ -269,12 +269,14 @@ export class UnifiedCalendarEventOutput {
     nullable: true,
     description: "Conference locations with entry points (video, phone, sip, more)",
   })
-  locations?: Array<
-    | CalendarEventVideoLocation
-    | CalendarEventPhoneLocation
-    | CalendarEventSipLocation
-    | CalendarEventMoreLocation
-  > | null;
+  locations?:
+    | Array<
+        | CalendarEventVideoLocation
+        | CalendarEventPhoneLocation
+        | CalendarEventSipLocation
+        | CalendarEventMoreLocation
+      >
+    | [];
 
   @IsOptional()
   @ApiPropertyOptional({

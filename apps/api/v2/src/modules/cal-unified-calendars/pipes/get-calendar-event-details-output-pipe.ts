@@ -99,6 +99,8 @@ export class GoogleCalendarEventOutputPipe
       });
     } else if (googleEvent.hangoutLink) {
       calendarEvent.locations = [{ type: "video", uri: googleEvent.hangoutLink }];
+    } else {
+      calendarEvent.locations = [];
     }
 
     if (googleEvent.attendees && googleEvent.attendees.length > 0) {
