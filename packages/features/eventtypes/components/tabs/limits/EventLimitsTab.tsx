@@ -712,6 +712,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                     onChange(Math.max(Number(e.target.value), 1));
                   }}
                   min={1}
+                  step={1}
                   containerClassName={classNames("max-w-80")}
                   addOnSuffix="bookings"
                   data-testid="booker-booking-limit-input"

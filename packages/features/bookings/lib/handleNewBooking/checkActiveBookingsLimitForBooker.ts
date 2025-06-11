@@ -21,7 +21,7 @@ export const checkActiveBookingsLimitForBooker = async ({
         gte: new Date(),
       },
       status: {
-        in: [BookingStatus.PENDING, BookingStatus.ACCEPTED],
+        in: [BookingStatus.ACCEPTED],
       },
       attendees: {
         some: {
