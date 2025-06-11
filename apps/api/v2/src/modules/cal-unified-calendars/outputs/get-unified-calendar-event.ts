@@ -339,20 +339,15 @@ export class UnifiedCalendarEventOutput {
     name?: string;
   } | null;
 
-  /**
-   * Source or origin of the calendar event
-   */
-  @IsOptional()
   @IsEnum(CALENDARS)
-  @ApiPropertyOptional({
+  @ApiProperty({
     enum: CALENDARS,
     enumName: "CalendarSource",
-    nullable: true,
     description:
       "Calendar integration source (e.g., Google Calendar, Office 365, Apple Calendar). Currently only Google Calendar is supported.",
     example: "google",
   })
-  source?: (typeof CALENDARS)[number] | null;
+  source: (typeof CALENDARS)[number];
 }
 
 export class GetUnifiedCalendarEventOutput {
