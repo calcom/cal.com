@@ -47,13 +47,21 @@ export class OrganizationsDelegationCredentialService {
     delegatedServiceAccountUser: User,
     body: UpdateDelegationCredentialInput
   ) {
-    const delegationCredential =
+    let delegationCredential =
       await this.organizationsDelegationCredentialRepository.findByIdWithWorkspacePlatform(
         delegationCredentialId
       );
 
     if (!delegationCredential) {
       throw new NotFoundException(`DelegationCredential with id ${delegationCredentialId} not found`);
+    }
+
+    if (body.serviceAccountKey !== undefined) {
+      const updatedDelegationCredential = await this.updateDelegationCredentialServiceAccountKey(
+        delegationCredential.id,
+        body.serviceAccountKey
+      );
+      delegationCredential = updatedDelegationCredential ?? delegationCredential;
     }
 
     if (body.enabled !== undefined) {
@@ -64,16 +72,13 @@ export class OrganizationsDelegationCredentialService {
         body.enabled
       );
     }
-    if (body.serviceAccountKey !== undefined) {
-      await this.updateDelegationCredentialServiceAccountKey(delegationCredentialId, body.serviceAccountKey);
-    }
 
     // once delegation credentials are enabled, slowly set all the destination calendars of delegated users
     if (body.enabled === true && delegationCredential.enabled === false) {
       await this.ensureDefaultCalendars(orgId, delegationCredential.domain);
     }
 
-    return { ...delegationCredential, enabled: body?.enabled ?? delegationCredential?.enabled };
+    return { ...delegationCredential, enabled: body?.enabled ?? delegationCredential.enabled };
   }
 
   async ensureDefaultCalendars(orgId: number, domain: string) {
@@ -132,6 +137,7 @@ export class OrganizationsDelegationCredentialService {
         delegationCredentialId,
         {
           serviceAccountKey: encryptedServiceAccountKey,
+          enabled: false,
         }
       );
     return delegationCredential;
