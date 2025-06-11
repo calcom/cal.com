@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -21,7 +22,9 @@ import { SettingsToggle } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
+import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
+import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
 import RoundRobinResetInterval from "../components/RoundRobinResetInterval";
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
@@ -143,6 +146,37 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   );
 };
 
+const PrivacySettingsView = ({ team }: ProfileViewProps) => {
+  const session = useSession();
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
+  const isOrgAdminOrOwner = checkAdminOrOwner(session?.data?.user.org?.role);
+  const isInviteOpen = !team?.membership.accepted;
+  const { t } = useLocale();
+
+  return (
+    <>
+      <div className="mt-6">
+        {team && session.data && (
+          <DisableTeamImpersonation
+            teamId={team.id}
+            memberId={session.data.user.id}
+            disabled={isInviteOpen}
+          />
+        )}
+
+        {team && team.id && (isAdmin || isOrgAdminOrOwner) && (
+          <MakeTeamPrivateSwitch
+            isOrg={false}
+            teamId={team.id}
+            isPrivate={team.isPrivate ?? false}
+            disabled={isInviteOpen}
+          />
+        )}
+      </div>
+    </>
+  );
+};
+
 const TeamSettingsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
@@ -174,6 +208,7 @@ const TeamSettingsViewWrapper = () => {
   return (
     <>
       <BookingLimitsView team={team} />
+      <PrivacySettingsView team={team} />
       <InternalNotePresetsView team={team} />
       <RoundRobinResetInterval team={team} />
     </>
