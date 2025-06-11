@@ -12,17 +12,23 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useBookerTime } from "../../Booker/components/hooks/useBookerTime";
 
-const validateCount = (value: number | string, max: number | null): boolean => {
-  value = Number(value);
-  if (isNaN(value)) return false;
-  return value >= 1 && (max === null || value <= max);
+const parseCount = (value: number | string | null): number | null => {
+  const num = Number(value);
+  return Number.isNaN(num) ? null : num;
+};
+
+const clamp = (num: number, min: number, max: number): number => Math.max(min, Math.min(num, max));
+
+const validateCount = (value: number | string, max: number | undefined): boolean => {
+  const num = parseCount(value);
+  if (num === null) return false;
+  return num >= 1 && (max === undefined || num <= max);
 };
 const getValidCount = (value: number | null, max: number, defaultValue: string | null): number => {
-  const parsedDefaultValue =
-    defaultValue != null && !isNaN(Number(defaultValue)) ? Number(defaultValue) : null;
-  const num = value && !isNaN(value) ? value : parsedDefaultValue ?? 1;
-
-  return Math.max(1, Math.min(num, max));
+  const parsedValue = parseCount(value);
+  const parsedDefault = parseCount(defaultValue) ?? 1;
+  const num = parsedValue ?? parsedDefault;
+  return clamp(num, 1, max);
 };
 
 const RecurringDatesView = ({
@@ -133,11 +139,7 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
     setRecurringEventCount(getValidCount(recurringEventCount, maxOccurences, defaultCount));
   }, [defaultCount, recurringEvent, recurringEventCount, maxOccurences, setRecurringEventCount]);
 
-  if (
-    !recurringEvent ||
-    recurringEventCount === null ||
-    !validateCount(recurringEventCount, recurringEvent.count)
-  )
+  if (!recurringEvent || recurringEventCount === null || !validateCount(recurringEventCount, maxOccurences))
     return null;
 
   if (bookerState === "booking" && recurringEventCount && recurringEvent) {
