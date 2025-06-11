@@ -7,8 +7,6 @@ import {
 } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
 
-import { TRPCError } from "@trpc/server";
-
 import type { TCreateFilterSegmentInputSchema, TUpdateFilterSegmentInputSchema } from "./filterSegment.type";
 
 export class FilterSegmentRepository {
@@ -105,10 +103,7 @@ export class FilterSegmentRepository {
     // If scope is TEAM, verify user has admin/owner permissions
     if (scope === "TEAM") {
       if (!teamId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Team ID is required for team scope",
-        });
+        throw new Error("Team ID is required for team scope");
       }
 
       const membership = await prisma.membership.findFirst({
@@ -123,19 +118,13 @@ export class FilterSegmentRepository {
       });
 
       if (!membership) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You must be a team admin or owner to create team segments",
-        });
+        throw new Error("You must be a team admin or owner to create team segments");
       }
     }
 
     // For USER scope, ensure no teamId is provided
     if (scope === "USER" && teamId) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Team ID is not allowed for user scope",
-      });
+      throw new Error("Team ID is not allowed for user scope");
     }
 
     // Create the filter segment
@@ -185,10 +174,7 @@ export class FilterSegmentRepository {
     });
 
     if (!existingSegment) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Filter segment not found or you don't have permission to update it",
-      });
+      throw new Error("Filter segment not found or you don't have permission to update it");
     }
 
     // Update the filter segment with only the allowed fields
@@ -241,10 +227,7 @@ export class FilterSegmentRepository {
     });
 
     if (!existingSegment) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Filter segment not found or you don't have permission to delete it",
-      });
+      throw new Error("Filter segment not found or you don't have permission to delete it");
     }
 
     // Delete the filter segment
