@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
 import type { UpdateScheduleResponse } from "@calcom/lib/schedules/updateSchedule";
 import type { ApiErrorResponse, ApiResponse, UpdateScheduleInput_2024_06_11 } from "@calcom/platform-types";
@@ -26,10 +28,13 @@ type AvailabilitySettingsPlatformWrapperProps = {
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
   onBeforeUpdate?: (updateBody: UpdateScheduleInput_2024_06_11) => boolean | Promise<boolean>;
+  onFormStateChange?: (formState: AvailabilityFormValues) => void;
   allowDelete?: boolean;
   allowSetToDefault?: boolean;
   disableToasts?: boolean;
   isDryRun?: boolean;
+  noScheduleChildren?: ReactNode;
+  loadingStateChildren?: ReactNode;
 };
 
 export const AvailabilitySettingsPlatformWrapper = ({
@@ -42,10 +47,13 @@ export const AvailabilitySettingsPlatformWrapper = ({
   disableEditableHeading = false,
   enableOverrides = false,
   onBeforeUpdate,
+  onFormStateChange,
   allowDelete,
   allowSetToDefault,
   disableToasts,
   isDryRun = false,
+  noScheduleChildren,
+  loadingStateChildren,
 }: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: atomSchedule } = useAtomSchedule(id);
   const { data: me } = useMe();
@@ -112,9 +120,21 @@ export const AvailabilitySettingsPlatformWrapper = ({
     }
   };
 
-  if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;
+  if (isLoading) {
+    return (
+      <>
+        {loadingStateChildren ? loadingStateChildren : <div className="px-10 py-4 text-xl">Loading...</div>}
+      </>
+    );
+  }
 
-  if (!atomSchedule) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
+  if (!atomSchedule) {
+    return noScheduleChildren ? (
+      <>{noScheduleChildren}</>
+    ) : (
+      <div className="px-10 py-4 text-xl">No user schedule present</div>
+    );
+  }
 
   return (
     <AtomsWrapper>
@@ -171,6 +191,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
         customClassNames={customClassNames}
         allowDelete={allowDelete}
         allowSetToDefault={allowSetToDefault}
+        onFormStateChange={onFormStateChange}
       />
     </AtomsWrapper>
   );
