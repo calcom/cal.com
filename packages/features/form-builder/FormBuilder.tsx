@@ -136,7 +136,15 @@ export const FormBuilder = function FormBuilder({
           <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
           {showPhoneAndEmailToggle && (
             <ToggleGroup
-              defaultValue="email"
+              value={(() => {
+                const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
+                const emailField = fields.find((field) => field.name === "email");
+                if (phoneField && !phoneField.hidden && phoneField.required && !emailField.required) {
+                  return "phone";
+                }
+
+                return "email";
+              })()}
               options={[
                 {
                   value: "email",
