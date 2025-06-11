@@ -1,3 +1,6 @@
+import { Components } from "@calcom/features/form-builder/Components";
+import type { FieldType } from "@calcom/features/form-builder/schema";
+import { FieldTypeArray } from "@calcom/features/form-builder/schema";
 import { AttributeType } from "@calcom/prisma/enums";
 
 import type { RoutingForm, Attribute } from "../types/types";
@@ -51,20 +54,26 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
       field = field.routerField;
     }
     // We can assert the type because otherwise we throw 'Unsupported field type' error
-    const fieldType = field.type as (typeof FieldTypes)[number]["value"];
-    if (FieldTypes.map((f) => f.value).includes(fieldType)) {
+    const fieldType = field.type as FieldType;
+    if (FieldTypeArray.includes(fieldType)) {
       const options = getUIOptionsForSelect(field);
 
-      const widget = FormFieldsInitialConfig.widgets[fieldType];
-      const widgetType = widget.type;
+      const widget = Components[fieldType];
+      const widgetType = widget.propsType;
 
       fields[field.id] = {
-        label: field.label,
+        label: field.label ?? "",
         type: widgetType,
         valueSources: ["value"],
         fieldSettings: {
           // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
-          listValues: fieldType === "select" || fieldType === "multiselect" ? options : undefined,
+          listValues:
+            fieldType === "select" ||
+            fieldType === "multiselect" ||
+            fieldType === "radio" ||
+            fieldType === "checkbox"
+              ? options
+              : undefined,
         },
       };
     } else {

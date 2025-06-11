@@ -91,7 +91,7 @@ describe("getQueryBuilderConfig", () => {
       fields: [
         {
           id: "routerField",
-          type: "router",
+          type: "text",
           label: "Router Field",
           routerId: "innerField",
           routerField: {

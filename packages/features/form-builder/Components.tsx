@@ -29,12 +29,17 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
   text: (val) => typeof val === "string",
   textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
   variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
+  number: (val) => typeof val === "number" || typeof val === "string",
 };
 
 type Component =
   | {
       propsType: "text";
       factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
+    }
+  | {
+      propsType: "number";
+      factory: <TProps extends TextLikeComponentProps<number>>(props: TProps) => JSX.Element;
     }
   | {
       propsType: "textList";
@@ -329,7 +334,7 @@ export const Components: Record<FieldType, Component> = {
     factory: (props) => {
       const newProps = {
         ...props,
-        listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
+        listValues: props.options.map((o) => ({ title: o.label, value: o.label })),
       };
       return <Widgets.SelectWidget id={props.name} {...newProps} />;
     },

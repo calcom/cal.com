@@ -1,3 +1,4 @@
+import type { Fields } from "routing-forms/types/types";
 import { v4 as uuidv4 } from "uuid";
 import { describe, it, expect } from "vitest";
 
@@ -37,7 +38,7 @@ describe("getUrlSearchParamsToForward", () => {
       [field2Id]: { value: ["option1", "option2"], label: "Field 2" },
     };
 
-    const fields = [
+    const fields: Fields = [
       { id: field1Id, identifier: "f1", type: "text", label: "Field 1" },
       {
         id: field2Id,
@@ -53,8 +54,8 @@ describe("getUrlSearchParamsToForward", () => {
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
     const expectedParams = {
-      f1: "value1",
-      f2: ["Option 1", "Option 2"],
+      [field1Id]: "value1",
+      [field2Id]: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -79,7 +80,7 @@ describe("getUrlSearchParamsToForward", () => {
       [field2Id]: { value: "value2" },
     };
 
-    const fields = [
+    const fields: Fields = [
       { id: field1Id, label: "Field 1", type: "text" },
       { id: field2Id, label: "Field 2", type: "text" },
     ];
@@ -87,8 +88,8 @@ describe("getUrlSearchParamsToForward", () => {
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
 
     const expectedParams = {
-      "Field 1": "value1",
-      "Field 2": "value2",
+      [field1Id]: "value1",
+      [field2Id]: "value2",
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -113,7 +114,7 @@ describe("getUrlSearchParamsToForward", () => {
       [field2Id]: { value: ["Option 1", "Option 2"] },
     };
 
-    const fields = [
+    const fields: Fields = [
       {
         id: field1Id,
         label: "Field 1",
@@ -138,8 +139,8 @@ describe("getUrlSearchParamsToForward", () => {
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
 
     const expectedParams = {
-      "Field 1": "Option 1",
-      "Field 2": ["Option 1", "Option 2"],
+      [field1Id]: "Option 1",
+      [field2Id]: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -164,7 +165,7 @@ describe("getUrlSearchParamsToForward", () => {
       [field2Id]: { value: ["Option 1", "Option 2"] },
     };
 
-    const fields = [
+    const fields: Fields = [
       {
         id: field1Id,
         label: "Field 1",
@@ -189,8 +190,8 @@ describe("getUrlSearchParamsToForward", () => {
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
 
     const expectedParams = {
-      "Field 1": "Option 1",
-      "Field 2": ["Option 1", "Option 2"],
+      [field1Id]: "Option 1",
+      [field2Id]: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -213,11 +214,11 @@ describe("getUrlSearchParamsToForward", () => {
       [field1Id]: { value: 123 },
     };
 
-    const fields = [{ id: field1Id, label: "Field 1", type: "number" }];
+    const fields: Fields = [{ id: field1Id, label: "Field 1", type: "number" }];
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
     const expectedParams = {
-      "Field 1": "123",
+      [field1Id]: "123",
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -242,7 +243,7 @@ describe("getUrlSearchParamsToForward", () => {
       [field2Id]: { value: ["option1", "option2"], label: "Field 2" },
     };
 
-    const fields = [
+    const fields: Fields = [
       { id: field1Id, identifier: "f1", type: "text", label: "Field 1" },
       {
         id: field2Id,
@@ -258,8 +259,8 @@ describe("getUrlSearchParamsToForward", () => {
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
     const expectedParams = {
-      f1: "value1",
-      f2: ["Option 1", "Option 2"],
+      [field1Id]: "value1",
+      [field2Id]: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",
@@ -287,7 +288,7 @@ describe("getUrlSearchParamsToForward", () => {
       [field2Id]: { value: ["option1", "option2"], label: "Field 2" },
     };
 
-    const fields = [
+    const fields: Fields = [
       { id: field1Id, identifier: "f1", type: "text", label: "Field 1" },
       {
         id: field2Id,
@@ -303,8 +304,8 @@ describe("getUrlSearchParamsToForward", () => {
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
     const expectedParams = {
-      f1: "value1",
-      f2: ["Option 1", "Option 2"],
+      [field1Id]: "value1",
+      [field2Id]: ["Option 1", "Option 2"],
       query1: "value1",
       query2: "value2",
       "cal.routingFormResponseId": "1",

@@ -35,6 +35,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
+import type { Fields } from "../types/types";
 
 type FormField = {
   identifier?: string;
@@ -48,7 +49,7 @@ type RoutingForm = {
   id: string;
   name: string;
   disabled: boolean;
-  fields?: FormField[];
+  fields?: Fields;
 };
 
 export type NewFormDialogState = { action: "new" | "duplicate"; target: string | null } | null;

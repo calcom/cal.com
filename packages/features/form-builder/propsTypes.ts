@@ -4,7 +4,7 @@ export const propsTypes = {
   phone: "text",
   address: "text",
   text: "text",
-  number: "text",
+  number: "number",
   textarea: "text",
   select: "select",
   multiselect: "multiselect",

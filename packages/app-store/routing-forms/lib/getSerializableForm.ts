@@ -45,8 +45,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     }
   );
 
-  const parsedFields =
-    (withDeletedFields ? fieldsParsed.data : fieldsParsed.data?.filter((f) => !f.deleted)) || [];
+  const parsedFields = fieldsParsed.data ?? [];
   const parsedRoutes = routesParsed.data;
   const fields = parsedFields as NonNullable<z.infer<typeof zodFieldsView>>;
 
