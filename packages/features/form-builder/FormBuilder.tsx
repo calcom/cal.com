@@ -139,7 +139,8 @@ export const FormBuilder = function FormBuilder({
               value={(() => {
                 const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
                 const emailField = fields.find((field) => field.name === "email");
-                if (phoneField && !phoneField.hidden && phoneField.required && !emailField.required) {
+
+                if (phoneField && !phoneField.hidden && phoneField.required && !emailField?.required) {
                   return "phone";
                 }
 
