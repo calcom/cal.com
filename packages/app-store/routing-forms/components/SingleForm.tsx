@@ -146,34 +146,33 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           newFormDialogState={newFormDialogState}
           setNewFormDialogState={setNewFormDialogState}>
 <<<<<<< HEAD
-          <div className="flex h-full min-h-screen w-full flex-col">
-            <Header
-              routingForm={form}
-              isSaving={mutation.isPending}
-              appUrl={appUrl}
-              setShowInfoLostDialog={setShowInfoLostDialog}
-              setIsTestPreviewOpen={setIsTestPreviewOpen}
-              isTestPreviewOpen={isTestPreviewOpen}
-            />
-            <div
-              className={classNames(
-                "bg-default flex-1",
-                isDesktop && "grid gap-8",
-                isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
-                isDesktop && !isTestPreviewOpen && "grid-cols-1",
-                !isDesktop && "flex flex-col"
-              )}>
-              {isDesktop ? (
-                <motion.div
-                  layout
-                  className="mx-auto w-full max-w-4xl px-2 lg:px-4 xl:px-0"
-                  transition={{ duration: 0.3, ease: "easeInOut" }}>
-                  <Page hookForm={hookForm} form={form} appUrl={appUrl} />
-                </motion.div>
-              ) : (
-                <div className="mx-auto w-full max-w-4xl px-2">
-                  <Page hookForm={hookForm} form={form} appUrl={appUrl} />
-=======
+  <div className="flex h-full min-h-screen w-full flex-col">
+    <Header
+      routingForm={form}
+      isSaving={mutation.isPending}
+      appUrl={appUrl}
+      setShowInfoLostDialog={setShowInfoLostDialog}
+      setIsTestPreviewOpen={setIsTestPreviewOpen}
+      isTestPreviewOpen={isTestPreviewOpen}
+    />
+    <div
+      className={classNames(
+        "bg-default flex-1",
+        isDesktop && "grid gap-8",
+        isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
+        isDesktop && !isTestPreviewOpen && "grid-cols-1",
+        !isDesktop && "flex flex-col"
+      )}>
+      {isDesktop ? (
+        <motion.div
+          layout
+          className="mx-auto w-full max-w-4xl px-2 lg:px-4 xl:px-0"
+          transition={{ duration: 0.3, ease: "easeInOut" }}>
+          <Page hookForm={hookForm} form={form} appUrl={appUrl} />
+        </motion.div>
+      ) : (
+        <div className="mx-auto w-full max-w-4xl px-2">
+          <Page hookForm={hookForm} form={form} appUrl={appUrl} />
           <ShellMain
             heading={
               <div className="flex">
@@ -280,74 +279,76 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                     />
                   )}
 >>>>>>> 019ce09865 (fixed types, no type-check errors now)
+=======
+>>>>>>> 349ea3335e (Update SingleForm.tsx)
                 </div>
               )}
-              <AnimatePresence>
-                {isTestPreviewOpen && isDesktop ? (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}>
-                    <TestFormRenderer
-                      isMobile={!isDesktop}
-                      testForm={uptoDateForm}
-                      isTestPreviewOpen={isTestPreviewOpen}
-                      setIsTestPreviewOpen={setIsTestPreviewOpen}
-                    />
-                  </motion.div>
-                ) : isTestPreviewOpen ? (
-                  <div>
-                    <TestFormRenderer
-                      isMobile={!isDesktop}
-                      testForm={uptoDateForm}
-                      isTestPreviewOpen={isTestPreviewOpen}
-                      setIsTestPreviewOpen={setIsTestPreviewOpen}
-                    />
-                  </div>
-                ) : null}
-              </AnimatePresence>
+                <AnimatePresence>
+                  {isTestPreviewOpen && isDesktop ? (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}>
+                      <TestFormRenderer
+                        isMobile={!isDesktop}
+                        testForm={uptoDateForm}
+                        isTestPreviewOpen={isTestPreviewOpen}
+                        setIsTestPreviewOpen={setIsTestPreviewOpen}
+                      />
+                    </motion.div>
+                  ) : isTestPreviewOpen ? (
+                    <div>
+                      <TestFormRenderer
+                        isMobile={!isDesktop}
+                        testForm={uptoDateForm}
+                        isTestPreviewOpen={isTestPreviewOpen}
+                        setIsTestPreviewOpen={setIsTestPreviewOpen}
+                      />
+                    </div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
             </div>
-          </div>
-        </FormActionsProvider>
-        {showInfoLostDialog && (
-          <InfoLostWarningDialog
-            handleSubmit={() => {
-              mutation.mutate({
-                ...hookForm.getValues(),
-              });
-            }}
-            goToRoute={`${appUrl}/route-builder/${form?.id}`}
-            isOpenInfoLostDialog={showInfoLostDialog}
-            setIsOpenInfoLostDialog={setShowInfoLostDialog}
-          />
-        )}
-      </Form>
+          </FormActionsProvider>
+          {showInfoLostDialog && (
+            <InfoLostWarningDialog
+              handleSubmit={() => {
+                mutation.mutate({
+                  ...hookForm.getValues(),
+                });
+              }}
+              goToRoute={`${appUrl}/route-builder/${form?.id}`}
+              isOpenInfoLostDialog={showInfoLostDialog}
+              setIsOpenInfoLostDialog={setShowInfoLostDialog}
+            />
+          )}
+        </Form>
     </>
-  );
+    );
 }
 
-export default function SingleFormWrapper({ form: _form, ...props }: SingleFormComponentProps) {
-  const { data: form, isPending } = trpc.viewer.appRoutingForms.formQuery.useQuery(
-    { id: _form.id },
+    export default function SingleFormWrapper({form: _form, ...props }: SingleFormComponentProps) {
+  const {data: form, isPending } = trpc.viewer.appRoutingForms.formQuery.useQuery(
+    {id: _form.id },
     {
       initialData: _form,
-      trpc: {},
+    trpc: { },
     }
-  );
-  const { t } = useLocale();
+    );
+    const {t} = useLocale();
 
-  if (isPending) {
+    if (isPending) {
     // It shouldn't be possible because we are passing the data from SSR to it as initialData. So, no need for skeleton here
     return null;
   }
 
-  if (!form) {
+    if (!form) {
     throw new Error(t("something_went_wrong"));
   }
-  return (
+    return (
     <LicenseRequired>
       <SingleForm form={form} {...props} />
     </LicenseRequired>
-  );
+    );
 }
