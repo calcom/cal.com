@@ -1,20 +1,19 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
-import type { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
-import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
+import { type EventTypesPublic, getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
-import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { type User } from "@calcom/prisma/client";
+import { RedirectType } from "@calcom/prisma/enums";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -48,24 +47,7 @@ type UserPageProps = {
     name?: string | null;
     teamSlug?: string | null;
   };
-  eventTypes: ({
-    descriptionAsSafeHTML: string;
-    metadata: z.infer<typeof EventTypeMetaDataSchema>;
-  } & Pick<
-    EventType,
-    | "id"
-    | "title"
-    | "slug"
-    | "length"
-    | "hidden"
-    | "lockTimeZoneToggleOnBookingPage"
-    | "requiresConfirmation"
-    | "canSendCalVideoTranscriptionEmails"
-    | "requiresBookerEmailVerification"
-    | "price"
-    | "currency"
-    | "recurringEvent"
-  >)[];
+  eventTypes: EventTypesPublic;
   isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;
 

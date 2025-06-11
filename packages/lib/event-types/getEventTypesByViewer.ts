@@ -7,9 +7,9 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { presentEventTypes } from "@calcom/lib/server/repository/eventType.presenter";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -107,7 +107,6 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
   const mapEventType = async (eventType: UserEventTypes) => ({
     ...eventType,
-    safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
     users: await Promise.all(
       (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
         async (u) =>
@@ -243,6 +242,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
           const team = {
             ...membership.team,
+            eventTypes: presentEventTypes(membership.team.eventTypes),
             metadata: teamMetadataSchema.parse(membership.team.metadata),
           };
 
