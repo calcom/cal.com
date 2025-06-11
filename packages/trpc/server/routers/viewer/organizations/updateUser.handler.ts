@@ -2,15 +2,12 @@ import type { Prisma, PrismaPromise, User, Membership, Profile } from "@prisma/c
 
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { DEFAULT_ROLE_IDS, RoleService } from "@calcom/features/pbac/services/role.service";
+import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
-import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -46,35 +43,8 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   if (!organizationId)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a member of an organizaiton" });
 
-  const featuresRepository = new FeaturesRepository();
-  const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
-
-  if (isPBACEnabled) {
-    const permissionCheckService = new PermissionCheckService();
-    const hasPermissionToChangeMemberRole = await permissionCheckService.checkPermission({
-      userId,
-      teamId: organizationId,
-      permission: "organization.changeMemberRole",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-    });
-
-    if (!hasPermissionToChangeMemberRole) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-  } else {
-    const isUpdaterAnOwner = await isOrganisationOwner(userId, organizationId);
-    // only OWNER can update the role to OWNER
-    if (input.role === MembershipRole.OWNER && !isUpdaterAnOwner) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    const isUserBeingUpdatedOwner = await isOrganisationOwner(input.userId, organizationId);
-
-    // only owner can update the role of another owner
-    if (isUserBeingUpdatedOwner && !isUpdaterAnOwner) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-  }
+  const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
+  await roleManager.checkPermissionToChangeRole(userId, organizationId);
 
   await ensureOrganizationIsReviewed(organizationId);
 
@@ -158,22 +128,6 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     }),
   ];
 
-  if (!isPBACEnabled) {
-    transactions.push(
-      prisma.membership.update({
-        where: {
-          userId_teamId: {
-            userId: input.userId,
-            teamId: organizationId,
-          },
-        },
-        data: {
-          role: input.role,
-        },
-      })
-    );
-  }
-
   if (hasUsernameUpdated) {
     transactions.push(
       prisma.profile.update({
@@ -192,22 +146,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
 
   await prisma.$transaction(transactions);
 
-  if (isPBACEnabled) {
-    const roleService = new RoleService();
-    const isDefaultRole = input.role in DEFAULT_ROLE_IDS;
-    // Check if the role is a default role
-    if (isDefaultRole) {
-      await roleService.assignRoleToMember(DEFAULT_ROLE_IDS[input.role], requestedMember.id);
-    } else {
-      // Check if team has access to the role and if not, throw an error
-      const role = await roleService.roleBelongsToTeam(input.role, organizationId);
-      if (!role) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have access to this role" });
-      }
-
-      await roleService.assignRoleToMember(input.role, requestedMember.id);
-    }
-  }
+  await roleManager.assignRole(input.userId, organizationId, input.role, requestedMember.id);
 
   if (input.attributeOptions) {
     await assignUserToAttributeHandler({
