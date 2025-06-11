@@ -11,12 +11,13 @@ export class VerificationTokenRepository {
     expiresInDays: number;
   }) {
     const expires = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
-    return prisma.verificationToken.updateMany({
+    const results = await prisma.verificationToken.updateMany({
       where: {
         identifier: email,
         teamId,
       },
       data: { expires },
     });
+    return results[0];
   }
 }
