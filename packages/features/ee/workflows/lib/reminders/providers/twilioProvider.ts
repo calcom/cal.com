@@ -284,11 +284,11 @@ export async function getCountryCodeForNumber(phoneNumber: string) {
   return countryCode;
 }
 
-export async function getPriceForSMS(smsSid: string) {
+export async function getMessageInfo(smsSid: string) {
   const twilio = createTwilioClient();
   const message = await twilio.messages(smsSid).fetch();
   if (message.price == null || message.price === "null") return null;
-  return Math.abs(parseFloat(message.price));
+  return { price: Math.abs(parseFloat(message.price)), numSegments: parseInt(message.numSegments) };
 }
 
 export async function validateWebhookRequest({
