@@ -27,12 +27,12 @@ type MonthOption = {
   endDate: string;
 };
 
+// returns the last 12 months starting from May 2025 (when credits were introduced)
 const getMonthOptions = (): MonthOption[] => {
   const options: MonthOption[] = [];
-  const currentDate = dayjs();
   const minDate = dayjs("2025-05-01");
 
-  let date = currentDate;
+  let date = dayjs();
   let count = 0;
   while ((date.isAfter(minDate) || date.isSame(minDate, "month")) && count < 12) {
     const startDate = date.startOf("month");

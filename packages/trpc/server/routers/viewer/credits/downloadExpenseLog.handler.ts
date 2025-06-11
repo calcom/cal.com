@@ -58,15 +58,12 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
       },
     },
   });
+  const headers = ["Date", "Credits", "Type", "Booking UID", "Number of Segments"];
 
   if (!creditBalance) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "No credit balance found",
-    });
+    return { csvData: headers.join(",") };
   }
 
-  const headers = ["Date", "Credits", "Type", "Booking UID", "Number of Segments"];
   const rows = creditBalance.expenseLogs.map((log) => [
     log.date.toISOString(),
     log.credits?.toString() ?? "",
