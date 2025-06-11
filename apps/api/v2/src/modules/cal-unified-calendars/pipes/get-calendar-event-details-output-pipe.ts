@@ -1,4 +1,5 @@
 import {
+  CalendarEventStatus,
   DateTimeWithZone,
   UnifiedCalendarEventOutput,
 } from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event";
@@ -115,7 +116,24 @@ export class GoogleCalendarEventOutputPipe
         });
     }
 
-    calendarEvent.status = googleEvent.status || null;
+    // Map Google Calendar status to our CalendarEventStatus enum
+    if (googleEvent.status) {
+      switch (googleEvent.status.toLowerCase()) {
+        case "confirmed":
+          calendarEvent.status = CalendarEventStatus.ACCEPTED;
+          break;
+        case "tentative":
+          calendarEvent.status = CalendarEventStatus.PENDING;
+          break;
+        case "cancelled":
+          calendarEvent.status = CalendarEventStatus.CANCELLED;
+          break;
+        default:
+          calendarEvent.status = null;
+      }
+    } else {
+      calendarEvent.status = null;
+    }
 
     if (googleEvent.organizer) {
       calendarEvent.organizer = {

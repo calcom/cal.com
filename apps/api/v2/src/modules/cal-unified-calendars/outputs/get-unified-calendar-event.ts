@@ -5,6 +5,16 @@ import { IsEnum, IsISO8601, IsOptional, IsString, ValidateNested } from "class-v
 import { CALENDARS, SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 /**
+ * Calendar event status enum
+ */
+export enum CalendarEventStatus {
+  ACCEPTED = "accepted",
+  PENDING = "pending",
+  DECLINED = "declined",
+  CANCELLED = "cancelled",
+}
+
+/**
  * Base interface for all calendar event locations
  */
 interface ICalendarEventLocation {
@@ -239,14 +249,16 @@ export class UnifiedCalendarEventOutput {
     self?: boolean;
   }> | null;
 
-  @IsString()
+  @IsEnum(CalendarEventStatus)
   @IsOptional()
   @ApiPropertyOptional({
-    type: String,
+    enum: CalendarEventStatus,
+    enumName: "CalendarEventStatus",
     nullable: true,
-    description: "Status of the event (confirmed, tentative, cancelled)",
+    description: "Status of the event (accepted, pending, declined, cancelled)",
+    example: CalendarEventStatus.ACCEPTED,
   })
-  status?: string | null;
+  status?: CalendarEventStatus | null;
 
   @IsOptional()
   @ApiPropertyOptional({
