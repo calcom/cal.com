@@ -11,13 +11,23 @@ export class VerificationTokenRepository {
     expiresInDays: number;
   }) {
     const expires = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
-    const results = await prisma.verificationToken.updateMany({
+
+    const token = await prisma.verificationToken.findFirst({
       where: {
         identifier: email,
         teamId,
       },
+    });
+
+    await prisma.verificationToken.update({
+      where: {
+        identifier: email,
+        teamId,
+        token: token?.token,
+      },
       data: { expires },
     });
-    return results[0];
+
+    return { ...token, expires };
   }
 }
