@@ -42,4 +42,15 @@ export class AttributeRepository {
 
     return result;
   }
+
+  static async findAllByOrgIdWithOptions({ orgId }: { orgId: number }) {
+    return await prisma.attribute.findMany({
+      where: {
+        teamId: orgId,
+      },
+      include: {
+        options: true,
+      },
+    });
+  }
 }
