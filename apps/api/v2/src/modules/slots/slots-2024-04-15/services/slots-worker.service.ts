@@ -3,11 +3,10 @@ import { ConfigService } from "@nestjs/config";
 import * as path from "path";
 import { Worker } from "worker_threads";
 
+// Import WorkerOptions type
 import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import { TimeSlots } from "./slots-output.service";
-
-// Assuming this is where TimeSlots is defined
 
 /**
  * Interface to define the structure of messages sent to the worker.
@@ -35,7 +34,7 @@ interface WorkerResult {
 export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   private readonly logger = new Logger(SlotsWorkerService_2024_04_15.name);
   private readonly workerPool: Worker[] = [];
-  private readonly maxWorkers: number; // Can be made configurable via env var
+  private readonly maxWorkers: number;
   private readonly taskQueue: Array<{
     resolve: (value: TimeSlots) => void;
     reject: (reason: Error) => void;
@@ -44,16 +43,18 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   private availableWorkers: Worker[] = [];
 
   constructor(private readonly config: ConfigService) {
-    // You could load this from a config service or environment variable
     this.maxWorkers = process.env.SLOTS_WORKER_POOL_SIZE
       ? parseInt(process.env.SLOTS_WORKER_POOL_SIZE, 10)
       : 4;
-    !this.config.get<boolean>("e2e") && this.initializeWorkerPool();
+    // Condition to initialize worker pool based on config service, not changed for Jest.
+    if (!this.config.get<boolean>("e2e")) {
+      this.initializeWorkerPool();
+    }
   }
 
   /**
    * Initializes the worker pool by creating a fixed number of worker threads.
-   * Each worker is set up with event listeners for messages, errors, and exits.
+   * Each worker is set up with persistent event listeners for errors and exits.
    */
   private initializeWorkerPool(): void {
     for (let i = 0; i < this.maxWorkers; i++) {
@@ -62,23 +63,20 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   }
 
   /**
-   * Creates a new worker thread and configures its event listeners.
+   * Creates a new worker thread and configures its essential, persistent event listeners.
    * Adds the new worker to the pool and available workers list.
+   * The worker file path is kept as original (slots.worker.js) as per request.
    */
   private createNewWorker(): void {
+    // Worker file path is kept as original (slots.worker.js) as per request.
+    // This assumes that in your Jest/production environment, 'slots.worker.js' will be found
+    // relative to the compiled location of this service.
     const worker = new Worker(path.join(__dirname, "../workers/slots.worker.js"));
 
-    worker.on("message", (result: WorkerResult) => {
-      // Messages handled by the specific task's `worker.once('message')` listener
-      // This listener is primarily for general worker status or if a message wasn't
-      // caught by a specific task listener (though that should be rare with `once`).
-      if (!result.success) {
-        this.logger.error(`Unhandled worker error message: ${result.error?.message}`, result.error?.stack);
-      }
-    });
-
+    // These 'on' listeners are for the worker's overall lifecycle (crashes, exits).
+    // They are persistent and responsible for calling handleWorkerFailure.
     worker.on("error", (err: Error) => {
-      this.logger.error(`Worker experienced an error: ${err.message}`, err.stack);
+      this.logger.error(`Worker experienced a persistent error: ${err.message}`, err.stack);
       this.handleWorkerFailure(worker);
     });
 
@@ -86,8 +84,11 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
       if (code !== 0) {
         this.logger.error(`Worker exited with code ${code}.`);
       }
-      this.handleWorkerFailure(worker);
+      this.handleWorkerFailure(worker); // Always attempt to handle failure
     });
+
+    // Removed the problematic general 'worker.on("message")' listener from here.
+    // All task-specific messages will now be handled exclusively by 'worker.once("message")' in processNextTask.
 
     this.workerPool.push(worker);
     this.availableWorkers.push(worker);
@@ -95,7 +96,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
 
   /**
    * Handles the failure of a worker by removing it from pools and creating a new one.
-   * This ensures the worker pool remains at the desired size.
+   * This ensures the worker pool remains at the desired size and healthy.
    * @param failedWorker The worker that failed or exited.
    */
   private handleWorkerFailure(failedWorker: Worker): void {
@@ -103,8 +104,17 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
     this.workerPool.splice(this.workerPool.indexOf(failedWorker), 1);
     this.availableWorkers = this.availableWorkers.filter((w) => w !== failedWorker);
 
-    // Create a new worker to replace the failed one
-    this.createNewWorker();
+    // Attempt to create a new worker to replace the failed one
+    try {
+      this.createNewWorker();
+    } catch (error) {
+      this.logger.error(
+        `Failed to create replacement worker after failure: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        error instanceof Error ? error.stack : undefined
+      );
+    }
 
     // After a worker fails, process the next task in case there are queued tasks
     this.processNextTask();
@@ -112,7 +122,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
 
   /**
    * Processes the next task in the queue if there are available workers.
-   * Assigns a task to an available worker and sets up listeners for its specific result.
+   * Assigns a task to an available worker and sets up 'once' listeners for its specific result.
    */
   private processNextTask(): void {
     if (this.taskQueue.length > 0 && this.availableWorkers.length > 0) {
@@ -120,7 +130,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
       const worker = this.availableWorkers.shift();
 
       if (!task || !worker) {
-        // This should theoretically not happen if the checks above pass
+        // This should theoretically not happen if the checks above pass, but good for type narrowing.
         return;
       }
 
@@ -137,50 +147,47 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
         : undefined;
 
       try {
-        // Set up listeners for this specific task's outcome
+        // Use 'once' listeners for task-specific responses and errors.
+        // 'once' listeners automatically remove themselves after being invoked, preventing leaks.
         const messageListener = (result: WorkerResult) => {
-          // Put the worker back in the available pool once done
-          this.availableWorkers.push(worker);
+          this.availableWorkers.push(worker); // Return worker to the available pool
           if (result.success) {
             task.resolve(result.data as TimeSlots);
           } else {
-            const error = result.error;
-            task.reject(error ?? new Error("INTERNAL_SERVER_ERROR"));
+            task.reject(result.error ?? new Error("An error occurred in the worker thread."));
           }
-          // Remove listeners to prevent memory leaks and ensure only one resolution/rejection per task
-          worker.off("message", messageListener);
-          worker.off("error", errorListener);
+          this.processNextTask(); // Attempt to process the next task
         };
 
         const errorListener = (err: Error) => {
           this.availableWorkers.push(worker); // Ensure worker is returned
-          task.reject(new Error(err.message));
-          worker.off("message", messageListener);
-          worker.off("error", errorListener);
+          task.reject(new Error(`Worker thread error during task execution: ${err.message}`));
+          this.processNextTask(); // Attempt to process the next task
         };
 
-        worker.on("message", messageListener);
-        worker.on("error", errorListener);
+        worker.once("message", messageListener); // Use 'once' for task results
+        worker.once("error", errorListener); // Use 'once' for task-specific errors
 
         worker.postMessage({
           input: task.options.input,
           ctx: serializableCtx,
         } as WorkerMessage);
       } catch (error) {
-        // If posting the message itself fails
-        this.availableWorkers.push(worker); // Ensure worker is returned
-        task.reject(new Error("Failed to dispatch task to worker"));
+        // If posting the message itself fails (e.g., serialization error)
+        this.availableWorkers.push(worker); // Ensure worker is returned to pool
+        task.reject(
+          new Error(
+            `Failed to dispatch task to worker: ${error instanceof Error ? error.message : String(error)}`
+          )
+        );
         this.processNextTask(); // Try to process next task if available
-      } finally {
-        // Always try to process the next task, even if there was a dispatch error.
-        this.processNextTask();
       }
     }
   }
 
   /**
    * Public method to request available time slots, offloading the computation to a worker thread.
-   * Returns a Promise that resolves with the TimeSlots or rejects with a Error.
+   * Returns a Promise that resolves with the TimeSlots or rejects with an Error.
    * @param options The GetScheduleOptions to pass to the worker.
    * @returns A Promise resolving to TimeSlots.
    */
@@ -194,11 +201,6 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
       this.processNextTask(); // Attempt to process immediately
     });
   }
-
-  /**
-   * NestJS lifecycle hook. Called when the module is being destroyed.
-   * Terminates all worker threads to prevent memory leaks and ensure graceful shutdown.
-   */
 
   onModuleDestroy(): void {
     this.logger.log("Terminating worker pool...");
