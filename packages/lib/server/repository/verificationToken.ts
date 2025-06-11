@@ -10,7 +10,7 @@ export class VerificationTokenRepository {
     teamId: number;
     expiresInDays: number;
   }) {
-    const expires = new Date(new Date().setHours(expiresInDays * 24));
+    const expires = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
     return prisma.verificationToken.updateMany({
       where: {
         identifier: email,
