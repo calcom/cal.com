@@ -33,7 +33,7 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
       expiresInDays: 7,
     });
   } catch (error) {
-    console.error("[resendInvitationHandler]Error updating verification token:", error);
+    console.error("[resendInvitationHandler] Error updating verification token: ", error);
   }
 
   const inviteTeamOptions = {
