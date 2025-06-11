@@ -260,6 +260,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booker booking limit must be greater than 0." });
     }
 
+    if (recurringEvent || (recurringEvent === undefined && eventType.recurringEvent)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Recurring Events and Offer Seats cannot be active at the same time.",
+      });
+    }
+
     data.maxActiveBookingsPerBooker = maxActiveBookingsPerBooker;
   }
 

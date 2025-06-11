@@ -389,6 +389,9 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
+  const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
+    (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
+  );
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -685,12 +688,12 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
       <Controller
         name="maxActiveBookingsPerBooker"
         render={({ field: { onChange, value } }) => {
-          const isChecked = value && value > 0;
+          const isChecked = maxActiveBookingsPerBookerToggle;
           return (
             <SettingsToggle
               labelClassName={classNames("text-sm")}
               disabled={isRecurringEvent}
-              tooltip={t("recurring_event_doesnt_support_booker_booking_limit")}
+              tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
@@ -706,6 +709,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                 } else {
                   onChange(null);
                 }
+                setMaxActiveBookingsPerBookerToggle((state) => !state);
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <TextField
@@ -713,8 +717,9 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                   type="number"
                   value={value}
                   onChange={(e) => {
-                    onChange(Math.max(Number(e.target.value), 1));
+                    onChange(parseInt(e.target.value, 10));
                   }}
+                  placeholder="1"
                   min={1}
                   step={1}
                   containerClassName={classNames("max-w-80")}
