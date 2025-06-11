@@ -49,7 +49,7 @@ const withFetch = async (url: string, init?: RequestInit | undefined) => {
   if (schema.data.response.messageKey === "checksumError") {
     throw new BBBError(bbbError.INVALID_CHECKSUM);
   } else {
-    log.info(`[BBB] unhandled error from server: ${schema.data.response.messageKey}`);
+    // log.info(`[BBB] unhandled error from server: ${JSON.stringify(schema.data.response)}`);
     throw new BBBError(bbbError.INVALID_XML_FORMAT);
   }
 };
@@ -87,7 +87,14 @@ export class BBBApi {
     const to_hash = `${action.toString()}${params.toString().trim()}${this.options.secret}`;
     const checksum = createHash(this.options.hash).update(to_hash).digest("hex");
 
-    return `${this.options.url}${action.toString()}?${params.toString().trim()}&checksum=${checksum}`;
+    const url = new URL(
+      action.toString(),
+      this.options.url.endsWith("/") ? this.options.url : `${this.options.url}/`
+    );
+    url.search = params.toString().trim();
+    url.searchParams.append("checksum", checksum);
+
+    return url.toString();
   }
 
   // ...api/create?meetingID=random-6970858&name=random-6970858&welcome=(url encoded string and optional)

@@ -10,7 +10,6 @@ import metadata from "../_metadata";
 const log = logger.getSubLogger({ prefix: ["app-store/bigbluebutton/lib/VideoApiAdapter"] });
 
 const BigBlueButtonAdapter = (credential: CredentialPayload): VideoApiAdapter => {
-  console.log("BigBlueButtonAdapter--credential: ", credential);
   return {
     createMeeting: async (e: CalendarEvent): Promise<VideoCallData> => {
       if (!credential.userId) {
@@ -19,6 +18,7 @@ const BigBlueButtonAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       }
 
       if (!e.uid) {
+        log.info("[BBB] No booking UID provided, cannot create meeting");
         throw new Error("We need need the booking uid to create the BigBlueButton reference in the DB");
       }
 
@@ -31,22 +31,23 @@ const BigBlueButtonAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         url,
       });
     },
-    updateMeeting: async (_bookingRef: PartialReference, e: CalendarEvent): Promise<VideoCallData> => {
+    updateMeeting: async (bookingRef: PartialReference, e: CalendarEvent): Promise<VideoCallData> => {
       if (!credential.userId) {
         log.error("[BBB] User is not logged in");
         throw new Error("User is not logged in");
       }
 
       if (!e.uid) {
+        log.info("[BBB] No booking UID provided, cannot update meeting");
         throw new Error("We need need the booking uid to create the BigBlueButton reference in the DB");
       }
 
       const url = `${WEBAPP_URL}/api/integrations/bigbluebutton/join?meetingID=${e.uid}`;
 
       return Promise.resolve({
-        type: metadata.type,
+        type: bookingRef.type || metadata.type,
         id: e.uid,
-        password: "",
+        password: bookingRef.meetingPassword || "",
         url,
       });
     },

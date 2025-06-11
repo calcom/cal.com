@@ -82,7 +82,6 @@ async function joinHandler(req: NextApiRequest, res: NextApiResponse) {
   await bbb.createMeeting(meetingID, data.booking.title);
 
   const role = isOwner ? Role.MODERATOR : Role.VIEWER;
-
   const named = isOwner
     ? req.session?.user?.name || "Host"
     : data.booking.attendees.find((attendee) => attendee.email === req.session?.user?.email)?.name ||

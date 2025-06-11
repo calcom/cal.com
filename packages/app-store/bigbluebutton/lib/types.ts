@@ -39,6 +39,8 @@ export const bbbJoinMeetingSchema = z.object({
   fullName: z.string(),
   role: z.nativeEnum(Role),
   redirect: z.boolean().default(false),
+  logoutURL: z.string().optional(), // redirect for when the user clicks the OK button on the meeting ended screen
+  errorRedirectUrl: z.string().optional(), // redirect for when there's an error joining the meeting
 });
 
 export const bbbEncryptedSchema = z.object({
@@ -131,15 +133,6 @@ export const bbbJoinMeetingResponseSchema = z.object({
   guestStatus: z.string(),
   url: z.string().url(),
 });
-
-/*
-(any) Error response
-<response>
-  <returncode>FAILED</returncode>
-  <messageKey>checksumError</messageKey>
-  <message>Checksums do not match</message>
-</response>
-*/
 
 // Using a discriminated union because these two guys are practically using the same field but different results.
 // Am also using passthrough if the response is successful.
