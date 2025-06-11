@@ -303,7 +303,8 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
           filter: { type: ColumnFilterType.MULTI_SELECT },
         },
         cell: ({ row, table }) => {
-          const { role, username } = row.original;
+          const { role, username, customRole } = row.original;
+          const roleName = customRole.name || role;
           return (
             <Badge
               data-testid={`member-${username}-role`}
@@ -311,7 +312,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
               }}>
-              {role}
+              {roleName}
             </Badge>
           );
         },

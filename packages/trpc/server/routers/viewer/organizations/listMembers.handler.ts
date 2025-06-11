@@ -196,6 +196,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       accepted: true,
       createdAt: true,
       updatedAt: true,
+      customRole: true,
       user: {
         select: {
           id: true,
@@ -272,6 +273,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         email: user.email,
         timeZone: user.timeZone,
         role: membership.role,
+        customRole: membership.customRole,
         accepted: membership.accepted,
         disableImpersonation: user.disableImpersonation,
         completedOnboarding: user.completedOnboarding,
