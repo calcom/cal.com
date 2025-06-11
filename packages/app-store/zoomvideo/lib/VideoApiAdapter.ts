@@ -69,11 +69,27 @@ export const zoomUserSettingsSchema = z.object({
   schedule_meeting: z.object({
     default_password_for_scheduled_meetings: z.string(),
   }),
+  in_meeting: z
+    .object({
+      meeting_summary_with_ai_companion: z
+        .object({
+          enabled: z.boolean().optional(),
+          auto_start: z.boolean().optional(),
+        })
+        .optional(),
+      ai_companion_questions: z
+        .object({
+          enabled: z.boolean().optional(),
+          auto_start: z.boolean().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
 // append comma separated settings here, to retrieve only these specific settings
-const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording";
+const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording,in_meeting";
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -176,6 +192,10 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         auto_recording: userSettings?.recording?.auto_recording || "none",
         enforce_login: false,
         registrants_email_notification: true,
+        auto_start_meeting_summary:
+          userSettings?.in_meeting?.meeting_summary_with_ai_companion?.auto_start ?? false,
+        auto_start_ai_companion_questions:
+          userSettings?.in_meeting?.ai_companion_questions?.auto_start ?? false,
       },
       ...recurrence,
     };
