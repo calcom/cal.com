@@ -1,17 +1,14 @@
 import kysely from "@calcom/kysely";
-import { MembershipRole, RoleType } from "@calcom/prisma/enums";
+import type { MembershipRole } from "@calcom/prisma/enums";
+import { RoleType } from "@calcom/prisma/enums";
 
 import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models/Role";
 import type { IRoleRepository } from "../domain/repositories/IRoleRepository";
 import { RoleRepository } from "../infrastructure/repositories/RoleRepository";
+import { DEFAULT_ROLE_IDS } from "../lib/constants";
 import { PermissionService } from "./permission.service";
 
 // These IDs must match the ones in the migration
-export const DEFAULT_ROLE_IDS = {
-  [MembershipRole.OWNER]: "owner_role",
-  [MembershipRole.ADMIN]: "admin_role",
-  [MembershipRole.MEMBER]: "member_role",
-} as const;
 
 export class RoleService {
   constructor(
