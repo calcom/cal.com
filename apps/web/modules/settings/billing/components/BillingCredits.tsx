@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
+import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
@@ -40,6 +41,18 @@ export default function BillingCredits() {
     },
     onError: () => {
       showToast(t("credit_purchase_failed"), "error");
+    },
+  });
+
+  const downloadExpenseLogMutation = trpc.viewer.credits.downloadExpenseLog.useMutation({
+    onSuccess: (data) => {
+      if (data.csvData) {
+        const filename = `credit-expense-log-${new Date().toISOString().split("T")[0]}.csv`;
+        downloadAsCsv(data.csvData, filename);
+      }
+    },
+    onError: () => {
+      showToast(t("error_downloading_expense_log"), "error");
     },
   });
 
@@ -138,6 +151,15 @@ export default function BillingCredits() {
               </Button>
             </div>
           </form>
+          <div className="-mx-6 mb-6 mt-6">
+            <hr className="border-subtle mb-3 mt-3" />
+          </div>
+          <Button
+            onClick={() => downloadExpenseLogMutation.mutate({ teamId })}
+            loading={downloadExpenseLogMutation.isPending}
+            StartIcon="file-down">
+            {t("download_expense_log")}
+          </Button>
         </div>
       </div>
     </div>
