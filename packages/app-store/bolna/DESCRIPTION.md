@@ -17,7 +17,7 @@ Create agents using 0 Code! Edit our pre-built agents or design your own agent f
 Our agents understand your business and speak with the tone and finesse of trained receptionists (understanding interruptions, pauses etc.)
 
 ### Function calling
-Simply add functions to book calendar  appointments(cal.com), transfer calls to human agents in real time, or even create your own function calls
+Simply add functions to book calendar  appointments([cal.com](https://cal.com)), transfer calls to human agents in real time, or even create your own function calls
 
 ### Multi-lingual support
 Create agents in any language and place calls anywhere around the world

@@ -27,6 +27,7 @@ vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
   WEBAPP_URL: "http://localhost:3000",
   RESERVED_SUBDOMAINS: ["auth", "docs"],
+  SINGLE_ORG_SLUG: "",
 }));
 
 describe("getSchedule", () => {
