@@ -7193,6 +7193,48 @@
         ]
       }
     },
+    "/v2/bookings/{bookingUid}/transcripts": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
+        "summary": "Get all the transcripts download links for the booking",
+        "description": " Fetches all the transcripts download links for the booking `:bookingUid`",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingTranscriptsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
     "/v2/bookings/{bookingUid}/reschedule": {
       "post": {
         "operationId": "BookingsController_2024_08_13_rescheduleBooking",
@@ -24459,6 +24501,32 @@
             "type": "array",
             "items": {
               "type": "object"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetBookingTranscriptsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "error": {
+            "type": "object"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         },

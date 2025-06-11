@@ -82,6 +82,7 @@ export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/ro
 export {
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
+  getAllTranscriptsAccessLinkFromRoomName,
 } from "@calcom/lib/videoClient";
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
