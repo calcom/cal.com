@@ -65,7 +65,7 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
-        userName: overrideName ?? loggedInUserName ? loggedInUserName ?? undefined : undefined,
+        userName: overrideName ?? loggedInUserName ?? undefined,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
