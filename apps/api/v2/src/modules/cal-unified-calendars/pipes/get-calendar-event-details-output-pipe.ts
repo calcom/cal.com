@@ -138,19 +138,25 @@ export class GoogleCalendarEventOutputPipe
     }
 
     if (googleEvent.organizer) {
-      calendarEvent.organizer = {
-        email: googleEvent.organizer.email,
-        name: googleEvent.organizer.displayName,
-      };
+      calendarEvent.hosts = [
+        {
+          email: googleEvent.organizer.email,
+          name: googleEvent.organizer.displayName,
+        },
+      ];
     } else if (googleEvent.attendees) {
       // If no explicit organizer, find the first attendee with organizer flag
       const organizerAttendee = googleEvent.attendees.find((attendee) => attendee.organizer);
       if (organizerAttendee) {
-        calendarEvent.organizer = {
-          email: organizerAttendee.email,
-          name: organizerAttendee.displayName,
-        };
+        calendarEvent.hosts = [
+          {
+            email: organizerAttendee.email,
+            name: organizerAttendee.displayName,
+          },
+        ];
       }
+    } else {
+      calendarEvent.hosts = [];
     }
 
     calendarEvent.source = "google";

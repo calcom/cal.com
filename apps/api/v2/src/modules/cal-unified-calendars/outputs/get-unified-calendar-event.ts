@@ -326,18 +326,23 @@ export class UnifiedCalendarEventOutput {
 
   @IsOptional()
   @ApiPropertyOptional({
-    type: "object",
-    properties: {
-      email: { type: "string", description: "Email address of the event organizer" },
-      name: { type: "string", nullable: true, description: "Display name of the event organizer" },
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        email: { type: "string", description: "Email address of the event host" },
+        name: { type: "string", nullable: true, description: "Display name of the event host" },
+      },
     },
     nullable: true,
-    description: "Information about the event organizer/host",
+    description: "Information about the event hosts (organizers)",
   })
-  organizer?: {
-    email: string;
-    name?: string;
-  } | null;
+  hosts?:
+    | Array<{
+        email: string;
+        name?: string;
+      }>
+    | [];
 
   @IsEnum(CALENDARS)
   @ApiProperty({
@@ -347,7 +352,7 @@ export class UnifiedCalendarEventOutput {
       "Calendar integration source (e.g., Google Calendar, Office 365, Apple Calendar). Currently only Google Calendar is supported.",
     example: "google",
   })
-  source: (typeof CALENDARS)[number];
+  source!: (typeof CALENDARS)[number];
 }
 
 export class GetUnifiedCalendarEventOutput {
