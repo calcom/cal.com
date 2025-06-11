@@ -175,7 +175,7 @@ export class BookingsRepository_2024_08_13 {
       where: {
         uid,
       },
-      include: {
+      select: {
         references: true,
       },
     });
