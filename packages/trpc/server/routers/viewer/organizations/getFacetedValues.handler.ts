@@ -1,5 +1,5 @@
+import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -19,6 +19,10 @@ export const getFacetedValuesHandler = async ({ ctx }: DeleteOptions) => {
   if (!organizationId) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Organization not found" });
   }
+
+  const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
+  const roles = await roleManager.getAllRoles(organizationId);
+
   const [teams, attributes] = await Promise.all([
     prisma.team.findMany({
       where: {
@@ -47,7 +51,7 @@ export const getFacetedValuesHandler = async ({ ctx }: DeleteOptions) => {
   return {
     teams: teams,
     attributes: attributes,
-    roles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    roles: roles,
   };
 };
 

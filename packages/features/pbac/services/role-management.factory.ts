@@ -17,6 +17,7 @@ interface IRoleManager {
     role: MembershipRole,
     membershipId: number
   ): Promise<void>;
+  getAllRoles(organizationId: number): Promise<{ id: string; name: string }[]>;
 }
 
 class PBACRoleManager implements IRoleManager {
@@ -56,6 +57,14 @@ class PBACRoleManager implements IRoleManager {
       await this.roleService.assignRoleToMember(role, membershipId);
     }
   }
+
+  async getAllRoles(organizationId: number): Promise<{ id: string; name: string }[]> {
+    const roles = await this.roleService.repository.findByTeamId(organizationId);
+    return roles.map((role) => ({
+      id: role.id,
+      name: role.name,
+    }));
+  }
 }
 
 class LegacyRoleManager implements IRoleManager {
@@ -80,6 +89,14 @@ class LegacyRoleManager implements IRoleManager {
         role,
       },
     });
+  }
+
+  async getAllRoles(): Promise<{ id: string; name: string }[]> {
+    return [
+      { id: MembershipRole.OWNER, name: "Owner" },
+      { id: MembershipRole.ADMIN, name: "Admin" },
+      { id: MembershipRole.MEMBER, name: "Member" },
+    ];
   }
 }
 
