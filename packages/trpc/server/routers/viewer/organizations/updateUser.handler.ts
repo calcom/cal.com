@@ -4,6 +4,7 @@ import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensur
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { DEFAULT_ROLE_IDS, RoleService } from "@calcom/features/pbac/services/role.service";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
@@ -48,9 +49,8 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const featuresRepository = new FeaturesRepository();
   const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
 
-  const permissionCheckService = new PermissionCheckService();
-
   if (isPBACEnabled) {
+    const permissionCheckService = new PermissionCheckService();
     const hasPermissionToChangeMemberRole = await permissionCheckService.checkPermission({
       userId,
       teamId: organizationId,
@@ -156,18 +156,23 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
       },
       data,
     }),
-    prisma.membership.update({
-      where: {
-        userId_teamId: {
-          userId: input.userId,
-          teamId: organizationId,
-        },
-      },
-      data: {
-        role: input.role,
-      },
-    }),
   ];
+
+  if (!isPBACEnabled) {
+    transactions.push(
+      prisma.membership.update({
+        where: {
+          userId_teamId: {
+            userId: input.userId,
+            teamId: organizationId,
+          },
+        },
+        data: {
+          role: input.role,
+        },
+      })
+    );
+  }
 
   if (hasUsernameUpdated) {
     transactions.push(
@@ -186,6 +191,23 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   }
 
   await prisma.$transaction(transactions);
+
+  if (isPBACEnabled) {
+    const roleService = new RoleService();
+    const isDefaultRole = input.role in DEFAULT_ROLE_IDS;
+    // Check if the role is a default role
+    if (isDefaultRole) {
+      await roleService.assignRoleToMember(DEFAULT_ROLE_IDS[input.role], requestedMember.id);
+    } else {
+      // Check if team has access to the role and if not, throw an error
+      const role = await roleService.roleBelongsToTeam(input.role, organizationId);
+      if (!role) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have access to this role" });
+      }
+
+      await roleService.assignRoleToMember(input.role, requestedMember.id);
+    }
+  }
 
   if (input.attributeOptions) {
     await assignUserToAttributeHandler({

@@ -7,7 +7,7 @@ import { RoleRepository } from "../infrastructure/repositories/RoleRepository";
 import { PermissionService } from "./permission.service";
 
 // These IDs must match the ones in the migration
-const DEFAULT_ROLE_IDS = {
+export const DEFAULT_ROLE_IDS = {
   [MembershipRole.OWNER]: "owner_role",
   [MembershipRole.ADMIN]: "admin_role",
   [MembershipRole.MEMBER]: "member_role",
