@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -27,15 +27,28 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   const utils = trpc.useUtils();
   const [multiEmailValue, setMultiEmailValue] = useState<string[]>([""]);
   const [isInvalidEmail, setIsInvalidEmail] = useState(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const addGuestsMutation = trpc.viewer.bookings.addGuests.useMutation({
     onSuccess: async () => {
+      if (!isMountedRef.current) return;
       showToast(t("guests_added"), "success");
       setIsOpenDialog(false);
       setMultiEmailValue([""]);
-      utils.viewer.bookings.invalidate();
+      setTimeout(() => {
+        if (isMountedRef.current) {
+          utils.viewer.bookings.invalidate();
+        }
+      }, 100);
     },
     onError: (err) => {
+      if (!isMountedRef.current) return;
       const message = `${err.data?.code}: ${t(err.message)}`;
       showToast(message || t("unable_to_add_guests"), "error");
     },

@@ -34,31 +34,44 @@ function ControlledDialog(props: DialogProps) {
 
   // only used if name is set
   const [dialogState, setDialogState] = useState(dialogProps.open ? DIALOG_STATE.OPEN : DIALOG_STATE.CLOSED);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const shouldOpenDialog = newSearchParams.get("dialog") === name;
+
   if (name) {
     const clearQueryParamsOnClose = ["dialog", ...(props.clearQueryParamsOnClose || [])];
     dialogProps.onOpenChange = (open) => {
+      if (isTransitioning) return;
+
       if (props.onOpenChange) {
         props.onOpenChange(open);
       }
 
+      setIsTransitioning(true);
+
       // toggles "dialog" query param
       if (open) {
         newSearchParams.set("dialog", name);
+        setDialogState(DIALOG_STATE.OPEN);
       } else {
         clearQueryParamsOnClose.forEach((queryParam) => {
           newSearchParams.delete(queryParam);
         });
-        router.push(`${pathname}?${newSearchParams.toString()}`);
+        setDialogState(DIALOG_STATE.CLOSING);
+
+        setTimeout(() => {
+          router.push(`${pathname}?${newSearchParams.toString()}`);
+          setIsTransitioning(false);
+        }, 0);
+        return;
       }
-      setDialogState(open ? DIALOG_STATE.OPEN : DIALOG_STATE.CLOSING);
+      setIsTransitioning(false);
     };
 
-    if (dialogState === DIALOG_STATE.CLOSED && shouldOpenDialog) {
+    if (dialogState === DIALOG_STATE.CLOSED && shouldOpenDialog && !isTransitioning) {
       setDialogState(DIALOG_STATE.OPEN);
     }
 
-    if (dialogState === DIALOG_STATE.CLOSING && !shouldOpenDialog) {
+    if (dialogState === DIALOG_STATE.CLOSING && !shouldOpenDialog && !isTransitioning) {
       setDialogState(DIALOG_STATE.CLOSED);
     }
 
