@@ -11,7 +11,7 @@ import { plainToClass } from "class-transformer";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { bookingMetadataSchema } from "@calcom/platform-libraries";
+import { bookingMetadataSchema, getDownloadLinkOfCalVideoByRecordingId } from "@calcom/platform-libraries";
 import {
   BookingOutput_2024_08_13,
   CreateRecurringSeatedBookingOutput_2024_08_13,
@@ -22,7 +22,8 @@ import {
   RecurringBookingOutput_2024_08_13,
   SeatedAttendee,
 } from "@calcom/platform-types";
-import { Booking, BookingReference, BookingSeat } from "@calcom/prisma/client";
+import { Booking, BookingSeat } from "@calcom/prisma/client";
+import type { RecordingItemSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 
 export const bookingResponsesSchema = z
   .object({
@@ -443,5 +444,18 @@ export class OutputBookingsService_2024_08_13 {
         email: databaseBooking?.user?.email || "unknown",
       },
     };
+  }
+
+  async getOutputBookingRecordings(recordings: RecordingItemSchema[]) {
+    const recordingWithDownloadLink = recordings.map((recording: RecordingItemSchema) => {
+      return getDownloadLinkOfCalVideoByRecordingId(recording.id)
+        .then((res: GetAccessLinkResponseSchema) => ({
+          ...recording,
+          download_link: res?.download_link,
+        }))
+        .catch((err: Error) => ({ ...recording, download_link: null, error: err.message }));
+    });
+    const allRecordingsWithDownloadLink = await Promise.all(recordingWithDownloadLink);
+    return allRecordingsWithDownloadLink;
   }
 }

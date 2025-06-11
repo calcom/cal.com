@@ -79,6 +79,11 @@ export { getTranslation };
 export { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
 export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/roundRobinManualReassignment";
 
+export {
+  getRecordingsOfCalVideoByRoomName,
+  getDownloadLinkOfCalVideoByRecordingId,
+} from "@calcom/lib/videoClient";
+
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
 export { validateCustomEventName } from "@calcom/lib/event";

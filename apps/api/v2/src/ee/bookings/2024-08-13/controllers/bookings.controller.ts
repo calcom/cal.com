@@ -54,6 +54,7 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleBookingInputPipe,
   RescheduleSeatedBookingInput_2024_08_13,
+  GetBookingRecordingsOutput,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -168,6 +169,21 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: booking,
+    };
+  }
+
+  @Get("/:bookingUid/recordings")
+  @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get all the recordings for the booking",
+    description: ` Fetches all the recordings for the booking \`:bookingUid\``,
+  })
+  async getBookingRecordings(@Param("bookingUid") bookingUid: string): Promise<GetBookingRecordingsOutput> {
+    const recordings = await this.bookingsService.getBookingRecordings(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: recordings,
     };
   }
 
