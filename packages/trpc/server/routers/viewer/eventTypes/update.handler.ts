@@ -99,6 +99,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       description: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      maxActiveBookingsPerBooker: true,
       fieldTranslations: {
         select: {
           field: true,
@@ -259,15 +260,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booker booking limit must be greater than 0." });
     }
 
-    if (
-      maxActiveBookingsPerBooker !== null &&
-      (recurringEvent !== null || eventType.recurringEvent !== null)
-    ) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Booker booking limit can't be set for recurring events.",
-      });
-    }
     data.maxActiveBookingsPerBooker = maxActiveBookingsPerBooker;
   }
 

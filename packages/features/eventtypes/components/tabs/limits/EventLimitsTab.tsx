@@ -374,6 +374,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
+  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+
   const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
@@ -687,6 +689,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           return (
             <SettingsToggle
               labelClassName={classNames("text-sm")}
+              disabled={isRecurringEvent}
+              tooltip={t("recurring_event_doesnt_support_booker_booking_limit")}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
