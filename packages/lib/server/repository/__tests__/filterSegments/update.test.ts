@@ -9,6 +9,8 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { FilterSegmentRepository } from "../../filterSegment";
 import { type TUpdateFilterSegmentInputSchema } from "../../filterSegment.type";
 
+const repository = new FilterSegmentRepository();
+
 describe("FilterSegmentRepository.update()", () => {
   const userId = 1;
   const mockUser = {
@@ -62,7 +64,7 @@ describe("FilterSegmentRepository.update()", () => {
       ],
     };
 
-    const result = await FilterSegmentRepository.update({
+    const result = await repository.update({
       userId,
       input,
     });
@@ -131,7 +133,7 @@ describe("FilterSegmentRepository.update()", () => {
       ],
     };
 
-    const result = await FilterSegmentRepository.update({
+    const result = await repository.update({
       userId,
       input,
     });
@@ -172,7 +174,7 @@ describe("FilterSegmentRepository.update()", () => {
     };
 
     await expect(
-      FilterSegmentRepository.update({
+      repository.update({
         userId,
         input,
       })
@@ -237,7 +239,7 @@ describe("FilterSegmentRepository.update()", () => {
     };
 
     await expect(
-      FilterSegmentRepository.update({
+      repository.update({
         userId,
         input,
       })

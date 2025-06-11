@@ -7,7 +7,9 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { FilterSegmentRepository } from "../../filterSegment";
-import { type TCreateFilterSegmentInputSchema } from "../../filterSegment.type";
+import type { TCreateFilterSegmentInputSchema } from "../../filterSegment.type";
+
+const repository = new FilterSegmentRepository();
 
 describe("FilterSegmentRepository.create()", () => {
   const userId = 1;
@@ -41,7 +43,7 @@ describe("FilterSegmentRepository.create()", () => {
       name: "My Bookings",
     };
 
-    const result = await FilterSegmentRepository.create({
+    const result = await repository.create({
       userId,
       input,
     });
@@ -75,7 +77,7 @@ describe("FilterSegmentRepository.create()", () => {
       name: "Team Bookings",
     };
 
-    const result = await FilterSegmentRepository.create({
+    const result = await repository.create({
       userId,
       input,
     });
@@ -110,7 +112,7 @@ describe("FilterSegmentRepository.create()", () => {
     };
 
     await expect(
-      FilterSegmentRepository.create({
+      repository.create({
         userId,
         input,
       })
@@ -125,7 +127,7 @@ describe("FilterSegmentRepository.create()", () => {
     };
 
     await expect(
-      FilterSegmentRepository.create({
+      repository.create({
         userId,
         // @ts-expect-error - Testing invalid input where teamId is missing for TEAM scope
         input: invalidInput,
@@ -142,7 +144,7 @@ describe("FilterSegmentRepository.create()", () => {
     };
 
     await expect(
-      FilterSegmentRepository.create({
+      repository.create({
         userId,
         // @ts-expect-error - Testing invalid input where teamId is present for USER scope
         input: invalidInput,

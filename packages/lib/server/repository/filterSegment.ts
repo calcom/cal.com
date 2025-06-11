@@ -6,11 +6,47 @@ import {
   ZColumnVisibility,
 } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
+import type { FilterSegment, UserFilterSegmentPreference } from "@calcom/prisma/client";
 
 import type { TCreateFilterSegmentInputSchema, TUpdateFilterSegmentInputSchema } from "./filterSegment.type";
 
-export class FilterSegmentRepository {
-  static async get({ userId, tableIdentifier }: { userId: number; tableIdentifier: string }) {
+export interface IFilterSegmentRepository {
+  get({ userId, tableIdentifier }: { userId: number; tableIdentifier: string }): Promise<{
+    segments: FilterSegmentOutput[];
+    preferredSegmentId: number | null;
+  }>;
+
+  create({
+    userId,
+    input,
+  }: {
+    userId: number;
+    input: TCreateFilterSegmentInputSchema;
+  }): Promise<FilterSegment>;
+
+  update({
+    userId,
+    input,
+  }: {
+    userId: number;
+    input: TUpdateFilterSegmentInputSchema;
+  }): Promise<FilterSegment>;
+
+  delete({ userId, id }: { userId: number; id: number }): Promise<void>;
+
+  setPreference({
+    userId,
+    tableIdentifier,
+    segmentId,
+  }: {
+    userId: number;
+    tableIdentifier: string;
+    segmentId: number | null;
+  }): Promise<UserFilterSegmentPreference | null>;
+}
+
+export class FilterSegmentRepository implements IFilterSegmentRepository {
+  async get({ userId, tableIdentifier }: { userId: number; tableIdentifier: string }) {
     // Get all teams that the user is a member of
     const userTeamIds = await prisma.membership
       .findMany({
@@ -97,7 +133,7 @@ export class FilterSegmentRepository {
     };
   }
 
-  static async create({ userId, input }: { userId: number; input: TCreateFilterSegmentInputSchema }) {
+  async create({ userId, input }: { userId: number; input: TCreateFilterSegmentInputSchema }) {
     const { scope, teamId, ...filterData } = input;
 
     // If scope is TEAM, verify user has admin/owner permissions
@@ -140,7 +176,7 @@ export class FilterSegmentRepository {
     return filterSegment;
   }
 
-  static async update({ userId, input }: { userId: number; input: TUpdateFilterSegmentInputSchema }) {
+  async update({ userId, input }: { userId: number; input: TUpdateFilterSegmentInputSchema }) {
     const { id, name, activeFilters, sorting, columnVisibility, columnSizing, perPage, searchTerm } = input;
 
     // First, fetch the existing segment to check permissions
@@ -194,7 +230,7 @@ export class FilterSegmentRepository {
     return updatedSegment;
   }
 
-  static async delete({ userId, id }: { userId: number; id: number }) {
+  async delete({ userId, id }: { userId: number; id: number }) {
     // First, fetch the existing segment to check permissions
     const existingSegment = await prisma.filterSegment.findFirst({
       where: {
@@ -236,7 +272,7 @@ export class FilterSegmentRepository {
     });
   }
 
-  static async setPreference({
+  async setPreference({
     userId,
     tableIdentifier,
     segmentId,

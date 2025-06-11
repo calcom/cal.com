@@ -3,10 +3,12 @@ import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 import { describe, expect, it } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { FilterSegmentRepository } from "../../filterSegment";
 import { type TDeleteFilterSegmentInputSchema } from "../../filterSegment.type";
+
+const repository = new FilterSegmentRepository();
 
 describe("FilterSegmentRepository.delete()", () => {
   const userId = 1;
@@ -36,9 +38,9 @@ describe("FilterSegmentRepository.delete()", () => {
     };
 
     await expect(
-      FilterSegmentRepository.delete({
+      repository.delete({
         userId,
-        input,
+        id: segment.id,
       })
     ).resolves.not.toThrow();
 
@@ -89,9 +91,9 @@ describe("FilterSegmentRepository.delete()", () => {
     };
 
     await expect(
-      FilterSegmentRepository.delete({
+      repository.delete({
         userId,
-        input,
+        id: segment.id,
       })
     ).resolves.not.toThrow();
 
@@ -108,9 +110,9 @@ describe("FilterSegmentRepository.delete()", () => {
     };
 
     await expect(
-      FilterSegmentRepository.delete({
+      repository.delete({
         userId,
-        input,
+        id: 999,
       })
     ).rejects.toThrow("Filter segment not found or you don't have permission to delete it");
   });
@@ -155,9 +157,9 @@ describe("FilterSegmentRepository.delete()", () => {
     };
 
     await expect(
-      FilterSegmentRepository.delete({
+      repository.delete({
         userId,
-        input,
+        id: segment.id,
       })
     ).rejects.toThrow("Filter segment not found or you don't have permission to delete it");
   });

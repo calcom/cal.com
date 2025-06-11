@@ -11,7 +11,8 @@ export const listHandler = async ({
   };
   input: TListFilterSegmentsInputSchema;
 }) => {
-  return await FilterSegmentRepository.get({
+  const repository = new FilterSegmentRepository();
+  return await repository.get({
     userId: ctx.user.id,
     tableIdentifier: input.tableIdentifier,
   });

@@ -2,7 +2,7 @@ import { FilterSegmentRepository } from "@calcom/lib/server/repository/filterSeg
 import type { TDeleteFilterSegmentInputSchema } from "@calcom/lib/server/repository/filterSegment.type";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-export const deleteHandler = async ({
+export const deleteFilterSegmentHandler = async ({
   ctx,
   input,
 }: {
@@ -11,16 +11,14 @@ export const deleteHandler = async ({
   };
   input: TDeleteFilterSegmentInputSchema;
 }) => {
-  const { id } = input;
-  const userId = ctx.user.id;
-
-  await FilterSegmentRepository.delete({
-    userId,
-    id,
+  const repository = new FilterSegmentRepository();
+  await repository.delete({
+    userId: ctx.user.id,
+    id: input.id,
   });
 
   return {
-    id,
+    id: input.id,
     message: "Filter segment deleted successfully",
   };
 };

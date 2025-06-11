@@ -2,7 +2,7 @@ import { FilterSegmentRepository } from "@calcom/lib/server/repository/filterSeg
 import type { TCreateFilterSegmentInputSchema } from "@calcom/lib/server/repository/filterSegment.type";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-export const createHandler = async ({
+export const createFilterSegmentHandler = async ({
   ctx,
   input,
 }: {
@@ -11,7 +11,8 @@ export const createHandler = async ({
   };
   input: TCreateFilterSegmentInputSchema;
 }) => {
-  return await FilterSegmentRepository.create({
+  const repository = new FilterSegmentRepository();
+  return await repository.create({
     userId: ctx.user.id,
     input,
   });
