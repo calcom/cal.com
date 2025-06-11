@@ -10,11 +10,7 @@ parentPort?.on("message", async (data) => {
   } catch (error) {
     parentPort?.postMessage({
       success: false,
-      error: {
-        message: error instanceof Error ? error.message : "Unknown error",
-        code: error instanceof Error && "code" in error ? (error as any).code : "INTERNAL_SERVER_ERROR",
-        stack: error instanceof Error ? error.stack : undefined,
-      },
+      error: error instanceof Error ? error : new Error("Unknown error"),
     });
   }
 });

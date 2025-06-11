@@ -1,10 +1,9 @@
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import * as path from "path";
 import { Worker } from "worker_threads";
 
 import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
-
-import { TRPCError } from "@trpc/server";
 
 import { TimeSlots } from "./slots-output.service";
 
@@ -29,11 +28,7 @@ interface WorkerMessage {
 interface WorkerResult {
   success: boolean;
   data?: TimeSlots;
-  error?: {
-    code?: string;
-    message?: string;
-    stack?: string;
-  };
+  error?: Error;
 }
 
 @Injectable()
@@ -43,17 +38,17 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   private readonly maxWorkers: number; // Can be made configurable via env var
   private readonly taskQueue: Array<{
     resolve: (value: TimeSlots) => void;
-    reject: (reason: TRPCError) => void;
+    reject: (reason: Error) => void;
     options: GetScheduleOptions;
   }> = [];
   private availableWorkers: Worker[] = [];
 
-  constructor() {
+  constructor(private readonly config: ConfigService) {
     // You could load this from a config service or environment variable
     this.maxWorkers = process.env.SLOTS_WORKER_POOL_SIZE
       ? parseInt(process.env.SLOTS_WORKER_POOL_SIZE, 10)
       : 4;
-    this.initializeWorkerPool();
+    !this.config.get<boolean>("e2e") && this.initializeWorkerPool();
   }
 
   /**
@@ -146,17 +141,11 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
         const messageListener = (result: WorkerResult) => {
           // Put the worker back in the available pool once done
           this.availableWorkers.push(worker);
-
           if (result.success) {
             task.resolve(result.data as TimeSlots);
           } else {
             const error = result.error;
-            const trpcError = new TRPCError({
-              code: (error?.code as TRPCError["code"]) || "INTERNAL_SERVER_ERROR",
-              message: error?.message || "An unknown error occurred in the worker thread.",
-            });
-            trpcError.stack = error?.stack;
-            task.reject(trpcError);
+            task.reject(error ?? new Error("INTERNAL_SERVER_ERROR"));
           }
           // Remove listeners to prevent memory leaks and ensure only one resolution/rejection per task
           worker.off("message", messageListener);
@@ -165,13 +154,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
 
         const errorListener = (err: Error) => {
           this.availableWorkers.push(worker); // Ensure worker is returned
-          task.reject(
-            new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: `Worker thread error during task execution: ${err.message}`,
-              cause: err,
-            })
-          );
+          task.reject(new Error(err.message));
           worker.off("message", messageListener);
           worker.off("error", errorListener);
         };
@@ -186,15 +169,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
       } catch (error) {
         // If posting the message itself fails
         this.availableWorkers.push(worker); // Ensure worker is returned
-        task.reject(
-          new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: `Failed to dispatch task to worker: ${
-              error instanceof Error ? error.message : "Unknown error"
-            }`,
-            cause: error,
-          })
-        );
+        task.reject(new Error("Failed to dispatch task to worker"));
         this.processNextTask(); // Try to process next task if available
       } finally {
         // Always try to process the next task, even if there was a dispatch error.
@@ -205,7 +180,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
 
   /**
    * Public method to request available time slots, offloading the computation to a worker thread.
-   * Returns a Promise that resolves with the TimeSlots or rejects with a TRPCError.
+   * Returns a Promise that resolves with the TimeSlots or rejects with a Error.
    * @param options The GetScheduleOptions to pass to the worker.
    * @returns A Promise resolving to TimeSlots.
    */
