@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsISO8601, IsOptional, IsString, ValidateNested } from "class-validator";
 
@@ -17,7 +17,7 @@ export enum CalendarEventStatus {
 /**
  * Base interface for all calendar event locations
  */
-interface ICalendarEventLocation {
+export interface ICalendarEventLocation {
   type: string;
   uri: string;
   label?: string;
@@ -25,86 +25,225 @@ interface ICalendarEventLocation {
 
 export class CalendarEventVideoLocation implements ICalendarEventLocation {
   @IsString()
+  @ApiProperty({
+    enum: ["video"],
+    description: "Indicates this is a video conference location",
+  })
   type = "video";
 
   @IsString()
+  @ApiProperty({
+    description: "URL for joining the video conference",
+  })
   uri!: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Display name for the video conference",
+  })
   label?: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Password required to join the video conference",
+  })
   password?: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Meeting code or ID required to join the conference",
+  })
   meetingCode?: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Access code required to join the conference",
+  })
   accessCode?: string;
 }
 
 export class CalendarEventPhoneLocation implements ICalendarEventLocation {
   @IsString()
+  @ApiProperty({
+    enum: ["phone"],
+    description: "Indicates this is a phone conference location",
+  })
   type = "phone";
 
   @IsString()
+  @ApiProperty({
+    description: "Phone number or URI for dialing into the conference",
+  })
   uri!: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Display name for the phone conference",
+  })
   label?: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "PIN number required for the phone conference",
+  })
   pin?: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Password required for the phone conference",
+  })
   password?: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Access code required for the phone conference",
+  })
   accessCode?: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Country/region code for the phone number",
+  })
   regionCode?: string;
 }
 
 export class CalendarEventSipLocation implements ICalendarEventLocation {
   @IsString()
+  @ApiProperty({
+    enum: ["sip"],
+    description: "Indicates this is a SIP (Session Initiation Protocol) conference location",
+  })
   type = "sip";
 
   @IsString()
+  @ApiProperty({
+    description: "SIP URI for joining the conference",
+  })
   uri!: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Display name for the SIP conference",
+  })
   label?: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "PIN number required for the SIP conference",
+  })
   pin?: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Password required for the SIP conference",
+  })
   password?: string;
 }
 
 export class CalendarEventMoreLocation implements ICalendarEventLocation {
   @IsString()
+  @ApiProperty({
+    enum: ["more"],
+    description: "Indicates this is an additional conference location type",
+  })
   type = "more";
 
   @IsString()
+  @ApiProperty({
+    description: "URI for accessing this location",
+  })
   uri!: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Display name for this location",
+  })
   label?: string;
+}
+
+export type CalendarEventLocation =
+  | CalendarEventVideoLocation
+  | CalendarEventPhoneLocation
+  | CalendarEventSipLocation
+  | CalendarEventMoreLocation;
+
+export class CalendarEventHost {
+  @IsString()
+  @ApiProperty({
+    description: "Email address of the event host",
+  })
+  email!: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Display name of the event host",
+  })
+  name?: string;
+}
+
+export class CalendarEventAttendee {
+  @IsString()
+  @ApiProperty({
+    description: "Email address of the attendee",
+  })
+  email!: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "Display name of the attendee",
+  })
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Attendee's response to the invitation (accepted, declined, tentative, needs_action)",
+  })
+  responseStatus?: string;
+
+  @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Indicates if this attendee is the current user",
+  })
+  self?: boolean;
+
+  @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Indicates if this attendee's attendance is optional",
+  })
+  optional?: boolean;
 }
 
 export class DateTimeWithZone {
@@ -164,103 +303,26 @@ export class UnifiedCalendarEventOutput {
   description?: string | null;
 
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => Object, {
+    discriminator: {
+      property: "type",
+      subTypes: [
+        { value: CalendarEventVideoLocation, name: "video" },
+        { value: CalendarEventPhoneLocation, name: "phone" },
+        { value: CalendarEventSipLocation, name: "sip" },
+        { value: CalendarEventMoreLocation, name: "more" },
+      ],
+    },
+  })
   @ApiPropertyOptional({
     type: "array",
     items: {
       oneOf: [
-        {
-          type: "object",
-          properties: {
-            type: {
-              type: "string",
-              enum: ["video"],
-              description: "Indicates this is a video conference location",
-            },
-            uri: { type: "string", description: "URL for joining the video conference" },
-            label: { type: "string", nullable: true, description: "Display name for the video conference" },
-            password: {
-              type: "string",
-              nullable: true,
-              description: "Password required to join the video conference",
-            },
-            meetingCode: {
-              type: "string",
-              nullable: true,
-              description: "Meeting code or ID required to join the conference",
-            },
-            accessCode: {
-              type: "string",
-              nullable: true,
-              description: "Access code required to join the conference",
-            },
-          },
-        },
-        {
-          type: "object",
-          properties: {
-            type: {
-              type: "string",
-              enum: ["phone"],
-              description: "Indicates this is a phone conference location",
-            },
-            uri: { type: "string", description: "Phone number or URI for dialing into the conference" },
-            label: { type: "string", nullable: true, description: "Display name for the phone conference" },
-            pin: {
-              type: "string",
-              nullable: true,
-              description: "PIN number required for the phone conference",
-            },
-            password: {
-              type: "string",
-              nullable: true,
-              description: "Password required for the phone conference",
-            },
-            accessCode: {
-              type: "string",
-              nullable: true,
-              description: "Access code required for the phone conference",
-            },
-            regionCode: {
-              type: "string",
-              nullable: true,
-              description: "Country/region code for the phone number",
-            },
-          },
-        },
-        {
-          type: "object",
-          properties: {
-            type: {
-              type: "string",
-              enum: ["sip"],
-              description: "Indicates this is a SIP (Session Initiation Protocol) conference location",
-            },
-            uri: { type: "string", description: "SIP URI for joining the conference" },
-            label: { type: "string", nullable: true, description: "Display name for the SIP conference" },
-            pin: {
-              type: "string",
-              nullable: true,
-              description: "PIN number required for the SIP conference",
-            },
-            password: {
-              type: "string",
-              nullable: true,
-              description: "Password required for the SIP conference",
-            },
-          },
-        },
-        {
-          type: "object",
-          properties: {
-            type: {
-              type: "string",
-              enum: ["more"],
-              description: "Indicates this is an additional conference location type",
-            },
-            uri: { type: "string", description: "URI for accessing this location" },
-            label: { type: "string", nullable: true, description: "Display name for this location" },
-          },
-        },
+        { $ref: getSchemaPath(CalendarEventVideoLocation) },
+        { $ref: getSchemaPath(CalendarEventPhoneLocation) },
+        { $ref: getSchemaPath(CalendarEventSipLocation) },
+        { $ref: getSchemaPath(CalendarEventMoreLocation) },
       ],
       discriminator: {
         propertyName: "type",
@@ -269,49 +331,17 @@ export class UnifiedCalendarEventOutput {
     nullable: true,
     description: "Conference locations with entry points (video, phone, sip, more)",
   })
-  locations?:
-    | Array<
-        | CalendarEventVideoLocation
-        | CalendarEventPhoneLocation
-        | CalendarEventSipLocation
-        | CalendarEventMoreLocation
-      >
-    | [];
+  locations?: CalendarEventLocation[] | [];
 
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CalendarEventAttendee)
   @ApiPropertyOptional({
-    type: "array",
-    items: {
-      type: "object",
-      properties: {
-        email: { type: "string", description: "Email address of the attendee" },
-        name: { type: "string", description: "Display name of the attendee" },
-        responseStatus: {
-          type: "string",
-          nullable: true,
-          description: "Attendee's response to the invitation (accepted, declined, tentative, needs_action)",
-        },
-        self: {
-          type: "boolean",
-          nullable: true,
-          description: "Indicates if this attendee is the current user",
-        },
-        optional: {
-          type: "boolean",
-          nullable: true,
-          description: "Indicates if this attendee's attendance is optional",
-        },
-      },
-    },
+    type: [CalendarEventAttendee],
     nullable: true,
     description: "List of attendees with their response status",
   })
-  attendees?: Array<{
-    email: string;
-    name?: string;
-    responseStatus?: string;
-    self?: boolean;
-  }> | null;
+  attendees?: CalendarEventAttendee[] | null;
 
   @IsEnum(CalendarEventStatus)
   @IsOptional()
@@ -325,24 +355,14 @@ export class UnifiedCalendarEventOutput {
   status?: CalendarEventStatus | null;
 
   @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CalendarEventHost)
   @ApiPropertyOptional({
-    type: "array",
-    items: {
-      type: "object",
-      properties: {
-        email: { type: "string", description: "Email address of the event host" },
-        name: { type: "string", nullable: true, description: "Display name of the event host" },
-      },
-    },
+    type: [CalendarEventHost],
     nullable: true,
     description: "Information about the event hosts (organizers)",
   })
-  hosts?:
-    | Array<{
-        email: string;
-        name?: string;
-      }>
-    | [];
+  hosts?: CalendarEventHost[] | [];
 
   @IsEnum(CALENDARS)
   @ApiProperty({
