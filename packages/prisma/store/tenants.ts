@@ -1,38 +1,83 @@
-export enum Tenant {
-  US = "us",
-  EU = "eu",
-  INSIGHTS = "insights",
+import { z } from "zod";
+
+export enum SystemTenant {
+  DEFAULT = "__default",
+  INSIGHTS = "__insights",
 }
 
-const TENANT_ENV_MAP: Partial<Record<Tenant, string>> = {};
-if (process.env.TENANT_DOMAINS_EU) {
-  TENANT_ENV_MAP[Tenant.EU] = process.env.TENANT_DOMAINS_EU;
-}
-
-export const tenantToDatabaseUrl: Record<Tenant, string | undefined> = {
-  [Tenant.US]: process.env.DATABASE_URL,
-  [Tenant.EU]: process.env.DATABASE_URL_EU,
-  [Tenant.INSIGHTS]: process.env.INSIGHTS_DATABASE_URL,
+const TENANT_ENV_MAP: Record<
+  string,
+  {
+    activeOn?: string[];
+    connectionString: string;
+  }
+> = {
+  ...(process.env.DATABASE_URL
+    ? {
+        [SystemTenant.DEFAULT]: {
+          connectionString: process.env.DATABASE_URL,
+        },
+      }
+    : {}),
+  ...(process.env.INSIGHTS_DATABASE_URL
+    ? {
+        [SystemTenant.INSIGHTS]: {
+          connectionString: process.env.INSIGHTS_DATABASE_URL,
+        },
+      }
+    : {}),
 };
 
-export function getDatabaseUrl(tenant: Tenant) {
-  const url = tenantToDatabaseUrl[tenant];
-  if (!url) {
-    console.error(`No database URL found for tenant ${tenant}`);
-    return tenantToDatabaseUrl[Tenant.US];
+const tenantConfigSchema = z.record(
+  z
+    .object({
+      activeOn: z.array(z.string()),
+      connectionString: z.string(),
+    })
+    .strict()
+);
+
+/*
+ * Allows for multi-tenancy, format should be a JSON string like:
+ * {
+ *   "tenant1": {
+ *     "activeOn": ["domain1.com", "domain2.com"],
+ *     "connectionString": "postgresql://user:password@host:port/dbname"
+ *   },
+ *   ...
+ * }
+ */
+if (process.env.TENANT_CONFIG) {
+  let tenantConfig: z.infer<typeof tenantConfigSchema>;
+  try {
+    tenantConfig = tenantConfigSchema.parse(JSON.parse(process.env.TENANT_CONFIG));
+  } catch (error: unknown) {
+    throw new Error("Failed to parse TENANT_CONFIG environment variable.");
   }
-  return url;
+  for (const [tenant, config] of Object.entries(tenantConfig)) {
+    TENANT_ENV_MAP[tenant] = {
+      activeOn: config.activeOn,
+      connectionString: config.connectionString,
+    };
+  }
 }
 
-export const getTenantFromHost = (host: string): Tenant => {
-  for (const [tenant, domainList] of Object.entries(TENANT_ENV_MAP)) {
-    const domains = domainList
-      .split(",")
-      .map((d) => d.trim())
-      .filter(Boolean);
+// tenant lists of all tenant keys outside of the system tenant
+export const TENANT_LIST = Object.keys(TENANT_ENV_MAP).filter(
+  (tenant) => tenant !== SystemTenant.DEFAULT && tenant !== SystemTenant.INSIGHTS
+);
+
+export function getDatabaseUrl(tenant: string) {
+  return TENANT_ENV_MAP[tenant]?.connectionString || TENANT_ENV_MAP[SystemTenant.DEFAULT].connectionString;
+}
+
+export const getTenantFromHost = (host: string): string => {
+  for (const [tenant, tenantConfig] of Object.entries(TENANT_ENV_MAP)) {
+    if (!tenantConfig.activeOn) continue;
+    const domains = tenantConfig.activeOn.map((d) => d.trim()).filter(Boolean);
     if (domains.some((domain) => host === domain || host.endsWith(`.${domain}`))) {
-      return tenant as Tenant;
+      return tenant;
     }
   }
-  return Tenant.US; // Default to US if no match found
+  return SystemTenant.DEFAULT;
 };

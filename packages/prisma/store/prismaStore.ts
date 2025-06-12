@@ -10,17 +10,19 @@ import { excludeLockedUsersExtension } from "../extensions/exclude-locked-users"
 import { excludePendingPaymentsExtension } from "../extensions/exclude-pending-payment-teams";
 import { usageTrackingExtention } from "../extensions/usage-tracking";
 import { bookingReferenceMiddleware } from "../middleware";
-import { Tenant, getDatabaseUrl } from "./tenants";
+import { SystemTenant, getDatabaseUrl } from "./tenants";
 
 export type PrismaClientWithExtensions = ReturnType<typeof getPrismaClient>;
 
-type Store = { clients: Record<Tenant, PrismaClientWithExtensions | undefined>; currentTenant?: Tenant };
+type Store = {
+  clients: Record<SystemTenant | string, PrismaClientWithExtensions | undefined>;
+  currentTenant?: string;
+};
 
-function createEmptyClients(): Record<Tenant, PrismaClientWithExtensions | undefined> {
+function createEmptyClients(): Record<SystemTenant | string, PrismaClientWithExtensions | undefined> {
   return {
-    [Tenant.US]: undefined,
-    [Tenant.EU]: undefined,
-    [Tenant.INSIGHTS]: undefined,
+    [SystemTenant.DEFAULT]: undefined,
+    [SystemTenant.INSIGHTS]: undefined,
   };
 }
 
@@ -57,7 +59,10 @@ export const getPrismaClient = (options?: Prisma.PrismaClientOptions) => {
     .$extends(withAccelerate());
 };
 
-export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () => Promise<T>) {
+export function runWithTenants<T>(
+  tenant?: SystemTenant | string | (() => Promise<T>),
+  fn?: () => Promise<T>
+) {
   if (process.env.NODE_ENV === "test") {
     if (fn === undefined && typeof tenant === "function") {
       return (tenant as () => Promise<T>)();
@@ -74,7 +79,7 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
     return fn!();
   }
   if (existingStore) {
-    existingStore.currentTenant = tenant as Tenant | undefined;
+    existingStore.currentTenant = tenant as string | undefined;
     return fn!();
   }
   return als.run(store, () => {
@@ -82,12 +87,12 @@ export function runWithTenants<T>(tenant?: Tenant | (() => Promise<T>), fn?: () 
     if (!store) {
       throw new Error("AsyncLocalStorage store is not initialized");
     }
-    store.currentTenant = tenant as Tenant | undefined;
+    store.currentTenant = tenant as string | undefined;
     return fn!();
   });
 }
 
-export function getPrisma(tenant: Tenant, options?: Prisma.PrismaClientOptions) {
+export function getPrisma(tenant: SystemTenant | string, options?: Prisma.PrismaClientOptions) {
   if (process.env.NODE_ENV === "test") {
     const url = getDatabaseUrl(tenant);
     const clientsMap = getClientsMap();

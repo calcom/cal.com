@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import type { PrismaClientWithExtensions } from "./store/prismaStore";
 import { getPrisma, getTenantAwarePrisma } from "./store/prismaStore";
-import { Tenant } from "./store/tenants";
+import { SystemTenant } from "./store/tenants";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
@@ -29,7 +29,7 @@ if (!isNaN(loggerLevel)) {
 
 export const prisma =
   process.env.NODE_ENV === "test"
-    ? getPrisma(Tenant.US, prismaOptions)
+    ? getPrisma(SystemTenant.DEFAULT, prismaOptions)
     : new Proxy({} as PrismaClientWithExtensions, {
         get(_target, prop) {
           try {
@@ -46,7 +46,7 @@ export const prisma =
 
 const insightsPrismaProxy = new Proxy({} as PrismaClientWithExtensions, {
   get(_target, prop) {
-    return Reflect.get(getPrisma(Tenant.INSIGHTS, prismaOptions), prop);
+    return Reflect.get(getPrisma(SystemTenant.INSIGHTS, prismaOptions), prop);
   },
 });
 

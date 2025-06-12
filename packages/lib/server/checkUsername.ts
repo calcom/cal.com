@@ -1,6 +1,6 @@
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import { runWithTenants } from "@calcom/prisma/store/prismaStore";
-import { Tenant } from "@calcom/prisma/store/tenants";
+import { TENANT_LIST } from "@calcom/prisma/store/tenants";
 
 import { checkRegularUsername } from "./checkRegularUsername";
 import { usernameCheck as checkPremiumUsername } from "./username";
@@ -11,7 +11,7 @@ import { usernameCheck as checkPremiumUsername } from "./username";
 // Multi-tenant username check wrapper
 export async function checkUsernameMultiTenant(username: string, currentOrgDomain?: string | null) {
   // Helper to check in a specific tenant
-  async function checkInTenant(tenant: Tenant) {
+  async function checkInTenant(tenant: string) {
     return runWithTenants(tenant, async () =>
       !IS_PREMIUM_USERNAME_ENABLED
         ? checkRegularUsername(username, currentOrgDomain)
@@ -19,12 +19,11 @@ export async function checkUsernameMultiTenant(username: string, currentOrgDomai
     );
   }
 
-  // Check in both tenants
-  const [usResult, euResult] = await Promise.all([checkInTenant(Tenant.US), checkInTenant(Tenant.EU)]);
+  // check in all tenants
+  const results = await Promise.all(TENANT_LIST.map(checkInTenant));
 
-  // Merge logic: unavailable if either is unavailable
-  const available = usResult.available && euResult.available;
-  const premium = usResult.premium || euResult.premium;
+  const available = results.every((result) => result.available);
+  const premium = results.some((result) => result.premium);
 
   // Suggestion logic: only suggest if unavailable in either
   let suggestedUsername = undefined;
@@ -35,8 +34,9 @@ export async function checkUsernameMultiTenant(username: string, currentOrgDomai
     let found = false;
     while (attempt < 100 && !found) {
       const candidate = `${base}${String(attempt).padStart(3, "0")}`;
-      const [us, eu] = await Promise.all([checkInTenant(Tenant.US), checkInTenant(Tenant.EU)]);
-      if (us.available && eu.available) {
+      const results = await Promise.all(TENANT_LIST.map(checkInTenant));
+      const available = results.every((result) => result.available);
+      if (available) {
         suggestedUsername = candidate;
         found = true;
       } else {
@@ -45,9 +45,7 @@ export async function checkUsernameMultiTenant(username: string, currentOrgDomai
     }
     // fallback: use first suggestion from either
     if (!suggestedUsername) {
-      const usSuggestion = "suggestedUsername" in usResult ? usResult.suggestedUsername : undefined;
-      const euSuggestion = "suggestedUsername" in euResult ? euResult.suggestedUsername : undefined;
-      suggestedUsername = usSuggestion || euSuggestion;
+      suggestedUsername = results.find((result) => "suggestedUsername" in result)?.suggestedUsername;
     }
   }
 

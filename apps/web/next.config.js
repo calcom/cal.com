@@ -11,6 +11,17 @@ const {
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
+
+if (process.env.TENANT_CONFIG) {
+  try {
+    JSON.parse(process.env.TENANT_CONFIG);
+  } catch (e) {
+    throw new Error(
+      "Invalid JSON in TENANT_CONFIG environment variable. Please ensure it is a valid JSON string."
+    );
+  }
+}
+
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 const isOrganizationsEnabled =

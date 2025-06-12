@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 
 import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
 import { runWithTenants } from "@calcom/prisma/store/prismaStore";
-import { getTenantFromHost, type Tenant } from "@calcom/prisma/store/tenants";
+import { getTenantFromHost } from "@calcom/prisma/store/tenants";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { MembersView } from "~/members/members-view";
@@ -20,7 +20,7 @@ export const generateMetadata = async () =>
   );
 
 const getCachedAttributes = unstable_cache(
-  async (orgId: number, tenant: Tenant) => {
+  async (orgId: number, tenant: string) => {
     return runWithTenants(tenant, async () => {
       return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
     });
