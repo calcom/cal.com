@@ -1,21 +1,15 @@
-import { z } from "zod";
-
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 
 import { TRPCError } from "@trpc/server";
 
-const downloadExpenseLogSchema = z.object({
-  teamId: z.number().optional(),
-  startDate: z.string(),
-  endDate: z.string(),
-});
+import type { TDownloadExpenseLogSchema } from "./downloadExpenseLog.schema";
 
 type DownloadExpenseLogOptions = {
   ctx: {
     user: { id: number };
   };
-  input: z.infer<typeof downloadExpenseLogSchema>;
+  input: TDownloadExpenseLogSchema;
 };
 
 export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseLogOptions) => {

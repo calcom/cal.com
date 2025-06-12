@@ -105,6 +105,8 @@ export class CreditsRepository {
     }: { teamId?: number; userId?: number; startDate?: Date; endDate?: Date; creditType?: CreditType },
     tx?: PrismaTransaction
   ) {
+    if (!teamId && !userId) return null;
+
     const prismaClient = tx ?? prisma;
 
     return await prismaClient.creditBalance.findUnique({

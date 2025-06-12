@@ -3,7 +3,7 @@
 import { ProgressBar } from "@tremor/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -30,9 +30,9 @@ type MonthOption = {
 // returns the last 12 months starting from May 2025 (when credits were introduced)
 const getMonthOptions = (): MonthOption[] => {
   const options: MonthOption[] = [];
-  const minDate = dayjs("2025-05-01");
+  const minDate = dayjs.utc("2025-05-01");
 
-  let date = dayjs();
+  let date = dayjs.utc();
   let count = 0;
   while ((date.isAfter(minDate) || date.isSame(minDate, "month")) && count < 12) {
     const startDate = date.startOf("month");
@@ -53,7 +53,7 @@ const getMonthOptions = (): MonthOption[] => {
 export default function BillingCredits() {
   const { t } = useLocale();
   const router = useRouter();
-  const monthOptions = getMonthOptions();
+  const monthOptions = useMemo(() => getMonthOptions(), []);
   const [selectedMonth, setSelectedMonth] = useState<MonthOption>(monthOptions[0]);
 
   const {
