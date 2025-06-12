@@ -59,7 +59,7 @@ class PBACRoleManager implements IRoleManager {
   }
 
   async getAllRoles(organizationId: number): Promise<{ id: string; name: string }[]> {
-    const roles = await this.roleService.repository.findByTeamId(organizationId);
+    const roles = await this.roleService.getTeamRoles(organizationId);
     return roles.map((role) => ({
       id: role.id,
       name: role.name,
