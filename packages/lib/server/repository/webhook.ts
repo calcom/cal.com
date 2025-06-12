@@ -208,7 +208,7 @@ export class WebhookRepository {
     input,
   }: {
     userId: number;
-    input: TFindWebhooksByFiltersInputSchema;
+    input?: TFindWebhooksByFiltersInputSchema;
   }) {
     const where: Prisma.WebhookWhereInput = {
       /* Don't mixup zapier webhooks with normal ones */
