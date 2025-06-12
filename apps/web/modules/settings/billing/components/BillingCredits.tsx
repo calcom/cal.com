@@ -198,9 +198,9 @@ export default function BillingCredits() {
             <hr className="border-subtle mb-3 mt-3" />
           </div>
           <div className="flex">
-            <div className="mr-auto">
-              <Label>{t("download_expense_logs")}</Label>
-              <div className="flex flex-col">
+            <div className="mr-auto ">
+              <Label className="mb-4">{t("download_expense_log")}</Label>
+              <div className="mt-2 flex flex-col">
                 <Select
                   options={monthOptions}
                   value={selectedMonth}
@@ -208,7 +208,7 @@ export default function BillingCredits() {
                 />
               </div>
             </div>
-            <div className="mb-1 mt-auto">
+            <div className="mt-auto">
               <Button
                 onClick={handleDownload}
                 loading={downloadExpenseLogMutation.isPending}
