@@ -67,13 +67,14 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       editable: "user",
       required: field.required,
       disableOnPrefill: !!field.disableOnPrefill,
-      hidden: "hidden" in field ? field.hidden : false,
+      hidden: "hidden" in field ? !!field.hidden : false,
     };
   }
 
   if (fieldIsDefaultSystemLocation(field)) {
     return {
       ...systemBeforeFieldLocation,
+      hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
     };
   }
@@ -82,7 +83,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     return {
       ...systemBeforeFieldPhone,
       required: field.required,
-      hidden: field.hidden,
+      hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
       placeholder: field.placeholder,
       disableOnPrefill: !!field.disableOnPrefill,
@@ -143,7 +144,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       placeholder: field.placeholder,
       disableOnPrefill: !!field.disableOnPrefill,
       required: field.required,
-      hidden: !!field.hidden,
+      hidden: "hidden" in field ? !!field.hidden : false,
     };
   }
 
@@ -151,7 +152,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     return {
       ...systemAfterFieldRescheduleReason,
       required: !!field.required,
-      hidden: !!field.hidden,
+      hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
@@ -162,7 +163,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     return {
       ...systemAfterFieldTitle,
       required: !!field.required,
-      hidden: !!field.hidden,
+      hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
@@ -173,7 +174,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     return {
       ...systemAfterFieldNotes,
       required: !!field.required,
-      hidden: !!field.hidden,
+      hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
@@ -184,7 +185,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     return {
       ...systemAfterFieldGuests,
       required: !!field.required,
-      hidden: !!field.hidden,
+      hidden: "hidden" in field ? !!field.hidden : false,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : undefined,
       disableOnPrefill: !!field.disableOnPrefill,
@@ -208,7 +209,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       editable: "user",
       required: !!field.required,
       disableOnPrefill: !!field.disableOnPrefill,
-      hidden: !!field.hidden,
+      hidden: "hidden" in field ? !!field.hidden : false,
     };
   }
 
@@ -230,7 +231,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       editable: "user",
       required: !!field.required,
       disableOnPrefill: !!field.disableOnPrefill,
-      hidden: !!field.hidden,
+      hidden: "hidden" in field ? !!field.hidden : false,
     };
   }
 
@@ -250,7 +251,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     required: !!field.required,
     placeholder: field.placeholder,
     disableOnPrefill: !!field.disableOnPrefill,
-    hidden: !!field.hidden,
+    hidden: "hidden" in field ? !!field.hidden : false,
   };
 }
 
