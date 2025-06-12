@@ -7,7 +7,10 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const SettingsOrganizationsLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  if (!session?.user?.org) {
+  console.log("session", session);
+  const orgExists =
+    session?.user?.org || session?.user?.profile?.organizationId || session?.user?.profile?.organization;
+  if (!orgExists) {
     return redirect("/settings/my-account/profile");
   }
 
