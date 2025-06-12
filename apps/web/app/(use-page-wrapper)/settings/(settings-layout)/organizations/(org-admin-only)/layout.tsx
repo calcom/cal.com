@@ -6,7 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-const AttributesLayout = async ({ children }: { children: React.ReactNode }) => {
+const OrgAdminOnlyLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
 
@@ -17,4 +17,4 @@ const AttributesLayout = async ({ children }: { children: React.ReactNode }) => 
   return children;
 };
 
-export default AttributesLayout;
+export default OrgAdminOnlyLayout;
