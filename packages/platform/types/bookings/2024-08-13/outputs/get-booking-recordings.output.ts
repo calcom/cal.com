@@ -44,37 +44,6 @@ export class RecordingItem {
   error?: string | null;
 }
 
-export class GetRecordingsOfCalVideoByRoomNameOutput {
-  @ApiProperty({ example: "1234567890" })
-  @IsString()
-  id!: string;
-
-  @ApiProperty({ example: "daily-video-room-123" })
-  @IsString()
-  room_name!: string;
-
-  @ApiProperty({ example: 1678901234 })
-  @IsNumber()
-  start_ts!: number;
-
-  @ApiProperty({ example: "completed" })
-  @IsString()
-  status!: string;
-
-  @ApiProperty({ example: 10, required: false })
-  @IsNumber()
-  @IsOptional()
-  max_participants?: number;
-
-  @ApiProperty({ example: 3600 })
-  @IsNumber()
-  duration!: number;
-
-  @ApiProperty({ example: "share-token-123" })
-  @IsString()
-  share_token!: string;
-}
-
 export class GetBookingRecordingsOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])

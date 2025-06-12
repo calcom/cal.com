@@ -11,7 +11,7 @@ import { plainToClass } from "class-transformer";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { bookingMetadataSchema, getDownloadLinkOfCalVideoByRecordingId } from "@calcom/platform-libraries";
+import { bookingMetadataSchema } from "@calcom/platform-libraries";
 import {
   BookingOutput_2024_08_13,
   CreateRecurringSeatedBookingOutput_2024_08_13,
@@ -21,7 +21,6 @@ import {
   ReassignBookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   SeatedAttendee,
-  GetRecordingsOfCalVideoByRoomNameOutput,
 } from "@calcom/platform-types";
 import { Booking, BookingSeat } from "@calcom/prisma/client";
 
@@ -444,32 +443,5 @@ export class OutputBookingsService_2024_08_13 {
         email: databaseBooking?.user?.email || "unknown",
       },
     };
-  }
-
-  async getOutputBookingRecordings(recordings: GetRecordingsOfCalVideoByRoomNameOutput[]) {
-    const recordingWithDownloadLink = recordings.map((recording: GetRecordingsOfCalVideoByRoomNameOutput) => {
-      return getDownloadLinkOfCalVideoByRecordingId(recording.id)
-        .then((res: { download_link: string }) => ({
-          roomName: recording.room_name,
-          startTs: recording.start_ts,
-          status: recording.status,
-          maxParticipants: recording.max_participants,
-          duration: recording.duration,
-          shareToken: recording.share_token,
-          downloadLink: res?.download_link,
-        }))
-        .catch((err: Error) => ({
-          roomName: recording.room_name,
-          startTs: recording.start_ts,
-          status: recording.status,
-          maxParticipants: recording.max_participants,
-          duration: recording.duration,
-          shareToken: recording.share_token,
-          downloadLink: null,
-          error: err.message,
-        }));
-    });
-    const allRecordingsWithDownloadLink = await Promise.all(recordingWithDownloadLink);
-    return allRecordingsWithDownloadLink;
   }
 }

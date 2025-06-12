@@ -5,6 +5,7 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import {
   getRecordingsOfCalVideoByRoomName,
   getAllTranscriptsAccessLinkFromRoomName,
+  getDownloadLinkOfCalVideoByRecordingId,
 } from "@calcom/platform-libraries";
 
 @Injectable()
@@ -32,7 +33,31 @@ export class CalVideoService {
 
     if (!recordings || !("data" in recordings)) return [];
 
-    return this.outputService.getOutputBookingRecordings(recordings.data);
+    const recordingWithDownloadLink = recordings.data.map((recording) => {
+      return getDownloadLinkOfCalVideoByRecordingId(recording.id)
+        .then((res: { download_link: string } | undefined) => ({
+          roomName: recording.room_name,
+          startTs: recording.start_ts,
+          status: recording.status,
+          maxParticipants: recording.max_participants,
+          duration: recording.duration,
+          shareToken: recording.share_token,
+          downloadLink: res?.download_link,
+        }))
+        .catch((err: Error) => ({
+          roomName: recording.room_name,
+          startTs: recording.start_ts,
+          status: recording.status,
+          maxParticipants: recording.max_participants,
+          duration: recording.duration,
+          shareToken: recording.share_token,
+          downloadLink: null,
+          error: err.message,
+        }));
+    });
+    const allRecordingsWithDownloadLink = await Promise.all(recordingWithDownloadLink);
+
+    return allRecordingsWithDownloadLink;
   }
 
   async getTranscripts(bookingUid: string) {
