@@ -147,7 +147,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     userId: parsedUserId,
     smsSid,
     bookingUid: parsedBookingUid,
-    smsSegments: numSegments,
+    smsSegments: numSegments ?? undefined,
   });
 
   if (chargedUserOrTeamId) {
