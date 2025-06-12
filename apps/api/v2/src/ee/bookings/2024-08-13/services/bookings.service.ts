@@ -1081,7 +1081,7 @@ export class BookingsService_2024_08_13 {
 
       bookingLocation = getDefaultConferencingAppLocation(
         existingBookingHost?.metadata,
-        enrichedUser[0].credentials ?? []
+        enrichedUser?.[0]?.credentials ?? []
       );
     } else {
       const transformedLocation = this.inputService.transformLocation(location);
