@@ -1,4 +1,5 @@
 import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
