@@ -35,7 +35,7 @@ const ServerPageWrapper = async () => {
     return redirect("/settings/my-account/profile");
   }
 
-  const [orgCaller] = await Promise.all([createRouterCaller(viewerOrganizationsRouter)]);
+  const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
   const [org, teams] = await Promise.all([orgCaller.listCurrent(), getCachedTeams(orgId)]);
 
   return <PlatformMembersView org={org} teams={teams} />;
