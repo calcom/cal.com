@@ -1,5 +1,6 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -37,6 +38,11 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const oAuthClientId = input.oAuthClientId;
   const expand = input.expand;
   const filters = input.filters || [];
+
+  const featuresRepository = new FeaturesRepository();
+  const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
+
+  console.log("pbacFeatureEnabled", pbacFeatureEnabled);
 
   const allAttributeOptions = await prisma.attributeOption.findMany({
     where: {
@@ -93,6 +99,18 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
     | undefined;
 
+  const roleWhereClause = roleFilter
+    ? pbacFeatureEnabled
+      ? makeWhereClause({
+          columnName: "customRoleId",
+          filterValue: roleFilter.value,
+        })
+      : makeWhereClause({
+          columnName: "role",
+          filterValue: roleFilter.value,
+        })
+    : undefined;
+
   const whereClause: Prisma.MembershipWhereInput = {
     user: {
       ...getUserConditions(oAuthClientId),
@@ -121,11 +139,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         ],
       },
     }),
-    ...(roleFilter &&
-      makeWhereClause({
-        columnName: "customRoleId",
-        filterValue: roleFilter.value,
-      })),
+    ...(roleFilter && roleWhereClause),
     ...(createdAtFilter &&
       makeWhereClause({
         columnName: "createdAt",
