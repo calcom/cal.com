@@ -190,7 +190,7 @@ export class Task {
   }
 
   static async findNewerScanTaskForStepId(workflowStepId: number, createdAt: string) {
-    const tasks = await db.$queryRaw<{ payload: string; createdAt: Date }[]>`
+    const tasks = await db.$queryRaw<{ payload: string }[]>`
       SELECT "payload"
       FROM "Task"
       WHERE "type" = 'scanWorkflowBody'
