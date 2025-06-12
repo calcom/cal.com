@@ -7352,8 +7352,8 @@
     "/v2/calendars/{calendar}/event/{eventUid}": {
       "get": {
         "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
-        "summary": "Get meeting Detailss from calendar",
-        "description": "Returns detailed information about a meeting including attendance metrics and reschedule history",
+        "summary": "Get meeting Details from calendar",
+        "description": "Returns detailed information about a meeting including attendance metrics",
         "parameters": [
           {
             "name": "calendar",
@@ -23135,6 +23135,11 @@
         },
         "required": ["status", "data"]
       },
+      "CalendarEventResponseStatus": {
+        "type": "string",
+        "description": "Attendee's response to the invitation",
+        "enum": ["accepted", "pending", "declined", "needsAction"]
+      },
       "CalendarEventAttendee": {
         "type": "object",
         "properties": {
@@ -23147,9 +23152,9 @@
             "description": "Display name of the attendee"
           },
           "responseStatus": {
-            "type": "string",
             "nullable": true,
-            "description": "Attendee's response to the invitation (accepted, declined, tentative, needs_action)"
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
           },
           "self": {
             "type": "boolean",
