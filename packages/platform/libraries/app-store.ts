@@ -22,6 +22,8 @@ export { getEnabledAppsFromCredentials };
 
 export { getConnectedApps } from "@calcom/lib/getConnectedApps";
 
+export type { TServiceAccountKeySchema } from "@calcom/prisma/zod-utils";
+
 export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 
 export type { AppsStatus } from "@calcom/types/Calendar";
@@ -43,3 +45,5 @@ export {
   CalendarAppDelegationCredentialClientIdNotAuthorizedError,
   CalendarAppDelegationCredentialNotSetupError,
 } from "@calcom/lib/CalendarAppError";
+
+export { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";

@@ -940,15 +940,19 @@ export class BookingsService_2024_08_13 {
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+    const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
     await confirmBookingHandler({
       ctx: {
-        user: requestUser,
+        user: {
+          ...requestUser,
+          destinationCalendar: userCalendars?.destinationCalendar ?? null,
+        },
       },
       input: {
         bookingId: booking.id,
         confirmed: true,
-        recurringEventId: booking.recurringEventId,
+        recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
       },
@@ -968,15 +972,19 @@ export class BookingsService_2024_08_13 {
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+    const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
     await confirmBookingHandler({
       ctx: {
-        user: requestUser,
+        user: {
+          ...requestUser,
+          destinationCalendar: userCalendars?.destinationCalendar ?? null,
+        },
       },
       input: {
         bookingId: booking.id,
         confirmed: false,
-        recurringEventId: booking.recurringEventId,
+        recurringEventId: booking.recurringEventId ?? undefined,
         reason,
         emailsEnabled,
         platformClientParams,

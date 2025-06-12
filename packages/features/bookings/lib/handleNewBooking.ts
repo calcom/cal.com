@@ -835,6 +835,7 @@ async function handler(
           ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
           eventType,
           routingFormResponse,
+          meetingStartTime: new Date(reqBody.start),
         });
         if (!newLuckyUser) {
           break; // prevent infinite loop
