@@ -35,8 +35,6 @@ import {
   handleMarkNoShow,
   confirmBookingHandler,
   getCalendarLinks,
-  getRecordingsOfCalVideoByRoomName,
-  getAllTranscriptsAccessLinkFromRoomName,
 } from "@calcom/platform-libraries";
 import { handleNewBooking } from "@calcom/platform-libraries";
 import {
@@ -532,44 +530,6 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
-  async getBookingRecordings(uid: string) {
-    const booking = await this.bookingsRepository.getByUidWithBookingReference(uid);
-    if (!booking) {
-      throw new NotFoundException(`Booking with uid=${uid} was not found in the database`);
-    }
-
-    const roomName =
-      booking?.references?.filter((reference) => reference.type === "daily_video")?.pop()?.meetingId ??
-      undefined;
-    if (!roomName) {
-      throw new NotFoundException(`No Cal Video reference found with booking uid ${uid}`);
-    }
-
-    const recordings = await getRecordingsOfCalVideoByRoomName(roomName);
-
-    if (!recordings || !("data" in recordings)) return [];
-
-    return this.outputService.getOutputBookingRecordings(recordings.data);
-  }
-
-  async getBookingTranscripts(uid: string) {
-    const booking = await this.bookingsRepository.getByUidWithBookingReference(uid);
-    if (!booking) {
-      throw new NotFoundException(`Booking with uid=${uid} was not found in the database`);
-    }
-
-    const roomName =
-      booking?.references?.filter((reference) => reference.type === "daily_video")?.pop()?.meetingId ??
-      undefined;
-
-    if (!roomName) {
-      throw new NotFoundException(`No Cal Video reference found with booking uid ${uid}`);
-    }
-
-    const transcripts = await getAllTranscriptsAccessLinkFromRoomName(roomName);
-
-    return transcripts;
-  }
   async getBookings(
     queryParams: GetBookingsInput_2024_08_13,
     user: { email: string; id: number; orgId?: number },

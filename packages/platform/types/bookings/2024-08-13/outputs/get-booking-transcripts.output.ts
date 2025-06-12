@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum } from "class-validator";
+import { IsArray, IsEnum, IsString } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
@@ -10,5 +10,8 @@ export class GetBookingTranscriptsOutput {
 
   error?: Error;
 
-  data!: Array<string>;
+  @ApiProperty({ type: [String], example: ["https://transcript1.com", "https://transcript2.com"] })
+  @IsArray()
+  @IsString({ each: true })
+  data!: string[];
 }

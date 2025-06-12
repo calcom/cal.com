@@ -21,9 +21,9 @@ import {
   ReassignBookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   SeatedAttendee,
+  GetRecordingsOfCalVideoByRoomNameOutput,
 } from "@calcom/platform-types";
 import { Booking, BookingSeat } from "@calcom/prisma/client";
-import type { RecordingItemSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 
 export const bookingResponsesSchema = z
   .object({
@@ -446,14 +446,28 @@ export class OutputBookingsService_2024_08_13 {
     };
   }
 
-  async getOutputBookingRecordings(recordings: RecordingItemSchema[]) {
-    const recordingWithDownloadLink = recordings.map((recording: RecordingItemSchema) => {
+  async getOutputBookingRecordings(recordings: GetRecordingsOfCalVideoByRoomNameOutput[]) {
+    const recordingWithDownloadLink = recordings.map((recording: GetRecordingsOfCalVideoByRoomNameOutput) => {
       return getDownloadLinkOfCalVideoByRecordingId(recording.id)
-        .then((res: GetAccessLinkResponseSchema) => ({
-          ...recording,
-          download_link: res?.download_link,
+        .then((res: { download_link: string }) => ({
+          roomName: recording.room_name,
+          startTs: recording.start_ts,
+          status: recording.status,
+          maxParticipants: recording.max_participants,
+          duration: recording.duration,
+          shareToken: recording.share_token,
+          downloadLink: res?.download_link,
         }))
-        .catch((err: Error) => ({ ...recording, download_link: null, error: err.message }));
+        .catch((err: Error) => ({
+          roomName: recording.room_name,
+          startTs: recording.start_ts,
+          status: recording.status,
+          maxParticipants: recording.max_participants,
+          duration: recording.duration,
+          shareToken: recording.share_token,
+          downloadLink: null,
+          error: err.message,
+        }));
     });
     const allRecordingsWithDownloadLink = await Promise.all(recordingWithDownloadLink);
     return allRecordingsWithDownloadLink;

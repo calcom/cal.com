@@ -1,9 +1,79 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, ValidateNested } from "class-validator";
+import { IsEnum, ValidateNested, IsNumber, IsString, IsOptional, IsUrl } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import type { RecordingItemSchema } from "@calcom/prisma/zod-utils";
+
+export class RecordingItem {
+  @ApiProperty({ example: "1234567890" })
+  @IsString()
+  id!: string;
+
+  @ApiProperty({ example: "daily-video-room-123" })
+  @IsString()
+  roomName!: string;
+
+  @ApiProperty({ example: 1678901234 })
+  @IsNumber()
+  startTs!: number;
+
+  @ApiProperty({ example: "completed" })
+  @IsString()
+  status!: string;
+
+  @ApiProperty({ example: 10, required: false })
+  @IsNumber()
+  @IsOptional()
+  maxParticipants?: number;
+
+  @ApiProperty({ example: 3600 })
+  @IsNumber()
+  duration!: number;
+
+  @ApiProperty({ example: "share-token-123" })
+  @IsString()
+  shareToken!: string;
+
+  @ApiProperty({ example: "https://cal-video-recordings.s3.us-east-2.amazonaws.com/meetco/123s" })
+  @IsUrl()
+  downloadLink!: string | null;
+
+  @ApiProperty({ example: "Error message" })
+  @IsString()
+  @IsOptional()
+  error?: string | null;
+}
+
+export class GetRecordingsOfCalVideoByRoomNameOutput {
+  @ApiProperty({ example: "1234567890" })
+  @IsString()
+  id!: string;
+
+  @ApiProperty({ example: "daily-video-room-123" })
+  @IsString()
+  room_name!: string;
+
+  @ApiProperty({ example: 1678901234 })
+  @IsNumber()
+  start_ts!: number;
+
+  @ApiProperty({ example: "completed" })
+  @IsString()
+  status!: string;
+
+  @ApiProperty({ example: 10, required: false })
+  @IsNumber()
+  @IsOptional()
+  max_participants?: number;
+
+  @ApiProperty({ example: 3600 })
+  @IsNumber()
+  duration!: number;
+
+  @ApiProperty({ example: "share-token-123" })
+  @IsString()
+  share_token!: string;
+}
 
 export class GetBookingRecordingsOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
@@ -12,7 +82,7 @@ export class GetBookingRecordingsOutput {
 
   error?: Error;
 
-  @ValidateNested()
-  @Type(() => Object)
-  data!: RecordingItemSchema[];
+  @ValidateNested({ each: true })
+  @Type(() => RecordingItem)
+  data!: RecordingItem[];
 }

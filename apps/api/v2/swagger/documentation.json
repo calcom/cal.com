@@ -7155,7 +7155,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingRecordings",
         "summary": "Get all the recordings for the booking",
-        "description": " Fetches all the recordings for the booking `:bookingUid`",
+        "description": "Fetches all the recordings for the booking `:bookingUid`",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -7197,7 +7197,7 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
         "summary": "Get all the transcripts download links for the booking",
-        "description": " Fetches all the transcripts download links for the booking `:bookingUid`",
+        "description": "Fetches all the transcripts download links for the booking `:bookingUid`",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -24483,6 +24483,58 @@
           "data"
         ]
       },
+      "RecordingItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "roomName": {
+            "type": "string",
+            "example": "daily-video-room-123"
+          },
+          "startTs": {
+            "type": "number",
+            "example": 1678901234
+          },
+          "status": {
+            "type": "string",
+            "example": "completed"
+          },
+          "maxParticipants": {
+            "type": "number",
+            "example": 10
+          },
+          "duration": {
+            "type": "number",
+            "example": 3600
+          },
+          "shareToken": {
+            "type": "string",
+            "example": "share-token-123"
+          },
+          "downloadLink": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cal-video-recordings.s3.us-east-2.amazonaws.com/meetco/123s"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "example": "Error message"
+          }
+        },
+        "required": [
+          "id",
+          "roomName",
+          "startTs",
+          "status",
+          "duration",
+          "shareToken",
+          "downloadLink"
+        ]
+      },
       "GetBookingRecordingsOutput": {
         "type": "object",
         "properties": {
@@ -24500,7 +24552,7 @@
           "data": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/RecordingItem"
             }
           }
         },
@@ -24520,14 +24572,18 @@
               "error"
             ]
           },
-          "error": {
-            "type": "object"
-          },
           "data": {
+            "example": [
+              "https://transcript1.com",
+              "https://transcript2.com"
+            ],
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": [
