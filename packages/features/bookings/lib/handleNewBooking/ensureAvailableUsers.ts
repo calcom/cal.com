@@ -11,6 +11,7 @@ import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits"
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import prisma from "@calcom/prisma";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType } from "./originalRescheduledBookingUtils";
@@ -161,6 +162,80 @@ const _ensureAvailableUsers = async (
     loggerWithEventDetails.error(`No available users found.`, piiFreeInputDataForLogging);
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
+
+  if (eventType.restrictionScheduleId) {
+    try {
+      const restrictionSchedule = await prisma.schedule.findUnique({
+        where: { id: eventType.restrictionScheduleId },
+        select: {
+          id: true,
+          timeZone: true,
+          availability: {
+            select: {
+              days: true,
+              startTime: true,
+              endTime: true,
+              date: true,
+            },
+          },
+        },
+      });
+
+      if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
+        loggerWithEventDetails.error(`No timezone set for restriction schedule.`, piiFreeInputDataForLogging);
+        return [];
+      }
+
+      const restrictionTimezone = eventType.useBookerTimezone
+        ? input.timeZone
+        : restrictionSchedule.timeZone!;
+
+      const dateOverrides = restrictionSchedule.availability.filter((a) => !!a.date);
+      const recurringRules = restrictionSchedule.availability.filter((a) => !a.date);
+
+      const bookingStartTime = dayjs(startDateTimeUtc).tz(restrictionTimezone);
+      const bookingEndTime = dayjs(endDateTimeUtc).tz(restrictionTimezone);
+      const bookingDateStr = bookingStartTime.format("YYYY-MM-DD");
+      const bookingWeekday = bookingStartTime.day();
+      const bookingStartValue = bookingStartTime.valueOf();
+      const bookingEndValue = bookingEndTime.valueOf();
+
+      const overrideRule = dateOverrides.find((a) => dayjs.utc(a.date).isSame(bookingStartTime, "day"));
+      if (overrideRule) {
+        const startTimeStr = dayjs.utc(overrideRule.startTime).format("HH:mm");
+        const endTimeStr = dayjs.utc(overrideRule.endTime).format("HH:mm");
+        const start = dayjs.tz(`${bookingDateStr}T${startTimeStr}`, restrictionTimezone);
+        const end = dayjs.tz(`${bookingDateStr}T${endTimeStr}`, restrictionTimezone);
+        if (!(bookingStartValue >= start.valueOf() && bookingEndValue < end.valueOf())) {
+          loggerWithEventDetails.error(
+            `Booking outside restriction schedule override rule.`,
+            piiFreeInputDataForLogging
+          );
+          return [];
+        }
+      } else {
+        const recurringRule = recurringRules.find((a) => a.days.includes(bookingWeekday));
+        if (recurringRule) {
+          const startTimeStr = dayjs.utc(recurringRule.startTime).format("HH:mm");
+          const endTimeStr = dayjs.utc(recurringRule.endTime).format("HH:mm");
+          const start = dayjs.tz(`${bookingDateStr}T${startTimeStr}`, restrictionTimezone);
+          const end = dayjs.tz(`${bookingDateStr}T${endTimeStr}`, restrictionTimezone);
+
+          if (!(bookingStartValue >= start.valueOf() && bookingEndValue < end.valueOf())) {
+            loggerWithEventDetails.error(
+              `Booking outside restriction schedule recurring rule.`,
+              piiFreeInputDataForLogging
+            );
+            return [];
+          }
+        }
+      }
+    } catch (error) {
+      loggerWithEventDetails.error(`Error checking restriction schedule.`, piiFreeInputDataForLogging);
+      return [];
+    }
+  }
+
   // make sure TypeScript understands availableUsers is at least one.
   return availableUsers.length === 1 ? [availableUsers[0]] : [availableUsers[0], ...availableUsers.slice(1)];
 };

@@ -81,6 +81,9 @@ type EventTypeScheduleDetailsProps = {
   user?: Pick<RouterOutputs["viewer"]["me"]["get"], "timeFormat" | "weekStart">;
   editAvailabilityRedirectUrl?: string;
   customClassNames?: AvailabilityTableCustomClassNames;
+  fieldName?: "schedule" | "restrictionSchedule";
+  useBookerTimezone?: boolean;
+  restrictionScheduleRedirectUrl?: string;
 };
 
 type HostSchedulesQueryType =
@@ -191,10 +194,8 @@ const EventTypeScheduleDetails = memo(
     customClassNames,
     fieldName,
     useBookerTimezone: initialUseBookerTimezone,
-  }: EventTypeScheduleDetailsProps & {
-    fieldName?: "schedule" | "restrictionSchedule";
-    useBookerTimezone?: boolean;
-  }) => {
+    restrictionScheduleRedirectUrl,
+  }: EventTypeScheduleDetailsProps) => {
     const timeFormat = user?.timeFormat;
     const { t, i18n } = useLocale();
     const formMethods = useFormContext<FormValues>();
@@ -304,7 +305,11 @@ const EventTypeScheduleDetails = memo(
             !scheduleQueryData.readOnly &&
             !!editAvailabilityRedirectUrl && (
               <Button
-                href={editAvailabilityRedirectUrl}
+                href={
+                  fieldName === "restrictionSchedule"
+                    ? restrictionScheduleRedirectUrl
+                    : editAvailabilityRedirectUrl
+                }
                 disabled={isSchedulePending}
                 color="minimal"
                 EndIcon="external-link"
@@ -344,14 +349,12 @@ const EventTypeSchedule = ({
   const scheduleId = watch(formFieldName);
 
   useEffect(() => {
-    // after data is loaded.
     if (schedulesQueryData && scheduleId !== 0 && !scheduleId) {
       let newValue;
       if (fieldName === "restrictionSchedule") {
-        // For restriction schedule, use the stored value from eventType
-        newValue = eventType.restrictionScheduleId;
+        newValue =
+          eventType.restrictionScheduleId || schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
       } else {
-        // For main schedule, use default schedule if not managed event
         newValue = isManagedEventType ? 0 : schedulesQueryData.find((schedule) => schedule.isDefault)?.id;
       }
       if (!newValue && newValue !== 0) return;

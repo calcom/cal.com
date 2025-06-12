@@ -64,6 +64,7 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
       restrictionScheduleQueryData={restrictionScheduleQueryData}
       isRestrictionSchedulePending={isRestrictionSchedulePending}
       editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
+      restrictionScheduleRedirectUrl={`/availability/${restrictionScheduleQueryData?.id}`}
       hostSchedulesQuery={hostSchedulesQuery}
     />
   );
