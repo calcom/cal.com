@@ -37,6 +37,7 @@ import {
 } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateCurrentOrg } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 
@@ -196,6 +197,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
       });
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listCurrent.invalidate();
+      revalidateCurrentOrg();
       showToast(t("your_organization_updated_sucessfully"), "success");
     },
   });

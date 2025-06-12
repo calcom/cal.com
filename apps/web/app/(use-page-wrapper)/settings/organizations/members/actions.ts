@@ -13,3 +13,7 @@ export async function revalidateOrganizationTeams() {
 export async function revalidateOrganizationFacetedValues() {
   revalidateTag("viewer.organizations.getFacetedValues");
 }
+
+export async function revalidateCurrentOrg() {
+  revalidateTag("viewer.organizations.listCurrent");
+}

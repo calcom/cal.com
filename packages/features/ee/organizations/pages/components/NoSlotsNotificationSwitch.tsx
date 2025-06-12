@@ -5,6 +5,7 @@ import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateCurrentOrg } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 interface GeneralViewProps {
   currentOrg: RouterOutputs["viewer"]["organizations"]["listCurrent"];
@@ -20,6 +21,7 @@ export const NoSlotsNotificationSwitch = ({ currentOrg, isAdminOrOwner }: Genera
 
   const mutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: async () => {
+      revalidateCurrentOrg();
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {

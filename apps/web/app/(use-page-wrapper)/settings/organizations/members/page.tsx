@@ -1,4 +1,3 @@
-import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
@@ -7,7 +6,6 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -21,6 +19,17 @@ export const generateMetadata = async () =>
     undefined,
     "/settings/organizations/members"
   );
+
+const getCachedCurrentOrg = unstable_cache(
+  async (userId: number, orgId: number) => {
+    return await OrganizationRepository.findCurrentOrg({
+      userId,
+      orgId,
+    });
+  },
+  undefined,
+  { revalidate: 3600, tags: ["viewer.organizations.listCurrent"] } // Cache for 1 hour
+);
 
 const getCachedAttributes = unstable_cache(
   async (orgId: number) => {
@@ -47,15 +56,18 @@ const getCachedFacetedValues = unstable_cache(
 );
 
 const Page = async () => {
-  const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const orgId = session?.user?.org?.id ?? session?.user?.profile?.organizationId;
+  const userId = session?.user?.id;
+  if (!userId) {
+    return redirect("/auth/login?callbackUrl=/settings/organizations/members");
+  }
   if (!orgId) {
     return redirect("/settings/my-account/profile");
   }
 
   const [org, teams, facetedTeamValues, attributes] = await Promise.all([
-    orgCaller.listCurrent(),
+    getCachedCurrentOrg(userId, orgId),
     getCachedTeams(orgId),
     getCachedFacetedValues(orgId),
     getCachedAttributes(orgId),

@@ -19,6 +19,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateCurrentOrg } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 type BrandColorsFormValues = {
   brandColor: string;
@@ -67,7 +68,7 @@ const OrgAppearanceView = ({
     async onSuccess(res) {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listCurrent.invalidate();
-
+      revalidateCurrentOrg();
       showToast(t("your_team_updated_successfully"), "success");
       if (res) {
         brandColorsFormMethods.reset({
