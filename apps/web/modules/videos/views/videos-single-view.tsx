@@ -34,6 +34,7 @@ export default function JoinCall(props: PageProps) {
     calVideoLogo,
     displayLogInOverlay,
     loggedInUserName,
+    overrideName,
     showRecordingButton,
     enableAutomaticTranscription,
     rediectAttendeeToOnExit,
@@ -65,7 +66,7 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
-        userName: loggedInUserName ? loggedInUserName ?? undefined : undefined,
+        userName: overrideName ?? loggedInUserName ?? undefined,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
@@ -88,6 +89,10 @@ export default function JoinCall(props: PageProps) {
           },
         }),
       });
+
+      if (overrideName) {
+        callFrame.setUserName(overrideName);
+      }
     } catch (err) {
       callFrame = DailyIframe.getCallInstance();
     } finally {

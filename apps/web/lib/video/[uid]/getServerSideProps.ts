@@ -248,6 +248,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       rediectAttendeeToOnExit: isOrganizer
         ? undefined
         : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
+      overrideName: Array.isArray(context.query.name) ? context.query.name[0] : context.query.name,
     },
   };
 }
