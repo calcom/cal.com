@@ -1,4 +1,5 @@
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import EventManager from "@calcom/lib/EventManager";
 
 export { getBulkUserEventTypes, getBulkTeamEventTypes } from "@calcom/lib/event-types/getBulkEventTypes";
 
@@ -74,3 +75,5 @@ export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
 export { bulkUpdateTeamEventsToDefaultLocation } from "@calcom/lib/bulkUpdateTeamEventsToDefaultLocation";
 export { getPublicEvent };
+
+export { EventManager };

@@ -88,7 +88,10 @@ export async function handleConfirmation(args: {
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);
   const eventManager = new EventManager(user, apps);
-  const scheduleResult = await eventManager.create(evt);
+  const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
+  const scheduleResult = areCalendarEventsEnabled
+    ? await eventManager.create(evt)
+    : { results: [], referencesToCreate: [] };
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
