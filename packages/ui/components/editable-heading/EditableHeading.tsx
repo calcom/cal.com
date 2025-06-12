@@ -21,23 +21,33 @@ export const EditableHeading = function EditableHeading({
   const [initialValue] = useState(value);
   const enableEditing = () => setIsEditing(!disabled);
 
+  const validateAndUpdateValue = (inputValue: string) => {
+    if (!inputValue || !inputValue.trim()) {
+      onChange(initialValue);
+      return;
+    }
+    onChange(inputValue.trim());
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    passThroughProps.onKeyDown?.(e);
     if (e.key === "Enter") {
-      const inputValue = e.currentTarget.value;
-      if (!inputValue || !inputValue.trim()) {
-        onChange(initialValue);
-      }
+      e.preventDefault();
+      validateAndUpdateValue(e.currentTarget.value);
       setIsEditing(false);
     }
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    if (!inputValue || !inputValue.trim()) {
-      onChange(initialValue);
-    }
+    validateAndUpdateValue(e.target.value);
     setIsEditing(false);
     passThroughProps.onBlur && passThroughProps.onBlur(e);
+  };
+
+  const handleChange = (newValue: string) => {
+    if (onChange) {
+      onChange(newValue);
+    }
   };
 
   return (
@@ -63,7 +73,7 @@ export const EditableHeading = function EditableHeading({
               passThroughProps.onFocus && passThroughProps.onFocus(e);
             }}
             onBlur={handleBlur}
-            onChange={(e) => onChange && onChange(e.target.value)}
+            onChange={(e) => handleChange(e.target.value)}
           />
           {!isEditing && isReady && !disabled && (
             <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-1 inline h-3 w-3" />
