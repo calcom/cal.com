@@ -266,8 +266,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         message: "Recurring Events and booker active bookings limit cannot be set at the same time.",
       });
     }
-
     data.maxActiveBookingsPerBooker = maxActiveBookingsPerBooker;
+  }
+
+  if (eventType.maxActiveBookingsPerBooker && recurringEvent) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Recurring Events and booker active bookings limit cannot be set at the same time.",
+    });
   }
 
   if (durationLimits) {
