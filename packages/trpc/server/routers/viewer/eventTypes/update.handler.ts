@@ -263,7 +263,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (recurringEvent || (recurringEvent === undefined && eventType.recurringEvent)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Recurring Events and Offer Seats cannot be active at the same time.",
+        message: "Recurring Events and booker active bookings limit cannot be set at the same time.",
       });
     }
 
