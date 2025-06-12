@@ -1032,7 +1032,7 @@ export class BookingsService_2024_08_13 {
 
   async updateBookingLocation(existingBooking: Booking, location: BookingInputLocation_2024_08_13) {
     const bookingUid = existingBooking.uid;
-    let bookingLocation = "";
+    let bookingLocation = existingBooking.location ?? "";
 
     if (!existingBooking.userId) {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
@@ -1052,7 +1052,7 @@ export class BookingsService_2024_08_13 {
       existingBooking.eventTypeId
     );
 
-    if (typeof location === "object" && location.type === "organizersDefaultApp") {
+    if (location.type === "organizersDefaultApp") {
       const existingBookingHostCredentials = await this.credentialsRepository.getAllUserCredentialsById(
         existingBookingHost.id
       );
@@ -1073,9 +1073,9 @@ export class BookingsService_2024_08_13 {
 
       bookingLocation = getDefaultConferencingAppLocation(
         existingBookingHost?.metadata,
-        enrichedUser[0].credentials
+        enrichedUser[0].credentials ?? []
       );
-    } else if (typeof location === "object") {
+    } else {
       const transformedLocation = this.inputService.transformLocation(location);
       const locationValue = getBookingDataLocation(transformedLocation);
       const { bookingLocation: bookingLocationForDB } = getLocationValueForDB(
