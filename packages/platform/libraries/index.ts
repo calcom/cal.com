@@ -1,5 +1,6 @@
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import getBookingDataLocation from "@calcom/features/bookings/lib/getBookingDataLocation";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { getDefaultConferencingAppLocation } from "@calcom/features/bookings/lib/getDefaultConferencingAppLocation";
@@ -132,3 +133,4 @@ export { getLocationValuesForDb };
 export { getDefaultConferencingAppLocation };
 export { getLocationValueForDB };
 export { getOrgIdFromMemberOrTeamId };
+export { getBookingDataLocation };
