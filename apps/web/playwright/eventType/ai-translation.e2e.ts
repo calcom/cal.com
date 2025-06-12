@@ -43,29 +43,30 @@ test.describe("AI Translation - Event Type", () => {
     await bookingPage.goToEventType("30 min");
     expect(await bookingPage.getAITranslationToggleDisabled()).toBe(false);
   });
+});
 
+test.describe("AI Translation - Booking Page", () => {
+  test.use({
+    locale: "ko-KR",
+  });
   test("Enable the AI translation and test in browser in Korean (ko-KR)", async ({
     page,
     users,
     bookingPage,
-    context,
   }) => {
     const { orgMember, org } = await setupOrgMember(users);
 
     await page.goto("/event-types");
     await createNewUserEventType(page, {
       eventTitle: "5 min",
-      eventDescription: "A quick 5 minute chat.",
       username: orgMember.username ?? undefined,
     });
     expect(await bookingPage.getAITranslationToggleDisabled()).toBe(false);
     await bookingPage.toggleAITranslation();
+    await bookingPage.updateEventTypeDescription("A quick 5 minute chat.");
     await bookingPage.updateEventType();
-
     await orgMember.logout(); // logging out because user locale overrides the browser locale otherwise
-    await context.setExtraHTTPHeaders({
-      "Accept-Language": "ko-KR",
-    });
+
     await doOnOrgDomain(
       {
         orgSlug: org.slug,

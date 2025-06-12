@@ -209,5 +209,8 @@ export function createBookingPageFixture(page: Page) {
     toggleAITranslation: async () => {
       await page.getByTestId("ai_translation_toggle").click();
     },
+    updateEventTypeDescription: async (description: string) => {
+      await page.getByTestId("editor-input").fill(description);
+    },
   };
 }

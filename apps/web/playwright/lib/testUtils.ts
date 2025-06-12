@@ -179,19 +179,13 @@ export async function expectSlotNotAllowedToBook(page: Page) {
   await expect(page.locator("[data-testid=slot-not-allowed-to-book]")).toBeVisible();
 }
 
-export const createNewUserEventType = async (
-  page: Page,
-  args: { eventTitle: string; eventDescription?: string; username?: string }
-) => {
+export const createNewUserEventType = async (page: Page, args: { eventTitle: string; username?: string }) => {
   await page.click("[data-testid=new-event-type]");
   if (args.username) {
     await page.getByRole("button", { name: args.username }).click();
   }
   await page.fill("[name=title]", args.eventTitle);
   await page.fill("[name=length]", "10");
-  if (args.eventDescription) {
-    await page.fill("[data-testid=editor-input]", args.eventDescription);
-  }
   await page.click("[type=submit]");
 
   await page.waitForURL((url) => {
