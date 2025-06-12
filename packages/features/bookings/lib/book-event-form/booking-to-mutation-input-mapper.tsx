@@ -60,6 +60,7 @@ export const mapBookingToMutationInput = ({
   const _isDryRun = isBookingDryRun(searchParams);
   const _cacheParam = searchParams?.get("cal.cache");
   const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+  const dub_id = searchParams?.get("dub_id");
 
   return {
     ...values,
@@ -91,6 +92,7 @@ export const mapBookingToMutationInput = ({
     reroutingFormResponses: reroutingFormResponses ? JSON.parse(reroutingFormResponses) : undefined,
     _isDryRun,
     _shouldServeCache,
+    dub_id,
   };
 };
 

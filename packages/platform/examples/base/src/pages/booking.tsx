@@ -128,13 +128,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 },
               }}
               {...(isTeamEvent
-                ? { isTeamEvent: true, teamId: teams?.[0]?.id || 0 }
+                ? {
+                    isTeamEvent: true,
+                    teamId: teams?.[0]?.id || 0,
+                  }
                 : { username: props.calUsername })}
               hostsLimit={3}
               allowUpdatingUrlParams={true}
-              handleSlotReservation={(timeslot) => {
-                console.log("Selected timeslot:", timeslot);
-              }}
             />
           </>
         )}
