@@ -4,14 +4,18 @@ import { IsEnum, IsISO8601, IsOptional, IsString, ValidateNested } from "class-v
 
 import { CALENDARS, SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
-/**
- * Calendar event status enum
- */
 export enum CalendarEventStatus {
   ACCEPTED = "accepted",
   PENDING = "pending",
   DECLINED = "declined",
   CANCELLED = "cancelled",
+}
+
+export enum CalendarEventResponseStatus {
+  ACCEPTED = "accepted",
+  PENDING = "pending",
+  DECLINED = "declined",
+  NEEDS_ACTION = "needsAction",
 }
 
 /**
@@ -225,11 +229,15 @@ export class CalendarEventAttendee {
 
   @IsString()
   @IsOptional()
+  @IsEnum(CalendarEventResponseStatus)
   @ApiPropertyOptional({
+    enum: CalendarEventResponseStatus,
     nullable: true,
-    description: "Attendee's response to the invitation (accepted, declined, tentative, needs_action)",
+    enumName: "CalendarEventResponseStatus",
+    description: "Attendee's response to the invitation",
+    example: CalendarEventResponseStatus.ACCEPTED,
   })
-  responseStatus?: string;
+  responseStatus!: CalendarEventResponseStatus | null;
 
   @IsOptional()
   @ApiPropertyOptional({

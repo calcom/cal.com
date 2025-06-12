@@ -1,4 +1,5 @@
 import {
+  CalendarEventResponseStatus,
   CalendarEventStatus,
   DateTimeWithZone,
   UnifiedCalendarEventOutput,
@@ -90,21 +91,7 @@ export class GoogleCalendarEventOutputPipe
     calendarEvent.start = this.transformDateTimeWithZone(googleEvent.start);
     calendarEvent.end = this.transformDateTimeWithZone(googleEvent.end);
 
-    if (googleEvent?.conferenceData?.entryPoints) {
-      calendarEvent.locations = googleEvent.conferenceData.entryPoints.map((entryPoint) => {
-        return {
-          type: entryPoint.entryPointType,
-          url: entryPoint.uri,
-          label: entryPoint.label,
-          pin: entryPoint.pin,
-          regionCode: entryPoint.regionCode,
-        };
-      });
-    } else if (googleEvent.hangoutLink) {
-      calendarEvent.locations = [{ type: "video", url: googleEvent.hangoutLink }];
-    } else {
-      calendarEvent.locations = [];
-    }
+    calendarEvent.locations = this.transformLocations(googleEvent);
 
     if (googleEvent.attendees && googleEvent.attendees.length > 0) {
       calendarEvent.attendees = googleEvent.attendees
@@ -113,7 +100,7 @@ export class GoogleCalendarEventOutputPipe
           return {
             email: attendee.email,
             name: attendee.displayName,
-            responseStatus: attendee.responseStatus,
+            responseStatus: this.transformAttendeeResponseStatus(attendee.responseStatus),
             organizer: attendee.organizer,
             self: attendee.self,
             optional: attendee.optional,
@@ -121,46 +108,9 @@ export class GoogleCalendarEventOutputPipe
         });
     }
 
-    // Map Google Calendar status to our CalendarEventStatus enum
-    if (googleEvent.status) {
-      switch (googleEvent.status.toLowerCase()) {
-        case "confirmed":
-          calendarEvent.status = CalendarEventStatus.ACCEPTED;
-          break;
-        case "tentative":
-          calendarEvent.status = CalendarEventStatus.PENDING;
-          break;
-        case "cancelled":
-          calendarEvent.status = CalendarEventStatus.CANCELLED;
-          break;
-        default:
-          calendarEvent.status = null;
-      }
-    } else {
-      calendarEvent.status = null;
-    }
+    calendarEvent.status = this.transformEventStatus(googleEvent.status);
 
-    if (googleEvent.organizer) {
-      calendarEvent.hosts = [
-        {
-          email: googleEvent.organizer.email,
-          name: googleEvent.organizer.displayName,
-        },
-      ];
-    } else if (googleEvent.attendees) {
-      // If no explicit organizer, find the first attendee with organizer flag
-      const organizerAttendee = googleEvent.attendees.find((attendee) => attendee.organizer);
-      if (organizerAttendee) {
-        calendarEvent.hosts = [
-          {
-            email: organizerAttendee.email,
-            name: organizerAttendee.displayName,
-          },
-        ];
-      }
-    } else {
-      calendarEvent.hosts = [];
-    }
+    calendarEvent.hosts = this.transformHosts(googleEvent);
 
     calendarEvent.source = "google";
 
@@ -175,5 +125,81 @@ export class GoogleCalendarEventOutputPipe
     dateTimeWithZone.time = googleDateTime.dateTime;
     dateTimeWithZone.timeZone = googleDateTime.timeZone;
     return dateTimeWithZone;
+  }
+
+  private transformAttendeeResponseStatus(responseStatus?: string): CalendarEventResponseStatus | null {
+    if (!responseStatus) return null;
+
+    switch (responseStatus.toLowerCase()) {
+      case "accepted":
+        return CalendarEventResponseStatus.ACCEPTED;
+      case "tentative":
+        return CalendarEventResponseStatus.PENDING;
+      case "declined":
+        return CalendarEventResponseStatus.DECLINED;
+      case "needsaction":
+        return CalendarEventResponseStatus.NEEDS_ACTION;
+      default:
+        return null;
+    }
+  }
+
+  private transformEventStatus(eventStatus?: string): CalendarEventStatus | null {
+    if (!eventStatus) return null;
+
+    switch (eventStatus.toLowerCase()) {
+      case "confirmed":
+        return CalendarEventStatus.ACCEPTED;
+      case "tentative":
+        return CalendarEventStatus.PENDING;
+      case "cancelled":
+        return CalendarEventStatus.CANCELLED;
+      default:
+        return null;
+    }
+  }
+
+  private transformHosts(googleEvent: GoogleCalendarEventResponse): Array<{ email: string; name?: string }> {
+    if (googleEvent.organizer) {
+      return [
+        {
+          email: googleEvent.organizer.email,
+          name: googleEvent.organizer.displayName,
+        },
+      ];
+    } else if (googleEvent.attendees) {
+      // If no explicit organizer, find the first attendee with organizer flag
+      const organizerAttendee = googleEvent.attendees.find((attendee) => attendee.organizer);
+      if (organizerAttendee) {
+        return [
+          {
+            email: organizerAttendee.email,
+            name: organizerAttendee.displayName,
+          },
+        ];
+      }
+    }
+
+    return [];
+  }
+
+  private transformLocations(
+    googleEvent: GoogleCalendarEventResponse
+  ): Array<{ type: string; url: string; label?: string; pin?: string; regionCode?: string }> {
+    if (googleEvent?.conferenceData?.entryPoints) {
+      return googleEvent.conferenceData.entryPoints.map((entryPoint) => {
+        return {
+          type: entryPoint.entryPointType,
+          url: entryPoint.uri,
+          label: entryPoint.label,
+          pin: entryPoint.pin,
+          regionCode: entryPoint.regionCode,
+        };
+      });
+    } else if (googleEvent.hangoutLink) {
+      return [{ type: "video", url: googleEvent.hangoutLink }];
+    }
+
+    return [];
   }
 }
