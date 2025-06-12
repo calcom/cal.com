@@ -28,9 +28,9 @@ import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsights
 import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export default function InsightsPage() {
+export default function InsightsPage({ timeZone }: { timeZone: string }) {
   return (
-    <DataTableProvider>
+    <DataTableProvider timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <InsightsPageContent />
       </InsightsOrgTeamsProvider>
