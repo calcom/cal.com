@@ -574,10 +574,6 @@ export async function expectPageToBeNotFound({ page, url }: { page: Page; url: s
   await expect(page.getByTestId(`404-page`)).toBeVisible();
 }
 
-export async function selectFirstAvailableTimeSlot(page: Page) {
-  // ... existing code ...
-}
-
 export async function setupOrgMember(users: CreateUsersFixture) {
   const orgRequestedSlug = `example-${uuid()}`;
 
