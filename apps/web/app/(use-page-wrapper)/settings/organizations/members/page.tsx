@@ -49,7 +49,7 @@ const getCachedFacetedValues = unstable_cache(
 const Page = async () => {
   const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  const orgId = session?.user?.org?.id;
+  const orgId = session?.user?.org?.id ?? session?.user?.profile?.organizationId;
   if (!orgId) {
     return redirect("/settings/my-account/profile");
   }
