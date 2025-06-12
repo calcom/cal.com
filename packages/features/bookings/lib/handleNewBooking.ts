@@ -451,11 +451,21 @@ async function handler(
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
-  await checkActiveBookingsLimitForBooker({
-    eventTypeId,
-    maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
-    bookerEmail,
-  });
+  try {
+    await checkActiveBookingsLimitForBooker({
+      eventTypeId,
+      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
+      bookerEmail,
+      offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
+    });
+  } catch (error) {
+    console.log(error);
+    throw new HttpError({
+      statusCode: 400,
+      message: error.message,
+      data: error.data,
+    });
+  }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
