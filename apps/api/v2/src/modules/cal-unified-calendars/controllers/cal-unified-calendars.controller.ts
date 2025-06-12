@@ -6,13 +6,7 @@ import { GetUnifiedCalendarEventOutput } from "@/modules/cal-unified-calendars/o
 import { GoogleCalendarEventOutputPipe } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
 import { GoogleCalendarService } from "@/modules/cal-unified-calendars/services/google-calendar.service";
 import { Controller, Get, Param, UseGuards, HttpCode, HttpStatus, BadRequestException } from "@nestjs/common";
-import {
-  ApiTags as DocsTags,
-  ApiExcludeController as DocsExcludeController,
-  ApiParam,
-  ApiHeader,
-  ApiOperation,
-} from "@nestjs/swagger";
+import { ApiTags as DocsTags, ApiParam, ApiHeader, ApiOperation } from "@nestjs/swagger";
 
 import { GOOGLE_CALENDAR, SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -21,7 +15,6 @@ import { GOOGLE_CALENDAR, SUCCESS_STATUS } from "@calcom/platform-constants";
   version: API_VERSIONS_VALUES,
 })
 @DocsTags("Cal Unified Calendars")
-@DocsExcludeController(true)
 export class CalUnifiedCalendarsController {
   constructor(private readonly googleCalendarService: GoogleCalendarService) {}
 
