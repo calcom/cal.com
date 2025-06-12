@@ -33,4 +33,6 @@ async function postHandler(request: NextRequest) {
   }
 }
 
-export const POST = defaultResponderForAppDir(postHandler);
+export const POST = defaultResponderForAppDir(postHandler, {
+  disableTenantPrisma: true,
+});

@@ -12,13 +12,9 @@ const TENANT_ENV_MAP: Record<
     connectionString: string;
   }
 > = {
-  ...(process.env.DATABASE_URL
-    ? {
-        [SystemTenant.DEFAULT]: {
-          connectionString: process.env.DATABASE_URL,
-        },
-      }
-    : {}),
+  [SystemTenant.DEFAULT]: {
+    connectionString: process.env.DATABASE_URL || "",
+  },
   ...(process.env.INSIGHTS_DATABASE_URL
     ? {
         [SystemTenant.INSIGHTS]: {
@@ -63,9 +59,7 @@ if (process.env.TENANT_CONFIG) {
 }
 
 // tenant lists of all tenant keys outside of the system tenant
-export const TENANT_LIST = Object.keys(TENANT_ENV_MAP).filter(
-  (tenant) => tenant !== SystemTenant.DEFAULT && tenant !== SystemTenant.INSIGHTS
-);
+export const TENANT_LIST = Object.keys(TENANT_ENV_MAP).filter((tenant) => tenant !== SystemTenant.INSIGHTS);
 
 export function getDatabaseUrl(tenant: string) {
   return TENANT_ENV_MAP[tenant]?.connectionString || TENANT_ENV_MAP[SystemTenant.DEFAULT].connectionString;

@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { runWithTenants } from "./prismaStore";
-import { SystemTenant, TENANT_LIST } from "./tenants";
+import { TENANT_LIST } from "./tenants";
 
 type Params = {
   [param: string]: string | string[] | undefined;
@@ -27,7 +27,7 @@ export function withMultiTenantPrisma<T extends NextResponse | Response = NextRe
 ): (req: NextRequest, ctx: { params: Promise<Params> }) => Promise<NextResponse> {
   return async (req: NextRequest, ctx: { params: Promise<Params> }) => {
     const results: Record<string, any> = {};
-    for (const tenant of [SystemTenant.DEFAULT, ...TENANT_LIST]) {
+    for (const tenant of TENANT_LIST) {
       const response = await runWithTenants(tenant, async () => handler(req, ctx));
       const data = response instanceof Response ? await response.json() : response;
       results[tenant] = data;
