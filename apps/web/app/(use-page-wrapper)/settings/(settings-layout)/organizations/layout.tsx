@@ -7,7 +7,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const SettingsOrganizationsLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  console.log("session", session);
+
   const orgExists =
     session?.user?.org || session?.user?.profile?.organizationId || session?.user?.profile?.organization;
   if (!orgExists) {
