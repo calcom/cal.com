@@ -47,6 +47,7 @@ const _getBusyTimes = async (params: {
     | null;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
+  isOverlayUser?: boolean;
 }) => {
   const {
     credentials,
@@ -64,6 +65,7 @@ const _getBusyTimes = async (params: {
     duration,
     bypassBusyCalendarTimes = false,
     shouldServeCache,
+    isOverlayUser,
   } = params;
 
   logger.silly(
@@ -183,7 +185,9 @@ const _getBusyTimes = async (params: {
       startTime,
       endTime,
       selectedCalendars,
-      shouldServeCache
+      shouldServeCache,
+      undefined,
+      isOverlayUser
     );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
