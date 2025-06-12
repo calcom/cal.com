@@ -1,4 +1,4 @@
-import BillingPage, { generateMetadata } from "../../billing/page";
+import BillingPage, { generateMetadata } from "../../../billing/page";
 
 export { generateMetadata };
 
