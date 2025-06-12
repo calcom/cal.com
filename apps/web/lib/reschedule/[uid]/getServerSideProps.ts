@@ -4,6 +4,7 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getSafe } from "@calcom/lib/getSafe";
@@ -59,6 +60,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           allowReschedulingPastBookings: true,
           disableRescheduling: true,
+          allowReschedulingCancelledBookings: true,
           team: {
             select: {
               parentId: true,
@@ -109,18 +111,31 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     profileEnrichedBookingUser: enrichedBookingUser,
   });
 
+  const isForcedRescheduleForCancelledBooking = allowRescheduleForCancelledBooking;
   // If booking is already REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // If the booking is CANCELLED and allowRescheduleForCancelledBooking is false, we redirect the user to the original event link.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
-  if (
-    isDisabledRescheduling ||
-    (!allowRescheduleForCancelledBooking &&
-      (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED))
-  ) {
+  // This comes from query param and thus is considered forced
+  const canRescheduleCancelledBooking =
+    isForcedRescheduleForCancelledBooking || booking.eventType?.allowReschedulingCancelledBookings;
+  const isNonRescheduleableBooking =
+    booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
+
+  if (isDisabledRescheduling) {
     return {
       redirect: {
-        destination: booking.status === BookingStatus.CANCELLED ? eventUrl : `/booking/${uid}`,
+        destination: `/booking/${uid}`,
+        permanent: false,
+      },
+    };
+  }
+
+  if (isNonRescheduleableBooking) {
+    const canReschedule = booking.status === BookingStatus.CANCELLED && canRescheduleCancelledBooking;
+    return {
+      redirect: {
+        destination: canReschedule ? eventUrl : `/booking/${uid}`,
         permanent: false,
       },
     };
@@ -139,7 +154,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (isBookingInPast && !eventType.allowReschedulingPastBookings) {
     const destinationUrlSearchParams = new URLSearchParams();
     const responses = bookingSeat ? getSafe<string>(bookingSeat.data, ["responses"]) : booking.responses;
-    const name = getSafe<string>(responses, ["name"]);
+    const name = getFullName(getSafe<string | { firstName: string; lastName?: string }>(responses, ["name"]));
     const email = getSafe<string>(responses, ["email"]);
 
     if (name) destinationUrlSearchParams.set("name", name);
