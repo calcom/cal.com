@@ -9,4 +9,4 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     `/settings/organizations/${(await params).id}/members`
   );
 
-export { default } from "../../../../members/page";
+export { default } from "../../members/page";
