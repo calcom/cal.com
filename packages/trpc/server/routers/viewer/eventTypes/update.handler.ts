@@ -310,7 +310,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (restrictionScheduleId) {
-    // Verify that the user owns the restriction schedule
+    // Verify that the user owns the restriction schedule or is a team member
     const restrictionSchedule = await ctx.prisma.schedule.findUnique({
       where: {
         id: restrictionScheduleId,
@@ -320,11 +320,30 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
     });
 
-    if (!restrictionSchedule || restrictionSchedule.userId !== ctx.user.id) {
+    if (!restrictionSchedule) {
       throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You can only use your own schedules as restriction schedules",
+        code: "NOT_FOUND",
+        message: "Restriction schedule not found",
       });
+    }
+
+    // If the user doesn't own the schedule, check if they're a team member
+    if (restrictionSchedule.userId !== ctx.user.id) {
+      const teamMember = await ctx.prisma.membership.findFirst({
+        where: {
+          teamId: eventType.teamId,
+          userId: ctx.user.id,
+          accepted: true,
+        },
+      });
+
+      if (!teamMember) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message:
+            "You can only use your own schedules or schedules from your team members as restriction schedules",
+        });
+      }
     }
 
     data.restrictionSchedule = {

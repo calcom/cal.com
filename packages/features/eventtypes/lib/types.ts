@@ -153,6 +153,7 @@ export type FormValues = {
   maxLeadThreshold?: number;
   restrictionScheduleId: number | null;
   useBookerTimezone: boolean;
+  restrictionScheduleName: string | null;
   calVideoSettings?: {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;

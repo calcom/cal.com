@@ -409,6 +409,24 @@ const EventTypeSchedule = ({
     });
   }
 
+  if (
+    fieldName === "restrictionSchedule" &&
+    eventType.restrictionScheduleId &&
+    !schedulesQueryData.find((schedule) => schedule.id === eventType.restrictionScheduleId)
+  ) {
+    options.push({
+      value: eventType.restrictionScheduleId,
+      label: eventType.restrictionScheduleName ?? t("default_schedule_name"),
+      isDefault: false,
+      isManaged: false,
+    });
+  }
+
+  const filteredOptions =
+    fieldName === "restrictionSchedule"
+      ? options.filter((option) => option.value !== eventType.schedule)
+      : options;
+
   const currentScheduleQueryData =
     fieldName === "schedule" ? scheduleQueryData : restrictionScheduleQueryData;
   const isCurrentSchedulePending =
@@ -433,19 +451,18 @@ const EventTypeSchedule = ({
         <Controller
           name={formFieldName}
           render={({ field: { onChange, value } }) => {
-            const optionValue: AvailabilityOption | undefined = options.find(
+            const optionValue: AvailabilityOption | undefined = filteredOptions.find(
               (option) => option.value === value
             );
             return (
               <Select
                 placeholder={t("select")}
-                options={options}
+                options={filteredOptions}
                 isDisabled={shouldLockDisableProps(formFieldName).disabled}
                 isSearchable={false}
                 onChange={(selected) => {
                   if (selected) {
                     onChange(selected.value);
-                    // If this is a restriction schedule, ensure we have a value
                     if (fieldName === "restrictionSchedule" && selected.value) {
                       setValue("restrictionScheduleId", selected.value, { shouldDirty: true });
                     }

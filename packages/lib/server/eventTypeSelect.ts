@@ -85,4 +85,10 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       name: true,
     },
   },
+  restrictionSchedule: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
 });
