@@ -14217,7 +14217,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -15791,6 +15791,23 @@
         },
         "required": ["status", "data"]
       },
+      "CalVideoSettings": {
+        "type": "object",
+        "properties": {
+          "disableRecordingForOrganizer": {
+            "type": "boolean",
+            "description": "If true, the organizer will not be able to record the meeting"
+          },
+          "disableRecordingForGuests": {
+            "type": "boolean",
+            "description": "If true, the guests will not be able to record the meeting"
+          },
+          "redirectUrlOnExit": {
+            "type": "string",
+            "description": "If true, the cal video settings will be used for the event type"
+          }
+        }
+      },
       "UpdateEventTypeInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -16026,6 +16043,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "locations": {
             "type": "array",
@@ -17561,7 +17586,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -17976,6 +18001,15 @@
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
+          "calVideoSettings": {
+            "nullable": true,
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
+          },
           "teamId": {
             "type": "number"
           },
@@ -18376,6 +18410,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "hosts": {
             "type": "array",

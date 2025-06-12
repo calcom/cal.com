@@ -72,7 +72,7 @@ export class EventTypesRepository_2024_06_14 {
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: { users: true, schedule: true, destinationCalendar: true },
+      include: { users: true, schedule: true, destinationCalendar: true, calVideoSettings: true },
     });
   }
 

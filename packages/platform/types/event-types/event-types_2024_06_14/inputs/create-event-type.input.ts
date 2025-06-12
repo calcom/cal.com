@@ -369,9 +369,9 @@ class BaseCreateEventTypeInput {
   @IsOptional()
   @IsString()
   @DocsPropertyOptional({
-    description: `Customizable event name with valid variables: 
-      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, 
-      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, 
+    description: `Customizable event name with valid variables:
+      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},
+      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},
       {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}`,
     example: "{Event type title} between {Organiser} and {Scheduler}",
   })
@@ -456,6 +456,29 @@ export class Host {
   @IsOptional()
   @DocsPropertyOptional({ enum: HostPriority })
   priority?: keyof typeof HostPriority = "medium";
+}
+
+export class CalVideoSettings {
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the organizer will not be able to record the meeting",
+  })
+  disableRecordingForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the guests will not be able to record the meeting",
+  })
+  disableRecordingForGuests?: boolean;
+
+  @IsOptional()
+  @IsUrl()
+  @DocsPropertyOptional({
+    description: "If true, the cal video settings will be used for the event type",
+  })
+  redirectUrlOnExit?: string | null;
 }
 export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @Transform(({ value }) => {
