@@ -3,6 +3,7 @@
 import type { SetStateAction, Dispatch } from "react";
 import React, { useMemo, useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
+import type { Control } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -17,6 +18,7 @@ import DateOverrideList from "@calcom/features/schedules/components/DateOverride
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
 } from "@calcom/features/schedules/components/Schedule";
+import TimeBlocksList from "@calcom/features/schedules/components/TimeBlocksList";
 import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -81,6 +83,7 @@ type AvailabilitySettingsProps = {
     dateOverrides: { ranges: TimeRange[] }[];
     timeZone: string;
     schedule: Availability[];
+    timeBlocks?: { value: string }[];
   };
   travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   handleDelete: () => void;
@@ -107,6 +110,7 @@ type AvailabilitySettingsProps = {
     isEventTypesFetching?: boolean;
     handleBulkEditDialogToggle: () => void;
   };
+  connectedCalendars?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
 };
 
 const DeleteDialogButton = ({
@@ -164,6 +168,31 @@ const useExcludedDates = () => {
   }, [watchValues]);
 };
 
+const TimeBlocks = ({ control }: { control: Control<AvailabilityFormValues> }) => {
+  const { append, remove, fields } = useFieldArray<AvailabilityFormValues, "timeBlocks">({
+    name: "timeBlocks",
+    control,
+  });
+  const { t } = useLocale();
+
+  return (
+    <div className="border-subtle mb-6 rounded-md border p-6">
+      <h3 className="text-emphasis font-medium leading-6">{t("time_blocks")}</h3>
+      <p className="text-subtle mb-4 text-sm">{t("time_blocks_subtitle")}</p>
+      <div className="space-y-2">
+        {fields?.length > 0 && <TimeBlocksList fields={fields} remove={remove} control={control} />}
+        <Button
+          color="secondary"
+          StartIcon="plus"
+          data-testid="add-override"
+          onClick={() => append({ value: "" })}>
+          {t("add")}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const DateOverride = ({
   workingHours,
   userTimeFormat,
@@ -192,7 +221,7 @@ const DateOverride = ({
   };
 
   return (
-    <div className="p-6">
+    <div className="border-subtle mb-6 rounded-md border p-6">
       <h3 className="text-emphasis font-medium leading-6">
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
@@ -274,6 +303,7 @@ export function AvailabilitySettings({
   bulkUpdateModalProps,
   allowSetToDefault = true,
   allowDelete = true,
+  connectedCalendars,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -282,6 +312,7 @@ export function AvailabilitySettings({
     defaultValues: {
       ...schedule,
       schedule: schedule.availability || [],
+      timeBlocks: schedule.timeBlocks || [],
     },
   });
 
@@ -586,6 +617,7 @@ export function AvailabilitySettings({
                 )}
               </div>
             </div>
+            {connectedCalendars && connectedCalendars.length > 0 && <TimeBlocks control={form.control} />}
             {enableOverrides && (
               <DateOverride
                 workingHours={schedule.workingHours}

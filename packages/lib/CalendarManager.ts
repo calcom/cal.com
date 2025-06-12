@@ -15,8 +15,8 @@ import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFr
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   CalendarEvent,
+  EventBusyData,
   CalendarServiceEvent,
-  EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
   SelectedCalendar,
@@ -226,9 +226,10 @@ export const getBusyCalendarTimes = async (
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
   shouldServeCache?: boolean,
-  includeTimeZone?: boolean
+  includeTimeZone?: boolean,
+  includeEventTitle?: boolean
 ) => {
-  let results: (EventBusyDate & { timeZone?: string })[][] = [];
+  let results: (EventBusyData & { timeZone?: string })[][] = [];
 
   const deduplicatedCredentials = deduplicateCredentialsBasedOnSelectedCalendars({
     credentials: withCredentials,
@@ -273,7 +274,8 @@ export const getBusyCalendarTimes = async (
         startDate,
         endDate,
         selectedCalendars,
-        shouldServeCache
+        shouldServeCache,
+        includeEventTitle
       );
     }
   } catch (e) {
