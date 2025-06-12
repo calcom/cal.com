@@ -130,6 +130,7 @@ const commons = {
   includeNoShowInRRCalculation: false,
   useEventLevelSelectedCalendars: false,
   rrResetInterval: null,
+  rrTimestampBasis: null,
   interfaceLanguage: null,
   customReplyToEmail: null,
   profileId: null,
