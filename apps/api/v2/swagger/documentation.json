@@ -16531,6 +16531,23 @@
           "isDefault"
         ]
       },
+      "CalVideoSettings": {
+        "type": "object",
+        "properties": {
+          "disableRecordingForOrganizer": {
+            "type": "boolean",
+            "description": "If true, the organizer will not be able to record the meeting"
+          },
+          "disableRecordingForGuests": {
+            "type": "boolean",
+            "description": "If true, the guests will not be able to record the meeting"
+          },
+          "redirectUrlOnExit": {
+            "type": "object",
+            "description": "URL to which participants are redirected when they exit the call"
+          }
+        }
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -16781,6 +16798,14 @@
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -16881,23 +16906,6 @@
           "status",
           "data"
         ]
-      },
-      "CalVideoSettings": {
-        "type": "object",
-        "properties": {
-          "disableRecordingForOrganizer": {
-            "type": "boolean",
-            "description": "If true, the organizer will not be able to record the meeting"
-          },
-          "disableRecordingForGuests": {
-            "type": "boolean",
-            "description": "If true, the guests will not be able to record the meeting"
-          },
-          "redirectUrlOnExit": {
-            "type": "string",
-            "description": "If true, the cal video settings will be used for the event type"
-          }
-        }
       },
       "UpdateEventTypeInput_2024_06_14": {
         "type": "object",

@@ -476,7 +476,7 @@ export class CalVideoSettings {
   @IsOptional()
   @IsUrl()
   @DocsPropertyOptional({
-    description: "If true, the cal video settings will be used for the event type",
+    description: "URL to which participants are redirected when they exit the call",
   })
   redirectUrlOnExit?: string | null;
 }
