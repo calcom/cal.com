@@ -124,6 +124,29 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   RescheduleReasonDefaultFieldInput_2024_06_14,
   InputOrganizersDefaultApp_2024_06_14
 )
+export class CalVideoSettings {
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the organizer will not be able to record the meeting",
+  })
+  disableRecordingForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the guests will not be able to record the meeting",
+  })
+  disableRecordingForGuests?: boolean;
+
+  @IsOptional()
+  @IsUrl()
+  @DocsPropertyOptional({
+    description: "URL to which participants are redirected when they exit the call",
+  })
+  redirectUrlOnExit?: string | null;
+}
+
 class BaseCreateEventTypeInput {
   @IsInt()
   @Min(1)
@@ -407,6 +430,15 @@ class BaseCreateEventTypeInput {
       "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
   })
   hideOrganizerEmail?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CalVideoSettings)
+  @DocsPropertyOptional({
+    description: "Cal video settings for the event type",
+    type: CalVideoSettings,
+  })
+  calVideoSettings?: CalVideoSettings;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
@@ -458,28 +490,6 @@ export class Host {
   priority?: keyof typeof HostPriority = "medium";
 }
 
-export class CalVideoSettings {
-  @IsOptional()
-  @IsBoolean()
-  @DocsPropertyOptional({
-    description: "If true, the organizer will not be able to record the meeting",
-  })
-  disableRecordingForOrganizer?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @DocsPropertyOptional({
-    description: "If true, the guests will not be able to record the meeting",
-  })
-  disableRecordingForGuests?: boolean;
-
-  @IsOptional()
-  @IsUrl()
-  @DocsPropertyOptional({
-    description: "URL to which participants are redirected when they exit the call",
-  })
-  redirectUrlOnExit?: string | null;
-}
 export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @Transform(({ value }) => {
     if (value === "collective") {

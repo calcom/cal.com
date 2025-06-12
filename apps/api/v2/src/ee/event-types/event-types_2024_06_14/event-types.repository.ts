@@ -13,13 +13,20 @@ export class EventTypesRepository_2024_06_14 {
     userId: number,
     body: Omit<InputEventTransformed_2024_06_14, "destinationCalendar">
   ) {
+    const { calVideoSettings, ...restBody } = body;
+
     return this.dbWrite.prisma.eventType.create({
       data: {
-        ...body,
+        ...restBody,
         userId,
         locations: body.locations,
         bookingFields: body.bookingFields,
         users: { connect: { id: userId } },
+        ...(calVideoSettings && {
+          calVideoSettings: {
+            create: calVideoSettings,
+          },
+        }),
       },
     });
   }

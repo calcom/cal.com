@@ -13704,6 +13704,71 @@
           "data"
         ]
       },
+      "BookerLayouts_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "defaultLayout": {
+            "type": "string",
+            "enum": [
+              "month",
+              "week",
+              "column"
+            ]
+          },
+          "enabledLayouts": {
+            "type": "array",
+            "description": "Array of valid layouts - month, week or column",
+            "items": {
+              "type": "string",
+              "enum": [
+                "month",
+                "week",
+                "column"
+              ]
+            }
+          }
+        },
+        "required": [
+          "defaultLayout",
+          "enabledLayouts"
+        ]
+      },
+      "EventTypeColor_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lightThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in light theme",
+            "example": "#292929"
+          },
+          "darkThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in dark theme",
+            "example": "#fafafa"
+          }
+        },
+        "required": [
+          "lightThemeHex",
+          "darkThemeHex"
+        ]
+      },
+      "DestinationCalendar_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
+          },
+          "externalId": {
+            "type": "string",
+            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
+          }
+        },
+        "required": [
+          "integration",
+          "externalId"
+        ]
+      },
       "InputAddressLocation_2024_06_14": {
         "type": "object",
         "properties": {
@@ -14820,70 +14885,22 @@
           "type"
         ]
       },
-      "BookerLayouts_2024_06_14": {
+      "CalVideoSettings": {
         "type": "object",
         "properties": {
-          "defaultLayout": {
-            "type": "string",
-            "enum": [
-              "month",
-              "week",
-              "column"
-            ]
+          "disableRecordingForOrganizer": {
+            "type": "boolean",
+            "description": "If true, the organizer will not be able to record the meeting"
           },
-          "enabledLayouts": {
-            "type": "array",
-            "description": "Array of valid layouts - month, week or column",
-            "items": {
-              "type": "string",
-              "enum": [
-                "month",
-                "week",
-                "column"
-              ]
-            }
-          }
-        },
-        "required": [
-          "defaultLayout",
-          "enabledLayouts"
-        ]
-      },
-      "EventTypeColor_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "lightThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in light theme",
-            "example": "#292929"
+          "disableRecordingForGuests": {
+            "type": "boolean",
+            "description": "If true, the guests will not be able to record the meeting"
           },
-          "darkThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in dark theme",
-            "example": "#fafafa"
+          "redirectUrlOnExit": {
+            "type": "object",
+            "description": "URL to which participants are redirected when they exit the call"
           }
-        },
-        "required": [
-          "lightThemeHex",
-          "darkThemeHex"
-        ]
-      },
-      "DestinationCalendar_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "integration": {
-            "type": "string",
-            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
-          },
-          "externalId": {
-            "type": "string",
-            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
-          }
-        },
-        "required": [
-          "integration",
-          "externalId"
-        ]
+        }
       },
       "CreateEventTypeInput_2024_06_14": {
         "type": "object",
@@ -15127,6 +15144,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "locations": {
             "type": "array",
@@ -16530,23 +16555,6 @@
           "hidden",
           "isDefault"
         ]
-      },
-      "CalVideoSettings": {
-        "type": "object",
-        "properties": {
-          "disableRecordingForOrganizer": {
-            "type": "boolean",
-            "description": "If true, the organizer will not be able to record the meeting"
-          },
-          "disableRecordingForGuests": {
-            "type": "boolean",
-            "description": "If true, the guests will not be able to record the meeting"
-          },
-          "redirectUrlOnExit": {
-            "type": "object",
-            "description": "URL to which participants are redirected when they exit the call"
-          }
-        }
       },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
@@ -18974,6 +18982,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "schedulingType": {
             "type": "string",
