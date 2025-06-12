@@ -168,7 +168,7 @@ export default function BillingCredits() {
             <hr className="border-subtle mb-3 mt-3" />
           </div>
           <form onSubmit={handleSubmit(onSubmit)} className="flex">
-            <div className="mr-auto">
+            <div className="-mb-1 mr-auto">
               <Label>{t("buy_additional_credits")}</Label>
               <div className="flex flex-col">
                 <TextField
@@ -188,7 +188,7 @@ export default function BillingCredits() {
                 {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
               </div>
             </div>
-            <div className="mb-1 mt-auto">
+            <div className="mt-auto">
               <Button color="primary" target="_blank" EndIcon="external-link" type="submit">
                 {t("buy_credits")}
               </Button>
