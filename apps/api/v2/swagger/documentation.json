@@ -13421,6 +13421,11 @@
             "type": "boolean",
             "default": false,
             "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
+          },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
           }
         },
         "required": [
@@ -13543,6 +13548,11 @@
             "example": true,
             "description": "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user."
           },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "example": true,
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
+          },
           "bookingRedirectUri": {
             "type": "string",
             "example": "https://example.com/booking-redirect"
@@ -13565,7 +13575,8 @@
           "organizationId",
           "createdAt",
           "areEmailsEnabled",
-          "areDefaultEventTypesEnabled"
+          "areDefaultEventTypesEnabled",
+          "areCalendarEventsEnabled"
         ]
       },
       "GetOAuthClientsResponseDto": {
@@ -13641,6 +13652,10 @@
           "areDefaultEventTypesEnabled": {
             "type": "boolean",
             "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
+          },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
           }
         }
       },
