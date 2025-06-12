@@ -962,6 +962,10 @@ describe("Event types Endpoints", () => {
         title: newTitle,
         scheduleId: secondSchedule.id,
         lengthInMinutesOptions: [15, 30],
+        calVideoSettings: {
+          disableRecordingForGuests: true,
+          disableRecordingForOrganizer: true,
+        },
         bookingFields: [
           nameBookingField,
           {
@@ -1082,6 +1086,12 @@ describe("Event types Endpoints", () => {
             body.lockTimeZoneToggleOnBookingPage
           );
           expect(updatedEventType.color).toEqual(body.color);
+          expect(updatedEventType.calVideoSettings?.disableRecordingForGuests).toEqual(
+            body.calVideoSettings?.disableRecordingForGuests
+          );
+          expect(updatedEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(
+            body.calVideoSettings?.disableRecordingForOrganizer
+          );
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
