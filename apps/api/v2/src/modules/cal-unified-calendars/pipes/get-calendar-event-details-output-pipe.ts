@@ -94,11 +94,14 @@ export class GoogleCalendarEventOutputPipe
       calendarEvent.locations = googleEvent.conferenceData.entryPoints.map((entryPoint) => {
         return {
           type: entryPoint.entryPointType,
-          ...entryPoint,
+          url: entryPoint.uri,
+          label: entryPoint.label,
+          pin: entryPoint.pin,
+          regionCode: entryPoint.regionCode,
         };
       });
     } else if (googleEvent.hangoutLink) {
-      calendarEvent.locations = [{ type: "video", uri: googleEvent.hangoutLink }];
+      calendarEvent.locations = [{ type: "video", url: googleEvent.hangoutLink }];
     } else {
       calendarEvent.locations = [];
     }

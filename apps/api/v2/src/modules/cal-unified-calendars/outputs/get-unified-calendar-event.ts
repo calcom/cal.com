@@ -19,7 +19,7 @@ export enum CalendarEventStatus {
  */
 export interface ICalendarEventLocation {
   type: string;
-  uri: string;
+  url: string;
   label?: string;
 }
 
@@ -35,7 +35,7 @@ export class CalendarEventVideoLocation implements ICalendarEventLocation {
   @ApiProperty({
     description: "URL for joining the video conference",
   })
-  uri!: string;
+  url!: string;
 
   @IsString()
   @IsOptional()
@@ -80,9 +80,9 @@ export class CalendarEventPhoneLocation implements ICalendarEventLocation {
 
   @IsString()
   @ApiProperty({
-    description: "Phone number or URI for dialing into the conference",
+    description: "Phone number or URL for dialing into the conference",
   })
-  uri!: string;
+  url!: string;
 
   @IsString()
   @IsOptional()
@@ -135,9 +135,9 @@ export class CalendarEventSipLocation implements ICalendarEventLocation {
 
   @IsString()
   @ApiProperty({
-    description: "SIP URI for joining the conference",
+    description: "SIP URL for joining the conference",
   })
-  uri!: string;
+  url!: string;
 
   @IsString()
   @IsOptional()
@@ -174,9 +174,9 @@ export class CalendarEventMoreLocation implements ICalendarEventLocation {
 
   @IsString()
   @ApiProperty({
-    description: "URI for accessing this location",
+    description: "URL for accessing this location",
   })
-  uri!: string;
+  url!: string;
 
   @IsString()
   @IsOptional()
