@@ -339,7 +339,7 @@ export class UnifiedCalendarEventOutput {
     nullable: true,
     description: "Conference locations with entry points (video, phone, sip, more)",
   })
-  locations?: CalendarEventLocation[] | [];
+  locations?: CalendarEventLocation[];
 
   @IsOptional()
   @ValidateNested({ each: true })
@@ -349,7 +349,7 @@ export class UnifiedCalendarEventOutput {
     nullable: true,
     description: "List of attendees with their response status",
   })
-  attendees?: CalendarEventAttendee[] | null;
+  attendees?: CalendarEventAttendee[];
 
   @IsEnum(CalendarEventStatus)
   @IsOptional()
@@ -370,7 +370,7 @@ export class UnifiedCalendarEventOutput {
     nullable: true,
     description: "Information about the event hosts (organizers)",
   })
-  hosts?: CalendarEventHost[] | [];
+  hosts?: CalendarEventHost[];
 
   @IsEnum(CALENDARS)
   @ApiProperty({
