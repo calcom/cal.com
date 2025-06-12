@@ -3,4 +3,8 @@ import { withMultiTenantPrisma } from "@calcom/prisma/store/withMultiTenantPrism
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
-export const GET = withMultiTenantPrisma(defaultResponderForAppDir(handler));
+export const GET = withMultiTenantPrisma(
+  defaultResponderForAppDir(handler, {
+    disableTenantPrisma: true,
+  })
+);

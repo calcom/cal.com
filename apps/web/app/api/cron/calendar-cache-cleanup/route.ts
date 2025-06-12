@@ -24,4 +24,8 @@ async function postHandler(request: NextRequest) {
   return NextResponse.json({ ok: true, count: deleted.count });
 }
 
-export const POST = withMultiTenantPrisma(defaultResponderForAppDir(postHandler));
+export const POST = withMultiTenantPrisma(
+  defaultResponderForAppDir(postHandler, {
+    disableTenantPrisma: true,
+  })
+);

@@ -313,4 +313,8 @@ const handler = async (request: NextRequest) => {
   return NextResponse.json(await handleCreateSelectedCalendars());
 };
 
-export const GET = withMultiTenantPrisma(defaultResponderForAppDir(handler));
+export const GET = withMultiTenantPrisma(
+  defaultResponderForAppDir(handler, {
+    disableTenantPrisma: true,
+  })
+);

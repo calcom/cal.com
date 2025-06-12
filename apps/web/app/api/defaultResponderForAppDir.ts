@@ -16,16 +16,27 @@ type Handler<T extends NextResponse | Response = NextResponse> = (
 
 export const defaultResponderForAppDir = <T extends NextResponse | Response = NextResponse>(
   handler: Handler<T>,
-  endpointRoute?: string
+  options?: {
+    // TODO: seems to be unused, remove?
+    endpointRoute?: string;
+    disableTenantPrisma?: boolean;
+  }
 ) => {
-  return withPrismaRoute(
+  // If disableTenantPrisma is true, we don't wrap the handler with Prisma.
+  const tenantPrismaFn = options?.disableTenantPrisma
+    ? (fn: (req: NextRequest, options: { params: Promise<Params> }) => Promise<Response>) => fn
+    : withPrismaRoute;
+  return tenantPrismaFn(
     async (req: NextRequest, { params }: { params: Promise<Params> } = { params: Promise.resolve({}) }) => {
       let ok = false;
       try {
         performance.mark("Start");
 
-        const result = endpointRoute
-          ? await wrapApiHandlerWithSentry(async () => await handler(req, { params }), endpointRoute)()
+        const result = options?.endpointRoute
+          ? await wrapApiHandlerWithSentry(
+              async () => await handler(req, { params }),
+              options.endpointRoute
+            )()
           : await handler(req, { params });
 
         ok = true;
