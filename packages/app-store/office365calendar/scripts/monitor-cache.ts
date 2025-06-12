@@ -3,8 +3,8 @@ import { OutlookCacheService } from "../lib/CacheService";
 import { OutlookSubscriptionService } from "../lib/SubscriptionService";
 
 const prisma = new PrismaClient();
-const cacheService = new OutlookCacheService();
-const subscriptionService = new OutlookSubscriptionService();
+// const cacheService = new OutlookCacheService();
+// const subscriptionService = new OutlookSubscriptionService();
 
 async function monitorCache() {
   console.log("Starting cache monitoring...");

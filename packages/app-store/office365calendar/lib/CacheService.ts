@@ -8,17 +8,24 @@ export class OutlookCacheService {
     this.prisma = new PrismaClient();
   }
 
+  // Helper method to normalize a Date to midnight (local time) without mutating the original
+  private normalizeDate(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
   async getCachedAvailability(
     userId: number,
     calendarId: string,
     date: Date
   ): Promise<EventBusyDate[] | null> {
+    const normalizedDate = this.normalizeDate(date);
+
     const cache = await this.prisma.calendarAvailabilityCache.findUnique({
       where: {
         userId_calendarId_date: {
           userId,
           calendarId,
-          date: new Date(date.setHours(0, 0, 0, 0)),
+          date: normalizedDate,
         },
       },
     });
@@ -43,12 +50,14 @@ export class OutlookCacheService {
     availableSlots: EventBusyDate[],
     subscriptionId?: string
   ): Promise<void> {
+    const normalizedDate = this.normalizeDate(date);
+
     await this.prisma.calendarAvailabilityCache.upsert({
       where: {
         userId_calendarId_date: {
           userId,
           calendarId,
-          date: new Date(date.setHours(0, 0, 0, 0)),
+          date: normalizedDate,
         },
       },
       update: {
@@ -59,7 +68,7 @@ export class OutlookCacheService {
       create: {
         userId,
         calendarId,
-        date: new Date(date.setHours(0, 0, 0, 0)),
+        date: normalizedDate,
         availableSlots,
         subscriptionId,
       },
@@ -67,12 +76,14 @@ export class OutlookCacheService {
   }
 
   async invalidateCache(userId: number, calendarId: string, date: Date): Promise<void> {
+    const normalizedDate = this.normalizeDate(date);
+
     await this.prisma.calendarAvailabilityCache.delete({
       where: {
         userId_calendarId_date: {
           userId,
           calendarId,
-          date: new Date(date.setHours(0, 0, 0, 0)),
+          date: normalizedDate,
         },
       },
     });
@@ -107,4 +118,4 @@ export class OutlookCacheService {
       },
     });
   }
-} 
+}

@@ -4,7 +4,7 @@ model CalendarAvailabilityCache {
   calendarId    String
   date          DateTime
   availableSlots Json
-  lastUpdated   DateTime @default(now())
+  lastUpdated   DateTime @default(dbgenerated("(now() at time zone 'utc')"))
   subscriptionId String?
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
