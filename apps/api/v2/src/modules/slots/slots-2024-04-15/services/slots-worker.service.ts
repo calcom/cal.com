@@ -46,7 +46,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
     this.maxWorkers = process.env.SLOTS_WORKER_POOL_SIZE
       ? parseInt(process.env.SLOTS_WORKER_POOL_SIZE, 10)
       : 4;
-    // Condition to initialize worker pool based on config service, not changed for Jest.
+    // Workers are not initialized in E@E
     if (!this.config.get<boolean>("e2e")) {
       this.initializeWorkerPool();
     }
@@ -65,12 +65,8 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   /**
    * Creates a new worker thread and configures its essential, persistent event listeners.
    * Adds the new worker to the pool and available workers list.
-   * The worker file path is kept as original (slots.worker.js) as per request.
    */
   private createNewWorker(): void {
-    // Worker file path is kept as original (slots.worker.js) as per request.
-    // This assumes that in your Jest/production environment, 'slots.worker.js' will be found
-    // relative to the compiled location of this service.
     const worker = new Worker(path.join(__dirname, "../workers/slots.worker.js"));
 
     // These 'on' listeners are for the worker's overall lifecycle (crashes, exits).
@@ -84,11 +80,8 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
       if (code !== 0) {
         this.logger.error(`Worker exited with code ${code}.`);
       }
-      this.handleWorkerFailure(worker); // Always attempt to handle failure
+      this.handleWorkerFailure(worker);
     });
-
-    // Removed the problematic general 'worker.on("message")' listener from here.
-    // All task-specific messages will now be handled exclusively by 'worker.once("message")' in processNextTask.
 
     this.workerPool.push(worker);
     this.availableWorkers.push(worker);
