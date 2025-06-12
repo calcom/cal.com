@@ -1,12 +1,12 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import prisma from "@calcom/prisma";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import InsightsPage from "~/insights/insights-view";
-import { getServerSideProps, type PageProps } from "~/insights/insights-view.getServerSideProps";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -17,13 +17,17 @@ export const generateMetadata = async () =>
     "/insights"
   );
 
-const getData = withAppDirSsr<PageProps>(getServerSideProps);
+const ServerPage = async () => {
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
-const ServerPage = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const pageProps = await getData(legacyCtx);
+  const { timeZone } = await prisma.user.findUniqueOrThrow({
+    where: { id: session?.user.id ?? -1 },
+    select: {
+      timeZone: true,
+    },
+  });
 
-  return <InsightsPage {...pageProps} />;
+  return <InsightsPage timeZone={timeZone} />;
 };
 
 export default ServerPage;
