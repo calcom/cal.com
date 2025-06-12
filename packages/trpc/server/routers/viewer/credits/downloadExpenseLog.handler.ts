@@ -1,7 +1,7 @@
 import { z } from "zod";
 
+import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -31,33 +31,13 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
     }
   }
 
-  const creditBalance = await prisma.creditBalance.findUnique({
-    where: {
-      teamId: teamId ?? undefined,
-      userId: !teamId ? ctx.user.id : undefined,
-    },
-    include: {
-      expenseLogs: {
-        where: {
-          date: {
-            gte: new Date(startDate),
-            lte: new Date(endDate),
-          },
-        },
-        orderBy: {
-          date: "desc",
-        },
-        select: {
-          date: true,
-          credits: true,
-          creditType: true,
-          bookingUid: true,
-          smsSid: true,
-          smsSegments: true,
-        },
-      },
-    },
+  const creditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs({
+    teamId,
+    userId: ctx.user.id,
+    startDate: new Date(startDate),
+    endDate: new Date(endDate),
   });
+
   const headers = ["Date", "Credits", "Type", "Booking UID", "Number of Segments"];
 
   if (!creditBalance) {

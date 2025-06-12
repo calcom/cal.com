@@ -597,7 +597,10 @@ export class CreditService {
   }
 
   protected async _getAllCreditsForTeam({ teamId, tx }: { teamId: number; tx: PrismaTransaction }) {
-    const creditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs({ teamId }, tx);
+    const creditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs(
+      { teamId, creditType: CreditType.MONTHLY },
+      tx
+    );
 
     const totalMonthlyCredits = await this.getMonthlyCredits(teamId);
     const totalMonthlyCreditsUsed =
