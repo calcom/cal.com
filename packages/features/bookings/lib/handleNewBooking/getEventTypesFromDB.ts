@@ -65,6 +65,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       includeNoShowInRRCalculation: true,
       minimumBookingNotice: true,
       maxActiveBookingsPerBooker: true,
+      maxActiveBookingPerBookerOfferReschedule: true,
       userId: true,
       price: true,
       currency: true,
