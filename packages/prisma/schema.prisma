@@ -478,6 +478,7 @@ model Team {
   metadata               Json?
   theme                  String?
   rrResetInterval        RRResetInterval?        @default(MONTH)
+  rrTimestampBasis       RRTimestampBasis        @default(CREATED_AT)
   brandColor             String?
   darkBrandColor         String?
   verifiedNumbers        VerifiedNumber[]
@@ -1524,6 +1525,11 @@ enum FeatureType {
 enum RRResetInterval {
   MONTH
   DAY
+}
+
+enum RRTimestampBasis {
+  CREATED_AT
+  START_TIME
 }
 
 model SelectedSlots {
