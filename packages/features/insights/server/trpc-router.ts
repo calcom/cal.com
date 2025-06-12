@@ -208,10 +208,12 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
 
   let isOwnerAdminOfParentTeam = false;
 
+  console.log("💡 here0", JSON.stringify({ membershipWhereConditional, membership }, null, 2));
   // Probably we couldn't find a membership because the user is not a direct member of the team
   // So that would mean ctx.user.organization is present
   if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
     //Look for membership type in organizationId
+    console.log("💡 here1", JSON.stringify({ data: parse.data }, null, 2));
     if (!membership && ctx.user.organizationId && parse.data.teamId) {
       const isChildTeamOfOrg = await ctx.insightsDb.team.findFirst({
         where: {
@@ -234,12 +236,14 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
         },
       },
     });
+    console.log("💡 here2", JSON.stringify({ membershipOrg }, null, 2));
     if (!membershipOrg) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
     isOwnerAdminOfParentTeam = true;
   }
 
+  console.log("💡 here3", JSON.stringify({ isOwnerAdminOfParentTeam }, null, 2));
   return next({
     ctx: {
       user: {
