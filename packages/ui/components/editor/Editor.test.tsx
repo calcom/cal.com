@@ -7,7 +7,7 @@ import type { TextEditorProps } from "./types";
 
 describe("Editor", () => {
   const defaultProps: TextEditorProps = {
-    getText: vi.fn(),
+    getText: vi.fn(() => ""),
     setText: vi.fn(),
     variables: ["name", "email"],
     height: "200px",
