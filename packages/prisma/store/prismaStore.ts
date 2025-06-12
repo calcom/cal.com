@@ -123,7 +123,7 @@ export function getPrisma(tenant: SystemTenant | string, options?: Prisma.Prisma
  */
 export function getTenantAwarePrisma(options?: Prisma.PrismaClientOptions) {
   if (process.env.NODE_ENV === "test") {
-    return getPrisma(Tenant.US, options);
+    return getPrisma(SystemTenant.DEFAULT, options);
   }
   const store = getStore();
   if (!store.currentTenant)
@@ -136,7 +136,7 @@ export function getTenantAwarePrisma(options?: Prisma.PrismaClientOptions) {
  * Use this to prevent connection leaks in long-running processes.
  * @param tenant Optional tenant to cleanup connections for. If not provided, all connections will be cleaned up.
  */
-export async function cleanupPrismaConnections(tenant?: Tenant) {
+export async function cleanupPrismaConnections(tenant?: SystemTenant | string) {
   const store = getStore();
   if (store) {
     if (tenant && store.clients[tenant]) {
@@ -160,7 +160,7 @@ export async function cleanupPrismaConnections(tenant?: Tenant) {
 }
 
 // Utility to get the clients map, using globalThis in dev and test
-function getClientsMap(): Partial<Record<Tenant, PrismaClientWithExtensions>> {
+function getClientsMap(): Partial<Record<SystemTenant | string, PrismaClientWithExtensions>> {
   if (process.env.NODE_ENV === "production") {
     return {};
   }
