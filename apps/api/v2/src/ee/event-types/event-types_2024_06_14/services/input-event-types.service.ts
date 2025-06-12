@@ -35,6 +35,7 @@ import {
 import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
+  InputBookingField_2024_06_14,
   InputEventTransformed_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
@@ -121,16 +122,23 @@ export class InputEventTypesService_2024_06_14 {
       seats,
       customName,
       useDestinationCalendarEmail,
+      disableGuests,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
     const locationsTransformed = locations?.length ? this.transformInputLocations(locations) : undefined;
+
+    const effectiveBookingFields =
+      disableGuests !== undefined
+        ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
+        : bookingFields;
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: locationsTransformed,
-      bookingFields: this.transformInputBookingFields(bookingFields),
+      bookingFields: this.transformInputBookingFields(effectiveBookingFields),
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -171,6 +179,7 @@ export class InputEventTypesService_2024_06_14 {
       seats,
       customName,
       useDestinationCalendarEmail,
+      disableGuests,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -180,11 +189,18 @@ export class InputEventTypesService_2024_06_14 {
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
+    const effectiveBookingFields =
+      disableGuests !== undefined
+        ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
+        : bookingFields;
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
-      bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
+      bookingFields: effectiveBookingFields
+        ? this.transformInputBookingFields(effectiveBookingFields)
+        : undefined,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -208,6 +224,27 @@ export class InputEventTypesService_2024_06_14 {
     };
 
     return eventType;
+  }
+
+  getBookingFieldsWithGuestsToggled(
+    bookingFields: InputBookingField_2024_06_14[] | undefined,
+    hideGuests: boolean
+  ) {
+    const toggledGuestsBookingField: InputBookingField_2024_06_14 = { slug: "guests", hidden: hideGuests };
+    if (!bookingFields) {
+      return [toggledGuestsBookingField];
+    }
+
+    const bookingFieldsCopy = [...bookingFields];
+
+    const guestsBookingField = bookingFieldsCopy.find((field) => "slug" in field && field.slug === "guests");
+    if (guestsBookingField && "hidden" in guestsBookingField) {
+      guestsBookingField.hidden = hideGuests;
+      return bookingFieldsCopy;
+    }
+
+    bookingFieldsCopy.push(toggledGuestsBookingField);
+    return bookingFieldsCopy;
   }
 
   transformInputLocations(inputLocations: CreateEventTypeInput_2024_06_14["locations"]) {
