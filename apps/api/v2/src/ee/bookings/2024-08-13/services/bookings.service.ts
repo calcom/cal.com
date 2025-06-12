@@ -40,6 +40,7 @@ import {
   getDefaultConferencingAppLocation,
   getLocationValueForDB,
   getOrgIdFromMemberOrTeamId,
+  getBookingDataLocation,
 } from "@calcom/platform-libraries";
 import { handleNewBooking } from "@calcom/platform-libraries";
 import { enrichUsersWithDelegationCredentials } from "@calcom/platform-libraries/app-store";
@@ -1076,8 +1077,9 @@ export class BookingsService_2024_08_13 {
       );
     } else if (typeof location === "object") {
       const transformedLocation = this.inputService.transformLocation(location);
+      const locationValue = getBookingDataLocation(transformedLocation);
       const { bookingLocation: bookingLocationForDB } = getLocationValueForDB(
-        transformedLocation?.optionValue || transformedLocation?.value,
+        locationValue,
         existingBookingEventType?.locations as unknown as LocationObject[]
       );
       bookingLocation = bookingLocationForDB;
