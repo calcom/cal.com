@@ -14,6 +14,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form, Input, SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 interface ProfileViewProps {
   team: RouterOutputs["viewer"]["teams"]["get"];
@@ -60,6 +61,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
     onSuccess: () => {
       showToast(t("internal_note_presets_updated_successfully"), "success");
       utils.viewer.teams.getInternalNotesPresets.invalidate();
+      revalidateOrganizationTeams();
     },
     onError: (error) => {
       showToast(error.message || t("something_went_wrong"), "error");

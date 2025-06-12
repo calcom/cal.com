@@ -58,6 +58,7 @@ import {
 import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
@@ -255,6 +256,7 @@ function MemberListContent(props: Props) {
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      revalidateOrganizationTeams();
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();

@@ -18,6 +18,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
 
@@ -62,6 +63,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
     },
     async onSuccess(res) {
       await utils.viewer.teams.get.invalidate();
+      revalidateOrganizationTeams();
       if (res) {
         resetTheme({ theme: res.theme });
         resetBrandColors({

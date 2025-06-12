@@ -32,6 +32,7 @@ import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
@@ -66,6 +67,7 @@ const OtherTeamProfileView = () => {
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      revalidateOrganizationTeams();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });

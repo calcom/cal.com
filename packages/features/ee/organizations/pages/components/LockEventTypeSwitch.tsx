@@ -12,6 +12,7 @@ import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateCurrentOrg } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 enum CurrentEventTypeOptions {
   DELETE = "DELETE",
@@ -37,6 +38,7 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
   const mutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: async () => {
       reset(getValues());
+      revalidateCurrentOrg();
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {

@@ -11,6 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 import RoundRobinResetInterval from "./RoundRobinResetInterval";
 import RoundRobinTimestampBasis from "./RoundRobinTimestampBasis";
@@ -38,6 +39,7 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      revalidateOrganizationTeams();
       showToast(t("round_robin_settings_updated_successfully"), "success");
     },
   });

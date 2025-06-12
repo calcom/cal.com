@@ -4,6 +4,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 const DisableTeamImpersonation = ({
   teamId,
@@ -22,6 +23,7 @@ const DisableTeamImpersonation = ({
 
   const mutation = trpc.viewer.teams.updateMembership.useMutation({
     onSuccess: async () => {
+      revalidateOrganizationTeams();
       showToast(t("your_user_profile_updated_successfully"), "success");
       await utils.viewer.teams.getMembershipbyUser.invalidate();
     },

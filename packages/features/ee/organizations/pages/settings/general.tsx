@@ -20,6 +20,7 @@ import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateCurrentOrg } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 import { DisablePhoneOnlySMSNotificationsSwitch } from "../components/DisablePhoneOnlySMSNotificationsSwitch";
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
@@ -94,6 +95,7 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
   const mutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: async () => {
       reset(getValues());
+      revalidateCurrentOrg();
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {

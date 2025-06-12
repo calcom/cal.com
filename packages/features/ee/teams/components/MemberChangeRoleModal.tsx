@@ -8,6 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 type MembershipRoleOption = {
   label: string;
@@ -109,6 +110,7 @@ export default function MemberChangeRoleModal(props: {
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      revalidateOrganizationTeams();
       await utils.viewer.organizations.listMembers.invalidate();
 
       props.onExit();

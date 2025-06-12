@@ -27,6 +27,7 @@ import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -94,6 +95,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
       revalidateTeamsList();
+      revalidateOrganizationTeams();
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -523,6 +525,7 @@ export const MemberInvitationModalWithoutMembers = ({
               await utils.viewer.teams.get.invalidate();
               await utils.viewer.teams.listMembers.invalidate();
               await utils.viewer.organizations.getMembers.invalidate();
+              revalidateOrganizationTeams();
               hideInvitationModal();
 
               if (Array.isArray(data.usernameOrEmail)) {

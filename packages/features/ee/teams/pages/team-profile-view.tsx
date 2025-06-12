@@ -44,6 +44,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -141,6 +142,7 @@ const ProfileView = () => {
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      revalidateOrganizationTeams();
       await utils.viewer.teams.list.invalidate();
       revalidateTeamsList();
       await utils.viewer.eventTypes.invalidate();
@@ -278,6 +280,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
         slug: res?.slug as string,
       });
       await utils.viewer.teams.get.invalidate();
+      revalidateOrganizationTeams();
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
       revalidateEventTypesList();
       // TODO: Not all changes require list invalidation

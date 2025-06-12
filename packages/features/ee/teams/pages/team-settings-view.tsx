@@ -21,6 +21,7 @@ import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
@@ -51,6 +52,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
     },
     async onSuccess(res) {
       await utils.viewer.teams.get.invalidate();
+      revalidateOrganizationTeams();
       if (res) {
         reset({
           bookingLimits: res.bookingLimits,

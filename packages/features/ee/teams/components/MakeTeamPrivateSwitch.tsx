@@ -2,8 +2,9 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
 
 const MakeTeamPrivateSwitch = ({
   teamId,
@@ -26,6 +27,7 @@ const MakeTeamPrivateSwitch = ({
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      revalidateOrganizationTeams();
       showToast(t(isOrg ? "your_org_updated_successfully" : "your_team_updated_successfully"), "success");
     },
   });
