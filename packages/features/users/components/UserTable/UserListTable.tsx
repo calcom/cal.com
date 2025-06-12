@@ -470,7 +470,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
             return convertFacetedValuesToMap(
               facetedTeamValues.roles.map((role) => ({
                 label: role.name,
-                value: role.name,
+                value: role.id,
               }))
             );
           case "teams":

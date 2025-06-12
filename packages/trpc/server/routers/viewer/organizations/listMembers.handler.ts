@@ -123,7 +123,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     }),
     ...(roleFilter &&
       makeWhereClause({
-        columnName: "role",
+        columnName: "customRoleId",
         filterValue: roleFilter.value,
       })),
     ...(createdAtFilter &&
