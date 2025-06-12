@@ -153,6 +153,7 @@ model EventType {
   schedulingType                          SchedulingType?
   schedule                                Schedule?                 @relation(fields: [scheduleId], references: [id])
   scheduleId                              Int?
+  allowReschedulingCancelledBookings      Boolean?                  @default(false)
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
   price                                   Int                       @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
@@ -478,6 +479,7 @@ model Team {
   metadata               Json?
   theme                  String?
   rrResetInterval        RRResetInterval?        @default(MONTH)
+  rrTimestampBasis       RRTimestampBasis        @default(CREATED_AT)
   brandColor             String?
   darkBrandColor         String?
   verifiedNumbers        VerifiedNumber[]
@@ -1524,6 +1526,11 @@ enum FeatureType {
 enum RRResetInterval {
   MONTH
   DAY
+}
+
+enum RRTimestampBasis {
+  CREATED_AT
+  START_TIME
 }
 
 model SelectedSlots {

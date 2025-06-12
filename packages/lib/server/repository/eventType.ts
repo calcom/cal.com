@@ -517,6 +517,7 @@ export class EventTypeRepository {
       disableGuests: true,
       disableCancelling: true,
       disableRescheduling: true,
+      allowReschedulingCancelledBookings: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
@@ -557,6 +558,7 @@ export class EventTypeRepository {
           name: true,
           slug: true,
           parentId: true,
+          rrTimestampBasis: true,
           parent: {
             select: {
               slug: true,
@@ -764,6 +766,7 @@ export class EventTypeRepository {
           select: {
             parentId: true,
             rrResetInterval: true,
+            rrTimestampBasis: true,
           },
         },
       },
@@ -839,6 +842,7 @@ export class EventTypeRepository {
             includeManagedEventsInLimits: true,
             parentId: true,
             rrResetInterval: true,
+            rrTimestampBasis: true,
           },
         },
         parent: {
