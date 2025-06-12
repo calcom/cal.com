@@ -155,7 +155,6 @@ describe("Twilio Webhook Handler", () => {
         bookingUid: undefined,
         smsSid: "SM123",
         credits: null,
-        smsSegments: null,
       });
     });
   });
