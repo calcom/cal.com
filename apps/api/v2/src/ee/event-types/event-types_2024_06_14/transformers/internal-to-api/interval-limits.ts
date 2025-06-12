@@ -1,4 +1,4 @@
-import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-enums/monorepo";
+import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-enums";
 import type {
   BookingLimitsKeysInputType,
   TransformBookingLimitsSchema_2024_06_14,

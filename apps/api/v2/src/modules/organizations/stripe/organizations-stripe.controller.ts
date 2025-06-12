@@ -56,7 +56,6 @@ export type OAuthCallbackState = {
 @DocsTags("Organizations/Teams Stripe")
 export class OrganizationsStripeController {
   constructor(
-    private readonly stripeService: StripeService,
     private readonly organizationsStripeService: OrganizationsStripeService,
     private readonly tokensRepository: TokensRepository
   ) {}
