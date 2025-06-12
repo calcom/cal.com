@@ -15,5 +15,5 @@ export async function revalidateOrganizationFacetedValues() {
 }
 
 export async function revalidateCurrentOrg() {
-  revalidateTag("viewer.organizations.listCurrent");
+  revalidateTag("OrganizationRepository.findCurrentOrg");
 }

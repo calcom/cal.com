@@ -28,7 +28,7 @@ const getCachedCurrentOrg = unstable_cache(
     });
   },
   undefined,
-  { revalidate: 3600, tags: ["viewer.organizations.listCurrent"] } // Cache for 1 hour
+  { revalidate: 3600, tags: ["OrganizationRepository.findCurrentOrg"] } // Cache for 1 hour
 );
 
 const getCachedAttributes = unstable_cache(
