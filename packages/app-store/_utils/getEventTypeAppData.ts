@@ -9,7 +9,7 @@ export type EventTypeApps = NonNullable<
 export type EventTypeAppsList = keyof EventTypeApps;
 
 export const getEventTypeAppData = <T extends EventTypeAppsList>(
-  eventType: Pick<BookerEvent, "price" | "currency" | "metadata">,
+  eventType: Pick<BookerEvent, "price" | "currency" | "metadata" | "minPaymentNoticeHours">,
   appId: T,
   forcedGet?: boolean
 ): EventTypeApps[T] => {
@@ -39,6 +39,7 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
       // Currency default is "usd" in DB.So, it would also be available always
       currency: eventType.currency,
       paymentOption: "ON_BOOKING",
+      minPaymentNoticeHours: eventType.minPaymentNoticeHours,
     },
     giphy: {
       enabled: !!eventType.metadata?.giphyThankYouPage,

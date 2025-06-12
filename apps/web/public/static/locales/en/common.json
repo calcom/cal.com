@@ -3232,5 +3232,7 @@
   "available_credits": "Available credits",
   "members_affected_by_disabling_delegation_credential": "Affected members",
   "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
+  "minimum_payment_notice": "Minimum payment notice",
+  "hours_before_booking": "Hours before booking",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

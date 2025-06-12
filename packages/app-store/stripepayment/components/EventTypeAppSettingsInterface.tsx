@@ -34,6 +34,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     }
   );
   const paymentOption = getAppData("paymentOption");
+  const minPaymentNoticeHours = getAppData("minPaymentNoticeHours");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const requirePayment = getAppData("enabled");
   const getSelectedOption = () =>
@@ -82,7 +83,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           <div className="mt-4 block items-center justify-start sm:flex sm:space-x-2">
             <TextField
               data-testid="stripe-price-input"
-              label={t("price")}
+              name={t("price")}
               className="h-[38px]"
               addOnLeading={
                 <>{selectedCurrency.value ? getCurrencySymbol("en", selectedCurrency.value) : ""}</>
@@ -210,6 +211,20 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               </RadioGroup.Root>
             </div>
           )}
+          <div className="mt-4 w-60">
+            <TextField
+              name={t("minimum_payment_notice")}
+              className="h-[38px]"
+              type="number"
+              min={0}
+              placeholder={t("hours_before_booking")}
+              disabled={disabled}
+              defaultValue={minPaymentNoticeHours}
+              value={minPaymentNoticeHours ?? ""}
+              required
+              onChange={(e) => setAppData("minPaymentNoticeHours", parseInt(e.currentTarget.value))}
+            />
+          </div>
         </>
       )}
     </>
