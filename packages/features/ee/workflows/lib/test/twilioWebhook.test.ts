@@ -123,7 +123,7 @@ describe("Twilio Webhook Handler", () => {
       vi.mock("../reminders/providers/twilioProvider", () => ({
         validateWebhookRequest: vi.fn().mockResolvedValue(true),
         getCountryCodeForNumber: vi.fn().mockResolvedValue("US"),
-        getPriceForSMS: vi.fn().mockResolvedValue(null),
+        getMessageInfo: vi.fn().mockResolvedValue({ price: null, numSegments: null }),
       }));
 
       const mockRequest = {
