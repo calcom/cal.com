@@ -183,7 +183,6 @@ export class InputEventTypesService_2024_06_14 {
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
-    // Handle booking fields with disableGuests logic
     let processedBookingFields = undefined;
     if (bookingFields) {
       // If bookingFields are provided, transform them normally with disableGuests
@@ -192,12 +191,10 @@ export class InputEventTypesService_2024_06_14 {
       // If only disableGuests is provided, get existing fields and update guests field hidden property
       const existingEventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
       if (existingEventType?.bookingFields) {
-        // Parse existing booking fields from database (they're stored as JSON)
         const existingFields = Array.isArray(existingEventType.bookingFields)
           ? existingEventType.bookingFields
           : [];
 
-        // Update guests field hidden property directly
         processedBookingFields = existingFields.map((field: any) => {
           if (field.name === "guests" || field.slug === "guests") {
             return { ...field, hidden: disableGuests };
