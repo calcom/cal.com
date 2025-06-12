@@ -370,7 +370,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       props.setFirstRender(false);
       editor.update(() => {
         const parser = new DOMParser();
-        const content = props.getText().replace(/\n/g, "<br>");
+        const content = props.getText()?.replace(/\n/g, "<br>");
         const dom = parser.parseFromString(content, "text/html");
 
         const nodes = $generateNodesFromDOM(editor, dom);
