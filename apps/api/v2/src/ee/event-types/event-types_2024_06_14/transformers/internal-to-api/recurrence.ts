@@ -1,4 +1,4 @@
-import { Frequency, FrequencyInput } from "@calcom/platform-enums/monorepo";
+import { Frequency, FrequencyInput } from "@calcom/platform-enums";
 import type { Recurrence_2024_06_14, TransformRecurringEventSchema_2024_06_14 } from "@calcom/platform-types";
 
 export function transformRecurrenceInternalToApi(

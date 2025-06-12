@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import type {
   transformEventColorsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
@@ -8,9 +6,13 @@ import type {
   transformSeatsApiToInternal,
   transformBookingFieldsApiToInternal,
   InternalLocationsSchema,
-} from "@calcom/lib/event-types/transformers";
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
+import type { z } from "zod";
 
-import type { CreateEventTypeInput_2024_06_14, ConfirmationPolicyTransformedSchema } from "../inputs";
+import type {
+  CreateEventTypeInput_2024_06_14,
+  ConfirmationPolicyTransformedSchema,
+} from "@calcom/platform-types";
 
 export type InputEventTransformed_2024_06_14 = Omit<
   CreateEventTypeInput_2024_06_14,

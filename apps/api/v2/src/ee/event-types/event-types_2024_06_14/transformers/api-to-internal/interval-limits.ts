@@ -1,4 +1,4 @@
-import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-enums/monorepo";
+import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-enums";
 import {
   type CreateEventTypeInput_2024_06_14,
   type BookingLimitsKeyOutputType_2024_06_14,

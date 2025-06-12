@@ -1,7 +1,7 @@
 import {
   BookerLayoutsInputEnum_2024_06_14,
   BookerLayoutsOutputEnum_2024_06_14,
-} from "@calcom/platform-enums/monorepo";
+} from "@calcom/platform-enums";
 import { type CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 export function transformBookerLayoutsApiToInternal(

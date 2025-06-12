@@ -1,7 +1,7 @@
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
-} from "@calcom/platform-enums/monorepo";
+} from "@calcom/platform-enums";
 import {
   type CreateEventTypeInput_2024_06_14,
   type BusinessDaysWindow_2024_06_14,

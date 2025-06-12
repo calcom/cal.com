@@ -73,6 +73,8 @@ export class CalendarsServiceMock {
         externalId: "externalId",
         userId: null,
         id: 0,
+        delegationCredentialId: null,
+        domainWideDelegationCredentialId: null,
       },
     } satisfies Awaited<ReturnType<typeof CalendarsService.prototype.getCalendars>>;
   }

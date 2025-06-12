@@ -133,6 +133,13 @@ const commons = {
   rrTimestampBasis: null,
   interfaceLanguage: null,
   customReplyToEmail: null,
+  profileId: null,
+  requiresConfirmationWillBlockSlot: false,
+  canSendCalVideoTranscriptionEmails: false,
+  instantMeetingExpiryTimeOffsetInSeconds: 0,
+  instantMeetingScheduleId: null,
+  instantMeetingParameters: [],
+  eventTypeColor: null,
 };
 
 export const dynamicEvent = {
