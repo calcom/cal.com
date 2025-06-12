@@ -3232,5 +3232,6 @@
   "available_credits": "Available credits",
   "members_affected_by_disabling_delegation_credential": "Affected members",
   "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
+  "offer_to_reschedule_last_booking": "Offer to reschedule last active booking to chosen time slot",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
