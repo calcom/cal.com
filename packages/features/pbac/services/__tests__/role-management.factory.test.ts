@@ -16,8 +16,16 @@ import { RoleService } from "../role.service";
 vi.mock("@calcom/features/flags/features.repository");
 vi.mock("../role.service");
 vi.mock("../permission-check.service");
-vi.mock("@calcom/prisma");
-vi.mock("@calcom/lib/server/queries/organisations");
+vi.mock("@calcom/prisma", () => ({
+  prisma: {
+    membership: {
+      update: vi.fn(),
+    },
+  },
+}));
+vi.mock("@calcom/lib/server/queries/organisations", () => ({
+  isOrganisationOwner: vi.fn(),
+}));
 
 describe("RoleManagementFactory", () => {
   const organizationId = 123;
@@ -26,9 +34,12 @@ describe("RoleManagementFactory", () => {
   const role = MembershipRole.ADMIN;
 
   let factory: RoleManagementFactory;
-  let mockFeaturesRepository: jest.Mocked<FeaturesRepository>;
-  let mockRoleService: jest.Mocked<RoleService>;
-  let mockPermissionCheckService: jest.Mocked<PermissionCheckService>;
+  let mockFeaturesRepository: { checkIfTeamHasFeature: ReturnType<typeof vi.fn> };
+  let mockRoleService: {
+    assignRoleToMember: ReturnType<typeof vi.fn>;
+    roleBelongsToTeam: ReturnType<typeof vi.fn>;
+  };
+  let mockPermissionCheckService: { checkPermission: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -36,19 +47,23 @@ describe("RoleManagementFactory", () => {
     // Setup mocks
     mockFeaturesRepository = {
       checkIfTeamHasFeature: vi.fn(),
-    } as unknown as jest.Mocked<FeaturesRepository>;
+    };
 
     mockRoleService = {
       assignRoleToMember: vi.fn(),
       roleBelongsToTeam: vi.fn(),
-    } as unknown as jest.Mocked<RoleService>;
+    };
 
     mockPermissionCheckService = {
       checkPermission: vi.fn(),
-    } as unknown as jest.Mocked<PermissionCheckService>;
+    };
 
-    // Reset singleton instance
-    vi.spyOn(RoleManagementFactory as any, "instance", "get").mockReturnValue(undefined);
+    // Reset singleton instance and set up mocks
+    Object.defineProperty(RoleManagementFactory, "instance", {
+      value: undefined,
+      writable: true,
+    });
+
     vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockImplementation(
       mockFeaturesRepository.checkIfTeamHasFeature
     );
@@ -144,7 +159,7 @@ describe("RoleManagementFactory", () => {
   describe("LegacyRoleManager", () => {
     beforeEach(() => {
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
-      vi.mocked(prisma.membership.update).mockResolvedValue({} as any);
+      vi.mocked(prisma.membership.update).mockResolvedValue({});
       vi.mocked(isOrganisationOwner).mockResolvedValue(false);
     });
 

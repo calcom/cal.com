@@ -70,6 +70,13 @@ describe("PermissionCheckService", () => {
 
       (MembershipRepository.findFirstByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+      mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
+        id: membership.id,
+        teamId: membership.teamId,
+        userId: membership.userId,
+        customRoleId: membership.customRoleId,
+      });
+      mockRepository.getOrgMembership.mockResolvedValueOnce(null);
       mockRepository.checkRolePermission.mockResolvedValueOnce(true);
 
       const result = await service.checkPermission({
@@ -85,6 +92,7 @@ describe("PermissionCheckService", () => {
         teamId: 1,
       });
       expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
+      expect(mockRepository.getMembershipByMembershipId).toHaveBeenCalledWith(1);
       expect(mockRepository.checkRolePermission).toHaveBeenCalledWith("admin_role", "eventType.create");
     });
 
@@ -176,6 +184,13 @@ describe("PermissionCheckService", () => {
 
       (MembershipRepository.findFirstByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+      mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
+        id: membership.id,
+        teamId: membership.teamId,
+        userId: membership.userId,
+        customRoleId: membership.customRoleId,
+      });
+      mockRepository.getOrgMembership.mockResolvedValueOnce(null);
       mockRepository.checkRolePermissions.mockResolvedValueOnce(true);
 
       const result = await service.checkPermissions({
@@ -191,6 +206,7 @@ describe("PermissionCheckService", () => {
         teamId: 1,
       });
       expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
+      expect(mockRepository.getMembershipByMembershipId).toHaveBeenCalledWith(1);
       expect(mockRepository.checkRolePermissions).toHaveBeenCalledWith("admin_role", [
         "eventType.create",
         "team.invite",

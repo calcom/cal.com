@@ -247,18 +247,23 @@ describe("RoleService", () => {
       };
 
       const mockTrx = {
+        selectFrom: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue({ id: roleId }),
         updateTable: vi.fn().mockReturnThis(),
         set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
         execute: vi.fn().mockResolvedValue(undefined),
       };
 
-      mockRepository.findById.mockResolvedValueOnce(role);
       mockRepository.transaction.mockImplementationOnce((callback) => callback(mockRepository, mockTrx));
 
       const result = await service.assignRoleToMember(roleId, membershipId);
-      expect(result).toEqual(role);
-      expect(mockRepository.findById).toHaveBeenCalledWith(roleId);
+      expect(result).toEqual({ id: roleId });
+      expect(mockTrx.selectFrom).toHaveBeenCalledWith("Role");
+      expect(mockTrx.select).toHaveBeenCalledWith("id");
+      expect(mockTrx.where).toHaveBeenCalledWith("id", "=", roleId);
+      expect(mockTrx.executeTakeFirst).toHaveBeenCalled();
       expect(mockTrx.updateTable).toHaveBeenCalledWith("Membership");
       expect(mockTrx.set).toHaveBeenCalledWith({ customRoleId: roleId });
       expect(mockTrx.where).toHaveBeenCalledWith("id", "=", membershipId);
@@ -266,11 +271,20 @@ describe("RoleService", () => {
     });
 
     it("should throw error if role does not exist", async () => {
-      mockRepository.findById.mockResolvedValueOnce(null);
-      mockRepository.transaction.mockImplementationOnce((callback) => callback(mockRepository, {}));
+      const mockTrx = {
+        selectFrom: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        executeTakeFirst: vi.fn().mockResolvedValue(null),
+      };
+
+      mockRepository.transaction.mockImplementationOnce((callback) => callback(mockRepository, mockTrx));
 
       await expect(service.assignRoleToMember(roleId, membershipId)).rejects.toThrow("Role not found");
-      expect(mockRepository.findById).toHaveBeenCalledWith(roleId);
+      expect(mockTrx.selectFrom).toHaveBeenCalledWith("Role");
+      expect(mockTrx.select).toHaveBeenCalledWith("id");
+      expect(mockTrx.where).toHaveBeenCalledWith("id", "=", roleId);
+      expect(mockTrx.executeTakeFirst).toHaveBeenCalled();
     });
   });
 });
