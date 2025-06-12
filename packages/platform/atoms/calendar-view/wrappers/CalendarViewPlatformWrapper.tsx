@@ -1,10 +1,11 @@
+import { AtomsWrapper } from "@/components/atoms-wrapper";
 import { useMemo, useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
-// import { LargeCalendar } from "./components/LargeCalendar";
 import { LargeCalendar } from "@calcom/features/bookings/Booker/components/LargeCalendar";
+import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
@@ -236,21 +237,20 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
     ...routingParams,
   });
 
-  console.log("----");
-  console.log(data, "individual event data");
-  console.log(bookerLayout, "booker layout".toLocaleUpperCase());
-  console.log("----");
-
-  console.log("----");
-  console.log(teamEventTypeData, "team event data".toLocaleUpperCase());
-  console.log("----");
-
   return (
-    <LargeCalendar
-      extraDays={extraDays}
-      schedule={schedule.data}
-      isLoading={schedule.isPending}
-      event={event}
-    />
+    <AtomsWrapper>
+      <BookerSection
+        key="large-calendar"
+        area="main"
+        visible={true}
+        className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l">
+        <LargeCalendar
+          extraDays={extraDays}
+          schedule={schedule.data}
+          isLoading={schedule.isPending}
+          event={event}
+        />
+      </BookerSection>
+    </AtomsWrapper>
   );
 };
