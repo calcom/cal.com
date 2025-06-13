@@ -108,7 +108,6 @@ export class RoleService {
     return this.repository.update(data.roleId, data.permissions, {
       color: data.updates?.color,
       name: data.updates?.name,
-      description: data.updates?.description,
     });
   }
 

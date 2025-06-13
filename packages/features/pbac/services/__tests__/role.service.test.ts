@@ -179,7 +179,6 @@ describe("RoleService", () => {
       expect(mockRepository.update).toHaveBeenCalledWith(roleId, permissions, {
         color: undefined,
         name: undefined,
-        description: undefined,
       });
     });
 
