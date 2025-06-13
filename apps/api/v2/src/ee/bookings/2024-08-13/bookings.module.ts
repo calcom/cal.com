@@ -3,6 +3,7 @@ import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output-booking-references.service";
@@ -77,6 +78,7 @@ import { Module } from "@nestjs/common";
     ErrorsBookingsService_2024_08_13,
     BookingReferencesService_2024_08_13,
     BookingReferencesRepository_2024_08_13,
+    CalVideoService,
   ],
   controllers: [BookingsController_2024_08_13],
   exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],

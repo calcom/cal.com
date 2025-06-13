@@ -57,6 +57,11 @@ export type EventTypePlatformWrapperProps = {
   customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
   isDryRun?: boolean;
+  onFormStateChange?: (formState: {
+    isDirty: boolean;
+    dirtyFields: Partial<FormValues>;
+    values: FormValues;
+  }) => void;
 };
 
 const EventType = ({
@@ -70,6 +75,7 @@ const EventType = ({
   customClassNames,
   disableToasts = false,
   isDryRun = false,
+  onFormStateChange,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -150,6 +156,7 @@ const EventType = ({
         toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
       }
     },
+    onFormStateChange: onFormStateChange,
   });
   const slug = form.watch("slug") ?? eventType.slug;
 
@@ -320,6 +327,7 @@ export const EventTypePlatformWrapper = ({
   allowDelete = true,
   customClassNames,
   isDryRun,
+  onFormStateChange,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
   const queryClient = useQueryClient();
@@ -352,6 +360,7 @@ export const EventTypePlatformWrapper = ({
       allowDelete={allowDelete}
       customClassNames={customClassNames}
       isDryRun={isDryRun}
+      onFormStateChange={onFormStateChange}
     />
   );
 };
