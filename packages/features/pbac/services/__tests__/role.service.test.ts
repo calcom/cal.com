@@ -176,7 +176,11 @@ describe("RoleService", () => {
 
       const result = await service.update({ roleId, permissions });
       expect(result).toBeDefined();
-      expect(mockRepository.update).toHaveBeenCalledWith(roleId, permissions);
+      expect(mockRepository.update).toHaveBeenCalledWith(roleId, permissions, {
+        color: undefined,
+        name: undefined,
+        description: undefined,
+      });
     });
 
     it("should throw error if role does not exist", async () => {
