@@ -259,6 +259,7 @@ const PlatformClientParamsSchema = z.object({
   platformCancelUrl: z.string().nullable().optional(),
   platformBookingUrl: z.string().nullable().optional(),
   platformBookingLocation: z.string().optional(),
+  areCalendarEventsEnabled: z.boolean().optional(),
 });
 
 export type PlatformClientParams = z.infer<typeof PlatformClientParamsSchema>;
@@ -629,6 +630,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
