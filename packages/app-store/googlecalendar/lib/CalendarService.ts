@@ -852,13 +852,17 @@ export default class GoogleCalendarService implements Calendar {
 
   private async getEventsThatShouldBeSyncedDownstream(calendarId: string) {
     log.debug("getEventsThatShouldBeSyncedDownstream", safeStringify({ calendarId }));
-    const timeMin = dayjs().subtract(1, "hour").toISOString(); // Look back 1 hour
+    // Let's assume a delay of x minutes in worst case scenario of receiving webhooks late.
+    // The higher we keep this threshold, the more maxResults we would need to fetch.
+    const timeMinThreshold = 5;
+    const maxResults = 10;
+    const timeMin = dayjs().subtract(timeMinThreshold, "minutes").toISOString();
     const recentlyUpdatedEvents = await this.listRecentlyUpdatedEvents({
       calendarId,
       updatedMin: timeMin,
       // We want cancelled events too
       includeDeleted: true,
-      maxResults: 10,
+      maxResults,
     });
     const concernedEvents = recentlyUpdatedEvents.map((event) => {
       // Find the organizer in attendees
@@ -870,12 +874,19 @@ export default class GoogleCalendarService implements Calendar {
         startTime: event.start?.dateTime ? dayjs(event.start.dateTime) : null,
         endTime: event.end?.dateTime ? dayjs(event.end.dateTime) : null,
         organizerResponseStatus: organizer?.responseStatus || null,
+        htmlLink: event.htmlLink || null,
       };
     });
 
     log.debug("concernedEvents", safeStringify(concernedEvents));
 
-    return concernedEvents.filter((e): e is CalendarEventsToSync[number] => e !== null);
+    return concernedEvents
+      .map((event) => {
+        // We need htmlLink only for debugging purposes. It's not needed for downstream sync.
+        const { htmlLink: _, ...restEvent } = event;
+        return restEvent;
+      })
+      .filter((e): e is CalendarEventsToSync[number] => e !== null);
   }
 
   // It would error if the delegation credential is not set up correctly
