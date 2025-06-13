@@ -294,7 +294,6 @@ const getError = ({
 
   let date = "";
 
-  // TODO pass store data into formatEventFromTime from dates.tsx
   if (error.message === ErrorCode.BookerLimitExceededReschedule) {
     const formattedDate = formatEventFromTime({
       date: error.data.startTime,
