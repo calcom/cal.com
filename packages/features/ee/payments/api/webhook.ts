@@ -10,7 +10,7 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -93,7 +93,7 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
     const eventManager = new EventManager({ ...user, credentials: allCredentials }, metadata?.apps);
     const scheduleResult = areCalendarEventsEnabled
       ? await eventManager.create(evt)
-      : { referencesToCreate: [] };
+      : placeholderCreatedEvent;
     bookingData.references = { create: scheduleResult.referencesToCreate };
     bookingData.status = BookingStatus.ACCEPTED;
   }

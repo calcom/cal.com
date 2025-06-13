@@ -43,7 +43,7 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
@@ -1716,9 +1716,7 @@ async function handler(
     // Create a booking
   } else if (isConfirmedByDefault) {
     // Use EventManager to conditionally use all needed integrations.
-    const createManager = areCalendarEventsEnabled
-      ? await eventManager.create(evt)
-      : { results: [], referencesToCreate: [] };
+    const createManager = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
     if (evt.location) {
       booking.location = evt.location;
     }

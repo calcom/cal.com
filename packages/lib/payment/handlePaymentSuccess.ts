@@ -7,7 +7,7 @@ import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBook
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getBooking } from "@calcom/lib/payment/getBooking";
 import prisma from "@calcom/prisma";
@@ -48,7 +48,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
     const eventManager = new EventManager({ ...userWithCredentials, credentials: allCredentials }, apps);
     const scheduleResult = areCalendarEventsEnabled
       ? await eventManager.create(evt)
-      : { referencesToCreate: [] };
+      : placeholderCreatedEvent;
     bookingData.references = { create: scheduleResult.referencesToCreate };
   }
 
