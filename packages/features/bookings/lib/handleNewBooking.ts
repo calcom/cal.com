@@ -454,21 +454,23 @@ async function handler(
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
-  try {
-    await checkActiveBookingsLimitForBooker({
-      eventTypeId,
-      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
-      bookerEmail,
-      offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
-    });
-  } catch (err) {
-    const error = err as ErrorWithCode;
+  if (!rawBookingData.rescheduleUid) {
+    try {
+      await checkActiveBookingsLimitForBooker({
+        eventTypeId,
+        maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
+        bookerEmail,
+        offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
+      });
+    } catch (err) {
+      const error = err as ErrorWithCode;
 
-    throw new HttpError({
-      statusCode: 400,
-      message: error.message,
-      data: error.data,
-    });
+      throw new HttpError({
+        statusCode: 400,
+        message: error.message,
+        data: error.data,
+      });
+    }
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {

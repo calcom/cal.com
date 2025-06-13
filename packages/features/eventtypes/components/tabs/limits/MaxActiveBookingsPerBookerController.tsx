@@ -10,6 +10,8 @@ export default function MaxActiveBookingsPerBookerController() {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
+  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+
   const maxActiveBookingPerBookerOfferReschedule = formMethods.watch(
     "maxActiveBookingPerBookerOfferReschedule"
   );
@@ -21,6 +23,8 @@ export default function MaxActiveBookingsPerBookerController() {
         return (
           <SettingsToggle
             labelClassName={classNames("text-sm")}
+            disabled={isRecurringEvent}
+            tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
               "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
@@ -43,9 +47,10 @@ export default function MaxActiveBookingsPerBookerController() {
                 type="number"
                 value={value}
                 onChange={(e) => {
-                  onChange(Math.max(Number(e.target.value), 1));
+                  onChange(parseInt(e.target.value, 10));
                 }}
                 min={1}
+                step={1}
                 containerClassName={classNames("max-w-80")}
                 addOnSuffix="bookings"
                 data-testid="booker-booking-limit-input"
