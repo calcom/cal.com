@@ -50,6 +50,7 @@ const organizationSelect = {
   logoUrl: true,
   bannerUrl: true,
   isPlatform: true,
+  hideBranding: true,
 };
 const organizationWithSettingsSelect = {
   ...organizationSelect,
@@ -480,6 +481,7 @@ export class ProfileRepository {
             bannerUrl: true,
             isPrivate: true,
             isPlatform: true,
+            hideBranding: true,
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,
@@ -657,6 +659,18 @@ export class ProfileRepository {
       return profile;
     }
     return normalizeProfile(profile);
+  }
+
+  static async findByUserIdAndOrgSlug({ userId, orgSlug }: { userId: number; orgSlug: string }) {
+    const profile = await prisma.profile.findFirst({
+      where: { userId, organization: { slug: orgSlug } },
+      include: {
+        organization: {
+          select: organizationSelect,
+        },
+      },
+    });
+    return profile;
   }
 
   /**

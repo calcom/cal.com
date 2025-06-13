@@ -2893,7 +2893,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/atoms@workspace:packages/platform/atoms"
   dependencies:
-    "@calcom/platform-libraries": 0.0.2
     "@radix-ui/react-dialog-atoms": "npm:@radix-ui/react-dialog@^1.0.4"
     "@radix-ui/react-slot": ^1.0.2
     "@radix-ui/react-switch": ^1.1.0
@@ -3822,7 +3821,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries-0.0.2@npm:@calcom/platform-libraries@0.0.2, @calcom/platform-libraries@npm:0.0.2":
+"@calcom/platform-libraries-0.0.2@npm:@calcom/platform-libraries@0.0.2":
   version: 0.0.2
   resolution: "@calcom/platform-libraries@npm:0.0.2"
   dependencies:

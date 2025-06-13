@@ -652,9 +652,31 @@ async function handler(
         startTime: new Date(dayjs(reqBody.start).utc().format()),
         status: BookingStatus.ACCEPTED,
       },
+      select: {
+        userId: true,
+        attendees: { select: { email: true } },
+      },
     });
 
-    if (booking) isFirstSeat = false;
+    if (booking) {
+      isFirstSeat = false;
+      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        const fixedHosts = users.filter((user) => user.isFixed);
+        const originalNonFixedHost = users.find((user) => !user.isFixed && user.id === booking.userId);
+
+        if (originalNonFixedHost) {
+          users = [...fixedHosts, originalNonFixedHost];
+        } else {
+          const attendeeEmailSet = new Set(booking.attendees.map((attendee) => attendee.email));
+
+          // In this case, the first booking user is a fixed host, so the chosen non-fixed host is added as an attendee of the booking
+          const nonFixedAttendeeHost = users.find(
+            (user) => !user.isFixed && attendeeEmailSet.has(user.email)
+          );
+          users = [...fixedHosts, ...(nonFixedAttendeeHost ? [nonFixedAttendeeHost] : [])];
+        }
+      }
+    }
   }
 
   //checks what users are available
@@ -816,6 +838,7 @@ async function handler(
           ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
           eventType,
           routingFormResponse,
+          meetingStartTime: new Date(reqBody.start),
         });
         if (!newLuckyUser) {
           break; // prevent infinite loop
@@ -2175,6 +2198,7 @@ async function handler(
         email: bookerEmail,
         eventName: "Cal.com lead",
       },
+      isTeamEventType,
     });
   }
 
