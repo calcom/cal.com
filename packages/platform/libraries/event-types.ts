@@ -63,7 +63,7 @@ export {
 } from "@calcom/prisma/zod-utils";
 
 export { validateCustomEventName } from "@calcom/lib/event";
-
+export { EventManager };
 export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
 export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
@@ -75,5 +75,3 @@ export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
 export { bulkUpdateTeamEventsToDefaultLocation } from "@calcom/lib/bulkUpdateTeamEventsToDefaultLocation";
 export { getPublicEvent };
-
-export { EventManager };
