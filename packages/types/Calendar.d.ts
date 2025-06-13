@@ -13,6 +13,7 @@ import type z from "zod";
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
+import type { IntervalLimitUnit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -56,6 +57,7 @@ export type TeamMember = {
 export type EventBusyDate = {
   start: Date | string;
   end: Date | string;
+  unit: IntervalLimitUnit;
   source?: string | null;
 };
 
