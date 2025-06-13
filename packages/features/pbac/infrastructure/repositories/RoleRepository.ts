@@ -11,6 +11,22 @@ import type { CreateRoleData } from "../../domain/models/Role";
 import type { IRoleRepository } from "../../domain/repositories/IRoleRepository";
 import type { PermissionString } from "../../domain/types/permission-registry";
 
+type KyselyRole = {
+  id: string;
+  name: string;
+  color: string | null;
+  description: string | null;
+  teamId: number | null;
+  type: RoleType;
+  createdAt: Date;
+  updatedAt: Date;
+  permissions: Array<{
+    id: string;
+    resource: string;
+    action: string;
+  }>;
+};
+
 export class RoleRepository implements IRoleRepository {
   private getRoleSelect() {
     return [
@@ -22,7 +38,7 @@ export class RoleRepository implements IRoleRepository {
       "Role.color",
       "Role.createdAt",
       "Role.updatedAt",
-      (eb) =>
+      (eb: any) =>
         jsonArrayFrom(
           eb
             .selectFrom("RolePermission")
@@ -40,7 +56,7 @@ export class RoleRepository implements IRoleRepository {
       .where((eb) => (teamId ? eb("teamId", "=", teamId) : eb("teamId", "is", null)))
       .executeTakeFirst();
 
-    return role ? RoleMapper.toDomain(role) : null;
+    return role ? RoleMapper.toDomain(role as KyselyRole) : null;
   }
 
   async findById(id: string) {
@@ -50,7 +66,7 @@ export class RoleRepository implements IRoleRepository {
       .where("id", "=", id)
       .executeTakeFirst();
 
-    return role ? RoleMapper.toDomain(role) : null;
+    return role ? RoleMapper.toDomain(role as KyselyRole) : null;
   }
 
   async findByTeamId(teamId: number) {
@@ -60,7 +76,7 @@ export class RoleRepository implements IRoleRepository {
       .where((eb) => eb.or([eb("Role.teamId", "=", teamId), eb("Role.type", "=", RoleType.SYSTEM)]))
       .execute();
 
-    return roles.map(RoleMapper.toDomain);
+    return roles.map((role) => RoleMapper.toDomain(role as KyselyRole));
   }
 
   async create(data: CreateRoleData) {
@@ -106,7 +122,7 @@ export class RoleRepository implements IRoleRepository {
     // This should never happen
     if (!completeRole) throw new Error("Failed to create role");
 
-    return RoleMapper.toDomain(completeRole);
+    return completeRole;
   }
 
   async delete(id: string) {
@@ -122,6 +138,7 @@ export class RoleRepository implements IRoleRepository {
     updates?: {
       color?: string;
       name?: string;
+      description?: string;
     }
   ) {
     await kysely.transaction().execute(async (trx) => {
@@ -172,7 +189,7 @@ export class RoleRepository implements IRoleRepository {
 
     if (!updatedRole) throw new Error("Failed to update role permissions");
 
-    return RoleMapper.toDomain(updatedRole);
+    return RoleMapper.toDomain(updatedRole as KyselyRole);
   }
 
   async transaction<T>(

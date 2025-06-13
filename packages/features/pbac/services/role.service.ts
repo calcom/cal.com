@@ -105,7 +105,11 @@ export class RoleService {
       throw new Error(validationResult.error || "Invalid permissions provided");
     }
 
-    return this.repository.update(data.roleId, data.permissions, data.updates);
+    return this.repository.update(data.roleId, data.permissions, {
+      color: data.updates?.color,
+      name: data.updates?.name,
+      description: data.updates?.description,
+    });
   }
 
   async roleBelongsToTeam(roleId: string, teamId: number) {

@@ -14,13 +14,15 @@ interface IRoleManager {
   assignRole(
     userId: number,
     organizationId: number,
-    role: MembershipRole,
+    role: MembershipRole | string,
     membershipId: number
   ): Promise<void>;
   getAllRoles(organizationId: number): Promise<{ id: string; name: string }[]>;
 }
 
 class PBACRoleManager implements IRoleManager {
+  public isPBACEnabled = true;
+
   constructor(
     private readonly roleService: RoleService,
     private readonly permissionCheckService: PermissionCheckService
@@ -68,6 +70,7 @@ class PBACRoleManager implements IRoleManager {
 }
 
 class LegacyRoleManager implements IRoleManager {
+  public isPBACEnabled = false;
   async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
     const isUpdaterAnOwner = await isOrganisationOwner(userId, organizationId);
 
@@ -77,7 +80,7 @@ class LegacyRoleManager implements IRoleManager {
     }
   }
 
-  async assignRole(userId: number, organizationId: number, role: MembershipRole): Promise<void> {
+  async assignRole(userId: number, organizationId: number, role: MembershipRole | string): Promise<void> {
     await prisma.membership.update({
       where: {
         userId_teamId: {
