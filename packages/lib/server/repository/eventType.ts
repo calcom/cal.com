@@ -1,30 +1,22 @@
 import type { EventType as PrismaEventType } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 
-import logger from "@calcom/lib/logger";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
-import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { MembershipRepository } from "./membership";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
 
-const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 type NotSupportedProps = "locations";
 type IEventType = Ensure<
   Partial<
-    Omit<Prisma.EventTypeCreateInput, NotSupportedProps> & {
-      userId: PrismaEventType["userId"];
-      profileId: PrismaEventType["profileId"];
-      teamId: PrismaEventType["teamId"];
-      parentId: PrismaEventType["parentId"];
-      scheduleId: PrismaEventType["scheduleId"];
-    }
+    Omit<Prisma.EventTypeCreateInput, NotSupportedProps> &
+      Pick<PrismaEventType, "userId" | "profileId" | "teamId" | "parentId" | "scheduleId">
   >,
   "title" | "slug" | "length"
 >;
@@ -167,15 +159,6 @@ export class EventTypeRepository {
       },
     };
 
-    log.debug(
-      "findAllByUpId",
-      safeStringify({
-        upId,
-        orderBy,
-        argumentWhere: where,
-      })
-    );
-
     const cursor = cursorId ? { id: cursorId } : undefined;
     const take = limit ? limit + 1 : undefined; // We take +1 as it'll be used for the next cursor
 
@@ -270,15 +253,6 @@ export class EventTypeRepository {
       ...eventTypeSelect,
       hashedLink: true,
     };
-
-    log.debug(
-      "findAllByUpIdWithMinimalData",
-      safeStringify({
-        upId,
-        orderBy,
-        argumentWhere: where,
-      })
-    );
 
     const cursor = cursorId ? { id: cursorId } : undefined;
     const take = limit ? limit + 1 : undefined; // We take +1 as it'll be used for the next cursor
