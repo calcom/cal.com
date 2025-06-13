@@ -259,7 +259,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booker booking limit must be greater than 0." });
   }
 
-  if (maxActiveBookingsPerBooking && (recurringEvent || eventType.recurringEvent)) {
+  if (maxActiveBookingsPerBooker && (recurringEvent || eventType.recurringEvent)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Recurring Events and booker active bookings limit cannot be active at the same time.",
