@@ -12,6 +12,8 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { getErrorMessage } from "../../src/lib/utils";
+
 type ConferencingAppsViewWebWrapperProps = {
   title: string;
   description: string;
@@ -84,7 +86,8 @@ const InstalledConferencingApps = ({
           onSuccessCallback();
         },
         onError: (error) => {
-          showToast(`Error: ${error.message}`, "error");
+          const errorMessage = getErrorMessage(error, "Error updating default app");
+          showToast(errorMessage, "error");
           onErrorCallback();
         },
       }
@@ -183,20 +186,27 @@ export const ConferencingAppsViewWebWrapper = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation();
+  const disconnectIntegrationModalCtrl = useDisconnectIntegrationModalController();
+
+  const deleteCredentialMutation = trpc.viewer.credentials.delete.useMutation({
+    onSuccess: () => {
+      showToast(t("app_removed_successfully"), "success");
+      disconnectIntegrationModalCtrl.close();
+      utils.viewer.apps.integrations.invalidate();
+      utils.viewer.calendars.connectedCalendars.invalidate();
+    },
+    onError: (error) => {
+      const errorMessage = getErrorMessage(error, t("error_removing_app"));
+      showToast(errorMessage, "error");
+      disconnectIntegrationModalCtrl.close();
+    },
+  });
 
   const handleRemoveApp = ({ credentialId, teamId, callback }: RemoveAppParams) => {
     deleteCredentialMutation.mutate(
       { id: credentialId, teamId },
       {
         onSuccess: () => {
-          showToast(t("app_removed_successfully"), "success");
-          callback();
-          utils.viewer.apps.integrations.invalidate();
-          utils.viewer.calendars.connectedCalendars.invalidate();
-        },
-        onError: () => {
-          showToast(t("error_removing_app"), "error");
           callback();
         },
       }
@@ -210,8 +220,6 @@ export const ConferencingAppsViewWebWrapper = ({
       </Button>
     );
   };
-
-  const disconnectIntegrationModalCtrl = useDisconnectIntegrationModalController();
 
   return (
     <SettingsHeader

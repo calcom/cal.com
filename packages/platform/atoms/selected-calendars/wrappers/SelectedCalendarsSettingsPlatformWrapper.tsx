@@ -22,6 +22,7 @@ import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { Connect } from "../../index";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
+import { getErrorMessage } from "../../src/lib/utils";
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
 export type CalendarRedirectUrls = {
@@ -208,9 +209,10 @@ const PlatformDisconnectIntegration = (props: {
       setModalOpen(false);
       onSuccess && onSuccess();
     },
-    onError: () => {
+    onError: (error) => {
+      const errorMessage = getErrorMessage(error, t("error_removing_app"));
       toast({
-        description: t("error_removing_app"),
+        description: errorMessage,
       });
       setModalOpen(false);
     },
@@ -248,16 +250,18 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps & { isDryRun?: boole
 
   const { mutate: addSelectedCalendar, isPending: isAddingSelectedCalendar } = useAddSelectedCalendar({
     onError: (err) => {
+      const errorMessage = getErrorMessage(err, `Something went wrong while adding calendar - ${title}`);
       toast({
-        description: `Something went wrong while adding calendar - ${title}. ${err}`,
+        description: errorMessage,
       });
     },
   });
   const { mutate: removeSelectedCalendar, isPending: isRemovingSelectedCalendar } = useRemoveSelectedCalendar(
     {
       onError: (err) => {
+        const errorMessage = getErrorMessage(err, `Something went wrong while removing calendar - ${title}`);
         toast({
-          description: `Something went wrong while removing calendar - ${title}. ${err}`,
+          description: errorMessage,
         });
       },
     }

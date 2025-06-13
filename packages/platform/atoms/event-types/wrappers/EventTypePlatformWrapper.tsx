@@ -22,6 +22,7 @@ import { useAtomsContext } from "../../hooks/useAtomsContext";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
+import { getErrorMessage } from "../../src/lib/utils";
 import { useAtomsEventTypeById, QUERY_KEY as ATOM_EVENT_TYPE_QUERY_KEY } from "../hooks/useAtomEventTypeById";
 import { useAtomUpdateEventType } from "../hooks/useAtomUpdateEventType";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
@@ -98,8 +99,9 @@ const EventType = ({
   };
 
   const handleDeleteError = (err: Error) => {
-    showToast(err.message, "error");
-    onDeleteError?.(err.message);
+    const errorMessage = getErrorMessage(err, "Failed to delete event type");
+    showToast(errorMessage, "error");
+    onDeleteError?.(errorMessage);
   };
 
   const deleteMutation = useDeleteEventTypeById({
@@ -140,8 +142,8 @@ const EventType = ({
     },
     onError: (err: Error) => {
       const currentValues = form.getValues();
-      const message = err?.message;
-      toast({ description: message ? t(message) : t(err.message) });
+      const errorMessage = getErrorMessage(err, "Failed to update event type");
+      toast({ description: errorMessage });
       onError?.(currentValues, err);
     },
     teamId: team?.id,
