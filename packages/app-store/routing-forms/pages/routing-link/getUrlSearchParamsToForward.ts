@@ -126,7 +126,6 @@ export function getUrlSearchParamsToForward({
       : null),
     [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: String(formResponseId),
     ...(queuedFormResponse ? { ["cal.queuedFormResponse"]: "true" } : null),
-    // TODO: Test hitting the router embed page with the queued param. See if a response isn't recorded
     ...attributeRoutingConfigParams,
     ...(reroutingFormResponses
       ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
