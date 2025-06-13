@@ -174,4 +174,15 @@ export class CreditsRepository {
       data,
     });
   }
+
+  static async createCreditPurchaseLog(data: { credits: number; creditBalanceId: string }) {
+    const { credits, creditBalanceId } = data;
+
+    return prisma.creditPurchaseLog.create({
+      data: {
+        credits,
+        creditBalanceId,
+      },
+    });
+  }
 }

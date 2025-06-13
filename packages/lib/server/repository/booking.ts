@@ -4,6 +4,7 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
+import { RRTimestampBasis } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
@@ -47,6 +48,7 @@ const buildWhereClauseForActiveBookings = ({
   users,
   virtualQueuesData,
   includeNoShowInRRCalculation = false,
+  rrTimestampBasis,
 }: {
   eventTypeId: number;
   startDate?: Date;
@@ -60,6 +62,7 @@ const buildWhereClauseForActiveBookings = ({
     };
   } | null;
   includeNoShowInRRCalculation: boolean;
+  rrTimestampBasis: RRTimestampBasis;
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
@@ -86,12 +89,19 @@ const buildWhereClauseForActiveBookings = ({
   status: BookingStatus.ACCEPTED,
   eventTypeId,
   ...(startDate || endDate
-    ? {
-        createdAt: {
-          ...(startDate ? { gte: startDate } : {}),
-          ...(endDate ? { lte: endDate } : {}),
-        },
-      }
+    ? rrTimestampBasis === RRTimestampBasis.CREATED_AT
+      ? {
+          createdAt: {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          },
+        }
+      : {
+          startTime: {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          },
+        }
     : {}),
   ...(virtualQueuesData
     ? {
@@ -290,6 +300,7 @@ export class BookingRepository {
     endDate,
     virtualQueuesData,
     includeNoShowInRRCalculation,
+    rrTimestampBasis,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
@@ -303,6 +314,7 @@ export class BookingRepository {
       };
     } | null;
     includeNoShowInRRCalculation: boolean;
+    rrTimestampBasis: RRTimestampBasis;
   }) {
     const allBookings = await prisma.booking.findMany({
       where: buildWhereClauseForActiveBookings({
@@ -312,6 +324,7 @@ export class BookingRepository {
         users,
         virtualQueuesData,
         includeNoShowInRRCalculation,
+        rrTimestampBasis,
       }),
       select: {
         id: true,
@@ -380,6 +393,7 @@ export class BookingRepository {
               select: {
                 disableRecordingForGuests: true,
                 disableRecordingForOrganizer: true,
+                enableAutomaticTranscription: true,
                 redirectUrlOnExit: true,
               },
             },

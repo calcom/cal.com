@@ -389,6 +389,62 @@ test.describe("Reschedule Tests", async () => {
     // It is tested in teams.e2e.ts
   });
 
+  test("Should redirect to cancelled page when allowReschedulingCancelledBookings is false (default)", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        allowReschedulingCancelledBookings: false,
+      },
+    });
+
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.CANCELLED,
+    });
+
+    await page.goto(`/reschedule/${booking.uid}`);
+
+    expect(page.url()).not.toContain("rescheduleUid");
+    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+  });
+
+  test("Should allow rescheduling when allowReschedulingCancelledBookings is true", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        allowReschedulingCancelledBookings: true,
+      },
+    });
+
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.CANCELLED,
+    });
+
+    await page.goto(`/reschedule/${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
+
   test.describe("Organization", () => {
     test("Booking should be rescheduleable for a user that was moved to an organization through org domain", async ({
       users,

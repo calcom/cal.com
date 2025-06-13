@@ -252,8 +252,8 @@ test.describe("pro user", () => {
 
     await page.goto(`/reschedule/${bookingCancelledId}`);
 
-    // Should be redirected to the original event link
-    await expect(page).toHaveURL(new RegExp(`/${pro.username}/${eventSlug}`));
+    expect(page.url()).not.toContain("rescheduleUid");
+    await expect(cancelledHeadline).toBeVisible();
   });
 
   test("can book an event that requires confirmation and then that booking can be accepted by organizer", async ({

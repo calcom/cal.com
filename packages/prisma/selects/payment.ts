@@ -49,6 +49,7 @@ export const paymentDataSelect = Prisma.validator<Prisma.PaymentSelect>()({
           metadata: true,
           users: {
             select: {
+              id: true,
               name: true,
               username: true,
               hideBranding: true,
@@ -59,6 +60,11 @@ export const paymentDataSelect = Prisma.validator<Prisma.PaymentSelect>()({
             select: {
               name: true,
               hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
           price: true,
