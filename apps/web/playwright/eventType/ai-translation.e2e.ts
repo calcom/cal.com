@@ -73,7 +73,15 @@ test.describe("AI Translation - Booking Page", () => {
         page,
       },
       async () => {
+        await page.setExtraHTTPHeaders({
+          "Accept-Language": "ko-KR,ko;q=0.9",
+        });
+
         await page.goto(`/${orgMember.username}/5-min`);
+
+        await page.waitForLoadState("domcontentloaded");
+        await page.locator("html[lang=ko-KR], html[lang=ko]").waitFor({ state: "attached" });
+
         await expect(page.locator('[data-testid="event-meta-description"] p')).toHaveText("빠른 5분 대화.");
       }
     );
