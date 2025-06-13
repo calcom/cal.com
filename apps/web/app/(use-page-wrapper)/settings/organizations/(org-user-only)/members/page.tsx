@@ -35,9 +35,9 @@ const Page = async () => {
     attributes: attributes.map((attribute) => ({
       id: attribute.id,
       name: attribute.name,
-      options: Array.from(
-        new Map(attribute.options.map((option) => [option.value, { value: option.value }])).values()
-      ),
+      options: Array.from(new Set(attribute.options.map((option) => option.value))).map((value) => ({
+        value,
+      })),
     })),
   };
 
