@@ -1,16 +1,19 @@
-import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { deleteHandler } from "../delete.handler";
-import { type TDeleteFilterSegmentInputSchema } from "../delete.schema";
+import { FilterSegmentRepository } from "../../filterSegment";
+import { type TDeleteFilterSegmentInputSchema } from "../../filterSegment.type";
 
-describe("deleteHandler", () => {
+const repository = new FilterSegmentRepository();
+
+describe("FilterSegmentRepository.delete()", () => {
+  const userId = 1;
   const mockUser = {
-    id: 1,
+    id: userId,
     name: "Test User",
   } as NonNullable<TrpcSessionUser>;
 
@@ -34,15 +37,12 @@ describe("deleteHandler", () => {
       id: segment.id,
     };
 
-    const result = await deleteHandler({
-      ctx: { user: mockUser },
-      input,
-    });
-
-    expect(result).toEqual({
-      id: segment.id,
-      message: "Filter segment deleted successfully",
-    });
+    await expect(
+      repository.delete({
+        userId,
+        id: segment.id,
+      })
+    ).resolves.not.toThrow();
 
     // Verify segment is deleted
     const deletedSegment = await prismock.filterSegment.findUnique({
@@ -90,15 +90,12 @@ describe("deleteHandler", () => {
       id: segment.id,
     };
 
-    const result = await deleteHandler({
-      ctx: { user: mockUser },
-      input,
-    });
-
-    expect(result).toEqual({
-      id: segment.id,
-      message: "Filter segment deleted successfully",
-    });
+    await expect(
+      repository.delete({
+        userId,
+        id: segment.id,
+      })
+    ).resolves.not.toThrow();
 
     // Verify segment is deleted
     const deletedSegment = await prismock.filterSegment.findUnique({
@@ -113,9 +110,9 @@ describe("deleteHandler", () => {
     };
 
     await expect(
-      deleteHandler({
-        ctx: { user: mockUser },
-        input,
+      repository.delete({
+        userId,
+        id: 999,
       })
     ).rejects.toThrow("Filter segment not found or you don't have permission to delete it");
   });
@@ -160,9 +157,9 @@ describe("deleteHandler", () => {
     };
 
     await expect(
-      deleteHandler({
-        ctx: { user: mockUser },
-        input,
+      repository.delete({
+        userId,
+        id: segment.id,
       })
     ).rejects.toThrow("Filter segment not found or you don't have permission to delete it");
   });
