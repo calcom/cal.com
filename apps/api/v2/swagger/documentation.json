@@ -7683,6 +7683,59 @@
         ]
       }
     },
+    "/v2/calendars/{calendar}/event/{eventUid}": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
+        "summary": "Get meeting Details from calendar",
+        "description": "Returns detailed information about a meeting including attendance metrics",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "google"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cal Unified Calendars"
+        ]
+      }
+    },
     "/v2/calendars/ics-feed/save": {
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
@@ -13704,6 +13757,71 @@
           "data"
         ]
       },
+      "BookerLayouts_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "defaultLayout": {
+            "type": "string",
+            "enum": [
+              "month",
+              "week",
+              "column"
+            ]
+          },
+          "enabledLayouts": {
+            "type": "array",
+            "description": "Array of valid layouts - month, week or column",
+            "items": {
+              "type": "string",
+              "enum": [
+                "month",
+                "week",
+                "column"
+              ]
+            }
+          }
+        },
+        "required": [
+          "defaultLayout",
+          "enabledLayouts"
+        ]
+      },
+      "EventTypeColor_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lightThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in light theme",
+            "example": "#292929"
+          },
+          "darkThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in dark theme",
+            "example": "#fafafa"
+          }
+        },
+        "required": [
+          "lightThemeHex",
+          "darkThemeHex"
+        ]
+      },
+      "DestinationCalendar_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
+          },
+          "externalId": {
+            "type": "string",
+            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
+          }
+        },
+        "required": [
+          "integration",
+          "externalId"
+        ]
+      },
       "InputAddressLocation_2024_06_14": {
         "type": "object",
         "properties": {
@@ -14820,70 +14938,22 @@
           "type"
         ]
       },
-      "BookerLayouts_2024_06_14": {
+      "CalVideoSettings": {
         "type": "object",
         "properties": {
-          "defaultLayout": {
-            "type": "string",
-            "enum": [
-              "month",
-              "week",
-              "column"
-            ]
+          "disableRecordingForOrganizer": {
+            "type": "boolean",
+            "description": "If true, the organizer will not be able to record the meeting"
           },
-          "enabledLayouts": {
-            "type": "array",
-            "description": "Array of valid layouts - month, week or column",
-            "items": {
-              "type": "string",
-              "enum": [
-                "month",
-                "week",
-                "column"
-              ]
-            }
-          }
-        },
-        "required": [
-          "defaultLayout",
-          "enabledLayouts"
-        ]
-      },
-      "EventTypeColor_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "lightThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in light theme",
-            "example": "#292929"
+          "disableRecordingForGuests": {
+            "type": "boolean",
+            "description": "If true, the guests will not be able to record the meeting"
           },
-          "darkThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in dark theme",
-            "example": "#fafafa"
+          "redirectUrlOnExit": {
+            "type": "object",
+            "description": "URL to which participants are redirected when they exit the call"
           }
-        },
-        "required": [
-          "lightThemeHex",
-          "darkThemeHex"
-        ]
-      },
-      "DestinationCalendar_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "integration": {
-            "type": "string",
-            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
-          },
-          "externalId": {
-            "type": "string",
-            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
-          }
-        },
-        "required": [
-          "integration",
-          "externalId"
-        ]
+        }
       },
       "CreateEventTypeInput_2024_06_14": {
         "type": "object",
@@ -15107,7 +15177,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -15127,6 +15197,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "locations": {
             "type": "array",
@@ -16781,6 +16859,14 @@
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -17121,6 +17207,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "locations": {
             "type": "array",
@@ -18921,7 +19015,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -18941,6 +19035,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "schedulingType": {
             "type": "string",
@@ -19366,6 +19468,15 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "nullable": true,
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "teamId": {
             "type": "number"
@@ -19804,6 +19915,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "hosts": {
             "type": "array",
@@ -25274,6 +25393,203 @@
           },
           "data": {
             "$ref": "#/components/schemas/DestinationCalendarsOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CalendarEventResponseStatus": {
+        "type": "string",
+        "description": "Attendee's response to the invitation",
+        "enum": [
+          "accepted",
+          "pending",
+          "declined",
+          "needsAction"
+        ]
+      },
+      "CalendarEventAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the attendee"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the attendee"
+          },
+          "responseStatus": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
+          },
+          "self": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the current user"
+          },
+          "optional": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee's attendance is optional"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "CalendarEventStatus": {
+        "type": "string",
+        "description": "Status of the event (accepted, pending, declined, cancelled)",
+        "enum": [
+          "accepted",
+          "pending",
+          "declined",
+          "cancelled"
+        ]
+      },
+      "CalendarEventHost": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the event host"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name of the event host"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "CalendarSource": {
+        "type": "string",
+        "description": "Calendar integration source (e.g., Google Calendar, Office 365, Apple Calendar). Currently only Google Calendar is supported.",
+        "enum": [
+          "google",
+          "office365",
+          "apple"
+        ]
+      },
+      "UnifiedCalendarEventOutput": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "Start date and time of the calendar event with timezone information"
+          },
+          "end": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "End date and time of the calendar event with timezone information"
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the calendar event"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the calendar event"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the calendar event"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/CalendarEventVideoLocation"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarEventPhoneLocation"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarEventSipLocation"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarEventMoreLocation"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type"
+              }
+            },
+            "nullable": true,
+            "description": "Conference locations with entry points (video, phone, sip, more)"
+          },
+          "attendees": {
+            "nullable": true,
+            "description": "List of attendees with their response status",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventAttendee"
+            }
+          },
+          "status": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventStatus"
+          },
+          "hosts": {
+            "nullable": true,
+            "description": "Information about the event hosts (organizers)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventHost"
+            }
+          },
+          "source": {
+            "example": "google",
+            "$ref": "#/components/schemas/CalendarSource"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "id",
+          "title",
+          "source"
+        ]
+      },
+      "GetUnifiedCalendarEventOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UnifiedCalendarEventOutput"
           }
         },
         "required": [

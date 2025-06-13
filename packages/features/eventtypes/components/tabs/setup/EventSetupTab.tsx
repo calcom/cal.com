@@ -14,6 +14,7 @@ import type {
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
+import { MAX_EVENT_DURATION_MINUTES, MIN_EVENT_DURATION_MINUTES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
@@ -337,9 +338,20 @@ export const EventSetupTab = (
               {...(isManagedEventType || isChildrenManagedEventType ? lengthLockedProps : {})}
               label={t("duration")}
               defaultValue={formMethods.getValues("length") ?? 15}
-              {...formMethods.register("length")}
+              {...formMethods.register("length", {
+                valueAsNumber: true,
+                min: {
+                  value: MIN_EVENT_DURATION_MINUTES,
+                  message: t("duration_min_error", { min: MIN_EVENT_DURATION_MINUTES }),
+                },
+                max: {
+                  value: MAX_EVENT_DURATION_MINUTES,
+                  message: t("duration_max_error", { max: MAX_EVENT_DURATION_MINUTES }),
+                },
+              })}
               addOnSuffix={<>{t("minutes")}</>}
-              min={1}
+              min={MIN_EVENT_DURATION_MINUTES}
+              max={MAX_EVENT_DURATION_MINUTES}
             />
           )}
           {!lengthLockedProps.disabled && (
