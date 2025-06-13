@@ -157,8 +157,6 @@ export const getEventTypesFromGroup = async ({
     const teamEventTypes =
       (await EventTypeRepository.findTeamEventTypes({
         teamId,
-        parentId,
-        userId: ctx.user.id,
         limit,
         cursor,
         where: {
