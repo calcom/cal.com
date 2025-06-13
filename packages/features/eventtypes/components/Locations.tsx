@@ -66,6 +66,7 @@ type LocationsProps = {
   setValue: UseFormSetValue<LocationFormValues>;
   control: Control<LocationFormValues>;
   formState: FormState<LocationFormValues>;
+  excludeLocationOptions?: string[];
   eventType: TEventTypeLocation;
   locationOptions: TLocationOptions;
   prefillLocation?: SingleValueLocationOption;
@@ -114,6 +115,7 @@ const Locations: React.FC<LocationsProps> = ({
   getValues,
   setValue,
   control,
+  excludeLocationOptions,
   formState,
   team,
   eventType,
@@ -146,6 +148,21 @@ const Locations: React.FC<LocationsProps> = ({
     };
   });
 
+  const filteredLocationOptions: TLocationOptions = [];
+
+  if (excludeLocationOptions) {
+    locationOptions.forEach((locationOption) => {
+      const options = locationOption.options.filter((option) => {
+        return !excludeLocationOptions.includes(option.value);
+      });
+
+      filteredLocationOptions.push({
+        ...locationOption,
+        options,
+      });
+    });
+  }
+
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
   const seatsEnabled = !!getValues("seatsPerTimeSlot");
 
@@ -160,12 +177,14 @@ const Locations: React.FC<LocationsProps> = ({
     }) || [];
 
   const defaultValue = isManagedEventType
-    ? locationOptions.find((op) => op.label === t("default"))?.options[0]
+    ? (excludeLocationOptions ? filteredLocationOptions : locationOptions).find(
+        (op) => op.label === t("default")
+      )?.options[0]
     : undefined;
 
   const { locationDetails, locationAvailable } = getLocationInfo({
     eventType,
-    locationOptions: props.locationOptions,
+    locationOptions: excludeLocationOptions ? filteredLocationOptions : locationOptions,
   });
 
   const LocationInput = (props: {
@@ -260,14 +279,17 @@ const Locations: React.FC<LocationsProps> = ({
 
           const isCalVideo = field.type === "integrations:daily";
 
-          const option = getLocationFromType(field.type, locationOptions);
+          const option = getLocationFromType(
+            field.type,
+            excludeLocationOptions ? filteredLocationOptions : locationOptions
+          );
           return (
             <li key={field.id}>
               <div className="flex w-full items-center">
                 <LocationSelect
                   name={`locations[${index}].type`}
                   placeholder={t("select")}
-                  options={locationOptions}
+                  options={excludeLocationOptions ? filteredLocationOptions : locationOptions}
                   isDisabled={disableLocationProp}
                   defaultValue={option}
                   isSearchable={false}
@@ -475,7 +497,7 @@ const Locations: React.FC<LocationsProps> = ({
             <LocationSelect
               defaultMenuIsOpen={showEmptyLocationSelect}
               placeholder={t("select")}
-              options={locationOptions}
+              options={excludeLocationOptions ? filteredLocationOptions : locationOptions}
               value={selectedNewOption}
               isDisabled={disableLocationProp}
               defaultValue={defaultValue}
