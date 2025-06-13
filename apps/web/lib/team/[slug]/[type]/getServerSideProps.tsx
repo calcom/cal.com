@@ -47,17 +47,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const [teamData, eventData, booking] = await Promise.all([
+  const [team, eventData, booking] = await Promise.all([
     getTeamData(teamSlug, isValidOrgDomain, currentOrgDomain),
     getEventTypeData(meetingSlug, teamSlug, isValidOrgDomain, currentOrgDomain),
     rescheduleUid ? getBookingForReschedule(`${rescheduleUid}`, session?.user?.id) : Promise.resolve(null),
   ]);
 
-  if (!teamData || !eventData) {
+  if (!team || !eventData) {
     return { notFound: true } as const;
   }
-
-  const team = { ...teamData, eventTypes: [eventData] };
 
   if (rescheduleUid && eventData.disableRescheduling) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
@@ -175,6 +173,9 @@ const getTeamData = async (teamSlug: string, isValidOrgDomain: boolean, currentO
     where: {
       ...getSlugOrRequestedSlug(teamSlug),
       parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+    },
+    orderBy: {
+      slug: { sort: "asc", nulls: "last" },
     },
     select: {
       id: true,
