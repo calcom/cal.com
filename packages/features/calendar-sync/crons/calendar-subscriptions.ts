@@ -216,6 +216,8 @@ export const GET = async (req: Request) => {
             `Error processing CalendarSubscription record ID ${subscription.id} (credential ${subscription.credentialId}, externalId ${subscription.externalCalendarId}):`,
             safeStringify(error)
           );
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          await CalendarSubscriptionService.setErrorInWatching({ id: subscription.id, error: errorMessage });
           throw error; // Re-throw to mark the promise as rejected
         }
       })
