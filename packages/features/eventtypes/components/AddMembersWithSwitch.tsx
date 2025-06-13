@@ -188,6 +188,7 @@ const enum AssignmentState {
   ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_APPLICABLE = "ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_APPLICABLE",
   ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE = "ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE",
   TEAM_MEMBERS_IN_SEGMENT_ENABLED = "TEAM_MEMBERS_IN_SEGMENT_ENABLED",
+  ASSIGNED_MEMBERS_WITH_SEGMENT_APPLICABLE = "ASSIGNED_MEMBERS_WITH_SEGMENT_APPLICABLE",
 }
 
 function getAssignmentState({
@@ -195,11 +196,13 @@ function getAssignmentState({
   assignRRMembersUsingSegment,
   isAssigningAllTeamMembersApplicable,
   isSegmentApplicable,
+  hasAssignedMembers,
 }: {
   assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   isAssigningAllTeamMembersApplicable: boolean;
   isSegmentApplicable?: boolean;
+  hasAssignedMembers?: boolean;
 }) {
   if (assignAllTeamMembers) {
     return isSegmentApplicable
@@ -208,6 +211,12 @@ function getAssignmentState({
   }
   if (assignRRMembersUsingSegment && isSegmentApplicable)
     return AssignmentState.TEAM_MEMBERS_IN_SEGMENT_ENABLED;
+
+  // When team members are manually assigned and segment is applicable
+  if (!assignAllTeamMembers && hasAssignedMembers && isSegmentApplicable) {
+    return AssignmentState.ASSIGNED_MEMBERS_WITH_SEGMENT_APPLICABLE;
+  }
+
   if (isAssigningAllTeamMembersApplicable) return AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE;
   return AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE;
 }
@@ -261,10 +270,15 @@ export function AddMembersWithSwitch({
     assignRRMembersUsingSegment,
     isAssigningAllTeamMembersApplicable: automaticAddAllEnabled,
     isSegmentApplicable,
+    hasAssignedMembers: value.length > 0,
   });
 
   const onAssignAllTeamMembersInactive = () => {
-    setAssignRRMembersUsingSegment(false);
+    // Only disable segment routing if no team members are manually assigned
+    // This allows attribute routing to work with manually selected team members
+    if (value.length === 0) {
+      setAssignRRMembersUsingSegment(false);
+    }
   };
 
   switch (assignmentState) {
@@ -292,6 +306,45 @@ export function AddMembersWithSwitch({
               />
             </div>
           )}
+        </>
+      );
+
+    case AssignmentState.ASSIGNED_MEMBERS_WITH_SEGMENT_APPLICABLE:
+      return (
+        <>
+          <div className="mb-2">
+            <AssignAllTeamMembers
+              assignAllTeamMembers={assignAllTeamMembers}
+              setAssignAllTeamMembers={setAssignAllTeamMembers}
+              onActive={onActive}
+              onInactive={onAssignAllTeamMembersInactive}
+              customClassNames={customClassNames?.assingAllTeamMembers}
+            />
+          </div>
+
+          <div className="mb-2">
+            <CheckedHostField
+              data-testid={rest["data-testid"]}
+              value={value}
+              onChange={onChange}
+              isFixed={isFixed}
+              className="mb-2"
+              options={teamMembers.sort(sortByLabel)}
+              placeholder={placeholder ?? t("add_attendees")}
+              isRRWeightsEnabled={isRRWeightsEnabled}
+              customClassNames={customClassNames?.teamMemberSelect}
+            />
+          </div>
+
+          <div className="mt-2">
+            <MembersSegmentWithToggle
+              teamId={teamId}
+              assignRRMembersUsingSegment={assignRRMembersUsingSegment}
+              setAssignRRMembersUsingSegment={setAssignRRMembersUsingSegment}
+              rrSegmentQueryValue={rrSegmentQueryValue}
+              setRrSegmentQueryValue={setRrSegmentQueryValue}
+            />
+          </div>
         </>
       );
 
