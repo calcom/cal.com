@@ -78,6 +78,7 @@ const BookerComponent = ({
   hashedLink,
   confirmButtonDisabled,
   timeZones,
+  eventMetaChildren,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -402,8 +403,9 @@ const BookerComponent = ({
                   isPlatform={isPlatform}
                   isPrivateLink={!!hashedLink}
                   locale={userLocale}
-                  timeZones={timeZones}
-                />
+                  timeZones={timeZones}>
+                  {eventMetaChildren}
+                </EventMeta>
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">

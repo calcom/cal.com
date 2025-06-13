@@ -6,6 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -49,6 +50,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
               id: true,
               slug: true,
               hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
         },
@@ -71,7 +77,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   if (hashedLink.eventType.team) {
     name = hashedLink.eventType.team.slug || "";
-    hideBranding = hashedLink.eventType.team.hideBranding;
+    hideBranding = shouldHideBrandingForTeamEvent({
+      eventTypeId: hashedLink.eventTypeId,
+      team: hashedLink.eventType.team,
+    });
   } else {
     if (!username) {
       return notFound;
@@ -101,7 +110,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       return notFound;
     }
 
-    hideBranding = user.hideBranding;
+    hideBranding = shouldHideBrandingForUserEvent({
+      eventTypeId: hashedLink.eventTypeId,
+      owner: user,
+    });
   }
 
   let booking: GetBookingType | null = null;

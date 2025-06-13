@@ -65,6 +65,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (status !== "completed") {
+    await prisma.booking.update({
+      where: {
+        id: payment.bookingId,
+      },
+      data: {
+        status: "CANCELLED",
+      },
+    });
     const url = `/${payment.booking.user.username}/${payment.booking.eventType.slug}`;
     return res.redirect(url);
   }
