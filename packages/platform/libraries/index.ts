@@ -22,10 +22,10 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
-export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
+
+export type { EventBusyDate } from "@calcom/types/Calendar";
 
 export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
@@ -42,15 +42,10 @@ export { handleCreatePhoneCall };
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
-export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
-export type {
-  BookingCreateBody,
-  BookingResponse,
-  RecurringBookingCreateBody,
-} from "@calcom/features/bookings/types";
+export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";
 
 export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
