@@ -1,8 +1,8 @@
-import type { Membership, Team, User } from "@prisma/client";
+import type { Membership, Team, User, UserPermissionRole } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import type { UserPermissionRole } from "@prisma/client";
 import { uuid } from "short-uuid";
-import type z from "zod";
+import type { z } from "zod";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
@@ -14,11 +14,12 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
-import prisma from ".";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";
 import type { teamMetadataSchema } from "./zod-utils";
+
+const prisma = new PrismaClient();
 
 type PlatformUser = {
   email: string;

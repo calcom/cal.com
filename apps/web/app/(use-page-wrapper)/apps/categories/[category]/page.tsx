@@ -12,15 +12,11 @@ const querySchema = z.object({
   category: z.enum(Object.values(AppCategories) as [AppCategories, ...AppCategories[]]),
 });
 
-async function Page({ params, searchParams }: PageProps) {
+export default async function Page({ params, searchParams }: PageProps) {
   const parsed = querySchema.safeParse({ ...(await params), ...(await searchParams) });
   if (!parsed.success) {
     redirect("/apps/categories/calendar");
   }
-
   const props = await getStaticProps(parsed.data.category);
-
   return <CategoryPage {...props} />;
 }
-
-export default Page;
