@@ -74,6 +74,7 @@ model CalVideoSettings {
 
   disableRecordingForOrganizer Boolean @default(false)
   disableRecordingForGuests    Boolean @default(false)
+  enableAutomaticTranscription Boolean @default(false)
   redirectUrlOnExit            String?
 
   createdAt DateTime @default(now())
@@ -101,7 +102,7 @@ model EventType {
   userId            Int?
 
   profileId Int?
-  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile   Profile? @relation(fields: [profileId], references: [id])
 
   team                               Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                             Int?
@@ -187,6 +188,7 @@ model EventType {
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
   hideOrganizerEmail                      Boolean                   @default(false)
+  maxActiveBookingsPerBooker              Int?
   /// @zod.custom(imports.emailSchema)
   customReplyToEmail                      String?
   calVideoSettings                        CalVideoSettings?
@@ -1796,6 +1798,7 @@ model PlatformOAuthClient {
   bookingRescheduleRedirectUri String?
   areEmailsEnabled             Boolean @default(false)
   areDefaultEventTypesEnabled  Boolean @default(true)
+  areCalendarEventsEnabled     Boolean @default(true)
 
   createdAt DateTime @default(now())
 }

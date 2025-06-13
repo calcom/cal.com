@@ -69,6 +69,7 @@ export const useEventTypeForm = ({
       schedule: eventType.schedule || undefined,
       instantMeetingSchedule: eventType.instantMeetingSchedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
+      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || undefined,
       onlyShowFirstAvailableSlot: eventType.onlyShowFirstAvailableSlot || undefined,
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
@@ -174,6 +175,7 @@ export const useEventTypeForm = ({
               redirectUrlOnExit: z.string().url().nullish(),
               disableRecordingForOrganizer: z.boolean().nullable(),
               disableRecordingForGuests: z.boolean().nullable(),
+              enableAutomaticTranscription: z.boolean().nullable(),
             })
             .optional()
             .nullable(),

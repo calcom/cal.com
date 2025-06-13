@@ -124,6 +124,29 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   RescheduleReasonDefaultFieldInput_2024_06_14,
   InputOrganizersDefaultApp_2024_06_14
 )
+export class CalVideoSettings {
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the organizer will not be able to record the meeting",
+  })
+  disableRecordingForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the guests will not be able to record the meeting",
+  })
+  disableRecordingForGuests?: boolean;
+
+  @IsOptional()
+  @IsUrl()
+  @DocsPropertyOptional({
+    description: "URL to which participants are redirected when they exit the call",
+  })
+  redirectUrlOnExit?: string | null;
+}
+
 class BaseCreateEventTypeInput {
   @IsInt()
   @Min(1)
@@ -369,9 +392,9 @@ class BaseCreateEventTypeInput {
   @IsOptional()
   @IsString()
   @DocsPropertyOptional({
-    description: `Customizable event name with valid variables: 
-      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, 
-      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, 
+    description: `Customizable event name with valid variables:
+      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},
+      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},
       {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}`,
     example: "{Event type title} between {Organiser} and {Scheduler}",
   })
@@ -407,6 +430,15 @@ class BaseCreateEventTypeInput {
       "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
   })
   hideOrganizerEmail?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CalVideoSettings)
+  @DocsPropertyOptional({
+    description: "Cal video settings for the event type",
+    type: CalVideoSettings,
+  })
+  calVideoSettings?: CalVideoSettings;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
@@ -457,6 +489,7 @@ export class Host {
   @DocsPropertyOptional({ enum: HostPriority })
   priority?: keyof typeof HostPriority = "medium";
 }
+
 export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @Transform(({ value }) => {
     if (value === "collective") {
