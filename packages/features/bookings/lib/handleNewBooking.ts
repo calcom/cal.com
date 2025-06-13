@@ -449,15 +449,15 @@ async function handler(
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
-  if (!rawBookingData.rescheduleUid) {
-    await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
-  }
+  await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
-  await checkActiveBookingsLimitForBooker({
-    eventTypeId,
-    maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
-    bookerEmail,
-  });
+  if (!rawBookingData.rescheduleUid) {
+    await checkActiveBookingsLimitForBooker({
+      eventTypeId,
+      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
+      bookerEmail,
+    });
+  }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
