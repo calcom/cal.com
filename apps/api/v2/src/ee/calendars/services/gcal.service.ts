@@ -23,7 +23,7 @@ const CALENDAR_SCOPES = [
 
 @Injectable()
 export class GoogleCalendarService implements OAuthCalendarApp {
-  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
+  public readonly redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
   private gcalResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
   private logger = new Logger("GcalService");
 
