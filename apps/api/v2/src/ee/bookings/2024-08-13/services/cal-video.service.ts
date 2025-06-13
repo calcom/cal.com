@@ -36,6 +36,7 @@ export class CalVideoService {
     const recordingWithDownloadLink = recordings.data.map((recording) => {
       return getDownloadLinkOfCalVideoByRecordingId(recording.id)
         .then((res: { download_link: string } | undefined) => ({
+          id: recording.id,
           roomName: recording.room_name,
           startTs: recording.start_ts,
           status: recording.status,
@@ -45,6 +46,7 @@ export class CalVideoService {
           downloadLink: res?.download_link,
         }))
         .catch((err: Error) => ({
+          id: recording.id,
           roomName: recording.room_name,
           startTs: recording.start_ts,
           status: recording.status,
