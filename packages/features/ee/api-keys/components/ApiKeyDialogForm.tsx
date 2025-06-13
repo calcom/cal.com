@@ -150,8 +150,9 @@ export default function ApiKeyDialogForm({
                   {t("api_key_modal_subtitle")}
                 </div>
                 <Link
+                  target="_blank"
                   href="https://cal.com/platform"
-                  className="border-subtle [&:has(input:checked)]:border-emphasis relative flex w-full items-start rounded-[10px] border p-4 text-sm">
+                  className="border-subtle relative flex w-full items-start rounded-[10px] border p-4 text-sm">
                   {t("api_key_modal_subtitle_platform")}
                 </Link>
               </div>
