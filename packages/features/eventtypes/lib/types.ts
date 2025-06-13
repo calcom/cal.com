@@ -155,6 +155,7 @@ export type FormValues = {
   calVideoSettings?: {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;
+    enableAutomaticTranscription?: boolean;
     redirectUrlOnExit?: string;
   };
   maxActiveBookingPerBookerOfferReschedule: boolean;
