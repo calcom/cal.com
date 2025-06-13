@@ -43,7 +43,7 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
@@ -67,6 +67,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -88,6 +89,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
+import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -373,6 +375,7 @@ export type PlatformParams = {
   platformBookingUrl?: string;
   platformRescheduleUrl?: string;
   platformBookingLocation?: string;
+  areCalendarEventsEnabled?: boolean;
 };
 
 export type BookingHandlerInput = {
@@ -397,6 +400,7 @@ async function handler(
     platformBookingLocation,
     hostname,
     forcedSlug,
+    areCalendarEventsEnabled = true,
   } = input;
 
   const isPlatformBooking = !!platformClientId;
@@ -436,19 +440,28 @@ async function handler(
     luckyUsers,
     routedTeamMemberIds,
     reroutingFormResponses,
-    routingFormResponseId,
+    queuedFormResponse,
     _isDryRun: isDryRun = false,
     _shouldServeCache,
     ...reqBody
   } = bookingData;
-
   let troubleshooterData = buildTroubleshooterData({
     eventType,
   });
 
+  let routingFormResponseId = bookingData.routingFormResponseId;
+
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+
+  if (!rawBookingData.rescheduleUid) {
+    await checkActiveBookingsLimitForBooker({
+      eventTypeId,
+      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
+      bookerEmail,
+    });
+  }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
@@ -586,29 +599,55 @@ async function handler(
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
   let routingFormResponse = null;
-
   if (routedTeamMemberIds) {
     //routingFormResponseId could be 0 for dry run. So, we just avoid undefined value
     if (routingFormResponseId === undefined) {
       throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
     }
-    routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
-      where: {
-        id: routingFormResponseId,
-      },
-      select: {
-        response: true,
-        form: {
-          select: {
-            routes: true,
-            fields: true,
-          },
-        },
-        chosenRouteId: true,
-      },
-    });
-  }
 
+    if (queuedFormResponse) {
+      // Write to the routing form response table and return the result
+      routingFormResponse = await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse(
+        routingFormResponseId,
+        bookerEmail
+      );
+      if (!routingFormResponse) {
+        throw new HttpError({ statusCode: 400, message: "Missing routingFormResponse" });
+      }
+      routingFormResponseId = routingFormResponse.id;
+    } else {
+      routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+        where: {
+          id: routingFormResponseId,
+        },
+        select: {
+          response: true,
+          form: {
+            select: {
+              routes: true,
+              fields: true,
+            },
+          },
+          chosenRouteId: true,
+        },
+      });
+    }
+  } else if (queuedFormResponse) {
+    if (routingFormResponseId === undefined) {
+      throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
+    }
+
+    // If we're not returning the response then we still need
+    // to update the routing form response id with the actual on
+    routingFormResponse = await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse(
+      routingFormResponseId,
+      bookerEmail
+    );
+    if (!routingFormResponse) {
+      throw new HttpError({ statusCode: 400, message: "Missing routingFormResponse" });
+    }
+    routingFormResponseId = routingFormResponse.id;
+  }
   const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
     hostname,
     forcedSlug,
@@ -1737,7 +1776,7 @@ async function handler(
     // Create a booking
   } else if (isConfirmedByDefault) {
     // Use EventManager to conditionally use all needed integrations.
-    const createManager = await eventManager.create(evt);
+    const createManager = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
     if (evt.location) {
       booking.location = evt.location;
     }

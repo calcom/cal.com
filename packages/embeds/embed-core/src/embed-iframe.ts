@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
+import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
+import { runAsap, isBookerReady, isLinkReady } from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
-  EmbedThemeConfig,
   UiConfig,
   EmbedNonStylesConfig,
   BookerLayouts,
@@ -13,10 +14,15 @@ import type {
   EmbedBookerState,
   SlotsQuery,
   PrefillAndIframeAttrsConfig,
+  SetStyles,
+  setNonStylesConfig,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
-import { isParamValuePresentInUrlSearchParams } from "./utils";
 
+console.log({
+  isLinkReady: isLinkReady,
+  embedStoreRouterEnsureQueryParamsInUrl: embedStore.router.ensureQueryParamsInUrl,
+});
 // We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
 type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 
@@ -30,13 +36,6 @@ const eventsAllowedInPrerendering = [
   // For other events, we should consider introducing prerender specific events and not reuse existing events
 ];
 
-type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
-type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
-const enum EMBED_IFRAME_STATE {
-  NOT_INITIALIZED,
-  INITIALIZED,
-}
-
 declare global {
   interface Window {
     CalEmbed: {
@@ -49,110 +48,6 @@ declare global {
   }
 }
 
-/**
- * This is in-memory persistence needed so that when user browses through the embed, the configurations from the instructions aren't lost.
- */
-export const embedStore = {
-  connectVersion: 0 as number,
-  /**
-   * Tracks whether the prerender has been completed or not.
-   * NOTE: prerenderState would be "completed" even after the iframe was switched from isPrerendering=true to not Prerendering(which happens after connect)
-   */
-  prerenderState: null as null | "inProgress" | "completed",
-
-  // Handles the commands of routing received from parent even when React hasn't initialized and nextRouter isn't available
-  router: {
-    /**
-     * When we do the history push, it is possible that
-     * - React might revert that change depending on in what state React is in while initializing
-     * - So, we use a declarative approach to ensure that our requirement is continuously met
-     */
-    ensureQueryParamsInUrl({
-      toBeThereParams,
-      toRemoveParams,
-    }: {
-      toBeThereParams: Record<string, string | string[]>;
-      toRemoveParams: string[];
-    }) {
-      let stopUpdating = false;
-      function updateIfNeeded() {
-        if (stopUpdating) {
-          return { hasChanged: false };
-        }
-        const currentUrl = new URL(document.URL);
-        let hasChanged = false;
-
-        // Ensuring toBeThereSearchParams
-        for (const [key, newValue] of Object.entries(toBeThereParams)) {
-          // It checks that the value must be present and if an array no other item should be there except those in newValue
-          hasChanged = !isParamValuePresentInUrlSearchParams({
-            param: key,
-            value: newValue,
-            container: currentUrl.searchParams,
-          });
-          if (hasChanged) {
-            setParamInUrl({ key, value: newValue, url: currentUrl });
-          }
-        }
-
-        removeParamsFromUrl({ keys: toRemoveParams, url: currentUrl });
-
-        hasChanged = hasChanged || toRemoveParams.length > 0;
-        if (hasChanged) {
-          // Avoid unnecessary history push
-          window.history.replaceState({}, "", currentUrl.toString());
-        }
-        runAsap(updateIfNeeded);
-        return {
-          hasChanged,
-        };
-      }
-      const { hasChanged } = updateIfNeeded();
-      return {
-        stopEnsuringQueryParamsInUrl: () => {
-          stopUpdating = true;
-        },
-        hasChanged,
-      };
-
-      function removeParamsFromUrl({ keys, url }: { keys: string[]; url: URL }) {
-        for (const key of keys) {
-          url.searchParams.delete(key);
-        }
-      }
-
-      function setParamInUrl({ key, value, url }: { key: string; value: string | string[]; url: URL }) {
-        // Reset and then set the new value, to ensure nothing else remains in value
-        url.searchParams.delete(key);
-        const newValueArray = Array.isArray(value) ? value : [value];
-        newValueArray.forEach((val) => {
-          url.searchParams.append(key, val);
-        });
-      }
-    },
-  },
-
-  state: EMBED_IFRAME_STATE.NOT_INITIALIZED,
-  // Store all embed styles here so that as and when new elements are mounted, styles can be applied to it.
-  styles: {} as EmbedStyles | undefined,
-  nonStyles: {} as EmbedNonStylesConfig | undefined,
-  namespace: null as string | null,
-  embedType: undefined as undefined | null | string,
-  // Store all React State setters here.
-  reactStylesStateSetters: {} as Record<keyof EmbedStyles, SetStyles>,
-  reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
-  // Embed can show itself only after this is set to true
-  parentInformedAboutContentHeight: false,
-  windowLoadEventFired: false,
-  setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
-  theme: undefined as UiConfig["theme"],
-  uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
-  /**
-   * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
-   */
-  setUiConfig: [] as ((arg0: UiConfig) => void)[],
-};
-
 let isSafariBrowser = false;
 const isBrowser = typeof window !== "undefined";
 
@@ -164,11 +59,6 @@ if (isBrowser) {
   if (isSafariBrowser) {
     log("Safari Detected: Using setTimeout instead of rAF");
   }
-}
-
-function runAsap(fn: (...arg: unknown[]) => void) {
-  // We don't use rAF because it runs slower in Safari plus doesn't run if the iframe is hidden sometimes
-  return setTimeout(fn, 50);
 }
 
 function log(...args: unknown[]) {
@@ -366,31 +256,6 @@ function getEmbedType() {
   }
 }
 
-/**
- * It is important to be able to check realtime(instead of storing isLinkReady as a variable) if the link is ready, because there is a possibility that  booker might have moved to non-ready state from ready state
- */
-function isLinkReady() {
-  if (!embedStore.parentInformedAboutContentHeight) {
-    return false;
-  }
-
-  if (isBookerPage()) {
-    // Let's wait for Booker to be ready before showing the embed
-    // It means that booker has loaded all its data and is ready to show
-    // TODO: We could try to mark the embed as ready earlier in this case not relying on document.readyState
-    return isBookerReady();
-  }
-  return true;
-}
-
-function isBookerReady() {
-  return window._embedBookerState === "slotsDone";
-}
-
-function isBookerPage() {
-  return !!window._embedBookerState;
-}
-
 export const useIsEmbed = (embedSsr?: boolean) => {
   const [isEmbed, setIsEmbed] = useState(embedSsr);
   useEffect(() => {
@@ -442,7 +307,7 @@ function showPageAsNonEmbed() {
 }
 
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
-const methods = {
+export const methods = {
   ui: function style(uiConfig: UiConfig) {
     // TODO: Create automatic logger for all methods. Useful for debugging.
     log("Method: ui called", uiConfig);
@@ -490,20 +355,18 @@ const methods = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
-
+    console.log("isLinkReadyReturnValue", isLinkReady({ embedStore }));
+    // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
+    // Embed background must still remain transparent
     runAsap(function tryInformingLinkReady() {
-      if (!isLinkReady()) {
+      if (!isLinkReady({ embedStore })) {
         runAsap(tryInformingLinkReady);
         return;
       }
 
-      // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
-      // Embed background must still remain transparent
       makeBodyVisible();
-      if (isPrerendering()) {
-        log("prerenderState is 'completed'");
-        embedStore.prerenderState = "completed";
-      }
+      log("renderState is 'completed'");
+      embedStore.renderState = "completed";
       sdkActionManager?.fire("linkReady", {});
     });
   },
@@ -521,8 +384,18 @@ const methods = {
     params: Record<string, string | string[]>;
   }) {
     log("Method: connect, requested with params", { config, params });
-    const { iframeAttrs: _1, ...queryParamsFromConfig } = config;
-    const connectVersion = (embedStore.connectVersion = embedStore.connectVersion + 1);
+    const {
+      iframeAttrs: _1,
+      "cal.embed.noSlotsFetchOnConnect": noSlotsFetchOnConnect,
+      ...queryParamsFromConfig
+    } = config;
+
+    if (noSlotsFetchOnConnect !== "true") {
+      log("Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch");
+      // Incrementing the version forces the slots call to be made again
+      embedStore.connectVersion = embedStore.connectVersion + 1;
+    }
+    const connectVersion = embedStore.connectVersion;
     // We reset it to allow informing parent again through `__dimensionChanged` event about possibly updated dimensions with changes in config
     embedStore.parentInformedAboutContentHeight = false;
 
@@ -536,12 +409,13 @@ const methods = {
     };
 
     (function tryToConnect() {
-      if (embedStore.prerenderState !== "completed") {
+      console.log("embedStore.renderState", embedStore.renderState);
+      if (embedStore.renderState !== "completed") {
         runAsap(tryToConnect);
         return;
       }
 
-      log("Method: connect, prerenderState is completed. Connecting");
+      log("Method: connect, renderState is completed. Connecting");
       connectPreloadedEmbed({
         // We know after removing iframeAttrs, that it is of this type
         toBeThereParams,
@@ -723,9 +597,7 @@ function initializeAndSetupEmbed() {
     isPrerendering: isPrerendering(),
   });
 
-  if (isPrerendering()) {
-    embedStore.prerenderState = "inProgress";
-  }
+  embedStore.renderState = "inProgress";
 
   // Only NOT_INITIALIZED -> INITIALIZED transition is allowed
   if (embedStore.state !== EMBED_IFRAME_STATE.NOT_INITIALIZED) {
@@ -791,7 +663,7 @@ function connectPreloadedEmbed({
   // Firing this event would stop the loader and show the embed
   // This causes loader to go away later.
   runAsap(function tryToFireLinkReady() {
-    if (!isLinkReady() || waitForFrames > 0) {
+    if (!isLinkReady({ embedStore }) || waitForFrames > 0) {
       waitForFrames--;
       runAsap(tryToFireLinkReady);
       return;

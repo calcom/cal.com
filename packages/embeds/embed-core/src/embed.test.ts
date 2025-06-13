@@ -2,6 +2,7 @@ import "../test/__mocks__/windowMatchMedia";
 
 import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 
+import { EMBED_MODAL_IFRAME_SLOT_STALE_TIME } from "./constants";
 import { submitResponseAndGetRoutingResult } from "./utils";
 
 vi.mock("./tailwindCss", () => ({
@@ -290,6 +291,7 @@ describe("Cal", () => {
       config: {
         theme: "light",
         layout: "modern",
+        "cal.embed.reuseFully": "false",
       },
     };
     beforeEach(() => {
@@ -1157,6 +1159,30 @@ describe("Cal", () => {
 
       const result = calInstance.getNextActionForModal(baseArgs);
       expect(result).toBe("noAction");
+    });
+
+    it("should return connect-no-slots-fetch when reuseFully is true and slots are not stale", () => {
+      const result = calInstance.getNextActionForModal({
+        ...baseArgs,
+        stateData: {
+          ...baseArgs.stateData,
+          reuseFully: true,
+        },
+      });
+      expect(result).toBe("connect-no-slots-fetch");
+    });
+
+    it("should return connect when reuseFully is true but slots are stale", () => {
+      const result = calInstance.getNextActionForModal({
+        ...baseArgs,
+        stateData: {
+          ...baseArgs.stateData,
+          reuseFully: true,
+          previousEmbedRenderStartTime: Date.now() - EMBED_MODAL_IFRAME_SLOT_STALE_TIME - 1,
+          embedRenderStartTime: Date.now(),
+        },
+      });
+      expect(result).toBe("connect");
     });
   });
 });

@@ -73,7 +73,7 @@ export const useSchedule = ({
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
-  const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "";
+  const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "0";
   const input = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),

@@ -102,7 +102,7 @@ model EventType {
   userId            Int?
 
   profileId Int?
-  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile   Profile? @relation(fields: [profileId], references: [id])
 
   team                               Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                             Int?
@@ -188,6 +188,7 @@ model EventType {
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
   hideOrganizerEmail                      Boolean                   @default(false)
+  maxActiveBookingsPerBooker              Int?
   /// @zod.custom(imports.emailSchema)
   customReplyToEmail                      String?
   calVideoSettings                        CalVideoSettings?
@@ -1136,6 +1137,7 @@ model App_RoutingForms_Form {
   team                     Team?                                       @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                   Int?
   responses                App_RoutingForms_FormResponse[]
+  queuedResponses          App_RoutingForms_QueuedFormResponse[]
   disabled                 Boolean                                     @default(false)
   /// @zod.custom(imports.RoutingFormSettings)
   settings                 Json?
@@ -1165,6 +1167,16 @@ model App_RoutingForms_FormResponse {
   @@index([formFillerId])
   @@index([formId])
   @@index([routedToBookingUid])
+}
+
+model App_RoutingForms_QueuedFormResponse {
+  id            Int                   @id @default(autoincrement())
+  form          App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId        String
+  response      Json
+  chosenRouteId String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime?             @updatedAt
 }
 
 model RoutingFormResponseField {
@@ -1786,6 +1798,7 @@ model PlatformOAuthClient {
   bookingRescheduleRedirectUri String?
   areEmailsEnabled             Boolean @default(false)
   areDefaultEventTypesEnabled  Boolean @default(true)
+  areCalendarEventsEnabled     Boolean @default(true)
 
   createdAt DateTime @default(now())
 }
