@@ -65,7 +65,7 @@ type LocationsProps = {
   getValues: UseFormGetValues<LocationFormValues>;
   setValue: UseFormSetValue<LocationFormValues>;
   control: Control<LocationFormValues>;
-  excludedLocationOptions: string[];
+  excludedLocationOptions?: string[];
   formState: FormState<LocationFormValues>;
   eventType: TEventTypeLocation;
   locationOptions: TLocationOptions;
