@@ -190,7 +190,8 @@ export default async function handleChildrenEventTypes({
             useEventLevelSelectedCalendars: false,
             restrictionScheduleId: null,
             useBookerTimezone: false,
-            allowReschedulingCancelledBookings: managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
+            allowReschedulingCancelledBookings:
+              managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
           },
         });
       })
@@ -265,7 +266,8 @@ export default async function handleChildrenEventTypes({
                 : {
                     deleteMany: {},
                   },
-            allowReschedulingCancelledBookings: managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
+            allowReschedulingCancelledBookings:
+              managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
             metadata: {
               ...(eventType.metadata as Prisma.JsonObject),
               ...(metadata?.multipleDuration && "length" in unlockedFieldProps

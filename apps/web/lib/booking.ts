@@ -70,6 +70,11 @@ export const getEventTypesFromDB = async (id: number) => {
           slug: true,
           name: true,
           hideBranding: true,
+          parent: {
+            select: {
+              hideBranding: true,
+            },
+          },
         },
       },
       workflows: {
