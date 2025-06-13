@@ -4,6 +4,7 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getReschedulePreventionRedirect } from "@calcom/features/bookings/lib/getReschedulePreventionRedirect";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -11,7 +12,6 @@ import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
 
 const querySchema = z.object({
   uid: z.string(),
@@ -111,34 +111,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     profileEnrichedBookingUser: enrichedBookingUser,
   });
 
-  const isForcedRescheduleForCancelledBooking = allowRescheduleForCancelledBooking;
-  // If booking is already REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
-  // If the booking is CANCELLED and allowRescheduleForCancelledBooking is false, we redirect the user to the original event link.
-  // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
-  const isDisabledRescheduling = booking.eventType?.disableRescheduling;
-  // This comes from query param and thus is considered forced
-  const canRescheduleCancelledBooking =
-    isForcedRescheduleForCancelledBooking || booking.eventType?.allowReschedulingCancelledBookings;
-  const isNonRescheduleableBooking =
-    booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
-
-  if (isDisabledRescheduling) {
-    return {
-      redirect: {
-        destination: `/booking/${uid}`,
-        permanent: false,
+  const rescheduleRedirect = getReschedulePreventionRedirect({
+    booking: {
+      ...booking,
+      uid,
+      eventType: {
+        ...booking.eventType,
+        disableRescheduling: booking.eventType?.disableRescheduling ?? false,
+        allowReschedulingCancelledBookings: booking.eventType?.allowReschedulingCancelledBookings ?? false,
+        url: eventUrl,
       },
-    };
-  }
+    },
+    allowRescheduleForCancelledBooking: allowRescheduleForCancelledBooking ?? false,
+  });
 
-  if (isNonRescheduleableBooking) {
-    const canReschedule = booking.status === BookingStatus.CANCELLED && canRescheduleCancelledBooking;
-    return {
-      redirect: {
-        destination: canReschedule ? eventUrl : `/booking/${uid}`,
-        permanent: false,
-      },
-    };
+  if (rescheduleRedirect) {
+    return rescheduleRedirect;
   }
 
   if (!booking?.eventType && !booking?.dynamicEventSlugRef) {
