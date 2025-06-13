@@ -109,8 +109,18 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 export type UserListTableProps = {
   org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
-  facetedTeamValues?: RouterOutputs["viewer"]["organizations"]["getFacetedValues"];
   attributes?: RouterOutputs["viewer"]["attributes"]["list"];
+  facetedTeamValues?: {
+    roles: MembershipRole[];
+    teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+    attributes: {
+      id: number;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
 };
 
 export function UserListTable(props: UserListTableProps) {

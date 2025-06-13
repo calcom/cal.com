@@ -29,15 +29,17 @@ const Page = async () => {
   const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
   const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
   const attributes = await getCachedAttributes(org.id);
-  const facetedTeamValues = attributes.map((attribute) => ({
-    teams,
-    id: attribute.id,
-    name: attribute.name,
-    options: Array.from(
-      new Map(attribute.options.map((option) => [option.value, { value: option.value }])).values()
-    ),
+  const facetedTeamValues = {
     roles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
-  }));
+    teams,
+    attributes: attributes.map((attribute) => ({
+      id: attribute.id,
+      name: attribute.name,
+      options: Array.from(
+        new Map(attribute.options.map((option) => [option.value, { value: option.value }])).values()
+      ),
+    })),
+  };
 
   return (
     <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
