@@ -125,6 +125,9 @@ export class EventTypeRepository {
   static async create(data: IEventType) {
     return await prisma.eventType.create({
       data: this.generateCreateEventTypeData(data),
+      include: {
+        calVideoSettings: true,
+      },
     });
   }
 
