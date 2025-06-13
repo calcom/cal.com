@@ -42,8 +42,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const featuresRepository = new FeaturesRepository();
   const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
 
-  console.log("pbacFeatureEnabled", pbacFeatureEnabled);
-
   const allAttributeOptions = await prisma.attributeOption.findMany({
     where: {
       attribute: {
