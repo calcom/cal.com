@@ -83,6 +83,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     secondaryEmailId,
     aiPhoneCallConfig,
     isRRWeightsEnabled,
+    roundRobinHostsCount,
     autoTranslateDescriptionEnabled,
     description: newDescription,
     title: newTitle,
@@ -106,6 +107,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       },
       isRRWeightsEnabled: true,
+      roundRobinHostsCount: true,
       hosts: {
         select: {
           userId: true,
@@ -189,6 +191,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
+  if (roundRobinHostsCount !== undefined && roundRobinHostsCount < 1) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Round Robin Hosts Count must be greater than or equal to 1.",
+    });
+  }
+
   const teamId = input.teamId || eventType.team?.id;
   const guestsField = bookingFields?.find((field) => field.name === "guests");
 
@@ -209,6 +218,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     title: newTitle,
     bookingFields,
     isRRWeightsEnabled,
+    roundRobinHostsCount,
     rrSegmentQueryValue:
       rest.rrSegmentQueryValue === null ? Prisma.DbNull : (rest.rrSegmentQueryValue as Prisma.InputJsonValue),
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
@@ -221,6 +231,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         : rest.maxLeadThreshold,
   };
   data.locations = locations ?? undefined;
+
+  // If schedulingType is not ROUND_ROBIN, then roundRobinHostsCount should be 1
+  if (
+    data.schedulingType !== undefined &&
+    data.schedulingType !== SchedulingType.ROUND_ROBIN &&
+    eventType.roundRobinHostsCount !== 1
+  ) {
+    data.roundRobinHostsCount = 1;
+  }
 
   if (periodType) {
     data.periodType = handlePeriodType(periodType);
