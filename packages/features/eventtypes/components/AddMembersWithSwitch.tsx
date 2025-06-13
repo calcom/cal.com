@@ -161,7 +161,7 @@ function MembersSegmentWithToggle({
 }
 
 export type AddMembersWithSwitchCustomClassNames = {
-  assingAllTeamMembers?: SettingsToggleClassNames;
+  assignAllTeamMembers?: SettingsToggleClassNames;
   teamMemberSelect?: CheckedTeamSelectCustomClassNames;
 };
 
@@ -209,13 +209,15 @@ function getAssignmentState({
       ? AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_APPLICABLE
       : AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE;
   }
-  if (assignRRMembersUsingSegment && isSegmentApplicable)
-    return AssignmentState.TEAM_MEMBERS_IN_SEGMENT_ENABLED;
 
-  // When team members are manually assigned and segment is applicable
+  // Check for manually assigned members with segment first (more specific condition)
   if (!assignAllTeamMembers && hasAssignedMembers && isSegmentApplicable) {
     return AssignmentState.ASSIGNED_MEMBERS_WITH_SEGMENT_APPLICABLE;
   }
+
+  // Then check for segment enabled (less specific condition)
+  if (assignRRMembersUsingSegment && isSegmentApplicable)
+    return AssignmentState.TEAM_MEMBERS_IN_SEGMENT_ENABLED;
 
   if (isAssigningAllTeamMembersApplicable) return AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE;
   return AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE;
@@ -292,7 +294,7 @@ export function AddMembersWithSwitch({
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             onActive={onActive}
             onInactive={onAssignAllTeamMembersInactive}
-            customClassNames={customClassNames?.assingAllTeamMembers}
+            customClassNames={customClassNames?.assignAllTeamMembers}
           />
 
           {assignmentState !== AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE && (
@@ -318,7 +320,7 @@ export function AddMembersWithSwitch({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               onActive={onActive}
               onInactive={onAssignAllTeamMembersInactive}
-              customClassNames={customClassNames?.assingAllTeamMembers}
+              customClassNames={customClassNames?.assignAllTeamMembers}
             />
           </div>
 
@@ -359,7 +361,7 @@ export function AddMembersWithSwitch({
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 onActive={onActive}
                 onInactive={onAssignAllTeamMembersInactive}
-                customClassNames={customClassNames?.assingAllTeamMembers}
+                customClassNames={customClassNames?.assignAllTeamMembers}
               />
             )}
           </div>
