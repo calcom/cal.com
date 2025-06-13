@@ -29,7 +29,7 @@ import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
 import { checkBookingLimit } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
-import { getUnitFromBusyTime, isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
+import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -950,10 +950,8 @@ const _getBusyTimesFromLimitsForUsers = async (
 
     for (const busyTime of globalLimitManager.getBusyTimes()) {
       const start = dayjs(busyTime.start);
-      const end = dayjs(busyTime.end);
-      const unit = getUnitFromBusyTime(start, end);
 
-      limitManager.addBusyTime(start, unit, timeZone);
+      limitManager.addBusyTime(start, busyTime.unit, timeZone);
     }
 
     if (bookingLimits) {
@@ -1141,10 +1139,8 @@ const _getBusyTimesFromTeamLimitsForUsers = async (
 
     for (const busyTime of globalLimitManager.getBusyTimes()) {
       const start = dayjs(busyTime.start);
-      const end = dayjs(busyTime.end);
-      const unit = getUnitFromBusyTime(start, end);
 
-      limitManager.addBusyTime(start, unit, timeZone);
+      limitManager.addBusyTime(start, busyTime.unit, timeZone);
     }
     const bookingLimitsParams = {
       bookings: userBusyTimes,
