@@ -1786,6 +1786,7 @@ model PlatformOAuthClient {
   bookingRescheduleRedirectUri String?
   areEmailsEnabled             Boolean @default(false)
   areDefaultEventTypesEnabled  Boolean @default(true)
+  areCalendarEventsEnabled     Boolean @default(true)
 
   createdAt DateTime @default(now())
 }
