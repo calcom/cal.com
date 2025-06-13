@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { MAX_EVENT_DURATION_MINUTES, MIN_EVENT_DURATION_MINUTES } from "@calcom/lib/constants";
 import type { CreateEventTypeFormValues } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -124,11 +125,22 @@ export default function CreateEventTypeForm({
             <TextField
               type="number"
               required
-              min="10"
+              min={MIN_EVENT_DURATION_MINUTES}
+              max={MAX_EVENT_DURATION_MINUTES}
               placeholder="15"
               label={t("duration")}
               className="pr-4"
-              {...register("length", { valueAsNumber: true })}
+              {...register("length", {
+                valueAsNumber: true,
+                min: {
+                  value: MIN_EVENT_DURATION_MINUTES,
+                  message: t("duration_min_error", { min: MIN_EVENT_DURATION_MINUTES }),
+                },
+                max: {
+                  value: MAX_EVENT_DURATION_MINUTES,
+                  message: t("duration_max_error", { max: MAX_EVENT_DURATION_MINUTES }),
+                },
+              })}
               addOnSuffix={t("minutes")}
             />
           </div>
