@@ -86,6 +86,36 @@ describe("RoleService", () => {
       );
       expect(mockRepository.create).not.toHaveBeenCalled();
     });
+
+    it("should create a role with no permissions", async () => {
+      const roleData = {
+        name: "Empty Role",
+        teamId: 1,
+        permissions: [] as PermissionString[],
+        type: RoleType.CUSTOM,
+      };
+
+      const createdRole: Role = {
+        id: "new-role",
+        name: roleData.name,
+        teamId: roleData.teamId,
+        color: "#000000",
+        type: RoleType.CUSTOM,
+        permissions: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockRepository.findByName.mockResolvedValueOnce(null);
+      mockRepository.create.mockResolvedValueOnce(createdRole);
+
+      const result = await service.createRole(roleData);
+      expect(result).toBeDefined();
+      expect(result.id).toBe("new-role");
+      expect(result.name).toBe(roleData.name);
+      expect(result.permissions).toHaveLength(0);
+      expect(mockRepository.create).toHaveBeenCalledWith(roleData);
+    });
   });
 
   describe("getRole", () => {

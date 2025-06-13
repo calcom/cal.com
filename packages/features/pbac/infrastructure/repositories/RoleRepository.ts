@@ -82,18 +82,20 @@ export class RoleRepository implements IRoleRepository {
         })
         .execute();
 
-      // Create permissions
-      const permissionData = data.permissions.map((permission) => {
-        const [resource, action] = permission.split(".");
-        return {
-          id: uuidv4(),
-          roleId,
-          resource,
-          action,
-        };
-      });
+      // Create permissions only if there are any
+      if (data.permissions.length > 0) {
+        const permissionData = data.permissions.map((permission) => {
+          const [resource, action] = permission.split(".");
+          return {
+            id: uuidv4(),
+            roleId,
+            resource,
+            action,
+          };
+        });
 
-      await trx.insertInto("RolePermission").values(permissionData).execute();
+        await trx.insertInto("RolePermission").values(permissionData).execute();
+      }
 
       return roleId;
     });
