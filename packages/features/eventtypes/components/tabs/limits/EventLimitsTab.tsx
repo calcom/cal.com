@@ -374,6 +374,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
+  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+
   const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
@@ -387,6 +389,9 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
+  const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
+    (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
+  );
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -674,6 +679,52 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                   step={15}
                   textFieldSuffix={t("minutes")}
                   customClassNames={customClassNames?.totalDurationLimit?.intervalLimitItem}
+                />
+              </div>
+            </SettingsToggle>
+          );
+        }}
+      />
+      <Controller
+        name="maxActiveBookingsPerBooker"
+        render={({ field: { onChange, value } }) => {
+          const isChecked = maxActiveBookingsPerBookerToggle;
+          return (
+            <SettingsToggle
+              labelClassName={classNames("text-sm")}
+              disabled={isRecurringEvent}
+              tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                isChecked && "rounded-b-none"
+              )}
+              childrenClassName={classNames("lg:ml-0")}
+              title={t("booker_booking_limit")}
+              description={t("booker_booking_limit_description")}
+              checked={isChecked}
+              onCheckedChange={(active) => {
+                if (active) {
+                  onChange(1);
+                } else {
+                  onChange(null);
+                }
+                setMaxActiveBookingsPerBookerToggle((state) => !state);
+              }}>
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <TextField
+                  required
+                  type="number"
+                  value={value}
+                  onChange={(e) => {
+                    onChange(parseInt(e.target.value, 10));
+                  }}
+                  placeholder="1"
+                  min={1}
+                  step={1}
+                  containerClassName={classNames("max-w-80")}
+                  addOnSuffix="bookings"
+                  data-testid="booker-booking-limit-input"
                 />
               </div>
             </SettingsToggle>

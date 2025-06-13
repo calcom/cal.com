@@ -77,6 +77,7 @@ type OAuthRequestParams = {
   platformBookingUrl: string;
   platformBookingLocation?: string;
   arePlatformEmailsEnabled: boolean;
+  areCalendarEventsEnabled: boolean;
 };
 
 const DEFAULT_PLATFORM_PARAMS = {
@@ -86,6 +87,7 @@ const DEFAULT_PLATFORM_PARAMS = {
   platformBookingUrl: "",
   arePlatformEmailsEnabled: false,
   platformBookingLocation: undefined,
+  areCalendarEventsEnabled: false,
 };
 
 @Controller({
@@ -135,9 +137,13 @@ export class BookingsController_2024_04_15 {
       },
     });
 
+    let nextCursor = null;
+    if (bookings.totalCount > (cursor ?? 0) + (limit ?? 10)) {
+      nextCursor = (cursor ?? 0) + (limit ?? 10);
+    }
     return {
       status: SUCCESS_STATUS,
-      data: bookings,
+      data: { ...bookings, nextCursor },
     };
   }
 
@@ -191,6 +197,7 @@ export class BookingsController_2024_04_15 {
         platformCancelUrl: bookingRequest.platformCancelUrl,
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       });
       if (booking.userId && booking.uid && booking.startTime) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
@@ -424,7 +431,7 @@ export class BookingsController_2024_04_15 {
 
     if (isEmbed) {
       // embed should ignore oauth client settings and enable emails by default
-      return { ...res, arePlatformEmailsEnabled: true };
+      return { ...res, arePlatformEmailsEnabled: true, areCalendarEventsEnabled: true };
     }
 
     try {
@@ -436,6 +443,7 @@ export class BookingsController_2024_04_15 {
         res.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
         res.platformBookingUrl = client.bookingRedirectUri ?? "";
         res.arePlatformEmailsEnabled = client.areEmailsEnabled ?? false;
+        res.areCalendarEventsEnabled = client.areCalendarEventsEnabled;
       }
       return res;
     } catch (err) {
