@@ -30,6 +30,7 @@ import {
 } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -109,7 +110,6 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 export type UserListTableProps = {
   org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
-  facetedTeamValues?: RouterOutputs["viewer"]["organizations"]["getFacetedValues"];
   attributes?: RouterOutputs["viewer"]["attributes"]["list"];
 };
 
@@ -120,6 +120,8 @@ export function UserListTable(props: UserListTableProps) {
     </DataTableProvider>
   );
 }
+
+const roles = [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER];
 
 function UserListTableContent({ org, attributes, teams, facetedTeamValues }: UserListTableProps) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
@@ -467,20 +469,20 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         switch (columnId) {
           case "role":
             return convertFacetedValuesToMap(
-              facetedTeamValues.roles.map((role) => ({
+              roles.map((role) => ({
                 label: role,
                 value: role,
               }))
             );
           case "teams":
             return convertFacetedValuesToMap(
-              facetedTeamValues.teams.map((team) => ({
+              teams.map((team) => ({
                 label: team.name,
                 value: team.name,
               }))
             );
           default:
-            const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
+            const attribute = attributes.find((attr) => attr.id === columnId);
             if (attribute) {
               return convertFacetedValuesToMap(
                 attribute?.options.map(({ value }) => ({

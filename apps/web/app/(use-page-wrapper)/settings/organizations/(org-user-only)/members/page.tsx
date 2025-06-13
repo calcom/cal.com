@@ -26,12 +26,9 @@ const getCachedAttributes = unstable_cache(
 
 const Page = async () => {
   const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
-  const [org, teams, facetedTeamValues] = await Promise.all([
-    orgCaller.listCurrent(),
-    orgCaller.getTeams(),
-    orgCaller.getFacetedValues(),
-  ]);
+  const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
   const attributes = await getCachedAttributes(org.id);
+
   return (
     <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
   );
