@@ -615,7 +615,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeScheduleSelect>()({
+  const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     slug: true,
     schedulingType: true,
   });
