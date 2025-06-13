@@ -6,6 +6,9 @@ import logger from "@calcom/lib/logger";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
@@ -116,6 +119,37 @@ export const getEventTypesFromGroup = async ({
   }
 
   if (teamId) {
+    // guard user is member of team or parent team
+    const teamMembership = await prisma.membership.findFirst({
+      where: {
+        OR: [
+          {
+            teamId,
+            userId: ctx.user.id,
+            accepted: true,
+          },
+          {
+            team: {
+              parent: {
+                ...(parentId ? { id: parentId } : {}),
+                members: {
+                  some: {
+                    userId: ctx.user.id,
+                    accepted: true,
+                    role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                  },
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    if (!teamMembership) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
     const teamEventTypes =
       (await EventTypeRepository.findTeamEventTypes({
         teamId,
