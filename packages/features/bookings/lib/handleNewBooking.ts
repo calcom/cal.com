@@ -449,7 +449,9 @@ async function handler(
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
-  await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+  if (!rawBookingData.rescheduleUid) {
+    await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+  }
 
   await checkActiveBookingsLimitForBooker({
     eventTypeId,
