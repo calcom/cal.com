@@ -9,7 +9,7 @@ export type EventTypeApps = NonNullable<
 export type EventTypeAppsList = keyof EventTypeApps;
 
 export const getEventTypeAppData = <T extends EventTypeAppsList>(
-  eventType: Pick<BookerEvent, "price" | "currency" | "metadata" | "minPaymentNoticeHours">,
+  eventType: Pick<BookerEvent, "price" | "currency" | "metadata">,
   appId: T,
   forcedGet?: boolean
 ): EventTypeApps[T] => {
