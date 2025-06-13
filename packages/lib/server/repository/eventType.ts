@@ -335,8 +335,6 @@ export class EventTypeRepository {
     where = {},
   }: {
     teamId: number;
-    parentId?: number | null;
-    userId: number;
     limit?: number | null;
     cursor?: number | null;
     orderBy?: Prisma.EventTypeOrderByWithRelationInput[];

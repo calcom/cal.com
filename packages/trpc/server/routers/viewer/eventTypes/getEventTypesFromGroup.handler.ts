@@ -125,20 +125,24 @@ export const getEventTypesFromGroup = async ({
             userId: ctx.user.id,
             accepted: true,
           },
-          {
-            team: {
-              parent: {
-                ...(parentId ? { id: parentId } : {}),
-                members: {
-                  some: {
-                    userId: ctx.user.id,
-                    accepted: true,
-                    role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+          ...(parentId
+            ? [
+                {
+                  team: {
+                    parent: {
+                      id: parentId,
+                      members: {
+                        some: {
+                          userId: ctx.user.id,
+                          accepted: true,
+                          role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                        },
+                      },
+                    },
                   },
                 },
-              },
-            },
-          },
+              ]
+            : []),
         ],
       },
       select: {
