@@ -102,7 +102,7 @@ model EventType {
   userId            Int?
 
   profileId Int?
-  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile   Profile? @relation(fields: [profileId], references: [id])
 
   team                               Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                             Int?
