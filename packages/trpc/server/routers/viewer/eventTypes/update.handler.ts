@@ -261,22 +261,26 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.bookingLimits = bookingLimits;
   }
 
-  if (maxActiveBookingsPerBooker && maxActiveBookingsPerBooker < 1) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Booker booking limit must be greater than 0." });
-  }
+  if (maxActiveBookingsPerBooker) {
+    if (maxActiveBookingsPerBooker && maxActiveBookingsPerBooker < 1) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booker booking limit must be greater than 0." });
+    }
 
-  if (maxActiveBookingsPerBooker && (recurringEvent || eventType.recurringEvent)) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Recurring Events and booker active bookings limit cannot be active at the same time.",
-    });
-  }
+    if (maxActiveBookingsPerBooker && (recurringEvent || eventType.recurringEvent)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Recurring Events and booker active bookings limit cannot be active at the same time.",
+      });
+    }
 
-  if (eventType.maxActiveBookingsPerBooker && recurringEvent) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Recurring Events and booker active bookings limit cannot be active at the same time.",
-    });
+    if (eventType.maxActiveBookingsPerBooker && recurringEvent) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Recurring Events and booker active bookings limit cannot be active at the same time.",
+      });
+    }
+
+    data.maxActiveBookingsPerBooker = maxActiveBookingsPerBooker;
   }
 
   if (durationLimits) {

@@ -52,6 +52,7 @@ import {
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import type { ErrorWithCode } from "@calcom/lib/errors";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -454,11 +455,22 @@ async function handler(
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
   if (!rawBookingData.rescheduleUid) {
-    await checkActiveBookingsLimitForBooker({
-      eventTypeId,
-      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
-      bookerEmail,
-    });
+    try {
+      await checkActiveBookingsLimitForBooker({
+        eventTypeId,
+        maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
+        bookerEmail,
+        offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
+      });
+    } catch (err) {
+      const error = err as ErrorWithCode;
+
+      throw new HttpError({
+        statusCode: 400,
+        message: error.message,
+        data: error.data,
+      });
+    }
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
