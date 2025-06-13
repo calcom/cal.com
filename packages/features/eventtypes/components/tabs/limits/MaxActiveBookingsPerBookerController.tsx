@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
@@ -10,8 +11,11 @@ export default function MaxActiveBookingsPerBookerController() {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
-  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+  const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
+    (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
+  );
 
+  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
   const maxActiveBookingPerBookerOfferReschedule = formMethods.watch(
     "maxActiveBookingPerBookerOfferReschedule"
   );
@@ -19,7 +23,7 @@ export default function MaxActiveBookingsPerBookerController() {
     <Controller
       name="maxActiveBookingsPerBooker"
       render={({ field: { onChange, value } }) => {
-        const isChecked = value && value > 0;
+        const isChecked = maxActiveBookingsPerBookerToggle;
         return (
           <SettingsToggle
             labelClassName={classNames("text-sm")}
@@ -40,14 +44,15 @@ export default function MaxActiveBookingsPerBookerController() {
               } else {
                 onChange(null);
               }
+              setMaxActiveBookingsPerBookerToggle((state) => !state);
             }}>
             <div className="border-subtle rounded-b-lg border border-t-0 p-6">
               <TextField
                 required
                 type="number"
-                value={value}
+                value={value ?? ""}
                 onChange={(e) => {
-                  onChange(parseInt(e.target.value, 10));
+                  onChange(e.target.value === "" ? null : parseInt(e.target.value, 10));
                 }}
                 min={1}
                 step={1}
@@ -56,7 +61,7 @@ export default function MaxActiveBookingsPerBookerController() {
                 data-testid="booker-booking-limit-input"
               />
               <CheckboxField
-                checked={maxActiveBookingPerBookerOfferReschedule}
+                checked={!!maxActiveBookingPerBookerOfferReschedule}
                 descriptionAsLabel
                 description={t("offer_to_reschedule_last_booking")}
                 onChange={(e) => {
