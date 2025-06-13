@@ -174,6 +174,7 @@ export const useEventTypeForm = ({
               redirectUrlOnExit: z.string().url().nullish(),
               disableRecordingForOrganizer: z.boolean().nullable(),
               disableRecordingForGuests: z.boolean().nullable(),
+              enableAutomaticTranscription: z.boolean().nullable(),
             })
             .optional()
             .nullable(),
