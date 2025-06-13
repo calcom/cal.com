@@ -36,7 +36,8 @@ export class RecordingItem {
 
   @ApiProperty({ example: "https://cal-video-recordings.s3.us-east-2.amazonaws.com/meetco/123s" })
   @IsUrl()
-  downloadLink!: string | null;
+  @IsOptional()
+  downloadLink?: string | null;
 
   @ApiProperty({ example: "Error message" })
   @IsString()
