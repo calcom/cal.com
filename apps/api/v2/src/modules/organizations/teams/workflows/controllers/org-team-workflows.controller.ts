@@ -1,5 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_HEADER } from "@/lib/docs/headers";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
@@ -38,7 +42,9 @@ import { SkipTakePagination } from "@calcom/platform-types";
 })
 @ApiTags("Orgs / Teams / Workflows")
 @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, PlatformPlanGuard, RolesGuard, IsAdminAPIEnabledGuard)
-@ApiHeader(API_KEY_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationTeamWorkflowsController {
   constructor(private readonly workflowsService: TeamWorkflowsService) {}
 
@@ -53,7 +59,7 @@ export class OrganizationTeamWorkflowsController {
   ): Promise<GetWorkflowsOutput> {
     const { skip, take } = queryParams;
 
-    const workflows = await this.workflowsService.getTeamWorkflows(teamId, skip ?? 0, take ?? 250);
+    const workflows = await this.workflowsService.getTeamWorkflows(teamId, skip, take);
 
     return { data: workflows, status: SUCCESS_STATUS };
   }

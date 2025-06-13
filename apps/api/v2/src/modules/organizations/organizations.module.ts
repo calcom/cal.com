@@ -70,6 +70,8 @@ import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/t
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
 import { TeamWorkflowsService } from "@/modules/workflows/services/team-workflows.service";
+import { WorkflowsInputService } from "@/modules/workflows/services/workflows.input.service";
+import { WorkflowsOutputService } from "@/modules/workflows/services/workflows.output.service";
 import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
 import { Module } from "@nestjs/common";
 
@@ -137,6 +139,8 @@ import { Module } from "@nestjs/common";
     TeamsVerifiedResourcesRepository,
     WorkflowsRepository,
     TeamWorkflowsService,
+    WorkflowsInputService,
+    WorkflowsOutputService,
   ],
   exports: [
     OrganizationsService,

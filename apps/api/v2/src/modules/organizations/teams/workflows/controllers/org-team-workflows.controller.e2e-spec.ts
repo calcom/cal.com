@@ -6,12 +6,9 @@ import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
 import {
-  EMAIL_ATTENDEE,
   ATTENDEE,
   REMINDER,
-  SMS_NUMBER,
   PHONE_NUMBER,
-  EMAIL_ADDRESS,
   EMAIL,
   WorkflowEmailAttendeeStepDto,
 } from "@/modules/workflows/inputs/workflow-step.input";

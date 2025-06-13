@@ -3,13 +3,13 @@ import { TimeUnit, WorkflowTriggerEvents } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsNumber, ValidateNested } from "class-validator";
 
-export const BEFORE_EVENT = "before_event";
-export const EVENT_CANCELLED = "event_cancelled";
-export const NEW_EVENT = "new_event";
-export const AFTER_EVENT = "after_event";
-export const RESCHEDULE_EVENT = "reschedule_event";
-export const AFTER_HOSTS_CAL_VIDEO_NO_SHOW = "after_hosts_cal_video_no_show";
-export const AFTER_GUESTS_CAL_VIDEO_NO_SHOW = "after_guests_cal_video_no_show";
+export const BEFORE_EVENT = "beforeEvent";
+export const EVENT_CANCELLED = "eventCancelled";
+export const NEW_EVENT = "newEvent";
+export const AFTER_EVENT = "afterEvent";
+export const RESCHEDULE_EVENT = "rescheduleEvent";
+export const AFTER_HOSTS_CAL_VIDEO_NO_SHOW = "afterHostsCalVideoNoShow";
+export const AFTER_GUESTS_CAL_VIDEO_NO_SHOW = "afterGuestsCalVideoNoShow";
 export const WORKFLOW_TRIGGER_TYPES = [
   BEFORE_EVENT,
   EVENT_CANCELLED,
