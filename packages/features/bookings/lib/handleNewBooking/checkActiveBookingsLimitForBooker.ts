@@ -92,15 +92,26 @@ const checkActiveBookingsLimitAndOfferReschedule = async ({
     select: {
       uid: true,
       startTime: true,
+      attendees: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
     },
   });
 
   const lastBooking = bookingsCount[bookingsCount.length - 1];
 
   if (bookingsCount.length >= maxActiveBookingsPerBooker) {
-    throw new ErrorWithCode(ErrorCode.BookerLimitExceeded, ErrorCode.BookerLimitExceeded, {
-      bookingUid: lastBooking.uid,
-      startTime: lastBooking.startTime,
-    });
+    throw new ErrorWithCode(
+      ErrorCode.BookerLimitExceededReschedule,
+      ErrorCode.BookerLimitExceededReschedule,
+      {
+        rescheduleUid: lastBooking.uid,
+        startTime: lastBooking.startTime,
+        attendees: lastBooking.attendees,
+      }
+    );
   }
 };
