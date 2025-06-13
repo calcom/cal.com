@@ -74,6 +74,7 @@ model CalVideoSettings {
 
   disableRecordingForOrganizer Boolean @default(false)
   disableRecordingForGuests    Boolean @default(false)
+  enableAutomaticTranscription Boolean @default(false)
   redirectUrlOnExit            String?
 
   createdAt DateTime @default(now())
@@ -101,7 +102,7 @@ model EventType {
   userId            Int?
 
   profileId Int?
-  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile   Profile? @relation(fields: [profileId], references: [id])
 
   team                               Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                             Int?
@@ -152,7 +153,7 @@ model EventType {
   schedulingType                          SchedulingType?
   schedule                                Schedule?                 @relation(fields: [scheduleId], references: [id])
   scheduleId                              Int?
-  allowReschedulingCancelledBookings                Boolean?                  @default(false)
+  allowReschedulingCancelledBookings      Boolean?                  @default(false)
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
   price                                   Int                       @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
@@ -187,6 +188,7 @@ model EventType {
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
   hideOrganizerEmail                      Boolean                   @default(false)
+  maxActiveBookingsPerBooker              Int?
   /// @zod.custom(imports.emailSchema)
   customReplyToEmail                      String?
   calVideoSettings                        CalVideoSettings?
@@ -478,6 +480,7 @@ model Team {
   metadata               Json?
   theme                  String?
   rrResetInterval        RRResetInterval?        @default(MONTH)
+  rrTimestampBasis       RRTimestampBasis        @default(CREATED_AT)
   brandColor             String?
   darkBrandColor         String?
   verifiedNumbers        VerifiedNumber[]
@@ -538,16 +541,25 @@ model Team {
 }
 
 model CreditBalance {
-  id                String             @id @default(uuid())
-  team              Team?              @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId            Int?               @unique
+  id                String              @id @default(uuid())
+  team              Team?               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId            Int?                @unique
   // user credit balances will be supported in the future
-  user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            Int?               @unique
-  additionalCredits Int                @default(0)
+  user              User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?                @unique
+  additionalCredits Int                 @default(0)
   limitReachedAt    DateTime?
   warningSentAt     DateTime?
   expenseLogs       CreditExpenseLog[]
+  purchaseLogs      CreditPurchaseLog[]
+}
+
+model CreditPurchaseLog {
+  id              String        @id @default(uuid())
+  creditBalanceId String
+  creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
+  credits         Int
+  createdAt       DateTime      @default(now())
 }
 
 model CreditExpenseLog {
@@ -1526,6 +1538,11 @@ enum RRResetInterval {
   DAY
 }
 
+enum RRTimestampBasis {
+  CREATED_AT
+  START_TIME
+}
+
 model SelectedSlots {
   id               Int      @id @default(autoincrement())
   eventTypeId      Int
@@ -1770,6 +1787,7 @@ model PlatformOAuthClient {
   bookingRescheduleRedirectUri String?
   areEmailsEnabled             Boolean @default(false)
   areDefaultEventTypesEnabled  Boolean @default(true)
+  areCalendarEventsEnabled     Boolean @default(true)
 
   createdAt DateTime @default(now())
 }
