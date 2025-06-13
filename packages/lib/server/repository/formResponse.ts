@@ -1,9 +1,10 @@
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 interface RecordFormResponseInput {
   formId: string;
-  response: Record<string, any>;
+  response: Record<string, any> | Prisma.JsonValue;
   chosenRouteId: string | null;
 }
 
@@ -23,7 +24,7 @@ export class RoutingFormResponseRepository {
   private static generateCreateFormResponseData(input: RecordFormResponseInput) {
     return {
       formId: input.formId,
-      response: input.response,
+      response: input.response as Prisma.InputJsonValue,
       chosenRouteId: input.chosenRouteId,
     };
   }

@@ -600,6 +600,9 @@ async function handler(
         routingFormResponseId,
         bookerEmail
       );
+      if (!routingFormResponse) {
+        throw new HttpError({ statusCode: 400, message: "Missing routingFormResponse" });
+      }
       routingFormResponseId = routingFormResponse.id;
     } else {
       routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
@@ -619,12 +622,19 @@ async function handler(
       });
     }
   } else if (queuedFormResponse) {
+    if (routingFormResponseId === undefined) {
+      throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
+    }
+
     // If we're not returning the response then we still need
     // to update the routing form response id with the actual on
     routingFormResponse = await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse(
       routingFormResponseId,
       bookerEmail
     );
+    if (!routingFormResponse) {
+      throw new HttpError({ statusCode: 400, message: "Missing routingFormResponse" });
+    }
     routingFormResponseId = routingFormResponse.id;
   }
   const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
