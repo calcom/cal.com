@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
 
@@ -413,7 +413,7 @@ export function expectSMSWorkflowToBeNotTriggered({
 export async function expectBookingToBeInDatabase(
   booking: Partial<Booking> & Pick<Booking, "uid"> & { references?: Partial<BookingReference>[] }
 ) {
-  const actualBooking = await prismaMock.booking.findUnique({
+  const actualBooking = await prismock.booking.findUnique({
     where: {
       uid: booking.uid,
     },
@@ -427,10 +427,15 @@ export async function expectBookingToBeInDatabase(
   expect(actualBooking?.references).toEqual(
     expect.arrayContaining((references || []).map((reference) => expect.objectContaining(reference)))
   );
+
+  return {
+    booking: actualBooking,
+    bookingReferences: actualBooking?.references,
+  };
 }
 
 export async function expectBookingTrackingToBeInDatabase(tracking: Tracking, uid?: string) {
-  const actualBooking = await prismaMock.booking.findUnique({
+  const actualBooking = await prismock.booking.findUnique({
     where: {
       uid,
     },
@@ -1366,17 +1371,20 @@ export function expectSuccessfulVideoMeetingDeletionInCalendar(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function expectBookingInDBToBeRescheduledFromTo({ from, to }: { from: any; to: any }) {
   // Expect previous booking to be cancelled
-  await expectBookingToBeInDatabase({
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    ...from,
-    status: BookingStatus.CANCELLED,
-  });
+  const { booking: previousBooking, bookingReferences: previousBookingReferences } =
+    await expectBookingToBeInDatabase({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      ...from,
+      status: BookingStatus.CANCELLED,
+    });
 
   // Expect new booking to be created but status would depend on whether the new booking requires confirmation or not.
-  await expectBookingToBeInDatabase({
+  const { booking: newBooking, bookingReferences: newBookingReferences } = await expectBookingToBeInDatabase({
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     ...to,
   });
+
+  return { previousBooking, previousBookingReferences, newBooking, newBookingReferences };
 }
 
 export function expectICalUIDAsString(iCalUID: string | undefined | null) {
@@ -1391,7 +1399,7 @@ export async function expectBookingToNotHaveReference(
   booking: Pick<Booking, "uid">,
   reference: Partial<BookingReference>
 ) {
-  const actualBooking = await prismaMock.booking.findUnique({
+  const actualBooking = await prismock.booking.findUnique({
     where: {
       uid: booking.uid,
     },
@@ -1409,4 +1417,24 @@ export function expectNoAttemptToCreateCalendarEvent(calendarMock: CalendarServi
 
 export function expectNoAttemptToGetAvailability(calendarMock: CalendarServiceMethodMock) {
   expect(calendarMock.getAvailabilityCalls.length).toBe(0);
+}
+
+export async function expectTaskToBeCreated({
+  taskType,
+  taskPayload,
+}: {
+  taskType: string;
+  taskPayload: Record<string, unknown>;
+}) {
+  const tasks = await prismock.task.findMany({
+    where: {
+      type: taskType,
+    },
+  });
+
+  expect(tasks.length).toBe(1);
+
+  const firstTask = tasks[0];
+  const parsedPayload = JSON.parse(firstTask.payload);
+  expect(parsedPayload).toEqual(taskPayload);
 }

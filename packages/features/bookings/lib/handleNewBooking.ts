@@ -28,6 +28,7 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { createCalendarSyncTask } from "@calcom/features/calendar-sync/tasks/createCalendarSync/createTask";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -2122,6 +2123,15 @@ async function handler(
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
+  if (!isDryRun) {
+    await createCalendarSyncTask({
+      results,
+      organizer: {
+        id: organizerUser.id,
+        organizationId: organizerOrganizationId ?? null,
+      },
+    });
+  }
 
   try {
     if (!isDryRun) {
@@ -2141,7 +2151,7 @@ async function handler(
       });
     }
   } catch (error) {
-    loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
+    loggerWithEventDetails.error("Error while creating booking references", JSON.stringify(error));
   }
 
   const evtWithMetadata = {

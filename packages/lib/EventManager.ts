@@ -56,8 +56,10 @@ const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
 };
 
-const delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
-  return (a.delegatedToId ? 1 : 0) - (b.delegatedToId ? 1 : 0);
+export const isCalendarLikeResult = <T extends { type: string }>(
+  result: T
+): result is T & EventResult<NewCalendarEventType> => {
+  return result.type.includes("_calendar");
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -252,14 +254,6 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
-    // Since the result can be a new calendar event or video event, we have to create a type guard
-    // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
-    const isCalendarResult = (
-      result: (typeof results)[number]
-    ): result is EventResult<NewCalendarEventType> => {
-      return result.type.includes("_calendar");
-    };
-
     const createdCRMEvents = await this.createAllCRMEvents(evt);
 
     results.push(...createdCRMEvents);
@@ -271,7 +265,7 @@ export default class EventManager {
       if (typeof result?.createdEvent === "string") {
         createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
       }
-      const isCalendarType = isCalendarResult(result);
+      const isCalendarType = isCalendarLikeResult(result);
       if (isCalendarType) {
         evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
         thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
@@ -529,6 +523,7 @@ export default class EventManager {
         results.push(...createdEvent.results);
         updatedBookingReferences.push(...createdEvent.referencesToCreate);
       } else {
+        log.debug("Organizer didn't change: Updating existing events and meetings");
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
         if (isLocationChanged || isBookingRequestedReschedule) {
           const updatedLocation = await this.updateLocation(evt, booking);
@@ -580,9 +575,40 @@ export default class EventManager {
       });
     }
 
+    const _referencesToCreate = shouldUpdateBookingReferences
+      ? updatedBookingReferences
+      : [...booking.references].map((reference) => ({
+          ...reference,
+        }));
+
+    const referencesToCreate = _referencesToCreate.map((reference) => {
+      const thirdPartyAppResultForTheReference = results.find((result) => {
+        if (isCalendarLikeResult(result)) {
+          const updatedEvent =
+            result.updatedEvent instanceof Array ? result.updatedEvent[0] : result.updatedEvent;
+          // @ts-expect-error - id is present in updatedEvent
+          return updatedEvent?.id === reference.uid;
+        }
+        return false;
+      });
+      return {
+        ...reference,
+        // Ensure that externalCalendarId is set from the latest updatedEvent
+        externalCalendarId: thirdPartyAppResultForTheReference?.externalId || reference.externalCalendarId,
+      };
+    });
+
+    log.debug(
+      "Rescheduled booking",
+      safeStringify({
+        referencesToCreate: referencesToCreate.map((r) => ({
+          externalCalendarId: r.externalCalendarId,
+        })),
+      })
+    );
     return {
       results,
-      referencesToCreate: shouldUpdateBookingReferences ? updatedBookingReferences : [...booking.references],
+      referencesToCreate,
     };
   }
 
@@ -915,6 +941,7 @@ export default class EventManager {
         });
       }
 
+      // BookingReference from the original Booking itself
       calendarReference = newBooking?.references.length
         ? newBooking.references.filter((reference) => reference.type.includes("_calendar"))
         : booking.references.filter((reference) => reference.type.includes("_calendar"));
