@@ -86,7 +86,7 @@ const InstalledConferencingApps = ({
           onSuccessCallback();
         },
         onError: (error) => {
-          const errorMessage = getErrorMessage(error, "Error updating default app");
+          const errorMessage = getErrorMessage(error, t("error_updating_default_app"));
           showToast(errorMessage, "error");
           onErrorCallback();
         },

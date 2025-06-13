@@ -247,10 +247,11 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps & { isDryRun?: boole
   const { isChecked, title, credentialId, type, externalId, delegationCredentialId } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const { toast } = useToast();
+  const { t } = useLocale();
 
   const { mutate: addSelectedCalendar, isPending: isAddingSelectedCalendar } = useAddSelectedCalendar({
     onError: (err) => {
-      const errorMessage = getErrorMessage(err, `Something went wrong while adding calendar - ${title}`);
+      const errorMessage = getErrorMessage(err, t("something_went_wrong_while_adding_calendar", { title }));
       toast({
         description: errorMessage,
       });
@@ -259,7 +260,10 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps & { isDryRun?: boole
   const { mutate: removeSelectedCalendar, isPending: isRemovingSelectedCalendar } = useRemoveSelectedCalendar(
     {
       onError: (err) => {
-        const errorMessage = getErrorMessage(err, `Something went wrong while removing calendar - ${title}`);
+        const errorMessage = getErrorMessage(
+          err,
+          t("something_went_wrong_while_removing_calendar", { title })
+        );
         toast({
           description: errorMessage,
         });

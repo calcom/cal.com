@@ -3243,5 +3243,11 @@
   "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
   "duration_min_error": "Duration must be at least {{min}} minute(s)",
   "duration_max_error": "Duration cannot exceed {{max}} minutes (24 hours)",
+  "failed_to_delete_event_type": "Failed to delete event type",
+  "failed_to_update_event_type": "Failed to update event type",
+  "error_updating_default_app": "Error updating default app",
+  "error_unable_to_install_app": "Error: unable to install app",
+  "something_went_wrong_while_adding_calendar": "Something went wrong while adding calendar - {{title}}",
+  "something_went_wrong_while_removing_calendar": "Something went wrong while removing calendar - {{title}}",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

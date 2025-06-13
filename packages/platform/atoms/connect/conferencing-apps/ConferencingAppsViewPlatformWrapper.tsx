@@ -151,7 +151,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
         onSuccessCallback();
       },
       onError: (error) => {
-        const errorMessage = getErrorMessage(error, "Error updating default app");
+        const errorMessage = getErrorMessage(error, t("error_updating_default_app"));
         showToast(errorMessage, "error");
         onErrorCallback();
       },
@@ -182,7 +182,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     },
     onError: (error) => {
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
-      const errorMessage = getErrorMessage(error, "Error: unable to install app");
+      const errorMessage = getErrorMessage(error, t("error_unable_to_install_app"));
       showToast(errorMessage, "error");
     },
     returnTo,
