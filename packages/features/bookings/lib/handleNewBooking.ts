@@ -88,6 +88,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
+import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -451,6 +452,14 @@ async function handler(
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+
+  if (!rawBookingData.rescheduleUid) {
+    await checkActiveBookingsLimitForBooker({
+      eventTypeId,
+      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
+      bookerEmail,
+    });
+  }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;

@@ -188,6 +188,7 @@ model EventType {
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
   hideOrganizerEmail                      Boolean                   @default(false)
+  maxActiveBookingsPerBooker              Int?
   /// @zod.custom(imports.emailSchema)
   customReplyToEmail                      String?
   calVideoSettings                        CalVideoSettings?
