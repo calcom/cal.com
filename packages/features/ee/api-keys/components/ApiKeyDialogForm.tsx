@@ -144,7 +144,7 @@ export default function ApiKeyDialogForm({
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
-            {!IS_CALCOM ? (
+            {IS_CALCOM ? (
               <div className="mt-4 block gap-2 sm:flex">
                 <div className="border-emphasis relative flex w-full items-start rounded-[10px] border p-4 text-sm">
                   {t("api_key_modal_subtitle")}
