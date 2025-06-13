@@ -36,6 +36,7 @@ export default function JoinCall(props: PageProps) {
     loggedInUserName,
     overrideName,
     showRecordingButton,
+    showTranscriptionButton,
     rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
@@ -79,12 +80,16 @@ export default function JoinCall(props: PageProps) {
                   },
                 }
               : {}),
-            transcription: {
-              label: "Cal.ai",
-              tooltip: "Transcription powered by AI",
-              iconPath: TRANSCRIPTION_STOPPED_ICON,
-              iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
-            },
+            ...(showTranscriptionButton
+              ? {
+                  transcription: {
+                    label: "Cal.ai",
+                    tooltip: "Transcription powered by AI",
+                    iconPath: TRANSCRIPTION_STOPPED_ICON,
+                    iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+                  },
+                }
+              : {}),
           },
         }),
       });
@@ -111,7 +116,10 @@ export default function JoinCall(props: PageProps) {
       <div
         className="mx-auto hidden sm:block"
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe showRecordingButton={showRecordingButton} />
+        <CalAiTranscribe
+          showRecordingButton={showRecordingButton}
+          showTranscriptionButton={showTranscriptionButton}
+        />
       </div>
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (

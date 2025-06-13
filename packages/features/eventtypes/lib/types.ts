@@ -154,6 +154,8 @@ export type FormValues = {
   calVideoSettings?: {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;
+    disableTranscriptionForGuests?: boolean;
+    disableTranscriptionForOrganizer?: boolean;
     redirectUrlOnExit?: string;
   };
 };
