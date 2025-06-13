@@ -221,6 +221,7 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
+export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
