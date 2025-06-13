@@ -47,6 +47,7 @@
   "customize_calvideo_settings": "Customize Cal Video Settings",
   "calvideo_settings_description": "Configure video meeting preferences including recording permissions for hosts and attendees.",
   "disable_recording_for_guests": "Disable recording for guests",
+  "enable_automatic_transcription": "Enable automatic transcription after joining the meeting",
   "disable_recording_for_organizer": "Disable recording for organizer",
   "event_request_declined_recurring": "Your recurring event request has been declined",
   "event_request_cancelled": "Your scheduled event was canceled",
@@ -3241,5 +3242,7 @@
   "meeting_start_time": "Meeting Start Time",
   "members_affected_by_disabling_delegation_credential": "Affected members",
   "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
+  "duration_min_error": "Duration must be at least {{min}} minute(s)",
+  "duration_max_error": "Duration cannot exceed {{max}} minutes (24 hours)",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
