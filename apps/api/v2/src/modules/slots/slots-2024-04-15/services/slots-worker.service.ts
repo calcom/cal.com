@@ -107,8 +107,12 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
         .catch((err) => {
           this.logger.error(`Error terminating failed worker ${failedWorker.threadId}: ${err?.message}`);
         });
-    } catch {
-      this.logger.error(`Cannot invoke terminate method on failed worker ${failedWorker.threadId}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to invoke terminate method on failed worker ${failedWorker.threadId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     }
 
     // Attempt to create a new worker to replace the failed one
