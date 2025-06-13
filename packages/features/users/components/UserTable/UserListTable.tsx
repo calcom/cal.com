@@ -304,7 +304,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         },
         cell: ({ row, table }) => {
           const { role, username, customRole } = row.original;
-          const roleName = customRole.name || role;
+          const roleName = customRole?.name || role;
           return (
             <Badge
               data-testid={`member-${username}-role`}
