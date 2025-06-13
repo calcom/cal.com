@@ -47,6 +47,7 @@
   "customize_calvideo_settings": "Customize Cal Video Settings",
   "calvideo_settings_description": "Configure video meeting preferences including recording permissions for hosts and attendees.",
   "disable_recording_for_guests": "Disable recording for guests",
+  "enable_automatic_transcription": "Enable automatic transcription after joining the meeting",
   "disable_recording_for_organizer": "Disable recording for organizer",
   "event_request_declined_recurring": "Your recurring event request has been declined",
   "event_request_cancelled": "Your scheduled event was canceled",
