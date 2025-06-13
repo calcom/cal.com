@@ -88,7 +88,7 @@ export class RoleService {
     await this.repository.delete(roleId);
   }
 
-  async updateRolePermissions(data: UpdateRolePermissionsData) {
+  async update(data: UpdateRolePermissionsData) {
     const role = await this.repository.findById(data.roleId);
     if (!role) {
       throw new Error("Role not found");
@@ -105,7 +105,7 @@ export class RoleService {
       throw new Error(validationResult.error || "Invalid permissions provided");
     }
 
-    return this.repository.updatePermissions(data.roleId, data.permissions);
+    return this.repository.update(data.roleId, data.permissions, data.updates);
   }
 
   async roleBelongsToTeam(roleId: string, teamId: number) {

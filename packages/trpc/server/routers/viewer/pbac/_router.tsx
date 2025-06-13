@@ -138,9 +138,13 @@ export const permissionsRouter = router({
       }
 
       const roleService = new RoleService();
-      return roleService.updateRolePermissions({
+      return roleService.update({
         roleId: input.roleId,
         permissions: input.permissions,
+        updates: {
+          name: input.name,
+          color: input.color,
+        },
       });
     }),
 

@@ -12,6 +12,6 @@ export interface IRoleRepository {
   roleBelongsToTeam(roleId: string, teamId: number): Promise<boolean>;
   create(data: CreateRoleData): Promise<Role>;
   delete(id: string): Promise<void>;
-  updatePermissions(roleId: string, permissions: PermissionString[]): Promise<Role>;
+  update(roleId: string, permissions: PermissionString[]): Promise<Role>;
   transaction<T>(callback: (repository: IRoleRepository, trx: Transaction<DB>) => Promise<T>): Promise<T>;
 }

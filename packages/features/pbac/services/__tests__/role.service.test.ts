@@ -25,7 +25,7 @@ describe("RoleService", () => {
       findByTeamId: vi.fn(),
       create: vi.fn(),
       delete: vi.fn(),
-      updatePermissions: vi.fn(),
+      update: vi.fn(),
       transaction: vi.fn(),
       roleBelongsToTeam: vi.fn(),
     };
@@ -152,7 +152,7 @@ describe("RoleService", () => {
     });
   });
 
-  describe("updateRolePermissions", () => {
+  describe("update", () => {
     it("should update role permissions", async () => {
       const roleId = "role-id";
       const permissions = ["eventType.create", "eventType.read"] as PermissionString[];
@@ -172,11 +172,11 @@ describe("RoleService", () => {
       };
 
       mockRepository.findById.mockResolvedValueOnce(role);
-      mockRepository.updatePermissions.mockResolvedValueOnce(role);
+      mockRepository.update.mockResolvedValueOnce(role);
 
-      const result = await service.updateRolePermissions({ roleId, permissions });
+      const result = await service.update({ roleId, permissions });
       expect(result).toBeDefined();
-      expect(mockRepository.updatePermissions).toHaveBeenCalledWith(roleId, permissions);
+      expect(mockRepository.update).toHaveBeenCalledWith(roleId, permissions);
     });
 
     it("should throw error if role does not exist", async () => {
@@ -185,8 +185,8 @@ describe("RoleService", () => {
 
       mockRepository.findById.mockResolvedValueOnce(null);
 
-      await expect(service.updateRolePermissions({ roleId, permissions })).rejects.toThrow("Role not found");
-      expect(mockRepository.updatePermissions).not.toHaveBeenCalled();
+      await expect(service.update({ roleId, permissions })).rejects.toThrow("Role not found");
+      expect(mockRepository.update).not.toHaveBeenCalled();
     });
 
     it("should throw error if trying to update system role", async () => {
@@ -203,10 +203,8 @@ describe("RoleService", () => {
         updatedAt: new Date(),
       });
 
-      await expect(service.updateRolePermissions({ roleId, permissions })).rejects.toThrow(
-        "Cannot update default roles"
-      );
-      expect(mockRepository.updatePermissions).not.toHaveBeenCalled();
+      await expect(service.update({ roleId, permissions })).rejects.toThrow("Cannot update default roles");
+      expect(mockRepository.update).not.toHaveBeenCalled();
     });
   });
 

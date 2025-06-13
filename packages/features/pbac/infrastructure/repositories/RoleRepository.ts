@@ -116,7 +116,7 @@ export class RoleRepository implements IRoleRepository {
     });
   }
 
-  async updatePermissions(
+  async update(
     roleId: string,
     permissions: PermissionString[],
     updates?: {
@@ -127,7 +127,9 @@ export class RoleRepository implements IRoleRepository {
     await kysely.transaction().execute(async (trx) => {
       // Update role metadata if provided
       if (updates) {
-        const updateData: Record<string, any> = { updatedAt: new Date() };
+        const updateData: Pick<KyselyRole, "name" | "color" | "description" | "updatedAt"> = {
+          updatedAt: new Date(),
+        };
 
         if (updates.color !== undefined) {
           updateData.color = updates.color || null;
@@ -162,7 +164,7 @@ export class RoleRepository implements IRoleRepository {
     });
 
     // Fetch updated role
-    const updatedRole = await trx
+    const updatedRole = await kysely
       .selectFrom("Role")
       .select(this.getRoleSelect())
       .where("id", "=", roleId)
