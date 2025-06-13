@@ -486,6 +486,7 @@ export async function getBookings({
                 "EventType.customReplyToEmail",
                 "EventType.allowReschedulingPastBookings",
                 "EventType.hideOrganizerEmail",
+                "EventType.disableAutoFill",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
                 eb

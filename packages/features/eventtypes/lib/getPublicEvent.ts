@@ -82,6 +82,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     price: true,
     currency: true,
     seatsPerTimeSlot: true,
+    disableAutoFill: true,
     disableCancelling: true,
     disableRescheduling: true,
     allowReschedulingCancelledBookings: true,

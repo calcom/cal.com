@@ -628,6 +628,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   recurringEvent: true,
   customInputs: true,
   disableGuests: true,
+  disableAutoFill: true,
   disableCancelling: true,
   disableRescheduling: true,
   allowReschedulingCancelledBookings: true,
