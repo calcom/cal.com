@@ -28,6 +28,7 @@ const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 const querySchema = z
   .object({
     form: z.string(),
+    queueFormResponse: z.coerce.boolean().optional(),
   })
   .catchall(z.string().or(z.array(z.string())));
 
@@ -52,7 +53,12 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
 
   // TODO: Known params reserved by Cal.com are form, embed, layout and other cal. prefixed params. We should exclude all of them from fieldsResponses.
   // But they must be present in `paramsToBeForwardedAsIs` as they could be needed by Booking Page as well.
-  const { form: formId, "cal.isBookingDryRun": isBookingDryRunParam, ...fieldsResponses } = queryParsed.data;
+  const {
+    form: formId,
+    "cal.isBookingDryRun": isBookingDryRunParam,
+    queueFormResponse,
+    ...fieldsResponses
+  } = queryParsed.data;
   const isBookingDryRun = isBookingDryRunParam === "true";
   const paramsToBeForwardedAsIs = {
     ...fieldsResponses,
@@ -109,7 +115,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   });
 
   const matchingRoute = findMatchingRoute({ form: serializableForm, response });
-
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
@@ -129,6 +134,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       response: response,
       chosenRouteId: matchingRoute.id,
       isPreview: isBookingDryRun,
+      queueFormResponse,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;
@@ -186,6 +192,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
             teamMembersMatchingAttributeLogic,
             // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
             formResponseId: formResponseId!,
+            queuedFormResponse: queueFormResponse,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
