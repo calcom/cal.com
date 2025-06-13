@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
@@ -148,20 +148,25 @@ const Locations: React.FC<LocationsProps> = ({
     };
   });
 
-  const filteredLocationOptions: TLocationOptions = [];
+  const filteredLocationOptions: TLocationOptions = useMemo(() => {
+    const tempArray: TLocationOptions = [];
 
-  if (excludeLocationOptions) {
-    locationOptions.forEach((locationOption) => {
-      const options = locationOption.options.filter((option) => {
-        return !excludeLocationOptions.includes(option.value);
+    if (excludeLocationOptions && excludeLocationOptions.length > 0) {
+      locationOptions.forEach((locationOption) => {
+        const options = locationOption.options.filter((option) => {
+          return !excludeLocationOptions.includes(option.value);
+        });
+
+        tempArray.push({
+          ...locationOption,
+          options,
+        });
       });
 
-      filteredLocationOptions.push({
-        ...locationOption,
-        options,
-      });
-    });
-  }
+      return tempArray;
+    }
+    return locationOptions;
+  }, [locationOptions, excludeLocationOptions]);
 
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
   const seatsEnabled = !!getValues("seatsPerTimeSlot");
@@ -177,14 +182,12 @@ const Locations: React.FC<LocationsProps> = ({
     }) || [];
 
   const defaultValue = isManagedEventType
-    ? (excludeLocationOptions ? filteredLocationOptions : locationOptions).find(
-        (op) => op.label === t("default")
-      )?.options[0]
+    ? filteredLocationOptions.find((op) => op.label === t("default"))?.options[0]
     : undefined;
 
   const { locationDetails, locationAvailable } = getLocationInfo({
     eventType,
-    locationOptions: excludeLocationOptions ? filteredLocationOptions : locationOptions,
+    locationOptions: filteredLocationOptions,
   });
 
   const LocationInput = (props: {
@@ -279,17 +282,14 @@ const Locations: React.FC<LocationsProps> = ({
 
           const isCalVideo = field.type === "integrations:daily";
 
-          const option = getLocationFromType(
-            field.type,
-            excludeLocationOptions ? filteredLocationOptions : locationOptions
-          );
+          const option = getLocationFromType(field.type, filteredLocationOptions);
           return (
             <li key={field.id}>
               <div className="flex w-full items-center">
                 <LocationSelect
                   name={`locations[${index}].type`}
                   placeholder={t("select")}
-                  options={excludeLocationOptions ? filteredLocationOptions : locationOptions}
+                  options={filteredLocationOptions}
                   isDisabled={disableLocationProp}
                   defaultValue={option}
                   isSearchable={false}
@@ -497,7 +497,7 @@ const Locations: React.FC<LocationsProps> = ({
             <LocationSelect
               defaultMenuIsOpen={showEmptyLocationSelect}
               placeholder={t("select")}
-              options={excludeLocationOptions ? filteredLocationOptions : locationOptions}
+              options={filteredLocationOptions}
               value={selectedNewOption}
               isDisabled={disableLocationProp}
               defaultValue={defaultValue}
