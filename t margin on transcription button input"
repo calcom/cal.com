@@ -1,0 +1,12 @@
+[1mdiff --git a/packages/ui/components/form/inputs/TextField.tsx b/packages/ui/components/form/inputs/TextField.tsx[m
+[1mindex e7361a06f6..5b1fa07879 100644[m
+[1m--- a/packages/ui/components/form/inputs/TextField.tsx[m
+[1m+++ b/packages/ui/components/form/inputs/TextField.tsx[m
+[36m@@ -160,6 +160,7 @@[m [mexport const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function[m
+             data-testid={dataTestid ? `${dataTestid}-input` : "input-field"}[m
+             id={id}[m
+             type={type}[m
+[32m+[m
+             placeholder={placeholder}[m
+             className={classNames([m
+               "-ml-1 w-full min-w-0 truncate border-0 bg-transparent focus:outline-none focus:ring-0",[m
