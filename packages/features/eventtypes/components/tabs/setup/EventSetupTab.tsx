@@ -400,6 +400,7 @@ export const EventSetupTab = (
                   setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
                   control={formMethods.control as unknown as Control<LocationFormValues>}
                   formState={formMethods.formState as unknown as FormState<LocationFormValues>}
+                  excludedLocationOptions={["attendeeInPerson"]}
                   {...props}
                   customClassNames={customClassNames?.locationSection}
                 />
