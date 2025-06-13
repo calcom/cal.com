@@ -7,11 +7,12 @@ parentPort?.on("message", async (data) => {
     const { input, ctx } = data;
     const result = await getAvailableSlots({ input, ctx });
     parentPort?.postMessage({ success: true, data: result });
-    parentPort?.close();
   } catch (error) {
     parentPort?.postMessage({
       success: false,
       error: error instanceof Error ? error : new Error("Unknown error"),
     });
+  } finally {
+    parentPort?.close();
   }
 });
