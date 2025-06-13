@@ -48,7 +48,6 @@ type BookEventFormProps = {
 export const BookEventForm = ({
   onCancel,
   eventQuery,
-  // rescheduleUid,
   onSubmit,
   errorRef,
   errors,
