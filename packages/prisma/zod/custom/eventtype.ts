@@ -1,14 +1,24 @@
 import { SchedulingType } from "@calcom/prisma/enums";
 import { z } from "zod";
 import * as imports from "../../zod-utils";
+import { MIN_EVENT_DURATION_MINUTES, MAX_EVENT_DURATION_MINUTES } from "@calcom/lib/constants";
 // TODO: figure out why EventTypeModel is being called even if it's not imported here, causing a circular dependency
 // import { _EventTypeModel } from "../eventtype";
+
+const calVideoSettingsSchema = z
+  .object({
+    disableRecordingForGuests: z.boolean().optional().nullable(),
+    disableRecordingForOrganizer: z.boolean().optional().nullable(),
+    redirectUrlOnExit: z.string().url().optional().nullable(),
+  })
+  .optional()
+  .nullable();
 
 export const createEventTypeInput = z.object({
   title: z.string().min(1),
   slug: imports.eventTypeSlug,
   description: z.string().nullish(),
-  length: z.number().int(),
+  length: z.number().int().min(MIN_EVENT_DURATION_MINUTES).max(MAX_EVENT_DURATION_MINUTES),
   hidden: z.boolean(),
   teamId: z.number().int().nullish(),
   schedulingType: z.nativeEnum(SchedulingType).nullish(),
@@ -19,7 +29,8 @@ export const createEventTypeInput = z.object({
   minimumBookingNotice: z.number().int().min(0).optional(),
   beforeEventBuffer: z.number().int().min(0).optional(),
   afterEventBuffer: z.number().int().min(0).optional(),
-  scheduleId: z.number().int().optional()
+  scheduleId: z.number().int().optional(),
+  calVideoSettings: calVideoSettingsSchema
 })
   .partial({ hidden: true, locations: true })
   .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {
@@ -32,7 +43,7 @@ export const createEventTypeInput = z.object({
     slug: z.string(),
     title: z.string().min(1),
     description: z.string(),
-    length: z.number(),
+    length: z.number().int().min(MIN_EVENT_DURATION_MINUTES).max(MAX_EVENT_DURATION_MINUTES),
     teamId: z.number().nullish(),
   }).strict();
 
