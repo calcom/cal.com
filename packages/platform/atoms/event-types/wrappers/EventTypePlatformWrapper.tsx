@@ -99,7 +99,9 @@ const EventType = ({
   };
 
   const handleDeleteError = (err: Error) => {
-    const errorMessage = getErrorMessage(err, t("failed_to_delete_event_type"));
+    const rawErrorMessage = getErrorMessage(err, "failed_to_delete_event_type");
+    // Try to translate the message in case it's a translation key
+    const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
     showToast(errorMessage, "error");
     onDeleteError?.(errorMessage);
   };
@@ -142,7 +144,9 @@ const EventType = ({
     },
     onError: (err: Error) => {
       const currentValues = form.getValues();
-      const errorMessage = getErrorMessage(err, t("failed_to_update_event_type"));
+      const rawErrorMessage = getErrorMessage(err, "failed_to_update_event_type");
+      // Try to translate the message in case it's a translation key
+      const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
       toast({ description: errorMessage });
       onError?.(currentValues, err);
     },

@@ -120,7 +120,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
       });
     },
     onError: (error) => {
-      const errorMessage = getErrorMessage(error, t("error_removing_app"));
+      const rawErrorMessage = getErrorMessage(error, "error_removing_app");
+      const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
       showToast(errorMessage, "error");
       handleModelClose();
     },
@@ -151,7 +152,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
         onSuccessCallback();
       },
       onError: (error) => {
-        const errorMessage = getErrorMessage(error, t("error_updating_default_app"));
+        const rawErrorMessage = getErrorMessage(error, "error_updating_default_app");
+        const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
         showToast(errorMessage, "error");
         onErrorCallback();
       },
@@ -182,7 +184,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
     },
     onError: (error) => {
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
-      const errorMessage = getErrorMessage(error, t("error_unable_to_install_app"));
+      const rawErrorMessage = getErrorMessage(error, "error_unable_to_install_app");
+      const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
       showToast(errorMessage, "error");
     },
     returnTo,

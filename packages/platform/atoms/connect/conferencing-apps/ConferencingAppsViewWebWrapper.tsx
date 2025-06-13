@@ -86,7 +86,8 @@ const InstalledConferencingApps = ({
           onSuccessCallback();
         },
         onError: (error) => {
-          const errorMessage = getErrorMessage(error, t("error_updating_default_app"));
+          const rawErrorMessage = getErrorMessage(error, "error_updating_default_app");
+          const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
           showToast(errorMessage, "error");
           onErrorCallback();
         },
@@ -196,7 +197,8 @@ export const ConferencingAppsViewWebWrapper = ({
       utils.viewer.calendars.connectedCalendars.invalidate();
     },
     onError: (error) => {
-      const errorMessage = getErrorMessage(error, t("error_removing_app"));
+      const rawErrorMessage = getErrorMessage(error, "error_removing_app");
+      const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
       showToast(errorMessage, "error");
       disconnectIntegrationModalCtrl.close();
     },

@@ -210,7 +210,8 @@ const PlatformDisconnectIntegration = (props: {
       onSuccess && onSuccess();
     },
     onError: (error) => {
-      const errorMessage = getErrorMessage(error, t("error_removing_app"));
+      const rawErrorMessage = getErrorMessage(error, "error_removing_app");
+      const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
       toast({
         description: errorMessage,
       });
@@ -251,7 +252,8 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps & { isDryRun?: boole
 
   const { mutate: addSelectedCalendar, isPending: isAddingSelectedCalendar } = useAddSelectedCalendar({
     onError: (err) => {
-      const errorMessage = getErrorMessage(err, t("something_went_wrong_while_adding_calendar", { title }));
+      const rawErrorMessage = getErrorMessage(err, "something_went_wrong_while_adding_calendar");
+      const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
       toast({
         description: errorMessage,
       });
@@ -260,10 +262,8 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps & { isDryRun?: boole
   const { mutate: removeSelectedCalendar, isPending: isRemovingSelectedCalendar } = useRemoveSelectedCalendar(
     {
       onError: (err) => {
-        const errorMessage = getErrorMessage(
-          err,
-          t("something_went_wrong_while_removing_calendar", { title })
-        );
+        const rawErrorMessage = getErrorMessage(err, "something_went_wrong_while_removing_calendar");
+        const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
         toast({
           description: errorMessage,
         });
