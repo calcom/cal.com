@@ -288,16 +288,20 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
 
-      if (err.message === ErrorCode.BookerLimitExceededReschedule && err.data?.rescheduleUid) {
+      const error = err as Error & {
+        data: { rescheduleUid: string; startTime: string; attendees: string[] };
+      };
+
+      if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
         useBookerStore.setState({
-          rescheduleUid: err.data?.rescheduleUid,
+          rescheduleUid: error.data?.rescheduleUid,
         });
         useBookerStore.setState({
           bookingData: {
-            uid: err.data?.rescheduleUid,
-            startTime: err.data?.startTime,
-            attendees: err.data?.attendees,
-          } as GetBookingType,
+            uid: error.data?.rescheduleUid,
+            startTime: error.data?.startTime,
+            attendees: error.data?.attendees,
+          } as unknown as GetBookingType,
         });
       }
     },
