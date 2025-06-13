@@ -399,22 +399,6 @@ const Locations: React.FC<LocationsProps> = ({
                           }}
                         />
                       )}
-                      {!isPlatform && (
-                        <Controller
-                          name="calVideoSettings.enableAutomaticTranscription"
-                          defaultValue={!!eventType.calVideoSettings?.enableAutomaticTranscription}
-                          render={({ field: { onChange, value } }) => {
-                            return (
-                              <SettingsToggle
-                                title={t("enable_automatic_transcription")}
-                                labelClassName="text-sm"
-                                checked={value}
-                                onCheckedChange={onChange}
-                              />
-                            );
-                          }}
-                        />
-                      )}
 
                       <TextField
                         label={t("enter_redirect_url_on_exit_description")}
