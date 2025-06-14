@@ -428,11 +428,13 @@ test.describe("Bookings", () => {
             localStorage.clear();
             sessionStorage.clear();
           });
-          const allUsers = await users.get();
+          const allUsers = users.get();
           const hostUser = allUsers.find((mate) => mate.name === firstHost);
           if (!hostUser) throw new Error("Host not found");
 
-          await hostUser.apiLogin();
+          await hostUser.login();
+          // prevent falkes
+          await page.waitForSelector('[data-testid="event-types"]');
 
           // Cancel the booking
           await page.goto(`/booking/${bookingUid}`);
