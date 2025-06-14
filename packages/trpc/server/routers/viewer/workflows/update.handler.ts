@@ -392,7 +392,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
 
       if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
-        await tasker.create("scanWorkflowBody", { workflowStepIds: [oldStep.id], userId: ctx.user.id });
+        await tasker.create("scanWorkflowBody", {
+          workflowStepId: oldStep.id,
+          userId: ctx.user.id,
+          createdAt: new Date().toISOString(),
+        });
       } else {
         // schedule notifications for edited steps
         await scheduleWorkflowNotifications({
@@ -467,11 +471,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
 
     if (SCANNING_WORKFLOW_STEPS) {
-      // workflows are scanned then scheduled in the task
-      await tasker.create("scanWorkflowBody", {
-        workflowStepIds: createdSteps.map((step) => step.id),
-        userId: ctx.user.id,
-      });
+      await Promise.all(
+        createdSteps.map((step) =>
+          tasker.create("scanWorkflowBody", {
+            workflowStepId: step.id,
+            userId: ctx.user.id,
+            createdAt: new Date().toISOString(),
+          })
+        )
+      );
     } else {
       // schedule notification for new step
       await scheduleWorkflowNotifications({
