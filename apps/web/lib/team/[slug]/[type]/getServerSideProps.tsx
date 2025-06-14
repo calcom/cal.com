@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
-import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -47,13 +47,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const [team, eventData, booking] = await Promise.all([
-    getTeamData(teamSlug, isValidOrgDomain, currentOrgDomain),
-    getEventTypeData(meetingSlug, teamSlug, isValidOrgDomain, currentOrgDomain),
+  const [orgId, booking] = await Promise.all([
+    isValidOrgDomain && currentOrgDomain ? getOrgId(currentOrgDomain) : Promise.resolve(null),
     rescheduleUid ? getBookingForReschedule(`${rescheduleUid}`, session?.user?.id) : Promise.resolve(null),
   ]);
 
-  if (!team || !eventData) {
+  const team = await getTeamData(teamSlug, orgId);
+
+  if (!team) {
+    return { notFound: true } as const;
+  }
+
+  const eventData = await getEventTypeData(meetingSlug, team.id);
+
+  if (!eventData) {
     return { notFound: true } as const;
   }
 
@@ -78,14 +85,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const name = team.parent?.name ?? team.name ?? null;
 
-  const [eventHostsUserData, featureCheck] = await Promise.all([
-    getUsersData(
-      team.isPrivate,
-      eventTypeId,
-      eventData.hosts.map((h) => h.user)
-    ),
-    new FeaturesRepository().checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots"),
-  ]);
+  const eventHostsUserData = getEventHosts(
+    team.isPrivate,
+    eventData.hosts.map((h) => h.user),
+    eventData.users ?? []
+  );
 
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
@@ -121,7 +125,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
-  const useApiV2 = featureCheck && hasApiV2RouteInEnv();
+  const featureRepo = new FeaturesRepository();
+  const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots");
+  const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
 
   return {
     props: {
@@ -168,14 +174,42 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   };
 };
 
-const getTeamData = async (teamSlug: string, isValidOrgDomain: boolean, currentOrgDomain: string | null) => {
-  return await prisma.team.findFirst({
+const getOrgId = async (orgSlug: string): Promise<number | null> => {
+  // Use unique index for published orgs
+  const publishedOrg = await prisma.team.findUnique({
     where: {
-      ...getSlugOrRequestedSlug(teamSlug),
-      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+      slug_parentId: {
+        slug: orgSlug,
+        parentId: null as any,
+      },
     },
-    orderBy: {
-      slug: { sort: "asc", nulls: "last" },
+    select: { id: true },
+  });
+
+  if (publishedOrg) return publishedOrg.id;
+
+  const unpublishedOrg = await prisma.team.findFirst({
+    where: {
+      metadata: {
+        path: ["requestedSlug"],
+        equals: orgSlug,
+      },
+      parentId: null,
+    },
+    select: { id: true },
+  });
+  if (unpublishedOrg) return unpublishedOrg.id;
+
+  return null;
+};
+
+const getTeamData = async (teamSlug: string, parentId: number | null) => {
+  return await prisma.team.findUnique({
+    where: {
+      slug_parentId: {
+        slug: teamSlug,
+        parentId: parentId as any,
+      },
     },
     select: {
       id: true,
@@ -208,18 +242,13 @@ const getTeamData = async (teamSlug: string, isValidOrgDomain: boolean, currentO
   });
 };
 
-const getEventTypeData = async (
-  meetingSlug: string,
-  teamSlug: string,
-  isValidOrgDomain: boolean,
-  currentOrgDomain: string | null
-) => {
-  return await prisma.eventType.findFirst({
+const getEventTypeData = async (meetingSlug: string, teamId: number) => {
+  return await prisma.eventType.findUnique({
     where: {
-      slug: meetingSlug,
-      team: {
-        ...getSlugOrRequestedSlug(teamSlug),
-        parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+      // Use the EventType_teamId_slug_key unique index
+      teamId_slug: {
+        teamId: teamId,
+        slug: meetingSlug,
       },
     },
     select: {
@@ -246,45 +275,38 @@ const getEventTypeData = async (
           },
         },
       },
+      // Include users for when hosts is empty
+      users: {
+        take: 1,
+        select: {
+          username: true,
+          name: true,
+        },
+      },
     },
   });
 };
 
-const getUsersData = async (
+const getEventHosts = (
   isPrivateTeam: boolean,
-  eventTypeId: number,
+  hosts: Pick<User, "username" | "name" | "email">[],
   users: Pick<User, "username" | "name">[]
 ) => {
-  if (!isPrivateTeam && users.length > 0) {
-    return users
+  if (!isPrivateTeam && hosts.length > 0) {
+    return hosts
       .filter((user) => user.username)
       .map((user) => ({
         username: user.username ?? "",
         name: user.name ?? "",
       }));
   }
-  if (!isPrivateTeam && users.length === 0) {
-    const { users: data } = await prisma.eventType.findUniqueOrThrow({
-      where: { id: eventTypeId },
-      select: {
-        users: {
-          take: 1,
-          select: {
-            username: true,
-            name: true,
-          },
-        },
+  if (!isPrivateTeam && hosts.length === 0 && users.length > 0) {
+    return [
+      {
+        username: users[0].username ?? "",
+        name: users[0].name ?? "",
       },
-    });
-
-    return data.length > 0
-      ? [
-          {
-            username: data[0].username ?? "",
-            name: data[0].name ?? "",
-          },
-        ]
-      : [];
+    ];
   }
 
   return [];
