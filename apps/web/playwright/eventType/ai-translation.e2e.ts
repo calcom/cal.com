@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { loginUser } from "playwright/fixtures/regularBookings";
-import { setupOrgMember, createNewUserEventType, doOnOrgDomain } from "playwright/lib/testUtils";
+import { setupOrgMember, createNewUserEventType } from "playwright/lib/testUtils";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -66,21 +66,7 @@ test.describe("AI Translation - Booking Page", () => {
     await bookingPage.updateEventTypeDescription("A quick 5 minute chat.");
     await bookingPage.updateEventType();
     await orgMember.logout(); // logging out because user locale overrides the browser locale otherwise
-
-    await doOnOrgDomain(
-      {
-        orgSlug: org.slug,
-        page,
-      },
-      async () => {
-        await page.setExtraHTTPHeaders({
-          "Accept-Language": "ko-KR,ko;q=0.9",
-        });
-
-        await page.goto(`/${orgMember.username}/5-min`);
-
-        await expect(page.locator('[data-testid="event-meta-description"] p')).toHaveText("빠른 5분 대화.");
-      }
-    );
+    await page.goto(`/${orgMember.username}/5-min`);
+    await expect(page.locator('[data-testid="event-meta-description"] p')).toHaveText("빠른 5분 대화.");
   });
 });
