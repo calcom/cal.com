@@ -910,6 +910,8 @@ export const EventAdvancedTab = ({
                         disabled={seatsLocked.disabled}
                         //For old events if value > MAX_SEATS_PER_TIME_SLOT
                         value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : value ?? 1}
+                        step={1}
+                        placeholder="1"
                         min={1}
                         max={MAX_SEATS_PER_TIME_SLOT}
                         containerClassName={classNames(
@@ -921,8 +923,7 @@ export const EventAdvancedTab = ({
                         labelClassName={customClassNames?.seatsOptions?.seatsInput?.label}
                         addOnSuffix={t("seats")}
                         onChange={(e) => {
-                          let enteredValue = Number(e.target.value);
-                          if (enteredValue < 1) enteredValue = 1;
+                          const enteredValue = parseInt(e.target.value);
                           onChange(Math.min(enteredValue, MAX_SEATS_PER_TIME_SLOT));
                         }}
                         data-testid="seats-per-time-slot"
