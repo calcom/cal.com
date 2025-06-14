@@ -48,7 +48,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const [orgId, booking] = await Promise.all([
-    isValidOrgDomain && currentOrgDomain ? getOrgId(currentOrgDomain) : Promise.resolve(null),
+    isOrgContext ? getOrgId(currentOrgDomain) : Promise.resolve(null),
     rescheduleUid ? getBookingForReschedule(`${rescheduleUid}`, session?.user?.id) : Promise.resolve(null),
   ]);
 
