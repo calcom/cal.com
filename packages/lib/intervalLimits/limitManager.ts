@@ -55,6 +55,7 @@ export default class LimitManager {
     this.busyMap.set(`${unit}-${tzStart.toISOString()}`, {
       start: tzStart.toISOString(),
       end: tzStart.endOf(unit).toISOString(),
+      unit,
     });
   }
 
