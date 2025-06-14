@@ -215,8 +215,12 @@ export const AvailableTimeSlots = ({
           !limitHeight && "flex h-full w-full flex-row gap-4",
           `${customClassNames?.availableTimeSlotsContainer}`
         )}>
-        {isLoading && // Shows exact amount of days as skeleton.
+        {/* Show skeleton ONLY when we don't have essential data OR we're still loading */}
+        {(isLoading || (schedule?.isOptimisticLoad && !schedule?.hasEssentialData)) &&
+          (!scheduleData?.slots || slotsPerDay.length === 0) &&
           Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
+
+        {/* Show actual slots when we have data AND we're not in initial loading state */}
         {!isLoading &&
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
