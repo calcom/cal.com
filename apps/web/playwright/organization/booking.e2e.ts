@@ -423,11 +423,18 @@ test.describe("Bookings", () => {
 
           // Login as the host to cancel the booking
           await page.goto("/auth/logout");
-          const allUsers = await users.get();
+          await page.context().clearCookies();
+          await page.evaluate(() => {
+            localStorage.clear();
+            sessionStorage.clear();
+          });
+          const allUsers = users.get();
           const hostUser = allUsers.find((mate) => mate.name === firstHost);
           if (!hostUser) throw new Error("Host not found");
 
-          await hostUser.apiLogin();
+          await hostUser.login();
+          // prevent falkes
+          await page.waitForSelector('[data-testid="event-types"]');
 
           // Cancel the booking
           await page.goto(`/booking/${bookingUid}`);
