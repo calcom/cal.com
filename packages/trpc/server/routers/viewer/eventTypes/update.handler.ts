@@ -87,6 +87,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
+    restrictionScheduleId,
     calVideoSettings,
     ...rest
   } = input;
@@ -334,6 +335,52 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   } else if (schedule === null) {
     data.instantMeetingSchedule = {
+      disconnect: true,
+    };
+  }
+
+  if (restrictionScheduleId) {
+    // Verify that the user owns the restriction schedule or is a team member
+    const restrictionSchedule = await ctx.prisma.schedule.findUnique({
+      where: {
+        id: restrictionScheduleId,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    // If the user doesn't own the schedule, check if they're a team member
+    if (restrictionSchedule?.userId !== ctx.user.id) {
+      if (!teamId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "The restriction schedule is not owned by you or your team",
+        });
+      }
+      const teamMember = await ctx.prisma.membership.findFirst({
+        where: {
+          teamId,
+          userId: ctx.user.id,
+          accepted: true,
+        },
+      });
+
+      if (!teamMember) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "The restriction schedule is not owned by you or your team",
+        });
+      }
+    }
+
+    data.restrictionSchedule = {
+      connect: {
+        id: restrictionScheduleId,
+      },
+    };
+  } else if (restrictionScheduleId === null || restrictionScheduleId === 0) {
+    data.restrictionSchedule = {
       disconnect: true,
     };
   }

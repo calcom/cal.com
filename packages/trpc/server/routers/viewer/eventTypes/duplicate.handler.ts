@@ -92,6 +92,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       descriptionAsSafeHTML: _descriptionAsSafeHTML,
       secondaryEmailId,
       instantMeetingScheduleId: _instantMeetingScheduleId,
+      restrictionScheduleId: _restrictionScheduleId,
       ...rest
     } = eventType;
 
@@ -111,7 +112,13 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             },
           }
         : undefined,
-
+      restrictionSchedule: eventType.restrictionScheduleId
+        ? {
+            connect: {
+              id: eventType.restrictionScheduleId,
+            },
+          }
+        : undefined,
       recurringEvent: recurringEvent || undefined,
       bookingLimits: bookingLimits ?? undefined,
       durationLimits: durationLimits ?? undefined,
