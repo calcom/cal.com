@@ -7,7 +7,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { prisma } from "@calcom/prisma";
-import { WebhookTriggerEvents } from "@calcom/prisma/client";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 
@@ -208,7 +208,7 @@ const getWebhooksService = async (bookingUid: string, platformClientId?: string)
     memberId: booking?.eventType?.userId,
     teamId: booking?.eventType?.teamId,
   });
-  const webhooks = await new WebhookService({
+  const webhooks = await WebhookService.init({
     teamId: booking?.eventType?.teamId,
     userId: booking?.eventType?.userId,
     eventTypeId: booking?.eventType?.id,
