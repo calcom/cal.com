@@ -66,7 +66,7 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
   }
 
   if (input.name !== undefined && input.name.trim().length === 0) {
-    throw new Error("Schedule name cannot be empty");
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Schedule name cannot be empty" });
   }
 
   if (input.name === undefined && !input.schedule && !input.timeZone) {

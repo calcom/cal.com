@@ -13,7 +13,8 @@ export const schemaSingleScheduleBodyParams = schemaScheduleBaseBodyParams.merge
     timeZone: timeZone.optional(),
     name: z
       .string()
-      .refine((val) => val.trim().length > 0, {
+      .trim()
+      .min(1, {
         message: "Schedule name cannot be empty",
       })
       .optional(),
@@ -23,7 +24,7 @@ export const schemaSingleScheduleBodyParams = schemaScheduleBaseBodyParams.merge
 export const schemaCreateScheduleBodyParams = schemaScheduleBaseBodyParams.merge(
   z.object({
     userId: z.number().optional(),
-    name: z.string().refine((val) => val.trim().length > 0, {
+    name: z.string().trim().min(1, {
       message: "Schedule name cannot be empty",
     }),
     timeZone,

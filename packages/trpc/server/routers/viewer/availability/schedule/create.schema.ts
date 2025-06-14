@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZCreateInputSchema = z.object({
-  name: z.string().refine((val) => val.trim().length > 0, {
+  name: z.string().trim().min(1, {
     message: "Schedule name cannot be empty",
   }),
   schedule: z
