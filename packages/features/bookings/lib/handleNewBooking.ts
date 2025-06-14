@@ -441,6 +441,7 @@ async function handler(
     routedTeamMemberIds,
     reroutingFormResponses,
     queuedFormResponse,
+    shownPrerenderedAt,
     _isDryRun: isDryRun = false,
     _shouldServeCache,
     ...reqBody
@@ -606,10 +607,14 @@ async function handler(
     }
 
     if (queuedFormResponse) {
+      if (!shownPrerenderedAt) {
+        throw new HttpError({ statusCode: 400, message: "Missing shownPrerenderedAt" });
+      }
       // Write to the routing form response table and return the result
       routingFormResponse = await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse(
         routingFormResponseId,
-        bookerEmail
+        bookerEmail,
+        new Date(shownPrerenderedAt)
       );
       routingFormResponseId = routingFormResponse?.id ?? routingFormResponseId;
     } else {
