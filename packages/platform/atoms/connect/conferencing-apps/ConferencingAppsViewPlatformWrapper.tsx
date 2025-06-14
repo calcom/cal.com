@@ -24,6 +24,7 @@ import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton"
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
+import { getErrorMessage } from "../../src/lib/utils";
 import type {
   BulkUpdatParams,
   UpdateUsersDefaultConferencingAppParams,
@@ -118,8 +119,10 @@ export const ConferencingAppsViewPlatformWrapper = ({
         queryKey: [defaultConferencingAppQueryKey],
       });
     },
-    onError: () => {
-      showToast(t("error_removing_app"), "error");
+    onError: (error) => {
+      const rawErrorMessage = getErrorMessage(error, "error_removing_app");
+      const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
+      showToast(errorMessage, "error");
       handleModelClose();
     },
     teamId,
@@ -149,7 +152,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
         onSuccessCallback();
       },
       onError: (error) => {
-        showToast(`Error: ${error.message}`, "error");
+        const rawErrorMessage = getErrorMessage(error, "error_updating_default_app");
+        const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
+        showToast(errorMessage, "error");
         onErrorCallback();
       },
     });
@@ -177,9 +182,11 @@ export const ConferencingAppsViewPlatformWrapper = ({
       showToast("app installed successfully", "success");
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
     },
-    onError: () => {
+    onError: (error) => {
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
-      showToast(`Error: unable to install app`, "error");
+      const rawErrorMessage = getErrorMessage(error, "error_unable_to_install_app");
+      const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
+      showToast(errorMessage, "error");
     },
     returnTo,
     onErrorReturnTo,
