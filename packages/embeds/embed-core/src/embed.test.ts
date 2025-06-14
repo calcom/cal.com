@@ -288,10 +288,10 @@ describe("Cal", () => {
     const initialStateOfModal = "loading";
     const baseModalArgs = {
       calLink: "john-doe/meeting",
+      __shownPrerenderedAt: Date.now(),
       config: {
         theme: "light",
         layout: "modern",
-        "cal.embed.reuseFully": "false",
       },
     };
     beforeEach(() => {
@@ -530,6 +530,7 @@ describe("Cal", () => {
               ...expectedConfig,
               name: modalArgWithPrefilledConfig.config.name,
               email: modalArgWithPrefilledConfig.config.email,
+              "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
             };
 
             expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
@@ -545,9 +546,12 @@ describe("Cal", () => {
                 pathname: `/${modalArg.calLink}`,
                 searchParams: new URLSearchParams({
                   ...expectedConfig,
-                  // It remains because internally we remove prerender=true in iframe
+                  // It remains because internally we remove prerender=true in iframe - through connect flow
                   prerender: "true",
                   "cal.skipSlotsFetch": "true",
+                  // It can't be verified here as it is set through connect flow directly on document's URL and not updated in iframe.src available outside the iframe.
+                  // so it is verified below in connect flow assertion
+                  // "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
                 }),
                 origin: null,
               },
@@ -770,7 +774,10 @@ describe("Cal", () => {
               },
               expectedIframeUrlObject: {
                 pathname: headlessRouterRedirectUrlWithPathOnly,
-                searchParams: new URLSearchParams(configWithPrefilledValuesAndHeadlessRouterRedirectParams),
+                searchParams: new URLSearchParams({
+                  ...configWithPrefilledValuesAndHeadlessRouterRedirectParams,
+                  "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
+                }),
                 origin: null,
               },
             });
@@ -1166,7 +1173,9 @@ describe("Cal", () => {
         ...baseArgs,
         stateData: {
           ...baseArgs.stateData,
-          reuseFully: true,
+          prerenderOptions: {
+            reuseFully: true,
+          },
         },
       });
       expect(result).toBe("connect-no-slots-fetch");
@@ -1177,7 +1186,9 @@ describe("Cal", () => {
         ...baseArgs,
         stateData: {
           ...baseArgs.stateData,
-          reuseFully: true,
+          prerenderOptions: {
+            reuseFully: true,
+          },
           previousEmbedRenderStartTime: Date.now() - EMBED_MODAL_IFRAME_SLOT_STALE_TIME - 1,
           embedRenderStartTime: Date.now(),
         },

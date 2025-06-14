@@ -63,7 +63,7 @@ type ModalStateData = {
   embedRenderStartTime: number;
   previousEmbedRenderStartTime: number | null;
   isConnectionInitiated: boolean;
-  prerenderOptions: ModalPrerenderOptions;
+  prerenderOptions: ModalPrerenderOptions | null;
 };
 
 type InitArgConfig = Partial<CalConfig> & {
@@ -581,11 +581,11 @@ export class Cal {
       : 0;
     const crossedReloadThreshold = previousEmbedRenderStartTime
       ? timeSinceLastRender >
-        (prerenderOptions.iframeForceReloadThresholdMs ?? EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS)
+        (prerenderOptions?.iframeForceReloadThresholdMs ?? EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS)
       : false;
 
     const areSlotsStale = previousEmbedRenderStartTime
-      ? timeSinceLastRender > (prerenderOptions.slotsStaleTimeMs ?? EMBED_MODAL_IFRAME_SLOT_STALE_TIME)
+      ? timeSinceLastRender > (prerenderOptions?.slotsStaleTimeMs ?? EMBED_MODAL_IFRAME_SLOT_STALE_TIME)
       : false;
 
     // Note that we don't worry about change in embed config because that is passed on as query params to the iframe and that is already supported by "connect" flow
@@ -596,7 +596,7 @@ export class Cal {
         return "fullReload";
       }
 
-      if (prerenderOptions.reuseFully && !areSlotsStale) {
+      if (prerenderOptions?.reuseFully && !areSlotsStale) {
         return "connect-no-slots-fetch";
       }
 
@@ -968,12 +968,17 @@ class CalApi {
     calOrigin,
     __prerender = false,
     prerenderOptions = {},
+    __shownPrerenderedAt,
   }: {
     calLink: string;
     config?: PrefillAndIframeAttrsConfig;
     calOrigin?: string;
     __prerender?: boolean;
     prerenderOptions?: ModalPrerenderOptions;
+    /**
+     * Allow configuring the shownPrerenderedAt for testing purposes
+     */
+    __shownPrerenderedAt?: number;
   }) {
     const calConfig = this.cal.getCalConfig();
     // calOrigin could have been passed as empty string by the user
@@ -1005,13 +1010,14 @@ class CalApi {
         config["queueFormResponse"] = "true";
       }
 
-      if (!this.prerenderOptions.reuseFully) {
+      if (!this.prerenderOptions?.reuseFully) {
         // When prerendering, we don't want to preload slots as they might be outdated anyway by the time they are used
         // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.com resources
         config["cal.skipSlotsFetch"] = "true";
       }
     } else {
-      config["cal.embed.shownPrerenderedAt"] = Date.now().toString();
+      const shownPrerenderedAt = __shownPrerenderedAt ?? Date.now();
+      config["cal.embed.shownPrerenderedAt"] = shownPrerenderedAt.toString();
     }
 
     const configWithGuestKeyAndColorScheme = withColorScheme(
@@ -1038,11 +1044,11 @@ class CalApi {
         embedRenderStartTime,
         previousEmbedRenderStartTime,
         isConnectionInitiated,
-        prerenderOptions: this.prerenderOptions,
+        prerenderOptions: this.prerenderOptions ?? null,
       };
 
       // If we want to reuse fully then we shouldn't submit response again
-      if (isHeadlessRouterPath && !this.prerenderOptions.reuseFully) {
+      if (isHeadlessRouterPath && !this.prerenderOptions?.reuseFully) {
         // Immediately take it to loading state. Either through connect or through loadInIframe, it would later be updated
         existingModalEl.setAttribute("state", "loading");
 
@@ -1089,8 +1095,11 @@ class CalApi {
             arg: {
               config: {
                 ...configWithGuestKeyAndColorScheme,
-                "cal.embed.noSlotsFetchOnConnect":
-                  actionToTake === "connect-no-slots-fetch" ? "true" : "false",
+                ...(actionToTake === "connect-no-slots-fetch"
+                  ? {
+                      "cal.embed.noSlotsFetchOnConnect": "true",
+                    }
+                  : {}),
               },
               params: fromEntriesWithDuplicateKeys(calLinkUrlObject.searchParams.entries()),
             },
