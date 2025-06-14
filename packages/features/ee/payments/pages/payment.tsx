@@ -1,3 +1,4 @@
+import { getServerSession } from "auth/lib/getServerSession";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -19,6 +20,7 @@ const querySchema = z.object({
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { uid } = querySchema.parse(context.query);
   const { currentOrgDomain } = orgDomainConfig(context.req);
+  const session = await getServerSession({ req: context.req });
 
   const rawPayment = await prisma.payment.findFirst({
     where: {
@@ -59,7 +61,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       eventTypeId: eventType.id,
       team: eventType.team,
       owner: eventType.users[0] ?? null,
-      orgSlug: currentOrgDomain,
+      organizationId: session?.user?.org?.id ?? session?.user?.profile?.organizationId ?? null,
     }),
   };
 
