@@ -24,8 +24,6 @@ type UserWithProfile = UserWithoutProfile & {
   profile: Profile | null;
 };
 
-type OrgSlug = string | null;
-
 /**
  * Determines if branding should be hidden by checking entity and organization settings
  */
@@ -79,12 +77,12 @@ export async function shouldHideBrandingForEvent({
   eventTypeId,
   team,
   owner,
-  orgSlug,
+  organizationId,
 }: {
   eventTypeId: number;
   team: Team | null;
   owner: UserWithoutProfile | null;
-  orgSlug: OrgSlug;
+  organizationId: number | null;
 }) {
   let ownerProfile = null;
   if (team) {
@@ -94,10 +92,10 @@ export async function shouldHideBrandingForEvent({
     });
   } else if (owner) {
     // Needed only for User events, not for Team events
-    ownerProfile = orgSlug
+    ownerProfile = organizationId
       ? await ProfileRepository.findByUserIdAndOrgSlug({
           userId: owner.id,
-          orgSlug,
+          organizationId,
         })
       : null;
 
