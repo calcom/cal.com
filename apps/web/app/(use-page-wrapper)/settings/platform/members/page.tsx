@@ -1,8 +1,13 @@
-import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
+import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import PlatformMembersView from "@calcom/features/ee/platform/pages/settings/members";
-import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -13,9 +18,37 @@ export const generateMetadata = async () =>
     "/settings/platform/members"
   );
 
+const getCachedCurrentOrg = unstable_cache(
+  async (userId: number, orgId: number) => {
+    return await OrganizationRepository.findCurrentOrg({
+      userId,
+      orgId,
+    });
+  },
+  undefined,
+  { revalidate: 3600, tags: ["viewer.organizations.listCurrent"] } // Cache for 1 hour
+);
+
+const getCachedTeams = unstable_cache(
+  async (orgId: number) => {
+    return await OrganizationRepository.getTeams({ organizationId: orgId });
+  },
+  undefined,
+  { revalidate: 3600, tags: ["viewer.organizations.getTeams"] } // Cache for 1 hour
+);
+
 const ServerPageWrapper = async () => {
-  const [orgCaller] = await Promise.all([createRouterCaller(viewerOrganizationsRouter)]);
-  const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const orgId = session?.user?.org?.id ?? session?.user?.profile?.organizationId;
+  const userId = session?.user?.id;
+  if (!userId) {
+    return redirect("/auth/login?callbackUrl=/settings/platform/members");
+  }
+  if (!orgId) {
+    return redirect("/settings/my-account/profile");
+  }
+
+  const [org, teams] = await Promise.all([getCachedCurrentOrg(userId, orgId), getCachedTeams(orgId)]);
 
   return <PlatformMembersView org={org} teams={teams} />;
 };
