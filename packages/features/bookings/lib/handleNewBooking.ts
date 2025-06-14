@@ -68,6 +68,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -440,15 +441,17 @@ async function handler(
     luckyUsers,
     routedTeamMemberIds,
     reroutingFormResponses,
-    routingFormResponseId,
+    queuedFormResponse,
+    shownPrerenderedAt,
     _isDryRun: isDryRun = false,
     _shouldServeCache,
     ...reqBody
   } = bookingData;
-
   let troubleshooterData = buildTroubleshooterData({
     eventType,
   });
+
+  let routingFormResponseId = bookingData.routingFormResponseId;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
@@ -609,29 +612,41 @@ async function handler(
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
   let routingFormResponse = null;
-
-  if (routedTeamMemberIds) {
+  if (routedTeamMemberIds || queuedFormResponse) {
     //routingFormResponseId could be 0 for dry run. So, we just avoid undefined value
     if (routingFormResponseId === undefined) {
       throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
     }
-    routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
-      where: {
-        id: routingFormResponseId,
-      },
-      select: {
-        response: true,
-        form: {
-          select: {
-            routes: true,
-            fields: true,
-          },
-        },
-        chosenRouteId: true,
-      },
-    });
-  }
 
+    if (queuedFormResponse) {
+      if (!shownPrerenderedAt) {
+        throw new HttpError({ statusCode: 400, message: "Missing shownPrerenderedAt" });
+      }
+      // Write to the routing form response table and return the result
+      routingFormResponse = await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse(
+        routingFormResponseId,
+        bookerEmail,
+        new Date(shownPrerenderedAt)
+      );
+      routingFormResponseId = routingFormResponse?.id ?? routingFormResponseId;
+    } else {
+      routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+        where: {
+          id: routingFormResponseId,
+        },
+        select: {
+          response: true,
+          form: {
+            select: {
+              routes: true,
+              fields: true,
+            },
+          },
+          chosenRouteId: true,
+        },
+      });
+    }
+  }
   const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
     hostname,
     forcedSlug,
