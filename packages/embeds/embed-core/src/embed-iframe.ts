@@ -355,7 +355,6 @@ export const methods = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
-    console.log("isLinkReadyReturnValue", isLinkReady({ embedStore }));
     // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
     // Embed background must still remain transparent
     runAsap(function tryInformingLinkReady() {

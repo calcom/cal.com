@@ -1010,6 +1010,8 @@ class CalApi {
         // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.com resources
         config["cal.skipSlotsFetch"] = "true";
       }
+    } else {
+      config["cal.embed.shownPrerenderedAt"] = Date.now().toString();
     }
 
     const configWithGuestKeyAndColorScheme = withColorScheme(
