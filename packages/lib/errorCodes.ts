@@ -18,5 +18,7 @@ export enum ErrorCode {
   CreatingOauthClientError = "creating_oauth_client_error",
   BookingTimeOutOfBounds = "booking_time_out_of_bounds_error",
   BookingConflict = "booking_conflict_error",
+  BookerLimitExceeded = "booker_limit_exceeded_error",
+  BookerLimitExceededReschedule = "booker_limit_exceeded_error_reschedule",
   InvalidLocationForEventType = "invalid_location_for_event_type_error",
 }

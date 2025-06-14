@@ -48,6 +48,7 @@ import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
 import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms.module";
 import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.controller";
+import { OrganizationTeamWorkflowsController } from "@/modules/organizations/teams/workflows/controllers/org-team-workflows.controller";
 import { OrganizationsUsersController } from "@/modules/organizations/users/index/controllers/organizations-users.controller";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { OrganizationsUsersService } from "@/modules/organizations/users/index/services/organizations-users-service";
@@ -65,8 +66,13 @@ import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-t
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
+import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
+import { TeamWorkflowsService } from "@/modules/workflows/services/team-workflows.service";
+import { WorkflowsInputService } from "@/modules/workflows/services/workflows.input.service";
+import { WorkflowsOutputService } from "@/modules/workflows/services/workflows.output.service";
+import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -130,6 +136,11 @@ import { Module } from "@nestjs/common";
     ZoomVideoService,
     Office365VideoService,
     TokensRepository,
+    TeamsVerifiedResourcesRepository,
+    WorkflowsRepository,
+    TeamWorkflowsService,
+    WorkflowsInputService,
+    WorkflowsOutputService,
   ],
   exports: [
     OrganizationsService,
@@ -165,6 +176,7 @@ import { Module } from "@nestjs/common";
     OrganizationsWebhooksController,
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
+    OrganizationTeamWorkflowsController,
   ],
 })
 export class OrganizationsModule {}
