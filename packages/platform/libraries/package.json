@@ -29,6 +29,11 @@
     "vite-plugin-environment": "^1.1.3"
   },
   "exports": {
+    "./workflows": {
+      "import": "./dist/workflows.js",
+      "require": "./dist/workflows.cjs",
+      "types": "./dist/workflows.d.ts"
+    },
     "./app-store": {
       "import": "./dist/app-store.js",
       "require": "./dist/app-store.cjs",
@@ -76,6 +81,9 @@
       ],
       "schedules": [
         "dist/schedules.d.ts"
+      ],
+      "workflows": [
+        "dist/workflows.d.ts"
       ]
     }
   }
