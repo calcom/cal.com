@@ -247,7 +247,7 @@ const _getTeamData = async (teamSlug: string, orgId: number | null) => {
 
 const getTeamData = unstable_cache(_getTeamData, ["team-data"], {
   tags: ["team"],
-  revalidate: 300,
+  revalidate: 300, // Cache for 5 minutes
 });
 
 const getEventTypeData = async (meetingSlug: string, teamId: number) => {
