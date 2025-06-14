@@ -599,7 +599,7 @@ async function handler(
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
   let routingFormResponse = null;
-  if (routedTeamMemberIds) {
+  if (routedTeamMemberIds || queuedFormResponse) {
     //routingFormResponseId could be 0 for dry run. So, we just avoid undefined value
     if (routingFormResponseId === undefined) {
       throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
@@ -611,10 +611,7 @@ async function handler(
         routingFormResponseId,
         bookerEmail
       );
-      if (!routingFormResponse) {
-        throw new HttpError({ statusCode: 400, message: "Missing routingFormResponse" });
-      }
-      routingFormResponseId = routingFormResponse.id;
+      routingFormResponseId = routingFormResponse?.id ?? routingFormResponseId;
     } else {
       routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
         where: {
@@ -632,21 +629,6 @@ async function handler(
         },
       });
     }
-  } else if (queuedFormResponse) {
-    if (routingFormResponseId === undefined) {
-      throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
-    }
-
-    // If we're not returning the response then we still need
-    // to update the routing form response id with the actual on
-    routingFormResponse = await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse(
-      routingFormResponseId,
-      bookerEmail
-    );
-    if (!routingFormResponse) {
-      throw new HttpError({ statusCode: 400, message: "Missing routingFormResponse" });
-    }
-    routingFormResponseId = routingFormResponse.id;
   }
   const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
     hostname,
