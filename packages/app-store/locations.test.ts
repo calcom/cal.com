@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
+
 import { getLocationValueForDB, type LocationObject } from "./locations";
 
 describe("getLocationValueForDB Security Fix", () => {
@@ -21,11 +23,11 @@ describe("getLocationValueForDB Security Fix", () => {
 
     expect(() => {
       getLocationValueForDB("phone", eventLocations);
-    }).toThrow("InvalidLocationForEventType: Location 'phone' is not allowed for this event type.");
+    }).toThrow(ErrorCode.InvalidLocationForEventType);
 
     expect(() => {
       getLocationValueForDB("inPerson", eventLocations);
-    }).toThrow("InvalidLocationForEventType: Location 'inPerson' is not allowed for this event type.");
+    }).toThrow(ErrorCode.InvalidLocationForEventType);
   });
 
   it("should handle empty location by using first available or default", () => {
