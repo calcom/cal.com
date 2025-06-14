@@ -43,7 +43,10 @@ async function findMatchingTeamMembersIdsForEventRRSegment(eventType: EventType)
     return null;
   }
 
-  const isSegmentationDisabled = !eventType.assignAllTeamMembers || !eventType.assignRRMembersUsingSegment;
+  // Enable segmentation when either:
+  // All team members are assigned AND segment routing is enabled
+  // Segment routing is enabled regardless of assign all team members
+  const isSegmentationDisabled = !eventType.assignRRMembersUsingSegment;
 
   if (isSegmentationDisabled) {
     return null;
@@ -186,6 +189,7 @@ export async function getNormalizedHostsWithDelegationCredentials<
 
 // We don't allow fixed hosts when segment matching is enabled
 // If this ever changes, we need to update this function and return fixed hosts
+// Segment matching supports both scenarios: assign all team members and manual assignment of specific members
 export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
   eventType,
   hosts,
