@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { prisma } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
@@ -39,12 +40,14 @@ const _handleResponse = async ({
   // formFillerId,
   chosenRouteId,
   isPreview,
+  queueFormResponse,
 }: {
   response: z.infer<typeof ZResponseInputSchema>["response"];
   form: Form;
   formFillerId: string;
   chosenRouteId: string | null;
   isPreview: boolean;
+  queueFormResponse?: boolean;
 }) => {
   try {
     if (!form.fields) {
@@ -185,25 +188,28 @@ const _handleResponse = async ({
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
-
     let dbFormResponse;
     if (!isPreview) {
-      dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
-        data: {
-          // TODO: Why do we not save formFillerId available in the input?
-          // formFillerId,
+      if (queueFormResponse) {
+        dbFormResponse = await RoutingFormResponseRepository.recordQueuedFormResponse({
           formId: form.id,
-          response: response,
+          response,
           chosenRouteId,
-        },
-      });
+        });
+      } else {
+        dbFormResponse = await RoutingFormResponseRepository.recordFormResponse({
+          formId: form.id,
+          response,
+          chosenRouteId,
+        });
 
-      await onFormSubmission(
-        { ...serializableFormWithFields, userWithEmails },
-        dbFormResponse.response as FormResponse,
-        dbFormResponse.id,
-        chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
-      );
+        await onFormSubmission(
+          { ...serializableFormWithFields, userWithEmails },
+          dbFormResponse.response as FormResponse,
+          dbFormResponse.id,
+          chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
+        );
+      }
     } else {
       moduleLogger.debug("Dry run mode - Form response not stored and also webhooks and emails not sent");
       // Create a mock response for dry run
@@ -216,7 +222,6 @@ const _handleResponse = async ({
         updatedAt: new Date(),
       };
     }
-
     return {
       isPreview: !!isPreview,
       formResponse: dbFormResponse,

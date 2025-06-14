@@ -2,14 +2,8 @@
 
 <head>
   <title>Embed Playground - Routing Form</title>
-  <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
-  <!-- <script src="./src/embed.ts" type="module"></script> -->
+  <script type="text/javascript" src="./playground/lib/playground-init.ts"></script>
   <script>
-    const url = new URL(document.URL);
-    window.only = url.searchParams.get("only")
-    window.calOrigin = url.searchParams.get("calOrigin") || "http://localhost:3000";
-    window.calLink = url.searchParams.get("calLink");
-
     if (!location.search.includes("nonResponsive")) {
       document.write('<meta name="viewport" content="width=device-width"/>');
     }
@@ -168,8 +162,68 @@
       });
     </script>
     </div>
+
+    <div id="cal-booking-routing-full-prerender">
+      <a href="?only=ns:routing-full-prerender">Prerender - Headless Router itself queuing the form response</a>
+
+      <div class="inline-embed-container">
+        <div id="cal-booking-place-routing-full-prerender">
+          <div class="place"></div>
+          <label for="cal-booking-place-routing-full-prerender-input-email">Email</label>
+          <script>
+            document.write(`<input style="width: 400px" type="email" id="cal-booking-place-routing-full-prerender-input-email" value="${window.params.email ?? ''}" />`)
+          </script>
+        </div>
+      </div>
+      <h3><script>
+        document.write(`<button id="cta-routing-full-prerender" data-cal-namespace="routingFormFullPrerender" data-cal-origin="${window.calOrigin}"  data-cal-link="router?form=56250726-d41d-4140-af43-551cac8892a5&email=${document.getElementById('cal-booking-place-routing-full-prerender-input-email').value}" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Demo</button>`)
+      </script></h3>
+      <script>
+        (()=>{
+          if (window.only !== "ns:routing-full-prerender") {
+            return;
+          }
+          Cal("init", "routingFormFullPrerender", {
+            debug: true,
+            calOrigin: window.calOrigin,
+          });
+        const prerender = (email) => {
+          Cal.ns.routingFormFullPrerender("prerender", {
+            // Email will be automatically passed as query param
+            calLink: `router?form=56250726-d41d-4140-af43-551cac8892a5&email=${email}`,
+            type: "modal",
+            pageType: "team.event.booking.slots",
+            options: {
+              slotsStaleTimeMs: 5 * 1000,
+              iframeForceReloadThresholdMs: 20 * 1000,
+            },
+          });
+        }
+        document.getElementById('cal-booking-place-routing-full-prerender-input-email').onchange = (e) => {
+          const element = e.target;
+          const email = element.validity.valid ? element.value : null;
+          if (!email) {
+            return;
+          }
+          function updateCtaLink(email) {
+            const element = document.getElementById('cta-routing-full-prerender');
+            const currentLink = element.getAttribute('data-cal-link');
+            const currentLinkObject = new URL(currentLink, 'https://example.com');
+            currentLinkObject.searchParams.set('email', email);
+            element.setAttribute('data-cal-link', currentLinkObject.pathname + currentLinkObject.search);
+          }
+          updateCtaLink(email);
+          prerender(email);
+        }
+        if (!window.params.email) {
+          alert('Pass param.email query param')
+        }
+        prerender(window.params.email);
+      })();
+      </script>
+    </div>
   </div>
-  <script type="module" src="./playground.ts"></script>
+  <script type="module" src="./playground/lib/playground.ts"></script>
   </script>
 </body>
 
