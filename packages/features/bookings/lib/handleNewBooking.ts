@@ -503,6 +503,20 @@ async function handler(
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
   });
 
+  const minPaymentNoticeHours = paymentAppData.minPaymentNoticeHours || 0;
+  if (minPaymentNoticeHours > 0) {
+    const bookingTime = dayjs(reqBody.start);
+    const currentTime = dayjs();
+    const hoursUntilBooking = bookingTime.diff(currentTime, "hours", true);
+
+    if (hoursUntilBooking < minPaymentNoticeHours) {
+      throw new HttpError({
+        statusCode: 400,
+        message: `Bookings with payment require at least ${minPaymentNoticeHours} hours notice`,
+      });
+    }
+  }
+
   const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
     eventType,
     bookingStartTime: reqBody.start,
