@@ -117,6 +117,7 @@ export class InputEventTypesService_2024_06_14 {
       seats,
       customName,
       useDestinationCalendarEmail,
+      disableGuests,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -126,7 +127,7 @@ export class InputEventTypesService_2024_06_14 {
       ...rest,
       length: lengthInMinutes,
       locations: locationsTransformed,
-      bookingFields: this.transformInputBookingFields(bookingFields),
+      bookingFields: this.transformInputBookingFields(bookingFields, disableGuests),
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -146,6 +147,7 @@ export class InputEventTypesService_2024_06_14 {
       ...this.transformInputSeatOptions(seats),
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
+      disableGuests,
     };
 
     return eventType;
@@ -167,6 +169,7 @@ export class InputEventTypesService_2024_06_14 {
       seats,
       customName,
       useDestinationCalendarEmail,
+      disableGuests,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -176,11 +179,32 @@ export class InputEventTypesService_2024_06_14 {
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
+    let processedBookingFields = undefined;
+    if (bookingFields) {
+      // If bookingFields are provided, transform them normally with disableGuests
+      processedBookingFields = this.transformInputBookingFields(bookingFields, disableGuests);
+    } else if (disableGuests !== undefined) {
+      // If only disableGuests is provided, get existing fields and update guests field hidden property
+      const existingEventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+      if (existingEventType?.bookingFields) {
+        const existingFields = Array.isArray(existingEventType.bookingFields)
+          ? existingEventType.bookingFields
+          : [];
+
+        processedBookingFields = existingFields.map((field: any) => {
+          if (field.name === "guests" || field.slug === "guests") {
+            return { ...field, hidden: disableGuests };
+          }
+          return field;
+        });
+      }
+    }
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
-      bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
+      bookingFields: processedBookingFields,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -201,6 +225,7 @@ export class InputEventTypesService_2024_06_14 {
       ...this.transformInputSeatOptions(seats),
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
+      disableGuests,
     };
 
     return eventType;
@@ -210,7 +235,10 @@ export class InputEventTypesService_2024_06_14 {
     return transformLocationsApiToInternal(inputLocations);
   }
 
-  transformInputBookingFields(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"]) {
+  transformInputBookingFields(
+    inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"],
+    disableGuests?: boolean
+  ) {
     const internalFields: (SystemField | CustomField)[] = inputBookingFields
       ? transformBookingFieldsApiToInternal(inputBookingFields)
       : [];
@@ -233,10 +261,20 @@ export class InputEventTypesService_2024_06_14 {
       systemCustomLocationField || systemBeforeFieldLocation,
     ];
 
+    const guestsField = systemCustomGuestsField
+      ? {
+          ...systemCustomGuestsField,
+          hidden: disableGuests !== undefined ? disableGuests : systemCustomGuestsField.hidden,
+        }
+      : {
+          ...systemAfterFieldGuests,
+          hidden: disableGuests ?? false,
+        };
+
     const defaultFieldsAfter = [
       systemCustomTitleField || systemAfterFieldTitle,
       systemCustomNotesField || systemAfterFieldNotes,
-      systemCustomGuestsField || systemAfterFieldGuests,
+      guestsField,
       systemCustomRescheduleReasonField || systemAfterFieldRescheduleReason,
     ];
 
