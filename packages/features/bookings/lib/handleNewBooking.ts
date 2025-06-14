@@ -410,6 +410,11 @@ async function handler(
     eventTypeSlug: rawBookingData.eventTypeSlug,
   });
 
+  // allow event owner to book/reschedule without minimumBookingNotice
+  if (eventType.userId && userId && eventType.userId == userId) {
+    eventType.minimumBookingNotice = 0;
+  }
+
   const bookingDataSchema = bookingDataSchemaGetter({
     view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
     bookingFields: eventType.bookingFields,
