@@ -30094,13 +30094,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ics@npm:^2.37.0":
+"ics@npm:2.37.0":
   version: 2.37.0
   resolution: "ics@npm:2.37.0"
   dependencies:
     nanoid: ^3.1.23
     yup: ^0.32.9
   checksum: d23c09ad89913cb8c7b8eabdcdf0f843c89116988cc8083ef64b696d13f47dd0f206d490edc731922f44b05a74fe481e2ff7a54dfd3f9d4c562033531d64eb1f
+  languageName: node
+  linkType: hard
+
+"ics@patch:ics@npm%3A2.37.0#./.yarn/patches/ics-npm-2.37.0-d364e937f2.patch::locator=calcom-monorepo%40workspace%3A.":
+  version: 2.37.0
+  resolution: "ics@patch:ics@npm%3A2.37.0#./.yarn/patches/ics-npm-2.37.0-d364e937f2.patch::version=2.37.0&hash=973164&locator=calcom-monorepo%40workspace%3A."
+  dependencies:
+    nanoid: ^3.1.23
+    yup: ^0.32.9
+  checksum: 0f6f91866adc988a223822a517e1afca599093a3369d6b2ac0c11a9336381efc7f7909160feff8b5fc5a2841ad216e89f28b2d72770a0cc900524be33d6b9036
   languageName: node
   linkType: hard
 

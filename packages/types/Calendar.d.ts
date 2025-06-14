@@ -42,6 +42,7 @@ export type Person = {
   timeFormat?: TimeFormat;
   bookingSeat?: BookingSeat | null;
   phoneNumber?: string | null;
+  scheduleAgent?: "CLIENT" | "SERVER" | "NONE"; // Add scheduleAgent property
 };
 
 export type TeamMember = {

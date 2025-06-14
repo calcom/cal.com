@@ -97,3 +97,9 @@ apps/auth
 !.yarn/sdks
 !.yarn/versions
 i18n.cache
+
+# AI Assistant
+.github/copilot-instructions.md
+
+# locally kept custom files
+/.local
