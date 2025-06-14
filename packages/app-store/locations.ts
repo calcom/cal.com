@@ -2,6 +2,8 @@ import type { TFunction } from "i18next";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
@@ -420,7 +422,7 @@ export const getLocationValueForDB = (
   }
 
   if (!isValidLocation && eventLocations.length > 0) {
-    throw new Error(`InvalidLocationForEventType: Location update is not allowed for this event type.`);
+    throw new ErrorWithCode(ErrorCode.InvalidLocationForEventType, ErrorCode.InvalidLocationForEventType);
   }
 
   return { bookingLocation, conferenceCredentialId };
