@@ -100,7 +100,9 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
-  if (!platformClientId && !cancellationReason && bookingToDelete.userId == userId) {
+  // Only require cancellation reason from hosts when cancelling the entire booking (not individual seats)
+  // If seatReferenceUid is provided, this is an individual seat cancellation and doesn't require a reason
+  if (!platformClientId && !cancellationReason && bookingToDelete.userId == userId && !seatReferenceUid) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
