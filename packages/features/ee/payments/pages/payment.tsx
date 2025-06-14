@@ -2,7 +2,6 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import prisma from "@calcom/prisma";
@@ -19,7 +18,6 @@ const querySchema = z.object({
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { uid } = querySchema.parse(context.query);
-  const { currentOrgDomain } = orgDomainConfig(context.req);
   const session = await getServerSession({ req: context.req });
 
   const rawPayment = await prisma.payment.findFirst({
