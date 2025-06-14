@@ -12,14 +12,17 @@ import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-
 import dayjs from "@calcom/dayjs";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import {
+  isTextFilterValue,
+  isNumberFilterValue,
+  isMultiSelectFilterValue,
+} from "@calcom/features/data-table/lib/utils";
 import type {
   RoutingFormResponsesInput,
   RoutingFormStatsInput,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-
-import { type ResponseValue, ZResponse } from "../lib/types";
 
 type RoutingFormInsightsTeamFilter = {
   userId?: number | null;
@@ -131,11 +134,11 @@ class RoutingEventsInsights {
       return null;
     }
 
-    const totalPromise = prisma.routingFormResponse.count({
+    const totalPromise = prisma.routingFormResponseDenormalized.count({
       where: whereClause,
     });
 
-    const totalWithoutBookingPromise = prisma.routingFormResponse.count({
+    const totalWithoutBookingPromise = prisma.routingFormResponseDenormalized.count({
       where: {
         ...whereClause,
         bookingUid: null,
@@ -225,23 +228,54 @@ class RoutingEventsInsights {
     const bookingUid = columnFilters.find((filter) => filter.id === "bookingUid") as
       | TypedColumnFilter<ColumnFilterType.TEXT>
       | undefined;
+    const bookingAttendees = columnFilters.find((filter) => filter.id === "bookingAttendees") as
+      | TypedColumnFilter<ColumnFilterType.TEXT>
+      | undefined;
 
-    const responseFilters = columnFilters.filter(
+    const fieldFilters = columnFilters.filter(
       (filter) =>
         filter.id !== "bookingStatusOrder" &&
         filter.id !== "bookingAssignmentReason" &&
-        filter.id !== "bookingUid"
+        filter.id !== "bookingUid" &&
+        filter.id !== "bookingAttendees"
     );
 
-    const whereClause: Prisma.RoutingFormResponseWhereInput = {
+    const fieldsWhereClause: Prisma.RoutingFormResponseFieldWhereInput[] = fieldFilters
+      .map((fieldFilter): Prisma.RoutingFormResponseFieldWhereInput | null => {
+        let columnName: "valueString" | "valueNumber" | "valueStringArray" | undefined = undefined;
+        if (isTextFilterValue(fieldFilter.value)) {
+          columnName = "valueString";
+        } else if (isNumberFilterValue(fieldFilter.value)) {
+          columnName = "valueNumber";
+        } else if (isMultiSelectFilterValue(fieldFilter.value)) {
+          columnName = "valueStringArray";
+        }
+        if (!columnName) {
+          return null;
+        }
+        return {
+          fieldId: fieldFilter.id,
+          ...makeWhereClause({
+            columnName,
+            filterValue: fieldFilter.value,
+          }),
+        };
+      })
+      .filter((filter): filter is Prisma.RoutingFormResponseFieldWhereInput => filter !== null);
+
+    const whereClause: Prisma.RoutingFormResponseDenormalizedWhereInput = {
       ...(formsTeamWhereCondition.id !== undefined && {
-        formId: formsTeamWhereCondition.id as string | Prisma.StringFilter<"RoutingFormResponse">,
+        formId: formsTeamWhereCondition.id as string | Prisma.StringFilter<"RoutingFormResponseDenormalized">,
       }),
       ...(formsTeamWhereCondition.teamId !== undefined && {
-        formTeamId: formsTeamWhereCondition.teamId as number | Prisma.IntFilter<"RoutingFormResponse">,
+        formTeamId: formsTeamWhereCondition.teamId as
+          | number
+          | Prisma.IntFilter<"RoutingFormResponseDenormalized">,
       }),
       ...(formsTeamWhereCondition.userId !== undefined && {
-        formUserId: formsTeamWhereCondition.userId as number | Prisma.IntFilter<"RoutingFormResponse">,
+        formUserId: formsTeamWhereCondition.userId as
+          | number
+          | Prisma.IntFilter<"RoutingFormResponseDenormalized">,
       }),
 
       // bookingStatus
@@ -251,7 +285,7 @@ class RoutingEventsInsights {
       // bookingAssignmentReason
       ...(assignmentReasonValue &&
         makeWhereClause({
-          columnName: "bookingAssignmentReasonLowercase",
+          columnName: "bookingAssignmentReason",
           filterValue: assignmentReasonValue,
         })),
 
@@ -274,18 +308,37 @@ class RoutingEventsInsights {
           filterValue: bookingUid.value,
         })),
 
-      // AND clause
-      ...(responseFilters.length > 0 && {
-        AND: responseFilters.map((fieldFilter) => {
-          return makeWhereClause({
-            columnName: "responseLowercase",
-            filterValue: getLowercasedFilterValue(fieldFilter),
-            json: { path: [fieldFilter.id, "value"] },
-          });
-        }),
+      ...(bookingAttendees && {
+        booking: {
+          // attendees
+          ...(bookingAttendees && {
+            attendees: {
+              some: {
+                OR: [
+                  makeWhereClause({
+                    columnName: "name",
+                    filterValue: bookingAttendees.value,
+                  }),
+                  makeWhereClause({
+                    columnName: "email",
+                    filterValue: bookingAttendees.value,
+                  }),
+                ],
+              },
+            },
+          }),
+        },
+      }),
+
+      // fields
+      ...(fieldsWhereClause.length > 0 && {
+        AND: fieldsWhereClause.map((clause) => ({
+          fields: {
+            some: clause,
+          },
+        })),
       }),
     };
-
     return whereClause;
   }
 
@@ -316,11 +369,11 @@ class RoutingEventsInsights {
       sorting,
     });
 
-    const totalResponsePromise = prisma.routingFormResponse.count({
+    const totalResponsePromise = prisma.routingFormResponseDenormalized.count({
       where: whereClause,
     });
 
-    const responsesPromise = prisma.routingFormResponse.findMany({
+    const responsesPromise = prisma.routingFormResponseDenormalized.findMany({
       select: {
         id: true,
         response: true,
@@ -330,7 +383,25 @@ class RoutingEventsInsights {
         bookingStatus: true,
         bookingStatusOrder: true,
         bookingCreatedAt: true,
-        bookingAttendees: true,
+        booking: {
+          select: {
+            attendees: {
+              select: {
+                name: true,
+                timeZone: true,
+                email: true,
+              },
+            },
+          },
+        },
+        fields: {
+          select: {
+            fieldId: true,
+            valueString: true,
+            valueNumber: true,
+            valueStringArray: true,
+          },
+        },
         bookingUserId: true,
         bookingUserName: true,
         bookingUserEmail: true,
@@ -353,18 +424,9 @@ class RoutingEventsInsights {
 
     const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
 
-    type Response = Omit<
-      (typeof responses)[number],
-      "response" | "responseLowercase" | "bookingAttendees"
-    > & {
-      response: Record<string, ResponseValue>;
-      responseLowercase: Record<string, ResponseValue>;
-      bookingAttendees?: { name: string; email: string; timeZone: string }[];
-    };
-
     return {
       total: totalResponses,
-      data: responses as Response[],
+      data: responses,
     };
   }
 
@@ -407,26 +469,27 @@ class RoutingEventsInsights {
     const [headers, data] = await Promise.all([headersPromise, dataPromise]);
 
     const dataWithFlatResponse = data.data.map((item) => {
-      const { bookingAttendees } = item;
-      const responseParseResult = ZResponse.safeParse(item.response);
-      const response = responseParseResult.success ? responseParseResult.data : {};
+      const bookingAttendees = item.booking?.attendees || [];
 
       const fields = (headers || []).reduce((acc, header) => {
         const id = header.id;
-        if (!response[id]) {
+        const field = item.fields.find((field) => field.fieldId === id);
+        if (!field) {
           acc[header.label] = "";
           return acc;
         }
         if (header.type === "select") {
-          acc[header.label] = header.options?.find((option) => option.id === response[id].value)?.label;
-        } else if (header.type === "multiselect" && Array.isArray(response[id].value)) {
-          acc[header.label] = (response[id].value as string[])
+          acc[header.label] = header.options?.find((option) => option.id === field.valueString)?.label;
+        } else if (header.type === "multiselect" && Array.isArray(field.valueStringArray)) {
+          acc[header.label] = field.valueStringArray
             .map((value) => header.options?.find((option) => option.id === value)?.label)
             .filter((label): label is string => label !== undefined)
             .sort()
             .join(", ");
+        } else if (header.type === "number") {
+          acc[header.label] = field.valueNumber || "";
         } else {
-          acc[header.label] = response[id].value as string;
+          acc[header.label] = field.valueString || "";
         }
         return acc;
       }, {} as Record<string, string | undefined>);
@@ -442,9 +505,9 @@ class RoutingEventsInsights {
         "Booking Created At": item.bookingCreatedAt?.toISOString() || "",
         "Booking Start Time": item.bookingStartTime?.toISOString() || "",
         "Booking End Time": item.bookingEndTime?.toISOString() || "",
-        "Attendee Name": (bookingAttendees as any)?.[0]?.name,
-        "Attendee Email": (bookingAttendees as any)?.[0]?.email,
-        "Attendee Timezone": (bookingAttendees as any)?.[0]?.timeZone,
+        "Attendee Name": bookingAttendees?.[0]?.name,
+        "Attendee Email": bookingAttendees?.[0]?.email,
+        "Attendee Timezone": bookingAttendees?.[0]?.timeZone,
         "Assignment Reason": item.bookingAssignmentReason || "",
         "Routed To Name": item.bookingUserName || "",
         "Routed To Email": item.bookingUserEmail || "",
