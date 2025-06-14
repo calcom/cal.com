@@ -32,7 +32,7 @@ interface WorkerResult {
 
 @Injectable()
 export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
-  private readonly logger = new Logger(SlotsWorkerService_2024_04_15.name);
+  private readonly logger = new Logger("SlotsWorkerService_2024_04_15");
   private readonly workerPool: Worker[] = [];
   private readonly maxWorkers: number;
   private readonly taskQueue: Array<{
@@ -94,8 +94,26 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
    */
   private handleWorkerFailure(failedWorker: Worker): void {
     // Remove the failed worker from both pools
+    this.logger.error(`Handling Worker ${failedWorker.threadId} failure`);
     this.workerPool.splice(this.workerPool.indexOf(failedWorker), 1);
     this.availableWorkers = this.availableWorkers.filter((w) => w !== failedWorker);
+
+    try {
+      failedWorker
+        .terminate()
+        .then(() => {
+          this.logger.log(`Terminated failed worker ${failedWorker.threadId}`);
+        })
+        .catch((err) => {
+          this.logger.error(`Error terminating failed worker ${failedWorker.threadId}: ${err?.message}`);
+        });
+    } catch (error) {
+      this.logger.error(
+        `Failed to invoke terminate method on failed worker ${failedWorker.threadId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
 
     // Attempt to create a new worker to replace the failed one
     try {
