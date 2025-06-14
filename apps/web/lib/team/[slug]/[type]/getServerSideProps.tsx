@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig, getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -175,69 +175,70 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 };
 
 const getOrgId = async (orgSlug: string): Promise<number | null> => {
-  // Use unique index for published orgs
-  const publishedOrg = await prisma.team.findUnique({
+  const org = await prisma.team.findFirst({
     where: {
-      slug_parentId: {
-        slug: orgSlug,
-        parentId: null as any,
-      },
-    },
-    select: { id: true },
-  });
-
-  if (publishedOrg) return publishedOrg.id;
-
-  const unpublishedOrg = await prisma.team.findFirst({
-    where: {
-      metadata: {
-        path: ["requestedSlug"],
-        equals: orgSlug,
-      },
+      ...getSlugOrRequestedSlug(orgSlug),
       parentId: null,
+      isOrganization: true,
     },
     select: { id: true },
   });
-  if (unpublishedOrg) return unpublishedOrg.id;
 
-  return null;
+  return org?.id ?? null;
 };
 
-const getTeamData = async (teamSlug: string, parentId: number | null) => {
-  return await prisma.team.findUnique({
-    where: {
-      slug_parentId: {
-        slug: teamSlug,
-        parentId: parentId as any,
-      },
-    },
-    select: {
-      id: true,
-      isPrivate: true,
-      hideBranding: true,
-      logoUrl: true,
-      name: true,
-      slug: true,
-      isOrganization: true,
-      parent: {
-        select: {
-          slug: true,
-          name: true,
-          bannerUrl: true,
-          logoUrl: true,
-          hideBranding: true,
-          organizationSettings: {
-            select: {
-              allowSEOIndexing: true,
-            },
+const getTeamData = async (teamSlug: string, orgId: number | null) => {
+  const teamSelectFields = {
+    id: true,
+    isPrivate: true,
+    hideBranding: true,
+    logoUrl: true,
+    name: true,
+    slug: true,
+    isOrganization: true,
+    parent: {
+      select: {
+        slug: true,
+        name: true,
+        bannerUrl: true,
+        logoUrl: true,
+        hideBranding: true,
+        organizationSettings: {
+          select: {
+            allowSEOIndexing: true,
           },
         },
       },
-      organizationSettings: {
-        select: {
-          allowSEOIndexing: true,
-        },
+    },
+    organizationSettings: {
+      select: {
+        allowSEOIndexing: true,
       },
+    },
+  };
+
+  if (orgId !== null) {
+    return await prisma.team.findUnique({
+      where: {
+        slug_parentId: {
+          slug: teamSlug,
+          parentId: orgId,
+        },
+        isOrganization: false,
+      },
+      select: teamSelectFields,
+    });
+  }
+
+  return await prisma.team.findFirst({
+    where: {
+      slug: teamSlug,
+      parentId: null,
+      isOrganization: false,
+    },
+    select: teamSelectFields,
+    orderBy: {
+      slug: { sort: "asc", nulls: "last" },
     },
   });
 };
