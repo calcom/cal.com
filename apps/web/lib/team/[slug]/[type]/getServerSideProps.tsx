@@ -1,4 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
+import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -29,7 +30,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req, params, query } = context;
   const session = await getServerSession({ req });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
-  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
+  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting } = query;
   const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
@@ -40,6 +41,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       redirectType: RedirectType.Team,
       eventTypeSlug: meetingSlug,
       currentQuery: context.query,
+      prismaClient: prisma,
     });
 
     if (redirect) {
@@ -187,7 +189,7 @@ const getOrgId = async (orgSlug: string): Promise<number | null> => {
   return org?.id ?? null;
 };
 
-const getTeamData = async (teamSlug: string, orgId: number | null) => {
+const _getTeamData = async (teamSlug: string, orgId: number | null) => {
   const teamSelectFields = {
     id: true,
     isPrivate: true,
@@ -242,6 +244,11 @@ const getTeamData = async (teamSlug: string, orgId: number | null) => {
     },
   });
 };
+
+const getTeamData = unstable_cache(_getTeamData, ["team-data"], {
+  tags: ["team"],
+  revalidate: 300,
+});
 
 const getEventTypeData = async (meetingSlug: string, teamId: number) => {
   return await prisma.eventType.findUnique({
