@@ -1,5 +1,4 @@
 import type { GetServerSidePropsContext } from "next";
-import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -188,7 +187,7 @@ const getOrgId = async (orgSlug: string): Promise<number | null> => {
   return org?.id ?? null;
 };
 
-const _getTeamData = async (teamSlug: string, orgId: number | null) => {
+const getTeamData = async (teamSlug: string, orgId: number | null) => {
   const teamSelectFields = {
     id: true,
     isPrivate: true,
@@ -252,11 +251,6 @@ const _getTeamData = async (teamSlug: string, orgId: number | null) => {
     },
   });
 };
-
-const getTeamData = unstable_cache(_getTeamData, ["team-data"], {
-  tags: ["team"],
-  revalidate: 300, // Cache for 5 minutes
-});
 
 const getEventTypeData = async (meetingSlug: string, teamId: number) => {
   return await prisma.eventType.findUnique({
