@@ -120,13 +120,13 @@ export const AvailabilitySettingsPlatformWrapper = ({
     }
   };
 
-  if (isLoading) {
-    return (
-      <>
-        {loadingStateChildren ? loadingStateChildren : <div className="px-10 py-4 text-xl">Loading...</div>}
-      </>
-    );
-  }
+if (isLoading) {
+  return (
+    <AtomsWrapper>
+      {loadingStateChildren || <div className="px-10 py-4 text-xl">Loading...</div>}
+    </AtomsWrapper>
+  );
+}
 
   if (!atomSchedule) {
     return noScheduleChildren ? (
