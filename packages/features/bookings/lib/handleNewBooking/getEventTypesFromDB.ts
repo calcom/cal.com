@@ -125,6 +125,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       hosts: {
         select: {
           isFixed: true,
+          isOrganizer: true,
           priority: true,
           weight: true,
           createdAt: true,
