@@ -4,7 +4,10 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
-import { orgDomainConfig, getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
+import {
+  orgDomainConfig,
+  whereClauseForOrgWithSlugOrRequestedSlug,
+} from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -178,11 +181,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
 const getOrgId = async (orgSlug: string): Promise<number | null> => {
   const org = await prisma.team.findFirst({
-    where: {
-      ...getSlugOrRequestedSlug(orgSlug),
-      parentId: null,
-      isOrganization: true,
-    },
+    where: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
     select: { id: true },
   });
 
@@ -220,7 +219,7 @@ const _getTeamData = async (teamSlug: string, orgId: number | null) => {
   };
 
   if (orgId !== null) {
-    return await prisma.team.findUnique({
+    const publishedTeam = await prisma.team.findUnique({
       where: {
         slug_parentId: {
           slug: teamSlug,
@@ -230,13 +229,22 @@ const _getTeamData = async (teamSlug: string, orgId: number | null) => {
       },
       select: teamSelectFields,
     });
+    if (publishedTeam) return publishedTeam;
   }
 
   return await prisma.team.findFirst({
     where: {
-      slug: teamSlug,
-      parentId: null,
+      parentId: orgId ?? null,
       isOrganization: false,
+      OR: [
+        { slug: teamSlug },
+        {
+          metadata: {
+            path: ["requestedSlug"],
+            equals: teamSlug,
+          },
+        },
+      ],
     },
     select: teamSelectFields,
     orderBy: {
