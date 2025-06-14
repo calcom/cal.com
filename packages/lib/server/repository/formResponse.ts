@@ -50,7 +50,11 @@ export class RoutingFormResponseRepository {
     });
   }
 
-  static async writeQueuedFormResponseToFormResponse(queuedFormResponseId: number, bookerEmail: string) {
+  static async writeQueuedFormResponseToFormResponse(
+    queuedFormResponseId: number,
+    bookerEmail: string,
+    createdAt: Date
+  ) {
     const log = logger.getSubLogger({
       prefix: [`[writeQueuedFormResponseToFormResponse]: ${bookerEmail}`],
     });
@@ -73,7 +77,10 @@ export class RoutingFormResponseRepository {
           },
         }),
         prisma.app_RoutingForms_FormResponse.create({
-          data: this.generateCreateFormResponseData(queuedResponse),
+          data: {
+            ...this.generateCreateFormResponseData(queuedResponse),
+            createdAt,
+          },
           select: this.newBookingResponseSelect,
         }),
       ]);
