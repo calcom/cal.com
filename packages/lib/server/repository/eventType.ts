@@ -531,6 +531,7 @@ export class EventTypeRepository {
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       maxActiveBookingsPerBooker: true,
+      maxActiveBookingPerBookerOfferReschedule: true,
       assignAllTeamMembers: true,
       allowReschedulingPastBookings: true,
       hideOrganizerEmail: true,
