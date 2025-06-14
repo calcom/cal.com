@@ -1,7 +1,7 @@
-import { getServerSession } from "auth/lib/getServerSession";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
