@@ -420,9 +420,7 @@ export const getLocationValueForDB = (
   }
 
   if (!isValidLocation && eventLocations.length > 0) {
-    throw new Error(
-      `InvalidLocationForEventType: Location '${bookingLocationTypeOrValue}' is not allowed for this event type.`
-    );
+    throw new Error(`InvalidLocationForEventType: Location update is not allowed for this event type.`);
   }
 
   return { bookingLocation, conferenceCredentialId };
