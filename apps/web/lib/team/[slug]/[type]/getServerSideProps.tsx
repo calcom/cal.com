@@ -280,7 +280,6 @@ const getEventTypeData = async (meetingSlug: string, teamId: number) => {
             select: {
               name: true,
               username: true,
-              email: true,
             },
           },
         },
@@ -299,7 +298,7 @@ const getEventTypeData = async (meetingSlug: string, teamId: number) => {
 
 const getEventHosts = (
   isPrivateTeam: boolean,
-  hosts: Pick<User, "username" | "name" | "email">[],
+  hosts: Pick<User, "username" | "name">[],
   users: Pick<User, "username" | "name">[]
 ) => {
   if (!isPrivateTeam && hosts.length > 0) {
