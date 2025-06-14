@@ -65,7 +65,11 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
     updatedUser = setupDefault;
   }
 
-  if (!input.name) {
+  if (input.name !== undefined && input.name.trim().length === 0) {
+    throw new Error("Schedule name cannot be empty");
+  }
+
+  if (input.name === undefined && !input.schedule && !input.timeZone) {
     // TODO: Improve
     // We don't want to pass the full schedule for just a set as default update
     // but in the current logic, this wipes the existing availability.

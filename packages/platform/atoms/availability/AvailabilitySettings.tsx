@@ -311,6 +311,15 @@ export function AvailabilitySettings({
         <Controller
           control={form.control}
           name="name"
+          rules={{
+            required: t("error_required_field"),
+            validate: (value) => {
+              if (!value || value.trim().length === 0) {
+                return t("error_required_field");
+              }
+              return true;
+            },
+          }}
           render={({ field }) => (
             <EditableHeading
               className={cn(customClassNames?.editableHeadingClassName)}
