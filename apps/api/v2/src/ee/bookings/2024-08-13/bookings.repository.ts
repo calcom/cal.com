@@ -169,13 +169,4 @@ export class BookingsRepository_2024_08_13 {
       },
     });
   }
-
-  async updateBooking(bookingUid: string, body: Prisma.BookingUpdateInput) {
-    return this.dbWrite.prisma.booking.update({
-      where: {
-        uid: bookingUid,
-      },
-      data: body,
-    });
-  }
 }
