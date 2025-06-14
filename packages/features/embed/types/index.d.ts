@@ -51,6 +51,8 @@ export type PreviewState = {
   };
   hideEventTypeDetails: boolean;
   layout: BookerLayouts;
+  hideBranding?: boolean;
+  confirmButtonDisabled?: boolean;
 };
 
 export type EmbedFramework = "react" | "react-atom" | "HTML";
