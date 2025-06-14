@@ -63,41 +63,17 @@ export type ZoomUserSettings = z.infer<typeof zoomUserSettingsSchema>;
 
 /** @link https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings */
 export const zoomUserSettingsSchema = z.object({
-  recording: z
-    .object({
-      auto_recording: z.string().optional(),
-    })
-    .optional(),
-  schedule_meeting: z
-    .object({
-      default_password_for_scheduled_meetings: z.string().optional(),
-    })
-    .optional(),
-  in_meeting: z
-    .object({
-      meeting_summary_with_ai_companion: z
-        .object({
-          enable: z.boolean().optional(),
-          auto_enable: z.boolean().optional(),
-          who_will_receive_summary: z.number().optional(),
-          enable_summary_template: z.boolean().optional(),
-          summary_template_id: z.string().optional(),
-        })
-        .optional(),
-      ai_companion_questions: z
-        .object({
-          enable: z.boolean().optional(),
-          auto_enable: z.boolean().optional(),
-          who_can_ask_questions: z.number().optional(),
-        })
-        .optional(),
-    })
-    .optional(),
+  recording: z.object({
+    auto_recording: z.string(),
+  }),
+  schedule_meeting: z.object({
+    default_password_for_scheduled_meetings: z.string(),
+  }),
 });
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
 // append comma separated settings here, to retrieve only these specific settings
-const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording,in_meeting";
+const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording";
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -200,10 +176,6 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         auto_recording: userSettings?.recording?.auto_recording || "none",
         enforce_login: false,
         registrants_email_notification: true,
-        auto_start_meeting_summary:
-          userSettings?.in_meeting?.meeting_summary_with_ai_companion?.auto_enable ?? false,
-        auto_start_ai_companion_questions:
-          userSettings?.in_meeting?.ai_companion_questions?.auto_enable ?? false,
       },
       ...recurrence,
     };
