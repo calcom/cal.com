@@ -1,4 +1,4 @@
-import type { GlobalCal, EmbedEvent } from "./src/embed";
+import type { GlobalCal, EmbedEvent } from "../../src/embed";
 
 const Cal = window.Cal as GlobalCal;
 Cal.config = Cal.config || {};
