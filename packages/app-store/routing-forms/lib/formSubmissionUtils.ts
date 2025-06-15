@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/client";
 
-import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
@@ -37,7 +36,6 @@ export const onSubmissionOfFormResponse = async ({
     value: string;
   } | null;
 }) => {
-  logger.debug("onSubmissionOfFormResponse", { form, formResponseInDb, chosenRouteAction });
   if (!form.fields) {
     // There is no point in submitting a form that doesn't have fields defined
     throw new TRPCError({

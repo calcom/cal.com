@@ -478,7 +478,6 @@ describe("Cal", () => {
               arg: {
                 config: {
                   ...expectedConfigAfterPrefilling,
-                  "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
                 },
                 params: {},
               },
@@ -602,7 +601,6 @@ describe("Cal", () => {
               arg: {
                 config: {
                   ...expectedConfigAfterPrefilling,
-                  "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
                 },
                 params: {},
               },
@@ -638,7 +636,6 @@ describe("Cal", () => {
                 pathname: `/${modalArg.calLink}`,
                 searchParams: new URLSearchParams({
                   ...expectedConfigAfterPrefilling,
-                  "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
                 }),
                 origin: null,
               },
@@ -737,7 +734,6 @@ describe("Cal", () => {
                 arg: {
                   config: {
                     ...configWithPrefilledValues,
-                    "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
                   },
                   params: {},
                 },
@@ -825,7 +821,6 @@ describe("Cal", () => {
                 pathname: headlessRouterRedirectUrlWithPathOnly,
                 searchParams: new URLSearchParams({
                   ...configWithPrefilledValuesAndHeadlessRouterRedirectParams,
-                  "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
                 }),
                 origin: null,
               },

@@ -390,6 +390,7 @@ export const methods = {
       ...queryParamsFromConfig
     } = config;
 
+    // We can convert queuedFormResponse to routingFormResponse now as the user actually opened the modal which is confirmed by this connect method call
     const convertedRoutingFormResponseId = await convertQueuedFormResponseToRoutingFormResponse();
 
     if (noSlotsFetchOnConnect !== "true") {
@@ -410,12 +411,11 @@ export const methods = {
       "cal.embed.connectVersion": connectVersion.toString(),
       // Update the cal.routingFormResponseId with the new routingFormResponseId
       ...(convertedRoutingFormResponseId
-        ? { "cal.routingFormResponseId": convertedRoutingFormResponseId }
+        ? { "cal.routingFormResponseId": convertedRoutingFormResponseId.toString() }
         : {}),
     };
 
     (function tryToConnect() {
-      console.log("embedStore.renderState", embedStore.renderState);
       if (embedStore.renderState !== "completed") {
         runAsap(tryToConnect);
         return;

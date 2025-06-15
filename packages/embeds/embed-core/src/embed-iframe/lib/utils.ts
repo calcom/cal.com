@@ -28,6 +28,9 @@ export function isLinkReady({ embedStore }: { embedStore: typeof import("./embed
   return true;
 }
 
+/**
+ * Moves the queuedFormResponse to the routingFormResponse record to mark it as an actual response now.
+ */
 export const convertQueuedFormResponseToRoutingFormResponse = async () => {
   const url = new URL(document.URL);
   let convertedRoutingFormResponseId: string | null = null;

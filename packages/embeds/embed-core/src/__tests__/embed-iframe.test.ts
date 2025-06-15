@@ -24,7 +24,7 @@ function mockDocumentUrl(url: URL | string) {
 }
 
 afterEach(() => {
-  vi.resetAllMocks();
+  vi.clearAllMocks();
   vi.resetModules();
   vi.useRealTimers();
 });
@@ -250,6 +250,8 @@ describe("methods", async () => {
   let methods: typeof import("../embed-iframe").methods;
   let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore;
   let isLinkReadyMock: ReturnType<typeof vi.fn> | undefined;
+  let ensureQueryParamsInUrlMock: ReturnType<typeof vi.fn> | undefined;
+  let convertQueuedFormResponseToRoutingFormResponseMock: ReturnType<typeof vi.fn> | undefined;
   beforeEach(async () => {
     vi.useFakeTimers();
     fakeCurrentDocumentUrl();
@@ -258,6 +260,7 @@ describe("methods", async () => {
       return {
         ...actual,
         isLinkReady: isLinkReadyMock,
+        convertQueuedFormResponseToRoutingFormResponse: convertQueuedFormResponseToRoutingFormResponseMock,
       };
     });
     vi.doMock("../embed-iframe/lib/embedStore", async (importOriginal) => {
@@ -268,34 +271,33 @@ describe("methods", async () => {
         embedStore: {
           ...actual.embedStore,
           router: {
-            ensureQueryParamsInUrl: vi.fn().mockImplementation(() => {
-              console.log("Mocked embedStore.router.ensureQueryParamsInUrl called");
-              return {
-                stopEnsuringQueryParamsInUrl: vi.fn(),
-              };
-            }),
+            ensureQueryParamsInUrl: ensureQueryParamsInUrlMock,
           },
         },
       };
     });
     isLinkReadyMock = vi.fn();
-
+    ensureQueryParamsInUrlMock = vi.fn().mockImplementation(() => {
+      return {
+        stopEnsuringQueryParamsInUrl: vi.fn(),
+      };
+    });
+    convertQueuedFormResponseToRoutingFormResponseMock = vi.fn();
     ({ methods } = await import("../embed-iframe"));
     ({ embedStore } = await import("../embed-iframe/lib/embedStore"));
   });
 
-  describe("methods.connect", () => {
-    it("should ensure that 'cal.embed.connectVersion' is incremented in query params", () => {
+  describe("methods.connect", async () => {
+    it("should ensure that 'cal.embed.connectVersion' is incremented in query params", async () => {
       embedStore.renderState = "completed";
       const currentConnectVersion = 1;
       embedStore.connectVersion = currentConnectVersion;
-      console.log("FIRST:embedStore.router.ensureQueryParamsInUrl", embedStore.router.ensureQueryParamsInUrl);
       fakeCurrentDocumentUrl({ params: { "cal.embed.connectVersion": "1" } });
-      methods.connect({
+      await methods.connect({
         config: {},
         params: {},
       });
-      expect(embedStore.router.ensureQueryParamsInUrl).toHaveBeenCalledWith({
+      expect(ensureQueryParamsInUrlMock).toHaveBeenCalledWith({
         toBeThereParams: {
           "cal.embed.connectVersion": (currentConnectVersion + 1).toString(),
         },
@@ -303,16 +305,12 @@ describe("methods", async () => {
       });
     });
 
-    it("should ensure that 'cal.embed.connectVersion' is not incremented in query params when 'cal.embed.noSlotsFetchOnConnect' is true", () => {
+    it("should ensure that 'cal.embed.connectVersion' is not incremented in query params when 'cal.embed.noSlotsFetchOnConnect' is true", async () => {
       embedStore.renderState = "completed";
       const currentConnectVersion = 1;
       embedStore.connectVersion = currentConnectVersion;
-      console.log(
-        "SECOND:embedStore.router.ensureQueryParamsInUrl",
-        embedStore.router.ensureQueryParamsInUrl
-      );
       fakeCurrentDocumentUrl({ params: { "cal.embed.connectVersion": "1" } });
-      methods.connect({
+      await methods.connect({
         config: {
           "cal.embed.noSlotsFetchOnConnect": "true",
         },
@@ -321,6 +319,32 @@ describe("methods", async () => {
       expect(embedStore.router.ensureQueryParamsInUrl).toHaveBeenCalledWith({
         toBeThereParams: {
           "cal.embed.connectVersion": currentConnectVersion.toString(),
+        },
+        toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
+      });
+    });
+
+    it("should set/update 'cal.routingFormResponseId' if the current iframe has 'cal.queuedFormResponse' in the query params", async () => {
+      embedStore.renderState = "completed";
+      const currentConnectVersion = 1;
+      embedStore.connectVersion = currentConnectVersion;
+      fakeCurrentDocumentUrl({
+        params: {
+          "cal.queuedFormResponse": "true",
+          "cal.routingFormResponseId": "1",
+          "cal.embed.connectVersion": currentConnectVersion.toString(),
+        },
+      });
+      const convertedRoutingFormResponseId = 101;
+      convertQueuedFormResponseToRoutingFormResponseMock.mockResolvedValue(convertedRoutingFormResponseId);
+      await methods.connect({
+        config: {},
+        params: {},
+      });
+      expect(embedStore.router.ensureQueryParamsInUrl).toHaveBeenCalledWith({
+        toBeThereParams: {
+          "cal.embed.connectVersion": (currentConnectVersion + 1).toString(),
+          "cal.routingFormResponseId": convertedRoutingFormResponseId.toString(),
         },
         toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
       });

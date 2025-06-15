@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z, ZodError } from "zod";
 
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
@@ -15,7 +15,7 @@ const useQueuedResponseSchema = z.object({
 
 const useQueuedResponseHandler = async ({ queuedFormResponseId }: { queuedFormResponseId: number }) => {
   // Get the queued response
-  const queuedFormResponse = await prisma.App_RoutingForms_QueuedFormResponse.findUnique({
+  const queuedFormResponse = await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
     where: {
       id: queuedFormResponseId,
     },
@@ -49,18 +49,17 @@ const useQueuedResponseHandler = async ({ queuedFormResponseId }: { queuedFormRe
     form: queuedFormResponse.form,
   });
 
-  const formResponse = await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse(
+  const formResponse = await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse({
     queuedFormResponseId,
-    queuedFormResponse.formFillerEmail,
-    new Date()
-  );
+    createdAt: new Date(),
+  });
 
   if (!formResponse) {
     logger.error("Failed to write queued response to form response");
     throw new Error("Failed to write queued response to form response");
   }
 
-  const chosenRoute = queuedFormResponse.form.routes?.find((r) => r.id === queuedFormResponse.chosenRouteId);
+  const chosenRoute = serializableForm.routes?.find((r) => r.id === queuedFormResponse.chosenRouteId);
   await onSubmissionOfFormResponse({
     form: serializableForm,
     formResponseInDb: formResponse,
@@ -82,11 +81,11 @@ export default defaultHandler({
 
         return res.status(200).json({ status: "success", data: result });
       } catch (error) {
-        if (error.name === "ZodError") {
+        if (error instanceof ZodError) {
           logger.error("Invalid input", safeStringify(error));
           return res.status(400).json({
             status: "error",
-            data: { message: "Invalid input", errors: error.errors },
+            data: { message: "Invalid input" },
           });
         }
 
