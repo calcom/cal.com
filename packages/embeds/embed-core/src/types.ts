@@ -67,6 +67,8 @@ export type KnownConfig = {
   // Prefixing with cal.embed because there could be more query params that aren't required by embed and are used for things like prefilling booking form, configuring dry run, and some other params simply to be forwarded to the booking success redirect URL.
   // There are some cal. prefixed query params as well, not meant for embed specifically, but in general for cal.com
   "cal.embed.pageType"?: EmbedPageType;
+  // Enable optimistic loading - allows embed to show immediately while schedule data loads in background
+  enableOptimisticLoad?: boolean;
 };
 
 export type EmbedBookerState =
