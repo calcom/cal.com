@@ -41,6 +41,7 @@ export const useTabsNavigations = ({
   const watchChildrenCount = formMethods.watch("children").length;
   const availability = formMethods.watch("availability");
   const appsMetadata = formMethods.getValues("metadata")?.apps;
+  const formHosts = formMethods.watch("hosts");
 
   const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType,
@@ -118,6 +119,14 @@ export const useTabsNavigations = ({
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
         }`,
         "data-testid": "assignment",
+        badge:
+          !formHosts || formHosts.length === 0
+            ? {
+                text: t("add_host"),
+                variant: "orange",
+                startIcon: "info",
+              }
+            : undefined,
       });
     }
     const showInstant = !(isManagedEventType || isChildrenManagedEventType);
@@ -166,6 +175,7 @@ export const useTabsNavigations = ({
     watchSchedulingType,
     watchChildrenCount,
     activeWebhooksNumber,
+    formHosts,
   ]);
 
   return { tabsNavigation: EventTypeTabs };
