@@ -344,6 +344,10 @@ describe("Cal", () => {
           layout: modalArg.config.layout,
         });
 
+        // Verify that the embedRenderStartTime and embedConfig are set, which are used by getNextActionForModal to decide if the modal should be reused or not
+        expect(calInstance.embedRenderStartTime).toBeGreaterThan(0);
+        expect(calInstance.embedConfig).toBeDefined();
+
         expectIframeToHaveMatchingUrl({
           element: modalBox,
           expectedIframeUrlObject: {
