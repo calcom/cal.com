@@ -989,6 +989,7 @@ class CalApi {
     const isHeadlessRouterPath = calLinkUrlObject ? isRouterPath(calLinkUrlObject.toString()) : false;
 
     if (__prerender && this.cal.modalBox) {
+      // If we are re-prerendering, we destroy the previous modalbox, allowing user to prerender as many times as they want
       this.cal.modalBox.remove();
     }
 

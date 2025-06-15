@@ -97,7 +97,6 @@ async function _onFormSubmission(
     value: string;
   }
 ) {
-  moduleLogger.debug("onFormSubmission", { form, response, responseId, chosenAction });
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 
   for (const [fieldId, fieldResponse] of Object.entries(response)) {

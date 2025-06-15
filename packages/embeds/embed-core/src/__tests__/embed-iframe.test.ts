@@ -336,7 +336,7 @@ describe("methods", async () => {
         },
       });
       const convertedRoutingFormResponseId = 101;
-      convertQueuedFormResponseToRoutingFormResponseMock.mockResolvedValue(convertedRoutingFormResponseId);
+      convertQueuedFormResponseToRoutingFormResponseMock?.mockResolvedValue(convertedRoutingFormResponseId);
       await methods.connect({
         config: {},
         params: {},
