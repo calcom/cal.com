@@ -1,7 +1,10 @@
+import { isPhoneNumber } from "class-validator";
 import type { TFunction } from "i18next";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
@@ -406,8 +409,40 @@ export const getLocationValueForDB = (
           conferenceCredentialId = location.credentialId;
         }
       }
+    } else if (
+      location.type === OrganizerDefaultConferencingAppType &&
+      bookingLocationTypeOrValue.startsWith("integrations:")
+    ) {
+      const bookingEventLocationType = getEventLocationType(bookingLocationTypeOrValue);
+      if (bookingEventLocationType) {
+        isValidLocation = true;
+        bookingLocation = bookingLocationTypeOrValue;
+        conferenceCredentialId = location.credentialId;
+      }
     }
   });
+
+  if (!isValidLocation) {
+    for (const location of eventLocations) {
+      const attendeeInputType = isAttendeeInputRequired(location.type);
+      if (attendeeInputType) {
+        if (attendeeInputType === "phone" && isPhoneNumber(bookingLocationTypeOrValue)) {
+          isValidLocation = true;
+          bookingLocation = bookingLocationTypeOrValue;
+          conferenceCredentialId = location.credentialId;
+          break;
+        } else if (
+          ["attendeeAddress", "somewhereElse"].includes(attendeeInputType) &&
+          bookingLocationTypeOrValue.trim().length > 0
+        ) {
+          isValidLocation = true;
+          bookingLocation = bookingLocationTypeOrValue;
+          conferenceCredentialId = location.credentialId;
+          break;
+        }
+      }
+    }
+  }
 
   if (bookingLocation.trim().length === 0) {
     if (eventLocations.length > 0) {
@@ -420,7 +455,7 @@ export const getLocationValueForDB = (
   }
 
   if (!isValidLocation && eventLocations.length > 0) {
-    throw new Error(`InvalidLocationForEventType: Location update is not allowed for this event type.`);
+    throw new ErrorWithCode(ErrorCode.InvalidLocationForEventType, ErrorCode.InvalidLocationForEventType);
   }
 
   return { bookingLocation, conferenceCredentialId };

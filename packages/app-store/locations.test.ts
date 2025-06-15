@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
+
 import { getLocationValueForDB, type LocationObject } from "./locations";
 
 describe("getLocationValueForDB Security Fix", () => {
@@ -21,11 +23,11 @@ describe("getLocationValueForDB Security Fix", () => {
 
     expect(() => {
       getLocationValueForDB("phone", eventLocations);
-    }).toThrow("InvalidLocationForEventType: Location 'phone' is not allowed for this event type.");
+    }).toThrow(ErrorCode.InvalidLocationForEventType);
 
     expect(() => {
       getLocationValueForDB("inPerson", eventLocations);
-    }).toThrow("InvalidLocationForEventType: Location 'inPerson' is not allowed for this event type.");
+    }).toThrow(ErrorCode.InvalidLocationForEventType);
   });
 
   it("should handle empty location by using first available or default", () => {
@@ -70,5 +72,80 @@ describe("getLocationValueForDB Security Fix", () => {
 
     const result = getLocationValueForDB("phone", eventLocations);
     expect(result.bookingLocation).toBe("phone");
+  });
+});
+
+describe("User-input location types", () => {
+  it("should accept phone number values for phone type locations", () => {
+    const eventLocations = [
+      { type: "phone", link: "" },
+      { type: "integrations:zoom", link: "https://zoom.us/j/123" },
+    ];
+
+    const result = getLocationValueForDB("+1 (857) 350-2425", eventLocations);
+    expect(result.bookingLocation).toBe("+1 (857) 350-2425");
+    expect(result.conferenceCredentialId).toBeUndefined();
+  });
+
+  it("should accept address values for attendeeInPerson type locations", () => {
+    const eventLocations = [
+      { type: "attendeeInPerson", link: "" },
+      { type: "integrations:zoom", link: "https://zoom.us/j/123" },
+    ];
+
+    const result = getLocationValueForDB("123 Main St, New York, NY 10001", eventLocations);
+    expect(result.bookingLocation).toBe("123 Main St, New York, NY 10001");
+  });
+
+  it("should accept custom text values for somewhereElse type locations", () => {
+    const eventLocations = [
+      { type: "somewhereElse", link: "" },
+      { type: "phone", link: "" },
+    ];
+
+    const result = getLocationValueForDB("We'll coordinate via email", eventLocations);
+    expect(result.bookingLocation).toBe("We'll coordinate via email");
+  });
+
+  it("should reject invalid phone numbers when phone type is configured", () => {
+    const eventLocations = [
+      { type: "phone", link: "" },
+      { type: "integrations:zoom", link: "https://zoom.us/j/123" },
+    ];
+
+    expect(() => {
+      getLocationValueForDB("not-a-phone-number", eventLocations);
+    }).toThrow(ErrorCode.InvalidLocationForEventType);
+  });
+
+  it("should preserve conferenceCredentialId for user-input location types", () => {
+    const eventLocations = [
+      { type: "phone", link: "", credentialId: 789 },
+      { type: "integrations:zoom", link: "https://zoom.us/j/123" },
+    ];
+
+    const result = getLocationValueForDB("+1 (857) 350-7425", eventLocations);
+    expect(result.bookingLocation).toBe("+1 (857) 350-7425");
+    expect(result.conferenceCredentialId).toBe(789);
+  });
+
+  it("should handle mixed scenarios correctly", () => {
+    const eventLocations = [
+      { type: "phone", link: "" },
+      { type: "attendeeInPerson", link: "" },
+      { type: "integrations:zoom", link: "https://zoom.us/j/123" },
+    ];
+
+    // Phone number should work
+    const phoneResult = getLocationValueForDB("+1 (857) 350-2425", eventLocations);
+    expect(phoneResult.bookingLocation).toBe("+1 (857) 350-2425");
+
+    // Address should work
+    const addressResult = getLocationValueForDB("123 Main St", eventLocations);
+    expect(addressResult.bookingLocation).toBe("123 Main St");
+
+    // Zoom type should work
+    const zoomResult = getLocationValueForDB("integrations:zoom", eventLocations);
+    expect(zoomResult.bookingLocation).toBe("integrations:zoom");
   });
 });
