@@ -18,6 +18,9 @@ import {
   OFFICE_365_CALENDAR_TYPE,
 } from "@calcom/platform-constants";
 
+import { OutlookCacheService } from "./outlook-cache.service";
+import { OutlookSubscriptionService } from "./outlook-subscription.service";
+
 @Injectable()
 export class OutlookService implements OAuthCalendarApp {
   private redirectUri = `${this.config.get("api.url")}/calendars/${OFFICE_365_CALENDAR}/save`;
@@ -27,7 +30,9 @@ export class OutlookService implements OAuthCalendarApp {
     private readonly calendarsService: CalendarsService,
     private readonly credentialRepository: CredentialsRepository,
     private readonly tokensRepository: TokensRepository,
-    private readonly selectedCalendarsRepository: SelectedCalendarsRepository
+    private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
+    private readonly outlookCacheService: OutlookCacheService,
+    private readonly outlookSubscriptionService: OutlookSubscriptionService
   ) {}
 
   async connect(
@@ -221,5 +226,22 @@ export class OutlookService implements OAuthCalendarApp {
     return {
       url: redir || origin,
     };
+  }
+
+  async getBusyTimes(userId: number, calendarId: string, dateFrom: string, dateTo: string) {
+    // Try to get from cache first
+    const cached = await this.outlookCacheService.getFromCache(userId, calendarId);
+    if (cached) return cached;
+    // Fallback to direct API call (pseudo-code, replace with actual API call)
+    const busyTimes = await this.fetchBusyTimesFromGraph(userId, calendarId, dateFrom, dateTo);
+    // Update cache
+    await this.outlookCacheService.updateCache(userId, calendarId, busyTimes);
+    return busyTimes;
+  }
+
+  // Placeholder for actual Microsoft Graph API call
+  private async fetchBusyTimesFromGraph(userId: number, calendarId: string, dateFrom: string, dateTo: string) {
+    // ...implement actual API call logic...
+    return [];
   }
 }
