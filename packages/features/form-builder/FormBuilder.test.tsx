@@ -167,4 +167,108 @@ describe("FormBuilder", () => {
       expect(pageObject.dialog.isFieldShowingAsRequired({ dialog })).toBe(true);
     });
   });
+
+  describe("Addon Fields Tests", () => {
+    beforeEach(() => {
+      renderComponent({
+        formBuilderProps: {
+          ...mockProps,
+          showPriceField: true,
+        },
+        formDefaultValues: {},
+      });
+    });
+
+    it("Should add number field with price", async () => {
+      const identifier = "quantity-addon";
+      const price = 10;
+      await verifier.verifyFieldAddition({
+        fieldType: "number",
+        identifier,
+        label: "Quantity",
+        price,
+      });
+
+      pageObject.openEditFieldDialog({ identifier });
+      await expectScenario.toHavePriceField({ identifier, price });
+    });
+
+    it("Should add boolean field with price", async () => {
+      const identifier = "extra-service-addon";
+      const price = 15;
+      await verifier.verifyFieldAddition({
+        fieldType: "boolean",
+        identifier,
+        label: "Extra Service",
+        price,
+      });
+
+      pageObject.openEditFieldDialog({ identifier });
+      await expectScenario.toHavePriceField({ identifier, price });
+    });
+
+    it("Should add select field with price and options", async () => {
+      const identifier = "meal-selection";
+      await verifier.verifyFieldAddition({
+        fieldType: "select",
+        identifier,
+        label: "Meal Selection",
+        options: [
+          { label: "Vegetarian", value: "veg", price: 20 },
+          { label: "Non-Vegetarian", value: "non-veg", price: 25 },
+        ],
+      });
+
+      
+      verifier.verifyOptionPrices({ identifier, prices: [20, 25] });
+    });
+
+    it("Should add multiselect field with price and options", async () => {
+      const identifier = "add-ons";
+      await verifier.verifyFieldAddition({
+        fieldType: "multiselect",
+        identifier,
+        label: "Add-ons",
+        options: [
+          { label: "WiFi", value: "wifi", price: 10 },
+          { label: "Breakfast", value: "breakfast", price: 15 },
+          { label: "Parking", value: "parking", price: 20 },
+        ],
+      });
+
+      verifier.verifyOptionPrices({ identifier, prices: [10, 15, 20] });
+    });
+
+    it("Should add checkbox group field with price and options", async () => {
+      const identifier = "amenities";
+      await verifier.verifyFieldAddition({
+        fieldType: "checkbox",
+        identifier,
+        label: "Amenities",
+        options: [
+          { label: "Pool Access", value: "pool", price: 15 },
+          { label: "Gym Access", value: "gym", price: 20 },
+          { label: "Spa Access", value: "spa", price: 25 },
+        ],
+      });
+
+      verifier.verifyOptionPrices({ identifier, prices: [15, 20, 25] });
+    });
+
+    it("Should add radio group field with price and options", async () => {
+      const identifier = "room-type";
+      await verifier.verifyFieldAddition({
+        fieldType: "radio",
+        identifier,
+        label: "Room Type",
+        options: [
+          { label: "Standard", value: "standard", price: 50 },
+          { label: "Deluxe", value: "deluxe", price: 75 },
+          { label: "Suite", value: "suite", price: 100 },
+        ],
+      });
+
+      verifier.verifyOptionPrices({ identifier, prices: [50, 75, 100] });
+    });
+  });
 });
