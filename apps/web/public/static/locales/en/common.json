@@ -1703,6 +1703,8 @@
   "booker_booking_limit_description": "Limit the number of active bookings a booker can make for this event type",
   "recurring_event_doesnt_support_booker_booking_limit": "Recurring events don't support booker booking limit",
   "add_limit": "Add Limit",
+  "ai_self_serve_tab_title": "AI Self Serve",
+  "ai_self_serve_tab_description": "Create and manage AI-powered event types with ease",
   "team_name_required": "Team name required",
   "show_attendees": "Share attendee information between guests",
   "show_available_seats_count": "Show the number of available seats",

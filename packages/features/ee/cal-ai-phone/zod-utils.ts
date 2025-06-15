@@ -172,3 +172,28 @@ export const ZGetRetellLLMSchema = z
   .passthrough();
 
 export type TGetRetellLLMSchema = z.infer<typeof ZGetRetellLLMSchema>;
+
+export const ZCreatePhoneNumberResponseSchema = z.object({
+  phone_number: z.string(),
+  phone_number_type: z.string(),
+  phone_number_pretty: z.string(),
+  inbound_agent_id: z.string().optional().nullable(),
+  outbound_agent_id: z.string().optional().nullable(),
+  inbound_agent_version: z.number().optional().nullable(),
+  outbound_agent_version: z.number().optional().nullable(),
+  area_code: z.number().optional().nullable(),
+  nickname: z.string(),
+  inbound_webhook_url: z.string().url().optional().nullable(),
+  last_modification_timestamp: z.number(),
+});
+export type TCreatePhoneNumberResponseSchema = z.infer<typeof ZCreatePhoneNumberResponseSchema>;
+
+export const ZCreateAgentResponseSchema = z.object({
+  agent_id: z.string(),
+  agent_name: z.string(),
+});
+
+export type TCreateAgentResponseSchema = z.infer<typeof ZCreateAgentResponseSchema>;
+
+export const ZUpdatePhoneNumberResponseSchema = ZCreatePhoneNumberResponseSchema;
+export type TUpdatePhoneNumberResponseSchema = TCreatePhoneNumberResponseSchema;

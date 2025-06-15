@@ -2,6 +2,7 @@ import logger from "@calcom/lib/logger";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
+import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "./promptTemplates";
 import type {
   TCreateRetellLLMSchema,
   TGetRetellLLMSchema,
@@ -9,12 +10,18 @@ import type {
   TemplateType,
   TGetPhoneNumberSchema,
   TCreatePhoneSchema,
+  TCreatePhoneNumberResponseSchema,
+  TCreateAgentResponseSchema,
+  TUpdatePhoneNumberResponseSchema,
 } from "./zod-utils";
 import {
   ZGetRetellLLMSchema,
   ZCreatePhoneSchema,
   ZCreateRetellLLMSchema,
   ZGetPhoneNumberSchema,
+  ZCreatePhoneNumberResponseSchema,
+  ZCreateAgentResponseSchema,
+  ZUpdatePhoneNumberResponseSchema,
 } from "./zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["retellAIService: "] });
@@ -123,16 +130,16 @@ class GetRetellLLMCommand implements Command<TGetRetellLLMSchema> {
 }
 
 class UpdateRetellLLMCommand implements Command<TGetRetellLLMSchema> {
-  constructor(private props: initProps, private llmId: string) {}
+  constructor(
+    private llmId: string,
+    private updateData: { general_prompt?: string; begin_message?: string }
+  ) {}
 
   async execute(): Promise<TGetRetellLLMSchema> {
     try {
       const updatedRetellLLM = await fetcher(`/update-retell-llm/${this.llmId}`, {
         method: "PATCH",
-        body: JSON.stringify({
-          general_prompt: this.props.generalPrompt,
-          begin_message: this.props.beginMessage,
-        }),
+        body: JSON.stringify(this.updateData),
       }).then(ZGetRetellLLMSchema.parse);
 
       return updatedRetellLLM;
@@ -192,6 +199,31 @@ class CreateRetellPhoneCallCommand implements Command<TCreatePhoneSchema> {
   }
 }
 
+class CreatePhoneNumberCommand implements Command<TCreatePhoneNumberResponseSchema> {
+  constructor(private areaCode?: number) {}
+
+  async execute(): Promise<TCreatePhoneNumberResponseSchema> {
+    try {
+      const phoneNumber = await fetcher("/create-phone-number", {
+        method: "POST",
+        body: JSON.stringify({
+          area_code: this.areaCode,
+        }),
+      }).then(ZCreatePhoneNumberResponseSchema.parse);
+
+      return phoneNumber;
+    } catch (error) {
+      log.error("Unable to Create Phone Number", safeStringify(error));
+      throw new Error("Something went wrong! Unable to Create Phone Number");
+    }
+  }
+}
+
+export const createPhoneNumber = async (areaCode?: number): Promise<TCreatePhoneNumberResponseSchema> => {
+  const command = new CreatePhoneNumberCommand(areaCode);
+  return command.execute();
+};
+
 export class RetellAIService {
   private props: initProps;
 
@@ -224,3 +256,141 @@ export class RetellAIService {
     return command.execute();
   }
 }
+
+class InitialSetupLLMCommand implements Command<TCreateRetellLLMSchema> {
+  constructor(private calApiKey: string, private timeZone: string, private eventTypeId: number) {}
+
+  async execute(): Promise<TCreateRetellLLMSchema> {
+    try {
+      const createdRetellLLM = await fetcher("/create-retell-llm", {
+        method: "POST",
+        body: JSON.stringify({
+          general_prompt: DEFAULT_PROMPT_VALUE,
+          begin_message: DEFAULT_BEGIN_MESSAGE,
+          general_tools: [
+            {
+              type: "end_call",
+              name: "end_call",
+              description: "Hang up the call, triggered only after appointment successfully scheduled.",
+            },
+            {
+              type: "check_availability_cal",
+              name: "check_availability",
+              cal_api_key: this.calApiKey,
+              event_type_id: this.eventTypeId,
+              timezone: this.timeZone,
+            },
+            {
+              type: "book_appointment_cal",
+              name: "book_appointment",
+              cal_api_key: this.calApiKey,
+              event_type_id: this.eventTypeId,
+              timezone: this.timeZone,
+            },
+          ],
+        }),
+      }).then(ZCreateRetellLLMSchema.parse);
+
+      return createdRetellLLM;
+    } catch (error) {
+      log.error("Unable to Create Retell LLM", safeStringify(error));
+      throw new Error("Something went wrong! Unable to Create Retell LLM");
+    }
+  }
+}
+
+export const initialSetupLLM = (calApiKey: string, timeZone: string, eventTypeId: number) => {
+  const command = new InitialSetupLLMCommand(calApiKey, timeZone, eventTypeId);
+  return command.execute();
+};
+
+export async function getRetellLLM(llmId: string): Promise<TGetRetellLLMSchema> {
+  const command = new GetRetellLLMCommand(llmId);
+  return command.execute();
+}
+
+export async function updateRetellLLM(
+  llmId: string,
+  updateData: { general_prompt?: string; begin_message?: string }
+): Promise<TGetRetellLLMSchema> {
+  const command = new UpdateRetellLLMCommand(llmId, updateData);
+  return command.execute();
+}
+
+class CreateAgentCommand implements Command<TCreateAgentResponseSchema> {
+  constructor(private llmId: string, private agentName: string) {}
+
+  async execute(): Promise<TCreateAgentResponseSchema> {
+    try {
+      const agent = await fetcher("/create-agent", {
+        method: "POST",
+        body: JSON.stringify({
+          llm_id: this.llmId,
+          agent_name: this.agentName,
+          voice_id: "11labs-Adrian", // A default voice
+        }),
+      }).then(ZCreateAgentResponseSchema.parse);
+      return agent;
+    } catch (error) {
+      log.error("Unable to Create Agent", safeStringify(error));
+      throw new Error("Something went wrong! Unable to Create Agent");
+    }
+  }
+}
+
+class UpdatePhoneNumberCommand implements Command<TUpdatePhoneNumberResponseSchema> {
+  constructor(private phoneNumber: string, private agentId: string) {}
+
+  async execute(): Promise<TUpdatePhoneNumberResponseSchema> {
+    try {
+      const phoneNumber = await fetcher(`/update-phone-number/${this.phoneNumber}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          inbound_agent_id: this.agentId,
+          outbound_agent_id: this.agentId,
+        }),
+      }).then(ZUpdatePhoneNumberResponseSchema.parse);
+
+      return phoneNumber;
+    } catch (error) {
+      log.error("Unable to update phone number", safeStringify(error));
+      throw new Error("Something went wrong! Unable to update phone number.");
+    }
+  }
+}
+
+export const createAgent = async (llmId: string, agentName: string) => {
+  const command = new CreateAgentCommand(llmId, agentName);
+  return command.execute();
+};
+
+export const updatePhoneNumber = async (phoneNumber: string, agentId: string) => {
+  const command = new UpdatePhoneNumberCommand(phoneNumber, agentId);
+  return command.execute();
+};
+
+class CreateSimplePhoneCallCommand implements Command<TCreatePhoneSchema> {
+  constructor(private fromNumber: string, private toNumber: string) {}
+
+  async execute(): Promise<TCreatePhoneSchema> {
+    try {
+      const createPhoneCallRes = await fetcher("/v2/create-phone-call", {
+        method: "POST",
+        body: JSON.stringify({
+          from_number: this.fromNumber,
+          to_number: this.toNumber,
+        }),
+      }).then(ZCreatePhoneSchema.parse);
+
+      return createPhoneCallRes;
+    } catch (err) {
+      log.error("Unable to create phone call", safeStringify(err));
+      throw new Error("Something went wrong! Unable to create phone call");
+    }
+  }
+}
+
+export const createSelfServePhoneCall = (fromNumber: string, toNumber: string) => {
+  const command = new CreateSimplePhoneCallCommand(fromNumber, toNumber);
+  return command.execute();
+};
