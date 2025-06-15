@@ -15,7 +15,7 @@ export class OAuthClientRepositoryFixture {
   }
 
   async get(clientId: PlatformOAuthClient["id"]) {
-    return this.prismaReadClient.platformOAuthClient.findFirst({ where: { id: clientId } });
+    return this.prismaReadClient.platformOAuthClient.findUnique({ where: { id: clientId } });
   }
 
   async getByOrgId(orgId: PlatformOAuthClient["organizationId"]) {
@@ -23,7 +23,7 @@ export class OAuthClientRepositoryFixture {
   }
 
   async getUsers(clientId: PlatformOAuthClient["id"]) {
-    const response = await this.prismaReadClient.platformOAuthClient.findFirst({
+    const response = await this.prismaReadClient.platformOAuthClient.findUnique({
       where: { id: clientId },
       include: {
         users: true,

@@ -11,7 +11,7 @@ async function authMiddleware(req: NextApiRequest) {
   // Admins can just skip this check
   if (isSystemWideAdmin) return;
   // Only team members can modify a membership
-  const membership = await prisma.membership.findFirst({ where: { userId, teamId } });
+  const membership = await prisma.membership.findUnique({ where: { userId_teamId: { userId, teamId } } });
   if (!membership) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 

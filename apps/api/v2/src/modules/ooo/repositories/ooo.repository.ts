@@ -33,15 +33,15 @@ export class UserOOORepository {
   }
 
   async getUserOOOById(oooId: number) {
-    return this.dbRead.prisma.outOfOfficeEntry.findFirst({
+    return this.dbRead.prisma.outOfOfficeEntry.findUnique({
       where: { id: oooId },
       include: { reason: true },
     });
   }
 
   async getUserOOOByIdAndUserId(oooId: number, userId: number) {
-    return this.dbRead.prisma.outOfOfficeEntry.findFirst({
-      where: { id: oooId, userId },
+    return this.dbRead.prisma.outOfOfficeEntry.findUnique({
+      where: { id: oooId },
       include: { reason: true },
     });
   }

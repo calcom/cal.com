@@ -13,11 +13,13 @@ export class ProfileRepositoryFixture {
   }
 
   async get(profileId: number) {
-    return this.prismaReadClient.profile.findFirst({ where: { id: profileId } });
+    return this.prismaReadClient.profile.findUnique({ where: { id: profileId } });
   }
 
   async findByOrgIdUserId(orgId: number, userId: number) {
-    return this.prismaReadClient.profile.findFirst({ where: { userId, organizationId: orgId } });
+    return this.prismaReadClient.profile.findUnique({
+      where: { userId_organizationId: { userId, organizationId: orgId } },
+    });
   }
 
   async create(data: Prisma.ProfileCreateInput) {

@@ -21,7 +21,7 @@ const bodySchema = z
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const body = bodySchema.parse(req.body);
   // Get user
-  const user = await prisma.user.findFirstOrThrow({
+  const user = await prisma.user.findUniqueOrThrow({
     where: {
       id: req.session?.user?.id,
     },

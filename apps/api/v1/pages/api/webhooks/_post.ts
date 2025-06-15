@@ -81,7 +81,7 @@ async function postHandler(req: NextApiRequest) {
   if (eventTypeId) {
     const where: Prisma.EventTypeWhereInput = { id: eventTypeId };
     if (!isSystemWideAdmin) where.userId = userId;
-    await prisma.eventType.findFirstOrThrow({ where });
+    await prisma.eventType.findUniqueOrThrow({ where: { id: eventTypeId } });
     args.data.eventTypeId = eventTypeId;
   }
 

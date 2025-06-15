@@ -19,7 +19,7 @@ const handler = async (
     const userId = req.session.user.id;
     const body = req.body;
     try {
-      const userWithMetadata = await prisma.user.findFirst({
+      const userWithMetadata = await prisma.user.findUnique({
         where: {
           id: userId,
         },

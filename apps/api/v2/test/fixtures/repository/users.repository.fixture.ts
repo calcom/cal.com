@@ -13,7 +13,7 @@ export class UserRepositoryFixture {
   }
 
   async get(userId: User["id"]) {
-    return this.prismaReadClient.user.findFirst({ where: { id: userId } });
+    return this.prismaReadClient.user.findUnique({ where: { id: userId } });
   }
 
   async create(data: Prisma.UserCreateInput) {

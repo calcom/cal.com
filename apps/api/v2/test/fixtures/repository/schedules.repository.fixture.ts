@@ -19,7 +19,7 @@ export class SchedulesRepositoryFixture {
   }
 
   async getById(scheduleId: Schedule["id"]) {
-    return this.prismaReadClient.schedule.findFirst({ where: { id: scheduleId } });
+    return this.prismaReadClient.schedule.findUnique({ where: { id: scheduleId } });
   }
 
   async deleteById(scheduleId: Schedule["id"]) {

@@ -13,7 +13,7 @@ export class SelectedSlotsRepositoryFixture {
   }
 
   async getByUid(uid: string) {
-    return this.prismaReadClient.selectedSlots.findFirst({ where: { uid } });
+    return this.prismaReadClient.selectedSlots.findUnique({ where: { uid } });
   }
 
   async deleteByUId(uid: SelectedSlots["uid"]) {

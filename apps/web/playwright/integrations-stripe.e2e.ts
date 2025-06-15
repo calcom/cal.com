@@ -42,7 +42,7 @@ test.describe("Stripe integration skip true", () => {
     await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
 
     // Check event type metadata to see if credentialId is included
-    const eventTypeMetadata = await prisma.eventType.findFirst({
+    const eventTypeMetadata = await prisma.eventType.findUnique({
       where: {
         id: eventType.id,
       },
@@ -84,7 +84,7 @@ test.describe("Stripe integration skip true", () => {
     await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
 
     // Check event type metadata to see if credentialId is included
-    const eventTypeMetadata = await prisma.eventType.findFirst({
+    const eventTypeMetadata = await prisma.eventType.findUnique({
       where: {
         id: teamEvent.id,
       },
@@ -319,7 +319,7 @@ test.describe("Stripe integration with the new app install flow skip false", () 
     await owner.installStripeTeam({ skip: false, teamId: team.id, eventTypeIds: [teamEvent.id] });
 
     // Check event type metadata to see if credentialId is included
-    const eventTypeMetadata = await prisma.eventType.findFirst({
+    const eventTypeMetadata = await prisma.eventType.findUnique({
       where: {
         id: teamEvent.id,
       },

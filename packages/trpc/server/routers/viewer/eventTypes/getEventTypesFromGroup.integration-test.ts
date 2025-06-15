@@ -7,10 +7,10 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { getEventTypesFromGroup } from "./getEventTypesFromGroup.handler";
 
 describe("getEventTypesFromGroup", async () => {
-  const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
+  const proUser = await prisma.user.findUniqueOrThrow({ where: { email: "pro@example.com" } });
   const proUserEventTypes = await prisma.eventType.findMany({ where: { userId: proUser.id } });
 
-  const teamProUser = await prisma.user.findFirstOrThrow({ where: { email: "teampro@example.com" } });
+  const teamProUser = await prisma.user.findUniqueOrThrow({ where: { email: "teampro@example.com" } });
   const teamProMembership = await prisma.membership.findFirstOrThrow({
     where: { userId: teamProUser.id, accepted: true },
   });

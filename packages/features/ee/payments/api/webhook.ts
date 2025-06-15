@@ -32,7 +32,7 @@ export const config = {
 
 export async function handleStripePaymentSuccess(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
-  const payment = await prisma.payment.findFirst({
+  const payment = await prisma.payment.findUnique({
     where: {
       externalId: paymentIntent.id,
     },
@@ -53,7 +53,7 @@ export async function handleStripePaymentSuccess(event: Stripe.Event) {
 
 const handleSetupSuccess = async (event: Stripe.Event) => {
   const setupIntent = event.data.object as Stripe.SetupIntent;
-  const payment = await prisma.payment.findFirst({
+  const payment = await prisma.payment.findUnique({
     where: {
       externalId: setupIntent.id,
     },

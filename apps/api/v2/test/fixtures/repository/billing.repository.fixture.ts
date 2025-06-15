@@ -24,7 +24,7 @@ export class PlatformBillingRepositoryFixture {
   }
 
   async get(orgId: number) {
-    return this.prismaWriteClient.platformBilling.findFirst({
+    return this.prismaWriteClient.platformBilling.findUnique({
       where: {
         id: orgId,
       },

@@ -43,8 +43,8 @@ export const processUserAttributes = async (
 ): Promise<ProcessAttributesResult> => {
   const membership = await tx.membership.findFirst({
     where: {
-      userId,
-      teamId,
+      userId: userId,
+      teamId: teamId,
     },
   });
 

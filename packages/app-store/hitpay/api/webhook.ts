@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const excluded = { ...obj } as Partial<WebhookReturn>;
     delete excluded.hmac;
 
-    const payment = await prisma.payment.findFirst({
+    const payment = await prisma.payment.findUnique({
       where: {
         externalId: obj.payment_request_id,
       },

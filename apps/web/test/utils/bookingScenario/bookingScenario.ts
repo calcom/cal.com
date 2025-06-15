@@ -602,7 +602,7 @@ async function addWebhooks(webhooks: InputWebhook[]) {
 async function addWorkflowsToDb(workflows: InputWorkflow[]) {
   await Promise.all(
     workflows.map(async (workflow) => {
-      const team = await prismock.team.findFirst({
+      const team = await prismock.team.findUnique({
         where: {
           id: workflow.teamId ?? 0,
         },

@@ -76,7 +76,7 @@ describe("POST /api/users", () => {
 
     expect(res.statusCode).toBe(200);
 
-    const userQuery = await prismock.user.findFirst({
+    const userQuery = await prismock.user.findUnique({
       where: {
         email: "test@example.com",
       },
@@ -116,7 +116,7 @@ describe("POST /api/users", () => {
 
     expect(res.statusCode).toBe(200);
 
-    const userQuery = await prismock.user.findFirst({
+    const userQuery = await prismock.user.findUnique({
       where: {
         email: "test@example.com",
       },

@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
 
           // Getting total hours of sleep seconds/60/60 = hours
-          const userWithMetadata = await prisma.user.findFirst({
+          const userWithMetadata = await prisma.user.findUnique({
             select: {
               metadata: true,
             },

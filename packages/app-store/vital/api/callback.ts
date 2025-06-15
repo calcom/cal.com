@@ -12,7 +12,7 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const userWithMetadata = await prisma.user.findFirst({
+    const userWithMetadata = await prisma.user.findUnique({
       where: {
         id: req?.session?.user.id,
       },

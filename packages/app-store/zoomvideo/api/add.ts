@@ -11,7 +11,7 @@ import { getZoomAppKeys } from "../lib";
 
 async function handler(req: NextApiRequest) {
   // Get user
-  await prisma.user.findFirstOrThrow({
+  await prisma.user.findUniqueOrThrow({
     where: {
       id: req.session?.user?.id,
     },

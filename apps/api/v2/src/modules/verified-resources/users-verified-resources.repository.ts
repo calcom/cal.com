@@ -45,18 +45,16 @@ export class UsersVerifiedResourcesRepository {
   }
 
   async getUserVerifiedEmailById(userId: number, id: number) {
-    return this.dbRead.prisma.verifiedEmail.findFirst({
+    return this.dbRead.prisma.verifiedEmail.findUnique({
       where: {
-        userId,
         id,
       },
     });
   }
 
   async getUserVerifiedPhoneNumberById(userId: number, id: number) {
-    return this.dbRead.prisma.verifiedNumber.findFirst({
+    return this.dbRead.prisma.verifiedNumber.findUnique({
       where: {
-        userId,
         id,
       },
     });

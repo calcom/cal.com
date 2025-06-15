@@ -225,10 +225,12 @@ describe("FeaturesRepository Integration Tests", () => {
       });
 
       // Check if user is already a member of the team
-      const existingMembership = await prisma.membership.findFirst({
+      const existingMembership = await prisma.membership.findUnique({
         where: {
-          teamId: testTeam.id,
-          userId: testUser.id,
+          userId_teamId: {
+            teamId: testTeam.id,
+            userId: testUser.id,
+          },
         },
       });
 

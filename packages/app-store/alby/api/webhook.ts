@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new HttpCode({ statusCode: 204, message: "Payment not for cal.com" });
     }
 
-    const payment = await prisma.payment.findFirst({
+    const payment = await prisma.payment.findUnique({
       where: {
         uid: parsedPayload.metadata.payer_data.referenceId,
       },

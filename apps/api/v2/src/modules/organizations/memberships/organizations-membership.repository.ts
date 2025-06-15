@@ -49,10 +49,12 @@ export class OrganizationsMembershipRepository {
   }
 
   async findOrgMembershipByUserId(organizationId: number, userId: number) {
-    return this.dbRead.prisma.membership.findFirst({
+    return this.dbRead.prisma.membership.findUnique({
       where: {
-        teamId: organizationId,
-        userId,
+        userId_teamId: {
+          userId,
+          teamId: organizationId,
+        },
       },
       include: {
         user: { select: MembershipUserSelect },

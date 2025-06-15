@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     throw new HttpCode({ statusCode: 204, message: "Reference not found" });
   }
 
-  const payment = await prisma.payment.findFirst({
+  const payment = await prisma.payment.findUnique({
     where: {
       externalId: reference as string,
     },
