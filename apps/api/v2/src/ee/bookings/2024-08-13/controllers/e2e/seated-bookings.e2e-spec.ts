@@ -448,6 +448,71 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    it("should cancel seated booking with cancellation reason as host", async () => {
+      // First, create a new seated booking to test cancellation with reason
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 14, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: "Test Attendee for Cancellation",
+          email: `test-cancel-${randomString()}@api.com`,
+          timeZone: "America/New_York",
+          language: "en",
+        },
+        metadata: {},
+        meetingUrl: googleMeetUrl,
+      };
+
+      // Create a new booking
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createdBooking = createResponse.body.data as CreateSeatedBookingOutput_2024_08_13;
+
+      // Now cancel it with a cancellation reason
+      const cancelBody: CancelSeatedBookingInput_2024_08_13 = {
+        seatUid: createdBooking.seatUid,
+        cancellationReason: "Host requested cancellation due to schedule conflict",
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${createdBooking.uid}/cancel`)
+        .send(cancelBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.id).toBeDefined();
+            expect(data.uid).toBeDefined();
+            expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.status).toEqual("cancelled");
+            expect(data.start).toEqual(createdBooking.start);
+            expect(data.end).toEqual(createdBooking.end);
+            expect(data.duration).toEqual(60);
+            expect(data.cancellationReason).toEqual(cancelBody.cancellationReason);
+            expect(data.eventTypeId).toEqual(seatedEventTypeId);
+            expect(data.eventType).toEqual({
+              id: seatedEventTypeId,
+              slug: seatedEventSlug,
+            });
+            expect(data.attendees.length).toEqual(0);
+            expect(data.location).toBeDefined();
+            expect(data.absentHost).toEqual(false);
+          } else {
+            throw new Error("Invalid response data - expected booking but received array response");
+          }
+        });
+    });
+
     function responseDataIsCreateSeatedBooking(data: any): data is CreateSeatedBookingOutput_2024_08_13 {
       return data.hasOwnProperty("seatUid");
     }
