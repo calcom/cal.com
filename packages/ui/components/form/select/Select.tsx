@@ -110,7 +110,9 @@ export const Select = <
               ? hasMultiLastIcons
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4"
                 : "rotate-180 transition-transform w-4 h-4"
-              : "text-default w-4 h-4"
+              : hasMultiLastIcons
+              ? "[&>*:last-child]:w-4 [&>*:last-child]:h-4 text-default"
+              : "w-4 h-4 text-default"
           ),
         multiValueRemove: () => "text-default py-auto",
 

@@ -10,11 +10,9 @@ export function bookingIdempotencyKeyExtension() {
         async create({ args, query }) {
           if (args.data.status === BookingStatus.ACCEPTED) {
             const idempotencyKey = uuidv5(
-              `${
-                args.data.eventType?.connect?.id
-              }.${args.data.startTime.valueOf()}.${args.data.endTime.valueOf()}.${
+              `${args.data.startTime.valueOf()}.${args.data.endTime.valueOf()}.${
                 args.data?.user?.connect?.id
-              }`,
+              }${args.data?.reassignById ? `.${args.data.reassignById}` : ""}`,
               uuidv5.URL
             );
             args.data.idempotencyKey = idempotencyKey;
