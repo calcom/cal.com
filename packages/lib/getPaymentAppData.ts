@@ -41,6 +41,7 @@ export function getPaymentAppData(
     refundPolicy?: string;
     refundDaysCount?: number;
     refundCountCalendarDays?: boolean;
+    minPaymentNoticeHours?: number;
   } | null = null;
   for (const appId of paymentAppIds) {
     const appData = getEventTypeAppData(eventType, appId, forcedGet);
@@ -64,6 +65,7 @@ export function getPaymentAppData(
       refundPolicy: undefined,
       refundDaysCount: undefined,
       refundCountCalendarDays: undefined,
+      minPaymentNoticeHours: undefined,
     }
   );
 }
