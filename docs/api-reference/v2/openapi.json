@@ -12886,7 +12886,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "type": "string",
             "example": "en"
@@ -13005,7 +13006,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "type": "string",
             "example": "en"
@@ -13153,7 +13155,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "type": "string",
             "example": "en"
@@ -21896,7 +21899,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "description": "The preferred language of the attendee. Used for booking confirmation.",
             "example": "it",
