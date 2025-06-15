@@ -18,7 +18,7 @@ test.describe("2FA Tests", async () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
-  test("should allow a user to enable 2FA and login using 2FA", async ({ page, users }) => {
+  test("should allow a user to enable 2FA and login using 2FA", async ({ page, users, browser }) => {
     // log in trail user
     const user = await test.step("Enable 2FA", async () => {
       const user = await users.create();
@@ -60,7 +60,7 @@ test.describe("2FA Tests", async () => {
     });
 
     await test.step("Login with 2FA enabled", async () => {
-      await user.login();
+      const [secondContext, secondPage] = await user.loginOnNewBrowser(browser);
       const userWith2FaSecret = await prisma.user.findFirst({
         where: {
           id: user.id,
@@ -74,13 +74,14 @@ test.describe("2FA Tests", async () => {
         process.env.CALENDSO_ENCRYPTION_KEY!
       );
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      await fillOtp({ page, secret: secret! });
+      await fillOtp({ page: secondPage, secret: secret! });
       await Promise.all([
-        page.press('input[name="2fa6"]', "Enter"),
-        page.waitForResponse("**/api/auth/callback/credentials**"),
+        secondPage.press('input[name="2fa6"]', "Enter"),
+        secondPage.waitForResponse("**/api/auth/callback/credentials**"),
       ]);
-      const shellLocator = page.locator(`[data-testid=dashboard-shell]`);
+      const shellLocator = secondPage.locator(`[data-testid=dashboard-shell]`);
       await expect(shellLocator).toBeVisible();
+      await secondContext.close();
     });
   });
 
