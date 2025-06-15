@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Slack",
+  "slug": "slack",
+  "type": "slack_messaging",
+  "logo": "icon.svg",
+  "url": "https://slack.com",
+  "variant": "messaging",
+  "categories": ["messaging"],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@cal.com",
+  "description": "Connect your app to Slack and enable seamless communication and team collaboration.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}
