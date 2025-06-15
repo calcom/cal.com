@@ -181,6 +181,7 @@ model EventType {
   rrSegmentQueryValue                      Json?
   useEventTypeDestinationCalendarEmail     Boolean                   @default(false)
   aiPhoneCallConfig                        AIPhoneCallConfiguration?
+  aiSelfServeConfig                        AISelfServeConfiguration?
   isRRWeightsEnabled                       Boolean                   @default(false)
   fieldTranslations                        EventTypeTranslation[]
   maxLeadThreshold                         Int?
@@ -372,6 +373,7 @@ model User {
   updatedRoutingForms  App_RoutingForms_Form[] @relation("updated-routing-form")
   verifiedNumbers      VerifiedNumber[]
   verifiedEmails       VerifiedEmail[]
+  calAiPhoneNumbers    CalAiPhoneNumber[]
   hosts                Host[]
   // organizationId is deprecated. Instead, rely on the Profile to search profiles by organizationId and then get user from the profile.
   organizationId       Int?
@@ -1341,6 +1343,22 @@ model AIPhoneCallConfiguration {
   enabled         Boolean   @default(false)
   beginMessage    String?
   llmId           String?
+
+  @@unique([eventTypeId])
+  @@index([eventTypeId])
+}
+
+model AISelfServeConfiguration {
+  id                Int               @id @default(autoincrement())
+  eventType         EventType         @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId       Int
+  yourPhoneNumber   CalAiPhoneNumber? @relation(fields: [yourPhoneNumberId], references: [id], onDelete: SetNull)
+  yourPhoneNumberId Int?              @unique
+  numberToCall      String?
+  enabled           Boolean           @default(false)
+  agentId           String
+  llmId             String
+  agentTimeZone     String
 
   @@unique([eventTypeId])
   @@index([eventTypeId])
@@ -2364,4 +2382,18 @@ model RolePermission {
   @@index([roleId])
   // TODO: come back to this with indexs.
   @@index([action])
+}
+
+model CalAiPhoneNumber {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumber String   @unique
+  provider    String? // e.g. "retell"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  aiSelfServeConfigurations AISelfServeConfiguration?
+
+  @@index([userId])
 }
