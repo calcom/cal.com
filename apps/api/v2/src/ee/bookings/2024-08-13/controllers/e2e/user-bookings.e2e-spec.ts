@@ -2257,8 +2257,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
         const booking = await bookingsRepositoryFixture.create({
           uid: `booking-uid-${randomString(10)}`,
           title: "booking title",
-          startTime: "2060-09-05T11:00:00.000Z",
-          endTime: "2060-09-05T12:00:00.000Z",
+          startTime: "2048-08-14T09:00:00.000Z",
+          endTime: "2048-08-14T10:00:00.000Z",
           eventType: {
             connect: {
               id: eventTypeId,
@@ -2298,9 +2298,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .expect(201);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
-          const updatedBooking = updatedBookingResponseBody.data;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
           expect(updatedBooking).toHaveProperty("id");
-          expect(createdBooking.location).toEqual(address);
+          expect(updatedBooking.location).toEqual(address);
         });
 
         it("can update location to type link", async () => {
@@ -2317,9 +2317,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .expect(201);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
-          const updatedBooking = updatedBookingResponseBody.data;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
           expect(updatedBooking).toHaveProperty("id");
-          expect(createdBooking.location).toEqual(link);
+          expect(updatedBooking.location).toEqual(link);
         });
 
         it("can update location to type phone", async () => {
@@ -2336,9 +2336,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .expect(201);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
-          const updatedBooking = updatedBookingResponseBody.data;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
           expect(updatedBooking).toHaveProperty("id");
-          expect(createdBooking.location).toEqual(phone);
+          expect(updatedBooking.location).toEqual(phone);
         });
 
         it("can update location to type attendeeAddress", async () => {
@@ -2357,9 +2357,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .expect(201);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
-          const updatedBooking = updatedBookingResponseBody.data;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
           expect(updatedBooking).toHaveProperty("id");
-          expect(createdBooking.location).toEqual(attendeeAddress);
+          expect(updatedBooking.location).toEqual(attendeeAddress);
         });
 
         it("can update location to type attendeePhone", async () => {
@@ -2378,9 +2378,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .expect(201);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
-          const updatedBooking = updatedBookingResponseBody.data;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
           expect(updatedBooking).toHaveProperty("id");
-          expect(createdBooking.location).toEqual(attendeePhone);
+          expect(updatedBooking.location).toEqual(attendeePhone);
         });
 
         it("can update location to type attendeeDefined", async () => {
@@ -2399,9 +2399,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .expect(201);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
-          const updatedBooking = updatedBookingResponseBody.data;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
           expect(updatedBooking).toHaveProperty("id");
-          expect(createdBooking.location).toEqual(attendeeDefinedLocation);
+          expect(updatedBooking.location).toEqual(attendeeDefinedLocation);
         });
 
         afterAll(async () => {
