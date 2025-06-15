@@ -324,7 +324,7 @@ export class Cal {
     config?: PrefillAndIframeAttrsConfig;
     calOrigin: string | null;
   }) {
-    log("Loading in iframe", calLink);
+    log("Loading in iframe", calLink, "with config", JSON.stringify(config));
     iframe.dataset.calLink = calLink;
     const calConfig = this.getCalConfig();
     const { iframeAttrs, ...queryParamsFromConfig } = config;
@@ -995,10 +995,8 @@ class CalApi {
     // `this.modalUid` is set in non-preload case(Temporarily not being-set)
     // `this.prerenderedModalUid` is set for a modal created through "prerender"
     const uid = this.modalUid || this.prerenderedModalUid || String(Date.now()) || "0";
-    const isReusingPrerenderedModal = !!this.modalUid || !!this.prerenderedModalUid;
     // Means whether there is already an attempt to use the prerendered modal
     const isConnectionInitiated = !!(this.modalUid && this.prerenderedModalUid);
-    const previousEmbedConfig = this.cal.embedConfig;
 
     const containerEl = document.body;
     this.cal.isPrerendering = !!__prerender;
@@ -1019,12 +1017,6 @@ class CalApi {
         // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.com resources
         config["cal.skipSlotsFetch"] = "true";
       }
-    } else if (isReusingPrerenderedModal) {
-      const shownPrerenderedAt = __shownPrerenderedAt ?? Date.now();
-      console.log("previousEmbedConfig", previousEmbedConfig);
-      console.log("Setting shownPrerenderedAt", shownPrerenderedAt);
-      config["cal.embed.shownPrerenderedAt"] =
-        previousEmbedConfig?.["cal.embed.shownPrerenderedAt"] ?? shownPrerenderedAt.toString();
     }
 
     const configWithGuestKeyAndColorScheme = withColorScheme(
@@ -1035,8 +1027,11 @@ class CalApi {
       containerEl
     );
 
-    const embedRenderStartTime = Date.now();
     const previousEmbedRenderStartTime = this.cal.embedRenderStartTime;
+    const previousEmbedConfig = this.cal.embedConfig;
+
+    const embedRenderStartTime = Date.now();
+    this.cal.embedRenderStartTime = embedRenderStartTime;
     this.cal.embedConfig = configWithGuestKeyAndColorScheme;
 
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
@@ -1115,7 +1110,6 @@ class CalApi {
 
       // We reach here in case of connect or fullReload
       this.modalUid = uid;
-      this.cal.embedRenderStartTime = embedRenderStartTime;
       return;
     }
 

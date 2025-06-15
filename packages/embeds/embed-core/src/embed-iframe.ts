@@ -4,7 +4,12 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
-import { runAsap, isBookerReady, isLinkReady } from "./embed-iframe/lib/utils";
+import {
+  runAsap,
+  isBookerReady,
+  isLinkReady,
+  convertQueuedFormResponseToRoutingFormResponse,
+} from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
   UiConfig,
@@ -368,7 +373,7 @@ export const methods = {
   /**
    * Connects new config to prerendered page
    */
-  connect: function connect({
+  connect: async function connect({
     config,
     params,
   }: {
@@ -384,6 +389,8 @@ export const methods = {
       "cal.embed.noSlotsFetchOnConnect": noSlotsFetchOnConnect,
       ...queryParamsFromConfig
     } = config;
+
+    const convertedRoutingFormResponseId = await convertQueuedFormResponseToRoutingFormResponse();
 
     if (noSlotsFetchOnConnect !== "true") {
       log("Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch");
@@ -401,6 +408,10 @@ export const methods = {
       // Query params from config takes precedence over query params in url
       ...(queryParamsFromConfig as Record<string, string | string[]>),
       "cal.embed.connectVersion": connectVersion.toString(),
+      // Update the cal.routingFormResponseId with the new routingFormResponseId
+      ...(convertedRoutingFormResponseId
+        ? { "cal.routingFormResponseId": convertedRoutingFormResponseId }
+        : {}),
     };
 
     (function tryToConnect() {

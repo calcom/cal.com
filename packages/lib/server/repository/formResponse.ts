@@ -36,7 +36,7 @@ export class RoutingFormResponseRepository {
   }
 
   static async recordQueuedFormResponse(input: RecordFormResponseInput) {
-    return await prisma.app_RoutingForms_QueuedFormResponse.create({
+    return await prisma.App_RoutingForms_QueuedFormResponse.create({
       data: this.generateCreateFormResponseData(input),
     });
   }
@@ -59,7 +59,7 @@ export class RoutingFormResponseRepository {
       prefix: [`[writeQueuedFormResponseToFormResponse]: ${bookerEmail}`],
     });
 
-    const queuedResponse = await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
+    const queuedResponse = await prisma.App_RoutingForms_QueuedFormResponse.findUnique({
       where: {
         id: queuedFormResponseId,
       },
@@ -71,7 +71,7 @@ export class RoutingFormResponseRepository {
 
     try {
       const result = await prisma.$transaction([
-        prisma.app_RoutingForms_QueuedFormResponse.delete({
+        prisma.App_RoutingForms_QueuedFormResponse.delete({
           where: {
             id: queuedFormResponseId,
           },
