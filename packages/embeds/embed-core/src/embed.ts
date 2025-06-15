@@ -981,6 +981,8 @@ class CalApi {
     __shownPrerenderedAt?: number;
   }) {
     const calConfig = this.cal.getCalConfig();
+    // Clone so that it doesn't mutate the original config
+    config = { ...config };
     // calOrigin could have been passed as empty string by the user
     calOrigin = calOrigin || calConfig.calOrigin;
     const calLinkUrlObject = new URL(calLink, calOrigin);
@@ -993,8 +995,10 @@ class CalApi {
     // `this.modalUid` is set in non-preload case(Temporarily not being-set)
     // `this.prerenderedModalUid` is set for a modal created through "prerender"
     const uid = this.modalUid || this.prerenderedModalUid || String(Date.now()) || "0";
+    const isReusingPrerenderedModal = !!this.modalUid || !!this.prerenderedModalUid;
     // Means whether there is already an attempt to use the prerendered modal
     const isConnectionInitiated = !!(this.modalUid && this.prerenderedModalUid);
+    const previousEmbedConfig = this.cal.embedConfig;
 
     const containerEl = document.body;
     this.cal.isPrerendering = !!__prerender;
@@ -1015,9 +1019,12 @@ class CalApi {
         // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.com resources
         config["cal.skipSlotsFetch"] = "true";
       }
-    } else {
+    } else if (isReusingPrerenderedModal) {
       const shownPrerenderedAt = __shownPrerenderedAt ?? Date.now();
-      config["cal.embed.shownPrerenderedAt"] = shownPrerenderedAt.toString();
+      console.log("previousEmbedConfig", previousEmbedConfig);
+      console.log("Setting shownPrerenderedAt", shownPrerenderedAt);
+      config["cal.embed.shownPrerenderedAt"] =
+        previousEmbedConfig?.["cal.embed.shownPrerenderedAt"] ?? shownPrerenderedAt.toString();
     }
 
     const configWithGuestKeyAndColorScheme = withColorScheme(
@@ -1029,7 +1036,6 @@ class CalApi {
     );
 
     const embedRenderStartTime = Date.now();
-    const previousEmbedConfig = this.cal.embedConfig;
     const previousEmbedRenderStartTime = this.cal.embedRenderStartTime;
     this.cal.embedConfig = configWithGuestKeyAndColorScheme;
 

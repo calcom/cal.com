@@ -2,7 +2,10 @@ import "../test/__mocks__/windowMatchMedia";
 
 import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 
-import { EMBED_MODAL_IFRAME_SLOT_STALE_TIME } from "./constants";
+import {
+  EMBED_MODAL_IFRAME_SLOT_STALE_TIME,
+  EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS,
+} from "./constants";
 import { submitResponseAndGetRoutingResult } from "./utils";
 
 vi.mock("./tailwindCss", () => ({
@@ -349,6 +352,44 @@ describe("Cal", () => {
               ...modalArg.config,
               prerender: "true",
               embedType: "modal",
+              "cal.skipSlotsFetch": "true",
+            }),
+            origin: null,
+          },
+        });
+      });
+
+      it("should create modal having iframe with queueFormResponse=true param when prerendering headless router", () => {
+        const modalArg = {
+          ...baseModalArgs,
+          calLink: "router?form=123&email=john@example.com",
+          config: {
+            ...baseModalArgs.config,
+            "cal.embed.pageType": "doesntmatter",
+          },
+          calOrigin: null,
+          __prerender: true,
+        };
+        calInstance.api.modal(modalArg);
+
+        const modalBox = expectCalModalBoxToBeInDocument({
+          state: "prerendering",
+          pageType: modalArg.config["cal.embed.pageType"],
+          theme: modalArg.config.theme,
+          layout: modalArg.config.layout,
+        });
+
+        expectIframeToHaveMatchingUrl({
+          element: modalBox,
+          expectedIframeUrlObject: {
+            pathname: `${new URL(modalArg.calLink, "http://example.com").pathname}`,
+            searchParams: new URLSearchParams({
+              ...modalArg.config,
+              prerender: "true",
+              embedType: "modal",
+              queueFormResponse: "true",
+              email: "john@example.com",
+              form: "123",
             }),
             origin: null,
           },
@@ -435,7 +476,10 @@ describe("Cal", () => {
             expect(calInstance.doInIframe).toHaveBeenCalledWith({
               method: "connect",
               arg: {
-                config: expectedConfigAfterPrefilling,
+                config: {
+                  ...expectedConfigAfterPrefilling,
+                  "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
+                },
                 params: {},
               },
             });
@@ -530,7 +574,6 @@ describe("Cal", () => {
               ...expectedConfig,
               name: modalArgWithPrefilledConfig.config.name,
               email: modalArgWithPrefilledConfig.config.email,
-              "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
             };
 
             expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
@@ -549,9 +592,6 @@ describe("Cal", () => {
                   // It remains because internally we remove prerender=true in iframe - through connect flow
                   prerender: "true",
                   "cal.skipSlotsFetch": "true",
-                  // It can't be verified here as it is set through connect flow directly on document's URL and not updated in iframe.src available outside the iframe.
-                  // so it is verified below in connect flow assertion
-                  // "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
                 }),
                 origin: null,
               },
@@ -560,7 +600,10 @@ describe("Cal", () => {
             expect(calInstance.doInIframe).toHaveBeenCalledWith({
               method: "connect",
               arg: {
-                config: expectedConfigAfterPrefilling,
+                config: {
+                  ...expectedConfigAfterPrefilling,
+                  "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
+                },
                 params: {},
               },
             });
@@ -593,7 +636,10 @@ describe("Cal", () => {
               },
               expectedIframeUrlObject: {
                 pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams(expectedConfigAfterPrefilling),
+                searchParams: new URLSearchParams({
+                  ...expectedConfigAfterPrefilling,
+                  "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
+                }),
                 origin: null,
               },
             });
@@ -689,7 +735,10 @@ describe("Cal", () => {
               expect.objectContaining({
                 method: "connect",
                 arg: {
-                  config: configWithPrefilledValues,
+                  config: {
+                    ...configWithPrefilledValues,
+                    "cal.embed.shownPrerenderedAt": modalArg.__shownPrerenderedAt.toString(),
+                  },
                   params: {},
                 },
               })
@@ -1071,7 +1120,7 @@ describe("Cal", () => {
         ...baseArgs,
         stateData: {
           ...baseArgs.stateData,
-          previousEmbedRenderStartTime: Date.now() - 1000000, // Much older timestamp
+          previousEmbedRenderStartTime: Date.now() - EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS - 1, // Much older timestamp
           embedRenderStartTime: Date.now(),
         },
       });

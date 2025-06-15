@@ -6,6 +6,7 @@ window.calLink = url.searchParams.get("calLink");
 const emailQueryParam = url.searchParams.get("param.email");
 window.params = {
   email: emailQueryParam,
+  formId: url.searchParams.get("param.formId"),
 };
 
 window.generateRandomHexColor = function generateRandomHexColor() {

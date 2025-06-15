@@ -97,12 +97,38 @@
 
 <body>
   <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div id="cal-booking-place-routingFormWithoutPrerender">
+    <a href="?only=ns:routingFormWithoutPrerender">Routing Form Without Prerender Demo</a>
+    <form id="cal-booking-place-routingFormWithoutPrerender-form">
+      <input type="text" name="name" placeholder="John Doe" />
+      <input type="email" name="email" placeholder="john@example.com" />
+      <select name="skills" placeholder="JavaScript, Node.js">
+        <option value="JavaScript">JavaScript</option>
+        <option value="Sales">Sales</option>
+      </select>
+    </form>
+    <button id="cal-booking-place-routingFormWithoutPrerender-submit" data-cal-namespace="routingFormWithoutPrerender" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots", "guests":["guest1@example.com", "guest2@example.com"]}'>Submit</button>
+    <script>
+      requestAnimationFrame(function updateSubmitButtonLink() {
+        const seededFormAcmeId = "948ae412-d995-4865-885a-48302588de03";
+        const form = document.getElementById("cal-booking-place-routingFormWithoutPrerender-form");
+        const name = form.querySelector("input[name='name']").value;
+        const email = form.querySelector("input[name='email']").value;
+        const skills = form.querySelector("select[name='skills']").value;
+        if (name && email) {
+          document.getElementById("cal-booking-place-routingFormWithoutPrerender-submit").setAttribute("data-cal-link", `router?form=${seededFormAcmeId}&email=${email}&name=${name}&Location=London&Department=Engineering&Manager=John Doe&Rating=5&skills=${skills}&Email=${email}`);
+        }
+        requestAnimationFrame(updateSubmitButtonLink);
+      });
+    </script>
+    </div>
     <div id="cal-booking-place-routingFormPrerender">
-      <a href="?only=ns:routingFormPrerender">Routing Form Prerender Demo</a>
+      <hr/>
+      <a href="?only=ns:routingFormPrerender">Routing Form Prerender Team Booking Page - Demo</a>
       <p>1. As soon as you start typing in the form, the form will prerender the booking page(where redirect is supposed to happen)</p>
-      <p>2. Clicking on submit will open the prerendered/being prerendered iframe in the modal</p>
+      <p>2. Clicking on submit will open the prerendered/being prerendered iframe in the modal, sending fresh request for headless router, followed by fetching the slots</p>
       <p>3. Changing the form response and clicking submit, will re-submit the response and reopen the modal with the updated data(update slots call, updated prefill fields)</p>
-      <p>4. Clicking submit again without changing the form response will just re-show the hidden modal(as long as threshold of 1 min since last time the modal was shown is met). But, in case of an error it iframe always tries to rerender. Trying adding an invalid email to see the error</p>
+      <p>4. Clicking submit again without changing the form response will just re-show the hidden modal(as long as slotsStaleTimeMs threshold is not breached). But, in case of an error it iframe always tries to rerender. Trying adding an invalid email to see the error</p>
       <form id="cal-booking-place-routingFormPrerender-form">
         <input type="text" name="name" placeholder="John Doe" />
         <input type="email" name="email" placeholder="john@example.com" />
@@ -137,35 +163,22 @@
         });
       </script>
     </div>
-    <div id="cal-booking-place-routingFormWithoutPrerender">
-    <a href="?only=ns:routingFormWithoutPrerender">Routing Form Without Prerender Demo</a>
-    <form id="cal-booking-place-routingFormWithoutPrerender-form">
-      <input type="text" name="name" placeholder="John Doe" />
-      <input type="email" name="email" placeholder="john@example.com" />
-      <select name="skills" placeholder="JavaScript, Node.js">
-        <option value="JavaScript">JavaScript</option>
-        <option value="Sales">Sales</option>
-      </select>
-    </form>
-    <button id="cal-booking-place-routingFormWithoutPrerender-submit" data-cal-namespace="routingFormWithoutPrerender" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots", "guests":["guest1@example.com", "guest2@example.com"]}'>Submit</button>
-    <script>
-      requestAnimationFrame(function updateSubmitButtonLink() {
-        const seededFormAcmeId = "948ae412-d995-4865-885a-48302588de03";
-        const form = document.getElementById("cal-booking-place-routingFormWithoutPrerender-form");
-        const name = form.querySelector("input[name='name']").value;
-        const email = form.querySelector("input[name='email']").value;
-        const skills = form.querySelector("select[name='skills']").value;
-        if (name && email) {
-          document.getElementById("cal-booking-place-routingFormWithoutPrerender-submit").setAttribute("data-cal-link", `router?form=${seededFormAcmeId}&email=${email}&name=${name}&Location=London&Department=Engineering&Manager=John Doe&Rating=5&skills=${skills}&Email=${email}`);
-        }
-        requestAnimationFrame(updateSubmitButtonLink);
-      });
-    </script>
-    </div>
-
     <div id="cal-booking-routing-full-prerender">
-      <a href="?only=ns:routing-full-prerender">Prerender - Headless Router itself queuing the form response</a>
-
+      <hr/>
+      <a href="?only=ns:routing-full-prerender&debug=1&param.email=test@example.com">Routing Form - Prerender Headless Router itself queuing the form response</a>
+      <p>1. As page is loading, we prerender the headless router for the email passed as param.email</p>
+      <p>2. Whenever email changes and onblur happens, the prerender is triggered for the new email and previous prerendered modal is removed</p>
+      <p>3. The prerender of the headless router queues the form response and doesn't really record it. When the actual booking is made, the form response is recorded from the queue</p>
+      <p>4. If the CTA click happens before the slots are considered stale(configurable via options.slotsStaleTimeMs), then it will open the prerendered modal without fetching the slots, otherwise it will fetch the slots(for the routedTeamMembers/contactOwner only) and till then skeleton will be shown</p>
+      <p>5. If the CTA click happens after iframeForceReloadThresholdMs has passed, then fresh headless router request is sent which could be really slow. It is important to do force reload after a certain time because the Routing Form itself could have changed in the meantime or Salesforce ownership might be available or some other change might have occured in Cal.com's side</p>
+      <p>6. slotsStaleTimeMs is set to 5 seconds(default is 1 minute) and iframeForceReloadThresholdMs is set to 20 seconds(default is 15 minutes) and they are considered from the time when the prerender/modal call was made</p>
+      <p>7. To avoid reaching the iframeForceReloadThresholdMs, user could prerender the router again and again judiciously</p>
+      </p>
+      <script>
+        window.buildRouterUrl = ({email, formId}) => {
+          return `router?form=${formId}&email=${email}`;
+        }
+      </script>
       <div class="inline-embed-container">
         <div id="cal-booking-place-routing-full-prerender">
           <div class="place"></div>
@@ -176,7 +189,7 @@
         </div>
       </div>
       <h3><script>
-        document.write(`<button id="cta-routing-full-prerender" data-cal-namespace="routingFormFullPrerender" data-cal-origin="${window.calOrigin}"  data-cal-link="router?form=56250726-d41d-4140-af43-551cac8892a5&email=${document.getElementById('cal-booking-place-routing-full-prerender-input-email').value}" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Demo</button>`)
+        document.write(`<button id="cta-routing-full-prerender" data-cal-namespace="routingFormFullPrerender" data-cal-origin="${window.calOrigin}"  data-cal-link="${window.buildRouterUrl({email:document.getElementById('cal-booking-place-routing-full-prerender-input-email').value, formId:window.params.formId})}" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>Demo</button>`)
       </script></h3>
       <script>
         (()=>{
@@ -187,10 +200,10 @@
             debug: true,
             calOrigin: window.calOrigin,
           });
-        const prerender = (email) => {
+        const prerender = ({email, formId}) => {
           Cal.ns.routingFormFullPrerender("prerender", {
             // Email will be automatically passed as query param
-            calLink: `router?form=56250726-d41d-4140-af43-551cac8892a5&email=${email}`,
+            calLink: window.buildRouterUrl({email, formId}),
             type: "modal",
             pageType: "team.event.booking.slots",
             options: {
@@ -199,7 +212,7 @@
             },
           });
         }
-        document.getElementById('cal-booking-place-routing-full-prerender-input-email').onchange = (e) => {
+        document.getElementById('cal-booking-place-routing-full-prerender-input-email').onchange = function onEmailChange(e) {
           const element = e.target;
           const email = element.validity.valid ? element.value : null;
           if (!email) {
@@ -213,12 +226,12 @@
             element.setAttribute('data-cal-link', currentLinkObject.pathname + currentLinkObject.search);
           }
           updateCtaLink(email);
-          prerender(email);
+          prerender({email, formId:window.params.formId});
         }
-        if (!window.params.email) {
-          alert('Pass param.email query param')
+        if (!window.params.email || !window.params.formId) {
+          alert('Pass param.email and param.formId query params')
         }
-        prerender(window.params.email);
+        prerender({email:window.params.email, formId:window.params.formId});
       })();
       </script>
     </div>

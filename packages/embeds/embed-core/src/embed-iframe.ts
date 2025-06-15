@@ -19,10 +19,6 @@ import type {
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
 
-console.log({
-  isLinkReady: isLinkReady,
-  embedStoreRouterEnsureQueryParamsInUrl: embedStore.router.ensureQueryParamsInUrl,
-});
 // We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
 type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 
