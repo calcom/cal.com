@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
@@ -112,7 +112,7 @@ const Locations: React.FC<LocationsProps> = ({
   disableLocationProp,
   isManagedEventType,
   getValues,
-  setValue,
+  setValue: _setValue,
   control,
   formState,
   team,
@@ -175,6 +175,15 @@ const Locations: React.FC<LocationsProps> = ({
     customClassNames?: LocationInputCustomClassNames;
   }) => {
     const { eventLocationType, index, customClassNames, ...remainingProps } = props;
+    const inputRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+      // Focus the input when it's rendered
+      if (inputRef.current && !defaultValue) {
+        inputRef.current.focus();
+      }
+    }, []);
+
     if (eventLocationType?.organizerInputType === "text") {
       const { defaultValue, ...rest } = remainingProps;
 
@@ -182,9 +191,13 @@ const Locations: React.FC<LocationsProps> = ({
         <Controller
           name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
           defaultValue={defaultValue}
-          render={({ field: { onChange, value } }) => {
+          render={({ field: { onChange, value, ref } }) => {
             return (
               <Input
+                ref={(e) => {
+                  ref(e);
+                  inputRef.current = e;
+                }}
                 name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
                 placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
                 type="text"
