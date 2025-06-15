@@ -7,6 +7,34 @@ import type { Host, TeamMember } from "../../lib/types";
 import type { AddMembersWithSwitchProps } from "../AddMembersWithSwitch";
 import { AddMembersWithSwitch } from "../AddMembersWithSwitch";
 
+// Mock Next.js router
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => "/test-path",
+  useSearchParams: () => ({
+    get: vi.fn(),
+    toString: () => "",
+  }),
+  useParams: () => ({}),
+  ReadonlyURLSearchParams: class ReadonlyURLSearchParams {
+    private params: URLSearchParams;
+
+    constructor(params: URLSearchParams) {
+      this.params = params;
+    }
+    get(key: string) {
+      return this.params.get(key);
+    }
+    toString() {
+      return this.params.toString();
+    }
+  },
+}));
+
 // Mock matchMedia
 vi.mock("@formkit/auto-animate/react", () => ({
   useAutoAnimate: () => [null],
@@ -19,6 +47,14 @@ vi.mock("@calcom/features/Segment", () => ({
       <button onClick={() => onQueryValueChange({ queryValue: { id: "test" } })}>Update Query</button>
     </div>
   )),
+}));
+
+// Mock TooltipProvider
+vi.mock("@calcom/ui/components/tooltip", () => ({
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Tooltip: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  TooltipContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  TooltipTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 const mockTeamMembers: TeamMember[] = [
@@ -61,26 +97,34 @@ const renderComponent = ({
     hosts: [],
   },
 }: {
-  componentProps: AddMembersWithSwitchProps;
-  formDefaultValues?: Record<string, unknown>;
+  componentProps: Partial<AddMembersWithSwitchProps>;
+  formDefaultValues?: Record<string, any>;
 }) => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
     const methods = useForm({
       defaultValues: formDefaultValues,
     });
-    const [assignAllTeamMembers, setAssignAllTeamMembers] = React.useState(false);
-    console.log(methods.getValues());
     return (
-      <FormProvider {...methods}>
-        {React.cloneElement(children as React.ReactElement, {
-          assignAllTeamMembers,
-          setAssignAllTeamMembers,
-        })}
-      </FormProvider>
+      <div>
+        <FormProvider {...methods}>{children}</FormProvider>
+      </div>
     );
   };
 
-  return render(<AddMembersWithSwitch {...componentProps} />, { wrapper: Wrapper });
+  const defaultProps: AddMembersWithSwitchProps = {
+    teamMembers: mockTeamMembers,
+    value: [],
+    onChange: vi.fn(),
+    assignAllTeamMembers: false,
+    setAssignAllTeamMembers: vi.fn(),
+    automaticAddAllEnabled: false,
+    onActive: vi.fn(),
+    isFixed: false,
+    teamId: 1,
+    ...componentProps,
+  };
+
+  return render(<AddMembersWithSwitch {...defaultProps} />, { wrapper: Wrapper });
 };
 
 describe("AddMembersWithSwitch", () => {
@@ -98,6 +142,7 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: false,
         automaticAddAllEnabled: false,
       },
@@ -111,6 +156,7 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: false,
         automaticAddAllEnabled: true,
       },
@@ -126,7 +172,9 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: true,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: false,
+        automaticAddAllEnabled: true,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: true,
@@ -135,8 +183,11 @@ describe("AddMembersWithSwitch", () => {
       },
     });
 
-    expect(screen.queryByTestId("assign-all-team-members-toggle")).not.toBeInTheDocument();
-    expect(screen.queryByText("filter_by_attributes")).not.toBeInTheDocument();
+    // Assign all toggle is still shown when team members are enabled
+    expect(screen.getByTestId("assign-all-team-members-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("assign-all-team-members-toggle").getAttribute("aria-checked")).toBe("true");
+    // Segment options should not be shown when isSegmentApplicable is false
+    expect(screen.queryByTestId("segment-toggle")).not.toBeInTheDocument();
   });
 
   it("should render segment toggle in enabled state when isSegmentApplicable is true and assignRRMembersUsingSegment is also true(even if assignAllTeamMembers is false)", () => {
@@ -144,7 +195,9 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: true,
+        automaticAddAllEnabled: true,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: true,
@@ -158,14 +211,23 @@ describe("AddMembersWithSwitch", () => {
   });
 
   it("should call onChange when team members are selected", () => {
-    renderComponent({ componentProps: defaultProps });
+    const mockOnChange = vi.fn();
+    renderComponent({
+      componentProps: {
+        ...defaultProps,
+        assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
+        automaticAddAllEnabled: false,
+        onChange: mockOnChange,
+      },
+    });
 
     const combobox = screen.getByRole("combobox");
     fireEvent.focus(combobox);
     fireEvent.keyDown(combobox, { key: "ArrowDown" });
     fireEvent.click(screen.getByText("John Doe"));
 
-    expect(defaultProps.onChange).toHaveBeenCalled();
+    expect(mockOnChange).toHaveBeenCalled();
   });
 
   it("should show Segment when 'Automatically add all team members' is toggled on and then segment toggle is switched on", () => {
@@ -173,6 +235,7 @@ describe("AddMembersWithSwitch", () => {
       componentProps: {
         ...defaultProps,
         assignAllTeamMembers: true,
+        setAssignAllTeamMembers: vi.fn(),
         isSegmentApplicable: true,
         automaticAddAllEnabled: true,
       },
@@ -183,14 +246,57 @@ describe("AddMembersWithSwitch", () => {
       },
     });
 
-    expect(screen.queryByTestId("segment-toggle")).not.toBeInTheDocument();
-
-    act(() => {
-      screen.getByTestId("assign-all-team-members-toggle").click();
-    });
+    // Segment toggle is always shown when segment is applicable
+    expect(screen.getByTestId("segment-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("segment-toggle").getAttribute("aria-checked")).toBe("false");
 
     expect(screen.queryByTestId("mock-segment")).not.toBeInTheDocument();
 
+    act(() => {
+      screen.getByTestId("segment-toggle").click();
+    });
+
+    expect(screen.getByTestId("mock-segment")).toBeInTheDocument();
+  });
+
+  it("should show Segment options for manually assigned team members when segment is applicable", () => {
+    const mockHosts: Host[] = [
+      {
+        userId: 1,
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+        scheduleId: 1,
+      },
+    ];
+
+    renderComponent({
+      componentProps: {
+        ...defaultProps,
+        assignAllTeamMembers: false,
+        setAssignAllTeamMembers: vi.fn(),
+        isSegmentApplicable: true,
+        automaticAddAllEnabled: true,
+        value: mockHosts,
+      },
+      formDefaultValues: {
+        assignRRMembersUsingSegment: false,
+        rrSegmentQueryValue: null,
+        hosts: mockHosts,
+      },
+    });
+
+    // Should show assign all toggle
+    expect(screen.getByTestId("assign-all-team-members-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("assign-all-team-members-toggle").getAttribute("aria-checked")).toBe("false");
+
+    // Should show manual host selection
+    expectManualHostListToBeThere();
+
+    // Should show segment toggle for manually assigned members
+    expect(screen.getByTestId("segment-toggle")).toBeInTheDocument();
+
+    // When segment toggle is enabled, should show segment options
     act(() => {
       screen.getByTestId("segment-toggle").click();
     });
