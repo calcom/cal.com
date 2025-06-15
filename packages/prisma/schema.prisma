@@ -860,6 +860,9 @@ model SelectedCalendar {
   googleChannelResourceUri String?
   googleChannelExpiration  String?
 
+  outlookSubscriptionId         String?
+  outlookSubscriptionExpiration String?
+
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
 
@@ -880,6 +883,7 @@ model SelectedCalendar {
   // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
+  @@unique([outlookSubscriptionId, eventTypeId])
   @@index([userId])
   @@index([externalId])
   @@index([eventTypeId])

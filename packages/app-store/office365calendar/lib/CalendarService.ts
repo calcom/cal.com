@@ -1,7 +1,9 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
+import type { Prisma } from "@prisma/client";
 import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
+import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -9,13 +11,16 @@ import {
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { prisma } from "@calcom/prisma";
 import type {
   Calendar,
   CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
+  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 
@@ -23,6 +28,9 @@ import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
+import { Office365CalendarCache } from "./Office365CalendarCache";
+import { Office365SubscriptionManager } from "./Office365SubscriptionManager";
+import { validateOffice365Environment } from "./envValidation";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
 interface IRequest {
@@ -59,8 +67,19 @@ export default class Office365CalendarService implements Calendar {
   private apiGraphUrl = "https://graph.microsoft.com/v1.0";
   private credential: CredentialForCalendarServiceWithTenantId;
   private azureUserId?: string;
+  private cachedUserEndpoint?: string; // Cache for getUserEndpoint result
 
   constructor(credential: CredentialForCalendarServiceWithTenantId) {
+    // Validate environment variables at startup
+    const envValidation = validateOffice365Environment();
+    if (!envValidation.isValid) {
+      throw new Error(
+        `Office365 Calendar Service initialization failed. Missing required environment variables: ${envValidation.missingVars.join(
+          ", "
+        )}`
+      );
+    }
+
     this.integrationName = "office365_calendar";
     const tokenResponse = getTokenObjectFromCredential(credential);
     this.auth = new OAuthManager({
@@ -121,6 +140,18 @@ export default class Office365CalendarService implements Calendar {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
+  public getCredential() {
+    return this.credential;
+  }
+
+  private getSubscriptionManager() {
+    return new Office365SubscriptionManager(this);
+  }
+
+  private getCalendarCache() {
+    return new Office365CalendarCache(this);
+  }
+
   private getAuthUrl(delegatedTo: boolean, tenantId?: string): string {
     if (delegatedTo) {
       if (!tenantId) {
@@ -156,7 +187,15 @@ export default class Office365CalendarService implements Calendar {
 
     const isDelegated = Boolean(credential?.delegatedTo);
 
-    if (!isDelegated) return;
+    if (!isDelegated) {
+      const user = await this.fetcher("/me");
+      const userResponseBody = await handleErrorsJson<User>(user);
+      this.azureUserId = userResponseBody.userPrincipalName ?? undefined;
+      if (!this.azureUserId) {
+        throw new Error("UserPrincipalName is missing for non-delegated user");
+      }
+      return this.azureUserId;
+    }
 
     const url = this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
@@ -235,8 +274,16 @@ export default class Office365CalendarService implements Calendar {
   }
 
   async getUserEndpoint(): Promise<string> {
+    // Return cached result if available
+    if (this.cachedUserEndpoint) {
+      return this.cachedUserEndpoint;
+    }
+
+    // Calculate and cache the result
     const azureUserId = await this.getAzureUserId(this.credential);
-    return azureUserId ? `/users/${this.azureUserId}` : "/me";
+    this.cachedUserEndpoint = azureUserId ? `/users/${this.azureUserId}` : "/me";
+
+    return this.cachedUserEndpoint;
   }
 
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
@@ -298,61 +345,40 @@ export default class Office365CalendarService implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean,
+    fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]> {
-    const dateFromParsed = new Date(dateFrom);
-    const dateToParsed = new Date(dateTo);
+    this.log.info("[Office365CalendarService] getAvailability called", {
+      dateFrom,
+      dateTo,
+      selectedCalendars: selectedCalendars.map((cal) => ({
+        externalId: cal.externalId,
+        integration: cal.integration,
+      })),
+      shouldServeCache,
+      fallbackToPrimary,
+    });
 
-    const filter = `?startDateTime=${encodeURIComponent(
-      dateFromParsed.toISOString()
-    )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
+    // Get calendar IDs
+    const calendarIds = await this.getCalendarIds(selectedCalendars, fallbackToPrimary);
 
-    const calendarSelectParams = "$select=showAs,start,end";
+    this.log.info("[Office365CalendarService] Calendar IDs resolved", { calendarIds });
+
+    if (calendarIds.length === 0) {
+      this.log.info("[Office365CalendarService] No calendar IDs found, returning empty array");
+      return Promise.resolve([]);
+    }
 
     try {
-      const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
-        if (calendar.integration === this.integrationName && calendar.externalId)
-          calendarIds.push(calendar.externalId);
+      const startDate = dayjs(dateFrom);
+      const endDate = dayjs(dateTo);
 
-        return calendarIds;
-      }, [] as string[]);
-
-      if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
-        // Only calendars of other integrations selected
-        return Promise.resolve([]);
-      }
-
-      const ids = await (selectedCalendarIds.length === 0
-        ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
-        : Promise.resolve(selectedCalendarIds));
-      const requestsPromises = ids.map(async (calendarId, id) => ({
-        id,
-        method: "GET",
-        url: `${await this.getUserEndpoint()}/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
-      }));
-      const requests = await Promise.all(requestsPromises);
-      const response = await this.apiGraphBatchCall(requests);
-      const responseBody = await this.handleErrorJsonOffice365Calendar(response);
-      let responseBatchApi: IBatchResponse = { responses: [] };
-      if (typeof responseBody === "string") {
-        responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
-      }
-      let alreadySuccessResponse = [] as ISettledResponse[];
-
-      // Validate if any 429 status Retry-After is present
-      const retryAfter =
-        !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
-
-      if (retryAfter && responseBatchApi.responses) {
-        responseBatchApi = await this.fetchRequestWithRetryAfter(requests, responseBatchApi.responses, 2);
-      }
-
-      // Recursively fetch nextLink responses
-      alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
-
-      return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
-    } catch (err) {
-      return Promise.reject([]);
+      this.log.info("[Office365CalendarService] Calling getChunkedAvailability");
+      return await this.getChunkedAvailability(startDate, endDate, calendarIds, shouldServeCache);
+    } catch (error) {
+      this.log.error("Error getting availability", error);
+      return [];
     }
   }
 
@@ -591,22 +617,24 @@ export default class Office365CalendarService implements Calendar {
     return !!foundRetry;
   };
 
-  private processBusyTimes = (responses: ISettledResponse[]) => {
-    return responses.reduce(
-      (acc: BufferedBusyTime[], subResponse: { body: { value?: BodyValue[]; error?: Error[] } }) => {
-        if (!subResponse.body?.value) return acc;
-        return acc.concat(
-          subResponse.body.value.reduce((acc: BufferedBusyTime[], evt: BodyValue) => {
-            if (evt.showAs === "free" || evt.showAs === "workingElsewhere") return acc;
-            return acc.concat({
-              start: `${evt.start.dateTime}Z`,
-              end: `${evt.end.dateTime}Z`,
-            });
-          }, [])
-        );
-      },
-      []
-    );
+  private processBusyTimes = (args: FreeBusyArgs, responses: ISettledResponse[]) => {
+    return responses.reduce((acc: EventBusyDate[], response) => {
+      if (!response.body?.value || !Array.isArray(response.body.value)) return acc;
+
+      const calendarId = args.items[Number(response.id)].id;
+      const busyTimes = response.body.value.reduce((times: EventBusyDate[], evt: BodyValue) => {
+        if (evt.showAs === "free" || evt.showAs === "workingElsewhere") return times;
+
+        times.push({
+          start: new Date(`${evt.start.dateTime}Z`),
+          end: new Date(`${evt.end.dateTime}Z`),
+          source: `office365_${calendarId}`,
+        });
+        return times;
+      }, []);
+
+      return [...acc, ...busyTimes];
+    }, []);
   };
 
   private handleErrorJsonOffice365Calendar = <Type>(response: Response): Promise<Type | string> => {
@@ -619,10 +647,403 @@ export default class Office365CalendarService implements Calendar {
     }
 
     if (!response.ok && response.status < 200 && response.status >= 300) {
-      response.json().then(console.log);
-      throw Error(response.statusText);
+      // Log error details using proper logger instead of console.log
+      response
+        .json()
+        .then((errorBody) => {
+          this.log.error("Office365 API Error", {
+            status: response.status,
+            statusText: response.statusText,
+            errorBody,
+            url: response.url,
+          });
+        })
+        .catch((parseError) => {
+          this.log.error("Failed to parse error response", {
+            status: response.status,
+            statusText: response.statusText,
+            parseError: parseError.message,
+            url: response.url,
+          });
+        });
+
+      throw new Error(`Office365 API Error: ${response.status} ${response.statusText}`);
     }
 
     return response.json();
   };
+
+  async watchCalendar({
+    calendarId,
+    eventTypeIds,
+  }: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }) {
+    this.log.debug("watchCalendar", { calendarId, eventTypeIds });
+
+    // First, check if this calendar is already being watched
+    const allCalendarsWithSubscription = await SelectedCalendarRepository.findMany({
+      where: {
+        credentialId: this.credential.id,
+        externalId: calendarId,
+        integration: this.integrationName,
+        outlookSubscriptionId: {
+          not: null,
+        },
+      },
+    });
+
+    // Filter out calendars belonging to event types we're currently processing
+    const eventTypeIdsArray = eventTypeIds.filter((id) => id !== null) as number[];
+    const otherCalendarsWithSameSubscription = allCalendarsWithSubscription.filter(
+      (sc) => !eventTypeIdsArray.includes(sc.eventTypeId ?? 0)
+    );
+
+    // If we found existing subscriptions, reuse them
+    let subscriptionProps = otherCalendarsWithSameSubscription.length
+      ? {
+          id: otherCalendarsWithSameSubscription[0].outlookSubscriptionId,
+          expirationDateTime: otherCalendarsWithSameSubscription[0].outlookSubscriptionExpiration,
+        }
+      : null;
+    let error: string | undefined;
+
+    if (!subscriptionProps) {
+      try {
+        // No existing subscription found, create a new one
+        const subscriptionManager = this.getSubscriptionManager();
+        subscriptionProps = await subscriptionManager.createSubscription(calendarId);
+      } catch (e) {
+        this.log.error(`Failed to watch calendar ${calendarId}`, safeStringify(e));
+        // We set error to prevent attempting to watch on next cron run
+        error = e instanceof Error ? e.message : "Unknown error";
+      }
+    } else {
+      this.log.info(
+        `Calendar ${calendarId} is already being watched for event types ${otherCalendarsWithSameSubscription.map(
+          (sc) => sc.eventTypeId
+        )}. So, not watching again and instead reusing the existing subscription`
+      );
+    }
+
+    // Update all selected calendars with subscription info
+    await this.upsertSelectedCalendarsForEventTypeIds(
+      {
+        externalId: calendarId,
+        outlookSubscriptionId: subscriptionProps?.id,
+        outlookSubscriptionExpiration: subscriptionProps?.expirationDateTime,
+        error,
+      },
+      eventTypeIds
+    );
+
+    return subscriptionProps;
+  }
+
+  async unwatchCalendar({
+    calendarId,
+    eventTypeIds,
+  }: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }) {
+    this.log.debug("unwatchCalendar", { calendarId, eventTypeIds });
+
+    // Get the selected calendar IDs to be unwatched
+    const selectedCalendarIds = eventTypeIds.filter((id) => id !== null) as number[];
+
+    try {
+      // Fetch all selected calendars for this credential, calendarId, and integration
+      const calendarsWithSameExternalId = await SelectedCalendarRepository.findMany({
+        where: {
+          credentialId: this.credential.id,
+          externalId: calendarId,
+          integration: this.integrationName,
+        },
+      });
+
+      // Of those, which are being watched (have a subscription)?
+      const calendarsBeingWatched = calendarsWithSameExternalId.filter((sc) => !!sc.outlookSubscriptionId);
+
+      // Of those, which are NOT being unwatched (i.e., still in use by other event types)?
+      const calendarsStillWatched = calendarsBeingWatched.filter(
+        (sc) => sc.eventTypeId !== null && !selectedCalendarIds.includes(sc.eventTypeId ?? 0)
+      );
+
+      if (calendarsStillWatched.length) {
+        this.log.info(
+          `There are other ${calendarsStillWatched.length} calendars with the same externalId_credentialId. Not unwatching. Just removing the subscription from this selected calendar`
+        );
+
+        await this.upsertSelectedCalendarsForEventTypeIds(
+          {
+            externalId: calendarId,
+            outlookSubscriptionId: null,
+            outlookSubscriptionExpiration: null,
+          },
+          eventTypeIds
+        );
+        return;
+      }
+
+      // If no other event types are using this subscription, delete it from Microsoft
+      const allSubscriptionsForThisCalendarBeingUnwatched = calendarsBeingWatched.map((sc) => ({
+        subscriptionId: sc.outlookSubscriptionId,
+      }));
+
+      // Remove the subscription from Microsoft
+      await prisma.calendarCache.deleteMany({ where: { credentialId: this.credential.id } });
+      const subscriptionManager = this.getSubscriptionManager();
+      for (const { subscriptionId } of allSubscriptionsForThisCalendarBeingUnwatched) {
+        if (subscriptionId) {
+          await subscriptionManager.deleteSubscription(subscriptionId).catch((error) => {
+            this.log.error("Error deleting subscription", {
+              error,
+              subscriptionId,
+            });
+          });
+        }
+      }
+
+      // Remove subscription info from all selected calendars being unwatched
+      await this.upsertSelectedCalendarsForEventTypeIds(
+        {
+          externalId: calendarId,
+          outlookSubscriptionId: null,
+          outlookSubscriptionExpiration: null,
+        },
+        eventTypeIds
+      );
+
+      // Optionally, refresh cache for remaining calendars for this credential
+      const remainingCalendars = calendarsWithSameExternalId.filter(
+        (sc) => !selectedCalendarIds.includes(sc.eventTypeId ?? 0)
+      );
+      if (remainingCalendars.length > 0) {
+        await this.fetchAvailabilityAndSetCache(remainingCalendars);
+      }
+    } catch (error) {
+      this.log.error("Error unwatching calendar", { error, calendarId });
+      throw error;
+    }
+  }
+
+  async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
+    this.log.debug("fetchAvailabilityAndSetCache", { selectedCalendars });
+
+    try {
+      // Filter to only include office365 calendars
+      const o365Calendars = selectedCalendars.filter((cal) => cal.integration === this.integrationName);
+
+      if (o365Calendars.length === 0) {
+        return;
+      }
+
+      const calendarCache = this.getCalendarCache();
+      await calendarCache.updateCache(o365Calendars, true);
+
+      this.log.debug("Successfully refreshed availability cache");
+    } catch (error) {
+      this.log.error("Error updating availability cache", error);
+    }
+  }
+
+  async fetchAvailability(args: FreeBusyArgs): Promise<EventBusyDate[]> {
+    try {
+      const dateFromParsed = new Date(args.timeMin);
+      const dateToParsed = new Date(args.timeMax);
+      const calendarIds = args.items.map((item) => item.id);
+
+      const filter = `?startDateTime=${encodeURIComponent(
+        dateFromParsed.toISOString()
+      )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
+
+      const calendarSelectParams = "$select=showAs,start,end";
+
+      const userEndpoint = await this.getUserEndpoint();
+      const requestsPromises = calendarIds.map((calendarId, id) => ({
+        id,
+        method: "GET",
+        url: `${userEndpoint}/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
+      }));
+
+      const requests = await Promise.all(requestsPromises);
+      const response = await this.apiGraphBatchCall(requests);
+      const responseBody = await this.handleErrorJsonOffice365Calendar(response);
+
+      let responseBatchApi: IBatchResponse = { responses: [] };
+      if (typeof responseBody === "string") {
+        responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
+      }
+
+      // Handle retries and pagination as in your existing code
+      let alreadySuccessResponse = [] as ISettledResponse[];
+      const retryAfter =
+        !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
+
+      if (retryAfter && responseBatchApi.responses) {
+        responseBatchApi = await this.fetchRequestWithRetryAfter(
+          requestsPromises,
+          responseBatchApi.responses,
+          2
+        );
+      }
+
+      // Recursively fetch nextLink responses
+      alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
+
+      // The final processed busy times
+      return alreadySuccessResponse ? this.processBusyTimes(args, alreadySuccessResponse) : [];
+    } catch (error) {
+      this.log.error("Error fetching availability", error);
+      throw error;
+    }
+  }
+
+  async upsertSelectedCalendarsForEventTypeIds(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">,
+    eventTypeIds: SelectedCalendarEventTypeIds
+  ) {
+    this.log.debug(
+      "upsertSelectedCalendarsForEventTypeIds",
+      safeStringify({ data, eventTypeIds, credential: this.credential })
+    );
+    if (!this.credential.userId) {
+      logger.error("upsertSelectedCalendarsForEventTypeIds failed. userId is missing.");
+      return;
+    }
+
+    await SelectedCalendarRepository.upsertManyForEventTypeIds({
+      data: {
+        ...data,
+        integration: this.integrationName,
+        credentialId: this.credential.id,
+        delegationCredentialId: this.credential.delegatedToId ?? null,
+        userId: this.credential.userId,
+      },
+      eventTypeIds,
+    });
+  }
+
+  private async getCalendarIds(
+    selectedCalendars: IntegrationCalendar[],
+    fallbackToPrimary?: boolean
+  ): Promise<string[]> {
+    const ids = selectedCalendars
+      .filter((cal) => cal.integration === this.integrationName)
+      .map((cal) => cal.externalId)
+      .filter(Boolean) as string[];
+
+    if (ids.length > 0) {
+      return ids;
+    }
+
+    if (fallbackToPrimary) {
+      try {
+        const primaryCal = await this.listCalendars().then(
+          (cals) => cals.find((cal) => cal.primary) || cals[0]
+        );
+        return primaryCal?.externalId ? [primaryCal.externalId] : [];
+      } catch (error) {
+        this.log.error("Error getting primary calendar", error);
+      }
+    }
+
+    return [];
+  }
+
+  /**
+   * Fetch an event by its UID from Office365
+   * @param uid Event UID
+   * @returns The event object or null if not found
+   */
+  public async fetchEventByUid(uid: string): Promise<any | null> {
+    try {
+      const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`);
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (error) {
+      this.log.error("Error fetching event by UID", error);
+      return null;
+    }
+  }
+
+  private async getChunkedAvailability(
+    startDate: dayjs.Dayjs,
+    endDate: dayjs.Dayjs,
+    calendarIds: string[],
+    shouldServeCache?: boolean
+  ): Promise<EventBusyDate[]> {
+    this.log.info("[Office365CalendarService] getChunkedAvailability called", {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      calendarIds,
+      shouldServeCache,
+    });
+
+    const diffInDays = endDate.diff(startDate, "days");
+    const calendarCache = this.getCalendarCache();
+
+    this.log.info("[Office365CalendarService] diffInDays and cache instance", {
+      diffInDays,
+      cacheConstructorName: calendarCache.constructor.name,
+    });
+
+    if (diffInDays <= 90) {
+      this.log.info("[Office365CalendarService] Single chunk, calling getCacheOrFetchAvailability");
+      return calendarCache.getCacheOrFetchAvailability(
+        startDate.toISOString(),
+        endDate.toISOString(),
+        calendarIds,
+        shouldServeCache
+      );
+    }
+
+    const chunks = this.chunkDateRange(startDate.toDate(), endDate.toDate());
+    const busyTimes: EventBusyDate[] = [];
+
+    for (const chunk of chunks) {
+      try {
+        const chunkBusyTimes = await calendarCache.getCacheOrFetchAvailability(
+          chunk.start.toISOString(),
+          chunk.end.toISOString(),
+          calendarIds,
+          shouldServeCache
+        );
+        if (chunkBusyTimes) {
+          busyTimes.push(...chunkBusyTimes);
+        }
+      } catch (error) {
+        this.log.error("Error fetching chunk availability", {
+          error,
+          chunk,
+          calendarIds,
+        });
+        // Continue with next chunk even if one fails
+        continue;
+      }
+    }
+
+    return busyTimes;
+  }
+
+  private chunkDateRange(startDate: Date, endDate: Date, chunkSize = 90) {
+    const chunks: Array<{ start: Date; end: Date }> = [];
+    let currentStart = startDate;
+
+    while (currentStart < endDate) {
+      const chunkEnd = new Date(currentStart);
+      chunkEnd.setDate(chunkEnd.getDate() + chunkSize);
+
+      chunks.push({
+        start: currentStart,
+        end: chunkEnd > endDate ? endDate : chunkEnd,
+      });
+
+      currentStart = new Date(chunkEnd);
+    }
+
+    return chunks;
+  }
 }

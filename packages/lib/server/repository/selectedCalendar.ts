@@ -28,6 +28,12 @@ export type FindManyArgs = {
       | {
           not: null;
         };
+    outlookSubscriptionId?:
+      | string
+      | null
+      | {
+          not: null;
+        };
   };
   orderBy?: {
     userId?: "asc" | "desc";
@@ -165,35 +171,50 @@ export class SelectedCalendarRepository {
             },
           },
         },
-        // RN we only support google calendar subscriptions for now
-        integration: "google_calendar",
-        AND: [
+        // RN we only support google calendar, office365 calendar subscriptions for now
+        OR: [
           {
-            OR: [
-              // Either is a calendar that has not errored
-              { error: null },
-              // Or is a calendar that has errored but has not reached max attempts
+            integration: "google_calendar",
+            AND: [
               {
-                error: { not: null },
-                watchAttempts: {
-                  lt: {
-                    // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
-                    // Removing ts-expect-error fails in another case that _ref isn't defined
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    _ref: "maxAttempts",
-                    _container: "SelectedCalendar",
+                OR: [
+                  // Either is a calendar that has not errored
+                  { error: null },
+                  // Or is a calendar that has errored but has not reached max attempts
+                  {
+                    error: { not: null },
+                    watchAttempts: {
+                      lt: {
+                        // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
+                        // Removing ts-expect-error fails in another case that _ref isn't defined
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        _ref: "maxAttempts",
+                        _container: "SelectedCalendar",
+                      },
+                    },
                   },
-                },
+                ],
+              },
+              {
+                OR: [
+                  // Either is a calendar pending to be watched
+                  { googleChannelExpiration: null },
+                  // Or is a calendar that is about to expire
+                  { googleChannelExpiration: { lt: tomorrowTimestamp } },
+                ],
               },
             ],
           },
           {
+            integration: "office365_calendar",
+            // We skip retrying calendars that have errored
+            error: null,
             OR: [
               // Either is a calendar pending to be watched
-              { googleChannelExpiration: null },
+              { outlookSubscriptionExpiration: null },
               // Or is a calendar that is about to expire
-              { googleChannelExpiration: { lt: tomorrowTimestamp } },
+              { outlookSubscriptionExpiration: { lt: tomorrowTimestamp } },
             ],
           },
         ],
@@ -207,46 +228,52 @@ export class SelectedCalendarRepository {
    */
   static async getNextBatchToUnwatch(limit = 100) {
     const where: Prisma.SelectedCalendarWhereInput = {
-      // RN we only support google calendar subscriptions for now
-      integration: "google_calendar",
-      googleChannelExpiration: { not: null },
-      AND: [
+      // RN we only support google & outlook calendar subscriptions for now
+      OR: [
         {
-          OR: [
-            // Either is a calendar that has not errored during unwatch
-            { error: null },
-            // Or is a calendar that has errored during unwatch but has not reached max attempts
+          integration: "google_calendar",
+          googleChannelExpiration: { not: null },
+          AND: [
             {
-              error: { not: null },
-              unwatchAttempts: {
-                lt: {
-                  // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
-                  // Removing ts-expect-error fails in another case that _ref isn't defined
-                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  // @ts-ignore
-                  _ref: "maxAttempts",
-                  _container: "SelectedCalendar",
+              OR: [
+                // Either is a calendar that has not errored during unwatch
+                { error: null },
+                // Or is a calendar that has errored during unwatch but has not reached max attempts
+                {
+                  error: { not: null },
+                  unwatchAttempts: {
+                    lt: {
+                      // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
+                      // Removing ts-expect-error fails in another case that _ref isn't defined
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-ignore
+                      _ref: "maxAttempts",
+                      _container: "SelectedCalendar",
+                    },
+                  },
                 },
-              },
+              ],
             },
           ],
         },
         {
-          user: {
-            teams: {
-              every: {
-                team: {
-                  features: {
-                    none: {
-                      featureId: "calendar-cache",
-                    },
-                  },
+          integration: "office365_calendar",
+          outlookSubscriptionExpiration: { not: null },
+        },
+      ],
+      user: {
+        teams: {
+          every: {
+            team: {
+              features: {
+                none: {
+                  featureId: "calendar-cache",
                 },
               },
             },
           },
         },
-      ],
+      },
     };
     // If calendar cache is disabled globally, we skip team features and unwatch all subscriptions
     const nextBatch = await prisma.selectedCalendar.findMany({
@@ -275,6 +302,54 @@ export class SelectedCalendarRepository {
         googleChannelId,
       },
       select: {
+        credential: {
+          select: {
+            ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  static async findFirstByOutlookSubscriptionId(outlookSubscriptionId: string) {
+    return await prisma.selectedCalendar.findFirst({
+      where: {
+        outlookSubscriptionId,
+      },
+      select: {
+        credential: {
+          select: {
+            ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  static async findManyByOutlookSubscriptionIds(outlookSubscriptionIds: string[]) {
+    return await prisma.selectedCalendar.findMany({
+      where: {
+        outlookSubscriptionId: {
+          in: outlookSubscriptionIds,
+        },
+      },
+      select: {
+        id: true,
+        externalId: true,
+        credentialId: true,
+        userId: true,
+        eventTypeId: true,
+        outlookSubscriptionId: true,
         credential: {
           select: {
             ...credentialForCalendarServiceSelect,
