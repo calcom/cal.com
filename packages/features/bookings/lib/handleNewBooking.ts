@@ -611,11 +611,12 @@ async function handler(
         throw new HttpError({ statusCode: 400, message: "Missing shownPrerenderedAt" });
       }
       // Write to the routing form response table and return the result
-      routingFormResponse = await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse(
-        routingFormResponseId,
-        bookerEmail,
-        new Date(shownPrerenderedAt)
-      );
+      routingFormResponse =
+        (await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse(
+          routingFormResponseId,
+          bookerEmail,
+          new Date(shownPrerenderedAt)
+        )) ?? null;
       routingFormResponseId = routingFormResponse?.id ?? routingFormResponseId;
     } else {
       routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
