@@ -3,6 +3,7 @@ import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 
 import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { MembersView } from "~/members/members-view";
@@ -26,12 +27,20 @@ const getCachedAttributes = unstable_cache(
 
 const Page = async () => {
   const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
-  const [org, teams, facetedTeamValues] = await Promise.all([
-    orgCaller.listCurrent(),
-    orgCaller.getTeams(),
-    orgCaller.getFacetedValues(),
-  ]);
+  const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
   const attributes = await getCachedAttributes(org.id);
+  const facetedTeamValues = {
+    roles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    teams,
+    attributes: attributes.map((attribute) => ({
+      id: attribute.id,
+      name: attribute.name,
+      options: Array.from(new Set(attribute.options.map((option) => option.value))).map((value) => ({
+        value,
+      })),
+    })),
+  };
+
   return (
     <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
   );
