@@ -24,7 +24,7 @@ const extractAuthToken = (req: NextRequest): string | null => {
 // Handle the SCIM events
 const handleEvents = async (event: DirectorySyncEvent) => {
   log.debug("handleEvents", safeStringify(event));
-  const dSyncData = await prisma.dSyncData.findUnique({
+  const dSyncData = await prisma.dSyncData.findFirst({
     where: {
       directoryId: event.directory_id,
     },

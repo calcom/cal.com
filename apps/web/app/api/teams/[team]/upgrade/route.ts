@@ -48,7 +48,7 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
     let metadata;
 
     if (!team) {
-      const prevTeam = await prisma.team.findUniqueOrThrow({ where: { id } });
+      const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
 
       metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
       if (!metadata.success) {

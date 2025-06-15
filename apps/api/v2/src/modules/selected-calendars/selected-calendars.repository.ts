@@ -55,14 +55,12 @@ export class SelectedCalendarsRepository {
   }
 
   getUserSelectedCalendar(userId: number, integration: string, externalId: string) {
-    return this.dbRead.prisma.selectedCalendar.findUnique({
+    return this.dbRead.prisma.selectedCalendar.findFirst({
       where: {
-        userId_externalId_integration_eventTypeId: {
-          userId,
-          externalId,
-          integration,
-          eventTypeId: null,
-        },
+        userId,
+        externalId,
+        integration,
+        ...ensureUserLevelWhere,
       },
     });
   }

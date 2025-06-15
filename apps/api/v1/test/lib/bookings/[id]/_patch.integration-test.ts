@@ -12,8 +12,8 @@ type CustomNextApiResponse = NextApiResponse & Response;
 
 describe("PATCH /api/bookings", () => {
   it("Returns 403 when user has no permission to the booking", async () => {
-    const memberUser = await prisma.user.findUniqueOrThrow({ where: { email: "member2-acme@example.com" } });
-    const proUser = await prisma.user.findUniqueOrThrow({ where: { email: "pro@example.com" } });
+    const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
+    const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
     const booking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
 
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
@@ -36,8 +36,8 @@ describe("PATCH /api/bookings", () => {
   });
 
   it("Allows PATCH when user is system-wide admin", async () => {
-    const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "admin@example.com" } });
-    const proUser = await prisma.user.findUniqueOrThrow({ where: { email: "pro@example.com" } });
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "admin@example.com" } });
+    const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
     const booking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
 
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
@@ -61,8 +61,8 @@ describe("PATCH /api/bookings", () => {
   });
 
   it("Allows PATCH when user is org-wide admin", async () => {
-    const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "owner1-acme@example.com" } });
-    const memberUser = await prisma.user.findUniqueOrThrow({ where: { email: "member1-acme@example.com" } });
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
+    const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member1-acme@example.com" } });
     const booking = await prisma.booking.findFirstOrThrow({ where: { userId: memberUser.id } });
 
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({

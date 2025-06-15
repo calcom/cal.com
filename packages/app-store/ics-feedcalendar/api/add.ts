@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "POST") {
     const { urls } = req.body;
     // Get user
-    const user = await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findFirstOrThrow({
       where: {
         id: req.session?.user?.id,
       },

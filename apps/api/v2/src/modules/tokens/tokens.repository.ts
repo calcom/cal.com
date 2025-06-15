@@ -43,12 +43,10 @@ export class TokensRepository {
   }
 
   async getAuthorizationTokenByClientUserIds(clientId: string, userId: number) {
-    return this.dbRead.prisma.platformAuthorizationToken.findUnique({
+    return this.dbRead.prisma.platformAuthorizationToken.findFirst({
       where: {
-        userId_platformOAuthClientId: {
-          userId: userId,
-          platformOAuthClientId: clientId,
-        },
+        platformOAuthClientId: clientId,
+        userId: userId,
       },
     });
   }
@@ -145,7 +143,7 @@ export class TokensRepository {
   }
 
   async getAccessTokenExpiryDate(accessTokenSecret: string) {
-    const accessToken = await this.dbRead.prisma.accessToken.findUnique({
+    const accessToken = await this.dbRead.prisma.accessToken.findFirst({
       where: {
         secret: accessTokenSecret,
       },
@@ -157,7 +155,7 @@ export class TokensRepository {
   }
 
   async getAccessTokenOwnerId(accessTokenSecret: string) {
-    const accessToken = await this.dbRead.prisma.accessToken.findUnique({
+    const accessToken = await this.dbRead.prisma.accessToken.findFirst({
       where: {
         secret: accessTokenSecret,
       },
@@ -214,7 +212,7 @@ export class TokensRepository {
   }
 
   async getAccessTokenClient(accessToken: string) {
-    const token = await this.dbRead.prisma.accessToken.findUnique({
+    const token = await this.dbRead.prisma.accessToken.findFirst({
       where: {
         secret: accessToken,
       },

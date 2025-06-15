@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET" && req.session && req.session.user.id) {
     const userId = req.session.user.id;
     try {
-      const user = await prisma.user.findUnique({
+      const user = await prisma.user.findFirst({
         select: {
           metadata: true,
         },

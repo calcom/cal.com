@@ -44,7 +44,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   if (!user && stripeCustomer.email) {
     // if user not found, let's try to find user by email
-    user = await prisma.user.findUnique({
+    user = await prisma.user.findFirst({
       where: {
         email: stripeCustomer.email,
       },

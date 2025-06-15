@@ -9,7 +9,7 @@ import prisma from "@calcom/prisma";
 import { getBasecampKeys } from "../lib/getBasecampKeys";
 
 async function handler(req: NextApiRequest) {
-  await prisma.user.findUniqueOrThrow({
+  await prisma.user.findFirstOrThrow({
     where: {
       id: req.session?.user?.id,
     },

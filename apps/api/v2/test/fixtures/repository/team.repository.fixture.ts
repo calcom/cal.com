@@ -13,7 +13,7 @@ export class TeamRepositoryFixture {
   }
 
   async get(teamId: Team["id"]) {
-    return this.prismaReadClient.team.findUnique({ where: { id: teamId } });
+    return this.prismaReadClient.team.findFirst({ where: { id: teamId } });
   }
 
   async create(data: Prisma.TeamCreateInput) {

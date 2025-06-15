@@ -44,7 +44,7 @@ export class WebhooksRepository {
   }
 
   async getWebhookById(webhookId: string) {
-    return this.dbRead.prisma.webhook.findUnique({
+    return this.dbRead.prisma.webhook.findFirst({
       where: { id: webhookId },
     });
   }

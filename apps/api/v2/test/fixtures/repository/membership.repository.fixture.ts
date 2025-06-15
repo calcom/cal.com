@@ -21,11 +21,11 @@ export class MembershipRepositoryFixture {
   }
 
   async get(membershipId: Membership["id"]) {
-    return this.prismaReadClient.membership.findUnique({ where: { id: membershipId } });
+    return this.prismaReadClient.membership.findFirst({ where: { id: membershipId } });
   }
 
   async getUserMembershipByTeamId(userId: User["id"], teamId: Team["id"]) {
-    return this.prismaReadClient.membership.findUnique({ where: { userId_teamId: { teamId, userId } } });
+    return this.prismaReadClient.membership.findFirst({ where: { teamId, userId } });
   }
 
   async addUserToOrg(user: User, org: Team, role: MembershipRole, accepted: boolean) {

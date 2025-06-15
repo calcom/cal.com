@@ -26,7 +26,7 @@ export class BookingReferencesRepository_2024_08_13 {
   }
 
   async getBookingReferencesIncludeSensitiveCredentials(eventUid: string) {
-    return this.dbRead.prisma.bookingReference.findUnique({
+    return this.dbRead.prisma.bookingReference.findFirst({
       where: {
         uid: eventUid,
       },

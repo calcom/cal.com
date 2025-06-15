@@ -11,7 +11,7 @@ import { getWebexAppKeys } from "../lib/getWebexAppKeys";
 
 async function handler(req: NextApiRequest) {
   // Get user
-  await prisma.user.findUniqueOrThrow({
+  await prisma.user.findFirstOrThrow({
     where: {
       id: req.session?.user?.id,
     },

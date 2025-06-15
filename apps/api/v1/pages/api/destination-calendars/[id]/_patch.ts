@@ -246,7 +246,7 @@ async function validateRequestAndOwnership({
       });
     }
 
-    const userEventType = await prisma.eventType.findUnique({
+    const userEventType = await prisma.eventType.findFirst({
       where: { id: parsedBody.eventTypeId },
       select: { userId: true },
     });
@@ -289,7 +289,7 @@ async function validateRequestAndOwnership({
  * @throws HttpError - If no destination calendar matches the provided ID.
  */
 async function getDestinationCalendar(id: number, prisma: PrismaClient) {
-  const destinationCalendarObject = await prisma.destinationCalendar.findUnique({
+  const destinationCalendarObject = await prisma.destinationCalendar.findFirst({
     where: {
       id,
     },

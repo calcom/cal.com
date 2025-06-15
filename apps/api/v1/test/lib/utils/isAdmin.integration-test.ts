@@ -33,7 +33,7 @@ describe("isAdmin guard", () => {
       body: {},
     });
 
-    const memberUser = await prisma.user.findUniqueOrThrow({ where: { email: "member2-acme@example.com" } });
+    const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
 
     req.userId = memberUser.id;
     req.user = memberUser;
@@ -50,7 +50,7 @@ describe("isAdmin guard", () => {
       body: {},
     });
 
-    const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "admin@example.com" } });
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "admin@example.com" } });
 
     req.userId = adminUser.id;
     req.user = adminUser;
@@ -67,7 +67,7 @@ describe("isAdmin guard", () => {
       body: {},
     });
 
-    const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "owner1-acme@example.com" } });
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
 
     req.userId = adminUser.id;
     req.user = adminUser;
@@ -83,7 +83,7 @@ describe("isAdmin guard", () => {
       body: {},
     });
 
-    const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "owner1-dunder@example.com" } });
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-dunder@example.com" } });
 
     req.userId = adminUser.id;
     req.user = adminUser;

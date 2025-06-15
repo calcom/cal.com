@@ -17,11 +17,11 @@ const DefaultPagination = {
 };
 
 describe("GET /api/bookings", async () => {
-  const proUser = await prisma.user.findUniqueOrThrow({ where: { email: "pro@example.com" } });
+  const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
   const proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
 
   it("Does not return bookings of other users when user has no permission", async () => {
-    const memberUser = await prisma.user.findUniqueOrThrow({ where: { email: "member2-acme@example.com" } });
+    const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
 
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
@@ -56,7 +56,7 @@ describe("GET /api/bookings", async () => {
   });
 
   it("Returns bookings for specified user when accessed by system-wide admin", async () => {
-    const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "owner1-acme@example.com" } });
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       pagination: DefaultPagination,
@@ -74,7 +74,7 @@ describe("GET /api/bookings", async () => {
   });
 
   it("Returns bookings for all users when accessed by system-wide admin", async () => {
-    const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "owner1-acme@example.com" } });
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       pagination: {
@@ -93,7 +93,7 @@ describe("GET /api/bookings", async () => {
   });
 
   it("Returns bookings for org users when accessed by org admin", async () => {
-    const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "owner1-acme@example.com" } });
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       pagination: DefaultPagination,
@@ -149,7 +149,7 @@ describe("GET /api/bookings", async () => {
     });
 
     it("Returns only upcoming bookings when status=upcoming for system-wide admin", async () => {
-      const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "owner1-acme@example.com" } });
+      const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         query: {
@@ -171,7 +171,7 @@ describe("GET /api/bookings", async () => {
     });
 
     it("Returns only upcoming bookings when status=upcoming for org admin", async () => {
-      const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "owner1-acme@example.com" } });
+      const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         query: {
@@ -192,7 +192,7 @@ describe("GET /api/bookings", async () => {
 
   describe("Expand feature to add relational data in return payload", () => {
     it("Returns only team data when expand=team is set", async () => {
-      const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "owner1-acme@example.com" } });
+      const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         query: {
@@ -314,9 +314,9 @@ describe("GET /api/bookings", async () => {
 
   describe("Result merging", () => {
     it("does not return duplicate bookings when merging results from multiple queries", async () => {
-      const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: "owner1-acme@example.com" } });
+      const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
 
-      const testUser = await prisma.user.findUniqueOrThrow({ where: { email: "pro@example.com" } });
+      const testUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
 
       const testUserBooking = await prisma.booking.findFirstOrThrow({
         where: { userId: testUser.id },

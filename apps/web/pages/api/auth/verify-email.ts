@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { token } = verifySchema.parse(req.query);
   const billingService = new StripeBillingService();
 
-  const foundToken = await prisma.verificationToken.findUnique({
+  const foundToken = await prisma.verificationToken.findFirst({
     where: {
       token,
     },
@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.redirect(`${WEBAPP_URL}/settings/my-account/profile`);
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.user.findFirst({
     where: {
       email: foundToken?.identifier,
     },

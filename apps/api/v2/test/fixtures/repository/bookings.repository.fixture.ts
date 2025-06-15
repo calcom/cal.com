@@ -15,7 +15,7 @@ export class BookingsRepositoryFixture {
   }
 
   async getById(bookingId: Booking["id"]) {
-    return this.prismaReadClient.booking.findUnique({ where: { id: bookingId } });
+    return this.prismaReadClient.booking.findFirst({ where: { id: bookingId } });
   }
 
   async getByUid(bookingUid: Booking["uid"]) {

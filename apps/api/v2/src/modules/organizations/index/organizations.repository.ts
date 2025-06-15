@@ -165,12 +165,10 @@ export class OrganizationsRepository {
   }
 
   async findOrgBySlug(slug: string) {
-    return this.dbRead.prisma.team.findUnique({
+    return this.dbRead.prisma.team.findFirst({
       where: {
-        slug_parentId: {
-          slug,
-          parentId: null,
-        },
+        slug,
+        parentId: null,
         isOrganization: true,
       },
     });

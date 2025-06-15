@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     try {
       if (validKey.teamId) {
-        const team = await prisma.team.findUnique({
+        const team = await prisma.team.findFirst({
           where: {
             id: validKey.teamId,
           },
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(201).json({ username: team?.name });
       }
 
-      const user = await prisma.user.findUnique({
+      const user = await prisma.user.findFirst({
         where: {
           id: validKey.userId,
         },

@@ -46,7 +46,7 @@ async function postHandler(request: NextRequest) {
     if (hsSignature !== calculatedSig)
       return NextResponse.json({ message: "Invalid signature" }, { status: 400 });
 
-    const user = await webPrisma.user.findUnique({
+    const user = await webPrisma.user.findFirst({
       where: {
         email: parsedBody.data.customer.email,
       },

@@ -9,7 +9,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     // Get user
-    await prisma.user.findUniqueOrThrow({
+    await prisma.user.findFirstOrThrow({
       where: {
         id: req.session?.user?.id,
       },

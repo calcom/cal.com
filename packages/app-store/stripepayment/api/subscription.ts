@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    const userData = await prisma.user.findUnique({
+    const userData = await prisma.user.findFirst({
       where: { id: userId },
       select: { id: true, metadata: true },
     });
