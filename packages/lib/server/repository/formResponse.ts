@@ -50,22 +50,20 @@ export class RoutingFormResponseRepository {
     });
   }
 
-  static async writeQueuedFormResponseToFormResponse(
-    queuedFormResponseId: number,
-    bookerEmail: string,
-    createdAt: Date
-  ) {
-    const log = logger.getSubLogger({
-      prefix: [`[writeQueuedFormResponseToFormResponse]: ${bookerEmail}`],
-    });
-
+  static async writeQueuedFormResponseToFormResponse({
+    queuedFormResponseId,
+    createdAt,
+  }: {
+    queuedFormResponseId: number;
+    createdAt: Date;
+  }) {
     const queuedResponse = await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
       where: {
         id: queuedFormResponseId,
       },
     });
     if (!queuedResponse) {
-      log.error("Failed to find queued form response");
+      logger.error("Failed to find queued form response");
       return;
     }
 

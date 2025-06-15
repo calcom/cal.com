@@ -91,8 +91,6 @@ export const mapBookingToMutationInput = ({
     orgSlug,
     routedTeamMemberIds,
     routingFormResponseId,
-    queuedFormResponse,
-    shownPrerenderedAt,
     skipContactOwner,
     // In case of rerouting, the form responses are actually the responses that we need to update.
     reroutingFormResponses: reroutingFormResponses ? JSON.parse(reroutingFormResponses) : undefined,

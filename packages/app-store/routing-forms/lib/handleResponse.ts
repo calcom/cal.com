@@ -7,29 +7,13 @@ import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeam
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import { prisma } from "@calcom/prisma";
-import type { App_RoutingForms_Form } from "@calcom/prisma/client";
-import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import { TRPCError } from "@trpc/server";
 
 import isRouter from "../lib/isRouter";
-import { onFormSubmission } from "../trpc/utils";
-import type { FormResponse, SerializableForm } from "../types/types";
 import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
-
-export type Form = SerializableForm<
-  App_RoutingForms_Form & {
-    user: {
-      id: number;
-      email: string;
-    };
-    team: {
-      parentId: number | null;
-    } | null;
-  }
->;
+import { onSubmissionOfFormResponse, type TargetRoutingFormForResponse } from "./formSubmissionUtils";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
 
@@ -43,7 +27,7 @@ const _handleResponse = async ({
   queueFormResponse,
 }: {
   response: z.infer<typeof ZResponseInputSchema>["response"];
-  form: Form;
+  form: TargetRoutingFormForResponse;
   formFillerId: string;
   chosenRouteId: string | null;
   isPreview: boolean;
@@ -100,26 +84,6 @@ const _handleResponse = async ({
           .map((f) => `'${f.label}' with value '${f.value}' should be valid ${f.type}`)
           .join(", ")}`,
       });
-    }
-
-    const settings = RoutingFormSettings.parse(form.settings);
-    let userWithEmails: string[] = [];
-    if (form.teamId && (settings?.sendToAll || settings?.sendUpdatesTo?.length)) {
-      const whereClause: Prisma.MembershipWhereInput = { teamId: form.teamId };
-      if (!settings?.sendToAll) {
-        whereClause.userId = { in: settings.sendUpdatesTo };
-      }
-      const userEmails = await prisma.membership.findMany({
-        where: whereClause,
-        select: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      });
-      userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
     }
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
@@ -203,12 +167,11 @@ const _handleResponse = async ({
           chosenRouteId,
         });
 
-        await onFormSubmission(
-          { ...serializableFormWithFields, userWithEmails },
-          dbFormResponse.response as FormResponse,
-          dbFormResponse.id,
-          chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
-        );
+        await onSubmissionOfFormResponse({
+          form: serializableFormWithFields,
+          formResponseInDb: dbFormResponse,
+          chosenRouteAction: chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : null) : null,
+        });
       }
     } else {
       moduleLogger.debug("Dry run mode - Form response not stored and also webhooks and emails not sent");
