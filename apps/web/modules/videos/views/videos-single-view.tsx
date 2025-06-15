@@ -34,7 +34,9 @@ export default function JoinCall(props: PageProps) {
     calVideoLogo,
     displayLogInOverlay,
     loggedInUserName,
+    overrideName,
     showRecordingButton,
+    enableAutomaticTranscription,
     rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
@@ -64,7 +66,7 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
-        userName: loggedInUserName ? loggedInUserName ?? undefined : undefined,
+        userName: overrideName ?? loggedInUserName ?? undefined,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
@@ -87,11 +89,14 @@ export default function JoinCall(props: PageProps) {
           },
         }),
       });
+
+      if (overrideName) {
+        callFrame.setUserName(overrideName);
+      }
     } catch (err) {
       callFrame = DailyIframe.getCallInstance();
     } finally {
       setDaily(callFrame ?? null);
-
       callFrame?.join();
     }
 
@@ -106,7 +111,10 @@ export default function JoinCall(props: PageProps) {
       <div
         className="mx-auto hidden sm:block"
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe showRecordingButton={showRecordingButton} />
+        <CalAiTranscribe
+          showRecordingButton={showRecordingButton}
+          enableAutomaticTranscription={enableAutomaticTranscription}
+        />
       </div>
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (

@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
 import * as event from "./event";
+import { updateHostInEventName } from "./event";
 
 describe("event tests", () => {
   describe("fn: getEventName", () => {
@@ -421,6 +422,130 @@ describe("event tests", () => {
 
     it("should return variable when invalid variable used", () => {
       expect(event.validateCustomEventName("foo{nonsenseField}bar")).toBe("{nonsenseField}");
+    });
+  });
+
+  describe("fn: updateHostInEventName", () => {
+    const oldHost = "John Doe";
+    const newHost = "Jane Smith";
+
+    it("should replace full host name with spaces", () => {
+      const eventName = "Meeting with John Doe";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("Meeting with Jane Smith");
+    });
+
+    it("should replace full host name with dots", () => {
+      const eventName = "Meeting with John.Doe";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("Meeting with Jane.Smith");
+    });
+
+    it("should replace full host name with hyphens", () => {
+      const eventName = "Meeting with John-Doe";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("Meeting with Jane-Smith");
+    });
+
+    it("should replace full host name with underscores", () => {
+      const eventName = "Meeting with John_Doe";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("Meeting with Jane_Smith");
+    });
+
+    it("should replace first name only", () => {
+      const eventName = "John's presentation";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("Jane's presentation");
+    });
+
+    it("should replace first name at the beginning", () => {
+      const eventName = "John will present tomorrow";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("Jane will present tomorrow");
+    });
+
+    it("should replace first name at the end", () => {
+      const eventName = "Presentation by John";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("Presentation by Jane");
+    });
+
+    it("should handle different cases", () => {
+      const eventName = "meeting with john.doe";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("meeting with Jane.Smith");
+    });
+
+    it("should handle mixed cases", () => {
+      const eventName = "Meeting with JOHN DOE";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("Meeting with Jane Smith");
+    });
+
+    it("should not replace partial matches", () => {
+      const eventName = "Meeting with Johnson";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("Meeting with Johnson");
+    });
+
+    it("should handle empty event name", () => {
+      const result = updateHostInEventName("", oldHost, newHost);
+      expect(result).toBe("");
+    });
+
+    it("should handle event name without host", () => {
+      const eventName = "Team meeting";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("Team meeting");
+    });
+
+    it("should handle single word names", () => {
+      const eventName = "Meeting with John";
+      const result = updateHostInEventName(eventName, "John", "Jane");
+      expect(result).toBe("Meeting with Jane");
+    });
+
+    it("should handle names with multiple parts", () => {
+      const eventName = "Meeting with John van der Berg";
+      const result = updateHostInEventName(eventName, "John van der Berg", "Jane Smith");
+      expect(result).toBe("Meeting with Jane Smith");
+    });
+
+    it("should handle names with apostrophes", () => {
+      const eventName = "Meeting with John O'Connor";
+      const result = updateHostInEventName(eventName, "John O'Connor", "Jane Smith");
+      expect(result).toBe("Meeting with Jane Smith");
+    });
+
+    it("should handle names with special characters", () => {
+      const eventName = "Meeting with Jean-Pierre Dupont";
+      const result = updateHostInEventName(eventName, "Jean-Pierre Dupont", "Jane Smith");
+      expect(result).toBe("Meeting with Jane Smith");
+    });
+
+    it("should prioritize full name over first name", () => {
+      const eventName = "John.Doe and John are coming";
+      const result = updateHostInEventName(eventName, "John Doe", "Jane Smith");
+      expect(result).toBe("Jane.Smith and John are coming");
+    });
+
+    it("should only replace first match", () => {
+      const eventName = "John.Doe and John Doe meeting";
+      const result = updateHostInEventName(eventName, "John Doe", "Jane Smith");
+      expect(result).toBe("Jane.Smith and John Doe meeting");
+    });
+
+    it("should handle different new name structure", () => {
+      const eventName = "Meeting with John.Doe";
+      const result = updateHostInEventName(eventName, "John Doe", "Jane");
+      expect(result).toBe("Meeting with Jane");
+    });
+
+    it("should handle multiple occurrences with priority", () => {
+      const eventName = "John and John.Doe and John_Doe";
+      const result = updateHostInEventName(eventName, oldHost, newHost);
+      expect(result).toBe("John and Jane.Smith and John_Doe");
     });
   });
 });
