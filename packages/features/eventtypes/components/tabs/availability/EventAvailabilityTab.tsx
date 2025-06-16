@@ -697,6 +697,7 @@ const UseTeamEventScheduleSettingsToggle = ({
   ...rest
 }: UseTeamEventScheduleSettingsToggle) => {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
   const { restrictScheduleForHosts, toggleRestrictScheduleState } = useRestrictionScheduleState(
     eventType.restrictionScheduleId
@@ -726,20 +727,24 @@ const UseTeamEventScheduleSettingsToggle = ({
           </div>
         )}
       </div>
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <SettingsToggle
-          checked={restrictScheduleForHosts}
-          onCheckedChange={toggleRestrictScheduleState}
-          title={t("choose_restriction_schedule")}
-          description={t("choose_restriction_schedule_description")}>
-          <EventTypeSchedule
-            customClassNames={customClassNames?.userAvailability}
-            eventType={eventType}
-            fieldName="restrictionSchedule"
-            {...rest}
-          />
-        </SettingsToggle>
-      </div>
+      {!isPlatform ? (
+        <div className="border-subtle space-y-6 rounded-lg border p-6">
+          <SettingsToggle
+            checked={restrictScheduleForHosts}
+            onCheckedChange={toggleRestrictScheduleState}
+            title={t("choose_restriction_schedule")}
+            description={t("choose_restriction_schedule_description")}>
+            <EventTypeSchedule
+              customClassNames={customClassNames?.userAvailability}
+              eventType={eventType}
+              fieldName="restrictionSchedule"
+              {...rest}
+            />
+          </SettingsToggle>
+        </div>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
