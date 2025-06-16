@@ -12,14 +12,14 @@ import {
   ATTENDEE_WORKFLOW_TEMPLATES,
 } from "./constants";
 
-export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean, isOrgsPlan?: boolean) {
+export function getWorkflowActionOptions(t: TFunction, isOrgsPlan?: boolean) {
   return WORKFLOW_ACTIONS.map((action) => {
     const actionString = t(`${action.toLowerCase()}_action`);
 
     return {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: action,
-      needsTeamsUpgrade: isSMSOrWhatsappAction(action) && !isTeamsPlan,
+      needsCredits: !isOrgsPlan && isSMSOrWhatsappAction(action),
     };
   });
 }

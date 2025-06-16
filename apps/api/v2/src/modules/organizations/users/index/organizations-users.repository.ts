@@ -17,11 +17,64 @@ export class OrganizationsUsersRepository {
     };
   }
 
-  async getOrganizationUsersByEmails(orgId: number, emailArray?: string[], skip?: number, take?: number) {
+  async getOrganizationUsersByEmailsAndAttributeFilters(
+    orgId: number,
+    filters: {
+      teamIds?: number[];
+      assignedOptionIds: string[];
+      attributeQueryOperator?: "AND" | "OR" | "NONE";
+    },
+    emailArray?: string[],
+    skip?: number,
+    take?: number
+  ) {
+    const { teamIds, assignedOptionIds, attributeQueryOperator } = filters ?? {};
+    const attributeToUsersWithProfile = await this.dbRead.prisma.attributeToUser.findMany({
+      include: {
+        member: { include: { user: { include: { profiles: { where: { organizationId: orgId } } } } } },
+      },
+      distinct: ["memberId"],
+      where: {
+        member: {
+          teamId: orgId,
+          ...(teamIds && { user: { teams: { some: { teamId: { in: teamIds } } } } }),
+          // Filter to only get users which have ALL of the assigned attribute options
+          ...(attributeQueryOperator === "AND" && {
+            AND: assignedOptionIds.map((optionId) => ({
+              AttributeToUser: { some: { attributeOptionId: optionId } },
+            })),
+          }),
+        },
+        ...(emailArray && emailArray.length ? { email: { in: emailArray } } : {}),
+        // Filter to get users which have AT LEAST ONE of the assigned attribute options
+        ...(attributeQueryOperator === "OR" && {
+          attributeOption: { id: { in: assignedOptionIds } },
+        }),
+        // Filter to  get users that have NONE the assigned attribute options
+        ...(attributeQueryOperator === "NONE" && {
+          NOT: {
+            attributeOption: { id: { in: assignedOptionIds } },
+          },
+        }),
+      },
+      skip,
+      take,
+    });
+    return attributeToUsersWithProfile.map((attributeToUser) => attributeToUser.member.user);
+  }
+
+  async getOrganizationUsersByEmails(
+    orgId: number,
+    emailArray?: string[],
+    teamIds?: number[],
+    skip?: number,
+    take?: number
+  ) {
     return await this.dbRead.prisma.user.findMany({
       where: {
         ...this.filterOnOrgMembership(orgId),
         ...(emailArray && emailArray.length ? { email: { in: emailArray } } : {}),
+        ...(teamIds && { teams: { some: { teamId: { in: teamIds } } } }),
       },
       include: {
         profiles: {
@@ -88,7 +141,16 @@ export class OrganizationsUsersRepository {
     return await this.dbWrite.prisma.user.delete({
       where: {
         id: userId,
-        organizationId: orgId,
+        OR: [
+          { organizationId: orgId },
+          {
+            profiles: {
+              some: {
+                organizationId: orgId,
+              },
+            },
+          },
+        ],
       },
       include: {
         profiles: {

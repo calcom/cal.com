@@ -83,8 +83,7 @@
           "pages": [
             "developing/guides/appstore-and-integration/build-a-greeter-app",
             "developing/guides/appstore-and-integration/build-an-app",
-            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm",
-            "developing/guides/appstore-and-integration/oauth"
+            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm"
           ]
         },
         {
@@ -220,7 +219,9 @@
             "platform/guides/replacing-toasts",
             "platform/guides/booking-fields",
             "platform/guides/booking-redirects",
-            "platform/guides/teams-setup"
+            "platform/guides/teams-setup",
+            "platform/guides/global-event-types",
+            "platform/guides/custom-booking-flow"
           ]
         },
         "platform/faq"

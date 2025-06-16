@@ -28,10 +28,12 @@ import {
   HttpCode,
   HttpStatus,
   Delete,
+  Query,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
 
 const SCALE = "SCALE";
 
@@ -40,7 +42,7 @@ const SCALE = "SCALE";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Orgs / Orgs")
+@DocsTags("Managed Orgs")
 @ApiHeader(X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(X_CAL_SECRET_KEY_HEADER)
 export class OrganizationsOrganizationsController {
@@ -99,14 +101,15 @@ export class OrganizationsOrganizationsController {
       "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
   })
   async getOrganizations(
-    @Param("orgId", ParseIntPipe) managerOrganizationId: number
+    @Param("orgId", ParseIntPipe) managerOrganizationId: number,
+    @Query() queryPagination: SkipTakePagination
   ): Promise<GetManagedOrganizationsOutput> {
-    const organizations = await this.managedOrganizationsService.getManagedOrganizations(
-      managerOrganizationId
-    );
+    const { organizations, pagination: responsePagination } =
+      await this.managedOrganizationsService.getManagedOrganizations(managerOrganizationId, queryPagination);
     return {
       status: SUCCESS_STATUS,
       data: organizations,
+      pagination: responsePagination,
     };
   }
 

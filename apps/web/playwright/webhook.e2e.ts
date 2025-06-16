@@ -191,7 +191,7 @@ test.describe("BOOKING_REJECTED", async () => {
         endTime: "[redacted/dynamic]",
         organizer: {
           id: "[redacted/dynamic]",
-          name: "Unnamed",
+          name: "Nameless",
           email: "[redacted/dynamic]",
           timeZone: "[redacted/dynamic]",
           language: "[redacted/dynamic]",

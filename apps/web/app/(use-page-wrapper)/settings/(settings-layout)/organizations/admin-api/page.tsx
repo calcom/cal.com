@@ -6,7 +6,10 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => `${t("admin")} ${t("api_reference")}`,
-    (t) => t("leverage_our_api")
+    (t) => t("leverage_our_api"),
+    undefined,
+    undefined,
+    "/settings/organizations/admin-api"
   );
 
 const Page = async () => {

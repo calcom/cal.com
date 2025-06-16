@@ -1,10 +1,10 @@
 import * as cache from "memory-cache";
 
+import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
 
-import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
 import { generateNonce, createSignature } from "./private-api-utils";
 
 export enum UsageEvent {
@@ -29,8 +29,8 @@ class LicenseKeyService implements ILicenseKeyService {
   }
 
   // Static async factory method
-  public static async create(): Promise<ILicenseKeyService> {
-    const licenseKey = await getDeploymentKey(prisma);
+  public static async create(deploymentRepo: IDeploymentRepository): Promise<ILicenseKeyService> {
+    const licenseKey = await getDeploymentKey(deploymentRepo);
     const useNoop = !licenseKey || process.env.NEXT_PUBLIC_IS_E2E === "1";
     return !useNoop ? new LicenseKeyService(licenseKey) : new NoopLicenseKeyService();
   }
@@ -122,13 +122,9 @@ export class LicenseKeySingleton {
   // eslint-disable-next-line @typescript-eslint/no-empty-function -- Private constructor to prevent direct instantiation
   private constructor() {}
 
-  public static async getInstance(): Promise<ILicenseKeyService> {
+  public static async getInstance(deploymentRepo: IDeploymentRepository): Promise<ILicenseKeyService> {
     if (!LicenseKeySingleton.instance) {
-      const licenseKey = await getDeploymentKey(prisma);
-      const useNoop = !licenseKey || process.env.NEXT_PUBLIC_IS_E2E === "1";
-      LicenseKeySingleton.instance = !useNoop
-        ? await LicenseKeyService.create()
-        : new NoopLicenseKeyService();
+      LicenseKeySingleton.instance = await LicenseKeyService.create(deploymentRepo);
     }
     return LicenseKeySingleton.instance;
   }

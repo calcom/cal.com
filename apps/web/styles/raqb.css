@@ -8,16 +8,41 @@
   user-select: none;
 }
 
+.cal-query-builder .group-container {
+  padding: 8px !important;
+  border-radius: 16px;
+  border: 1px solid var(--cal-border-muted);
+  background-color: var(--cal-bg);
+}
+
+.cal-query-builder .group--children:not(:empty) {
+  background-color: var(--cal-bg);
+  border: 1px solid var(--cal-border-muted);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.cal-query-builder .cal-query-builder-container .group-container {
+  border: none;
+  padding: 0px;
+}
+
+.cal-query-builder .group .group--header {
+  margin-left: 8px;
+}
+
+.cal-query-builder .group.group-or-rule:has(.group--header, :not(.group--header)):has(.group--children):has(.group--footer) {
+  background-color: var(--cal-bg-muted);
+  padding: 2px;
+  border-radius: 12px;
+}
+
+
 /* hide connectors */
 .cal-query-builder .group-or-rule::before,
 .cal-query-builder .group-or-rule::after {
   /* !important to ensure that styles added by react-query-awesome-builder are overridden */
   content: unset !important;
-}
-
-.cal-query-builder .group--children {
-  /* !important to ensure that styles added by react-query-awesome-builder are overridden */
-  padding-left: 0 !important;
 }
 
 /* Hide "and" for between numbers */
@@ -34,15 +59,9 @@
 }
 
 .cal-query-builder .rule--body {
-  display: flex;
-  align-items: center;
-}
-
-.cal-query-builder .rule--field,
-.cal-query-builder .rule--operator,
-.cal-query-builder .rule--value {
-  display: flex;
-  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 40% 20% 40%;
+  width: 100%;
 }
 
 .cal-query-builder .rule--widget {
@@ -52,7 +71,7 @@
 
 .cal-query-builder .widget--widget,
 .cal-query-builder .widget--widget,
-.cal-query-builder .widget--widget > * {
+.cal-query-builder .widget--widget>* {
   width: 100%;
 }
 
@@ -107,22 +126,7 @@
   margin-right: -8px;
 }
 
-.cal-query-builder .group--header,
-.cal-query-builder .group--footer {
-  padding-left: 10px;
-  padding-right: 10px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.cal-query-builder .group-or-rule-container {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
 .cal-query-builder .rule {
-  border: 1px solid transparent;
-  padding: 10px;
   flex: 1;
   display: flex;
 }

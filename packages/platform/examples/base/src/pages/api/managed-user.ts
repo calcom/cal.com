@@ -17,6 +17,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const { emails } = JSON.parse(req.body);
   const emailOne = emails[0];
   const emailTwo = emails[1];
+  const emailThree = emails[2];
+  const emailFour = emails[3];
+  const emailFive = emails[4];
 
   const existingUser = await prisma.user.findFirst({ orderBy: { createdAt: "desc" } });
   if (existingUser && existingUser.calcomUserId) {
@@ -37,6 +40,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const localUserTwo = await prisma.user.create({
     data: {
       email: emailTwo,
+    },
+  });
+
+  const localUserThree = await prisma.user.create({
+    data: {
+      email: emailThree,
+    },
+  });
+
+  const localUserFour = await prisma.user.create({
+    data: {
+      email: emailFour,
+    },
+  });
+
+  const localUserFive = await prisma.user.create({
+    data: {
+      email: emailFive,
     },
   });
 
@@ -101,8 +122,104 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     where: { id: localUserTwo.id },
   });
 
+  const responseThree = await fetch(
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
+    `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/oauth-clients/${process.env.NEXT_PUBLIC_X_CAL_ID}/users`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // eslint-disable-next-line turbo/no-undeclared-env-vars
+        [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
+        origin: "http://localhost:4321",
+      },
+      body: JSON.stringify({
+        email: emailThree,
+        name: "Rajiv",
+        avatarUrl:
+          "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      }),
+    }
+  );
+  const bodyThree = await responseThree.json();
+
+  await prisma.user.update({
+    data: {
+      refreshToken: (bodyThree.data?.refreshToken as string) ?? "",
+      accessToken: (bodyThree.data?.accessToken as string) ?? "",
+      calcomUserId: bodyThree.data?.user.id,
+      calcomUsername: (bodyThree.data?.user.username as string) ?? "",
+    },
+    where: { id: localUserThree.id },
+  });
+
+  const responseFour = await fetch(
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
+    `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/oauth-clients/${process.env.NEXT_PUBLIC_X_CAL_ID}/users`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // eslint-disable-next-line turbo/no-undeclared-env-vars
+        [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
+        origin: "http://localhost:4321",
+      },
+      body: JSON.stringify({
+        email: emailFour,
+        name: "Morgan",
+        avatarUrl:
+          "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      }),
+    }
+  );
+  const bodyFour = await responseFour.json();
+
+  await prisma.user.update({
+    data: {
+      refreshToken: (bodyFour.data?.refreshToken as string) ?? "",
+      accessToken: (bodyFour.data?.accessToken as string) ?? "",
+      calcomUserId: bodyFour.data?.user.id,
+      calcomUsername: (bodyFour.data?.user.username as string) ?? "",
+    },
+    where: { id: localUserFour.id },
+  });
+
+  const responseFive = await fetch(
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
+    `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/oauth-clients/${process.env.NEXT_PUBLIC_X_CAL_ID}/users`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // eslint-disable-next-line turbo/no-undeclared-env-vars
+        [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
+        origin: "http://localhost:4321",
+      },
+      body: JSON.stringify({
+        email: emailFive,
+        name: "Lauris",
+        avatarUrl:
+          "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      }),
+    }
+  );
+  const bodyFive = await responseFive.json();
+
+  await prisma.user.update({
+    data: {
+      refreshToken: (bodyFive.data?.refreshToken as string) ?? "",
+      accessToken: (bodyFive.data?.accessToken as string) ?? "",
+      calcomUserId: bodyFive.data?.user.id,
+      calcomUsername: (bodyFive.data?.user.username as string) ?? "",
+    },
+    where: { id: localUserFive.id },
+  });
+
   await createDefaultSchedule(body.data?.accessToken as string);
   await createDefaultSchedule(bodyTwo.data?.accessToken as string);
+  await createDefaultSchedule(bodyThree.data?.accessToken as string);
+  await createDefaultSchedule(bodyFour.data?.accessToken as string);
+  await createDefaultSchedule(bodyFive.data?.accessToken as string);
 
   // eslint-disable-next-line turbo/no-undeclared-env-vars
   const organizationId = process.env.ORGANIZATION_ID;
@@ -117,7 +234,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   await createMembership(+organizationId, team.id, body.data?.user.id);
   await createMembership(+organizationId, team.id, bodyTwo.data?.user.id);
-  await createCollectiveEventType(+organizationId, team.id, [body.data?.user.id, bodyTwo.data?.user.id]);
+  await createMembership(+organizationId, team.id, bodyThree.data?.user.id);
+  await createCollectiveEventType(+organizationId, team.id, [
+    body.data?.user.id,
+    bodyTwo.data?.user.id,
+    bodyThree.data?.user.id,
+    bodyFour.data?.user.id,
+    bodyFive.data?.user.id,
+  ]);
 
   return res.status(200).json({
     id: body?.data?.user?.id,

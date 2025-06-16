@@ -10,9 +10,9 @@ import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAn
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
-import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -376,6 +376,7 @@ export async function createNewUsersConnectToOrgIfExists({
         if (parentId) {
           await tx.membership.create({
             data: {
+              createdAt: new Date(),
               teamId: parentId,
               userId: createdUser.id,
               role: MembershipRole.MEMBER,
@@ -413,8 +414,10 @@ export async function createMemberships({
       data: invitees.flatMap((invitee) => {
         const organizationRole = invitee?.teams?.[0]?.role;
         const data = [];
+        const createdAt = new Date();
         // membership for the team
         data.push({
+          createdAt,
           teamId,
           userId: invitee.id,
           accepted,
@@ -424,6 +427,7 @@ export async function createMemberships({
         // membership for the org
         if (parentId && invitee.needToCreateOrgMembership) {
           data.push({
+            createdAt,
             accepted,
             teamId: parentId,
             userId: invitee.id,
@@ -866,6 +870,7 @@ export async function handleExistingUsersInvites({
 
         await prisma.membership.create({
           data: {
+            createdAt: new Date(),
             userId: user.id,
             teamId: team.id,
             accepted: shouldAutoAccept,

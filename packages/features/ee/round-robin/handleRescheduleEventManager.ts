@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
-import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import type { EventType } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -53,7 +53,10 @@ export const handleRescheduleEventManager = async ({
     prefix: ["handleRescheduleEventManager", `${bookingId}`],
   });
 
-  const allCredentials = await getAllCredentials(initParams.user, initParams?.eventType);
+  const allCredentials = await getAllCredentialsIncludeServiceAccountKey(
+    initParams.user,
+    initParams?.eventType
+  );
 
   const eventManager = new EventManager(
     { ...initParams.user, credentials: allCredentials },

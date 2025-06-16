@@ -350,12 +350,13 @@ describe("SelectedCalendarRepository", () => {
             credentialId: 2,
             delegationCredentialId: "delegationCredential-123",
           };
+          const beforeDelegationCredentialId = data.delegationCredentialId;
 
           const result = await SelectedCalendarRepository.upsert(data);
           expect(result.id).not.toBe(null);
           expect(result.id).toBe(existingCalendar.id);
           expect(result.credentialId).toBe(data.credentialId);
-          expect(result.delegationCredentialId).toBeNull();
+          expect(result.delegationCredentialId).toBe(beforeDelegationCredentialId);
         });
       });
 
@@ -398,6 +399,7 @@ describe("SelectedCalendarRepository", () => {
           credentialId: 1,
         };
 
+        const beforeDelegationCredentialId = initialData.delegationCredentialId;
         const existingCalendar = await SelectedCalendarRepository.create(initialData);
 
         const data = {
@@ -410,7 +412,7 @@ describe("SelectedCalendarRepository", () => {
         const result = await SelectedCalendarRepository.upsert(data);
         expect(result.id).toBe(existingCalendar.id);
         expect(result.credentialId).toBe(existingCalendar.credentialId);
-        expect(result.delegationCredentialId).toBe(null);
+        expect(result.delegationCredentialId).toBe(beforeDelegationCredentialId);
       });
 
       it("shouldnt update delegationCredentialId if it is undefined", async () => {

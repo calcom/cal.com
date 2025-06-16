@@ -6,23 +6,12 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
 import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
-
-let tasker: Tasker;
-
-if (typeof window === "undefined") {
-  import("@calcom/features/tasker")
-    .then((module) => {
-      tasker = module.default;
-    })
-    .catch((error) => {
-      console.error("Failed to load tasker:", error);
-    });
-}
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
 
@@ -96,7 +85,7 @@ export function getFieldResponse({
  * Not called in preview mode or dry run mode
  * It takes care of sending webhooks and emails for form submissions
  */
-export async function onFormSubmission(
+async function _onFormSubmission(
   form: Ensure<
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
     "fields"
@@ -171,44 +160,54 @@ export async function onFormSubmission(
     });
   });
 
-  const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
-    const scheduledAt = dayjs().add(15, "minute").toDate();
+  if (typeof window === "undefined") {
+    try {
+      const tasker: Tasker = await (await import("@calcom/features/tasker")).default;
+      const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
+        const scheduledAt = dayjs().add(15, "minute").toDate();
 
-    return tasker.create(
-      "triggerFormSubmittedNoEventWebhook",
-      {
-        responseId,
-        form,
-        responses: fieldResponsesByIdentifier,
-        redirect: chosenAction,
-        webhook,
-      },
-      { scheduledAt }
-    );
-  });
+        return tasker.create(
+          "triggerFormSubmittedNoEventWebhook",
+          {
+            responseId,
+            form,
+            responses: fieldResponsesByIdentifier,
+            redirect: chosenAction,
+            webhook,
+          },
+          { scheduledAt }
+        );
+      });
 
-  const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
+      const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
 
-  await Promise.all(promises);
-  const orderedResponses = form.fields.reduce((acc, field) => {
-    acc.push(response[field.id]);
-    return acc;
-  }, [] as OrderedResponses);
+      await Promise.all(promises);
+      const orderedResponses = form.fields.reduce((acc, field) => {
+        acc.push(response[field.id]);
+        return acc;
+      }, [] as OrderedResponses);
 
-  if (form.teamId) {
-    if (form.userWithEmails?.length) {
-      moduleLogger.debug(
-        `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
-      );
-      await sendResponseEmail(form, orderedResponses, form.userWithEmails);
+      if (form.teamId) {
+        if (form.userWithEmails?.length) {
+          moduleLogger.debug(
+            `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(
+              ","
+            )}`
+          );
+          await sendResponseEmail(form, orderedResponses, form.userWithEmails);
+        }
+      } else if (form.settings?.emailOwnerOnSubmission) {
+        moduleLogger.debug(
+          `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
+        );
+        await sendResponseEmail(form, orderedResponses, [form.user.email]);
+      }
+    } catch (e) {
+      moduleLogger.error("Error triggering routing form response side effects", e);
     }
-  } else if (form.settings?.emailOwnerOnSubmission) {
-    moduleLogger.debug(
-      `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
-    );
-    await sendResponseEmail(form, orderedResponses, [form.user.email]);
   }
 }
+export const onFormSubmission = withReporting(_onFormSubmission, "onFormSubmission");
 
 export const sendResponseEmail = async (
   form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,

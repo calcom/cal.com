@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -443,7 +444,7 @@ const inputSchema = z.object({
     name: z.string().optional(),
     email: z.string().email(),
     username: z.string().optional(),
-    timeZone: z.string().optional(),
+    timeZone: timeZoneSchema.optional(),
     emailVerified: z.boolean().optional(),
     identityProvider: z.string().optional(),
     twoFactorEnabled: z.boolean().optional(),

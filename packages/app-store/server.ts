@@ -125,7 +125,10 @@ export async function getLocationGroupedOptions(
             : {}),
         };
         if (apps[groupByCategory]) {
-          apps[groupByCategory] = [...apps[groupByCategory], option];
+          const existingOption = apps[groupByCategory].find((o) => o.value === option.value);
+          if (!existingOption) {
+            apps[groupByCategory] = [...apps[groupByCategory], option];
+          }
         } else {
           apps[groupByCategory] = [option];
         }

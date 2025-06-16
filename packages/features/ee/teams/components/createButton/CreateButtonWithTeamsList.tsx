@@ -13,7 +13,9 @@ export function CreateButtonWithTeamsList(
     includeOrg?: boolean;
   }
 ) {
-  const query = trpc.viewer.teamsAndUserProfilesQuery.useQuery({ includeOrg: props.includeOrg });
+  const query = trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery({
+    includeOrg: props.includeOrg,
+  });
   if (!query.data) return null;
 
   const teamsAndUserProfiles: Option[] = query.data

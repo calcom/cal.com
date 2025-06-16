@@ -115,6 +115,7 @@ const createUserWithBookings = async ({
     },
     include: {
       bookings: true,
+      credentials: true,
     },
   });
   userIds.push(user.id);
@@ -154,6 +155,7 @@ const createHostWithBookings = async ({
       user: {
         include: {
           bookings: true,
+          credentials: true,
         },
       },
     },

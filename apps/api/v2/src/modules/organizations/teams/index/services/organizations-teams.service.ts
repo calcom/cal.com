@@ -5,6 +5,8 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/inde
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
+import { slugify } from "@calcom/platform-libraries";
+
 @Injectable()
 export class OrganizationsTeamsService {
   constructor(
@@ -40,6 +42,10 @@ export class OrganizationsTeamsService {
   async createOrgTeam(organizationId: number, data: CreateOrgTeamDto, user: UserWithProfile) {
     const { autoAcceptCreator, ...rest } = data;
 
+    if (!rest.slug) {
+      rest.slug = slugify(rest.name);
+    }
+
     const team = await this.organizationsTeamRepository.createOrgTeam(organizationId, rest);
 
     if (user.role !== "ADMIN") {
@@ -55,6 +61,10 @@ export class OrganizationsTeamsService {
     user: UserWithProfile
   ) {
     const { autoAcceptCreator, ...rest } = data;
+
+    if (!rest.slug) {
+      rest.slug = slugify(rest.name);
+    }
 
     const team = await this.organizationsTeamRepository.createPlatformOrgTeam(
       organizationId,

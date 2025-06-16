@@ -21,6 +21,8 @@ const delegationCredentialSafeSelect = {
   createdAt: true,
   updatedAt: true,
   organizationId: true,
+  lastEnabledAt: true,
+  lastDisabledAt: true,
   workspacePlatform: {
     select: {
       name: true,
@@ -33,6 +35,18 @@ const delegationCredentialSelectIncludesServiceAccountKey = {
   ...delegationCredentialSafeSelect,
   serviceAccountKey: true,
 };
+
+function doesEmailMatchDelegationCredentialDomain({
+  memberEmail,
+  delegationCredentialEmailDomain,
+}: {
+  memberEmail: string | null;
+  delegationCredentialEmailDomain: string;
+}) {
+  if (!memberEmail) return false;
+  const memberEmailDomain = memberEmail.split("@")[1];
+  return memberEmailDomain === delegationCredentialEmailDomain;
+}
 
 export class DelegationCredentialRepository {
   private static encryptServiceAccountKey(serviceAccountKey: ServiceAccountKey): EncryptedServiceAccountKey {
@@ -161,6 +175,8 @@ export class DelegationCredentialRepository {
       domain: string;
       enabled: boolean;
       organizationId: number;
+      lastEnabledAt: Date;
+      lastDisabledAt: Date;
     }>;
   }) {
     const { workspacePlatformId, organizationId, ...rest } = data;
@@ -206,6 +222,113 @@ export class DelegationCredentialRepository {
           },
         },
       },
+    });
+  }
+
+  static async findAllEnabledIncludeDelegatedMembers() {
+    const delegationCredentials = await prisma.delegationCredential.findMany({
+      where: {
+        enabled: true,
+      },
+      include: {
+        workspacePlatform: {
+          select: {
+            slug: true,
+          },
+        },
+        organization: {
+          include: {
+            members: {
+              select: {
+                id: true,
+                userId: true,
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                  },
+                },
+                accepted: true,
+              },
+              where: {
+                // Note: We don't maintain anything on Membership that can identify if a Membership has been processed, so we send all and let it be on the caller to filter out
+                accepted: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return delegationCredentials.map((delegationCredential) => {
+      // Members for whom delegation credential is applicable
+      const delegatedMembers = delegationCredential.organization.members.filter((member) => {
+        return doesEmailMatchDelegationCredentialDomain({
+          memberEmail: member.user.email,
+          delegationCredentialEmailDomain: delegationCredential.domain,
+        });
+      });
+
+      return {
+        ...delegationCredential,
+        organization: {
+          ...delegationCredential.organization,
+          delegatedMembers,
+        },
+      };
+    });
+  }
+
+  static async findAllDisabledAndIncludeNextBatchOfMembersToProcess() {
+    const delegationCredentials = await prisma.delegationCredential.findMany({
+      where: {
+        enabled: false,
+      },
+      include: {
+        workspacePlatform: {
+          select: {
+            slug: true,
+          },
+        },
+        organization: {
+          include: {
+            members: {
+              select: {
+                id: true,
+                userId: true,
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                  },
+                },
+                accepted: true,
+              },
+              where: {
+                // Note: We don't maintain anything on Membership that can identify if a Membership has been processed, so we send all and let it be on the caller to filter out
+                accepted: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return delegationCredentials.map((delegationCredential) => {
+      const members = delegationCredential.organization.members;
+      const membersThatAreActuallyPartOfDelegationCredential = members.filter((member) => {
+        return doesEmailMatchDelegationCredentialDomain({
+          memberEmail: member.user.email,
+          delegationCredentialEmailDomain: delegationCredential.domain,
+        });
+      });
+      return {
+        ...delegationCredential,
+        organization: {
+          ...delegationCredential.organization,
+          members: membersThatAreActuallyPartOfDelegationCredential,
+        },
+      };
     });
   }
 }

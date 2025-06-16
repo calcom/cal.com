@@ -98,7 +98,7 @@ async function createOrganizationWithExistingUserAsOwner({
   let organization = orgData.id ? await OrganizationRepository.findById({ id: orgData.id }) : null;
 
   if (organization) {
-    log.debug(
+    log.info(
       `Reusing existing organization:`,
       safeStringify({
         slug: orgData.slug,
@@ -122,7 +122,7 @@ async function createOrganizationWithExistingUserAsOwner({
   // In this case we create the organization with slug=null. Let the teams migrate and then the conflict would go away.
   const canSetSlug = slugConflictType === "teamUserIsMemberOfExists" ? false : true;
 
-  log.debug(
+  log.info(
     `Creating organization for owner ${owner.email} with slug ${orgData.slug} and canSetSlug=${canSetSlug}`
   );
 
@@ -191,7 +191,7 @@ async function createOrganizationWithNonExistentUserAsOwner({
     : await OrganizationRepository.findBySlug({ slug: orgData.slug });
 
   if (organization) {
-    log.debug(
+    log.info(
       `createOrganizationWithNonExistentUserAsOwner: Reusing existing organization:`,
       safeStringify({ slug: orgData.slug, id: organization.id })
     );
@@ -259,7 +259,7 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
       shouldMove: true,
     }));
 
-  log.debug(
+  log.info(
     `Creating ${teamsToCreate} teams and moving ${teamsToMove.map(
       (team) => team.newSlug
     )} teams for organization ${organizationId}`
@@ -280,7 +280,7 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
     },
   });
 
-  log.debug(
+  log.info(
     `Created ${teamsToCreate.length} teams and moved ${teamsToMove.length} teams for organization ${organizationId}`
   );
 }
@@ -288,7 +288,7 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
 async function inviteMembers(invitedMembers: InvitedMember[], organization: Team) {
   if (invitedMembers.length === 0) return;
 
-  log.debug(`Inviting ${invitedMembers.length} members to organization ${organization.id}`);
+  log.info(`Inviting ${invitedMembers.length} members to organization ${organization.id}`);
   await inviteMembersWithNoInviterPermissionCheck({
     inviterName: null,
     teamId: organization.id,
@@ -407,7 +407,10 @@ async function handleOrganizationCreation({
     bio: organizationOnboarding.bio,
   };
 
-  log.debug("handleOrganizationCreation", safeStringify({ orgData }));
+  log.info(
+    "handleOrganizationCreation",
+    safeStringify({ orgId: organizationOnboarding.organizationId, orgSlug: organizationOnboarding.slug })
+  );
   if (!owner) {
     const result = await createOrganizationWithNonExistentUserAsOwner({
       email: organizationOnboarding.orgOwnerEmail,
@@ -465,6 +468,13 @@ export const createOrganizationFromOnboarding = async ({
   paymentSubscriptionId: string;
   paymentSubscriptionItemId: string;
 }) => {
+  log.info(
+    "createOrganizationFromOnboarding",
+    safeStringify({
+      orgId: organizationOnboarding.organizationId,
+      orgSlug: organizationOnboarding.slug,
+    })
+  );
   if (
     await hasConflictingOrganization({
       slug: organizationOnboarding.slug,
@@ -501,11 +511,18 @@ export const createOrganizationFromOnboarding = async ({
   // If the organization was created with slug=null, then set the slug now, assuming that the team having the same slug is migrated now
   // If the team wasn't owned by the orgOwner, then org creation would have failed and we wouldn't be here
   if (!organization.slug) {
-    const { slug } = await OrganizationRepository.setSlug({
-      id: organization.id,
-      slug: organizationOnboarding.slug,
-    });
-    organization.slug = slug;
+    try {
+      const { slug } = await OrganizationRepository.setSlug({
+        id: organization.id,
+        slug: organizationOnboarding.slug,
+      });
+      organization.slug = slug;
+    } catch (error) {
+      // Almost always the reason would be that the organization's slug conflicts with a team's slug
+      // The owner might not have chosen the conflicting team for migration - Can be confirmed by checking `teams` column in the database.
+      log.error("RecoverableError: Error while setting slug for organization", safeStringify(error));
+      throw new Error("Unable to set slug for organization");
+    }
   }
 
   return { organization, owner };

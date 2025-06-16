@@ -126,12 +126,12 @@ export function DialogHeader(props: DialogHeaderProps) {
 
   return (
     <div className="mb-4">
-      <h3
+      <h2
         data-testid="dialog-title"
         className="leading-20 text-semibold text-emphasis font-cal mb-1 text-xl"
         id="modal-title">
         {props.title}
-      </h3>
+      </h2>
       {props.subtitle && (
         <p className="text-subtle text-sm" data-testid="dialog-subtitle">
           {props.subtitle}

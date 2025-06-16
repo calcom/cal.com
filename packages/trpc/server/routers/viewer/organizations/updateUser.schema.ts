@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+
 import { assignUserToAttributeSchema } from "../attributes/assignUserToAttribute.schema";
 
 export const ZUpdateUserInputSchema = z.object({
@@ -10,7 +12,7 @@ export const ZUpdateUserInputSchema = z.object({
   email: z.string().optional(),
   avatar: z.string().optional(),
   role: z.enum(["ADMIN", "MEMBER", "OWNER"]),
-  timeZone: z.string(),
+  timeZone: timeZoneSchema,
   attributeOptions: assignUserToAttributeSchema.optional(),
 });
 

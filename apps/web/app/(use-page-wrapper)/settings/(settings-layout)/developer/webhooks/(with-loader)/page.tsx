@@ -1,11 +1,9 @@
 import { createRouterCaller } from "app/_trpc/context";
-import { _generateMetadata, getTranslate } from "app/_utils";
+import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { CreateNewWebhookButton } from "@calcom/features/webhooks/components";
 import WebhooksView from "@calcom/features/webhooks/pages/webhooks-view";
 import { APP_NAME } from "@calcom/lib/constants";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -16,7 +14,10 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("webhooks"),
-    (t) => t("add_webhook_description", { appName: APP_NAME })
+    (t) => t("add_webhook_description", { appName: APP_NAME }),
+    undefined,
+    undefined,
+    "/settings/developer/webhooks"
   );
 
 const WebhooksViewServerWrapper = async () => {
@@ -25,20 +26,11 @@ const WebhooksViewServerWrapper = async () => {
     redirect("/auth/login");
   }
 
-  const t = await getTranslate();
   const isAdmin = session.user.role === UserPermissionRole.ADMIN;
   const caller = await createRouterCaller(webhookRouter);
   const data = await caller.getByViewer();
 
-  return (
-    <SettingsHeader
-      title={t("webhooks")}
-      description={t("add_webhook_description", { appName: APP_NAME })}
-      CTA={data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
-      borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}>
-      <WebhooksView data={data} isAdmin={isAdmin} />
-    </SettingsHeader>
-  );
+  return <WebhooksView data={data} isAdmin={isAdmin} />;
 };
 
 export default WebhooksViewServerWrapper;

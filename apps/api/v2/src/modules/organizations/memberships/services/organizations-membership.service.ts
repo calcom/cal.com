@@ -1,19 +1,30 @@
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
+import { OrganizationsMembershipOutputService } from "./organizations-membership-output.service";
 
 @Injectable()
 export class OrganizationsMembershipService {
-  constructor(private readonly organizationsMembershipRepository: OrganizationsMembershipRepository) {}
+  constructor(
+    private readonly organizationsMembershipRepository: OrganizationsMembershipRepository,
+    private readonly organizationsMembershipOutputService: OrganizationsMembershipOutputService
+  ) {}
 
   async getOrgMembership(organizationId: number, membershipId: number) {
     const membership = await this.organizationsMembershipRepository.findOrgMembership(
       organizationId,
       membershipId
     );
-    return membership;
+
+    if (!membership) {
+      throw new NotFoundException(
+        `Membership with id ${membershipId} within organization id ${organizationId} not found`
+      );
+    }
+
+    return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
   async getOrgMembershipByUserId(organizationId: number, userId: number) {
@@ -21,7 +32,13 @@ export class OrganizationsMembershipService {
       organizationId,
       userId
     );
-    return membership;
+    if (!membership) {
+      throw new NotFoundException(
+        `Membership for user with id ${userId} within organization id ${organizationId} not found`
+      );
+    }
+
+    return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
   async getPaginatedOrgMemberships(organizationId: number, skip = 0, take = 250) {
@@ -30,7 +47,7 @@ export class OrganizationsMembershipService {
       skip,
       take
     );
-    return memberships;
+    return this.organizationsMembershipOutputService.getOrgMembershipsOutput(memberships);
   }
 
   async deleteOrgMembership(organizationId: number, membershipId: number) {
@@ -38,7 +55,7 @@ export class OrganizationsMembershipService {
       organizationId,
       membershipId
     );
-    return membership;
+    return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
   async updateOrgMembership(organizationId: number, membershipId: number, data: UpdateOrgMembershipDto) {
@@ -47,11 +64,11 @@ export class OrganizationsMembershipService {
       membershipId,
       data
     );
-    return membership;
+    return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
   async createOrgMembership(organizationId: number, data: CreateOrgMembershipDto) {
     const membership = await this.organizationsMembershipRepository.createOrgMembership(organizationId, data);
-    return membership;
+    return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 }

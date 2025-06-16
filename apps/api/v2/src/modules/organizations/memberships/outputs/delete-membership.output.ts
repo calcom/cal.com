@@ -1,4 +1,4 @@
-import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
+import { OrganizationMembershipOutput } from "@/modules/organizations/memberships/outputs/organization-membership.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum } from "class-validator";
 
@@ -9,5 +9,5 @@ export class DeleteOrgMembership {
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  data!: TeamMembershipOutput;
+  data!: OrganizationMembershipOutput;
 }

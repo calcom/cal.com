@@ -89,6 +89,10 @@ describe("POST /api/selected-calendars", () => {
         googleChannelResourceUri: null,
         googleChannelExpiration: null,
         error: null,
+        lastErrorAt: null,
+        watchAttempts: 0,
+        maxAttempts: 3,
+        unwatchAttempts: 0,
       });
 
       await handler(req, res);
@@ -128,6 +132,10 @@ describe("POST /api/selected-calendars", () => {
         domainWideDelegationCredentialId: null,
         eventTypeId: null,
         error: null,
+        lastErrorAt: null,
+        watchAttempts: 0,
+        maxAttempts: 3,
+        unwatchAttempts: 0,
       });
 
       await handler(req, res);

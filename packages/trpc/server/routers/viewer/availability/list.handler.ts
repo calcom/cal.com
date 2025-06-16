@@ -27,17 +27,28 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     },
   });
 
-  const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+  if (schedules.length === 0) {
+    return {
+      schedules: [],
+    };
+  }
 
-  if (!user.defaultScheduleId) {
-    await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        defaultScheduleId,
-      },
-    });
+  let defaultScheduleId: number | null;
+  try {
+    defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+
+    if (!user.defaultScheduleId) {
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          defaultScheduleId,
+        },
+      });
+    }
+  } catch (error) {
+    defaultScheduleId = null;
   }
 
   return {

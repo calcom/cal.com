@@ -1,6 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
-import { IsNumber, Min, Max, IsOptional } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum } from "class-validator";
 import type { Response as BaseResponse } from "express";
 
@@ -37,41 +35,6 @@ export type ApiResponse<T = undefined> = T extends undefined
   : ApiSuccessResponse<T> | ApiErrorResponse;
 
 export type ApiResponseMaybeRedirect<T = undefined> = ApiResponse<T> | ApiRedirectResponseType;
-
-export class Pagination {
-  @ApiPropertyOptional({ description: "The number of items to return", example: 10 })
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @Min(1)
-  @Max(250)
-  @IsOptional()
-  limit?: number;
-
-  @ApiPropertyOptional({ description: "The number of items to skip", example: 0 })
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @Min(0)
-  @Max(250)
-  @IsOptional()
-  offset?: number;
-}
-
-export class SkipTakePagination {
-  @ApiProperty({ required: false, description: "The number of items to return", example: 10 })
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @Min(1)
-  @Max(250)
-  @IsOptional()
-  take?: number;
-
-  @ApiProperty({ required: false, description: "The number of items to skip", example: 0 })
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @Min(0)
-  @IsOptional()
-  skip?: number;
-}
 
 export class ApiResponseWithoutData {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })

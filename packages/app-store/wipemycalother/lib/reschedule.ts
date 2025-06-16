@@ -35,6 +35,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
       eventType: {
         select: {
           metadata: true,
+          hideOrganizerEmail: true,
           team: {
             select: {
               id: true,
@@ -120,6 +121,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
         tAttendees
       ),
       organizer: userOwnerAsPeopleType,
+      hideOrganizerEmail: bookingToReschedule.eventType?.hideOrganizerEmail,
       team: !!bookingToReschedule.eventType?.team
         ? {
             name: bookingToReschedule.eventType.team.name,

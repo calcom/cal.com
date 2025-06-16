@@ -1,4 +1,3 @@
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -77,7 +76,6 @@ class CreateRetellLLMCommand implements Command<TCreateRetellLLMSchema> {
         body: JSON.stringify({
           general_prompt: this.props.generalPrompt,
           begin_message: this.props.beginMessage,
-          inbound_dynamic_variables_webhook_url: `${WEBAPP_URL}/api/get-inbound-dynamic-variables`,
           general_tools: [
             {
               type: "end_call",
@@ -101,13 +99,6 @@ class CreateRetellLLMCommand implements Command<TCreateRetellLLMSchema> {
           ],
         }),
       }).then(ZCreateRetellLLMSchema.parse);
-
-      const llmWebSocketUrlToBeUpdated = createdRetellLLM.inbound_dynamic_variables_webhook_url;
-      await updateAgentWebsocketUrl(
-        this.props.yourPhoneNumber,
-        llmWebSocketUrlToBeUpdated,
-        createdRetellLLM.llm_id
-      );
 
       return createdRetellLLM;
     } catch (error) {
@@ -141,16 +132,8 @@ class UpdateRetellLLMCommand implements Command<TGetRetellLLMSchema> {
         body: JSON.stringify({
           general_prompt: this.props.generalPrompt,
           begin_message: this.props.beginMessage,
-          inbound_dynamic_variables_webhook_url: `${WEBAPP_URL}/api/get-inbound-dynamic-variables`,
         }),
       }).then(ZGetRetellLLMSchema.parse);
-
-      const llmWebSocketUrlToBeUpdated = updatedRetellLLM.inbound_dynamic_variables_webhook_url;
-      await updateAgentWebsocketUrl(
-        this.props.yourPhoneNumber,
-        llmWebSocketUrlToBeUpdated,
-        updatedRetellLLM.llm_id
-      );
 
       return updatedRetellLLM;
     } catch (err) {

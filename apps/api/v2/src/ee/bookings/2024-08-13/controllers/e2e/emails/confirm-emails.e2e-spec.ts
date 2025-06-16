@@ -385,7 +385,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
               emailsEnabledSetup.createdBookingUid = responseBody.data.uid;
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -430,7 +430,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
                 emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
               } else {
                 throw new Error(
-                  "Invalid response data - expected booking but received array of possibily recurring bookings"
+                  "Invalid response data - expected booking but received array of possibly recurring bookings"
                 );
               }
             });
@@ -459,7 +459,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
                 emailsEnabledSetup.rescheduledBookingUid = responseBody.data.uid;
               } else {
                 throw new Error(
-                  "Invalid response data - expected booking but received array of possibily recurring bookings"
+                  "Invalid response data - expected booking but received array of possibly recurring bookings"
                 );
               }
             });
@@ -502,7 +502,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
               emailsEnabledSetup.createdBookingUid = responseBody.data.uid;
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });

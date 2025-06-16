@@ -131,6 +131,10 @@ export function EventTypeTabs(eventTypeId: number) {
         onSuccess={(eventType) => {
           console.log("EventType settings updated successfully", eventType);
         }}
+        onFormStateChange={(formState) => {
+          console.log("Form state changed:", formState);
+          // Access form data: formState.isDirty, formState.dirtyFields, formState.values
+        }}
         customClassNames={{ atomsWrapper: "!w-[70vw] !m-auto" }}
       />
     </>
@@ -175,6 +179,7 @@ Below is a list of props that can be passed to the event type settings atom.
 | tabs | No       | The tabs you want the event type settings to display                                                  |  
 | onSuccess | No       | Callback function that triggers when the event type is successfully updated                                              |
 | onError   | No       | Callback function to handles errors at the time of event type update |
+| onFormStateChange | No       | Callback function that triggers when the form state changes, providing access to isDirty, dirtyFields, and current form values |
 | onDeleteSuccess | No       | Callback function that triggers when the event type is successfully deleted                                                     |
 | onDeleteError | No       | Callback function that handles errors at the time of event type deletion |                                                   |
 | allowDelete | No       | Boolean value that determines whether the delete button is displayed or not                                                     |

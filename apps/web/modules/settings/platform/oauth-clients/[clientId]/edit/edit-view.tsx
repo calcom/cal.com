@@ -28,7 +28,7 @@ export default function EditOAuthClient() {
   const { data, isFetched, isFetching, isError, refetch } = useOAuthClient(clientId);
   const { mutateAsync: update, isPending: isUpdating } = useUpdateOAuthClient({
     onSuccess: () => {
-      showToast("OAuth client updated successfully", "success");
+      showToast(t("oauth_client_updated_successfully"), "success");
       refetch();
       router.push("/settings/platform/");
     },
@@ -60,10 +60,11 @@ export default function EditOAuthClient() {
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
       areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled,
+      areCalendarEventsEnabled: data.areCalendarEventsEnabled,
     });
   };
 
-  if (isUserLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading) return <div className="m-5">{t("loading")}</div>;
 
   if (isPlatformUser && isPaidUser) {
     return (
@@ -80,13 +81,14 @@ export default function EditOAuthClient() {
                 </p>
               </div>
             </div>
-            {(!Boolean(clientId) || (isFetched && !data)) && <p>OAuth Client not found.</p>}
+            {(!Boolean(clientId) || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
             {isFetched && !!data && (
               <EditOAuthClientForm
                 defaultValues={{
                   name: data?.name ?? "",
                   areEmailsEnabled: data.areEmailsEnabled ?? false,
                   areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled ?? false,
+                  areCalendarEventsEnabled: data.areCalendarEventsEnabled,
                   redirectUris: data?.redirectUris?.map((uri) => ({ uri })) ?? [{ uri: "" }],
                   bookingRedirectUri: data?.bookingRedirectUri ?? "",
                   bookingCancelRedirectUri: data?.bookingCancelRedirectUri ?? "",
@@ -106,8 +108,8 @@ export default function EditOAuthClient() {
                 isPending={isUpdating}
               />
             )}
-            {isFetching && <p>Loading...</p>}
-            {isError && <p>Something went wrong.</p>}
+            {isFetching && <p>{t("loading")}</p>}
+            {isError && <p>{t("something_went_wrong")}</p>}
           </div>
         </Shell>
       </div>

@@ -1,43 +1,76 @@
 # Contributing to Cal.com
 
-Contributions are what makes the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-## House rules
+## House Rules (for PRs and Issues)
 
-- Before submitting a new issue or PR, check if it already exists in [issues](https://github.com/calcom/cal.com/issues) or [PRs](https://github.com/calcom/cal.com/pulls).
-- GitHub issues: take note of the `🚨 needs approval` label.
-  - **For Contributors**:
-    - Feature Requests: Wait for a core member to approve and remove the `🚨 needs approval` label before you start coding or submit a PR.
-    - Bugs, Security, Performance, Documentation, etc.: You can start coding immediately, even if the `🚨 needs approval` label is present. This label mainly concerns feature requests.
-  - **Our Process**:
-    - Issues from non-core members automatically receive the `🚨 needs approval` label.
-    - We greatly value new feature ideas. To ensure consistency in the product's direction, they undergo review and approval.
+### 👥 Prevent Work Duplication
+
+Before submitting a new issue or PR, check if it already exists in the [Issues](https://github.com/calcom/cal.com/issues) or [Pull Requests](https://github.com/calcom/cal.com/pulls).
+
+### ✅ Work Only on Approved Issues
+
+For feature requests, please wait for a core team member to approve and remove the `🚨 needs approval` label before you start coding or submitting a PR.
+
+For bugs, security, performance, documentation, etc., you can start coding immediately—even if the `🚨 needs approval` label is present.
+
+We highly value new feature ideas, but to maintain consistency in the product direction, they must go through a review and approval process.
+
+### 🚫 Don’t Just Drop a Link
+
+Avoid posting third-party links (e.g., Slack threads or Linear tickets) without context. A GitHub issue or PR should stand on its own—reviewers shouldn’t have to chase information across multiple tools to understand the context.
+
+### 👀 Think Like a Reviewer
+
+Put yourself in the reviewer’s shoes. What would you want to know if reading this for the first time? Are there key decisions, goals, or constraints that need clarification? Does the PR assume knowledge that isn’t obvious? Are there related issues or previous PRs that should be linked?
+
+### 🧵 Bring in Context from Private Channels
+
+If the task originated from a private conversation (e.g., Slack), take a moment to extract the relevant details and include them in the GitHub issue or PR. Avoid sharing sensitive information, but make sure important reasoning is captured.
+
+> Example:  
+> “A user requested feature X to solve problem Y. I considered approaches A, B, and C, but chose C for the following reasons…”
+
+### 📚 Treat It Like Documentation
+
+GitHub is a shared source of truth. Every issue and PR contributes to the long-term understanding of the codebase. Write clearly enough that someone—possibly you—can revisit it months later and still understand what happened and why.
+
+### ✅ Summarize Your PR at the Top
+
+Even if the code changes are minor or self-explanatory, a short written summary helps reviewers quickly understand the intent. You can use GitHub Copilot’s auto-summarize feature, but make sure to verify it for accuracy and relevance.
+
+### 🔗 Use GitHub Keywords to Auto-Link Issues
+
+Use phrases like “Closes #123” or “Fixes #456” in your PR descriptions. This automatically links your PR to the related issue and closes it once merged—keeping everything traceable and organized.
+
+### 🧪 Mention What Was Tested (and How)
+
+Explain how you validated your changes. It doesn’t need to be exhaustive—just enough to give reviewers confidence that things were tested and work as expected.
+
+> Example:  
+> “Tested locally with mock data and confirmed the flow works on staging.”
+
+### 🧠 Assume Future-You Won’t Remember
+
+Write with the future in mind. If there are trade-offs, edge cases, or temporary workarounds, document them clearly so they don’t get lost or misinterpreted later.
 
 ## Priorities
 
 <table>
   <tr>
-    <td>
-      Type of Issue
-    </td>
-    <td>
-      Priority
-    </td>
+    <td><strong>Type of Issue</strong></td>
+    <td><strong>Priority</strong></td>
   </tr>
   <tr>
-    <td>
-      Minor improvements, non-core feature requests
-    </td>
+    <td>Minor improvements, non-core feature requests</td>
     <td>
       <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:%22Low+priority%22">
         <img src="https://img.shields.io/badge/-Low%20Priority-green">
       </a>
     </td>
   </tr>
-   <tr>
-    <td>
-      Confusing UX (... but working)
-    </td>
+  <tr>
+    <td>Confusing UX (but still functional)</td>
     <td>
       <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:%22Medium+priority%22">
         <img src="https://img.shields.io/badge/-Medium%20Priority-yellow">
@@ -45,9 +78,7 @@ Contributions are what makes the open source community such an amazing place to 
     </td>
   </tr>
   <tr>
-    <td>
-      Core Features (Booking page, availability, timezone calculation)
-    </td>
+    <td>Core Features (Booking page, availability, timezone calculation)</td>
     <td>
       <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:%22High+priority%22">
         <img src="https://img.shields.io/badge/-High%20Priority-orange">
@@ -55,9 +86,7 @@ Contributions are what makes the open source community such an amazing place to 
     </td>
   </tr>
   <tr>
-    <td>
-      Core Bugs (Login, Booking page, Emails are not working)
-    </td>
+    <td>Core Bugs (Login, Booking page, Emails not working)</td>
     <td>
       <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+sort:updated-desc+label:Urgent">
         <img src="https://img.shields.io/badge/-Urgent-red">
@@ -68,59 +97,7 @@ Contributions are what makes the open source community such an amazing place to 
 
 ## Developing
 
-The development branch is `main`. This is the branch that all pull
-requests should be made against. The changes on the `main`
-branch are tagged into a release monthly.
-
-To develop locally:
-
-1. [Fork](https://github.com/calcom/cal.com/fork/) this repository to your
-   own GitHub account and then
-   [clone](https://help.github.com/articles/cloning-a-repository/) it to your local device.
-2. Create a new branch:
-
-   ```sh
-   git checkout -b MY_BRANCH_NAME
-   ```
-
-3. Install yarn:
-
-   ```sh
-   npm install -g yarn
-   ```
-
-4. Install the dependencies with:
-
-   ```sh
-   yarn
-   ```
-
-5. Set up your `.env` file:
-
-   - Duplicate `.env.example` to `.env`.
-   - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
-   - Use `openssl rand -base64 32` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
-
-6. Setup Node
-   If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
-
-   ```sh
-   nvm use
-   ```
-
-   You first might need to install the specific version:
-
-   ```sh
-   nvm install
-   ```
-
-   You can install nvm from [here](https://github.com/nvm-sh/nvm).
-
-7. Start developing and watch for code changes:
-
-   ```sh
-   yarn dev
-   ```
+[See README](https://github.com/calcom/cal.com#development)
 
 ## Building
 
@@ -130,23 +107,19 @@ You can build the project with:
 yarn build
 ```
 
-Please be sure that you can make a full production build before pushing code.
+Please ensure that you can make a full production build before pushing code.
 
 ## Testing
 
 More info on how to add new tests coming soon.
 
-### Running tests
+### Running Tests
 
-This will run and test all flows in multiple Chromium windows to verify that no critical flow breaks:
+[See README](https://github.com/calcom/cal.com#e2e-testing)
 
-```sh
-yarn test-e2e
-```
+#### Resolving Issues
 
-#### Resolving issues
-
-##### E2E test browsers not installed
+##### E2E Test Browsers Not Installed
 
 Run `npx playwright install` to download test browsers and resolve the error below when running `yarn test-e2e`:
 
@@ -166,68 +139,8 @@ If you get errors, be sure to fix them before committing.
 
 ## Making a Pull Request
 
-- Be sure to [check the "Allow edits from maintainers" option](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork) while creating your PR.
-- If your PR refers to or fixes an issue, be sure to add `refs #XXX` or `fixes #XXX` to the PR description. Replacing `XXX` with the respective issue number. See more about [Linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue).
-- Be sure to fill the PR Template accordingly.
-- Review [App Contribution Guidelines](./packages/app-store/CONTRIBUTING.md) when building integrations
-
-## Guidelines for committing yarn lockfile
-
-Do not commit your `yarn.lock` unless you've made changes to the `package.json`. If you've already committed `yarn.lock` unintentionally, follow these steps to undo:
-
-If your last commit has the `yarn.lock` file alongside other files and you only wish to uncommit the `yarn.lock`:
-
-```bash
-git checkout HEAD~1 yarn.lock
-git commit -m "Revert yarn.lock changes"
-```
-
-_NB_: You may have to bypass the pre-commit hook with by appending `--no-verify` to the git commit
-If you've pushed the commit with the `yarn.lock`:
-
-1.  Correct the commit locally using the above method.
-2.  Carefully force push:
-
-```bash
-git push origin <your-branch-name> --force
-```
-
-If `yarn.lock` was committed a while ago and there have been several commits since, you can use the following steps to revert just the `yarn.lock` changes without impacting the subsequent changes:
-
-1. **Checkout a Previous Version**:
-
-   - Find the commit hash before the `yarn.lock` was unintentionally committed. You can do this by viewing the Git log:
-
-     ```bash
-     git log yarn.lock
-     ```
-
-   - Once you have identified the commit hash, use it to checkout the previous version of `yarn.lock`:
-
-     ```bash
-     git checkout <commit_hash> yarn.lock
-     ```
-
-2. **Commit the Reverted Version**:
-
-   - After checking out the previous version of the `yarn.lock`, commit this change:
-
-     ```bash
-     git commit -m "Revert yarn.lock to its state before unintended changes"
-     ```
-
-3. **Proceed with Caution**:
-
-   - If you need to push this change, first pull the latest changes from your remote branch to ensure you're not overwriting other recent changes:
-
-     ```bash
-     git pull origin <your-branch-name>
-     ```
-
-   - Then push the updated branch:
-
-     ```bash
-     git push origin <your-branch-name>
-     ```
-
-Lastly, make sure to keep the branches updated (e.g. click the `Update branch` button on GitHub PR).
+- Be sure to [check the "Allow edits from maintainers" option](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork) when creating your PR. (This option isn't available if you're [contributing from a fork belonging to an organization](https://github.com/orgs/community/discussions/5634))
+- If your PR refers to or fixes an issue, add `refs #XXX` or `fixes #XXX` to the PR description. Replace `XXX` with the respective issue number. See more about [linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue).
+- Fill out the PR template accordingly.
+- Review the [App Contribution Guidelines](./packages/app-store/CONTRIBUTING.md) when building integrations.
+- Lastly, make sure to keep your branches updated (e.g., click the `Update branch` button on the GitHub PR page).

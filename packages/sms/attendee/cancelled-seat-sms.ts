@@ -15,6 +15,7 @@ export default class CancelledSeatSMS extends SMSManager {
     })}\n\n${t("event_no_longer_attending_subject", {
       name: this.calEvent.team?.name || this.calEvent.organizer.name,
       date: this.getFormattedDate(attendee.timeZone, attendee.language.locale),
+      interpolation: { escapeValue: false },
     })} `;
 
     return `${messageText}`;

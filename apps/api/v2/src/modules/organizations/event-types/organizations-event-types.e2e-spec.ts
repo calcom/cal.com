@@ -89,11 +89,13 @@ describe("Organizations Event Types Endpoints", () => {
       teammate1 = await userRepositoryFixture.create({
         email: teammate1Email,
         username: teammate1Email,
+        name: "alice",
       });
 
       teammate2 = await userRepositoryFixture.create({
         email: teammate2Email,
         username: teammate2Email,
+        name: "bob",
       });
 
       falseTestUser = await userRepositoryFixture.create({
@@ -340,6 +342,7 @@ describe("Organizations Event Types Endpoints", () => {
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
+        hideOrganizerEmail: true,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -371,6 +374,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
@@ -430,6 +434,21 @@ describe("Organizations Event Types Endpoints", () => {
 
           const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
           expect(responseTeamEvent).toBeDefined();
+          expect(responseTeamEvent?.hosts).toEqual([
+            {
+              userId: teammate1.id,
+              name: teammate1.name,
+              username: teammate1.username,
+              avatarUrl: teammate1.avatarUrl,
+            },
+            {
+              userId: teammate2.id,
+              name: teammate2.name,
+              username: teammate2.username,
+              avatarUrl: teammate2.avatarUrl,
+            },
+          ]);
+
           if (!responseTeamEvent) {
             throw new Error("Team event not found");
           }
@@ -1099,6 +1118,7 @@ describe("Organizations Event Types Endpoints", () => {
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
+        hideOrganizerEmail: true,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -1130,6 +1150,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");

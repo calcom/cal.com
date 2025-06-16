@@ -32,7 +32,7 @@ export const getWhen = (
 export const getWho = (
   calEvent: Pick<
     CalendarEvent,
-    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team"
+    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team" | "hideOrganizerEmail"
   >,
   t: TFunction
 ) => {
@@ -43,13 +43,15 @@ export const getWho = (
   const attendees = attendeesFromCalEvent
     .map(
       (attendee) =>
-        `${attendee?.name || t("guest")}\n${
-          !isSmsCalEmail(attendee.email) ? attendee.email : attendee.phoneNumber
+        `${attendee?.name || t("guest")}${attendee.phoneNumber ? ` - ${attendee.phoneNumber}` : ""}\n${
+          !isSmsCalEmail(attendee.email) ? attendee.email : ""
         }`
     )
     .join("\n");
 
-  const organizer = `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
+  const organizer = calEvent.hideOrganizerEmail
+    ? `${calEvent.organizer.name} - ${t("organizer")}`
+    : `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members

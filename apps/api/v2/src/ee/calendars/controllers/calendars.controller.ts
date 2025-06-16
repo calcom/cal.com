@@ -15,6 +15,7 @@ import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -34,6 +35,7 @@ import {
   BadRequestException,
   Post,
   Body,
+  ParseBoolPipe,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
@@ -50,7 +52,7 @@ import {
   APPLE_CALENDAR,
   CREDENTIAL_CALENDARS,
 } from "@calcom/platform-constants";
-import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
+import { ApiResponse, CalendarBusyTimesInput, CreateCalendarCredentialsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/calendars",
@@ -134,6 +136,7 @@ export class CalendarsController {
     name: "calendar",
   })
   @UseGuards(ApiAuthGuard)
+  @ApiAuthGuardOnlyAllow(["API_KEY", "ACCESS_TOKEN"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
@@ -148,13 +151,14 @@ export class CalendarsController {
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
     @Param("calendar") calendar: string,
-    @Query("redir") redir?: string | null
+    @Query("redir") redir?: string | null,
+    @Query("isDryRun", new ParseBoolPipe({ optional: true })) isDryRun?: boolean
   ): Promise<ApiResponse<{ authUrl: string }>> {
     switch (calendar) {
       case OFFICE_365_CALENDAR:
-        return await this.outlookService.connect(authorization, req, redir ?? "");
+        return await this.outlookService.connect(authorization, req, redir ?? "", isDryRun);
       case GOOGLE_CALENDAR:
-        return await this.googleCalendarService.connect(authorization, req, redir ?? "");
+        return await this.googleCalendarService.connect(authorization, req, redir ?? "", isDryRun);
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
@@ -171,7 +175,7 @@ export class CalendarsController {
   @Get("/:calendar/save")
   @HttpCode(HttpStatus.OK)
   @Redirect(undefined, 301)
-  @ApiOperation({ summary: "Save an oAuth calendar credentials" })
+  @ApiOperation({ summary: "Save Google or Outlook calendar credentials" })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
@@ -179,18 +183,30 @@ export class CalendarsController {
   ): Promise<{ url: string }> {
     // state params contains our user access token
     const stateParams = new URLSearchParams(state);
-    const { accessToken, origin, redir } = z
-      .object({ accessToken: z.string(), origin: z.string(), redir: z.string().nullish().optional() })
+    const { accessToken, origin, redir, isDryRun } = z
+      .object({
+        accessToken: z.string(),
+        origin: z.string(),
+        redir: z.string().nullish().optional(),
+        isDryRun: z.string().nullish().optional(),
+      })
       .parse({
         accessToken: stateParams.get("accessToken"),
         origin: stateParams.get("origin"),
         redir: stateParams.get("redir"),
+        isDryRun: stateParams.get("isDryRun"),
       });
     switch (calendar) {
       case OFFICE_365_CALENDAR:
-        return await this.outlookService.save(code, accessToken, origin, redir ?? "");
+        return await this.outlookService.save(code, accessToken, origin, redir ?? "", isDryRun === "true");
       case GOOGLE_CALENDAR:
-        return await this.googleCalendarService.save(code, accessToken, origin, redir ?? "");
+        return await this.googleCalendarService.save(
+          code,
+          accessToken,
+          origin,
+          redir ?? "",
+          isDryRun === "true"
+        );
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
@@ -207,11 +223,11 @@ export class CalendarsController {
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/:calendar/credentials")
-  @ApiOperation({ summary: "Sync credentials" })
+  @ApiOperation({ summary: "Save Apple calendar credentials" })
   async syncCredentials(
     @GetUser() user: User,
     @Param("calendar") calendar: string,
-    @Body() body: { username: string; password: string }
+    @Body() body: CreateCalendarCredentialsInput
   ): Promise<{ status: string }> {
     const { username, password } = body;
 

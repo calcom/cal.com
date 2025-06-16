@@ -1,6 +1,8 @@
 import type { IncomingMessage } from "http";
 import { z } from "zod";
 
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+
 export const getScheduleSchema = z
   .object({
     // startTime ISOString
@@ -12,7 +14,7 @@ export const getScheduleSchema = z
     // Event type slug
     eventTypeSlug: z.string().optional(),
     // invitee timezone
-    timeZone: z.string().optional(),
+    timeZone: timeZoneSchema.optional(),
     // or list of users (for dynamic events)
     usernameList: z.array(z.string()).min(1).optional(),
     debug: z.boolean().optional(),

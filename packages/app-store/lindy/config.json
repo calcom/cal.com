@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Lindy",
+  "slug": "lindy",
+  "type": "lindy_automation",
+  "logo": "icon-dark.svg",
+  "url": "https://www.lindy.ai/integrations/cal-com",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Lindy",
+  "email": "flo@lindy.ai",
+  "description": "Build AI agents in minutes to automate workflows, save time and grow your business",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

@@ -12,6 +12,7 @@ interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps,
     disabled?: boolean;
     tooltip?: string;
     iconLeft?: ReactNode;
+    dataTestId?: string;
   }[];
   isFullWidth?: boolean;
   orientation?: "horizontal" | "vertical";
@@ -67,7 +68,7 @@ export const ToggleGroup = ({
             <RadixToggleGroup.Item
               disabled={option.disabled}
               value={option.value}
-              data-testid={`toggle-group-item-${option.value}`}
+              data-testid={option.dataTestId ?? `toggle-group-item-${option.value}`}
               className={classNames(
                 "aria-checked:bg-default aria-checked:border-subtle rounded-lg border border-transparent p-1.5 text-sm leading-none transition aria-checked:shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]",
                 option.disabled
@@ -77,7 +78,7 @@ export const ToggleGroup = ({
               )}>
               <div
                 className={classNames(
-                  "flex items-center gap-2",
+                  "flex items-center gap-1",
                   orientation === "horizontal" && "justify-center",
                   orientation === "vertical" && "justify-start"
                 )}>

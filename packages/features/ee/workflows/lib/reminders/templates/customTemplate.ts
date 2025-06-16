@@ -30,6 +30,11 @@ export type VariablesType = {
   eventEndTimeInAttendeeTimezone?: Dayjs;
 };
 
+// Replaces placeholders like {EVENT_NAME_VARIABLE} with {EVENT_NAME}
+function replaceVariablePlaceholders(text: string) {
+  return text.replace(/\{([A-Z0-9_]+)_VARIABLE}/g, (_, base) => `{${base}}`);
+}
+
 const customTemplate = (
   text: string,
   variables: VariablesType,
@@ -45,6 +50,8 @@ const customTemplate = (
   }).format(variables.eventDate?.add(dayjs().tz(variables.timeZone).utcOffset(), "minute").toDate());
 
   let locationString = variables.location || "";
+
+  text = replaceVariablePlaceholders(text);
 
   if (text.includes("{LOCATION}")) {
     locationString = guessEventLocationType(locationString)?.label || locationString;

@@ -10,10 +10,13 @@ import { getServerSideProps } from "@server/lib/auth/forgot-password/[id]/getSer
 import type { PageProps as ClientPageProps } from "~/auth/forgot-password/[id]/forgot-password-single-view";
 import SetNewUserPassword from "~/auth/forgot-password/[id]/forgot-password-single-view";
 
-export const generateMetadata = async () => {
+export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) => {
   return await _generateMetadata(
     (t) => t("reset_password"),
-    (t) => t("change_your_password")
+    (t) => t("change_your_password"),
+    undefined,
+    undefined,
+    `/auth/forgot-password/${(await params).id}`
   );
 };
 

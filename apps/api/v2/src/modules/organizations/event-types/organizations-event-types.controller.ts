@@ -152,7 +152,7 @@ export class OrganizationsEventTypesController {
 
   @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
-  @ApiOperation({ summary: "Get a team event type" })
+  @ApiOperation({ summary: "Get team event types" })
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14

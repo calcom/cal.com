@@ -142,7 +142,7 @@ export const getBookerSizeClassNames = (
     // Small calendar defaults
     layout === BookerLayouts.MONTH_VIEW && getBookerMetaClass("[--booker-meta-width:240px]"),
     // Meta column gets wider in booking view to fit the full date on a single row in case
-    // of a multi occurence event. Also makes form less wide, which also looks better.
+    // of a multi occurrence event. Also makes form less wide, which also looks better.
     layout === BookerLayouts.MONTH_VIEW &&
       bookerState === "booking" &&
       `[--booker-main-width:420px] ${getBookerMetaClass("lg:[--booker-meta-width:340px]")}`,

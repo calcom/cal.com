@@ -30,143 +30,61 @@ type AppsRouterHandlerCache = {
   updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
-
 export const appsRouter = router({
   appById: authedProcedure.input(ZAppByIdInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.appById) {
-      UNSTABLE_HANDLER_CACHE.appById = (await import("./appById.handler")).appByIdHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.appById) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.appById({ ctx, input });
+    const { appByIdHandler } = await import("./appById.handler");
+    return appByIdHandler({ ctx, input });
   }),
 
   appCredentialsByType: authedProcedure
     .input(ZAppCredentialsByTypeInputSchema)
     .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.appCredentialsByType) {
-        UNSTABLE_HANDLER_CACHE.appCredentialsByType = (
-          await import("./appCredentialsByType.handler")
-        ).appCredentialsByTypeHandler;
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.appCredentialsByType) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.appCredentialsByType({ ctx, input });
+      const { appCredentialsByTypeHandler } = await import("./appCredentialsByType.handler");
+      return appCredentialsByTypeHandler({ ctx, input });
     }),
   getUsersDefaultConferencingApp: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp) {
-      UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp = (
-        await import("./getUsersDefaultConferencingApp.handler")
-      ).getUsersDefaultConferencingAppHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getUsersDefaultConferencingApp({ ctx });
+    const { getUsersDefaultConferencingAppHandler } = await import(
+      "./getUsersDefaultConferencingApp.handler"
+    );
+    return getUsersDefaultConferencingAppHandler({ ctx });
   }),
   integrations: authedProcedure.input(ZIntegrationsInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.integrations) {
-      UNSTABLE_HANDLER_CACHE.integrations = (await import("./integrations.handler")).integrationsHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.integrations) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.integrations({ ctx, input });
+    const { integrationsHandler } = await import("./integrations.handler");
+    return integrationsHandler({ ctx, input });
   }),
 
   listLocal: authedAdminProcedure.input(ZListLocalInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.listLocal) {
-      UNSTABLE_HANDLER_CACHE.listLocal = await import("./listLocal.handler").then(
-        (mod) => mod.listLocalHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.listLocal) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.listLocal({
+    const { listLocalHandler } = await import("./listLocal.handler");
+    return listLocalHandler({
       ctx,
       input,
     });
   }),
 
   locationOptions: authedProcedure.input(ZLocationOptionsInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.locationOptions) {
-      UNSTABLE_HANDLER_CACHE.locationOptions = (
-        await import("./locationOptions.handler")
-      ).locationOptionsHandler;
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.locationOptions) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.locationOptions({ ctx, input });
+    const { locationOptionsHandler } = await import("./locationOptions.handler");
+    return locationOptionsHandler({ ctx, input });
   }),
 
   toggle: authedAdminProcedure.input(ZToggleInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.toggle) {
-      UNSTABLE_HANDLER_CACHE.toggle = await import("./toggle.handler").then((mod) => mod.toggleHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.toggle) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.toggle({
+    const { toggleHandler } = await import("./toggle.handler");
+    return toggleHandler({
       ctx,
       input,
     });
   }),
 
   saveKeys: authedAdminProcedure.input(ZSaveKeysInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.saveKeys) {
-      UNSTABLE_HANDLER_CACHE.saveKeys = await import("./saveKeys.handler").then((mod) => mod.saveKeysHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.saveKeys) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.saveKeys({
+    const { saveKeysHandler } = await import("./saveKeys.handler");
+    return saveKeysHandler({
       ctx,
       input,
     });
   }),
 
   checkForGCal: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.checkForGCal) {
-      UNSTABLE_HANDLER_CACHE.checkForGCal = await import("./checkForGCal.handler").then(
-        (mod) => mod.checkForGCalHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.checkForGCal) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.checkForGCal({
+    const { checkForGCalHandler } = await import("./checkForGCal.handler");
+    return checkForGCalHandler({
       ctx,
     });
   }),
@@ -174,18 +92,8 @@ export const appsRouter = router({
   setDefaultConferencingApp: authedProcedure
     .input(ZSetDefaultConferencingAppSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.setDefaultConferencingApp) {
-        UNSTABLE_HANDLER_CACHE.setDefaultConferencingApp = await import(
-          "./setDefaultConferencingApp.handler"
-        ).then((mod) => mod.setDefaultConferencingAppHandler);
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.setDefaultConferencingApp) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.setDefaultConferencingApp({
+      const { setDefaultConferencingAppHandler } = await import("./setDefaultConferencingApp.handler");
+      return setDefaultConferencingAppHandler({
         ctx,
         input,
       });
@@ -193,18 +101,8 @@ export const appsRouter = router({
   updateAppCredentials: authedProcedure
     .input(ZUpdateAppCredentialsInputSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.updateAppCredentials) {
-        UNSTABLE_HANDLER_CACHE.updateAppCredentials = await import("./updateAppCredentials.handler").then(
-          (mod) => mod.updateAppCredentialsHandler
-        );
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.updateAppCredentials) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.updateAppCredentials({
+      const { updateAppCredentialsHandler } = await import("./updateAppCredentials.handler");
+      return updateAppCredentialsHandler({
         ctx,
         input,
       });
@@ -213,35 +111,15 @@ export const appsRouter = router({
   queryForDependencies: authedProcedure
     .input(ZQueryForDependenciesInputSchema)
     .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.queryForDependencies) {
-        UNSTABLE_HANDLER_CACHE.queryForDependencies = await import("./queryForDependencies.handler").then(
-          (mod) => mod.queryForDependenciesHandler
-        );
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.queryForDependencies) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.queryForDependencies({
+      const { queryForDependenciesHandler } = await import("./queryForDependencies.handler");
+      return queryForDependenciesHandler({
         ctx,
         input,
       });
     }),
   checkGlobalKeys: authedProcedure.input(checkGlobalKeysSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.checkGlobalKeys) {
-      UNSTABLE_HANDLER_CACHE.checkGlobalKeys = await import("./checkGlobalKeys.handler").then(
-        (mod) => mod.checkForGlobalKeysHandler
-      );
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.checkGlobalKeys) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.checkGlobalKeys({
+    const { checkForGlobalKeysHandler } = await import("./checkGlobalKeys.handler");
+    return checkForGlobalKeysHandler({
       ctx,
       input,
     });
@@ -249,17 +127,9 @@ export const appsRouter = router({
   updateUserDefaultConferencingApp: authedProcedure
     .input(ZUpdateUserDefaultConferencingAppInputSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp) {
-        UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp = (
-          await import("./updateUserDefaultConferencingApp.handler")
-        ).updateUserDefaultConferencingAppHandler;
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.updateUserDefaultConferencingApp({ ctx, input });
+      const { updateUserDefaultConferencingAppHandler } = await import(
+        "./updateUserDefaultConferencingApp.handler"
+      );
+      return updateUserDefaultConferencingAppHandler({ ctx, input });
     }),
 });

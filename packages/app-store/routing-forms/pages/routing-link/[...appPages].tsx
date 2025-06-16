@@ -26,7 +26,7 @@ import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { NonRouterRoute, FormResponse } from "../../types/types";
-import { getServerSideProps } from "./getServerSideProps";
+import type { getServerSideProps } from "./getServerSideProps";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
@@ -220,8 +220,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm {...props} />;
 }
-
-export { getServerSideProps };
 
 const usePrefilledResponse = (form: Props["form"]) => {
   const searchParams = useCompatSearchParams();

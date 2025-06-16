@@ -24,6 +24,8 @@ export { OrganizerRescheduledEmail } from "./OrganizerRescheduledEmail";
 export { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 export { TeamInviteEmail } from "./TeamInviteEmail";
 export { BrokenIntegrationEmail } from "./BrokenIntegrationEmail";
+export { CreditBalanceLowWarningEmail } from "./CreditBalanceLowWarningEmail";
+export { CreditBalanceLimitReachedEmail } from "./CreditBalanceLimitReachedEmail";
 export { OrganizerAttendeeCancelledSeatEmail } from "./OrganizerAttendeeCancelledSeatEmail";
 export { NoShowFeeChargedEmail } from "./NoShowFeeChargedEmail";
 export { VerifyAccountEmail } from "./VerifyAccountEmail";

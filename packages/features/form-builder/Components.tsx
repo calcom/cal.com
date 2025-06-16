@@ -205,7 +205,16 @@ export const Components: Record<FieldType, Component> = {
       if (!props) {
         return <div />;
       }
-      return <Widgets.TextWidget type="email" id={props.name} noLabel={true} {...props} />;
+
+      return (
+        <InputField
+          type="email"
+          id={props.name}
+          noLabel={true}
+          {...props}
+          onChange={(e) => props.setValue(e.target.value)}
+        />
+      );
     },
   },
   address: {

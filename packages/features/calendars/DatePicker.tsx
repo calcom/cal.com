@@ -6,13 +6,16 @@ import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
-import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
+import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";
 import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
+import type { PeriodData } from "@calcom/types/Event";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+
+import NoAvailabilityDialog from "./NoAvailabilityDialog";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -52,6 +55,7 @@ export type DatePickerProps = {
       emoji?: string;
     }[]
   >;
+  periodData?: PeriodData;
 };
 
 const Day = ({
@@ -111,25 +115,6 @@ const Day = ({
   );
 };
 
-const NoAvailabilityOverlay = ({
-  month,
-  nextMonthButton,
-}: {
-  month: string | null;
-  nextMonthButton: () => void;
-}) => {
-  const { t } = useLocale();
-
-  return (
-    <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
-      <h4 className="text-emphasis mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h4>
-      <Button onClick={nextMonthButton} color="primary" EndIcon="arrow-right" data-testid="view_next_month">
-        {t("view_next_month")}
-      </Button>
-    </div>
-  );
-};
-
 const Days = ({
   minDate,
   excludedDates = [],
@@ -143,6 +128,7 @@ const Days = ({
   slots,
   customClassName,
   isBookingInPast,
+  periodData,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -156,6 +142,7 @@ const Days = ({
   };
   scrollToTimeSlots?: () => void;
   isBookingInPast: boolean;
+  periodData: PeriodData;
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
@@ -282,9 +269,13 @@ const Days = ({
           )}
         </div>
       ))}
-
       {!props.isLoading && !isBookingInPast && includedDates && includedDates?.length === 0 && (
-        <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
+        <NoAvailabilityDialog
+          month={month}
+          nextMonthButton={nextMonthButton}
+          browsingDate={browsingDate}
+          periodData={periodData}
+        />
       )}
     </>
   );
@@ -299,6 +290,13 @@ const DatePicker = ({
   slots,
   customClassNames,
   includedDates,
+  periodData = {
+    periodStartDate: null,
+    periodEndDate: null,
+    periodCountCalendarDays: null,
+    periodDays: null,
+    periodType: "UNLIMITED",
+  },
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -319,7 +317,6 @@ const DatePicker = ({
   const { i18n, t } = useLocale();
   const bookingData = useBookerStore((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
-
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
       onMonthChange(browsingDate.add(newMonth, "month"));
@@ -408,6 +405,7 @@ const DatePicker = ({
           slots={slots}
           includedDates={includedDates}
           isBookingInPast={isBookingInPast}
+          periodData={periodData}
         />
       </div>
     </div>

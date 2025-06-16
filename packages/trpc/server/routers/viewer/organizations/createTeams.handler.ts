@@ -193,6 +193,12 @@ async function moveTeam({
       id: true,
       slug: true,
       metadata: true,
+      parent: {
+        select: {
+          id: true,
+          isPlatform: true,
+        },
+      },
       members: {
         select: {
           role: true,
@@ -214,19 +220,39 @@ async function moveTeam({
     });
   }
 
-  log.debug("Moving team", safeStringify({ teamId, newSlug, org, oldSlug: team.slug }));
+  if (team.parent?.isPlatform) {
+    log.info(
+      "Team belongs to a platform organization. Not moving to regular organization.",
+      safeStringify({ teamId, newSlug, org, oldSlug: team.slug, platformOrgId: team.parent.id })
+    );
+    return;
+  }
+  log.info("Moving team", safeStringify({ teamId, newSlug, oldSlug: team.slug }));
 
   newSlug = newSlug ?? team.slug;
   const orgMetadata = teamMetadataSchema.parse(org.metadata);
-  await prisma.team.update({
-    where: {
-      id: teamId,
-    },
-    data: {
-      slug: newSlug,
-      parentId: org.id,
-    },
-  });
+  try {
+    await prisma.team.update({
+      where: {
+        id: teamId,
+      },
+      data: {
+        slug: newSlug,
+        parentId: org.id,
+      },
+    });
+  } catch (error) {
+    log.error(
+      "Error while moving team to organization",
+      safeStringify(error),
+      safeStringify({
+        teamId,
+        newSlug,
+        orgId: org.id,
+      })
+    );
+    throw error;
+  }
 
   // Owner is already a member of the team. Inviting an existing member can throw error
   const invitableMembers = team.members.filter(isMembershipNotWithOwner).map((membership) => ({

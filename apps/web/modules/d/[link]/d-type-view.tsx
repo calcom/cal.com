@@ -18,11 +18,13 @@ export default function Type({
   duration,
   hashedLink,
   durationConfig,
+  eventData,
 }: PageProps) {
   return (
     <BookingPageErrorBoundary>
       <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
         <Booker
+          eventData={eventData}
           username={user}
           eventSlug={slug}
           bookingData={booking}

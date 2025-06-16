@@ -11,7 +11,10 @@ import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/payment-
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("organization_onboarding_status"),
-    (t) => t("organization_onboarding_status_description")
+    (t) => t("organization_onboarding_status_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/new/status"
   );
 
 const getData = withAppDirSsr(getServerSideProps);

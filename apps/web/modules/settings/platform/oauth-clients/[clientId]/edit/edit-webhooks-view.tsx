@@ -37,7 +37,7 @@ export default function EditOAuthClientWebhooks() {
   const { mutateAsync: createWebhook } = useCreateOAuthClientWebhook(clientId);
   const { mutateAsync: updateWebhook } = useUpdateOAuthClientWebhook(clientId);
 
-  if (isUserLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading) return <div className="m-5">{t("loading")}</div>;
 
   if (isPlatformUser && isPaidUser) {
     return (
@@ -55,7 +55,7 @@ export default function EditOAuthClientWebhooks() {
               </div>
             </div>
 
-            {webhooksStatus !== "success" && <p>Error while trying to access webhooks.</p>}
+            {webhooksStatus !== "success" && <p>{t("error_accessing_webhooks")}</p>}
 
             {isWebhooksFetched && webhooksStatus === "success" && (
               <WebhookForm
@@ -96,7 +96,7 @@ export default function EditOAuthClientWebhooks() {
                     await refetchWebhooks();
                     router.push("/settings/platform/");
                   } catch (err) {
-                    showToast(`Failed to ${webhookId ? "update" : "create"} webhook.`, "error");
+                    showToast(t(webhookId ? "webhook_update_failed" : "webhook_create_failed"), "error");
                   }
                 }}
                 onCancel={() => {

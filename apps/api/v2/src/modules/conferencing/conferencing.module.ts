@@ -6,15 +6,15 @@ import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.s
 import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
 import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { forwardRef, Module } from "@nestjs/common";
+import { HttpModule } from "@nestjs/axios";
+import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 
 @Module({
-  imports: [PrismaModule, ConfigModule, forwardRef(() => OrganizationsModule)],
+  imports: [PrismaModule, ConfigModule, HttpModule],
   providers: [
     ConferencingService,
     ConferencingRepository,

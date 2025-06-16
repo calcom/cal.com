@@ -123,7 +123,7 @@ export function BaseSelectFilterOptions<
 
   return (
     <Command data-testid={`${testIdPrefix}-${column.id}`}>
-      <CommandInput placeholder={t("search")} />
+      <CommandInput placeholder={t("search")} data-testid={`select-filter-options-search-${column.id}`} />
       <CommandList>
         <CommandEmpty>{t("no_options_available")}</CommandEmpty>
         {options.map((option, index) => {

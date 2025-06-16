@@ -44,10 +44,10 @@ export default function Platform() {
     setInitialClientName(data[0]?.name);
   }, [data]);
 
-  if (isUserLoading || isOAuthClientLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading || isOAuthClientLoading) return <div className="m-5">{t("loading")}</div>;
 
   if (isUserBillingDataLoading && !userBillingData) {
-    return <div className="m-5">Loading...</div>;
+    return <div className="m-5">{t("loading")}</div>;
   }
 
   if (isPlatformUser && !isPaidUser)
@@ -56,7 +56,7 @@ export default function Platform() {
         teamId={userOrgId}
         heading={
           <div className="mb-5 text-center text-2xl font-semibold">
-            <h1>Subscribe to Platform</h1>
+            <h1>{t("subscribe_to_platform")}</h1>
           </div>
         }
       />

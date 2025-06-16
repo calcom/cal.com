@@ -8,7 +8,7 @@ import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { Slot } from "@calcom/features/schedules";
+import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

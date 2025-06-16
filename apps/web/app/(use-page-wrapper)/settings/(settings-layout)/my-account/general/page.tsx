@@ -9,7 +9,10 @@ import GeneralQueryView from "~/settings/my-account/general-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("general"),
-    (t) => t("general_description")
+    (t) => t("general_description"),
+    undefined,
+    undefined,
+    "/settings/my-account/general"
   );
 
 const Page = async () => {

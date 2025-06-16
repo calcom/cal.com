@@ -33,7 +33,7 @@ export function defaultResponder<T>(
       }
       return res
         .status(error.statusCode)
-        .json({ message: error.message, url: error.url, method: error.method });
+        .json({ message: error.message, url: error.url, method: error.method, data: error?.data || null });
     } finally {
       performance.mark("End");
       performance.measure(`[${ok ? "OK" : "ERROR"}][$1] ${req.method} '${req.url}'`, "Start", "End");

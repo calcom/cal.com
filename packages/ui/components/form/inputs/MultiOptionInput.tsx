@@ -47,6 +47,7 @@ interface MultiOptionInputProps<TFieldValues extends FieldValues> {
    */
   keyPattern?: string;
   addOptionLabel?: string;
+  addOptionButtonColor?: "primary" | "secondary" | "minimal";
   optionPlaceholders?: string[];
   /**
    * Placeholders for value fields in key-value mode
@@ -93,6 +94,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
   showRemoveButton: _showRemoveButton,
   minOptions = 1,
   disabled = false,
+  addOptionButtonColor = "primary",
 }: MultiOptionInputProps<TFieldValues>) => {
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
   const { control } = useFormContext<TFieldValues>();
@@ -255,6 +257,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
                   required
                   addOnClassname="bg-transparent border-0"
                   {...control.register(`${fieldArrayName}.${index}.label` as Path<TFieldValues>)}
+                  data-testid={`${fieldArrayName}.${index}-input`}
                   addOnSuffix={
                     showRemoveButton ? (
                       <button
@@ -299,7 +302,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
       <div className={classNames("flex")}>
         <Button
           type="button"
-          color="secondary"
+          color={addOptionButtonColor}
           StartIcon="plus"
           onClick={addOption}
           className="mt-4 border-none"

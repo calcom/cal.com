@@ -23,6 +23,11 @@ test.describe("hash my url", () => {
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
     await page.locator("ul[data-testid=event-types] > li a").first().click();
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+      "aria-current",
+      "page"
+    ); // fix the race condition
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); //fix the race condition
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
     // ignore if it is already checked, and click if unchecked

@@ -4,7 +4,10 @@ import { redirect } from "next/navigation";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("apps"),
-    (t) => t("admin_apps_description")
+    (t) => t("admin_apps_description"),
+    undefined,
+    undefined,
+    "/settings/admin/apps"
   );
 
 const Page = () => {

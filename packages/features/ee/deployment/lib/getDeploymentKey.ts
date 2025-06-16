@@ -1,13 +1,9 @@
-import type { PrismaClient } from "@calcom/prisma";
+import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
 
-export async function getDeploymentKey(prisma: PrismaClient) {
+export async function getDeploymentKey(deploymentRepo: IDeploymentRepository): Promise<string> {
   if (process.env.CALCOM_LICENSE_KEY) {
     return process.env.CALCOM_LICENSE_KEY;
   }
-  const deployment = await prisma.deployment.findUnique({
-    where: { id: 1 },
-    select: { licenseKey: true },
-  });
-
-  return deployment?.licenseKey || "";
+  const licenseKey = await deploymentRepo.getLicenseKeyWithId(1);
+  return licenseKey || "";
 }

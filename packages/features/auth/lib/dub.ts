@@ -1,4 +1,4 @@
-import { Dub } from "dub";
+import { Dub } from "dub-package";
 
 export const dub = new Dub({
   token: process.env.DUB_API_KEY,

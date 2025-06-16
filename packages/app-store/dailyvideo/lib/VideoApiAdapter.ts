@@ -59,6 +59,7 @@ export const FAKE_DAILY_CREDENTIAL: CredentialForCalendarService & { invalid: bo
   teamId: null,
   delegatedToId: null,
   delegatedTo: null,
+  delegationCredentialId: null,
 };
 
 function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
@@ -145,10 +146,13 @@ export const updateMeetingTokenIfExpired = async ({
   return meetingToken;
 };
 
-export const generateGuestMeetingTokenFromOwnerMeetingToken = async (
-  meetingToken: string | null,
-  userId?: number
-) => {
+export const generateGuestMeetingTokenFromOwnerMeetingToken = async ({
+  meetingToken,
+  userId,
+}: {
+  meetingToken: string | null;
+  userId?: number;
+}) => {
   if (!meetingToken) return null;
 
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);

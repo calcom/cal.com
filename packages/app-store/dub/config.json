@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Dub",
+  "slug": "dub",
+  "type": "dub_analytics",
+  "logo": "icon-dark.svg",
+  "url": "https://dub.co",
+  "variant": "analytics",
+  "categories": ["analytics"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Dub is the modern link attribution platform for you to create short links, track conversion analytics, and run affiliate programs.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic"
+}

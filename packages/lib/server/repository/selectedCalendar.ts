@@ -67,7 +67,9 @@ export class SelectedCalendarRepository {
     const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
 
     if (conflictingCalendar) {
-      throw new Error("Selected calendar already exists");
+      throw new Error(
+        `Selected calendar already exists for userId: ${data.userId}, integration: ${data.integration}, externalId: ${data.externalId}, eventTypeId: ${data.eventTypeId}`
+      );
     }
 
     return await prisma.selectedCalendar.create({
@@ -125,6 +127,14 @@ export class SelectedCalendarRepository {
     });
   }
 
+  static async deleteById({ id }: { id: string }) {
+    return await prisma.selectedCalendar.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
   static async createIfNotExists(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
 
@@ -157,13 +167,35 @@ export class SelectedCalendarRepository {
         },
         // RN we only support google calendar subscriptions for now
         integration: "google_calendar",
-        // We skip retrying calendars that have errored
-        error: null,
-        OR: [
-          // Either is a calendar pending to be watched
-          { googleChannelExpiration: null },
-          // Or is a calendar that is about to expire
-          { googleChannelExpiration: { lt: tomorrowTimestamp } },
+        AND: [
+          {
+            OR: [
+              // Either is a calendar that has not errored
+              { error: null },
+              // Or is a calendar that has errored but has not reached max attempts
+              {
+                error: { not: null },
+                watchAttempts: {
+                  lt: {
+                    // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
+                    // Removing ts-expect-error fails in another case that _ref isn't defined
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    _ref: "maxAttempts",
+                    _container: "SelectedCalendar",
+                  },
+                },
+              },
+            ],
+          },
+          {
+            OR: [
+              // Either is a calendar pending to be watched
+              { googleChannelExpiration: null },
+              // Or is a calendar that is about to expire
+              { googleChannelExpiration: { lt: tomorrowTimestamp } },
+            ],
+          },
         ],
       },
     });
@@ -178,19 +210,43 @@ export class SelectedCalendarRepository {
       // RN we only support google calendar subscriptions for now
       integration: "google_calendar",
       googleChannelExpiration: { not: null },
-      user: {
-        teams: {
-          every: {
-            team: {
-              features: {
-                none: {
-                  featureId: "calendar-cache",
+      AND: [
+        {
+          OR: [
+            // Either is a calendar that has not errored during unwatch
+            { error: null },
+            // Or is a calendar that has errored during unwatch but has not reached max attempts
+            {
+              error: { not: null },
+              unwatchAttempts: {
+                lt: {
+                  // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
+                  // Removing ts-expect-error fails in another case that _ref isn't defined
+                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  // @ts-ignore
+                  _ref: "maxAttempts",
+                  _container: "SelectedCalendar",
+                },
+              },
+            },
+          ],
+        },
+        {
+          user: {
+            teams: {
+              every: {
+                team: {
+                  features: {
+                    none: {
+                      featureId: "calendar-cache",
+                    },
+                  },
                 },
               },
             },
           },
         },
-      },
+      ],
     };
     // If calendar cache is disabled globally, we skip team features and unwatch all subscriptions
     const nextBatch = await prisma.selectedCalendar.findMany({
@@ -339,6 +395,38 @@ export class SelectedCalendarRepository {
     return await prisma.selectedCalendar.update({
       where: { id },
       data,
+    });
+  }
+
+  static async setErrorInWatching({ id, error }: { id: string; error: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      error,
+      lastErrorAt: new Date(),
+      watchAttempts: { increment: 1 },
+    });
+  }
+
+  static async setErrorInUnwatching({ id, error }: { id: string; error: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      error,
+      lastErrorAt: new Date(),
+      unwatchAttempts: { increment: 1 },
+    });
+  }
+
+  static async removeWatchingError({ id }: { id: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      error: null,
+      lastErrorAt: null,
+      watchAttempts: 0,
+    });
+  }
+
+  static async removeUnwatchingError({ id }: { id: string }) {
+    await SelectedCalendarRepository.updateById(id, {
+      error: null,
+      lastErrorAt: null,
+      unwatchAttempts: 0,
     });
   }
 }

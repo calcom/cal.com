@@ -25,6 +25,10 @@ export default function Availability() {
           onDeleteSuccess={() => {
             console.log("Deleted schedule successfully");
           }}
+          onFormStateChange={(formState) => {
+            console.log("Form state updated");
+            // Access form data: formState.name, formState.schedule, formState.timeZone, etc.
+          }}
        />
     </>
   )
@@ -63,6 +67,10 @@ export default function Availability() {
           onDeleteSuccess={() => {
             console.log("Deleted schedule successfully");
           }}
+          onFormStateChange={(formState) => {
+            console.log("Form state changed:", formState);
+            // Access form data including dateOverrides: formState.dateOverrides
+          }}
        />
     </>
   )
@@ -99,6 +107,7 @@ Below is a list of props that can be passed to the availability settings atom.
 | onUpdateError      | No       | A callback function that gets triggered when the user availability fails to update                        |
 | onDeleteSuccess    | No       | A callback function that gets triggered when the user availability is deleted successfully                |
 | onDeleteError      | No       | A callback function that gets triggered when the user availability fails to delete                        |
+| onFormStateChange  | No       | A callback function that gets triggered whenever the form state changes, providing real-time access to form data |
 | enableOverrides    | No       | Allows user to enable or disable date overrides display in the atom; defaults to disabled                 |
 | disableEditableHeading    | No       | Prevents users from editing the heading               |
 | allowDelete      | No       | When set to false, this prop hides the delete button                        |

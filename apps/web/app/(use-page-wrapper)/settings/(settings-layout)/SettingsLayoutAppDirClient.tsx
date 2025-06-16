@@ -16,7 +16,6 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -255,7 +254,7 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
 const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
-      href="/"
+      href="/event-types"
       className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
       <Icon
@@ -273,8 +272,6 @@ interface SettingsSidebarContainerProps {
   className?: string;
   navigationIsOpenedOnMobile?: boolean;
   bannersHeight?: number;
-  currentOrg: SettingsLayoutProps["currentOrg"];
-  otherTeams: SettingsLayoutProps["otherTeams"];
 }
 
 const TeamListCollapsible = () => {
@@ -314,27 +311,41 @@ const TeamListCollapsible = () => {
                 className="cursor-pointer"
                 key={team.id}
                 open={teamMenuState[index].teamMenuOpen}
-                onOpenChange={() =>
-                  setTeamMenuState([
-                    ...teamMenuState,
-                    (teamMenuState[index] = {
-                      ...teamMenuState[index],
-                      teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                    }),
-                  ])
-                }>
+                onOpenChange={(open) => {
+                  const newTeamMenuState = [...teamMenuState];
+                  newTeamMenuState[index] = {
+                    ...newTeamMenuState[index],
+                    teamMenuOpen: open,
+                  };
+                  setTeamMenuState(newTeamMenuState);
+                }}>
                 <CollapsibleTrigger asChild>
-                  <div
+                  <button
                     className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
-                    onClick={() =>
-                      setTeamMenuState([
-                        ...teamMenuState,
-                        (teamMenuState[index] = {
-                          ...teamMenuState[index],
+                    aria-controls={`team-content-${team.id}`}
+                    aria-expanded={teamMenuState[index].teamMenuOpen}
+                    onClick={() => {
+                      const newTeamMenuState = [...teamMenuState];
+                      newTeamMenuState[index] = {
+                        ...newTeamMenuState[index],
+                        teamMenuOpen: !teamMenuState[index].teamMenuOpen,
+                      };
+                      setTeamMenuState(newTeamMenuState);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        const newTeamMenuState = [...teamMenuState];
+                        newTeamMenuState[index] = {
+                          ...newTeamMenuState[index],
                           teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                        }),
-                      ])
-                    }>
+                        };
+                        setTeamMenuState(newTeamMenuState);
+                      }
+                    }}
+                    aria-label={`${team.name} ${
+                      teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
+                    }`}>
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
                         <Icon name="chevron-down" className="h-4 w-4" />
@@ -355,9 +366,9 @@ const TeamListCollapsible = () => {
                         Inv.
                       </Badge>
                     )}
-                  </div>
+                  </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-0.5">
+                <CollapsibleContent className="space-y-0.5" id={`team-content-${team.id}`}>
                   {team.accepted && (
                     <VerticalTabItem
                       name={t("profile")}
@@ -427,10 +438,9 @@ const SettingsSidebarContainer = ({
   className = "",
   navigationIsOpenedOnMobile,
   bannersHeight,
-  currentOrg: currentOrgProp,
-  otherTeams: otherTeamsProp,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
+  const orgBranding = useOrgBranding();
   const { t } = useLocale();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<
     {
@@ -439,19 +449,17 @@ const SettingsSidebarContainer = ({
     }[]
   >();
   const session = useSession();
-  const { data: _currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org && !currentOrgProp,
+  const { data } = trpc.viewer.delegationCredential.check.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
   });
-
   const tabsWithPermissions = useTabs({
-    isDelegationCredentialEnabled: !!_currentOrg?.features?.delegationCredential,
+    isDelegationCredentialEnabled: data?.hasDelegationCredential ?? false,
   });
 
-  const { data: _otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
-    enabled: !!session.data?.user?.org && !otherTeamsProp,
+  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
   });
-  const currentOrg = currentOrgProp ?? _currentOrg;
-  const otherTeams = otherTeamsProp ?? _otherTeams;
+
   // Same as above but for otherTeams
   useEffect(() => {
     if (otherTeams) {
@@ -471,8 +479,7 @@ const SettingsSidebarContainer = ({
     }
   }, [searchParams?.get("id"), otherTeams]);
 
-  const isOrgAdminOrOwner =
-    currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
+  const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
 
   return (
     <nav
@@ -484,7 +491,7 @@ const SettingsSidebarContainer = ({
           ? "translate-x-0 opacity-100"
           : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
       )}
-      aria-label="Tabs">
+      aria-label={t("settings_navigation")}>
       <>
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
@@ -555,7 +562,7 @@ const SettingsSidebarContainer = ({
                       </div>
                     </Link>
                     <TeamListCollapsible />
-                    {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
+                    {(!orgBranding?.id || isOrgAdminOrOwner) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
@@ -600,27 +607,43 @@ const SettingsSidebarContainer = ({
                               className="cursor-pointer"
                               key={otherTeam.id}
                               open={otherTeamMenuState[index].teamMenuOpen}
-                              onOpenChange={() =>
-                                setOtherTeamMenuState([
-                                  ...otherTeamMenuState,
-                                  (otherTeamMenuState[index] = {
-                                    ...otherTeamMenuState[index],
-                                    teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                  }),
-                                ])
-                              }>
+                              onOpenChange={(open) => {
+                                const newOtherTeamMenuState = [...otherTeamMenuState];
+                                newOtherTeamMenuState[index] = {
+                                  ...newOtherTeamMenuState[index],
+                                  teamMenuOpen: open,
+                                };
+                                setOtherTeamMenuState(newOtherTeamMenuState);
+                              }}>
                               <CollapsibleTrigger asChild>
-                                <div
+                                <button
                                   className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
-                                  onClick={() =>
-                                    setOtherTeamMenuState([
-                                      ...otherTeamMenuState,
-                                      (otherTeamMenuState[index] = {
-                                        ...otherTeamMenuState[index],
+                                  aria-controls={`other-team-content-${otherTeam.id}`}
+                                  aria-expanded={otherTeamMenuState[index].teamMenuOpen}
+                                  onClick={() => {
+                                    const newOtherTeamMenuState = [...otherTeamMenuState];
+                                    newOtherTeamMenuState[index] = {
+                                      ...newOtherTeamMenuState[index],
+                                      teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
+                                    };
+                                    setOtherTeamMenuState(newOtherTeamMenuState);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      e.preventDefault();
+                                      const newOtherTeamMenuState = [...otherTeamMenuState];
+                                      newOtherTeamMenuState[index] = {
+                                        ...newOtherTeamMenuState[index],
                                         teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                      }),
-                                    ])
-                                  }>
+                                      };
+                                      setOtherTeamMenuState(newOtherTeamMenuState);
+                                    }
+                                  }}
+                                  aria-label={`${otherTeam.name} ${
+                                    otherTeamMenuState[index].teamMenuOpen
+                                      ? t("collapse_menu")
+                                      : t("expand_menu")
+                                  }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
                                       <Icon name="chevron-down" className="h-4 w-4" />
@@ -636,9 +659,11 @@ const SettingsSidebarContainer = ({
                                     />
                                   )}
                                   <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
-                                </div>
+                                </button>
                               </CollapsibleTrigger>
-                              <CollapsibleContent className="space-y-0.5">
+                              <CollapsibleContent
+                                className="space-y-0.5"
+                                id={`other-team-content-${otherTeam.id}`}>
                                 <VerticalTabItem
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
@@ -701,17 +726,10 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
 export type SettingsLayoutProps = {
   children: React.ReactNode;
-  currentOrg: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>> | null;
-  otherTeams: Awaited<ReturnType<typeof OrganizationRepository.findTeamsInOrgIamNotPartOf>> | null;
   containerClassName?: string;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({
-  children,
-  currentOrg,
-  otherTeams,
-  ...rest
-}: SettingsLayoutProps) {
+export default function SettingsLayoutAppDirClient({ children, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
@@ -741,8 +759,6 @@ export default function SettingsLayoutAppDirClient({
       {...rest}
       SidebarContainer={
         <SidebarContainerElement
-          currentOrg={currentOrg}
-          otherTeams={otherTeams}
           sideContainerOpen={sideContainerOpen}
           setSideContainerOpen={setSideContainerOpen}
         />
@@ -766,8 +782,6 @@ const SidebarContainerElement = ({
   sideContainerOpen,
   bannersHeight,
   setSideContainerOpen,
-  currentOrg,
-  otherTeams,
 }: SidebarContainerElementProps) => {
   const { t } = useLocale();
   return (
@@ -783,8 +797,6 @@ const SidebarContainerElement = ({
       <SettingsSidebarContainer
         navigationIsOpenedOnMobile={sideContainerOpen}
         bannersHeight={bannersHeight}
-        currentOrg={currentOrg}
-        otherTeams={otherTeams}
       />
     </>
   );
@@ -794,6 +806,4 @@ type SidebarContainerElementProps = {
   sideContainerOpen: boolean;
   bannersHeight?: number;
   setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  currentOrg: SettingsLayoutProps["currentOrg"];
-  otherTeams: SettingsLayoutProps["otherTeams"];
 };

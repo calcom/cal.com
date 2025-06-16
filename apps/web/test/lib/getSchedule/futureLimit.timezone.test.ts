@@ -66,6 +66,7 @@ vi.mock("@calcom/lib/constants", () => ({
   WEBAPP_URL: "http://localhost:3000",
   RESERVED_SUBDOMAINS: ["auth", "docs"],
   ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK: 61,
+  SINGLE_ORG_SLUG: "",
 }));
 
 describe("getSchedule", () => {

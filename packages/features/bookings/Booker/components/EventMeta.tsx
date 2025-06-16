@@ -53,6 +53,7 @@ export const EventMeta = ({
   classNames,
   locale,
   timeZones,
+  children,
 }: {
   event?: Pick<
     BookerEvent,
@@ -83,9 +84,11 @@ export const EventMeta = ({
     eventMetaContainer?: string;
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
+    eventMetaChildren?: string;
   };
   locale?: string | null;
   timeZones?: Timezone[];
+  children?: React.ReactNode;
 }) => {
   const { timeFormat, timezone } = useBookerTime();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
@@ -250,6 +253,7 @@ export const EventMeta = ({
               </EventMetaBlock>
             ) : null}
           </div>
+          {children && <div className={classNames?.eventMetaChildren}>{children}</div>}
         </m.div>
       )}
     </div>

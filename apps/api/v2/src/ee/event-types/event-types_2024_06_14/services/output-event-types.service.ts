@@ -1,14 +1,4 @@
-import { Injectable } from "@nestjs/common";
-import type { EventType, User, Schedule, DestinationCalendar } from "@prisma/client";
-
 import {
-  userMetadata,
-  parseBookingLimit,
-  parseRecurringEvent,
-  getBookingFieldsWithSystemFields,
-} from "@calcom/platform-libraries";
-import {
-  EventTypeMetaDataSchema,
   transformLocationsInternalToApi,
   transformBookingFieldsInternalToApi,
   InternalLocationSchema,
@@ -20,11 +10,20 @@ import {
   transformBookerLayoutsInternalToApi,
   transformRequiresConfirmationInternalToApi,
   transformEventTypeColorsInternalToApi,
-  parseEventTypeColor,
   transformSeatsInternalToApi,
   InternalLocation,
   BookingFieldSchema,
-} from "@calcom/platform-libraries/event-types";
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { Injectable } from "@nestjs/common";
+import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@prisma/client";
+
+import {
+  userMetadata,
+  parseBookingLimit,
+  parseRecurringEvent,
+  getBookingFieldsWithSystemFields,
+} from "@calcom/platform-libraries";
+import { EventTypeMetaDataSchema, parseEventTypeColor } from "@calcom/platform-libraries/event-types";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
@@ -38,8 +37,9 @@ type EventTypeRelations = {
   users: User[];
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
+  calVideoSettings?: CalVideoSettings | null;
 };
-export type DatabaseEventType = EventType & EventTypeRelations;
+export type DatabaseEventType = Omit<EventType, "allowReschedulingCancelledBookings"> & EventTypeRelations;
 
 type Input = Pick<
   DatabaseEventType,
@@ -87,6 +87,8 @@ type Input = Pick<
   | "destinationCalendar"
   | "useEventTypeDestinationCalendarEmail"
   | "hideCalendarEventDetails"
+  | "hideOrganizerEmail"
+  | "calVideoSettings"
 >;
 
 @Injectable()
@@ -123,6 +125,8 @@ export class OutputEventTypesService_2024_06_14 {
       seatsShowAttendees,
       useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
+      hideOrganizerEmail,
+      calVideoSettings,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -197,6 +201,8 @@ export class OutputEventTypesService_2024_06_14 {
       destinationCalendar,
       useDestinationCalendarEmail: useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
+      hideOrganizerEmail,
+      calVideoSettings,
     };
   }
 

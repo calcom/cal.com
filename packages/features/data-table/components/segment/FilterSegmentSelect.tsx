@@ -31,7 +31,7 @@ type SubmenuItem = {
 
 export function FilterSegmentSelect() {
   const { t } = useLocale();
-  const { segments, selectedSegment, segmentId, setSegmentId } = useDataTable();
+  const { segments, selectedSegment, segmentId, setSegmentId, isSegmentEnabled } = useDataTable();
   const [segmentToRename, setSegmentToRename] = useState<FilterSegmentOutput | undefined>();
   const [segmentToDuplicate, setSegmentToDuplicate] = useState<FilterSegmentOutput | undefined>();
   const [segmentToDelete, setSegmentToDelete] = useState<FilterSegmentOutput | undefined>();
@@ -99,16 +99,28 @@ export function FilterSegmentSelect() {
     ];
   }, [segments, t]);
 
+  if (!isSegmentEnabled) {
+    return (
+      <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
+        {t("segment")}
+      </Button>
+    );
+  }
+
   return (
     <>
       <Dropdown>
         <DropdownMenuTrigger asChild>
-          <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down">
+          <Button
+            color="secondary"
+            StartIcon="list-filter"
+            EndIcon="chevron-down"
+            data-testid="filter-segment-select">
             {selectedSegment?.name || t("segment")}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuPortal>
-          <DropdownMenuContent align="start" className="w-60">
+          <DropdownMenuContent align="start" className="w-60" data-testid="filter-segment-select-content">
             {segmentGroups.length === 0 && <p className="text-subtle px-3 py-1">{t("no_segments")}</p>}
 
             {segmentGroups.map((group, index) => (
@@ -190,10 +202,24 @@ function DropdownItemWithSubmenu({
         <div className="grow" />
         <Dropdown open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
-            <Button StartIcon="ellipsis" variant="icon" color="minimal" className="rounded-full" />
+            <Button
+              StartIcon="ellipsis"
+              variant="icon"
+              color="minimal"
+              className="rounded-full"
+              data-testid="filter-segment-select-submenu-button"
+              onClick={(event) => {
+                event.preventDefault();
+                setIsOpen((prev) => !prev);
+              }}
+            />
           </DropdownMenuTrigger>
           <DropdownMenuPortal>
-            <DropdownMenuContent align="start" side="right" sideOffset={8}>
+            <DropdownMenuContent
+              align="start"
+              side="right"
+              sideOffset={8}
+              data-testid="filter-segment-select-submenu-content">
               {filteredSubmenuItems.map((item, index) => (
                 <DropdownMenuItem key={index}>
                   <DropdownItem

@@ -11,13 +11,13 @@ import { SMSLockState } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import {
-  getAllDelegationCredentialsForUser,
   buildAllCredentials,
   getDelegationCredentialOrRegularCredential,
   enrichUsersWithDelegationCredentials,
   enrichHostsWithDelegationCredentials,
-  enrichUserWithDelegationCredentialsWithoutOrgId,
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
   enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey,
 } from "./server";
 
 // Mock OrganizationRepository
@@ -117,6 +117,8 @@ const buildDelegationCredential = (overrides = {}) => ({
   invalid: false,
   teamId: null,
   team: null,
+  // In-memory delegation credential has it set to null
+  delegationCredentialId: mockDelegationCredential.id,
   delegatedTo: {
     serviceAccountKey: mockServiceAccountKey,
   },
@@ -150,6 +152,8 @@ const buildRegularCredential = (overrides = {}): CredentialForCalendarService =>
   teamId: null,
   delegatedToId: null,
   delegatedTo: null,
+  // Regular credentials have it set to null always
+  delegationCredentialId: null,
   ...overrides,
 });
 
@@ -173,7 +177,7 @@ const buildMockDelegationCredential = (overrides: Partial<typeof mockDelegationC
   ...overrides,
 });
 
-describe("getAllDelegationCredentialsForUser", () => {
+describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
   setupAndTeardown();
 
   beforeEach(() => {
@@ -185,7 +189,7 @@ describe("getAllDelegationCredentialsForUser", () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(null);
-    const result = await getAllDelegationCredentialsForUser({ user: mockUser });
+    const result = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({ user: mockUser });
     expect(result).toEqual([]);
   });
 
@@ -193,7 +197,7 @@ describe("getAllDelegationCredentialsForUser", () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));
-    const result = await getAllDelegationCredentialsForUser({ user: mockUser });
+    const result = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({ user: mockUser });
     expect(result).toEqual([]);
   });
 
@@ -201,7 +205,7 @@ describe("getAllDelegationCredentialsForUser", () => {
     vi.mocked(
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
-    const result = await getAllDelegationCredentialsForUser({ user: mockUser });
+    const result = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({ user: mockUser });
 
     expect(result).toHaveLength(2);
     expect(result).toEqual([
@@ -221,7 +225,7 @@ describe("getAllDelegationCredentialsForUser", () => {
         },
       })
     );
-    const result = await getAllDelegationCredentialsForUser({ user: mockUser });
+    const result = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({ user: mockUser });
     expect(result).toEqual([]);
   });
 });
@@ -516,7 +520,7 @@ describe("enrichHostsWithDelegationCredentials", () => {
   });
 });
 
-describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
+describe("enrichUserWithDelegationCredentialsIncludeServiceAccountKey", () => {
   const mockUserWithCredentials = {
     ...mockUser,
     credentials: [buildRegularGoogleCalendarCredential()],
@@ -531,7 +535,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
 
-    const result = await enrichUserWithDelegationCredentialsWithoutOrgId({
+    const result = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
       user: mockUserWithCredentials,
     });
 
@@ -555,7 +559,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(null);
 
-    const result = await enrichUserWithDelegationCredentialsWithoutOrgId({
+    const result = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
       user: mockUserWithCredentials,
     });
 
@@ -574,7 +578,7 @@ describe("enrichUserWithDelegationCredentialsWithoutOrgId", () => {
       DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));
 
-    const result = await enrichUserWithDelegationCredentialsWithoutOrgId({
+    const result = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
       user: mockUserWithCredentials,
     });
 

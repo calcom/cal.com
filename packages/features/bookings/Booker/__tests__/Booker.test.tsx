@@ -63,6 +63,12 @@ const mockEvent = {
   isPending: false,
 };
 
+vi.mock("../../../calendars/NoAvailabilityDialog", () => ({
+  default: () => {
+    return null;
+  },
+}));
+
 const mockSchedule = {
   data: {
     slots: {

@@ -97,7 +97,7 @@ describe("Navigation Components", () => {
         href: "https://external.com",
         isExternalLink: true,
         icon: "external",
-        "data-testid": "Exteral",
+        "data-testid": "External",
       },
       {
         name: "Disabled",

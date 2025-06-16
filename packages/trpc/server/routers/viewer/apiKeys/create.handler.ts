@@ -10,7 +10,7 @@ import type { TCreateInputSchema } from "./create.schema";
 
 type CreateHandlerOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id">;
   };
   input: TCreateInputSchema;
 };

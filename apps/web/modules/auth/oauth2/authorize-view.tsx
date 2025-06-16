@@ -9,10 +9,10 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
-import { Select } from "@calcom/ui/components/form";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
+import { Select } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 export default function Authorize() {
   const { t } = useLocale();
@@ -39,7 +39,8 @@ export default function Authorize() {
     }
   );
 
-  const { data, isPending: isPendingProfiles } = trpc.viewer.teamsAndUserProfilesQuery.useQuery();
+  const { data, isPending: isPendingProfiles } =
+    trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery();
 
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {

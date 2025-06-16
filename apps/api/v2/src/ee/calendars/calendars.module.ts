@@ -1,3 +1,5 @@
+import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsController } from "@/ee/calendars/controllers/calendars.controller";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
@@ -25,8 +27,10 @@ import { Module } from "@nestjs/common";
     SelectedCalendarsRepository,
     AppsRepository,
     CalendarsRepository,
+    BookingsRepository_2024_08_13,
+    BookingReferencesRepository_2024_08_13,
   ],
   controllers: [CalendarsController],
-  exports: [CalendarsService],
+  exports: [CalendarsService, GoogleCalendarService],
 })
 export class CalendarsModule {}

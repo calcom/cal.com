@@ -11,11 +11,13 @@ import { trpc } from "@calcom/trpc/react";
 import { Card } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import TeamListItem from "./TeamListItem";
 
 interface Props {
   teams: RouterOutputs["viewer"]["teams"]["list"];
+  user: RouterOutputs["viewer"]["me"]["get"];
   /**
    * True for teams that are pending invite acceptance
    */
@@ -26,7 +28,7 @@ export default function TeamList(props: Props) {
   const utils = trpc.useUtils();
 
   const { t } = useLocale();
-  const { data: user } = trpc.viewer.me.get.useQuery();
+  const { user } = props;
 
   const [hideDropdown, setHideDropdown] = useState(false);
 
@@ -41,6 +43,7 @@ export default function TeamList(props: Props) {
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       await utils.viewer.teams.hasTeamPlan.invalidate();
       trackFormbricksAction("team_disbanded");
     },
@@ -113,6 +116,7 @@ export default function TeamList(props: Props) {
         <TeamListItem
           key={team?.id as number}
           team={team}
+          user={user}
           onActionSelect={(action: string) => selectAction(action, team?.id as number)}
           isPending={deleteTeamMutation.isPending}
           hideDropdown={hideDropdown}

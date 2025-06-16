@@ -5,7 +5,6 @@
 import alby_config_json from "./alby/config.json";
 import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
-import around_config_json from "./around/config.json";
 import attio_config_json from "./attio/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
@@ -22,6 +21,7 @@ import deel_config_json from "./deel/config.json";
 import demodesk_config_json from "./demodesk/config.json";
 import dialpad_config_json from "./dialpad/config.json";
 import discord_config_json from "./discord/config.json";
+import dub_config_json from "./dub/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
 import elevenlabs_config_json from "./elevenlabs/config.json";
@@ -48,6 +48,7 @@ import intercom_config_json from "./intercom/config.json";
 import jelly_config_json from "./jelly/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
+import lindy_config_json from "./lindy/config.json";
 import linear_config_json from "./linear/config.json";
 import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
@@ -111,7 +112,6 @@ export const appStoreMetadata = {
   alby: alby_config_json,
   amie: amie_config_json,
   applecalendar: applecalendar__metadata_ts,
-  around: around_config_json,
   attio: attio_config_json,
   autocheckin: autocheckin_config_json,
   "baa-for-hipaa": baa_for_hipaa_config_json,
@@ -128,6 +128,7 @@ export const appStoreMetadata = {
   demodesk: demodesk_config_json,
   dialpad: dialpad_config_json,
   discord: discord_config_json,
+  dub: dub_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
   elevenlabs: elevenlabs_config_json,
@@ -154,6 +155,7 @@ export const appStoreMetadata = {
   jelly: jelly_config_json,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
+  lindy: lindy_config_json,
   linear: linear_config_json,
   make: make_config_json,
   matomo: matomo_config_json,

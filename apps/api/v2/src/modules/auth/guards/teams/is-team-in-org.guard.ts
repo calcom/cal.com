@@ -20,26 +20,30 @@ export class IsTeamInOrg implements CanActivate {
     const orgId: string = request.params.orgId;
 
     if (!orgId) {
-      throw new ForbiddenException("No org id found in request params.");
+      throw new ForbiddenException("IsTeamInOrg - No org id found in request params.");
     }
 
     if (!teamId) {
-      throw new ForbiddenException("No team id found in request params.");
+      throw new ForbiddenException("IsTeamInOrg - No team id found in request params.");
     }
 
     const { canAccess, team } = await this.checkIfTeamIsInOrg(orgId, teamId);
 
-    if (canAccess && team) {
-      request.team = team;
+    if (!canAccess) {
+      throw new ForbiddenException(
+        `IsTeamInOrg - Team with id=${teamId} is not part of the organization with id=${orgId}.`
+      );
     }
-    return canAccess;
+
+    request.team = team;
+    return true;
   }
 
   async checkIfTeamIsInOrg(orgId: string, teamId: string): Promise<{ canAccess: boolean; team?: Team }> {
     const team = await this.organizationsTeamsRepository.findOrgTeam(Number(orgId), Number(teamId));
 
     if (!team) {
-      throw new NotFoundException(`Team (${teamId}) not found.`);
+      throw new NotFoundException(`IsTeamInOrg - Team (${teamId}) not found.`);
     }
 
     if (!team.isOrganization && team.parentId === Number(orgId)) {

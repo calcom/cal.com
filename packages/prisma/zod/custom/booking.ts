@@ -1,6 +1,6 @@
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
-import { isSupportedTimeZone } from "@calcom/lib/date-fns";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 // TODO: Move this out of here. Importing from app-store is a circular package dependency.
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 
@@ -12,7 +12,7 @@ export const bookingCreateBodySchema = z.object({
   recurringEventId: z.string().optional(),
   rescheduledBy: z.string().email({ message: "Invalid email" }).optional(),
   start: z.string(),
-  timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
+  timeZone: timeZoneSchema,
   user: z.union([z.string(), z.array(z.string())]).optional(),
   language: z.string(),
   bookingUid: z.string().optional(),
@@ -46,6 +46,7 @@ export const bookingCreateBodySchema = z.object({
     utm_term: z.string().optional(),
     utm_content: z.string().optional(),
   }).optional(),
+  dub_id: z.string().nullish()
 });
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;

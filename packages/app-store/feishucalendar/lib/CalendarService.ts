@@ -1,9 +1,10 @@
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
+  CalendarServiceEvent,
   CalendarEvent,
   EventBusyDate,
   IntegrationCalendar,
@@ -130,7 +131,7 @@ export default class FeishuCalendarService implements Calendar {
     });
   };
 
-  async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar
@@ -200,7 +201,7 @@ export default class FeishuCalendarService implements Calendar {
    * @param event
    * @returns
    */
-  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
+  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId?: string) {
     const eventId = uid;
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar?.find(
@@ -372,10 +373,10 @@ export default class FeishuCalendarService implements Calendar {
     }
   };
 
-  private translateEvent = (event: CalendarEvent): FeishuEvent => {
+  private translateEvent = (event: CalendarServiceEvent): FeishuEvent => {
     const feishuEvent: FeishuEvent = {
       summary: event.title,
-      description: getRichDescription(event),
+      description: event.calendarDescription,
       start_time: {
         timestamp: parseEventTime2Timestamp(event.startTime),
         timezone: event.organizer.timeZone,
