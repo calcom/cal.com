@@ -10206,6 +10206,16 @@
             }
           },
           {
+            "name": "bookingUidToReschedule",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
+            "example": "abc123def456",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "routingFormId",
             "required": true,
             "in": "path",
@@ -23342,7 +23352,7 @@
             "example": "Error message"
           }
         },
-        "required": ["id", "roomName", "startTs", "status", "duration", "shareToken", "downloadLink"]
+        "required": ["id", "roomName", "startTs", "status", "duration", "shareToken"]
       },
       "GetBookingRecordingsOutput": {
         "type": "object",
