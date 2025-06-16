@@ -40,7 +40,7 @@ export class OrganizationsUsersBookingsController {
     @Param("userId", ParseIntPipe) userId: number,
     @Query() query: GetBookingsInput_2024_08_13
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.organizationUsersBookingsService.getOrganizationUserBookings(
+    const { bookings, pagination } = await this.organizationUsersBookingsService.getOrganizationUserBookings(
       orgId,
       userId,
       query
@@ -49,6 +49,7 @@ export class OrganizationsUsersBookingsController {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 }

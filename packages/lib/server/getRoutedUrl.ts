@@ -18,7 +18,7 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
-import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
@@ -36,10 +36,6 @@ function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-export const getRoutedUrl = (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
-  return monitorCallbackAsync(_getRoutedUrl, context);
-};
-
 const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
@@ -48,7 +44,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   };
 
   if (!queryParsed.success) {
-    log.warn("Error parsing query", queryParsed.error);
+    log.warn("Error parsing query", { issues: queryParsed.error.issues });
     return {
       notFound: true,
     };
@@ -150,7 +146,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         props: {
           ...pageProps,
           form: serializableForm,
-          message: e.message,
+          message: null,
+          errorMessage: e.message,
         },
       };
     }
@@ -166,6 +163,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         ...pageProps,
         form: serializableForm,
         message: decidedAction.value,
+        errorMessage: null,
       },
     };
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
@@ -214,7 +212,10 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     props: {
       ...pageProps,
       form: serializableForm,
-      message: "Unhandled type of action",
+      message: null,
+      errorMessage: "Unhandled type of action",
     },
   };
 };
+
+export const getRoutedUrl = withReporting(_getRoutedUrl, "getRoutedUrl");

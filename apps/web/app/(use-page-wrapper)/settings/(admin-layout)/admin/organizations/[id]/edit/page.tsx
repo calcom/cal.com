@@ -1,6 +1,5 @@
 import { type Params } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -36,23 +35,17 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
 const Page = async ({ params }: { params: Params }) => {
   const input = orgIdSchema.safeParse(await params);
 
-  if (!input.success) notFound();
+  if (!input.success) throw new Error("Invalid access");
 
-  try {
-    const org = await OrganizationRepository.adminFindById({ id: input.data.id });
-    const t = await getTranslate();
-    return (
-      <SettingsHeader
-        title={`${t("editing_org")}: ${org.name}`}
-        description={t("admin_orgs_edit_description")}>
-        <LicenseRequired>
-          <OrgForm org={org} />
-        </LicenseRequired>
-      </SettingsHeader>
-    );
-  } catch {
-    notFound();
-  }
+  const org = await OrganizationRepository.adminFindById({ id: input.data.id });
+  const t = await getTranslate();
+  return (
+    <SettingsHeader title={`${t("editing_org")}: ${org.name}`} description={t("admin_orgs_edit_description")}>
+      <LicenseRequired>
+        <OrgForm org={org} />
+      </LicenseRequired>
+    </SettingsHeader>
+  );
 };
 
 export default Page;

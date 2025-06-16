@@ -53,6 +53,7 @@ export default defineConfig(({ mode }) => {
         os: resolve("../../../node_modules/rollup-plugin-node-builtins"),
         "@": path.resolve(__dirname, "./src"),
         "@calcom/lib/markdownToSafeHTML": path.resolve(__dirname, "./lib/markdownToSafeHTML"),
+        "@calcom/lib/hooks/useLocale": path.resolve(__dirname, "./lib/useLocale"),
         "@radix-ui/react-tooltip": path.resolve(__dirname, "./src/components/ui/tooltip.tsx"),
         "@radix-ui/react-dialog": path.resolve(__dirname, "./src/components/ui/dialog.tsx"),
         ".prisma/client": path.resolve(__dirname, "../../prisma-client"),

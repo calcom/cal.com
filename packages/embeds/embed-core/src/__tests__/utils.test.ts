@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { generateDataAttributes } from "../utils";
+import { generateDataAttributes, isSameBookingLink } from "../utils";
 
 describe("generateDataAttributes", () => {
   it("should handle PascalCase property names correctly", () => {
@@ -57,5 +57,43 @@ describe("generateDataAttributes", () => {
     expect(generateDataAttributes(props)).toBe(
       'data-test-key="&lt;script&gt;alert(&#39;XSS&#39;)&lt;/script&gt;" data-test-key2="&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;"'
     );
+  });
+});
+
+describe("isSameBookingLink", () => {
+  it("should return true for same booking link", () => {
+    expect(
+      isSameBookingLink({
+        bookingLinkPath1: "/team/event-booking-url",
+        bookingLinkPath2: "/team/event-booking-url",
+      })
+    ).toBe(true);
+    expect(
+      isSameBookingLink({
+        bookingLinkPath1: "/team/team1/event-booking-url",
+        bookingLinkPath2: "/team/team1/event-booking-url",
+      })
+    ).toBe(true);
+  });
+
+  it("should return false for different booking links", () => {
+    expect(
+      isSameBookingLink({
+        bookingLinkPath1: "/team/event-booking-url",
+        bookingLinkPath2: "/team/event-booking-url-2",
+      })
+    ).toBe(false);
+  });
+
+  it("should return true for same booking links with /team prefix in them", () => {
+    expect(isSameBookingLink({ bookingLinkPath1: "/team/sales/demo", bookingLinkPath2: "/sales/demo" })).toBe(
+      true
+    );
+    expect(
+      isSameBookingLink({
+        bookingLinkPath1: "/team1/event-booking-url",
+        bookingLinkPath2: "/team/team1/event-booking-url",
+      })
+    ).toBe(true);
   });
 });

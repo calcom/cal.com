@@ -1,15 +1,21 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
+import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
+import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
 import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -49,6 +55,8 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleBookingInputPipe,
   RescheduleSeatedBookingInput_2024_08_13,
+  GetBookingRecordingsOutput,
+  GetBookingTranscriptsOutput,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -82,7 +90,9 @@ export class BookingsController_2024_08_13 {
 
   constructor(
     private readonly bookingsService: BookingsService_2024_08_13,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly bookingReferencesService: BookingReferencesService_2024_08_13,
+    private readonly calVideoService: CalVideoService
   ) {}
 
   @Post("/")
@@ -165,6 +175,36 @@ export class BookingsController_2024_08_13 {
     };
   }
 
+  @Get("/:bookingUid/recordings")
+  @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get all the recordings for the booking",
+    description: `Fetches all the recordings for the booking \`:bookingUid\``,
+  })
+  async getBookingRecordings(@Param("bookingUid") bookingUid: string): Promise<GetBookingRecordingsOutput> {
+    const recordings = await this.calVideoService.getRecordings(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: recordings,
+    };
+  }
+
+  @Get("/:bookingUid/transcripts")
+  @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get all the transcripts download links for the booking",
+    description: `Fetches all the transcripts download links for the booking \`:bookingUid\``,
+  })
+  async getBookingTranscripts(@Param("bookingUid") bookingUid: string): Promise<GetBookingTranscriptsOutput> {
+    const transcripts = await this.calVideoService.getTranscripts(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: transcripts ?? [],
+    };
+  }
+
   @Get("/")
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
@@ -176,7 +216,7 @@ export class BookingsController_2024_08_13 {
   ): Promise<GetBookingsOutput_2024_08_13> {
     const profile = this.usersService.getUserMainProfile(user);
 
-    const bookings = await this.bookingsService.getBookings(queryParams, {
+    const { bookings, pagination } = await this.bookingsService.getBookings(queryParams, {
       email: user.email,
       id: user.id,
       orgId: profile?.organizationId,
@@ -185,6 +225,7 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 
@@ -283,7 +324,8 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to auto-selected host",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
@@ -304,7 +346,8 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to a specific host",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
@@ -384,6 +427,32 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: calendarLinks,
+    };
+  }
+
+  @Get("/:bookingUid/references")
+  @PlatformPlan("SCALE")
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @Permissions([BOOKING_READ])
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get 'Booking References' for a booking",
+  })
+  @HttpCode(HttpStatus.OK)
+  async getBookingReferences(
+    @Param("bookingUid") bookingUid: string,
+    @GetUser("id") userId: number,
+    @Query() filter: BookingReferencesFilterInput_2024_08_13
+  ): Promise<BookingReferencesOutput_2024_08_13> {
+    const bookingReferences = await this.bookingReferencesService.getBookingReferences(
+      bookingUid,
+      userId,
+      filter
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: bookingReferences,
     };
   }
 }

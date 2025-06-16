@@ -1,6 +1,7 @@
 import type { TFunction } from "i18next";
 
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -35,7 +36,10 @@ export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmai
     return {
       to: `${this.calEvent.organizer.email}>`,
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
-      replyTo: [...this.calEvent.attendees.map(({ email }) => email)],
+      ...getReplyToHeader(
+        this.calEvent,
+        this.calEvent.attendees.map(({ email }) => email)
+      ),
       subject: `${this.t("download_transcript_email_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),

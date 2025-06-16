@@ -5,8 +5,9 @@ import { z } from "zod";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
-import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
@@ -152,28 +153,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
-  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
-    await handleSeatsEventTypeOnBooking(
-      eventType,
-      bookingInfo,
-      seatReferenceUid,
-      session?.user.id === eventType.userId
-    );
-  }
-
-  const payment = await prisma.payment.findFirst({
-    where: {
-      bookingId: bookingInfo.id,
-    },
-    select: {
-      success: true,
-      refunded: true,
-      currency: true,
-      amount: true,
-      paymentOption: true,
-    },
-  });
-
   const userId = session?.user?.id;
 
   const checkIfUserIsHost = (userId?: number | null) => {
@@ -193,6 +172,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
+
+  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
+    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
+  }
+
+  const payment = await prisma.payment.findFirst({
+    where: {
+      bookingId: bookingInfo.id,
+    },
+    select: {
+      success: true,
+      refunded: true,
+      currency: true,
+      amount: true,
+      paymentOption: true,
+    },
+  });
 
   if (!isLoggedInUserHost) {
     // Removing hidden fields from responses
@@ -222,17 +218,30 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
 
+  // Filter out organizer information if hideOrganizerEmail is true
+  const sanitizedPreviousBooking =
+    eventType.hideOrganizerEmail &&
+    previousBooking &&
+    previousBooking.rescheduledBy === bookingInfo.user?.email
+      ? { ...previousBooking, rescheduledBy: bookingInfo.user?.name }
+      : previousBooking;
+
   return {
     props: {
       orgSlug: currentOrgDomain,
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
-      hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
+      hideBranding: await shouldHideBrandingForEvent({
+        eventTypeId: eventType.id,
+        team: eventType.team,
+        owner: eventType.users[0] ?? null,
+        orgSlug: currentOrgDomain,
+      }),
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
-      previousBooking,
+      previousBooking: sanitizedPreviousBooking,
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,

@@ -165,12 +165,24 @@ export class EmbedElement extends HTMLElement {
     this.boundPrefersDarkThemeChangedHandler = this.prefersDarkThemeChangedHandler.bind(this);
   }
 
+  public isSkeletonLoaderVisible() {
+    const skeletonEl = this.getSkeletonElement();
+    // Comparing with "none" which is set by toggleLoader when skeleton is hidden
+    return skeletonEl.style.display !== "none";
+  }
+
   public resizeHandler() {
     const newLayout = getTrueLayout({ layout: this.layout ?? null });
     if (newLayout === this.layout) {
       return;
     }
     this.layout = newLayout;
+
+    // We can't accidentaly show skeleton if it isn't showing
+    if (!this.isSkeletonLoaderVisible()) {
+      return;
+    }
+
     const { skeletonContent, skeletonContainerStyle, skeletonStyle } = this.getSkeletonData({
       layout: this.getLayout(),
       pageType: this.getPageType() ?? null,

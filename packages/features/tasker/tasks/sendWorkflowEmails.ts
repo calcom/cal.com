@@ -6,7 +6,7 @@ export const ZSendWorkflowEmailsSchema = z.object({
   to: z.array(z.string()),
   subject: z.string(),
   html: z.string(),
-  replyTo: z.string(),
+  replyTo: z.string().optional(),
   sender: z.string().nullable().optional(),
   attachments: z
     .array(
