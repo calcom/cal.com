@@ -37,6 +37,7 @@ export default function JoinCall(props: PageProps) {
     overrideName,
     showRecordingButton,
     enableAutomaticTranscription,
+    enableAutomaticRecording,
     showTranscriptionButton,
     rediectAttendeeToOnExit,
   } = props;
@@ -118,6 +119,7 @@ export default function JoinCall(props: PageProps) {
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
         <CalAiTranscribe
           showRecordingButton={showRecordingButton}
+          enableAutomaticRecording={enableAutomaticRecording}
           enableAutomaticTranscription={enableAutomaticTranscription}
           showTranscriptionButton={showTranscriptionButton}
         />

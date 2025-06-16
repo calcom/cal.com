@@ -18,6 +18,7 @@ export class CalVideoSettingsRepository {
       disableTranscriptionForGuests?: boolean | null;
       disableTranscriptionForOrganizer?: boolean | null;
       enableAutomaticTranscription?: boolean | null;
+      enableAutomaticRecording?: boolean | null;
       redirectUrlOnExit?: string | null;
     };
   }) {
@@ -27,6 +28,7 @@ export class CalVideoSettingsRepository {
         disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
         disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
         enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+        enableAutomaticRecording: calVideoSettings.enableAutomaticRecording ?? false,
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
@@ -36,6 +38,7 @@ export class CalVideoSettingsRepository {
         disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
         disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
         enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+        enableAutomaticRecording: calVideoSettings.enableAutomaticRecording ?? false,
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
