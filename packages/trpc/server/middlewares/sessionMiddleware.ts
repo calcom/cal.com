@@ -1,12 +1,10 @@
 import { setUser as SentrySetUser } from "@sentry/nextjs";
 import type { Session } from "next-auth";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -24,63 +22,10 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     return null;
   }
 
-  const userFromDb = await UserRepository.findUnlockedUserForSession({ userId: session.user.id });
-
-  // some hacks to make sure `username` and `email` are never inferred as `null`
-  if (!userFromDb) {
-    return null;
-  }
-
-  const upId = session.upId;
-
-  const user = await UserRepository.enrichUserWithTheProfile({
-    user: userFromDb,
-    upId,
+  return await UserRepository.getUserFromSessionUpIdAndUserId({
+    upId: session.upId,
+    userId: session.user.id,
   });
-
-  logger.debug(
-    `getUserFromSession: enriched user with profile - ${ctx.req?.url}`,
-    safeStringify({ user, userFromDb, upId })
-  );
-
-  const { email, username, id } = user;
-  if (!email || !id) {
-    return null;
-  }
-
-  const userMetaData = userMetadata.parse(user.metadata || {});
-  const orgMetadata = teamMetadataSchema.parse(user.profile?.organization?.metadata || {});
-  // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
-
-  const locale = user?.locale ?? ctx.locale;
-  const { members = [], ..._organization } = user.profile?.organization || {};
-  const isOrgAdmin = members.some((member) => ["OWNER", "ADMIN"].includes(member.role));
-
-  if (isOrgAdmin) {
-    logger.debug("User is an org admin", safeStringify({ userId: user.id }));
-  } else {
-    logger.debug("User is not an org admin", safeStringify({ userId: user.id }));
-  }
-  const organization = {
-    ..._organization,
-    id: user.profile?.organization?.id ?? null,
-    isOrgAdmin,
-    metadata: orgMetadata,
-    requestedSlug: orgMetadata?.requestedSlug ?? null,
-  };
-
-  return {
-    ...user,
-    avatar: `${WEBAPP_URL}/${user.username}/avatar.png?${organization.id}` && `orgId=${organization.id}`,
-    // TODO: OrgNewSchema - later -  We could consolidate the props in user.profile?.organization as organization is a profile thing now.
-    organization,
-    organizationId: organization.id,
-    id,
-    email,
-    username,
-    locale,
-    defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
-  };
 }
 
 export type UserFromSession = Awaited<ReturnType<typeof getUserFromSession>>;

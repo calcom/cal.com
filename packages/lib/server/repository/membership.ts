@@ -365,4 +365,17 @@ export class MembershipRepository {
       },
     });
   }
+
+  static async findFirstAdminOrOwnerMembershipByUserId({ userId }: { userId: number }) {
+    return await prisma.membership.findFirst({
+      where: {
+        userId,
+        accepted: true,
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
 }
