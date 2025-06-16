@@ -5,6 +5,7 @@ import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servic
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { getPagination } from "@/lib/pagination/pagination";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
@@ -403,6 +404,7 @@ export class BookingsService_2024_08_13 {
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
       noEmail: bookingRequest.noEmail,
+      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
@@ -423,6 +425,7 @@ export class BookingsService_2024_08_13 {
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
+      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" }))
@@ -444,6 +447,7 @@ export class BookingsService_2024_08_13 {
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
+      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
 
     if (!booking.uid) {
@@ -474,6 +478,7 @@ export class BookingsService_2024_08_13 {
         platformCancelUrl: bookingRequest.platformCancelUrl,
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       });
 
       if (!booking.uid) {
@@ -538,10 +543,13 @@ export class BookingsService_2024_08_13 {
       queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
     }
 
+    const skip = Math.abs(queryParams?.skip ?? 0);
+    const take = Math.abs(queryParams?.take ?? 100);
+
     const fetchedBookings: { bookings: { id: number }[]; totalCount: number } = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
-      skip: queryParams.skip ?? 0,
-      take: queryParams.take ?? 100,
+      skip,
+      take,
       filters: {
         ...this.inputService.transformGetBookingsFilters(queryParams),
         ...(userIds?.length ? { userIds } : {}),
@@ -594,28 +602,11 @@ export class BookingsService_2024_08_13 {
       }
     }
 
-    const skip = Math.abs(queryParams?.skip ?? 0);
-    const take = Math.abs(queryParams?.take ?? 100);
-    const itemsPerPage = take;
-    const totalPages = itemsPerPage !== 0 ? Math.ceil(fetchedBookings.totalCount / itemsPerPage) : 0;
-    const currentPage = Math.floor(skip / itemsPerPage) + 1;
-    const hasNextPage = skip + itemsPerPage < fetchedBookings.totalCount;
-    const hasPreviousPage = skip > 0;
+    const pagination = getPagination({ skip, take, totalCount: fetchedBookings.totalCount });
+
     return {
       bookings: formattedBookings,
-      pagination: {
-        totalItems: fetchedBookings.totalCount,
-        // clamp remainingItems between 0 and totalCount
-        remainingItems: Math.min(
-          Math.max(fetchedBookings.totalCount - (skip + take), 0),
-          fetchedBookings.totalCount
-        ),
-        itemsPerPage: itemsPerPage,
-        currentPage: currentPage,
-        totalPages: totalPages,
-        hasNextPage: hasNextPage,
-        hasPreviousPage: hasPreviousPage,
-      },
+      pagination,
     };
   }
 
@@ -650,6 +641,7 @@ export class BookingsService_2024_08_13 {
 
   async rescheduleBooking(request: Request, bookingUid: string, body: RescheduleBookingInput) {
     try {
+      await this.canRescheduleBooking(bookingUid);
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
         request,
         bookingUid,
@@ -664,6 +656,7 @@ export class BookingsService_2024_08_13 {
         platformCancelUrl: bookingRequest.platformCancelUrl,
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       });
       if (!booking.uid) {
         throw new Error("Booking missing uid");
@@ -695,13 +688,27 @@ export class BookingsService_2024_08_13 {
       }
       return this.outputService.getOutputBooking(databaseBooking);
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.message === "no_available_users_found_error") {
-          throw new BadRequestException("User either already has booking at this time or is not available");
-        }
-      }
-      throw error;
+      this.errorsBookingsService.handleBookingError(error, false);
     }
+  }
+
+  async canRescheduleBooking(bookingUid: string) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+    if (booking.status === "CANCELLED" && !booking.rescheduled) {
+      throw new BadRequestException(
+        `Can't reschedule booking with uid=${bookingUid} because it has been cancelled. Please provide uid of a booking that is not cancelled.`
+      );
+    }
+    if (booking.status === "CANCELLED" && booking.rescheduled) {
+      const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
+      throw new BadRequestException(
+        `Can't reschedule booking with uid=${bookingUid} because it has been cancelled and rescheduled already to booking with uid=${rescheduledTo?.uid}. You probably want to reschedule ${rescheduledTo?.uid} instead by passing it within the request URL.`
+      );
+    }
+    return booking;
   }
 
   async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
@@ -928,15 +935,19 @@ export class BookingsService_2024_08_13 {
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+    const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
     await confirmBookingHandler({
       ctx: {
-        user: requestUser,
+        user: {
+          ...requestUser,
+          destinationCalendar: userCalendars?.destinationCalendar ?? null,
+        },
       },
       input: {
         bookingId: booking.id,
         confirmed: true,
-        recurringEventId: booking.recurringEventId,
+        recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
       },
@@ -956,15 +967,19 @@ export class BookingsService_2024_08_13 {
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+    const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
     await confirmBookingHandler({
       ctx: {
-        user: requestUser,
+        user: {
+          ...requestUser,
+          destinationCalendar: userCalendars?.destinationCalendar ?? null,
+        },
       },
       input: {
         bookingId: booking.id,
         confirmed: false,
-        recurringEventId: booking.recurringEventId,
+        recurringEventId: booking.recurringEventId ?? undefined,
         reason,
         emailsEnabled,
         platformClientParams,

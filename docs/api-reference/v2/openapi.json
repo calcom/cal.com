@@ -430,9 +430,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -440,9 +443,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -628,9 +633,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -638,9 +646,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -1860,9 +1870,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -1870,9 +1883,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -2533,9 +2548,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -2543,9 +2561,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -2609,9 +2629,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -2619,9 +2642,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -2749,9 +2774,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -2759,9 +2787,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -4011,9 +4041,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -4021,9 +4054,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -4095,9 +4130,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -4105,9 +4143,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -4815,6 +4855,350 @@
         "tags": ["Orgs / Teams / Users / Schedules"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/workflows": {
+      "get": {
+        "operationId": "OrganizationTeamWorkflowsController_getWorkflows",
+        "summary": "Get organization team workflows",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "post": {
+        "operationId": "OrganizationTeamWorkflowsController_createWorkflow",
+        "summary": "Create organization team workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkflowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}": {
+      "get": {
+        "operationId": "OrganizationTeamWorkflowsController_getWorkflowById",
+        "summary": "Get organization team workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "patch": {
+        "operationId": "OrganizationTeamWorkflowsController_updateWorkflow",
+        "summary": "Update workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkflowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "delete": {
+        "operationId": "OrganizationTeamWorkflowsController_deleteWorkflow",
+        "summary": "Delete organization team workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      }
+    },
     "/v2/organizations/{orgId}/users": {
       "get": {
         "operationId": "OrganizationsUsersController_getOrganizationsUsers",
@@ -5447,9 +5831,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -5457,9 +5844,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -5709,9 +6098,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -5719,9 +6111,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -6128,9 +6522,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -6138,9 +6535,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -6780,6 +7179,86 @@
         "tags": ["Bookings"]
       }
     },
+    "/v2/bookings/{bookingUid}/recordings": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingRecordings",
+        "summary": "Get all the recordings for the booking",
+        "description": "Fetches all the recordings for the booking `:bookingUid`",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingRecordingsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/transcripts": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
+        "summary": "Get all the transcripts download links for the booking",
+        "description": "Fetches all the transcripts download links for the booking `:bookingUid`",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingTranscriptsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
     "/v2/bookings/{bookingUid}/reschedule": {
       "post": {
         "operationId": "BookingsController_2024_08_13_rescheduleBooking",
@@ -7292,6 +7771,55 @@
           }
         },
         "tags": ["Bookings"]
+      }
+    },
+    "/v2/calendars/{calendar}/event/{eventUid}": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
+        "summary": "Get meeting Details from calendar",
+        "description": "Returns detailed information about a meeting including attendance metrics",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
       }
     },
     "/v2/calendars/ics-feed/save": {
@@ -8358,9 +8886,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -8368,9 +8899,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -8615,6 +9148,31 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -9245,9 +9803,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -9255,9 +9816,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -9303,9 +9866,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -9313,9 +9879,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -10046,7 +10614,7 @@
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
         "summary": "Find out when is an event type ready to be booked.",
-        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
+        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      - bookingUidToReschedule: When rescheduling an existing booking, provide the booking's unique identifier to exclude its time slot from busy time calculations. This ensures the original booking time appears as available for rescheduling.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10057,6 +10625,14 @@
               "type": "string",
               "default": "2024-09-04"
             }
+          },
+          {
+            "name": "bookingUidToReschedule",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
+            "example": "abc123def456",
+            "schema": {}
           },
           {
             "name": "start",
@@ -11073,9 +11649,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11083,9 +11662,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -11446,9 +12027,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11456,9 +12040,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -11504,9 +12090,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11514,9 +12103,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -11810,9 +12401,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11820,9 +12414,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -11860,9 +12456,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -11870,9 +12469,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -12034,9 +12635,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -12044,9 +12648,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           }
@@ -12656,6 +13262,11 @@
             "type": "boolean",
             "default": false,
             "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
+          },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
           }
         },
         "required": ["name", "redirectUris", "permissions"]
@@ -12760,6 +13371,11 @@
             "example": true,
             "description": "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user."
           },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "example": true,
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
+          },
           "bookingRedirectUri": {
             "type": "string",
             "example": "https://example.com/booking-redirect"
@@ -12782,7 +13398,8 @@
           "organizationId",
           "createdAt",
           "areEmailsEnabled",
-          "areDefaultEventTypesEnabled"
+          "areDefaultEventTypesEnabled",
+          "areCalendarEventsEnabled"
         ]
       },
       "GetOAuthClientsResponseDto": {
@@ -12846,6 +13463,10 @@
           "areDefaultEventTypesEnabled": {
             "type": "boolean",
             "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
+          },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
           }
         }
       },
@@ -12898,6 +13519,54 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "BookerLayouts_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "defaultLayout": {
+            "type": "string",
+            "enum": ["month", "week", "column"]
+          },
+          "enabledLayouts": {
+            "type": "array",
+            "description": "Array of valid layouts - month, week or column",
+            "items": {
+              "type": "string",
+              "enum": ["month", "week", "column"]
+            }
+          }
+        },
+        "required": ["defaultLayout", "enabledLayouts"]
+      },
+      "EventTypeColor_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lightThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in light theme",
+            "example": "#292929"
+          },
+          "darkThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in dark theme",
+            "example": "#fafafa"
+          }
+        },
+        "required": ["lightThemeHex", "darkThemeHex"]
+      },
+      "DestinationCalendar_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
+          },
+          "externalId": {
+            "type": "string",
+            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
+          }
+        },
+        "required": ["integration", "externalId"]
       },
       "InputAddressLocation_2024_06_14": {
         "type": "object",
@@ -13826,53 +14495,22 @@
         },
         "required": ["type"]
       },
-      "BookerLayouts_2024_06_14": {
+      "CalVideoSettings": {
         "type": "object",
         "properties": {
-          "defaultLayout": {
-            "type": "string",
-            "enum": ["month", "week", "column"]
+          "disableRecordingForOrganizer": {
+            "type": "boolean",
+            "description": "If true, the organizer will not be able to record the meeting"
           },
-          "enabledLayouts": {
-            "type": "array",
-            "description": "Array of valid layouts - month, week or column",
-            "items": {
-              "type": "string",
-              "enum": ["month", "week", "column"]
-            }
-          }
-        },
-        "required": ["defaultLayout", "enabledLayouts"]
-      },
-      "EventTypeColor_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "lightThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in light theme",
-            "example": "#292929"
+          "disableRecordingForGuests": {
+            "type": "boolean",
+            "description": "If true, the guests will not be able to record the meeting"
           },
-          "darkThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in dark theme",
-            "example": "#fafafa"
+          "redirectUrlOnExit": {
+            "type": "object",
+            "description": "URL to which participants are redirected when they exit the call"
           }
-        },
-        "required": ["lightThemeHex", "darkThemeHex"]
-      },
-      "DestinationCalendar_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "integration": {
-            "type": "string",
-            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
-          },
-          "externalId": {
-            "type": "string",
-            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
-          }
-        },
-        "required": ["integration", "externalId"]
+        }
       },
       "CreateEventTypeInput_2024_06_14": {
         "type": "object",
@@ -14092,7 +14730,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -14112,6 +14750,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "locations": {
             "type": "array",
@@ -15583,6 +16229,14 @@
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -15901,6 +16555,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "locations": {
             "type": "array",
@@ -17436,7 +18098,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -17456,6 +18118,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "schedulingType": {
             "type": "string",
@@ -17554,13 +18224,17 @@
             "type": "string",
             "example": "John Doe"
           },
+          "username": {
+            "type": "string",
+            "example": "john-doe"
+          },
           "avatarUrl": {
             "type": "string",
             "nullable": true,
             "example": "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png"
           }
         },
-        "required": ["userId", "name"]
+        "required": ["userId", "name", "username"]
       },
       "EventTypeTeam": {
         "type": "object",
@@ -17846,6 +18520,15 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "nullable": true,
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "teamId": {
             "type": "number"
@@ -18247,6 +18930,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "hosts": {
             "type": "array",
@@ -19081,6 +19772,363 @@
             "enum": ["unspecified", "vacation", "travel", "sick", "public_holiday"]
           }
         }
+      },
+      "WorkflowActivationOutputDto": {
+        "type": "object",
+        "properties": {
+          "isActiveOnAllEventTypes": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the workflow is active for all event types associated with the team/user",
+            "example": false
+          },
+          "activeOnEventTypeIds": {
+            "description": "List of Event Type IDs the workflow is specifically active on (if not active on all)",
+            "example": [698191, 698192],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "WorkflowTriggerOffsetOutputDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "description": "Time value for offset",
+            "example": 24
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit for the offset time",
+            "example": "hour",
+            "enum": ["hour", "minute", "day"]
+          }
+        },
+        "required": ["value", "unit"]
+      },
+      "WorkflowTriggerOutputDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Trigger type for the workflow",
+            "example": "beforeEvent",
+            "enum": [
+              "beforeEvent",
+              "eventCancelled",
+              "newEvent",
+              "afterEvent",
+              "rescheduleEvent",
+              "afterHostsCalVideoNoShow",
+              "afterGuestsCalVideoNoShow"
+            ]
+          },
+          "offset": {
+            "description": "Offset details (present for BEFORE_EVENT/AFTER_EVENT)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetOutputDto"
+              }
+            ]
+          }
+        },
+        "required": ["type"]
+      },
+      "WorkflowMessageOutputDto": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Subject of the message",
+            "example": "Reminder: Your Meeting {EVENT_NAME} - {EVENT_DATE_ddd, MMM D, YYYY h:mma} with Cal.com"
+          },
+          "html": {
+            "type": "string",
+            "description": "HTML content of the message",
+            "example": "<p>Reminder for {EVENT_NAME}.</p>"
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content of the message (used for SMS/WhatsApp)",
+            "example": "Reminder for {EVENT_NAME}."
+          }
+        },
+        "required": ["subject"]
+      },
+      "WorkflowStepOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step",
+            "example": 67244
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "action": {
+            "type": "string",
+            "description": "Action to perform",
+            "example": "email_host",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ]
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Intended recipient type",
+            "example": "const",
+            "enum": ["const", "attendee", "email", "phone_number"]
+          },
+          "email": {
+            "type": "string",
+            "description": "Verified Email  if action is EMAIL_ADDRESS",
+            "example": 31214
+          },
+          "phone": {
+            "type": "string",
+            "description": "Verified Phone if action is SMS_NUMBER or WHATSAPP_NUMBER"
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type used",
+            "example": "reminder",
+            "enum": ["reminder", "custom", "rescheduled", "completed", "rating", "cancelled"]
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether a calendar event (.ics) was included (for email actions)",
+            "example": true
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name used for this step",
+            "example": "Cal.com Notifications"
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowMessageOutputDto"
+              }
+            ]
+          }
+        },
+        "required": ["id", "stepNumber", "action", "recipient", "template", "sender", "message"]
+      },
+      "WorkflowOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the workflow",
+            "example": 101
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "userId": {
+            "type": "number",
+            "description": "ID of the user who owns the workflow (if not team-owned)",
+            "example": 2313
+          },
+          "teamId": {
+            "type": "number",
+            "description": "ID of the team owning the workflow",
+            "example": 4214321
+          },
+          "activation": {
+            "description": "Activation settings (scope)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowActivationOutputDto"
+              }
+            ]
+          },
+          "trigger": {
+            "description": "Trigger configuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOutputDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps comprising the workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepOutputDto"
+            }
+          },
+          "createdAt": {
+            "type": "object",
+            "description": "Timestamp of creation",
+            "example": "2024-05-12T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "object",
+            "description": "Timestamp of last update",
+            "example": "2024-05-12T11:30:00.000Z"
+          }
+        },
+        "required": ["id", "name", "activation", "trigger", "steps"]
+      },
+      "GetWorkflowsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Indicates the status of the response",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "List of workflows",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetWorkflowOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Indicates the status of the response",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "WorkflowActivationDto": {
+        "type": "object",
+        "properties": {
+          "isActiveOnAllEventTypes": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the workflow is active for all the event-types",
+            "example": false
+          },
+          "activeOnEventTypeIds": {
+            "default": [],
+            "description": "List of event-types IDs the workflow applies to, required if isActiveOnAllEventTypes is false",
+            "example": [698191],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": ["isActiveOnAllEventTypes"]
+      },
+      "CreateWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowActivationDto"
+              }
+            ]
+          },
+          "trigger": {
+            "type": "object",
+            "description": "Trigger configuration for the workflow",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/OnBeforeEventTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterEventTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnCancelTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnCreationTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnRescheduleTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterCalVideoGuestsNoShowTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+                }
+              ]
+            }
+          },
+          "steps": {
+            "description": "Steps to execute as part of the workflow",
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["name", "activation", "trigger", "steps"]
+      },
+      "UpdateWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow, the action that will trigger the workflow.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowActivationDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps to execute as part of the workflow",
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "trigger": {
+            "type": "object"
+          }
+        },
+        "required": ["trigger"]
       },
       "StripConnectOutputDto": {
         "type": "object",
@@ -20158,6 +21206,66 @@
         },
         "required": ["status", "data"]
       },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "totalItems": {
+            "type": "number",
+            "description": "The total number of items available across all pages, matching the query criteria.",
+            "example": 123,
+            "minimum": 0
+          },
+          "remainingItems": {
+            "type": "number",
+            "description": "The number of items remaining to be fetched *after* the current page. Calculated as: `totalItems - (skip + itemsPerPage)`.",
+            "example": 103,
+            "minimum": 0
+          },
+          "returnedItems": {
+            "type": "number",
+            "description": "The number of items returned in the current page.",
+            "example": 10
+          },
+          "itemsPerPage": {
+            "type": "number",
+            "description": "The maximum number of items requested per page.",
+            "example": 10,
+            "minimum": 1
+          },
+          "currentPage": {
+            "type": "number",
+            "description": "The current page number being returned.",
+            "example": 2,
+            "minimum": 1
+          },
+          "totalPages": {
+            "type": "number",
+            "description": "The total number of pages available.",
+            "example": 13,
+            "minimum": 0
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a subsequent page available after the current one.",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "description": "Indicates if there is a preceding page available before the current one.",
+            "example": true
+          }
+        },
+        "required": [
+          "totalItems",
+          "remainingItems",
+          "returnedItems",
+          "itemsPerPage",
+          "currentPage",
+          "totalPages",
+          "hasNextPage",
+          "hasPreviousPage"
+        ]
+      },
       "GetManagedOrganizationsOutput": {
         "type": "object",
         "properties": {
@@ -20171,9 +21279,12 @@
             "items": {
               "$ref": "#/components/schemas/ManagedOrganizationOutput"
             }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
           }
         },
-        "required": ["status", "data"]
+        "required": ["status", "data", "pagination"]
       },
       "UpdateOrganizationInput": {
         "type": "object",
@@ -22189,59 +23300,90 @@
         },
         "required": ["status", "data"]
       },
-      "PaginationMetaDto": {
+      "RecordingItem": {
         "type": "object",
         "properties": {
-          "totalItems": {
-            "type": "number",
-            "minimum": 0,
-            "description": "The total number of items available across all pages, matching the query criteria.",
-            "example": 123
+          "id": {
+            "type": "string",
+            "example": "1234567890"
           },
-          "remainingItems": {
-            "type": "number",
-            "minimum": 0,
-            "description": "The number of items remaining to be fetched *after* the current page. Calculated as: `totalItems - (skip + itemsPerPage)`.",
-            "example": 103
+          "roomName": {
+            "type": "string",
+            "example": "daily-video-room-123"
           },
-          "itemsPerPage": {
+          "startTs": {
             "type": "number",
-            "minimum": 1,
-            "description": "The maximum number of items requested per page.",
+            "example": 1678901234
+          },
+          "status": {
+            "type": "string",
+            "example": "completed"
+          },
+          "maxParticipants": {
+            "type": "number",
             "example": 10
           },
-          "currentPage": {
+          "duration": {
             "type": "number",
-            "minimum": 1,
-            "description": "The current page number being returned.",
-            "example": 2
+            "example": 3600
           },
-          "totalPages": {
-            "type": "number",
-            "minimum": 0,
-            "description": "The total number of pages available.",
-            "example": 13
+          "shareToken": {
+            "type": "string",
+            "example": "share-token-123"
           },
-          "hasNextPage": {
-            "type": "boolean",
-            "description": "Indicates if there is a subsequent page available after the current one.",
-            "example": true
+          "downloadLink": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cal-video-recordings.s3.us-east-2.amazonaws.com/meetco/123s"
           },
-          "hasPreviousPage": {
-            "type": "boolean",
-            "description": "Indicates if there is a preceding page available before the current one.",
-            "example": true
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "example": "Error message"
           }
         },
-        "required": [
-          "totalItems",
-          "remainingItems",
-          "itemsPerPage",
-          "currentPage",
-          "totalPages",
-          "hasNextPage",
-          "hasPreviousPage"
-        ]
+        "required": ["id", "roomName", "startTs", "status", "duration", "shareToken", "downloadLink"]
+      },
+      "GetBookingRecordingsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "error": {
+            "type": "object"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecordingItem"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetBookingTranscriptsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "example": ["https://transcript1.com", "https://transcript2.com"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "error": {
+            "type": "object"
+          }
+        },
+        "required": ["status", "data"]
       },
       "GetBookingsOutput_2024_08_13": {
         "type": "object",
@@ -22944,6 +24086,173 @@
           },
           "data": {
             "$ref": "#/components/schemas/DestinationCalendarsOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CalendarEventResponseStatus": {
+        "type": "string",
+        "description": "Attendee's response to the invitation",
+        "enum": ["accepted", "pending", "declined", "needsAction"]
+      },
+      "CalendarEventAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the attendee"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the attendee"
+          },
+          "responseStatus": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
+          },
+          "self": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the current user"
+          },
+          "optional": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee's attendance is optional"
+          }
+        },
+        "required": ["email"]
+      },
+      "CalendarEventStatus": {
+        "type": "string",
+        "description": "Status of the event (accepted, pending, declined, cancelled)",
+        "enum": ["accepted", "pending", "declined", "cancelled"]
+      },
+      "CalendarEventHost": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the event host"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name of the event host"
+          }
+        },
+        "required": ["email"]
+      },
+      "CalendarSource": {
+        "type": "string",
+        "description": "Calendar integration source (e.g., Google Calendar, Office 365, Apple Calendar). Currently only Google Calendar is supported.",
+        "enum": ["google", "office365", "apple"]
+      },
+      "UnifiedCalendarEventOutput": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "Start date and time of the calendar event with timezone information"
+          },
+          "end": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "End date and time of the calendar event with timezone information"
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the calendar event"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the calendar event"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the calendar event"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/CalendarEventVideoLocation"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarEventPhoneLocation"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarEventSipLocation"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarEventMoreLocation"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type"
+              }
+            },
+            "nullable": true,
+            "description": "Conference locations with entry points (video, phone, sip, more)"
+          },
+          "attendees": {
+            "nullable": true,
+            "description": "List of attendees with their response status",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventAttendee"
+            }
+          },
+          "status": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventStatus"
+          },
+          "hosts": {
+            "nullable": true,
+            "description": "Information about the event hosts (organizers)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventHost"
+            }
+          },
+          "source": {
+            "example": "google",
+            "$ref": "#/components/schemas/CalendarSource"
+          }
+        },
+        "required": ["start", "end", "id", "title", "source"]
+      },
+      "GetUnifiedCalendarEventOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UnifiedCalendarEventOutput"
           }
         },
         "required": ["status", "data"]

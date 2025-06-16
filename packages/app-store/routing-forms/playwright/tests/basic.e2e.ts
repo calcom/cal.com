@@ -262,7 +262,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://cal.com");
+      await page.fill("[name=externalRedirectUrl]", "https://cal.com/peer");
       await saveCurrentForm(page);
 
       const { fields } = await addAllTypesOfFieldsAndSaveForm(formId, page, {
@@ -576,7 +576,7 @@ test.describe("Routing Forms", () => {
       routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("External Redirect");
-      expect(route).toBe("https://cal.com");
+      expect(route).toBe("https://cal.com/peer");
       await page.click('[data-testid="close-results-button"]');
 
       // Multiselect(Legacy)
@@ -925,7 +925,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://cal.com");
+      await page.fill("[name=externalRedirectUrl]", "https://cal.com/peer");
       await saveCurrentForm(page);
       return {
         formId,
