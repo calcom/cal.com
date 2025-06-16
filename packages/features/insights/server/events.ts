@@ -490,7 +490,6 @@ class EventsInsights {
         return [
           booking.uid,
           {
-            booker: attendeeList[0] || null,
             attendee1: formattedAttendees[0] || null,
             attendee2: formattedAttendees[1] || null,
             attendee3: formattedAttendees[2] || null,
@@ -523,9 +522,6 @@ class EventsInsights {
 
       return {
         ...bookingTimeStatus,
-        noShowGuest: attendeeData.booker?.noShow,
-        bookerEmail: attendeeData.booker?.email,
-        bookerName: attendeeData.booker?.name,
         attendee1: attendeeData.attendee1,
         attendee2: attendeeData.attendee2,
         attendee3: attendeeData.attendee3,
