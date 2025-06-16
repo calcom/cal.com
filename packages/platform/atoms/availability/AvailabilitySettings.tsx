@@ -320,14 +320,14 @@ export function AvailabilitySettings({
               return true;
             },
           }}
-          render={({ field, formState: { isValid } }) => (
+          render={({ field, fieldState }) => (
             <EditableHeading
               className={cn(customClassNames?.editableHeadingClassName)}
               isReady={!isLoading}
               disabled={disableEditableHeading}
               {...field}
               data-testid="availablity-title"
-              isError={!isValid}
+              isError={fieldState.invalid}
             />
           )}
         />
