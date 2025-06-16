@@ -1,6 +1,7 @@
 import { z, ZodError } from "zod";
 
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -11,9 +12,16 @@ import { prisma } from "@calcom/prisma";
 
 const useQueuedResponseSchema = z.object({
   queuedFormResponseId: z.string(),
+  params: z.record(z.string(), z.string().or(z.array(z.string()))),
 });
 
-const useQueuedResponseHandler = async ({ queuedFormResponseId }: { queuedFormResponseId: string }) => {
+const useQueuedResponseHandler = async ({
+  queuedFormResponseId,
+  params,
+}: {
+  queuedFormResponseId: string;
+  params: Record<string, string | string[]>;
+}) => {
   // Get the queued response
   const queuedFormResponse = await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
     where: {
@@ -49,9 +57,22 @@ const useQueuedResponseHandler = async ({ queuedFormResponseId }: { queuedFormRe
     form: queuedFormResponse.form,
   });
 
-  const formResponse = await RoutingFormResponseRepository.writeQueuedFormResponseToFormResponse({
-    queuedFormResponseId,
-    createdAt: new Date(),
+  if (!serializableForm.fields) {
+    throw new Error("Form has no fields");
+  }
+
+  const response = getResponseToStore({
+    formFields: serializableForm.fields,
+    fieldsResponses: params,
+  });
+
+  const formResponse = await RoutingFormResponseRepository.recordFormResponse({
+    formId: queuedFormResponse.formId,
+    queuedFormResponseId: queuedFormResponse.id,
+    // We record new response here as that might be different from the queued response depending on if the user changed something in b/w before clicking CTA and that something wasn't prerendered
+    response,
+    // We use the queuedFormResponse's chosenRouteId because that is what decided routed team members
+    chosenRouteId: queuedFormResponse.chosenRouteId,
   });
 
   if (!formResponse) {
@@ -73,11 +94,14 @@ const useQueuedResponseHandler = async ({ queuedFormResponseId }: { queuedFormRe
 };
 
 export default defaultHandler({
-  GET: Promise.resolve({
+  POST: Promise.resolve({
     default: defaultResponder(async (req, res) => {
       try {
-        const input = useQueuedResponseSchema.parse(req.query);
-        const result = await useQueuedResponseHandler({ queuedFormResponseId: input.queuedFormResponseId });
+        const { params, queuedFormResponseId } = useQueuedResponseSchema.parse(JSON.parse(req.body));
+        const result = await useQueuedResponseHandler({
+          queuedFormResponseId,
+          params,
+        });
 
         return res.status(200).json({ status: "success", data: result });
       } catch (error) {
