@@ -1,5 +1,5 @@
 import { CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
-import { RESOURCE_CONFIG } from "@calcom/features/pbac/lib/constants";
+import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
 
 export type PermissionLevel = "none" | "read" | "all";
 
@@ -17,9 +17,9 @@ interface UsePermissionsReturn {
 export function usePermissions(): UsePermissionsReturn {
   const getAllPossiblePermissions = () => {
     const permissions: string[] = [];
-    Object.entries(RESOURCE_CONFIG).forEach(([resource, config]) => {
+    Object.entries(PERMISSION_REGISTRY).forEach(([resource, config]) => {
       if (resource !== "*") {
-        Object.keys(config.actions).forEach((action) => {
+        Object.keys(config).forEach((action) => {
           permissions.push(`${resource}.${action}`);
         });
       }
@@ -28,9 +28,9 @@ export function usePermissions(): UsePermissionsReturn {
   };
 
   const hasAllPermissions = (permissions: string[]) => {
-    return Object.entries(RESOURCE_CONFIG).every(([resource, config]) => {
+    return Object.entries(PERMISSION_REGISTRY).every(([resource, config]) => {
       if (resource === "*") return true;
-      return Object.keys(config.actions).every((action) => permissions.includes(`${resource}.${action}`));
+      return Object.keys(config).every((action) => permissions.includes(`${resource}.${action}`));
     });
   };
 
@@ -39,10 +39,10 @@ export function usePermissions(): UsePermissionsReturn {
       return permissions.includes("*.*") ? "all" : "none";
     }
 
-    const resourceConfig = RESOURCE_CONFIG[resource as keyof typeof RESOURCE_CONFIG];
+    const resourceConfig = PERMISSION_REGISTRY[resource as keyof typeof PERMISSION_REGISTRY];
     if (!resourceConfig) return "none";
 
-    const allResourcePerms = Object.keys(resourceConfig.actions).map((action) => `${resource}.${action}`);
+    const allResourcePerms = Object.keys(resourceConfig).map((action) => `${resource}.${action}`);
     const hasAllPerms = allResourcePerms.every((p) => permissions.includes(p));
     const hasReadPerm = permissions.includes(`${resource}.${CrudAction.Read}`);
 
@@ -69,7 +69,7 @@ export function usePermissions(): UsePermissionsReturn {
     } else {
       // Filter out current resource permissions
       newPermissions = newPermissions.filter((p) => !p.startsWith(`${resource}.`));
-      const resourceConfig = RESOURCE_CONFIG[resource as keyof typeof RESOURCE_CONFIG];
+      const resourceConfig = PERMISSION_REGISTRY[resource as keyof typeof PERMISSION_REGISTRY];
 
       if (!resourceConfig) return currentPermissions;
 
@@ -81,9 +81,7 @@ export function usePermissions(): UsePermissionsReturn {
           newPermissions.push(`${resource}.${CrudAction.Read}`);
           break;
         case "all":
-          const allResourcePerms = Object.keys(resourceConfig.actions).map(
-            (action) => `${resource}.${action}`
-          );
+          const allResourcePerms = Object.keys(resourceConfig).map((action) => `${resource}.${action}`);
           newPermissions.push(...allResourcePerms);
           break;
       }

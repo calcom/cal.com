@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
-import { RESOURCE_CONFIG } from "@calcom/features/pbac/lib/constants";
+import { PERMISSION_REGISTRY, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
@@ -22,7 +22,7 @@ export function AdvancedPermissionGroup({
 }: AdvancedPermissionGroupProps) {
   const { t } = useLocale();
   const { hasAllPermissions, toggleSinglePermission, toggleResourcePermissionLevel } = usePermissions();
-  const resourceConfig = RESOURCE_CONFIG[resource];
+  const resourceConfig = PERMISSION_REGISTRY[resource];
   const [isExpanded, setIsExpanded] = useState(false);
 
   const isAllResources = resource === "*";
@@ -31,7 +31,7 @@ export function AdvancedPermissionGroup({
   // Get all possible permissions for this resource
   const allPermissions = isAllResources
     ? ["*.*"]
-    : Object.entries(resourceConfig.actions).map(([action]) => `${resource}.${action}`);
+    : Object.entries(resourceConfig).map(([action]) => `${resource}.${action}`);
 
   // Check if all permissions for this resource are selected
   const isAllSelected = isAllResources
@@ -59,7 +59,9 @@ export function AdvancedPermissionGroup({
             onCheckedChange={() => handleToggleAll}
             onClick={handleToggleAll}
           />
-          <span className="text-default text-sm font-medium leading-none">{t(resourceConfig.i18nKey)}</span>
+          <span className="text-default text-sm font-medium leading-none">
+            {t(resourceConfig[CrudAction.All as keyof typeof resourceConfig]?.i18nKey || "")}
+          </span>
           <span className="text-muted text-sm font-medium leading-none">{t("all_permissions")}</span>
         </div>
       </button>
@@ -68,7 +70,7 @@ export function AdvancedPermissionGroup({
           className="bg-default border-muted m-1 flex flex-col gap-2.5 rounded-xl border p-3"
           onClick={(e) => e.stopPropagation()} // Stop clicks in the permission list from affecting parent
         >
-          {Object.entries(resourceConfig.actions).map(([action, actionConfig]) => {
+          {Object.entries(resourceConfig).map(([action, actionConfig]) => {
             const permission = `${resource}.${action}`;
             return (
               <div key={action} className="flex items-center">
@@ -88,11 +90,11 @@ export function AdvancedPermissionGroup({
                   <Label htmlFor={permission} className="mb-0">
                     <span>{t(actionConfig.i18nKey)}</span>
                   </Label>
-                  <span className="text-sm text-gray-500">{t(actionConfig.descriptionKey)}</span>
+                  <span className="text-sm text-gray-500">{t(actionConfig.descriptionI18nKey)}</span>
                 </div>
               </div>
             );
-          })}
+          })}{" "}
         </div>
       )}
     </div>

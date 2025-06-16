@@ -1,5 +1,5 @@
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
-import { RESOURCE_CONFIG } from "@calcom/features/pbac/lib/constants";
+import { PERMISSION_REGISTRY, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
@@ -31,7 +31,7 @@ export function SimplePermissionItem({ resource, permissions, onChange }: Simple
   return (
     <div className="flex items-center justify-between px-3 py-2">
       <span className="text-default text-sm font-medium leading-none">
-        {t(RESOURCE_CONFIG[resource as Resource]?.i18nKey || resource)}
+        {t(PERMISSION_REGISTRY[resource as Resource][CrudAction.All]?.i18nKey || resource)}
       </span>
       <ToggleGroup
         onValueChange={(val) => {
