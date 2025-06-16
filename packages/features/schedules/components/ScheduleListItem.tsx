@@ -35,7 +35,15 @@ export function ScheduleListItem({
     weekStart?: string;
   };
   isDeletable: boolean;
-  updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
+  updateDefault: ({
+    scheduleId,
+    isDefault,
+    name,
+  }: {
+    scheduleId: number;
+    isDefault: boolean;
+    name: string;
+  }) => void;
   duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
 }) {
   const { t, i18n } = useLocale();
@@ -102,6 +110,7 @@ export function ScheduleListItem({
                     updateDefault({
                       scheduleId: schedule.id,
                       isDefault: true,
+                      name: schedule.name,
                     });
                   }}>
                   {t("set_as_default")}
