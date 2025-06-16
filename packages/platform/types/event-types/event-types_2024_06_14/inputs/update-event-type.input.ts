@@ -38,6 +38,7 @@ import {
   TextAreaFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
+  LocationDefaultFieldInput_2024_06_14,
   ValidateInputBookingFields_2024_06_14,
 } from "./booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
@@ -62,6 +63,7 @@ import {
   CREATE_EVENT_SLUG_EXAMPLE,
   CREATE_EVENT_TITLE_EXAMPLE,
   Host,
+  CalVideoSettings,
 } from "./create-event-type.input";
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
@@ -113,6 +115,7 @@ import { Seats_2024_06_14 } from "./seats.input";
   NameDefaultFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
+  LocationDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14
@@ -161,6 +164,7 @@ class BaseUpdateEventTypeInput {
       { $ref: getSchemaPath(NameDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(EmailDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TitleDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(LocationDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(NotesDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(GuestsDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(RescheduleReasonDefaultFieldInput_2024_06_14) },
@@ -275,7 +279,7 @@ class BaseUpdateEventTypeInput {
 
   @IsOptional()
   @IsInt()
-  @Min(1)
+  @Min(0)
   @DocsPropertyOptional({ description: "Offset timeslots shown to bookers by a specified number of minutes" })
   offsetStart?: number;
 
@@ -401,6 +405,15 @@ class BaseUpdateEventTypeInput {
       "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
   })
   hideOrganizerEmail?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CalVideoSettings)
+  @DocsPropertyOptional({
+    description: "Cal video settings for the event type",
+    type: CalVideoSettings,
+  })
+  calVideoSettings?: CalVideoSettings;
 }
 export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
   @IsOptional()

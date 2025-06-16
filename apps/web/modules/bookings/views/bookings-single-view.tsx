@@ -129,7 +129,9 @@ export default function Success(props: PageProps) {
     rescheduleLocation = bookingInfo.responses.location.optionValue;
   }
 
-  const parsedBookingMetadata = bookingMetadataSchema.parse(bookingInfo?.metadata || {});
+  const parsed = bookingMetadataSchema.safeParse(bookingInfo?.metadata ?? null);
+  const parsedBookingMetadata = parsed.success ? parsed.data : null;
+
   const bookingWithParsedMetadata = {
     ...bookingInfo,
     metadata: parsedBookingMetadata,

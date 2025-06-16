@@ -79,10 +79,13 @@
     "web": "yarn workspace @calcom/web",
     "docker-build-api": "docker build -t cal-api -f ./infra/docker/api/Dockerfile .",
     "docker-run-api": "docker run -p 80:80 cal-api",
-    "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop"
+    "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop",
+    "changesets-version": "yarn changeset version",
+    "changesets-release": "turbo run build && yarn changeset publish"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.26.1",
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "2.29.4",
     "@jetstreamapp/soql-parser-js": "^6.1.0",
     "@playwright/test": "^1.45.3",
     "@snaplet/copycat": "^4.1.0",
@@ -105,7 +108,7 @@
     "prismock": "^1.33.4",
     "resize-observer-polyfill": "^1.5.1",
     "tsc-absolute": "^1.0.0",
-    "typescript": "^4.9.4",
+    "typescript": "^5.8.3",
     "vitest": "^2.1.1",
     "vitest-fetch-mock": "^0.3.0",
     "vitest-mock-extended": "^2.0.2"

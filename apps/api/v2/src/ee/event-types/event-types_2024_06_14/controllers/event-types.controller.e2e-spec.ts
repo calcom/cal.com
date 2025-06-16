@@ -962,6 +962,10 @@ describe("Event types Endpoints", () => {
         title: newTitle,
         scheduleId: secondSchedule.id,
         lengthInMinutesOptions: [15, 30],
+        calVideoSettings: {
+          disableRecordingForGuests: true,
+          disableRecordingForOrganizer: true,
+        },
         bookingFields: [
           nameBookingField,
           {
@@ -1082,6 +1086,12 @@ describe("Event types Endpoints", () => {
             body.lockTimeZoneToggleOnBookingPage
           );
           expect(updatedEventType.color).toEqual(body.color);
+          expect(updatedEventType.calVideoSettings?.disableRecordingForGuests).toEqual(
+            body.calVideoSettings?.disableRecordingForGuests
+          );
+          expect(updatedEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(
+            body.calVideoSettings?.disableRecordingForOrganizer
+          );
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -1428,7 +1438,6 @@ describe("Event types Endpoints", () => {
           {
             name: "location",
             type: "radioInput",
-            label: "",
             sources: [{ id: "default", type: "default", label: "Default" }],
             editable: "system",
             required: false,
@@ -1558,7 +1567,6 @@ describe("Event types Endpoints", () => {
           {
             name: "location",
             type: "radioInput",
-            label: "",
             sources: [{ id: "default", type: "default", label: "Default" }],
             editable: "system",
             required: false,
@@ -1781,6 +1789,102 @@ describe("Event types Endpoints", () => {
             },
           ]);
         });
+    });
+
+    describe("creating event type with input of another event type output", () => {
+      let firstCreatedEventType: EventTypeOutput_2024_06_14;
+      let secondCreatedEventType: EventTypeOutput_2024_06_14;
+
+      it("should create first event type", async () => {
+        const body: CreateEventTypeInput_2024_06_14 = {
+          title: "first created coding class",
+          slug: "first-created-coding-class",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "address",
+              address: "via volturno 10, Roma",
+              public: true,
+            },
+          ],
+        };
+
+        return request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const createdEventType = responseBody.data;
+            expect(createdEventType).toHaveProperty("id");
+            expect(createdEventType.title).toEqual(body.title);
+            expect(createdEventType.locations).toEqual(body.locations);
+            firstCreatedEventType = responseBody.data;
+          });
+      });
+
+      it("should create second event type using first as input", async () => {
+        const body = {
+          ...firstCreatedEventType,
+          title: "second created coding class",
+          slug: "second-created-coding-class",
+        };
+
+        return request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const createdEventType = responseBody.data;
+            expect(createdEventType).toHaveProperty("id");
+            expect(createdEventType.title).toEqual(body.title);
+            secondCreatedEventType = responseBody.data;
+
+            const { id, title, slug, ...restFirst } = firstCreatedEventType;
+            const { id: id2, title: title2, slug: slug2, ...restSecond } = secondCreatedEventType;
+            expect(restFirst).toEqual(restSecond);
+            expect(id2).not.toEqual(id);
+            expect(title2).not.toEqual(title);
+            expect(slug2).not.toEqual(slug);
+          });
+      });
+
+      it("should create event type with cal video settings", async () => {
+        const body: CreateEventTypeInput_2024_06_14 = {
+          title: "event type with cal video settings",
+          slug: "event-type-with-cal-video-settings",
+          lengthInMinutes: 60,
+          calVideoSettings: {
+            disableRecordingForGuests: true,
+            disableRecordingForOrganizer: true,
+          },
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+        };
+
+        return request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const createdEventType = responseBody.data;
+            expect(createdEventType).toHaveProperty("id");
+            expect(createdEventType.title).toEqual(body.title);
+            expect(createdEventType.locations).toEqual(body.locations);
+            expect(createdEventType.calVideoSettings?.disableRecordingForGuests).toEqual(true);
+            expect(createdEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(true);
+            firstCreatedEventType = responseBody.data;
+          });
+      });
     });
 
     afterAll(async () => {

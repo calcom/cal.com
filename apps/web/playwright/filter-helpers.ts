@@ -1,26 +1,77 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+// Helper function to get text within a specific table column
+export const getByTableColumnText = (page: Page, columnId: string, text: string) =>
+  page.locator(`[data-testid="data-table-td-${columnId}"]`).getByText(text);
+
 /**
- * Select a filter from the filter dropdown
+ * Add a filter from the filter dropdown
  */
-export async function selectFilter(page: Page, columnId: string) {
+export async function addFilter(page: Page, columnId: string) {
   await page.getByTestId("add-filter-button").click();
   await page.getByTestId(`add-filter-item-${columnId}`).click();
+}
+
+export async function openFilter(page: Page, columnId: string) {
+  await page.getByTestId(`filter-popover-trigger-${columnId}`).click();
 }
 
 /**
  * Apply a filter with a specific value
  */
-export async function applyFilter(page: Page, columnId: string, value: string) {
+export async function applySelectFilter(page: Page, columnId: string, value: string) {
   const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
   if (!(await existingFilter.isVisible())) {
-    await selectFilter(page, columnId);
+    await addFilter(page, columnId);
   }
+  await openFilter(page, columnId);
+  await selectOptionValue(page, columnId, value);
+  await page.keyboard.press("Escape");
+}
 
-  await page.getByTestId(`filter-popover-trigger-${columnId}`).click();
-
+export async function selectOptionValue(page: Page, columnId: string, value: string) {
   await page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value }).click();
+}
+
+export async function applyTextFilter(page: Page, columnId: string, operator: string, operand?: string) {
+  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
+  if (!(await existingFilter.isVisible())) {
+    await addFilter(page, columnId);
+  }
+  await openFilter(page, columnId);
+
+  await page.getByTestId(`text-filter-options-select-${columnId}`).click();
+  await page
+    .locator(`[data-testid="text-filter-options-${columnId}"] [id^="react-select-"]`)
+    .getByText(operator)
+    .first()
+    .click();
+  if (operand) {
+    await page.keyboard.press("Tab");
+    await page.keyboard.type(operand);
+  }
+  await page.keyboard.press("Enter");
+
+  await page.keyboard.press("Escape");
+}
+
+export async function applyNumberFilter(page: Page, columnId: string, operator: string, operand: number) {
+  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
+  if (!(await existingFilter.isVisible())) {
+    await addFilter(page, columnId);
+  }
+  await openFilter(page, columnId);
+
+  await page.getByTestId(`number-filter-options-select-${columnId}`).click();
+  await page
+    .locator(`[data-testid="number-filter-options-${columnId}"] [id^="react-select-"]`)
+    .getByText(operator)
+    .first()
+    .click();
+  await page.keyboard.press("Tab");
+  await page.keyboard.type(String(operand));
+  await page.keyboard.press("Enter");
 
   await page.keyboard.press("Escape");
 }
@@ -120,4 +171,8 @@ export async function listSegments(page: Page): Promise<string[]> {
 
   await page.keyboard.press("Escape");
   return segments;
+}
+
+export function locateSelectedSegmentName(page: Page, expectedName: string) {
+  return page.locator('[data-testid="filter-segment-select"]').filter({ hasText: expectedName });
 }

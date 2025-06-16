@@ -259,6 +259,7 @@ const PlatformClientParamsSchema = z.object({
   platformCancelUrl: z.string().nullable().optional(),
   platformBookingUrl: z.string().nullable().optional(),
   platformBookingLocation: z.string().optional(),
+  areCalendarEventsEnabled: z.boolean().optional(),
 });
 
 export type PlatformClientParams = z.infer<typeof PlatformClientParamsSchema>;
@@ -609,6 +610,7 @@ export const downloadLinkSchema = z.object({
 export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
   title: true,
   description: true,
+  interfaceLanguage: true,
   isInstantEvent: true,
   instantMeetingParameters: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
@@ -628,6 +630,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
@@ -659,6 +662,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   workflows: true,
   bookingFields: true,
   durationLimits: true,
+  maxActiveBookingsPerBooker: true,
+  maxActiveBookingPerBookerOfferReschedule: true,
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,

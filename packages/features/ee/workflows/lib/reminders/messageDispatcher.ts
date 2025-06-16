@@ -18,6 +18,8 @@ export async function sendSmsOrFallbackEmail(props: {
     userId?: number | null;
     teamId?: number | null;
     isWhatsapp?: boolean;
+    contentSid?: string;
+    contentVariables?: Record<string, string>;
   };
   fallbackData?: {
     email: string;
@@ -62,6 +64,8 @@ export async function scheduleSmsOrFallbackEmail(props: {
     userId?: number | null;
     teamId?: number | null;
     isWhatsapp?: boolean;
+    contentSid?: string;
+    contentVariables?: Record<string, string>;
   };
   fallbackData?: {
     email: string;

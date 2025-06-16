@@ -55,6 +55,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     id: true,
     title: true,
     description: true,
+    interfaceLanguage: true,
     eventName: true,
     slug: true,
     isInstantEvent: true,
@@ -83,6 +84,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     seatsPerTimeSlot: true,
     disableCancelling: true,
     disableRescheduling: true,
+    allowReschedulingCancelledBookings: true,
     seatsShowAvailabilityCount: true,
     bookingFields: true,
     teamId: true,
@@ -219,6 +221,7 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
+export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
@@ -527,6 +530,8 @@ export const getPublicEvent = async (
     assignAllTeamMembers: event.assignAllTeamMembers,
     disableCancelling: event.disableCancelling,
     disableRescheduling: event.disableRescheduling,
+    allowReschedulingCancelledBookings: event.allowReschedulingCancelledBookings,
+    interfaceLanguage: event.interfaceLanguage,
   };
 };
 

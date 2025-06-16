@@ -168,11 +168,6 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       options={actionOptions.map((option) => ({
                         ...option,
                       }))}
-                      isOptionDisabled={(option: {
-                        label: string;
-                        value: WorkflowActions;
-                        needsCredits: boolean;
-                      }) => option.needsCredits}
                     />
                   );
                 }}

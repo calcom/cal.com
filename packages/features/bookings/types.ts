@@ -61,6 +61,7 @@ export type BookerEvent = Pick<
   | "autoTranslateDescriptionEnabled"
   | "disableCancelling"
   | "disableRescheduling"
+  | "interfaceLanguage"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;

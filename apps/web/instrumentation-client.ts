@@ -21,6 +21,18 @@ Sentry.init({
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: !!process.env.SENTRY_DEBUG,
   beforeSend(event) {
+    if (
+      event.exception?.values?.some(
+        (e) =>
+          // Ignore fake error "UnhandledRejection: Non-Error promise rejection captured with value: Object Not Found Matching Id:3, MethodName:update, ParamCount:4"
+          // Raised GH issue: https://github.com/getsentry/sentry-javascript/issues/3440
+          e.value?.includes("Non-Error promise rejection captured with") ||
+          e.value?.includes("Object Not Found Matching Id")
+      )
+    ) {
+      return null;
+    }
+
     event.tags = {
       ...event.tags,
       errorSource: "client",
