@@ -34,7 +34,7 @@ export const prisma =
         get(_target, prop) {
           try {
             const tenantPrisma = getTenantAwarePrisma(prismaOptions);
-            return Reflect.get(tenantPrisma, prop);
+            return typeof Reflect.get(tenantPrisma, prop) === "function" ? (Reflect.get(tenantPrisma, prop) as any).bind(tenantPrisma) : Reflect.get(tenantPrisma, prop);
           } catch (error) {
             console.error(error);
             throw new Error(
