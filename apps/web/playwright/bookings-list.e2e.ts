@@ -461,14 +461,10 @@ test.describe("Bookings", () => {
 
     await addFilter(page, "userId");
     await openFilter(page, "userId");
-    const bookingsGetResponse2 = page.waitForResponse((response) =>
-      /\/api\/trpc\/bookings\/get.*/.test(response.url())
-    );
-
     await page
       .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${anotherUser}")`)
       .click();
-    await bookingsGetResponse2;
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
 
     await expect(page.locator('[data-testid="booking-item"]')).toHaveCount(0);
   });

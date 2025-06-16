@@ -28,7 +28,7 @@ export const PRESET_OPTIONS: PresetOption[] = [
   CUSTOM_PRESET,
 ];
 
-export const getDefaultStartDate = () => dayjs().subtract(1, "week").startOf("day");
+export const getDefaultStartDate = () => dayjs().subtract(6, "day").startOf("day");
 
 export const getDefaultEndDate = () => dayjs().endOf("day");
 
@@ -46,11 +46,11 @@ export const getDateRangeFromPreset = (val: string | null) => {
       endDate = dayjs().endOf("day");
       break;
     case "w": // Last 7 days
-      startDate = dayjs().subtract(1, "week").startOf("day");
+      startDate = dayjs().subtract(6, "day").startOf("day");
       endDate = dayjs().endOf("day");
       break;
     case "t": // Last 30 days
-      startDate = dayjs().subtract(30, "day").startOf("day");
+      startDate = dayjs().subtract(29, "day").startOf("day");
       endDate = dayjs().endOf("day");
       break;
     case "m": // Month to Date

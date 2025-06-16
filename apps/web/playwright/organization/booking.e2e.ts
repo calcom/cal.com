@@ -431,11 +431,9 @@ test.describe("Bookings", () => {
 
           // Cancel the booking
           await page.goto(`/booking/${bookingUid}`);
-          await page.waitForLoadState("networkidle");
           await page.getByTestId("cancel").click();
-          await submitAndWaitForResponse(page, "/api/cancel", {
-            action: () => page.locator('[data-testid="confirm_cancel"]').click(),
-          });
+          await page.getByTestId("confirm_cancel").click();
+          await page.waitForResponse((response) => response.url().includes("/api/cancel"));
 
           // Logout and go back to booking page
           await page.goto("/auth/logout");

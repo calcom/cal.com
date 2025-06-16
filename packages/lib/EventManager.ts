@@ -180,6 +180,7 @@ export default class EventManager {
    * @param event
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
+    // TODO this method shouldn't be modifying the event object that's passed in
     const evt = processLocation(event);
 
     // Fallback to cal video if no location is set
@@ -259,7 +260,7 @@ export default class EventManager {
       return result.type.includes("_calendar");
     };
 
-    const createdCRMEvents = await this.createAllCRMEvents(clonedCalEvent);
+    const createdCRMEvents = await this.createAllCRMEvents(evt);
 
     results.push(...createdCRMEvents);
 
@@ -1141,3 +1142,5 @@ export default class EventManager {
       return this.appOptions[credential.appId as keyof typeof this.appOptions];
   }
 }
+
+export const placeholderCreatedEvent = { results: [], referencesToCreate: [] };
