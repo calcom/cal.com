@@ -1973,9 +1973,9 @@ describe("Event types Endpoints", () => {
           });
       });
 
-      afterAll(() => {
+      afterAll(async () => {
         if (eventTypeWithGuestsDisabledId) {
-          eventTypesRepositoryFixture.delete(eventTypeWithGuestsDisabledId);
+          await eventTypesRepositoryFixture.delete(eventTypeWithGuestsDisabledId);
         }
       });
     });

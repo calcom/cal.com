@@ -33,7 +33,6 @@ import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
   InputBookingField_2024_06_14,
-  InputEventTransformed_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
@@ -235,8 +234,8 @@ export class InputEventTypesService_2024_06_14 {
     const bookingFieldsCopy = [...bookingFields];
 
     const guestsBookingField = bookingFieldsCopy.find((field) => "slug" in field && field.slug === "guests");
-    if (guestsBookingField && "hidden" in guestsBookingField) {
-      guestsBookingField.hidden = hideGuests;
+    if (guestsBookingField) {
+      Object.assign(guestsBookingField, { hidden: hideGuests });
       return bookingFieldsCopy;
     }
 
