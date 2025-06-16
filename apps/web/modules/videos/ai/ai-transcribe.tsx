@@ -70,7 +70,13 @@ export interface DailyCustomTrayButton {
   tooltip: string;
   visualState?: DailyCustomTrayButtonVisualState;
 }
-export const CalAiTranscribe = ({ showRecordingButton }: { showRecordingButton: boolean }) => {
+export const CalAiTranscribe = ({
+  showRecordingButton,
+  enableAutomaticTranscription,
+}: {
+  showRecordingButton: boolean;
+  enableAutomaticTranscription: boolean;
+}) => {
   const daily = useDaily();
   const { t } = useLocale();
 
@@ -106,6 +112,18 @@ export const CalAiTranscribe = ({ showRecordingButton }: { showRecordingButton: 
       if (data.user_name && data.text) setTranscript(`${data.user_name}: ${data.text}`);
     }, [])
   );
+
+  useDailyEvent("joined-meeting", (ev) => {
+    if (enableAutomaticTranscription) {
+      daily?.startTranscription();
+      updateCustomTrayButtons({
+        recording: BUTTONS.START_RECORDING,
+        transcription: transcription?.isTranscribing
+          ? BUTTONS.STOP_TRANSCRIPTION
+          : BUTTONS.START_TRANSCRIPTION,
+      });
+    }
+  });
 
   useDailyEvent("transcription-started", (ev) => {
     updateCustomTrayButtons({
