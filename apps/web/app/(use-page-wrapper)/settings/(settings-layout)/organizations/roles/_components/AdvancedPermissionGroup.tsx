@@ -79,11 +79,6 @@ export function AdvancedPermissionGroup({
               return null;
             }
 
-            console.log({
-              actionConfig,
-              action,
-              permission,
-            });
             return (
               <div key={action} className="flex items-center">
                 <Checkbox
@@ -102,7 +97,9 @@ export function AdvancedPermissionGroup({
                   <Label htmlFor={permission} className="mb-0">
                     <span>{t(actionConfig?.i18nKey || "")}</span>
                   </Label>
-                  <span className="text-sm text-gray-500">{t(actionConfig?.descriptionI18nKey || "")}</span>
+                  <span className="text-sm text-gray-500">
+                    {t("descriptionI18nKey" in actionConfig ? actionConfig.descriptionI18nKey : "")}
+                  </span>
                 </div>
               </div>
             );

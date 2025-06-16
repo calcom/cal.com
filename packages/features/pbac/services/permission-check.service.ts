@@ -165,6 +165,7 @@ export class PermissionCheckService {
   private async hasPermission(query: PermissionCheck, permission: PermissionString): Promise<boolean> {
     const { membership, orgMembership } = await this.getMembership(query);
 
+    // First check team-level permissions
     if (membership?.customRoleId) {
       const hasTeamPermission = await this.repository.checkRolePermission(
         membership.customRoleId,
@@ -173,6 +174,7 @@ export class PermissionCheckService {
       if (hasTeamPermission) return true;
     }
 
+    // If no team permission, check org-level permissions
     if (orgMembership?.customRoleId) {
       return this.repository.checkRolePermission(orgMembership.customRoleId, permission);
     }
@@ -186,6 +188,7 @@ export class PermissionCheckService {
   private async hasPermissions(query: PermissionCheck, permissions: PermissionString[]): Promise<boolean> {
     const { membership, orgMembership } = await this.getMembership(query);
 
+    // First check team-level permissions
     if (membership?.customRoleId) {
       const hasTeamPermissions = await this.repository.checkRolePermissions(
         membership.customRoleId,
@@ -194,6 +197,7 @@ export class PermissionCheckService {
       if (hasTeamPermissions) return true;
     }
 
+    // If no team permissions, check org-level permissions
     if (orgMembership?.customRoleId) {
       return this.repository.checkRolePermissions(orgMembership.customRoleId, permissions);
     }

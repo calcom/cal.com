@@ -166,25 +166,16 @@ export class PermissionRepository implements IPermissionRepository {
     teamId: number,
     resource: Resource
   ): Promise<(CrudAction | CustomAction)[]> {
-    // First get the user's membership and team info
+    // Get team-level permissions
     const membership = await kysely
       .selectFrom("Membership")
-      .leftJoin("Team", "Team.id", "Membership.teamId")
-      .select([
-        "Membership.id",
-        "Membership.teamId",
-        "Membership.customRoleId",
-        "Team.parentId as team_parentId",
-      ])
-      .where("Membership.userId", "=", userId)
-      .where("Membership.teamId", "=", teamId)
+      .select("customRoleId")
+      .where("userId", "=", userId)
+      .where("teamId", "=", teamId)
       .executeTakeFirst();
 
     if (!membership?.customRoleId) return [];
 
-    const permissions: (CrudAction | CustomAction)[] = [];
-
-    // Get team-level permissions
     const teamPermissions = await kysely
       .selectFrom("RolePermission")
       .select(["action", "resource"])
@@ -192,31 +183,6 @@ export class PermissionRepository implements IPermissionRepository {
       .where((eb) => eb.or([eb("resource", "=", resource), eb("resource", "=", Resource.All)]))
       .execute();
 
-    console.log({ teamPermissions });
-
-    permissions.push(...teamPermissions.map((p) => p.action as CrudAction | CustomAction));
-
-    // If team has a parent org, get org-level permissions
-    if (membership.team_parentId) {
-      const orgMembership = await kysely
-        .selectFrom("Membership")
-        .select("customRoleId")
-        .where("userId", "=", userId)
-        .where("teamId", "=", membership.team_parentId)
-        .executeTakeFirst();
-
-      if (orgMembership?.customRoleId) {
-        const orgPermissions = await kysely
-          .selectFrom("RolePermission")
-          .select(["action", "resource"])
-          .where("roleId", "=", orgMembership.customRoleId)
-          .where((eb) => eb.or([eb("resource", "=", resource), eb("resource", "=", Resource.All)]))
-          .execute();
-
-        permissions.push(...orgPermissions.map((p) => p.action as CrudAction | CustomAction));
-      }
-    }
-
-    return Array.from(new Set(permissions));
+    return teamPermissions.map((p) => p.action as CrudAction | CustomAction);
   }
 }
