@@ -18,6 +18,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
+import { Input } from "@calcom/ui/form";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
@@ -40,6 +41,7 @@ export default function JoinCall(props: PageProps) {
     rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
+  const [name, setName] = useState(overrideName ?? loggedInUserName ?? "");
 
   useEffect(() => {
     let callFrame: DailyCall | undefined;
@@ -66,7 +68,7 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
-        userName: overrideName ?? loggedInUserName ?? undefined,
+        userName: name,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
@@ -89,10 +91,6 @@ export default function JoinCall(props: PageProps) {
           },
         }),
       });
-
-      if (overrideName) {
-        callFrame.setUserName(overrideName);
-      }
     } catch (err) {
       callFrame = DailyIframe.getCallInstance();
     } finally {
@@ -104,7 +102,7 @@ export default function JoinCall(props: PageProps) {
       callFrame?.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [name]);
 
   return (
     <DailyProvider callObject={daily}>
@@ -139,8 +137,11 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      {displayLogInOverlay && <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />}
-
+      {(displayLogInOverlay || !displayLogInOverlay) && (
+        <div>
+          <LogInOverlay setName={setName} isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />
+        </div>
+      )}
       <VideoMeetingInfo booking={booking} rediectAttendeeToOnExit={rediectAttendeeToOnExit} />
     </DailyProvider>
   );
@@ -219,38 +220,63 @@ function ProgressBar(props: ProgressBarProps) {
 interface LogInOverlayProps {
   isLoggedIn: boolean;
   bookingUid: string;
+  name: string;
+  setName: (name: string) => void;
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
-  const { isLoggedIn, bookingUid } = props;
-  const [open, setOpen] = useState(!isLoggedIn);
+
+  const { isLoggedIn, bookingUid, name, setName } = props;
+  const [open, setOpen] = useState(true);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_join_call")}
-        className="bg-black text-white sm:max-w-[480px]">
+        className="h-[380px] bg-black text-white sm:max-w-[520px]">
         <div className="pb-8">
-          <div className="space-y-8">
-            <Button color="primary" className="mt-4 w-full justify-center " onClick={() => setOpen(false)}>
-              {t("continue_as_guest")}
-            </Button>
+          {/* this is the first block */}
+          <div className="flex h-full flex-col justify-between space-y-2">
+            <div className="flex flex-col">
+              <div>
+                <h1 className="text-sm font-medium text-white">join as guest</h1>
+                <p className="text-sm text-gray-300">ideal for one time calls</p>
+              </div>
 
-            {/* Divider */}
+              {/* input fields and button */}
+              <div className="mt-4 flex gap-4">
+                <Input
+                  type="text"
+                  placeholder="name"
+                  className="w-full flex-1"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <Button
+                  color="primary"
+                  onClick={() => {
+                    setOpen(false);
+                  }}>
+                  {t("continue")}
+                </Button>
+              </div>
+            </div>
+
+            {/* Divider line */}
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-gray-600" />
               </div>
-              <div className="relative flex justify-center">
-                <span className="bg-black px-4 text-sm text-gray-400">{t("or")}</span>
-              </div>
             </div>
 
-            <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-white">{t("sign_in_to_cal_com")}</h4>
-              <p className="text-sm text-gray-300">{t("track_your_meetings")}</p>
+            {/* this is the second block */}
+            <div className="flex flex-col ">
+              <div>
+                <h4 className="text-lg font-medium text-white">{t("signin_to_calcom")}</h4>
+                <p className="text-sm text-gray-300">{t("track_your_meetings")}</p>
+              </div>
               <Button
                 color="primary"
                 className="mt-4 w-full justify-center"
@@ -258,7 +284,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
                   (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
                 }>
                 <Icon name="external-link" className="mr-2 h-4 w-4" />
-                {t("log_in_to_cal_com")}
+                {t("sign_in")}
               </Button>
             </div>
           </div>
