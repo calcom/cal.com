@@ -29,5 +29,6 @@ export const prisma = getPrisma();
 export const disconnectPrisma = async () => {
   if (_prisma) {
     await _prisma.$disconnect();
+    _prisma = undefined;
   }
 };
