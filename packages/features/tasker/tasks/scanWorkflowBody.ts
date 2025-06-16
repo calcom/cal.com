@@ -29,9 +29,9 @@ export async function scanWorkflowBody(payload: string) {
 
   if (workflowStepId && !workflowStepIds) {
     if (createdAt) {
-      const newerTask = await Task.findNewerScanTaskForStepId(workflowStepId, createdAt);
+      const hasNewerTask = await Task.hasNewerScanTaskForStepId(workflowStepId, createdAt);
 
-      if (newerTask) return;
+      if (hasNewerTask) return;
 
       stepIdsToScan.push(workflowStepId);
     } else {

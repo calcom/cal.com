@@ -189,7 +189,7 @@ export class Task {
     // });
   }
 
-  static async findNewerScanTaskForStepId(workflowStepId: number, createdAt: string) {
+  static async hasNewerScanTaskForStepId(workflowStepId: number, createdAt: string) {
     const tasks = await db.$queryRaw<{ payload: string }[]>`
       SELECT "payload"
       FROM "Task"
@@ -198,7 +198,7 @@ export class Task {
         AND (payload::jsonb ->> 'workflowStepId')::int = ${workflowStepId}
         `;
 
-    return tasks.find((task) => {
+    return tasks.some((task) => {
       try {
         const parsed = scanWorkflowBodySchema.parse(JSON.parse(task.payload));
         if (!parsed.createdAt) return false;
