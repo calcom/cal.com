@@ -490,6 +490,7 @@ class EventsInsights {
         return [
           booking.uid,
           {
+            firstAttendeeNoShow: attendeeList[0]?.noShow || false,
             attendee1: formattedAttendees[0] || null,
             attendee2: formattedAttendees[1] || null,
             attendee3: formattedAttendees[2] || null,
@@ -503,6 +504,7 @@ class EventsInsights {
         // should not be reached because we filtered above
         return {
           ...bookingTimeStatus,
+          noShowGuest: false,
           attendee1: null,
           attendee2: null,
           attendee3: null,
@@ -514,6 +516,7 @@ class EventsInsights {
       if (!attendeeData) {
         return {
           ...bookingTimeStatus,
+          noShowGuest: false,
           attendee1: null,
           attendee2: null,
           attendee3: null,
@@ -522,6 +525,7 @@ class EventsInsights {
 
       return {
         ...bookingTimeStatus,
+        noShowGuest: attendeeData.firstAttendeeNoShow,
         attendee1: attendeeData.attendee1,
         attendee2: attendeeData.attendee2,
         attendee3: attendeeData.attendee3,
