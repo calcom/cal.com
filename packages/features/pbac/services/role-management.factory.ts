@@ -90,7 +90,7 @@ class LegacyRoleManager implements IRoleManager {
         },
       },
       data: {
-        role,
+        role: role as MembershipRole,
       },
     });
   }
