@@ -404,6 +404,7 @@ export class BookingsService_2024_08_13 {
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
       noEmail: bookingRequest.noEmail,
+      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
     const ids = bookings.map((booking) => booking.id || 0);
     return this.outputService.getOutputRecurringBookings(ids);
@@ -424,6 +425,7 @@ export class BookingsService_2024_08_13 {
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
+      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" }))
@@ -445,6 +447,7 @@ export class BookingsService_2024_08_13 {
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
+      areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
     });
 
     if (!booking.uid) {
@@ -475,6 +478,7 @@ export class BookingsService_2024_08_13 {
         platformCancelUrl: bookingRequest.platformCancelUrl,
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       });
 
       if (!booking.uid) {
@@ -652,6 +656,7 @@ export class BookingsService_2024_08_13 {
         platformCancelUrl: bookingRequest.platformCancelUrl,
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       });
       if (!booking.uid) {
         throw new Error("Booking missing uid");
@@ -930,15 +935,19 @@ export class BookingsService_2024_08_13 {
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+    const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
     await confirmBookingHandler({
       ctx: {
-        user: requestUser,
+        user: {
+          ...requestUser,
+          destinationCalendar: userCalendars?.destinationCalendar ?? null,
+        },
       },
       input: {
         bookingId: booking.id,
         confirmed: true,
-        recurringEventId: booking.recurringEventId,
+        recurringEventId: booking.recurringEventId ?? undefined,
         emailsEnabled,
         platformClientParams,
       },
@@ -958,15 +967,19 @@ export class BookingsService_2024_08_13 {
       : undefined;
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+    const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
     await confirmBookingHandler({
       ctx: {
-        user: requestUser,
+        user: {
+          ...requestUser,
+          destinationCalendar: userCalendars?.destinationCalendar ?? null,
+        },
       },
       input: {
         bookingId: booking.id,
         confirmed: false,
-        recurringEventId: booking.recurringEventId,
+        recurringEventId: booking.recurringEventId ?? undefined,
         reason,
         emailsEnabled,
         platformClientParams,
