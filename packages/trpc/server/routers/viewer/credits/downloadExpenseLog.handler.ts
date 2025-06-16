@@ -12,6 +12,8 @@ type DownloadExpenseLogOptions = {
   input: TDownloadExpenseLogSchema;
 };
 
+const headers = ["Date", "Credits", "Type", "Booking UID", "Number of Segments"];
+
 export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseLogOptions) => {
   const { teamId, startDate, endDate } = input;
 
@@ -31,8 +33,6 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
     startDate: new Date(startDate),
     endDate: new Date(endDate),
   });
-
-  const headers = ["Date", "Credits", "Type", "Booking UID", "Number of Segments"];
 
   if (!creditBalance) {
     return { csvData: headers.join(",") };
