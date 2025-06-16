@@ -29,10 +29,6 @@ import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
 
-const NAMESPACE = "organizations";
-
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
-
 export const viewerOrganizationsRouter = router({
   getOrganizationOnboarding: authedProcedure.query(async (opts) => {
     const { default: handler } = await import("./getOrganizationOnboarding.handler");
@@ -160,10 +156,6 @@ export const viewerOrganizationsRouter = router({
   }),
   createPhoneCall: eventOwnerProcedure.input(createPhoneCallSchema).mutation(async (opts) => {
     const { default: handler } = await import("./createPhoneCall.handler");
-    return handler(opts);
-  }),
-  getFacetedValues: authedProcedure.query(async (opts) => {
-    const { default: handler } = await import("./getFacetedValues.handler");
     return handler(opts);
   }),
 });

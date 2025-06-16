@@ -21,3 +21,12 @@ export type AvailabilityFormValues = {
   timeZone: string;
   isDefault: boolean;
 };
+
+export type scheduleClassNames = {
+  schedule?: string;
+  scheduleDay?: string;
+  dayRanges?: string;
+  timeRangeField?: string;
+  labelAndSwitchContainer?: string;
+  scheduleContainer?: string;
+};
