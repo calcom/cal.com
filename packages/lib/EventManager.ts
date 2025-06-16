@@ -1142,3 +1142,5 @@ export default class EventManager {
       return this.appOptions[credential.appId as keyof typeof this.appOptions];
   }
 }
+
+export const placeholderCreatedEvent = { results: [], referencesToCreate: [] };

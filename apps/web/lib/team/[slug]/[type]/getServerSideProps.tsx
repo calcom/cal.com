@@ -8,6 +8,7 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/org
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -71,7 +72,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
     booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-    if (booking?.status === BookingStatus.CANCELLED && !allowRescheduleForCancelledBooking) {
+    if (
+      booking?.status === BookingStatus.CANCELLED &&
+      !allowRescheduleForCancelledBooking &&
+      !eventData.allowReschedulingCancelledBookings
+    ) {
       return {
         redirect: {
           permanent: false,
@@ -152,7 +157,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,
-      isBrandingHidden: team?.hideBranding,
+      isBrandingHidden: shouldHideBrandingForTeamEvent({
+        eventTypeId: eventData.id,
+        team,
+      }),
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
@@ -188,6 +196,7 @@ const getTeamWithEventsData = async (
           name: true,
           bannerUrl: true,
           logoUrl: true,
+          hideBranding: true,
           organizationSettings: {
             select: {
               allowSEOIndexing: true,
@@ -212,6 +221,7 @@ const getTeamWithEventsData = async (
           hidden: true,
           disableCancelling: true,
           disableRescheduling: true,
+          allowReschedulingCancelledBookings: true,
           interfaceLanguage: true,
           hosts: {
             take: 3,
