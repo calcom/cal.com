@@ -23,6 +23,7 @@ type CalVideoSettings = {
   disableRecordingForGuests: boolean;
   disableRecordingForOrganizer: boolean;
   enableAutomaticTranscription: boolean;
+  enableAutomaticRecording: boolean;
   disableTranscriptionForGuests: boolean;
   disableTranscriptionForOrganizer: boolean;
 };
@@ -57,6 +58,19 @@ const shouldEnableAutomaticTranscription = ({
   if (!calVideoSettings) return false;
 
   return !!calVideoSettings.enableAutomaticTranscription;
+};
+
+const shouldEnableAutomaticRecording = ({
+  hasTeamPlan,
+  calVideoSettings,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+}) => {
+  if (!hasTeamPlan) return false;
+  if (!calVideoSettings) return false;
+
+  return !!calVideoSettings.enableAutomaticRecording;
 };
 
 const shouldEnableTranscriptionButton = ({
@@ -243,6 +257,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
   });
+
+  const enableAutomaticRecording = shouldEnableAutomaticRecording({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+  });
+
   const showTranscriptionButton = shouldEnableTranscriptionButton({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
@@ -271,6 +291,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
       showRecordingButton,
       enableAutomaticTranscription,
+      enableAutomaticRecording,
       showTranscriptionButton,
       rediectAttendeeToOnExit: isOrganizer
         ? undefined
