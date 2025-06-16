@@ -11,5 +11,5 @@ type ListOptions = {
 };
 
 export const listHandler = async ({ ctx, input }: ListOptions) => {
-  return WebhookRepository.findWebhooksByFilters({ userId: ctx.user.id, input });
+  return await WebhookRepository.findWebhooksByFilters({ userId: ctx.user.id, input });
 };
