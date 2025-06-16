@@ -109,7 +109,7 @@ test.describe("Booking with Seats", () => {
 
     await expect(page.locator("text=This event is canceled")).toBeVisible();
 
-    const updatedBooking = await prisma.booking.findUnique({
+    const updatedBooking = await prisma.booking.findFirst({
       where: { id: booking.id },
     });
 
@@ -166,7 +166,7 @@ test.describe("Reschedule for booking with seats", () => {
       action: () => page.locator('[data-testid="confirm_cancel"]').click(),
     });
 
-    const oldBooking = await prisma.booking.findUnique({
+    const oldBooking = await prisma.booking.findFirst({
       where: { uid: booking.uid },
       select: {
         id: true,
@@ -259,7 +259,7 @@ test.describe("Reschedule for booking with seats", () => {
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
     await user.apiLogin();
-    const bookingWithEventType = await prisma.booking.findUnique({
+    const bookingWithEventType = await prisma.booking.findFirst({
       where: { uid: booking.uid },
       select: {
         id: true,
@@ -412,7 +412,7 @@ test.describe("Reschedule for booking with seats", () => {
 
     await expect(page).toHaveURL(/\/booking\/.*/);
 
-    const updatedBooking = await prisma.booking.findUnique({
+    const updatedBooking = await prisma.booking.findFirst({
       where: { id: booking.id },
     });
 

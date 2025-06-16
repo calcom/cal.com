@@ -189,7 +189,7 @@ describe.skip("editLocation.handler", () => {
 
       await createBookingScenario(getScenarioData(scenarioData));
 
-      const booking = await prisma.booking.findUnique({
+      const booking = await prisma.booking.findFirst({
         where: {
           uid: scenarioData.bookings[0].uid,
         },
@@ -203,7 +203,7 @@ describe.skip("editLocation.handler", () => {
         },
       });
 
-      const organizerUser = await prisma.user.findUnique({
+      const organizerUser = await prisma.user.findFirst({
         where: {
           id: scenarioData.organizer.id,
         },
@@ -233,7 +233,7 @@ describe.skip("editLocation.handler", () => {
         currentUserId: updatedOrganizer.id,
       });
 
-      const updatedBooking = await prisma.booking.findUniqueOrThrow({
+      const updatedBooking = await prisma.booking.findFirstOrThrow({
         where: {
           uid: scenarioData.bookings[0].uid,
         },

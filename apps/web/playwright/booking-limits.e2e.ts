@@ -141,7 +141,7 @@ test.describe("Booking limits", () => {
 
       await test.step("but can reschedule", async () => {
         const bookingId = latestRescheduleUrl?.split("/").pop();
-        const rescheduledBooking = await prisma.booking.findUniqueOrThrow({ where: { uid: bookingId } });
+        const rescheduledBooking = await prisma.booking.findFirstOrThrow({ where: { uid: bookingId } });
 
         const year = rescheduledBooking.startTime.getFullYear();
         const month = String(rescheduledBooking.startTime.getMonth() + 1).padStart(2, "0");
@@ -173,7 +173,7 @@ test.describe("Booking limits", () => {
         const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: bookingId } });
         expect(newBooking).not.toBeNull();
 
-        const updatedRescheduledBooking = await prisma.booking.findUniqueOrThrow({
+        const updatedRescheduledBooking = await prisma.booking.findFirstOrThrow({
           where: { uid: bookingId },
         });
         expect(updatedRescheduledBooking.status).toBe(BookingStatus.CANCELLED);

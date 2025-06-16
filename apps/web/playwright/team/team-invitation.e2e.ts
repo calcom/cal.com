@@ -181,12 +181,10 @@ test.describe("Team", () => {
     await expect(page.locator(`text="${teamEventSlugAndTitle}"`)).toBeVisible();
 
     //ensure the new event-type created for invited member is child of team event-type
-    const parentEventType = await prisma.eventType.findUnique({
+    const parentEventType = await prisma.eventType.findFirst({
       where: {
-        teamId_slug: {
-          teamId: team.id,
-          slug: teamEventSlugAndTitle,
-        },
+        slug: teamEventSlugAndTitle,
+        teamId: team.id,
       },
       select: {
         children: true,

@@ -327,7 +327,7 @@ test.describe("Payment app", () => {
     // Need to wait for the DB to be updated
     await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
 
-    const paypalPrice = await prisma.eventType.findUnique({
+    const paypalPrice = await prisma.eventType.findFirst({
       where: {
         id: paymentEvent.id,
       },
@@ -346,7 +346,7 @@ test.describe("Payment app", () => {
     // Need to wait for the DB to be updated
     await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
 
-    const stripePrice = await prisma.eventType.findUnique({
+    const stripePrice = await prisma.eventType.findFirst({
       where: {
         id: paymentEvent.id,
       },

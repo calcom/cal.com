@@ -46,7 +46,7 @@ export const createBookingAndFetchGCalEvent = async (
         booking: {},
       },
     }),
-    prisma.booking.findUnique({
+    prisma.booking.findFirst({
       where: {
         uid: bookingUid[1],
       },
@@ -73,7 +73,7 @@ export const createBookingAndFetchGCalEvent = async (
   assertValueExists(booking, "booking");
 
   // Need to refresh keys from DB
-  const refreshedCredential = await prisma.credential.findUnique({
+  const refreshedCredential = await prisma.credential.findFirst({
     where: {
       id: qaGCalCredential?.id,
     },

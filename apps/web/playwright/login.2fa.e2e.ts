@@ -61,7 +61,7 @@ test.describe("2FA Tests", async () => {
 
     await test.step("Login with 2FA enabled", async () => {
       await user.login();
-      const userWith2FaSecret = await prisma.user.findUnique({
+      const userWith2FaSecret = await prisma.user.findFirst({
         where: {
           id: user.id,
         },
@@ -135,7 +135,7 @@ test.describe("2FA Tests", async () => {
       await page.click(`[data-testid=two-factor-switch][data-state="checked"]`);
       await page.fill('input[name="password"]', userPassword);
 
-      const userWith2FaSecret = await prisma.user.findUnique({
+      const userWith2FaSecret = await prisma.user.findFirst({
         where: {
           id: user.id,
         },

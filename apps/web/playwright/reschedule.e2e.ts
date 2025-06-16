@@ -147,7 +147,7 @@ test.describe("Reschedule Tests", async () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: booking.uid } });
-    const rescheduledBooking = await prisma.booking.findUniqueOrThrow({ where: { uid: booking.uid } });
+    const rescheduledBooking = await prisma.booking.findFirstOrThrow({ where: { uid: booking.uid } });
 
     expect(newBooking).not.toBeNull();
     expect(rescheduledBooking.status).toBe(BookingStatus.CANCELLED);
@@ -351,7 +351,7 @@ test.describe("Reschedule Tests", async () => {
     const pathSegments = pageUrl.pathname.split("/");
     const bookingUID = pathSegments[pathSegments.length - 1];
 
-    const currentBooking = await prisma.booking.findUniqueOrThrow({ where: { uid: bookingUID } });
+    const currentBooking = await prisma.booking.findFirstOrThrow({ where: { uid: bookingUID } });
     expect(currentBooking).not.toBeUndefined();
     await confirmBooking(currentBooking.id);
 
@@ -368,7 +368,7 @@ test.describe("Reschedule Tests", async () => {
     expect(newBooking.status).toBe(BookingStatus.PENDING);
     await confirmBooking(newBooking.id);
 
-    const booking = await prisma.booking.findUniqueOrThrow({ where: { id: newBooking.id } });
+    const booking = await prisma.booking.findFirstOrThrow({ where: { id: newBooking.id } });
     expect(booking).not.toBeUndefined();
     expect(booking.status).toBe(BookingStatus.ACCEPTED);
 
