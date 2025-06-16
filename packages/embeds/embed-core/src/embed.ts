@@ -1010,7 +1010,7 @@ class CalApi {
 
       // If we are prerendering a headless router path, we don't want to record the response immediately.
       if (isHeadlessRouterPath) {
-        config["queueFormResponse"] = "true";
+        config["cal.queueFormResponse"] = "true";
       }
 
       if (!this.prerenderOptions?.reuseFully) {
