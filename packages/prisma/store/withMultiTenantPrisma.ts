@@ -28,7 +28,7 @@ export function withMultiTenantPrisma<T extends NextResponse | Response = NextRe
   return async (req: NextRequest, ctx: { params: Promise<Params> }) => {
     const results: Record<string, any> = {};
     for (const tenant of TENANT_LIST) {
-      const response = await runWithTenants(tenant, async () => handler(req, ctx));
+      const response = await runWithTenants(tenant, async () => handler(req.clone() as NextRequest, ctx));
       const data = response instanceof Response ? await response.json() : response;
       results[tenant] = data;
     }
