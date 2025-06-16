@@ -238,8 +238,8 @@ export function LogInOverlay(props: LogInOverlayProps) {
           <div className="mt-3 flex flex-col justify-between">
             <div className="flex flex-col">
               <div className="leading-relaxed">
-                <h4 className="text-md font-semibold text-white">Join as guest</h4>
-                <p className="text-subtle text-sm tracking-wide">ideal for one time calls</p>
+                <h4 className="text-md font-semibold text-white">{t("join_as_guest")}</h4>
+                <p className="text-subtle text-sm tracking-wide">{t("ideal_for_one_time_calls")}</p>
               </div>
 
               {/* input fields and button */}

@@ -1310,7 +1310,7 @@
   "sign_in_to_cal_com": "Sign in to your Cal.com account",
   "log_in_to_cal_com": "Log in to Cal.com",
   "track_your_meetings": "Track your meetings and manage your schedule more effectively",
-  "choose_how_you_d_like_to_join_call": "Choose how you'd like to join this call",
+  "choose_how_you_d_like_to_join_call": "Choose how you'd like to appear on the call",
   "new_event_trigger": "when new event is booked",
   "email_host_action": "send email to host",
   "email_attendee_action": "send email to attendees",
@@ -3252,5 +3252,7 @@
   "booker_limit_exceeded_error_reschedule": "You already have a booking for this event on {{date}}. Would you like to reschedule to the new selected time?",
   "duration_min_error": "Duration must be at least {{min}} minute(s)",
   "duration_max_error": "Duration cannot exceed {{max}} minutes (24 hours)",
+  "join_as_guest": "Join as guest",
+  "ideal_for_one_time_calls": "ideal for one time calls",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
