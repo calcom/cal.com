@@ -5,6 +5,15 @@ import { MIN_EVENT_DURATION_MINUTES, MAX_EVENT_DURATION_MINUTES } from "@calcom/
 // TODO: figure out why EventTypeModel is being called even if it's not imported here, causing a circular dependency
 // import { _EventTypeModel } from "../eventtype";
 
+const calVideoSettingsSchema = z
+  .object({
+    disableRecordingForGuests: z.boolean().optional().nullable(),
+    disableRecordingForOrganizer: z.boolean().optional().nullable(),
+    redirectUrlOnExit: z.string().url().optional().nullable(),
+  })
+  .optional()
+  .nullable();
+
 export const createEventTypeInput = z.object({
   title: z.string().min(1),
   slug: imports.eventTypeSlug,
@@ -20,7 +29,8 @@ export const createEventTypeInput = z.object({
   minimumBookingNotice: z.number().int().min(0).optional(),
   beforeEventBuffer: z.number().int().min(0).optional(),
   afterEventBuffer: z.number().int().min(0).optional(),
-  scheduleId: z.number().int().optional()
+  scheduleId: z.number().int().optional(),
+  calVideoSettings: calVideoSettingsSchema
 })
   .partial({ hidden: true, locations: true })
   .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {
