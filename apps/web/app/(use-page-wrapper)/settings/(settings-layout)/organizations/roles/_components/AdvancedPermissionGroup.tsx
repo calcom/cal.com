@@ -98,7 +98,11 @@ export function AdvancedPermissionGroup({
                     <span>{t(actionConfig?.i18nKey || "")}</span>
                   </Label>
                   <span className="text-sm text-gray-500">
-                    {t("descriptionI18nKey" in actionConfig ? actionConfig.descriptionI18nKey : "")}
+                    {t(
+                      actionConfig && "descriptionI18nKey" in actionConfig
+                        ? actionConfig.descriptionI18nKey
+                        : ""
+                    )}
                   </span>
                 </div>
               </div>
