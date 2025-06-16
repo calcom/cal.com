@@ -1,6 +1,9 @@
-import type { RoleType } from "@calcom/prisma/enums";
-
 import type { PermissionString } from "../types/permission-registry";
+
+export const RoleType = {
+  SYSTEM: "SYSTEM",
+  CUSTOM: "CUSTOM",
+} as const;
 
 export interface RolePermission {
   id: string;
