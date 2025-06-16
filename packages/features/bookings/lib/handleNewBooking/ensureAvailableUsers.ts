@@ -9,6 +9,7 @@ import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
+import { isBookingAllowedByRestrictionSchedule } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
@@ -122,6 +123,7 @@ const _ensureAvailableUsers = async (
     },
   });
 
+  // Check restriction schedule first, before checking individual user availability
   if (eventType.restrictionScheduleId) {
     try {
       const restrictionSchedule = await prisma.schedule.findUnique({
@@ -139,61 +141,33 @@ const _ensureAvailableUsers = async (
           },
         },
       });
-      if (restrictionSchedule) {
-        if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
-          // we ignore instead of throwing error to avoid blocking the booking
-          loggerWithEventDetails.error(
-            `No timezone set for restriction schedule.`,
-            piiFreeInputDataForLogging
-          );
-        }
 
-        const restrictionTimezone = eventType.useBookerTimezone
-          ? input.timeZone
-          : restrictionSchedule.timeZone ?? undefined;
+      if (!restrictionSchedule) {
+        loggerWithEventDetails.error(`Restriction schedule ${eventType.restrictionScheduleId} not found`);
+        throw new Error(ErrorCode.NoAvailableUsersFound);
+      }
 
-        const dateOverrides = restrictionSchedule.availability.filter((a) => !!a.date);
-        const recurringRules = restrictionSchedule.availability.filter((a) => !a.date);
+      const bookingAllowedByRestrictionSchedule = isBookingAllowedByRestrictionSchedule({
+        restrictionSchedule,
+        bookingStartTime: dayjs(startDateTimeUtc),
+        bookingEndTime: dayjs(endDateTimeUtc),
+        useBookerTimezone: eventType.useBookerTimezone,
+        bookerTimezone: input.timeZone,
+      });
 
-        const bookingStartTime = dayjs(startDateTimeUtc).tz(restrictionTimezone);
-        const bookingEndTime = dayjs(endDateTimeUtc).tz(restrictionTimezone);
-        const bookingDateStr = bookingStartTime.format("YYYY-MM-DD");
-        const bookingWeekday = bookingStartTime.day();
-        const bookingStartValue = bookingStartTime.valueOf();
-        const bookingEndValue = bookingEndTime.valueOf();
-
-        const overrideRule = dateOverrides.find((a) => dayjs.utc(a.date).isSame(bookingStartTime, "day"));
-        const recurringRule = recurringRules.find((a) => a.days.includes(bookingWeekday));
-        if (overrideRule) {
-          const startTimeStr = dayjs.utc(overrideRule.startTime).format("HH:mm");
-          const endTimeStr = dayjs.utc(overrideRule.endTime).format("HH:mm");
-          const start = dayjs.tz(`${bookingDateStr}T${startTimeStr}`, restrictionTimezone);
-          const end = dayjs.tz(`${bookingDateStr}T${endTimeStr}`, restrictionTimezone);
-          if (!(bookingStartValue >= start.valueOf() && bookingEndValue < end.valueOf())) {
-            loggerWithEventDetails.error(
-              `Booking outside restriction schedule override rule.`,
-              piiFreeInputDataForLogging
-            );
-            throw new Error(ErrorCode.NoAvailableUsersFound);
-          }
-        }
-        if (recurringRule) {
-          const startTimeStr = dayjs.utc(recurringRule.startTime).format("HH:mm");
-          const endTimeStr = dayjs.utc(recurringRule.endTime).format("HH:mm");
-          const start = dayjs.tz(`${bookingDateStr}T${startTimeStr}`, restrictionTimezone);
-          const end = dayjs.tz(`${bookingDateStr}T${endTimeStr}`, restrictionTimezone);
-
-          if (!(bookingStartValue >= start.valueOf() && bookingEndValue < end.valueOf())) {
-            loggerWithEventDetails.error(
-              `Booking outside restriction schedule recurring rule.`,
-              piiFreeInputDataForLogging
-            );
-            throw new Error(ErrorCode.NoAvailableUsersFound);
-          }
-        }
+      if (!bookingAllowedByRestrictionSchedule) {
+        loggerWithEventDetails.error(
+          `Booking outside restriction schedule availability.`,
+          piiFreeInputDataForLogging
+        );
+        throw new Error(ErrorCode.BookingNotAllowedByRestrictionSchedule);
       }
     } catch (error) {
+      if (error instanceof Error && error.message === ErrorCode.NoAvailableUsersFound) {
+        throw error;
+      }
       loggerWithEventDetails.error(`Error checking restriction schedule.`, piiFreeInputDataForLogging);
+      throw new Error(ErrorCode.NoAvailableUsersFound);
     }
   }
 

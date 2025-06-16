@@ -36,6 +36,7 @@ import {
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { isBookingAllowedByRestrictionSchedule } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
@@ -527,37 +528,17 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
           code: "BAD_REQUEST",
         });
       }
-      const restrictionTimezone = eventType.useBookerTimezone
-        ? input.timeZone
-        : restrictionSchedule.timeZone!;
-      const dateOverrides = restrictionSchedule.availability.filter((a) => !!a.date);
-      const recurringRules = restrictionSchedule.availability.filter((a) => !a.date);
+
       availableTimeSlots = timeSlots.filter((slot) => {
-        const slotInTz = slot.time.tz(restrictionTimezone);
-        const slotDateStr = slotInTz.format("YYYY-MM-DD");
-        const slotWeekday = slotInTz.day();
-        // Build full datetime for slot comparison
-        const slotValue = slotInTz.valueOf();
+        const slotEndTime = slot.time.add(input.duration || eventType.length, "minute");
 
-        const overrideRule = dateOverrides.find((a) => dayjs.utc(a.date).isSame(slotInTz, "day"));
-        if (overrideRule) {
-          const startTimeStr = dayjs.utc(overrideRule.startTime).format("HH:mm");
-          const endTimeStr = dayjs.utc(overrideRule.endTime).format("HH:mm");
-          const start = dayjs.tz(`${slotDateStr}T${startTimeStr}`, restrictionTimezone);
-          const end = dayjs.tz(`${slotDateStr}T${endTimeStr}`, restrictionTimezone);
-          return slotValue >= start.valueOf() && slotValue < end.valueOf();
-        }
-
-        const recurringRule = recurringRules.find((a) => a.days.includes(slotWeekday));
-
-        if (recurringRule) {
-          const startTimeStr = dayjs.utc(recurringRule.startTime).format("HH:mm");
-          const endTimeStr = dayjs.utc(recurringRule.endTime).format("HH:mm");
-          const start = dayjs.tz(`${slotDateStr}T${startTimeStr}`, restrictionTimezone);
-          const end = dayjs.tz(`${slotDateStr}T${endTimeStr}`, restrictionTimezone);
-          return slotValue >= start.valueOf() && slotValue < end.valueOf();
-        }
-        return false;
+        return isBookingAllowedByRestrictionSchedule({
+          restrictionSchedule,
+          bookingStartTime: slot.time,
+          bookingEndTime: slotEndTime,
+          useBookerTimezone: eventType.useBookerTimezone,
+          bookerTimezone: input.timeZone,
+        });
       });
     } else {
       availableTimeSlots = timeSlots;

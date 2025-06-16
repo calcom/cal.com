@@ -102,12 +102,12 @@ describe("getSchedule", () => {
 
       scenarioData.users[0].schedules.push({
         id: 50,
-        name: "Test Schedule",
+        name: "Restriction Schedule - Only Date Override",
         timeZone: "Asia/Dubai",
         availability: [
           {
-            date: "2025-06-02",
-            days: [1, 2, 3, 4, 5],
+            date: "2025-06-02T00:00:00.000Z",
+            days: [],
             startTime: new Date("1970-01-01T10:00:00.000Z"),
             endTime: new Date("1970-01-01T18:00:00.000Z"),
           },
@@ -138,13 +138,13 @@ describe("getSchedule", () => {
         "2025-06-02T11:00:00.000Z", // 12 PM London, 3 PM Dubai, 4:30 PM Kolkata
         "2025-06-02T12:00:00.000Z", // 1 PM London, 4 PM Dubai, 5:30 PM Kolkata
         "2025-06-02T13:00:00.000Z", // 2 PM London, 5 PM Dubai, 6:30 PM Kolkata
+        "2025-06-02T14:00:00.000Z", // 3 PM London, 6 PM Dubai, 7:30 PM Kolkata
       ];
 
       expect(result).toHaveTimeSlots(expectedUtcSlots, {
         dateString: plus2DateString,
         doExactMatch: false,
       });
-
       expect(result).toHaveDateDisabled({ dateString: "2025-06-03" });
     });
 
