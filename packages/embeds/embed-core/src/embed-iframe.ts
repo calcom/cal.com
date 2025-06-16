@@ -386,7 +386,7 @@ export const methods = {
     } = config;
 
     // We can convert queuedFormResponse to routingFormResponse now as the user actually opened the modal which is confirmed by this connect method call
-    const convertedRoutingFormResponseId = await recordResponse();
+    const routingFormResponseId = await recordResponse(params);
 
     if (noSlotsFetchOnConnect !== "true") {
       log("Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch");
@@ -405,9 +405,7 @@ export const methods = {
       ...(queryParamsFromConfig as Record<string, string | string[]>),
       "cal.embed.connectVersion": connectVersion.toString(),
       // Update the cal.routingFormResponseId with the new routingFormResponseId
-      ...(convertedRoutingFormResponseId
-        ? { "cal.routingFormResponseId": convertedRoutingFormResponseId.toString() }
-        : {}),
+      ...(routingFormResponseId ? { "cal.routingFormResponseId": routingFormResponseId.toString() } : {}),
     };
 
     (function tryToConnect() {

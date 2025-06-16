@@ -31,19 +31,20 @@ export function isLinkReady({ embedStore }: { embedStore: typeof import("./embed
 /**
  * Moves the queuedFormResponse to the routingFormResponse record to mark it as an actual response now.
  */
-export const convertQueuedFormResponseToRoutingFormResponse = async () => {
+export const recordResponse = async (params: Record<string, string | string[]>) => {
   const url = new URL(document.URL);
-  let convertedRoutingFormResponseId: number | null = null;
-  const queuedFormResponse = url.searchParams.get("cal.queuedFormResponse");
-  if (!queuedFormResponse) {
+  let routingFormResponseId: number | null = null;
+  const queuedFormResponseIdParam = url.searchParams.get("cal.queuedFormResponseId");
+  const queuedFormResponseId = queuedFormResponseIdParam;
+  if (!queuedFormResponseId) {
     return null;
   }
-  // If queuedFormResponse is true, then cal.routingFormResponseId is the id of the queuedFormResponse
-  const queuedFormResponseIdParam = url.searchParams.get("cal.routingFormResponseId");
-  const queuedFormResponseId = Number(queuedFormResponseIdParam);
-  const res = await fetch(
-    `/api/routing-forms/useQueuedResponse?queuedFormResponseId=${queuedFormResponseId}`
-  );
+  // form is formId and isn't acutal Form data
+  const { form: _1, ...actualFormData } = params;
+  const res = await fetch(`/api/routing-forms/useQueuedResponse`, {
+    method: "POST",
+    body: JSON.stringify({ queuedFormResponseId, params: actualFormData }),
+  });
   if (!res.ok) {
     return null;
   }
@@ -51,7 +52,7 @@ export const convertQueuedFormResponseToRoutingFormResponse = async () => {
   const formResponseId = response.data.formResponseId;
   if (formResponseId) {
     // Now we have the actual routingFormResponseId.
-    convertedRoutingFormResponseId = formResponseId;
+    routingFormResponseId = formResponseId;
   }
-  return convertedRoutingFormResponseId;
+  return routingFormResponseId;
 };
