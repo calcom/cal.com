@@ -41,12 +41,10 @@ export const processUserAttributes = async (
   teamId: number,
   attributes: AttributeInput[]
 ): Promise<ProcessAttributesResult> => {
-  const membership = await tx.membership.findUnique({
+  const membership = await tx.membership.findFirst({
     where: {
-      userId_teamId: {
-        userId,
-        teamId,
-      },
+      userId,
+      teamId,
     },
   });
 
