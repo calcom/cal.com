@@ -28,7 +28,6 @@ const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 const querySchema = z
   .object({
     form: z.string(),
-    queueFormResponse: z.coerce.boolean().optional(),
   })
   .catchall(z.string().or(z.array(z.string())));
 
@@ -56,10 +55,11 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   const {
     form: formId,
     "cal.isBookingDryRun": isBookingDryRunParam,
-    queueFormResponse,
+    "cal.queueFormResponse": queueFormResponseParam,
     ...fieldsResponses
   } = queryParsed.data;
   const isBookingDryRun = isBookingDryRunParam === "true";
+  const shouldQueueFormResponse = queueFormResponseParam === "true";
   const paramsToBeForwardedAsIs = {
     ...fieldsResponses,
     // Must be forwarded if present to Booking Page. Setting it explicitly here as it is critical to be present in the URL.
@@ -135,7 +135,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       response: response,
       chosenRouteId: matchingRoute.id,
       isPreview: isBookingDryRun,
-      queueFormResponse,
+      queueFormResponse: shouldQueueFormResponse,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse?.id;
