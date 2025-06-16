@@ -127,6 +127,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let crmContactOwnerEmail: string | null = null;
   let crmContactOwnerRecordType: string | null = null;
   let crmAppSlug: string | null = null;
+  let queuedFormResponseId;
   try {
     const result = await handleResponse({
       form: serializableForm,
@@ -137,7 +138,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       queueFormResponse,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
-    formResponseId = result.formResponse.id;
+    formResponseId = result.formResponse?.id;
+    queuedFormResponseId = result.queuedFormResponse?.id;
     attributeRoutingConfig = result.attributeRoutingConfig;
     timeTaken = {
       ...timeTaken,
@@ -190,9 +192,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
               stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
             ),
             teamMembersMatchingAttributeLogic,
-            // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
-            formResponseId: formResponseId!,
-            queuedFormResponse: queueFormResponse,
+            formResponseId: formResponseId ?? null,
+            queuedFormResponseId: queuedFormResponseId ?? null,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId: form?.teamId,
             orgId: form.team?.parentId,

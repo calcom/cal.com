@@ -152,20 +152,22 @@ const _handleResponse = async ({
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
-    let dbFormResponse;
+    let dbFormResponse, queuedFormResponse;
     if (!isPreview) {
       if (queueFormResponse) {
-        dbFormResponse = await RoutingFormResponseRepository.recordQueuedFormResponse({
+        queuedFormResponse = await RoutingFormResponseRepository.recordQueuedFormResponse({
           formId: form.id,
           response,
           chosenRouteId,
         });
+        dbFormResponse = null;
       } else {
         dbFormResponse = await RoutingFormResponseRepository.recordFormResponse({
           formId: form.id,
           response,
           chosenRouteId,
         });
+        queuedFormResponse = null;
 
         await onSubmissionOfFormResponse({
           form: serializableFormWithFields,
@@ -188,6 +190,7 @@ const _handleResponse = async ({
     return {
       isPreview: !!isPreview,
       formResponse: dbFormResponse,
+      queuedFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
       crmContactOwnerEmail,
       crmContactOwnerRecordType,

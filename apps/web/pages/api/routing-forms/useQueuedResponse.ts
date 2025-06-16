@@ -10,10 +10,10 @@ import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/for
 import { prisma } from "@calcom/prisma";
 
 const useQueuedResponseSchema = z.object({
-  queuedFormResponseId: z.coerce.number(),
+  queuedFormResponseId: z.string(),
 });
 
-const useQueuedResponseHandler = async ({ queuedFormResponseId }: { queuedFormResponseId: number }) => {
+const useQueuedResponseHandler = async ({ queuedFormResponseId }: { queuedFormResponseId: string }) => {
   // Get the queued response
   const queuedFormResponse = await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
     where: {

@@ -55,10 +55,6 @@ export const mapBookingToMutationInput = ({
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
   const routingFormResponseIdParam = searchParams.get("cal.routingFormResponseId");
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
-  const queuedFormResponseParam = searchParams.get("cal.queuedFormResponse");
-  const queuedFormResponse = queuedFormResponseParam ? queuedFormResponseParam === "true" : undefined;
-  const shownPrerenderedAtParam = searchParams.get("cal.embed.shownPrerenderedAt");
-  const shownPrerenderedAt = shownPrerenderedAtParam ? Number(shownPrerenderedAtParam) : undefined;
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
   const reroutingFormResponses = searchParams.get("cal.reroutingFormResponses");
   const _isDryRun = isBookingDryRun(searchParams);
