@@ -30,6 +30,8 @@ import {
   SettingsToggle,
 } from "@calcom/ui/components/form";
 
+import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
+
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
 export type EventLimitsTabCustomClassNames = {
@@ -685,52 +687,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           );
         }}
       />
-      <Controller
-        name="maxActiveBookingsPerBooker"
-        render={({ field: { onChange, value } }) => {
-          const isChecked = maxActiveBookingsPerBookerToggle;
-          return (
-            <SettingsToggle
-              labelClassName={classNames("text-sm")}
-              disabled={isRecurringEvent}
-              tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none"
-              )}
-              childrenClassName={classNames("lg:ml-0")}
-              title={t("booker_booking_limit")}
-              description={t("booker_booking_limit_description")}
-              checked={isChecked}
-              onCheckedChange={(active) => {
-                if (active) {
-                  onChange(1);
-                } else {
-                  onChange(null);
-                }
-                setMaxActiveBookingsPerBookerToggle((state) => !state);
-              }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                <TextField
-                  required
-                  type="number"
-                  value={value}
-                  onChange={(e) => {
-                    onChange(parseInt(e.target.value, 10));
-                  }}
-                  placeholder="1"
-                  min={1}
-                  step={1}
-                  containerClassName={classNames("max-w-80")}
-                  addOnSuffix="bookings"
-                  data-testid="booker-booking-limit-input"
-                />
-              </div>
-            </SettingsToggle>
-          );
-        }}
-      />
+      <MaxActiveBookingsPerBookerController />
       <Controller
         name="periodType"
         render={({ field: { onChange, value } }) => {
