@@ -5,13 +5,18 @@ export enum SystemTenant {
   INSIGHTS = "__insights",
 }
 
-const TENANT_ENV_MAP: Record<
-  string,
-  {
-    activeOn?: string[];
-    connectionString: string;
-  }
-> = {
+const tenantConfigSchema = z.record(
+  z
+    .object({
+      activeOn: z.array(z.string()).optional(),
+      connectionString: z.string(),
+    })
+    .strict()
+);
+
+type TenantConfig = z.infer<typeof tenantConfigSchema>;
+
+const TENANT_ENV_MAP: TenantConfig = {
   [SystemTenant.DEFAULT]: {
     connectionString: process.env.DATABASE_URL || "",
   },
@@ -24,15 +29,6 @@ const TENANT_ENV_MAP: Record<
     : {}),
 };
 
-const tenantConfigSchema = z.record(
-  z
-    .object({
-      activeOn: z.array(z.string()),
-      connectionString: z.string(),
-    })
-    .strict()
-);
-
 /*
  * Allows for multi-tenancy, format should be a JSON string like:
  * {
@@ -44,7 +40,7 @@ const tenantConfigSchema = z.record(
  * }
  */
 if (process.env.TENANT_CONFIG) {
-  let tenantConfig: z.infer<typeof tenantConfigSchema>;
+  let tenantConfig: TenantConfig;
   try {
     tenantConfig = tenantConfigSchema.parse(JSON.parse(process.env.TENANT_CONFIG));
   } catch (error: unknown) {
