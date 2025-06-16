@@ -1162,6 +1162,8 @@ model App_RoutingForms_FormResponse {
   chosenRouteId             String?
   routingFormResponseFields RoutingFormResponseField[]
   routingFormResponses      RoutingFormResponseDenormalized[]
+  queuedFormResponse        App_RoutingForms_QueuedFormResponse?
+  queuedFormResponseId      String?
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
@@ -1177,6 +1179,8 @@ model App_RoutingForms_QueuedFormResponse {
   chosenRouteId String?
   createdAt     DateTime              @default(now())
   updatedAt     DateTime?             @updatedAt
+  actualResponseId    Int?            @unique
+  actualResponse      App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
 }
 
 model RoutingFormResponseField {

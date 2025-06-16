@@ -6,13 +6,12 @@ import z from "zod";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
-import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
+import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
 import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
 import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -101,17 +100,12 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   });
   timeTaken.getSerializableForm = performance.now() - getSerializableFormStart;
 
-  const response: FormResponse = {};
   if (!serializableForm.fields) {
     throw new Error("Form has no fields");
   }
-  serializableForm.fields.forEach((field) => {
-    const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
-
-    response[field.id] = {
-      label: field.label,
-      value: getFieldResponseForJsonLogic({ field, value: fieldResponse }),
-    };
+  const response: FormResponse = getResponseToStore({
+    formFields: serializableForm.fields,
+    fieldsResponses,
   });
 
   const matchingRoute = findMatchingRoute({ form: serializableForm, response });
