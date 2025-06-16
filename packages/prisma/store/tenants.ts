@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isHostMatchingDomain } from "./isHostMatchingDomain";
+
 export enum SystemTenant {
   DEFAULT = "__default",
   INSIGHTS = "__insights",
@@ -65,7 +67,7 @@ export const getTenantFromHost = (host: string): string => {
   for (const [tenant, tenantConfig] of Object.entries(TENANT_ENV_MAP)) {
     if (!tenantConfig.activeOn) continue;
     const domains = tenantConfig.activeOn.map((d) => d.trim()).filter(Boolean);
-    if (domains.some((domain) => host === domain || host.endsWith(`.${domain}`))) {
+    if (domains.some((domain) => isHostMatchingDomain(host, domain))) {
       return tenant;
     }
   }
