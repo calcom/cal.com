@@ -29,6 +29,7 @@ const calVideoSettingsSchema = z
   .object({
     disableRecordingForGuests: z.boolean().optional().nullable(),
     disableRecordingForOrganizer: z.boolean().optional().nullable(),
+    enableAutomaticTranscription: z.boolean().optional().nullable(),
     redirectUrlOnExit: z.string().url().optional().nullable(),
   })
   .optional()
