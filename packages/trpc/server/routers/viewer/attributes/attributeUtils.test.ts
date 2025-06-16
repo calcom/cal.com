@@ -11,6 +11,7 @@ describe("Attribute Utils", () => {
   const mockTx = {
     membership: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
     },
     attributeToUser: {
       findFirst: vi.fn(),
@@ -29,7 +30,7 @@ describe("Attribute Utils", () => {
 
   describe("processUserAttributes", () => {
     it("should return error if user is not a member", async () => {
-      mockTx.membership.findFirst.mockResolvedValue(null);
+      mockTx.membership.findUnique.mockResolvedValue(null);
 
       const result = await processUserAttributes(mockTx as any, 1, 1, []);
 
@@ -41,7 +42,7 @@ describe("Attribute Utils", () => {
     });
 
     it("should skip attributes without type", async () => {
-      mockTx.membership.findFirst.mockResolvedValue({ id: 1 });
+      mockTx.membership.findUnique.mockResolvedValue({ id: 1 });
 
       const result = await processUserAttributes(mockTx as any, 1, 1, [{ id: "attr-1", value: "test" }]);
 
@@ -53,7 +54,7 @@ describe("Attribute Utils", () => {
     });
 
     it("should process TEXT attribute", async () => {
-      mockTx.membership.findFirst.mockResolvedValue({ id: 1 });
+      mockTx.membership.findUnique.mockResolvedValue({ id: 1 });
 
       const result = await processUserAttributes(mockTx as any, 1, 1, [
         { id: "attr-1", value: "test", type: "TEXT" },
@@ -67,7 +68,7 @@ describe("Attribute Utils", () => {
     });
 
     it("should process NUMBER attribute", async () => {
-      mockTx.membership.findFirst.mockResolvedValue({ id: 1 });
+      mockTx.membership.findUnique.mockResolvedValue({ id: 1 });
 
       const result = await processUserAttributes(mockTx as any, 1, 1, [
         { id: "attr-1", value: "123", type: "NUMBER" },
@@ -81,7 +82,7 @@ describe("Attribute Utils", () => {
     });
 
     it("should process SINGLE_SELECT attribute", async () => {
-      mockTx.membership.findFirst.mockResolvedValue({ id: 1 });
+      mockTx.membership.findUnique.mockResolvedValue({ id: 1 });
 
       const result = await processUserAttributes(mockTx as any, 1, 1, [
         { id: "attr-1", options: [{ value: "opt-1" }], type: "SINGLE_SELECT" },
@@ -119,7 +120,7 @@ describe("Attribute Utils", () => {
     });
 
     it("should process MULTI_SELECT attribute", async () => {
-      mockTx.membership.findFirst.mockResolvedValue({ id: 1 });
+      mockTx.membership.findUnique.mockResolvedValue({ id: 1 });
 
       const result = await processUserAttributes(mockTx as any, 1, 1, [
         {
@@ -139,7 +140,7 @@ describe("Attribute Utils", () => {
     });
 
     it("should handle attribute removal when no value or options provided", async () => {
-      mockTx.membership.findFirst.mockResolvedValue({ id: 1 });
+      mockTx.membership.findUnique.mockResolvedValue({ id: 1 });
 
       const result = await processUserAttributes(mockTx as any, 1, 1, [{ id: "attr-1", type: "TEXT" }]);
 
