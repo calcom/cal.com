@@ -39,7 +39,7 @@ export interface ResourceConfig {
   _resource?: {
     i18nKey: string;
   };
-  [key: string]: key extends "_resource" ? { i18nKey: string } : PermissionDetails | undefined;
+  [(key in CrudAction) | CustomAction]: PermissionDetails | { i18nKey: string } | undefined;
 }
 
 export type PermissionRegistry = {
