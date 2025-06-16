@@ -35,15 +35,12 @@ export interface PermissionDetails {
   descriptionI18nKey: string;
 }
 
-type ResourceConfigBase = {
-  _resource: {
+export interface ResourceConfig {
+  _resource?: {
     i18nKey: string;
   };
-} & {
-  [K in Exclude<string, "_resource">]: PermissionDetails | undefined;
-};
-
-export type ResourceConfig = Partial<ResourceConfigBase>;
+  [key: string]: key extends "_resource" ? { i18nKey: string } : PermissionDetails | undefined;
+}
 
 export type PermissionRegistry = {
   [key in Resource]: ResourceConfig;
