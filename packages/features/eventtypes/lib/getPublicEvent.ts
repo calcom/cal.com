@@ -268,28 +268,27 @@ export const getPublicEvent = async (
     const disableBookingTitle = !defaultEvent.isDynamic;
     const unPublishedOrgUser = users.find((user) => user.profile?.organization?.slug === null);
 
-    let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined;
-    if (orgSlug) {
-      orgDetails = orgId
-        ? await prisma.team.findUniqueOrThrow({
-            where: {
-              id: orgId,
-            },
-            select: {
-              logoUrl: true,
-              name: true,
-            },
-          })
-        : await prisma.team.findFirstOrThrow({
-            where: {
-              slug: org,
-            },
-            select: {
-              logoUrl: true,
-              name: true,
-            },
-          });
-    }
+    const orgDetails: Pick<Team, "logoUrl" | "name"> | undefined = orgId
+      ? await prisma.team.findUniqueOrThrow({
+          where: {
+            id: orgId,
+          },
+          select: {
+            logoUrl: true,
+            name: true,
+          },
+        })
+      : orgSlug
+      ? await prisma.team.findFirstOrThrow({
+          where: {
+            slug: orgSlug,
+          },
+          select: {
+            logoUrl: true,
+            name: true,
+          },
+        })
+      : undefined;
 
     return {
       ...defaultEvent,
@@ -448,18 +447,28 @@ export const getPublicEvent = async (
     eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
   }
 
-  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null;
-  if (orgSlug) {
-    orgDetails = await prisma.team.findUnique({
-      where: {
-        id: orgId,
-      },
-      select: {
-        logoUrl: true,
-        name: true,
-      },
-    });
-  }
+  const orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null = orgId
+    ? await prisma.team.findUnique({
+        where: {
+          id: orgId,
+        },
+        select: {
+          logoUrl: true,
+          name: true,
+        },
+      })
+    : orgSlug
+    ? await prisma.team.findFirst({
+        where: {
+          slug: orgSlug,
+          parentId: null,
+        },
+        select: {
+          logoUrl: true,
+          name: true,
+        },
+      })
+    : undefined;
 
   let showInstantEventConnectNowModal = eventWithUserProfiles.isInstantEvent;
 
