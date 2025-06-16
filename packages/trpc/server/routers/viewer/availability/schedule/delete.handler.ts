@@ -16,7 +16,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
   const { user } = ctx;
 
-  const scheduleToDelete = await prisma.schedule.findFirst({
+  const scheduleToDelete = await prisma.schedule.findUnique({
     where: {
       id: input.scheduleId,
     },

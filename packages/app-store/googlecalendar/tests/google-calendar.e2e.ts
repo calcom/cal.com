@@ -62,7 +62,7 @@ test.describe("Google Calendar", async () => {
         } as CredentialForCalendarServiceWithEmail;
         test.skip(!qaGCalCredential?.id, "Google QA credential not found");
 
-        const qaUserQuery = await prisma.user.findFirstOrThrow({
+        const qaUserQuery = await prisma.user.findUniqueOrThrow({
           where: {
             email: process.env.E2E_TEST_CALCOM_QA_EMAIL,
           },
@@ -159,7 +159,7 @@ test.describe("Google Calendar", async () => {
       assertValueExists(rescheduledBookingUid, "rescheduledBookingUid");
 
       // Get the rescheduled booking start and end times
-      const rescheduledBooking = await prisma.booking.findFirst({
+      const rescheduledBooking = await prisma.booking.findUnique({
         where: {
           uid: rescheduledBookingUid[1],
         },

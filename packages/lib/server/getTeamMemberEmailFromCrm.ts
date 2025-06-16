@@ -59,7 +59,7 @@ async function getAttributeRoutingConfig(
   }
   const { routingFormResponseId, eventTypeId } = data;
 
-  const routingFormResponseQuery = await prisma.app_RoutingForms_FormResponse.findFirst({
+  const routingFormResponseQuery = await prisma.app_RoutingForms_FormResponse.findUnique({
     where: {
       id: routingFormResponseId,
     },

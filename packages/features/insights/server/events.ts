@@ -625,10 +625,12 @@ class EventsInsights {
     sessionUserId: number;
     teamId: number;
   }) => {
-    const isOwnerAdminOfTeam = await prisma.membership.findFirst({
+    const isOwnerAdminOfTeam = await prisma.membership.findUnique({
       where: {
-        userId: sessionUserId,
-        teamId,
+        userId_teamId: {
+          userId: sessionUserId,
+          teamId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
@@ -659,10 +661,12 @@ class EventsInsights {
       return false;
     }
 
-    const isOwnerAdminOfParentTeam = await prisma.membership.findFirst({
+    const isOwnerAdminOfParentTeam = await prisma.membership.findUnique({
       where: {
-        userId: sessionUserId,
-        teamId: team.parentId,
+        userId_teamId: {
+          userId: sessionUserId,
+          teamId: team.parentId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],

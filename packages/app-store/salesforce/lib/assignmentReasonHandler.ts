@@ -29,7 +29,7 @@ export async function assignmentReasonHandler({
 }
 
 async function handleAccountLookupFieldReason(routingFormResponseId: number, teamMemberEmail: string) {
-  const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
+  const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
     where: {
       id: routingFormResponseId,
     },

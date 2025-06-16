@@ -14,7 +14,7 @@ export const bulkUpdateTeamEventsToDefaultLocation = async ({
   teamId: number;
   prisma: PrismaClient;
 }) => {
-  const team = await prisma.team.findFirst({
+  const team = await prisma.team.findUnique({
     where: { id: teamId },
     select: { metadata: true },
   });

@@ -186,7 +186,7 @@ export default class EventManager {
     // Fallback to cal video if no location is set
     if (!evt.location) {
       // See if cal video is enabled & has keys
-      const calVideo = await prisma.app.findFirst({
+      const calVideo = await prisma.app.findUnique({
         where: {
           slug: "daily-video",
         },
@@ -461,7 +461,7 @@ export default class EventManager {
     }
 
     // Get details of existing booking.
-    const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findUnique({
       where: {
         uid: rescheduleUid,
       },

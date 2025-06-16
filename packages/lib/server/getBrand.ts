@@ -6,7 +6,7 @@ export const getBrand = async (orgId: number | null) => {
   if (!orgId) {
     return null;
   }
-  const org = await prisma.team.findFirst({
+  const org = await prisma.team.findUnique({
     where: {
       id: orgId,
     },

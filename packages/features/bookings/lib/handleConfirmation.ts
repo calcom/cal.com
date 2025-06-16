@@ -500,7 +500,7 @@ export async function handleConfirmation(args: {
         orgId,
         oAuthClientId: platformClientParams?.platformClientId,
       });
-      const bookingWithPayment = await prisma.booking.findFirst({
+      const bookingWithPayment = await prisma.booking.findUnique({
         where: {
           id: bookingId,
         },

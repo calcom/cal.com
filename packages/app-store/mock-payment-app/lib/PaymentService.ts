@@ -10,7 +10,7 @@ export class PaymentService implements IAbstractPaymentService {
     bookingId: Booking["id"]
   ) {
     try {
-      const booking = await prisma.booking.findFirst({
+      const booking = await prisma.booking.findUnique({
         select: {
           uid: true,
           title: true,
@@ -71,7 +71,7 @@ export class PaymentService implements IAbstractPaymentService {
     paymentOption: PaymentOption
   ): Promise<Payment> {
     try {
-      const booking = await prisma.booking.findFirst({
+      const booking = await prisma.booking.findUnique({
         select: {
           uid: true,
           title: true,

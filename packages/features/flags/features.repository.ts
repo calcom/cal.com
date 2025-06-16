@@ -170,10 +170,12 @@ export class FeaturesRepository implements IFeaturesRepository {
   async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags): Promise<boolean> {
     try {
       // Early return if team has feature directly assigned
-      const teamHasFeature = await db.teamFeatures.findFirst({
+      const teamHasFeature = await db.teamFeatures.findUnique({
         where: {
-          teamId,
-          featureId,
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
         },
       });
       if (teamHasFeature) return true;

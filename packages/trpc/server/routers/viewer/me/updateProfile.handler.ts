@@ -160,7 +160,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (input.completedOnboarding) {
-    const userTeams = await prisma.user.findFirst({
+    const userTeams = await prisma.user.findUnique({
       where: {
         id: user.id,
       },

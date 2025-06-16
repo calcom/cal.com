@@ -321,7 +321,7 @@ describe.skip("Bulk Delete Users handler", () => {
     expect(userEvents.length).toBe(3);
 
     // Host assignment from child team events of removed users should be deleted
-    const teamEvent = await prismock.eventType.findFirst({
+    const teamEvent = await prismock.eventType.findUnique({
       where: {
         id: roundRobinEvent.id,
       },

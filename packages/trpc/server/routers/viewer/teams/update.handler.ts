@@ -40,7 +40,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (userConflict.some((t) => t.id !== input.id)) return;
   }
 
-  const prevTeam = await prisma.team.findFirst({
+  const prevTeam = await prisma.team.findUnique({
     where: {
       id: input.id,
     },

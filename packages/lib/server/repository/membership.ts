@@ -233,10 +233,12 @@ export class MembershipRepository {
   }
 
   static async findFirstByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
-    return await prisma.membership.findFirst({
+    return await prisma.membership.findUnique({
       where: {
-        userId,
-        teamId,
+        userId_teamId: {
+          userId,
+          teamId,
+        },
       },
     });
   }

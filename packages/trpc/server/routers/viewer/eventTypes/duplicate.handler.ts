@@ -54,10 +54,12 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     // Validate user is owner of event type or in the team
     if (eventType.userId !== ctx.user.id) {
       if (eventType.teamId) {
-        const isMember = await prisma.membership.findFirst({
+        const isMember = await prisma.membership.findUnique({
           where: {
-            userId: ctx.user.id,
-            teamId: eventType.teamId,
+            userId_teamId: {
+              userId: ctx.user.id,
+              teamId: eventType.teamId,
+            },
           },
         });
         if (!isMember) {
