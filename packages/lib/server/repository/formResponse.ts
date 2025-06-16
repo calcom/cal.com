@@ -54,7 +54,7 @@ export class RoutingFormResponseRepository {
     queuedFormResponseId,
     createdAt,
   }: {
-    queuedFormResponseId: number;
+    queuedFormResponseId: string;
     createdAt: Date;
   }) {
     const queuedResponse = await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
