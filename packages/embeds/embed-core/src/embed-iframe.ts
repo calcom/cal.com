@@ -386,6 +386,9 @@ export const methods = {
     } = config;
 
     // We now record the response to routingFormResponse and connect that with queuedResponse, as the user actually opened the modal which is confirmed by this connect method call
+    // We await for the response to be recorded so that we can update the URL with cal.routingFormResponseId
+    // TODO: We could later evaluate if we could make it async, maybe cal.routingFormResponseId is needed only during the booking and it is possible to add cal.routingFormResponseId query param later(after showing the booking page).
+    // This delay is a few 100ms which could be fine for now.
     const newlyRecordedResponseId = await recordResponseIfQueued(params);
 
     if (noSlotsFetchOnConnect !== "true") {
@@ -653,7 +656,7 @@ function connectPreloadedEmbed({
 
   if (isBookerReady() && hasChanged) {
     // Give some time for react to update state that might lead booker to go to slotsLoading state
-    waitForFrames = 5;
+    waitForFrames = 2;
   }
 
   // Booker might alreadyu be in slotsDone state. But we don't know if new getTeamSchedule request would intitiate or not. It would initiate when React updates the state but it might not go depending on if there is no actual state change in useSchedule components
