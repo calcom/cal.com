@@ -368,7 +368,7 @@ test.describe("Bookings", () => {
       );
     });
 
-    test("Round robin event type with confirmation required handles recjection and rebooking correctly with the same details and slot", async ({
+    test("Round robin event type with confirmation required handles rejection and rebooking correctly with the same details and slot", async ({
       page,
       users,
       orgs,
@@ -456,7 +456,7 @@ test.describe("Bookings", () => {
           const newBookingUid = secondPage.url().split("/booking/")[1];
           expect(newBookingUid).not.toBeNull();
           expect(newBookingUid).not.toBe(bookingUid);
-          secondContext.close();
+          await secondContext.close();
         }
       );
     });
