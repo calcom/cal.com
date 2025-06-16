@@ -260,7 +260,7 @@ describe("methods", async () => {
       return {
         ...actual,
         isLinkReady: isLinkReadyMock,
-        convertQueuedFormResponseToRoutingFormResponse: convertQueuedFormResponseToRoutingFormResponseMock,
+        recordResponse: convertQueuedFormResponseToRoutingFormResponseMock,
       };
     });
     vi.doMock("../embed-iframe/lib/embedStore", async (importOriginal) => {

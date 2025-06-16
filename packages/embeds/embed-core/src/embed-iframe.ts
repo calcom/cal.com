@@ -4,12 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
-import {
-  runAsap,
-  isBookerReady,
-  isLinkReady,
-  convertQueuedFormResponseToRoutingFormResponse,
-} from "./embed-iframe/lib/utils";
+import { runAsap, isBookerReady, isLinkReady, recordResponse } from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
   UiConfig,
@@ -391,7 +386,7 @@ export const methods = {
     } = config;
 
     // We can convert queuedFormResponse to routingFormResponse now as the user actually opened the modal which is confirmed by this connect method call
-    const convertedRoutingFormResponseId = await convertQueuedFormResponseToRoutingFormResponse();
+    const convertedRoutingFormResponseId = await recordResponse();
 
     if (noSlotsFetchOnConnect !== "true") {
       log("Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch");
