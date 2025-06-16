@@ -29,6 +29,7 @@ export const prisma = getPrisma();
 export const disconnectPrisma = async () => {
   if (_prisma) {
     await _prisma.$disconnect();
+    // This is for internal use only.
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     _prisma = undefined;
