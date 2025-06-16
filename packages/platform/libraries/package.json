@@ -1,6 +1,6 @@
 {
   "name": "@calcom/platform-libraries",
-  "version": "0.0.0",
+  "version": "9.9.9",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -63,6 +63,11 @@
       "import": "./dist/slots.js",
       "require": "./dist/slots.cjs",
       "types": "./dist/slots.d.ts"
+    },
+    "./conferencing": {
+      "import": "./dist/conferencing.js",
+      "require": "./dist/conferencing.cjs",
+      "types": "./dist/conferencing.d.ts"
     }
   },
   "typesVersions": {
@@ -84,6 +89,9 @@
       ],
       "workflows": [
         "dist/workflows.d.ts"
+      ],
+      "conferencing": [
+        "dist/conferencing.d.ts"
       ]
     }
   }

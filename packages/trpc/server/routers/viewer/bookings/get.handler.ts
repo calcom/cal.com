@@ -850,13 +850,9 @@ async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
     where: {
       teams: {
         some: {
-          team: orgId
-            ? {
-                isOrganization: true,
-                members: membershipCondition,
-                id: orgId,
-              }
-            : { isOrganization: false, members: membershipCondition, parentId: null },
+          team: {
+            members: membershipCondition,
+          },
         },
       },
     },
@@ -865,7 +861,10 @@ async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
       email: true,
     },
   });
-  return [users.map((user) => user.id), users.map((user) => user.email)];
+  const userIds = Array.from(new Set(users.map((user) => user.id)));
+  const userEmails = Array.from(new Set(users.map((user) => user.email)));
+
+  return [userIds, userEmails];
 }
 
 function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {
