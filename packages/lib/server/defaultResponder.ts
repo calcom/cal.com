@@ -15,7 +15,7 @@ export function defaultResponder<T>(
   /** If set we will wrap the handle with sentry tracing */
   endpointRoute?: string
 ) {
-  return withPrismaApiHandler(async (req: NextApiRequest, res: NextApiResponse) => {
+  return withPrismaApiHandler<T>(async (req: NextApiRequest, res: NextApiResponse) => {
     let ok = false;
     try {
       performance.mark("Start");
