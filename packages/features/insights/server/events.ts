@@ -501,6 +501,7 @@ class EventsInsights {
 
     const data = csvData.map((bookingTimeStatus) => {
       if (!bookingTimeStatus.uid) {
+        // should not be reached because we filtered above
         return {
           ...bookingTimeStatus,
           attendee1: null,
