@@ -17,6 +17,7 @@ export class CalVideoSettingsRepository {
       disableRecordingForOrganizer?: boolean | null;
       disableTranscriptionForGuests?: boolean | null;
       disableTranscriptionForOrganizer?: boolean | null;
+      enableAutomaticTranscription?: boolean | null;
       redirectUrlOnExit?: string | null;
     };
   }) {
