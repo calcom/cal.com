@@ -391,7 +391,7 @@ describe("Cal", () => {
               ...modalArg.config,
               prerender: "true",
               embedType: "modal",
-              queueFormResponse: "true",
+              "cal.queueFormResponse": "true",
               email: "john@example.com",
               form: "123",
             }),
