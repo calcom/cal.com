@@ -1,7 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 
 import { listMembersHandler } from "./listMembers.handler";
@@ -24,9 +23,10 @@ vi.spyOn(prisma.membership, "count").mockImplementation(prismaMock.membership.co
 vi.spyOn(prisma.attributeOption, "findMany").mockImplementation(prismaMock.attributeOption.findMany);
 
 // Mock FeaturesRepository
+const mockCheckIfTeamHasFeature = vi.fn();
 vi.mock("@calcom/features/flags/features.repository", () => ({
   FeaturesRepository: vi.fn().mockImplementation(() => ({
-    checkIfTeamHasFeature: vi.fn(),
+    checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
   })),
 }));
 
@@ -58,8 +58,7 @@ describe("listMembersHandler", () => {
 
   it("should filter by customRoleId when PBAC is enabled", async () => {
     // Mock PBAC enabled
-    const featuresRepository = new FeaturesRepository();
-    vi.mocked(featuresRepository.checkIfTeamHasFeature).mockResolvedValue(true);
+    mockCheckIfTeamHasFeature.mockResolvedValue(true);
 
     const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "role",
@@ -86,6 +85,10 @@ describe("listMembersHandler", () => {
           customRoleId: {
             in: ["ADMIN"],
           },
+          teamId: ORGANIZATION_ID,
+          user: {
+            isPlatformManaged: false,
+          },
         }),
       })
     );
@@ -93,8 +96,7 @@ describe("listMembersHandler", () => {
 
   it("should filter by role when PBAC is disabled", async () => {
     // Mock PBAC disabled
-    const featuresRepository = new FeaturesRepository();
-    vi.mocked(featuresRepository.checkIfTeamHasFeature).mockResolvedValue(false);
+    mockCheckIfTeamHasFeature.mockResolvedValue(false);
 
     const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "role",
@@ -128,8 +130,7 @@ describe("listMembersHandler", () => {
 
   it("should combine multiple attribute filters with AND logic", async () => {
     // Mock PBAC disabled for this test
-    const featuresRepository = new FeaturesRepository();
-    vi.mocked(featuresRepository.checkIfTeamHasFeature).mockResolvedValue(false);
+    mockCheckIfTeamHasFeature.mockResolvedValue(false);
 
     const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "role",

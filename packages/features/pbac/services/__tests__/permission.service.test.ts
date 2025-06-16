@@ -66,7 +66,7 @@ describe("PermissionService", () => {
     it("should return all permissions from registry as domain objects", () => {
       const permissions = service.getAllPermissions();
       const expectedCount = Object.values(PERMISSION_REGISTRY).reduce(
-        (count, resource) => count + Object.keys(resource).length,
+        (count, resource) => count + Object.keys(resource).filter((key) => key !== "_resource").length,
         0
       );
       expect(permissions).toHaveLength(expectedCount);
@@ -99,7 +99,10 @@ describe("PermissionService", () => {
       const categories = service.getPermissionCategories();
       const uniqueCategories = new Set(
         Object.values(PERMISSION_REGISTRY).flatMap((resource) =>
-          Object.values(resource).map((p) => p.category)
+          Object.entries(resource)
+            .filter(([key]) => key !== "_resource")
+            .map(([_, p]) => p?.category)
+            .filter(Boolean)
         )
       );
       expect(categories).toHaveLength(uniqueCategories.size);
