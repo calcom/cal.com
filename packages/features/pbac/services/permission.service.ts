@@ -5,8 +5,14 @@ import type {
   Resource,
   CrudAction,
   CustomAction,
+  PermissionDetails,
 } from "../domain/types/permission-registry";
 import { PERMISSION_REGISTRY, filterResourceConfig } from "../domain/types/permission-registry";
+
+// Helper function to check if an object is PermissionDetails
+const isPermissionDetails = (obj: any): obj is PermissionDetails => {
+  return obj && "description" in obj && "category" in obj && "i18nKey" in obj && "descriptionI18nKey" in obj;
+};
 
 export class PermissionService {
   validatePermission(permission: PermissionString): PermissionValidationResult {
@@ -60,7 +66,7 @@ export class PermissionService {
     Object.entries(PERMISSION_REGISTRY).forEach(([resource, actions]) => {
       const filteredActions = filterResourceConfig(actions);
       Object.entries(filteredActions).forEach(([action, details]) => {
-        if (details) {
+        if (details && isPermissionDetails(details)) {
           permissions.push({
             resource: resource as Resource,
             action: action as CrudAction | CustomAction,
@@ -80,7 +86,7 @@ export class PermissionService {
 
     const filteredPermissions = filterResourceConfig(resourcePermissions);
     return Object.entries(filteredPermissions)
-      .filter(([_, details]) => details !== undefined)
+      .filter(([_, details]) => details !== undefined && isPermissionDetails(details))
       .map(([action, details]) => ({
         resource,
         action: action as CrudAction | CustomAction,
