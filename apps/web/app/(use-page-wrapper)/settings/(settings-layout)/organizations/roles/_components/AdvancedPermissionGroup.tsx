@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
-import { PERMISSION_REGISTRY, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
@@ -14,6 +14,8 @@ interface AdvancedPermissionGroupProps {
   selectedPermissions: string[];
   onChange: (permissions: string[]) => void;
 }
+
+const INTERNAL_DATAACCESS_KEY = "_resource";
 
 export function AdvancedPermissionGroup({
   resource,
@@ -60,7 +62,7 @@ export function AdvancedPermissionGroup({
             onClick={handleToggleAll}
           />
           <span className="text-default text-sm font-medium leading-none">
-            {t(resourceConfig[CrudAction.All as keyof typeof resourceConfig]?.i18nKey || "")}
+            {t(resourceConfig._resource?.i18nKey || "")}
           </span>
           <span className="text-muted text-sm font-medium leading-none">{t("all_permissions")}</span>
         </div>
@@ -72,6 +74,16 @@ export function AdvancedPermissionGroup({
         >
           {Object.entries(resourceConfig).map(([action, actionConfig]) => {
             const permission = `${resource}.${action}`;
+
+            if (action === INTERNAL_DATAACCESS_KEY) {
+              return null;
+            }
+
+            console.log({
+              actionConfig,
+              action,
+              permission,
+            });
             return (
               <div key={action} className="flex items-center">
                 <Checkbox
@@ -88,9 +100,9 @@ export function AdvancedPermissionGroup({
                   onClick={(e) => e.stopPropagation()} // Stop label clicks from affecting parent
                 >
                   <Label htmlFor={permission} className="mb-0">
-                    <span>{t(actionConfig.i18nKey)}</span>
+                    <span>{t(actionConfig?.i18nKey || "")}</span>
                   </Label>
-                  <span className="text-sm text-gray-500">{t(actionConfig.descriptionI18nKey)}</span>
+                  <span className="text-sm text-gray-500">{t(actionConfig?.descriptionI18nKey || "")}</span>
                 </div>
               </div>
             );
