@@ -490,7 +490,7 @@ class EventsInsights {
         return [
           booking.uid,
           {
-            firstAttendeeNoShow: attendeeList[0]?.noShow || false,
+            noShowGuest: attendeeList[0]?.noShow || false,
             attendee1: formattedAttendees[0] || null,
             attendee2: formattedAttendees[1] || null,
             attendee3: formattedAttendees[2] || null,
