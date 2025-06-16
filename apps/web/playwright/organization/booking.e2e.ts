@@ -368,7 +368,7 @@ test.describe("Bookings", () => {
       );
     });
 
-    test("Round robin event type with confirmation required handles cancellation and rebooking correctly with the same details and slot", async ({
+    test("Round robin event type with confirmation required handles recjection and rebooking correctly with the same details and slot", async ({
       page,
       users,
       orgs,
@@ -422,7 +422,6 @@ test.describe("Bookings", () => {
           const bookingUid = page.url().split("/booking/")[1];
           expect(bookingUid).not.toBeNull();
 
-          // Login as the host to cancel the booking
           await page.goto("/auth/logout");
 
           const allUsers = users.get();
@@ -432,12 +431,12 @@ test.describe("Bookings", () => {
           await hostUser.apiLogin();
           const [secondContext, secondPage] = await hostUser.apiLoginOnNewBrowser(browser);
 
-          // Cancel the booking
-          await secondPage.goto(`/booking/${bookingUid}`);
-          await secondPage.getByTestId("cancel").click();
-          await secondPage.locator('[data-testid="cancel_reason"]').fill("Test reason");
-          await secondPage.getByTestId("confirm_cancel").click();
-          await secondPage.waitForResponse((response) => response.url().includes("/api/cancel"));
+          // Reject the booking
+          await secondPage.goto("/bookings/upcoming");
+          await secondPage.click('[data-testid="reject"]');
+          await submitAndWaitForResponse(page, "/api/trpc/bookings/confirm?batch=1", {
+            action: () => page.click('[data-testid="rejection-confirm"]'),
+          });
 
           // Logout and go back to booking page
           await secondPage.goto("/auth/logout");

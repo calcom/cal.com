@@ -800,7 +800,7 @@ export default function Success(props: PageProps) {
                       </>
                     )}
                     {!requiresLoginToUpdate &&
-                      (!needsConfirmation || isHost) &&
+                      (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
                       !isRerouting &&
                       canCancelOrReschedule &&
