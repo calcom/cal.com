@@ -158,6 +158,7 @@ export type FormValues = {
     enableAutomaticTranscription?: boolean;
     redirectUrlOnExit?: string;
   };
+  maxActiveBookingPerBookerOfferReschedule: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
