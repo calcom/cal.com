@@ -58,7 +58,7 @@ export function isBookingAllowedByRestrictionSchedule({
   const overrideRulesForTheDay = dateOverrides.filter((a) =>
     dayjs.utc(a.date).isSame(bookingStartTime.utc(), "day")
   );
-  const recurringRuleForTheDay = recurringRules.find((a) => a.days.includes(bookingWeekday));
+  const recurringRulesForTheDay = recurringRules.filter((a) => a.days.includes(bookingWeekday));
 
   if (overrideRulesForTheDay.length > 0) {
     const overrideAllowsBooking = overrideRulesForTheDay.some((rule) => {
@@ -66,15 +66,24 @@ export function isBookingAllowedByRestrictionSchedule({
       const endTimeStr = dayjs.utc(rule.endTime).format("HH:mm");
       const start = dayjs.tz(`${bookingDateStr}T${startTimeStr}`, restrictionTimezone);
       const end = dayjs.tz(`${bookingDateStr}T${endTimeStr}`, restrictionTimezone);
+      console.log("overrideRulesForTheDay", {
+        bookingStartValue: new Date(bookingStartValue),
+        bookingEndValue: new Date(bookingEndValue),
+        start: new Date(start.valueOf()),
+        end: new Date(end.valueOf()),
+      });
       return bookingStartValue >= start.valueOf() && bookingEndValue <= end.valueOf();
     });
     return overrideAllowsBooking;
   }
-  if (!recurringRuleForTheDay) return false;
-  const startTimeStr = dayjs.utc(recurringRuleForTheDay.startTime).format("HH:mm");
-  const endTimeStr = dayjs.utc(recurringRuleForTheDay.endTime).format("HH:mm");
-  const start = dayjs.tz(`${bookingDateStr}T${startTimeStr}`, restrictionTimezone);
-  const end = dayjs.tz(`${bookingDateStr}T${endTimeStr}`, restrictionTimezone);
+  if (recurringRulesForTheDay.length === 0) return false;
+  const recurringAllowsBooking = recurringRulesForTheDay.some((rule) => {
+    const startTimeStr = dayjs.utc(rule.startTime).format("HH:mm");
+    const endTimeStr = dayjs.utc(rule.endTime).format("HH:mm");
+    const start = dayjs.tz(`${bookingDateStr}T${startTimeStr}`, restrictionTimezone);
+    const end = dayjs.tz(`${bookingDateStr}T${endTimeStr}`, restrictionTimezone);
 
-  return bookingStartValue >= start.valueOf() && bookingEndValue <= end.valueOf();
+    return bookingStartValue >= start.valueOf() && bookingEndValue <= end.valueOf();
+  });
+  return recurringAllowsBooking;
 }
