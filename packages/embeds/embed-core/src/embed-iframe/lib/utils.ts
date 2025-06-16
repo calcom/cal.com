@@ -31,7 +31,7 @@ export function isLinkReady({ embedStore }: { embedStore: typeof import("./embed
 /**
  * Moves the queuedFormResponse to the routingFormResponse record to mark it as an actual response now.
  */
-export const recordResponse = async (params: Record<string, string | string[]>) => {
+export const recordResponseIfQueued = async (params: Record<string, string | string[]>) => {
   const url = new URL(document.URL);
   let routingFormResponseId: number | null = null;
   const queuedFormResponseIdParam = url.searchParams.get("cal.queuedFormResponseId");

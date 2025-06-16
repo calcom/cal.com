@@ -291,7 +291,6 @@ describe("Cal", () => {
     const initialStateOfModal = "loading";
     const baseModalArgs = {
       calLink: "john-doe/meeting",
-      __shownPrerenderedAt: Date.now(),
       config: {
         theme: "light",
         layout: "modern",

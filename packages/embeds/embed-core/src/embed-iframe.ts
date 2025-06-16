@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
-import { runAsap, isBookerReady, isLinkReady, recordResponse } from "./embed-iframe/lib/utils";
+import { runAsap, isBookerReady, isLinkReady, recordResponseIfQueued } from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
   UiConfig,
@@ -385,8 +385,8 @@ export const methods = {
       ...queryParamsFromConfig
     } = config;
 
-    // We can convert queuedFormResponse to routingFormResponse now as the user actually opened the modal which is confirmed by this connect method call
-    const routingFormResponseId = await recordResponse(params);
+    // We now record the response to routingFormResponse and connect that with queuedResponse, as the user actually opened the modal which is confirmed by this connect method call
+    const newlyRecordedResponseId = await recordResponseIfQueued(params);
 
     if (noSlotsFetchOnConnect !== "true") {
       log("Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch");
@@ -404,8 +404,8 @@ export const methods = {
       // Query params from config takes precedence over query params in url
       ...(queryParamsFromConfig as Record<string, string | string[]>),
       "cal.embed.connectVersion": connectVersion.toString(),
-      // Update the cal.routingFormResponseId with the new routingFormResponseId
-      ...(routingFormResponseId ? { "cal.routingFormResponseId": routingFormResponseId.toString() } : {}),
+      // Set cal.routingFormResponseId now if new response is created.
+      ...(newlyRecordedResponseId ? { "cal.routingFormResponseId": newlyRecordedResponseId.toString() } : {}),
     };
 
     (function tryToConnect() {

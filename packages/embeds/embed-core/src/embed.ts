@@ -968,17 +968,12 @@ class CalApi {
     calOrigin,
     __prerender = false,
     prerenderOptions = {},
-    __shownPrerenderedAt,
   }: {
     calLink: string;
     config?: PrefillAndIframeAttrsConfig;
     calOrigin?: string;
     __prerender?: boolean;
     prerenderOptions?: ModalPrerenderOptions;
-    /**
-     * Allow configuring the shownPrerenderedAt for testing purposes
-     */
-    __shownPrerenderedAt?: number;
   }) {
     const calConfig = this.cal.getCalConfig();
     // Clone so that it doesn't mutate the original config

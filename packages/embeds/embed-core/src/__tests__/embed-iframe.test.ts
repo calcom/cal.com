@@ -251,7 +251,7 @@ describe("methods", async () => {
   let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore;
   let isLinkReadyMock: ReturnType<typeof vi.fn> | undefined;
   let ensureQueryParamsInUrlMock: ReturnType<typeof vi.fn> | undefined;
-  let convertQueuedFormResponseToRoutingFormResponseMock: ReturnType<typeof vi.fn> | undefined;
+  let recordResponseIfQueuedMock: ReturnType<typeof vi.fn> | undefined;
   beforeEach(async () => {
     vi.useFakeTimers();
     fakeCurrentDocumentUrl();
@@ -260,7 +260,7 @@ describe("methods", async () => {
       return {
         ...actual,
         isLinkReady: isLinkReadyMock,
-        recordResponse: convertQueuedFormResponseToRoutingFormResponseMock,
+        recordResponseIfQueued: recordResponseIfQueuedMock,
       };
     });
     vi.doMock("../embed-iframe/lib/embedStore", async (importOriginal) => {
@@ -282,7 +282,7 @@ describe("methods", async () => {
         stopEnsuringQueryParamsInUrl: vi.fn(),
       };
     });
-    convertQueuedFormResponseToRoutingFormResponseMock = vi.fn();
+    recordResponseIfQueuedMock = vi.fn();
     ({ methods } = await import("../embed-iframe"));
     ({ embedStore } = await import("../embed-iframe/lib/embedStore"));
   });
@@ -336,7 +336,7 @@ describe("methods", async () => {
         },
       });
       const convertedRoutingFormResponseId = 101;
-      convertQueuedFormResponseToRoutingFormResponseMock?.mockResolvedValue(convertedRoutingFormResponseId);
+      recordResponseIfQueuedMock?.mockResolvedValue(convertedRoutingFormResponseId);
       await methods.connect({
         config: {},
         params: {},
