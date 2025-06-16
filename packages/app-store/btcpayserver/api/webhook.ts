@@ -58,20 +58,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           select: {
             user: {
               select: {
-                credentials: {
-                  where: {
-                    type: appConfig.type,
-                  },
-                },
+                credentials: { where: { type: appConfig.type } },
               },
             },
           },
         },
       },
     });
-    if (!payment) throw new HttpCode({ statusCode: 204, message: "Cal.com: payment not found" });
+    if (!payment) throw new HttpCode({ statusCode: 404, message: "Cal.com: payment not found" });
     const key = payment.booking?.user?.credentials?.[0].key;
-    if (!key) throw new HttpCode({ statusCode: 204, message: "Cal.com: credentials not found" });
+    if (!key) throw new HttpCode({ statusCode: 404, message: "Cal.com: credentials not found" });
 
     const parsedKey = btcpayCredentialKeysSchema.safeParse(key);
     if (!parsedKey.success)
