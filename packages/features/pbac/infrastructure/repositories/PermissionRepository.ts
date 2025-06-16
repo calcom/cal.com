@@ -12,29 +12,32 @@ export class PermissionRepository implements IPermissionRepository {
       .selectFrom("Membership")
       .innerJoin("Role", "Role.id", "Membership.customRoleId")
       .leftJoin("RolePermission", "RolePermission.roleId", "Role.id")
-      .select(["Membership.teamId", "Role.id as roleId"])
+      .select(["Membership.teamId", "Role.id as roleId", "RolePermission.resource", "RolePermission.action"])
       .where("Membership.userId", "=", userId)
-      .groupBy(["Membership.teamId", "Role.id"])
       .execute();
 
-    const permissionsPromises = memberships.map(async (membership) => {
-      const permissions = await kysely
-        .selectFrom("RolePermission")
-        .select(["resource", "action"])
-        .where("roleId", "=", membership.roleId)
-        .execute();
+    // Group permissions by teamId and roleId
+    const membershipsWithPermissions = memberships.reduce((acc, membership) => {
+      const key = `${membership.teamId}-${membership.roleId}`;
+      if (!acc[key]) {
+        acc[key] = {
+          teamId: membership.teamId,
+          role: {
+            id: membership.roleId,
+            permissions: [],
+          },
+        };
+      }
+      if (membership.resource && membership.action) {
+        acc[key].role.permissions.push({
+          resource: membership.resource,
+          action: membership.action,
+        });
+      }
+      return acc;
+    }, {} as Record<string, any>);
 
-      return {
-        teamId: membership.teamId,
-        role: {
-          id: membership.roleId,
-          permissions: permissions,
-        },
-      };
-    });
-
-    const membershipsWithPermissions = await Promise.all(permissionsPromises);
-    return PermissionMapper.toDomain(membershipsWithPermissions);
+    return PermissionMapper.toDomain(Object.values(membershipsWithPermissions));
   }
 
   async getMembershipByMembershipId(membershipId: number) {
