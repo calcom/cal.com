@@ -287,11 +287,9 @@ export async function getCountryCodeForNumber(phoneNumber: string) {
 export async function getMessageInfo(smsSid: string) {
   const twilio = createTwilioClient();
   const message = await twilio.messages(smsSid).fetch();
+  const price = message.price ? Math.abs(parseFloat(message.price)) : null;
 
-  const price =
-    message.price != null && message.price !== "null" ? Math.abs(parseFloat(message.price)) : null;
-  const numSegments =
-    message.numSegments != null && message.numSegments !== "null" ? parseInt(message.numSegments) : null;
+  const numSegments = message.numSegments ? parseInt(message.numSegments) : null;
 
   return { price, numSegments };
 }
