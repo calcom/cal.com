@@ -8,18 +8,6 @@ interface RecordFormResponseInput {
 }
 
 export class RoutingFormResponseRepository {
-  private static newBookingResponseSelect = {
-    id: true,
-    response: true,
-    form: {
-      select: {
-        routes: true,
-        fields: true,
-      },
-    },
-    chosenRouteId: true,
-  };
-
   private static generateCreateFormResponseData(
     input: RecordFormResponseInput & { queuedFormResponseId?: string | null }
   ) {
@@ -52,15 +40,6 @@ export class RoutingFormResponseRepository {
   static async recordQueuedFormResponse(input: RecordFormResponseInput) {
     return await prisma.app_RoutingForms_QueuedFormResponse.create({
       data: this.generateCreateFormResponseData(input),
-    });
-  }
-
-  static async getFormResponseForNewBooking(routingFormResponseId: number) {
-    return await prisma.app_RoutingForms_FormResponse.findUnique({
-      where: {
-        id: routingFormResponseId,
-      },
-      select: this.newBookingResponseSelect,
     });
   }
 }
