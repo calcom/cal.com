@@ -10,6 +10,7 @@ import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/out
 import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-booking-location.output";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
@@ -56,6 +57,8 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleBookingInputPipe,
   RescheduleSeatedBookingInput_2024_08_13,
+  GetBookingRecordingsOutput,
+  GetBookingTranscriptsOutput,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -91,7 +94,8 @@ export class BookingsController_2024_08_13 {
   constructor(
     private readonly bookingsService: BookingsService_2024_08_13,
     private readonly usersService: UsersService,
-    private readonly bookingReferencesService: BookingReferencesService_2024_08_13
+    private readonly bookingReferencesService: BookingReferencesService_2024_08_13,
+    private readonly calVideoService: CalVideoService
   ) {}
 
   @Post("/")
@@ -171,6 +175,36 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: booking,
+    };
+  }
+
+  @Get("/:bookingUid/recordings")
+  @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get all the recordings for the booking",
+    description: `Fetches all the recordings for the booking \`:bookingUid\``,
+  })
+  async getBookingRecordings(@Param("bookingUid") bookingUid: string): Promise<GetBookingRecordingsOutput> {
+    const recordings = await this.calVideoService.getRecordings(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: recordings,
+    };
+  }
+
+  @Get("/:bookingUid/transcripts")
+  @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get all the transcripts download links for the booking",
+    description: `Fetches all the transcripts download links for the booking \`:bookingUid\``,
+  })
+  async getBookingTranscripts(@Param("bookingUid") bookingUid: string): Promise<GetBookingTranscriptsOutput> {
+    const transcripts = await this.calVideoService.getTranscripts(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: transcripts ?? [],
     };
   }
 
