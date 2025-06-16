@@ -172,3 +172,7 @@ export async function listSegments(page: Page): Promise<string[]> {
   await page.keyboard.press("Escape");
   return segments;
 }
+
+export function locateSelectedSegmentName(page: Page, expectedName: string) {
+  return page.locator('[data-testid="filter-segment-select"]').filter({ hasText: expectedName });
+}

@@ -22,6 +22,7 @@ const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true }
 type CalVideoSettings = {
   disableRecordingForGuests: boolean;
   disableRecordingForOrganizer: boolean;
+  enableAutomaticTranscription: boolean;
 };
 
 const shouldEnableRecordButton = ({
@@ -41,6 +42,19 @@ const shouldEnableRecordButton = ({
   }
 
   return !calVideoSettings.disableRecordingForGuests;
+};
+
+const shouldEnableAutomaticTranscription = ({
+  hasTeamPlan,
+  calVideoSettings,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+}) => {
+  if (!hasTeamPlan) return false;
+  if (!calVideoSettings) return false;
+
+  return !!calVideoSettings.enableAutomaticTranscription;
 };
 
 const checkIfUserIsHost = async ({
@@ -204,6 +218,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     isOrganizer: sessionUserId === bookingObj.user?.id,
   });
 
+  const enableAutomaticTranscription = shouldEnableAutomaticTranscription({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+  });
+
   return {
     props: {
       meetingUrl: videoReference.meetingUrl ?? "",
@@ -225,9 +244,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       displayLogInOverlay,
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
       showRecordingButton,
+      enableAutomaticTranscription,
       rediectAttendeeToOnExit: isOrganizer
         ? undefined
         : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
+      overrideName: Array.isArray(context.query.name) ? context.query.name[0] : context.query.name,
     },
   };
 }
