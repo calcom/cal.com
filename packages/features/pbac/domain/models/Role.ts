@@ -17,7 +17,7 @@ export interface Role {
   color?: string;
   description?: string;
   teamId?: number;
-  type: RoleType;
+  type: typeof RoleType;
   permissions: RolePermission[];
   createdAt: Date;
   updatedAt: Date;
@@ -30,7 +30,7 @@ export interface CreateRoleData {
   description?: string;
   teamId?: number;
   permissions: PermissionString[];
-  type?: RoleType;
+  type?: typeof RoleType;
 }
 
 export interface UpdateRolePermissionsData {
