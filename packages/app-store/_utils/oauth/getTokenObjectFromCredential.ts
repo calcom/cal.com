@@ -4,9 +4,8 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { OAuth2TokenResponseInDbSchema } from "./universalSchema";
 
-export function getTokenObjectFromCredential(credential: CredentialPayload) {
+export function getTokenObjectFromCredential(credential: Pick<CredentialPayload, "key" | "id">) {
   const parsedTokenResponse = OAuth2TokenResponseInDbSchema.safeParse(credential.key);
-
   if (!parsedTokenResponse.success) {
     logger.error(
       "GoogleCalendarService-getTokenObjectFromCredential",
