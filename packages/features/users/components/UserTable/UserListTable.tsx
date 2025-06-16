@@ -30,7 +30,6 @@ import {
 } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -112,7 +111,7 @@ export type UserListTableProps = {
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
   attributes?: RouterOutputs["viewer"]["attributes"]["list"];
   facetedTeamValues?: {
-    roles: MembershipRole[];
+    roles: { id: string; name: string }[];
     teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
     attributes: {
       id: string;
