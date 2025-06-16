@@ -119,6 +119,7 @@ type EventTypeScheduleProps = {
   restrictionScheduleQueryData?: ScheduleQueryData;
   isSchedulePending?: boolean;
   isRestrictionSchedulePending?: boolean;
+  restrictionScheduleRedirectUrl?: string;
 } & Omit<EventTypeScheduleDetailsProps, "customClassNames"> &
   Omit<EventTypeTeamScheduleProps, "customClassNames">;
 
@@ -440,6 +441,7 @@ const EventTypeSchedule = ({
   restrictionScheduleQueryData,
   isSchedulePending,
   isRestrictionSchedulePending,
+  restrictionScheduleRedirectUrl,
   ...rest
 }: EventTypeScheduleProps) => {
   const { t } = useLocale();
@@ -593,6 +595,7 @@ const EventTypeSchedule = ({
             isSchedulePending={isCurrentSchedulePending}
             customClassNames={customClassNames?.availabilityTable}
             useBookerTimezone={eventType.useBookerTimezone}
+            restrictionScheduleRedirectUrl={restrictionScheduleRedirectUrl}
           />
         ) : (
           <EventTypeScheduleDetails
