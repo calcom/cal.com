@@ -3250,6 +3250,9 @@
   "meeting_start_time": "Meeting Start Time",
   "members_affected_by_disabling_delegation_credential": "Affected members",
   "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
+  "offer_to_reschedule_last_booking": "Offer to reschedule last active booking to chosen time slot",
+  "booker_limit_exceeded_error": "Booker maximum active booking limit exceeded",
+  "booker_limit_exceeded_error_reschedule": "You already have a booking for this event on {{date}}. Would you like to reschedule to the new selected time?",
   "duration_min_error": "Duration must be at least {{min}} minute(s)",
   "duration_max_error": "Duration cannot exceed {{max}} minutes (24 hours)",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
