@@ -39,7 +39,7 @@ export interface ResourceConfig {
   _resource?: {
     i18nKey: string;
   };
-  [key: string]: key extends "_resource" ? { i18nKey: string } : PermissionDetails | undefined;
+  [K in string]: K extends "_resource" ? { i18nKey: string } : PermissionDetails | undefined;
 }
 
 export type PermissionRegistry = {
