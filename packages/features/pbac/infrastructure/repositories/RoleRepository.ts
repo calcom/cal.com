@@ -6,6 +6,7 @@ import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 
 import { RoleMapper } from "../../domain/mappers/RoleMapper";
+import { RoleType } from "../../domain/models/Role";
 import type { CreateRoleData } from "../../domain/models/Role";
 import type { IRoleRepository } from "../../domain/repositories/IRoleRepository";
 import type { PermissionString } from "../../domain/types/permission-registry";

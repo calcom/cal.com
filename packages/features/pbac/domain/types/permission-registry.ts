@@ -39,7 +39,7 @@ export interface ResourceConfig {
   _resource?: {
     i18nKey: string;
   };
-  [key: string]: PermissionDetails | { i18nKey: string } | undefined;
+  [key: string]: key extends "_resource" ? { i18nKey: string } : PermissionDetails | undefined;
 }
 
 export type PermissionRegistry = {
@@ -47,6 +47,16 @@ export type PermissionRegistry = {
 };
 
 export type PermissionString = `${Resource}.${CrudAction | CustomAction}`;
+
+/**
+ * Helper function to filter out the _resource property from a ResourceConfig
+ * @param config The ResourceConfig to filter
+ * @returns A new object without the _resource property
+ */
+export const filterResourceConfig = (config: ResourceConfig): Omit<ResourceConfig, "_resource"> => {
+  const { _resource, ...rest } = config;
+  return rest;
+};
 
 // Keep in mind these are on a team/organization level, not a user level
 export const PERMISSION_REGISTRY: PermissionRegistry = {

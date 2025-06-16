@@ -6,7 +6,7 @@ import type {
   CrudAction,
   CustomAction,
 } from "../domain/types/permission-registry";
-import { PERMISSION_REGISTRY } from "../domain/types/permission-registry";
+import { PERMISSION_REGISTRY, filterResourceConfig } from "../domain/types/permission-registry";
 
 export class PermissionService {
   validatePermission(permission: PermissionString): PermissionValidationResult {
@@ -58,13 +58,16 @@ export class PermissionService {
     const permissions: Permission[] = [];
 
     Object.entries(PERMISSION_REGISTRY).forEach(([resource, actions]) => {
-      Object.entries(actions).forEach(([action, details]) => {
-        permissions.push({
-          resource: resource as Resource,
-          action: action as CrudAction | CustomAction,
-          description: details?.description,
-          category: details?.category,
-        });
+      const filteredActions = filterResourceConfig(actions);
+      Object.entries(filteredActions).forEach(([action, details]) => {
+        if (details) {
+          permissions.push({
+            resource: resource as Resource,
+            action: action as CrudAction | CustomAction,
+            description: details.description,
+            category: details.category,
+          });
+        }
       });
     });
 
@@ -75,12 +78,15 @@ export class PermissionService {
     const resourcePermissions = PERMISSION_REGISTRY[resource];
     if (!resourcePermissions) return [];
 
-    return Object.entries(resourcePermissions).map(([action, details]) => ({
-      resource,
-      action: action as CrudAction | CustomAction,
-      description: details?.description,
-      category: details?.category,
-    }));
+    const filteredPermissions = filterResourceConfig(resourcePermissions);
+    return Object.entries(filteredPermissions)
+      .filter(([_, details]) => details !== undefined)
+      .map(([action, details]) => ({
+        resource,
+        action: action as CrudAction | CustomAction,
+        description: details.description,
+        category: details.category,
+      }));
   }
 
   getPermissionsByCategory(category: string) {
