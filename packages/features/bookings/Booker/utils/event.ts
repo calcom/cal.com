@@ -20,7 +20,7 @@ export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEven
  */
 export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean; disabled?: boolean }) => {
   const [username, eventSlug, isTeamEvent, orgSlug] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.isTeamEvent, state.orgSlug],
+    (state) => [state.username, state.eventSlug, state.isTeamEvent, state.org],
     shallow
   );
 
