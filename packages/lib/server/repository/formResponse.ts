@@ -42,4 +42,29 @@ export class RoutingFormResponseRepository {
       data: this.generateCreateFormResponseData(input),
     });
   }
+
+  static async getQueuedFormResponseFromId(id: string) {
+    return await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        form: {
+          include: {
+            team: {
+              select: {
+                parentId: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }

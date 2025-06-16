@@ -8,7 +8,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import { prisma } from "@calcom/prisma";
 
 const useQueuedResponseSchema = z.object({
   queuedFormResponseId: z.string(),
@@ -23,28 +22,9 @@ const useQueuedResponseHandler = async ({
   params: Record<string, string | string[]>;
 }) => {
   // Get the queued response
-  const queuedFormResponse = await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
-    where: {
-      id: queuedFormResponseId,
-    },
-    include: {
-      form: {
-        include: {
-          team: {
-            select: {
-              parentId: true,
-            },
-          },
-          user: {
-            select: {
-              id: true,
-              email: true,
-            },
-          },
-        },
-      },
-    },
-  });
+  const queuedFormResponse = await RoutingFormResponseRepository.getQueuedFormResponseFromId(
+    queuedFormResponseId
+  );
 
   if (!queuedFormResponse) {
     return {
