@@ -21,13 +21,11 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import SingleForm, {
-  getServerSidePropsForSingleFormView as getServerSideProps,
-} from "../../components/SingleForm";
+import SingleForm from "../../components/SingleForm";
+import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import { FieldTypes } from "../../lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "../../types/types";
 
-export { getServerSideProps };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
 function Field({

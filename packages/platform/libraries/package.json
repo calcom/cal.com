@@ -23,12 +23,17 @@
   "devDependencies": {
     "@types/node": "^20.3.1",
     "@vitejs/plugin-react": "^4.2.1",
-    "typescript": "^5.8.2",
+    "typescript": "^5.8.3",
     "vite": "^5.0.12",
     "vite-plugin-dts": "^3.7.2",
     "vite-plugin-environment": "^1.1.3"
   },
   "exports": {
+    "./workflows": {
+      "import": "./dist/workflows.js",
+      "require": "./dist/workflows.cjs",
+      "types": "./dist/workflows.d.ts"
+    },
     "./app-store": {
       "import": "./dist/app-store.js",
       "require": "./dist/app-store.cjs",
@@ -76,6 +81,9 @@
       ],
       "schedules": [
         "dist/schedules.d.ts"
+      ],
+      "workflows": [
+        "dist/workflows.d.ts"
       ]
     }
   }

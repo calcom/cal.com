@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
+import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -20,6 +21,7 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
     input,
   } = options;
 
+  const { user: _, ...safeCredentialSelectWithoutUser } = safeCredentialSelect;
   const [incompleteBookingActions, form] = await Promise.all([
     prisma.app_RoutingForms_IncompleteBookingActions.findMany({
       where: {
@@ -67,7 +69,14 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
           in: [teamId, ...(orgQuery?.parentId ? [orgQuery.parentId] : [])],
         },
       },
-      include: {
+      select: {
+        ...safeCredentialSelectWithoutUser,
+        user: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
         team: {
           select: {
             name: true,

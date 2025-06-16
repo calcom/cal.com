@@ -355,7 +355,12 @@ export async function getBookings({
       }
     }
 
-    // 6. Booking Start/End Time Range Filters
+    // 6. Filter by Booking Uid (if provided)
+    if (filters?.bookingUid) {
+      fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
+    }
+
+    // 7. Booking Start/End Time Range Filters
     if (filters?.afterStartDate) {
       fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
     }
