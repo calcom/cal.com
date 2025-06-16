@@ -10,6 +10,7 @@ import { PermissionCheckService } from "./permission-check.service";
 import { RoleService } from "./role.service";
 
 interface IRoleManager {
+  isPBACEnabled: boolean;
   checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void>;
   assignRole(
     userId: number,
