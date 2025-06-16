@@ -41,7 +41,6 @@ export default function JoinCall(props: PageProps) {
     rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
-  const [name, setName] = useState(overrideName ?? loggedInUserName ?? "");
 
   useEffect(() => {
     let callFrame: DailyCall | undefined;
@@ -68,7 +67,6 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
-        userName: name,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
@@ -102,7 +100,7 @@ export default function JoinCall(props: PageProps) {
       callFrame?.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name]);
+  }, []);
 
   return (
     <DailyProvider callObject={daily}>
@@ -139,7 +137,7 @@ export default function JoinCall(props: PageProps) {
       </div>
       {(displayLogInOverlay || !displayLogInOverlay) && (
         <div>
-          <LogInOverlay setName={setName} isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />
+          <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />
         </div>
       )}
       <VideoMeetingInfo booking={booking} rediectAttendeeToOnExit={rediectAttendeeToOnExit} />
@@ -220,29 +218,28 @@ function ProgressBar(props: ProgressBarProps) {
 interface LogInOverlayProps {
   isLoggedIn: boolean;
   bookingUid: string;
-  name: string;
-  setName: (name: string) => void;
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
 
-  const { isLoggedIn, bookingUid, name, setName } = props;
+  const { isLoggedIn, bookingUid } = props;
   const [open, setOpen] = useState(true);
+  const [userName, setUserName] = useState("");
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={true} onOpenChange={setOpen}>
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_join_call")}
-        className="h-[380px] bg-black text-white sm:max-w-[520px]">
-        <div className="pb-8">
+        className="h-[380px] bg-black text-white sm:max-w-[540px]">
+        <div className="">
           {/* this is the first block */}
-          <div className="flex h-full flex-col justify-between space-y-2">
+          <div className="mt-3 flex flex-col justify-between">
             <div className="flex flex-col">
-              <div>
-                <h1 className="text-sm font-medium text-white">join as guest</h1>
-                <p className="text-sm text-gray-300">ideal for one time calls</p>
+              <div className="leading-relaxed">
+                <h4 className="text-md font-semibold text-white">Join as guest</h4>
+                <p className="text-subtle text-sm tracking-wide">ideal for one time calls</p>
               </div>
 
               {/* input fields and button */}
@@ -251,8 +248,8 @@ export function LogInOverlay(props: LogInOverlayProps) {
                   type="text"
                   placeholder="name"
                   className="w-full flex-1"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
                 />
                 <Button
                   color="primary"
@@ -265,25 +262,24 @@ export function LogInOverlay(props: LogInOverlayProps) {
             </div>
 
             {/* Divider line */}
-            <div className="relative py-2">
+            <div className="relative py-6">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-gray-600" />
               </div>
             </div>
 
             {/* this is the second block */}
-            <div className="flex flex-col ">
-              <div>
-                <h4 className="text-lg font-medium text-white">{t("signin_to_calcom")}</h4>
-                <p className="text-sm text-gray-300">{t("track_your_meetings")}</p>
+            <div className="flex flex-col">
+              <div className="leading-relaxed">
+                <h4 className="text-md  font-semibold text-white">{t("signin_to_calcom")}</h4>
+                <p className="text-subtle text-sm">{t("track_your_meetings")}</p>
               </div>
               <Button
                 color="primary"
-                className="mt-4 w-full justify-center"
+                className="mt-6 w-full justify-center"
                 onClick={() =>
                   (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
                 }>
-                <Icon name="external-link" className="mr-2 h-4 w-4" />
                 {t("sign_in")}
               </Button>
             </div>
@@ -300,7 +296,7 @@ interface VideoMeetingInfo {
 }
 
 export function VideoMeetingInfo(props: VideoMeetingInfo) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const { booking, rediectAttendeeToOnExit } = props;
   const { t } = useLocale();
 
