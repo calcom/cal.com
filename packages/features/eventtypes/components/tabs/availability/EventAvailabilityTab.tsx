@@ -81,9 +81,6 @@ type EventTypeScheduleDetailsProps = {
   user?: Pick<RouterOutputs["viewer"]["me"]["get"], "timeFormat" | "weekStart">;
   editAvailabilityRedirectUrl?: string;
   customClassNames?: AvailabilityTableCustomClassNames;
-  fieldName?: "schedule" | "restrictionSchedule";
-  useBookerTimezone?: boolean;
-  restrictionScheduleRedirectUrl?: string;
 };
 
 type HostSchedulesQueryType =
@@ -192,10 +189,123 @@ const EventTypeScheduleDetails = memo(
     user,
     editAvailabilityRedirectUrl,
     customClassNames,
-    fieldName,
-    useBookerTimezone: initialUseBookerTimezone,
-    restrictionScheduleRedirectUrl,
   }: EventTypeScheduleDetailsProps) => {
+    const timeFormat = user?.timeFormat;
+    const { t, i18n } = useLocale();
+
+    const weekStart = weekStartNum(user?.weekStart);
+
+    const filterDays = (dayNum: number) =>
+      scheduleQueryData?.schedule?.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
+
+    return (
+      <div>
+        <div className={classNames("border-subtle space-y-4 border-x p-6", customClassNames?.tableContainer)}>
+          <ol className={classNames("table border-collapse text-sm", customClassNames?.table)}>
+            {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
+              const isAvailable = !!filterDays(index).length;
+              return (
+                <li
+                  key={day}
+                  className={classNames(
+                    "my-6 flex border-transparent last:mb-2",
+                    customClassNames?.tableRow
+                  )}>
+                  <span
+                    className={classNames(
+                      "w-20 font-medium sm:w-32 ",
+                      !isAvailable ? "text-subtle line-through" : "text-default",
+                      customClassNames?.day
+                    )}>
+                    {day}
+                  </span>
+                  {isSchedulePending ? (
+                    <SkeletonText className="block h-5 w-60" />
+                  ) : isAvailable ? (
+                    <div className="space-y-3 text-right">
+                      {filterDays(index).map((dayRange, i) => (
+                        <div
+                          key={i}
+                          className={classNames(
+                            "text-default flex items-center leading-4",
+                            customClassNames?.dayAvailabilityContainer
+                          )}>
+                          <span
+                            className={classNames(
+                              "w-16 sm:w-28 sm:text-left",
+                              customClassNames?.dayAvailabilityFrom
+                            )}>
+                            {format(dayRange.startTime, timeFormat === 12)}
+                          </span>
+                          <span className={classNames("ms-4", customClassNames?.dayAvailabilitySeperator)}>
+                            -
+                          </span>
+                          <div className={classNames("ml-6 sm:w-28", customClassNames?.dayAvailabilityTo)}>
+                            {format(dayRange.endTime, timeFormat === 12)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span
+                      className={classNames("text-subtle ml-6 sm:ml-0", customClassNames?.dayUnavailable)}>
+                      {t("unavailable")}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+        <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
+          <div className="flex flex-col gap-2">
+            <span className="text-default flex items-center justify-center text-sm sm:justify-start">
+              <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
+              {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
+            </span>
+          </div>
+          {!!scheduleQueryData?.id &&
+            !scheduleQueryData.isManaged &&
+            !scheduleQueryData.readOnly &&
+            !!editAvailabilityRedirectUrl && (
+              <Button
+                href={editAvailabilityRedirectUrl}
+                disabled={isSchedulePending}
+                color="minimal"
+                EndIcon="external-link"
+                target="_blank"
+                rel="noopener noreferrer">
+                {t("edit_availability")}
+              </Button>
+            )}
+        </div>
+      </div>
+    );
+  }
+);
+
+EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
+
+type EventTypeRestrictionScheduleDetailsProps = {
+  scheduleQueryData?: Pick<ScheduleQueryData, "timeZone" | "id" | "isManaged" | "readOnly"> & {
+    schedule: Array<Pick<ScheduleQueryData["schedule"][number], "days" | "startTime" | "endTime">>;
+  };
+  isSchedulePending?: boolean;
+  user?: Pick<RouterOutputs["viewer"]["me"]["get"], "timeFormat" | "weekStart">;
+  restrictionScheduleRedirectUrl?: string;
+  customClassNames?: AvailabilityTableCustomClassNames;
+  useBookerTimezone?: boolean;
+};
+
+const EventTypeRestrictionScheduleDetails = memo(
+  ({
+    scheduleQueryData,
+    isSchedulePending,
+    user,
+    restrictionScheduleRedirectUrl,
+    customClassNames,
+    useBookerTimezone: initialUseBookerTimezone,
+  }: EventTypeRestrictionScheduleDetailsProps) => {
     const timeFormat = user?.timeFormat;
     const { t, i18n } = useLocale();
     const formMethods = useFormContext<FormValues>();
@@ -209,10 +319,10 @@ const EventTypeScheduleDetails = memo(
     const useBookerTimezone = watch("useBookerTimezone");
 
     useEffect(() => {
-      if (fieldName === "restrictionSchedule" && useBookerTimezone === undefined) {
+      if (useBookerTimezone === undefined) {
         setValue("useBookerTimezone", initialUseBookerTimezone || false, { shouldDirty: false });
       }
-    }, [fieldName, useBookerTimezone, setValue, initialUseBookerTimezone]);
+    }, [useBookerTimezone, setValue, initialUseBookerTimezone]);
 
     return (
       <div>
@@ -286,30 +396,24 @@ const EventTypeScheduleDetails = memo(
               />
               {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
-            {fieldName === "restrictionSchedule" && (
-              <div className="ltr:mr-2 rtl:ml-2">
-                <CheckboxField
-                  checked={useBookerTimezone}
-                  disabled={isSchedulePending}
-                  description={t("use_booker_timezone")}
-                  informationIconText={t("use_booker_timezone_info")}
-                  onChange={(e) => {
-                    setValue("useBookerTimezone", e.target.checked, { shouldDirty: true });
-                  }}
-                />
-              </div>
-            )}
+            <div className="ltr:mr-2 rtl:ml-2">
+              <CheckboxField
+                checked={useBookerTimezone}
+                disabled={isSchedulePending}
+                description={t("use_booker_timezone")}
+                informationIconText={t("use_booker_timezone_info")}
+                onChange={(e) => {
+                  setValue("useBookerTimezone", e.target.checked, { shouldDirty: true });
+                }}
+              />
+            </div>
           </div>
           {!!scheduleQueryData?.id &&
             !scheduleQueryData.isManaged &&
             !scheduleQueryData.readOnly &&
-            !!editAvailabilityRedirectUrl && (
+            !!restrictionScheduleRedirectUrl && (
               <Button
-                href={
-                  fieldName === "restrictionSchedule"
-                    ? restrictionScheduleRedirectUrl
-                    : editAvailabilityRedirectUrl
-                }
+                href={restrictionScheduleRedirectUrl}
                 disabled={isSchedulePending}
                 color="minimal"
                 EndIcon="external-link"
@@ -324,7 +428,7 @@ const EventTypeScheduleDetails = memo(
   }
 );
 
-EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
+EventTypeRestrictionScheduleDetails.displayName = "EventTypeRestrictionScheduleDetails";
 
 const EventTypeSchedule = ({
   eventType,
@@ -482,14 +586,22 @@ const EventTypeSchedule = ({
         />
       </div>
       {scheduleId !== 0 && (fieldName === "schedule" || fieldName === "restrictionSchedule") ? (
-        <EventTypeScheduleDetails
-          {...rest}
-          scheduleQueryData={currentScheduleQueryData}
-          isSchedulePending={isCurrentSchedulePending}
-          customClassNames={customClassNames?.availabilityTable}
-          fieldName={fieldName}
-          useBookerTimezone={eventType.useBookerTimezone}
-        />
+        fieldName === "restrictionSchedule" ? (
+          <EventTypeRestrictionScheduleDetails
+            {...rest}
+            scheduleQueryData={currentScheduleQueryData}
+            isSchedulePending={isCurrentSchedulePending}
+            customClassNames={customClassNames?.availabilityTable}
+            useBookerTimezone={eventType.useBookerTimezone}
+          />
+        ) : (
+          <EventTypeScheduleDetails
+            {...rest}
+            scheduleQueryData={currentScheduleQueryData}
+            isSchedulePending={isCurrentSchedulePending}
+            customClassNames={customClassNames?.availabilityTable}
+          />
+        )
       ) : (
         isManagedEventType &&
         fieldName === "schedule" && (

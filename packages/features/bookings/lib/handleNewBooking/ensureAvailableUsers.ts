@@ -144,7 +144,7 @@ const _ensureAvailableUsers = async (
 
       if (!restrictionSchedule) {
         loggerWithEventDetails.error(`Restriction schedule ${eventType.restrictionScheduleId} not found`);
-        throw new Error(ErrorCode.NoAvailableUsersFound);
+        throw new Error(ErrorCode.RestrictionScheduleNotFound);
       }
 
       const bookingAllowedByRestrictionSchedule = isBookingAllowedByRestrictionSchedule({
@@ -163,11 +163,8 @@ const _ensureAvailableUsers = async (
         throw new Error(ErrorCode.BookingNotAllowedByRestrictionSchedule);
       }
     } catch (error) {
-      if (error instanceof Error && error.message === ErrorCode.NoAvailableUsersFound) {
-        throw error;
-      }
       loggerWithEventDetails.error(`Error checking restriction schedule.`, piiFreeInputDataForLogging);
-      throw new Error(ErrorCode.NoAvailableUsersFound);
+      throw new Error(ErrorCode.ErrorCheckingRestrictionSchedule);
     }
   }
 
