@@ -5,6 +5,8 @@ export const RoleType = {
   CUSTOM: "CUSTOM",
 } as const;
 
+export type RoleType = (typeof RoleType)[keyof typeof RoleType];
+
 export interface RolePermission {
   id: string;
   resource: string;
@@ -17,7 +19,7 @@ export interface Role {
   color?: string;
   description?: string;
   teamId?: number;
-  type: typeof RoleType;
+  type: RoleType;
   permissions: RolePermission[];
   createdAt: Date;
   updatedAt: Date;
@@ -30,7 +32,7 @@ export interface CreateRoleData {
   description?: string;
   teamId?: number;
   permissions: PermissionString[];
-  type?: typeof RoleType;
+  type?: RoleType;
 }
 
 export interface UpdateRolePermissionsData {

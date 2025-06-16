@@ -62,8 +62,8 @@ export class PermissionService {
         permissions.push({
           resource: resource as Resource,
           action: action as CrudAction | CustomAction,
-          description: details.description,
-          category: details.category,
+          description: details?.description,
+          category: details?.category,
         });
       });
     });
@@ -78,8 +78,8 @@ export class PermissionService {
     return Object.entries(resourcePermissions).map(([action, details]) => ({
       resource,
       action: action as CrudAction | CustomAction,
-      description: details.description,
-      category: details.category,
+      description: details?.description,
+      category: details?.category,
     }));
   }
 

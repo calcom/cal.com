@@ -1,7 +1,7 @@
 import kysely from "@calcom/kysely";
 import type { MembershipRole } from "@calcom/prisma/enums";
-import { RoleType } from "@calcom/prisma/enums";
 
+import { RoleType as DomainRoleType } from "../domain/models/Role";
 import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models/Role";
 import type { IRoleRepository } from "../domain/repositories/IRoleRepository";
 import { RoleRepository } from "../infrastructure/repositories/RoleRepository";
@@ -81,7 +81,7 @@ export class RoleService {
     }
 
     // Don't allow deleting default roles
-    if (role.type === RoleType.SYSTEM) {
+    if (role.type === DomainRoleType.SYSTEM) {
       throw new Error("Cannot delete default roles");
     }
 
@@ -95,7 +95,7 @@ export class RoleService {
     }
 
     // Don't allow updating default roles
-    if (role.type === RoleType.SYSTEM) {
+    if (role.type === DomainRoleType.SYSTEM) {
       throw new Error("Cannot update default roles");
     }
 

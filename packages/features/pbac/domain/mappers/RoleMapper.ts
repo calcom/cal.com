@@ -1,6 +1,6 @@
 import type { RoleType } from "@calcom/kysely/types";
 
-import type { Role, RolePermission } from "../models/Role";
+import type { Role, RolePermission, RoleType as DomainRoleType } from "../models/Role";
 
 type KyselyRole = {
   id: string;
@@ -26,7 +26,7 @@ export class RoleMapper {
       description: kyselyRole.description || undefined,
       color: kyselyRole.color || undefined,
       teamId: kyselyRole.teamId || undefined,
-      type: kyselyRole.type as unknown as string as RoleType,
+      type: kyselyRole.type as DomainRoleType,
       permissions: kyselyRole.permissions.map((p) => ({
         id: p.id,
         resource: p.resource,
@@ -44,7 +44,7 @@ export class RoleMapper {
       description: role.description || null,
       color: role.color || null,
       teamId: role.teamId || null,
-      type: role.type as unknown as KyselyRole["type"],
+      type: role.type as DomainRoleType,
       createdAt: role.createdAt,
       updatedAt: role.updatedAt,
     };

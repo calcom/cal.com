@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from "uuid";
 
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
-import { RoleType } from "@calcom/prisma/enums";
 
 import { RoleMapper } from "../../domain/mappers/RoleMapper";
 import type { CreateRoleData } from "../../domain/models/Role";
