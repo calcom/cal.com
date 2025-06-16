@@ -137,6 +137,8 @@ export const useEventTypeForm = ({
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
       customReplyToEmail: eventType.customReplyToEmail || null,
       calVideoSettings: eventType.calVideoSettings,
+      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
+      maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
     };
   }, [eventType, periodDates]);
 

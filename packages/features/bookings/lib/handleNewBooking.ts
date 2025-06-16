@@ -52,6 +52,7 @@ import {
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import type { ErrorWithCode } from "@calcom/lib/errors";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -88,6 +89,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
+import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -451,6 +453,25 @@ async function handler(
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+
+  if (!rawBookingData.rescheduleUid) {
+    try {
+      await checkActiveBookingsLimitForBooker({
+        eventTypeId,
+        maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
+        bookerEmail,
+        offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
+      });
+    } catch (err) {
+      const error = err as ErrorWithCode;
+
+      throw new HttpError({
+        statusCode: 400,
+        message: error.message,
+        data: error.data,
+      });
+    }
+  }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
