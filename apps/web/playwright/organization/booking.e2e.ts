@@ -434,8 +434,8 @@ test.describe("Bookings", () => {
           // Reject the booking
           await secondPage.goto("/bookings/upcoming");
           await secondPage.click('[data-testid="reject"]');
-          await submitAndWaitForResponse(page, "/api/trpc/bookings/confirm?batch=1", {
-            action: () => page.click('[data-testid="rejection-confirm"]'),
+          await submitAndWaitForResponse(secondPage, "/api/trpc/bookings/confirm?batch=1", {
+            action: () => secondPage.click('[data-testid="rejection-confirm"]'),
           });
 
           // Logout and go back to booking page
