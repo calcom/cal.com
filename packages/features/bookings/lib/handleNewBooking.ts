@@ -440,15 +440,15 @@ async function handler(
     luckyUsers,
     routedTeamMemberIds,
     reroutingFormResponses,
+    routingFormResponseId,
     _isDryRun: isDryRun = false,
     _shouldServeCache,
     ...reqBody
   } = bookingData;
+
   let troubleshooterData = buildTroubleshooterData({
     eventType,
   });
-
-  const routingFormResponseId = bookingData.routingFormResponseId;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
@@ -609,12 +609,12 @@ async function handler(
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
   let routingFormResponse = null;
+
   if (routedTeamMemberIds) {
     //routingFormResponseId could be 0 for dry run. So, we just avoid undefined value
     if (routingFormResponseId === undefined) {
       throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
     }
-
     routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
       where: {
         id: routingFormResponseId,
@@ -631,6 +631,7 @@ async function handler(
       },
     });
   }
+
   const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
     hostname,
     forcedSlug,
