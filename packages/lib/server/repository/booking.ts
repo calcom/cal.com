@@ -4,9 +4,7 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
-import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
-import { RRTimestampBasis } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, AssignmentReasonEnum, RRTimestampBasis } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
 
