@@ -949,11 +949,7 @@ const _getBusyTimesFromLimitsForUsers = async (
     const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
     const limitManager = new LimitManager();
 
-    for (const busyTime of globalLimitManager.getBusyTimes()) {
-      const start = dayjs(busyTime.start);
-
-      limitManager.addBusyTime(start, busyTime.unit, timeZone);
-    }
+    limitManager.mergeBusyTimes(globalLimitManager);
 
     if (bookingLimits) {
       for (const key of descendingLimitKeys) {

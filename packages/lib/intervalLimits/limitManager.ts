@@ -55,7 +55,17 @@ export default class LimitManager {
     this.busyMap.set(`${unit}-${tzStart.toISOString()}`, {
       start: tzStart.toISOString(),
       end: tzStart.endOf(unit).toISOString(),
-      unit,
+    });
+  }
+
+  /**
+   * Merges busy times from another LimitManager
+   */
+  mergeBusyTimes(otherManager: LimitManager) {
+    otherManager.busyMap.forEach((busyTime, key) => {
+      if (!this.busyMap.has(key)) {
+        this.busyMap.set(key, busyTime);
+      }
     });
   }
 
