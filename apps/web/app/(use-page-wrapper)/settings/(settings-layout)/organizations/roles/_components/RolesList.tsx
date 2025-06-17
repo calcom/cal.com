@@ -140,7 +140,8 @@ function RoleItem({
           <div className="h-3 w-3 rounded-full" style={{ backgroundColor: role.color ?? "gray" }} />
         </div>
         {/* Role Name */}
-        <div className="text-deafult w-24 truncate text-sm font-semibold leading-none">
+        <div className="text-default w-24 truncate text-sm font-semibold leading-none">
+
           <span>{role.name}</span>
         </div>
 
