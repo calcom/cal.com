@@ -66,7 +66,7 @@ export interface BookerProps {
    * Allows consumers to dynamically set the default start date for the component.
    * @optional
    */
-  startDate?: string;
+  startDate?: Date;
 
   hideBranding?: boolean;
   /**
