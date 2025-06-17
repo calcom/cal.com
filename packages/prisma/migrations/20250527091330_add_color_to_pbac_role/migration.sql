@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE "Role" ADD COLUMN     "color" TEXT NOT NULL DEFAULT '#FFFFFF';
+ALTER TABLE "Role" ADD COLUMN     "color" TEXT;
 
 -- Update default roles with color
 UPDATE "Role" SET color = '#1BA774' WHERE id = 'owner_role';
