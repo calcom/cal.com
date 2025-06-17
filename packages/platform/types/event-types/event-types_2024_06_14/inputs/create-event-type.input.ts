@@ -140,6 +140,27 @@ export class CalVideoSettings {
   disableRecordingForGuests?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the organizer will not be able to transcribe the meeting",
+  })
+  disableTranscriptionForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the guests will not be able to transcribe the meeting",
+  })
+  disableTranscriptionForGuests?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, the organizer will automatically record the meeting",
+  })
+  enableAutomaticRecordingForOrganizer?: boolean;
+
+  @IsOptional()
   @IsUrl()
   @DocsPropertyOptional({
     description: "URL to which participants are redirected when they exit the call",

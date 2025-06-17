@@ -15420,6 +15420,18 @@
             "type": "boolean",
             "description": "If true, the guests will not be able to record the meeting"
           },
+          "disableTranscriptionForOrganizer": {
+            "type": "boolean",
+            "description": "If true, the organizer will not be able to transcribe the meeting"
+          },
+          "disableTranscriptionForGuests": {
+            "type": "boolean",
+            "description": "If true, the guests will not be able to transcribe the meeting"
+          },
+          "enableAutomaticRecordingForOrganizer": {
+            "type": "boolean",
+            "description": "If true, the organizer will automatically record the meeting"
+          },
           "redirectUrlOnExit": {
             "type": "object",
             "description": "URL to which participants are redirected when they exit the call"
