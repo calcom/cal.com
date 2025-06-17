@@ -66,6 +66,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: null,
       formResponseId: 1,
+      queuedFormResponseId: null,
       attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
@@ -100,6 +101,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: null,
       formResponseId: 1,
+      queuedFormResponseId: null,
       attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
@@ -151,6 +153,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: null,
       formResponseId: 1,
+      queuedFormResponseId: null,
       attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
@@ -202,6 +205,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: null,
       formResponseId: 1,
+      queuedFormResponseId: null,
       attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
@@ -229,6 +233,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: null,
       formResponseId: 1,
+      queuedFormResponseId: null,
       attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
@@ -272,6 +277,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: null,
       formResponseId: 1,
+      queuedFormResponseId: null,
       attributeRoutingConfig: {
         skipContactOwner: true,
       },
@@ -317,6 +323,7 @@ describe("getUrlSearchParamsToForward", () => {
       searchParams,
       teamMembersMatchingAttributeLogic: [1, 2],
       formResponseId: 1,
+      queuedFormResponseId: null,
       attributeRoutingConfig: null,
     });
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
