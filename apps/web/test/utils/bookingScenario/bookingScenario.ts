@@ -386,7 +386,6 @@ export async function addEventTypesToDb(
 
     // Handle restrictionSchedule creation and connection
     if (eventType.restrictionSchedule) {
-      log.silly("TestData: Creating RestrictionSchedule for EventType", JSON.stringify(eventType));
       const createdRestrictionSchedule = await prismock.schedule.create({
         data: {
           ...eventType.restrictionSchedule.create,

@@ -358,15 +358,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           message: "The restriction schedule is not owned by you or your team",
         });
       }
-      const teamMember = await ctx.prisma.membership.findFirst({
+      const teamMemberCount = await ctx.prisma.membership.count({
         where: {
           teamId,
-          userId: ctx.user.id,
+          userId: restrictionSchedule?.userId,
           accepted: true,
         },
       });
 
-      if (!teamMember) {
+      if (teamMemberCount === 0) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "The restriction schedule is not owned by you or your team",
