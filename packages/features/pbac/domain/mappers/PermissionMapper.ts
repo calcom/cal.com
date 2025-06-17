@@ -62,7 +62,7 @@ export class PermissionMapper {
 
     // Initialize all actions as false
     Object.values(CrudAction).forEach((action) => {
-      if (action !== "*" && this.isActionAvailableForResource(resource, action)) {
+      if (action !== CrudAction.All && this.isActionAvailableForResource(resource, action)) {
         actionMap[action as ResourceActions<R>] = false;
       }
     });
