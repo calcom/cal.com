@@ -63,6 +63,7 @@ const Day = ({
   active,
   disabled,
   away,
+  hasAvailableSlots,
   emoji,
   customClassName,
   ...props
@@ -70,6 +71,7 @@ const Day = ({
   active: boolean;
   date: Dayjs;
   away?: boolean;
+  hasAvailableSlots?: boolean;
   emoji?: string | null;
   customClassName?: {
     dayContainer?: string;
@@ -90,9 +92,9 @@ const Day = ({
           ? "bg-brand-default text-brand"
           : !disabled
           ? `${
-              !customClassName?.dayActive
+              !customClassName?.dayActive && hasAvailableSlots
                 ? "hover:border-brand-default text-emphasis bg-emphasis"
-                : `hover:border-brand-default ${customClassName.dayActive}`
+                : `hover:border-brand-default ${customClassName?.dayActive}`
             }`
           : `${customClassName ? "" : " text-mute"}`
       )}
@@ -195,12 +197,14 @@ const Days = ({
 
     const isOOOAllDay = !!(slots && slots[dateKey] && slots[dateKey].every((slot) => slot.away));
     const away = isOOOAllDay;
-    const disabled = away ? !oooInfo?.toUser : !included || excluded;
+    const disabled = excluded;
+    const hasAvailableSlots = slots && slots[dateKey] && slots[dateKey].some((slot) => !slot.away);
 
     return {
       day: day,
       disabled,
       away,
+      hasAvailableSlots,
       emoji: oooInfo?.emoji,
     };
   });
@@ -239,7 +243,7 @@ const Days = ({
 
   return (
     <>
-      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji }, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled, away, hasAvailableSlots, emoji }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -264,6 +268,7 @@ const Days = ({
               disabled={disabled}
               active={isActive(day)}
               away={away}
+              hasAvailableSlots={hasAvailableSlots}
               emoji={emoji}
             />
           )}
