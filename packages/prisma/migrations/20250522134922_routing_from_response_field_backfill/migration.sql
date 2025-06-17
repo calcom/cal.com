@@ -27,7 +27,7 @@ BEGIN
         LOOP
             -- Skip if response data is invalid
             IF response_record.response_data IS NULL OR jsonb_typeof(response_record.response_data) != 'object' THEN
-                RAISE WARNING 'Invalid response data for id %. Type: %', 
+                RAISE WARNING 'Invalid response data for responseId %. Type: %', 
                     response_record.id, 
                     COALESCE(jsonb_typeof(response_record.response_data), 'null');
                 CONTINUE;
@@ -40,7 +40,8 @@ BEGIN
 
             -- Skip if form fields are invalid
             IF form_fields IS NULL OR jsonb_typeof(form_fields) != 'array' THEN
-                RAISE WARNING 'Invalid form fields for formId %. Type: %', 
+                RAISE WARNING 'Invalid form fields for responseId % formId %. Type: %', 
+                    response_record.id,
                     response_record."formId",
                     COALESCE(jsonb_typeof(form_fields), 'null');
                 CONTINUE;
@@ -52,11 +53,11 @@ BEGIN
                 BEGIN
                     -- Skip if field is invalid
                     IF field_record->>'id' IS NULL THEN
-                        RAISE WARNING 'Field record is missing id property, skipping field';
+                        RAISE WARNING 'Field record is missing id property for responseId %, skipping field', response_record.id;
                         CONTINUE;
                     END IF;
                     IF field_record->>'type' IS NULL THEN
-                        RAISE WARNING 'Field record % is missing type property, skipping field', field_record->>'id';
+                        RAISE WARNING 'Field record % is missing type property for responseId %, skipping field', field_record->>'id', response_record.id;
                         CONTINUE;
                     END IF;
 
@@ -94,7 +95,7 @@ BEGIN
                                     ARRAY(SELECT jsonb_array_elements_text(response_field->'value'))
                                 );
                             EXCEPTION WHEN OTHERS THEN
-                                RAISE WARNING 'Failed to insert multiselect values for field %', field_record->>'id';
+                                RAISE WARNING 'Failed to insert multiselect values for responseId % field %', response_record.id, field_record->>'id';
                             END;
                         END IF;
                     ELSIF field_type = 'number' THEN
@@ -108,7 +109,32 @@ BEGIN
                                     (response_field->>'value')::decimal
                                 );
                             EXCEPTION WHEN OTHERS THEN
-                                RAISE WARNING 'Failed to insert number value for field %', field_record->>'id';
+                                RAISE WARNING 'Failed to insert number value for responseId % field %', response_record.id, field_record->>'id';
+                            END;
+                        END IF;
+                    ELSIF field_type = 'select' THEN
+                        -- Handle select values - can be either string or array
+                        IF response_field->>'value' IS NOT NULL THEN
+                            BEGIN
+                                IF jsonb_typeof(response_field->'value') = 'array' THEN
+                                    -- If it's an array, take the first element
+                                    INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueString")
+                                    VALUES (
+                                        response_record.id,
+                                        field_record->>'id',
+                                        response_field->'value'->>0
+                                    );
+                                ELSIF jsonb_typeof(response_field->'value') = 'string' THEN
+                                    -- If it's a string, use it directly
+                                    INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueString")
+                                    VALUES (
+                                        response_record.id,
+                                        field_record->>'id',
+                                        response_field->>'value'
+                                    );
+                                END IF;
+                            EXCEPTION WHEN OTHERS THEN
+                                RAISE WARNING 'Failed to insert select value for responseId % field %', response_record.id, field_record->>'id';
                             END;
                         END IF;
                     ELSE
@@ -122,12 +148,12 @@ BEGIN
                                     response_field->>'value'
                                 );
                             EXCEPTION WHEN OTHERS THEN
-                                RAISE WARNING 'Failed to insert string value for field %', field_record->>'id';
+                                RAISE WARNING 'Failed to insert string value for responseId % field %', response_record.id, field_record->>'id';
                             END;
                         END IF;
                     END IF;
                 EXCEPTION WHEN OTHERS THEN
-                    RAISE WARNING 'Error processing field %: %', field_record->>'id', SQLERRM;
+                    RAISE WARNING 'Error processing responseId % field %: Database operation failed', response_record.id, field_record->>'id';
                     CONTINUE;
                 END;
             END LOOP;
