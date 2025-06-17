@@ -104,7 +104,7 @@ export function EditForm({
   const isOwner = org?.role === MembershipRole.OWNER;
 
   const { data: teamRoles, isLoading: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
-    { teamId: org.id },
+    { teamId: org?.id },
     {
       enabled: true, // We can add a feature flag check here if needed
       staleTime: 30000, // Cache for 30 seconds
@@ -176,7 +176,7 @@ export function EditForm({
           setMutationLoading(true);
           mutation.mutate({
             userId: selectedUser?.id ?? "",
-            role: values.role,
+            role: values.role as MembershipRole,
             username: values.username,
             name: values.name,
             email: values.email,
@@ -233,7 +233,7 @@ export function EditForm({
                 options={membershipOptions}
                 onChange={(option) => {
                   if (option) {
-                    form.setValue("role", option.value as EditSchema["role"]);
+                    form.setValue("role", option.value as MembershipRole);
                   }
                 }}
               />
@@ -243,7 +243,7 @@ export function EditForm({
                 defaultValue={selectedUser?.role ?? "MEMBER"}
                 value={form.watch("role")}
                 options={membershipOptions}
-                onValueChange={(value: EditSchema["role"]) => {
+                onValueChange={(value: MembershipRole) => {
                   form.setValue("role", value);
                 }}
               />
