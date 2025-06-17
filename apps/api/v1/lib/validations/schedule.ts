@@ -8,17 +8,7 @@ import { timeZone } from "./shared/timeZone";
 const schemaScheduleBaseBodyParams = Schedule.omit({ id: true, timeZone: true }).partial();
 
 export const schemaSingleScheduleBodyParams = schemaScheduleBaseBodyParams.merge(
-  z.object({
-    userId: z.number().optional(),
-    timeZone: timeZone.optional(),
-    name: z
-      .string()
-      .trim()
-      .min(1, {
-        message: "Schedule name cannot be empty",
-      })
-      .optional(),
-  })
+  z.object({ userId: z.number().optional(), timeZone: timeZone.optional() })
 );
 
 export const schemaCreateScheduleBodyParams = schemaScheduleBaseBodyParams.merge(
