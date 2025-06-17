@@ -8,7 +8,7 @@ const getDefaultConferencingAppLocation = (
   organizerUserMetadata: User["metadata"],
   firstUserCredentials: CredentialForCalendarService[]
 ) => {
-  let locationBodyString = "";
+  let locationBodyString = "integrations:daily";
   const organizerMetadata = getOrganizerMetadata(organizerUserMetadata);
   const organizationDefaultLocation = getFirstDelegationConferencingCredentialAppLocation({
     credentials: firstUserCredentials,
@@ -19,8 +19,6 @@ const getDefaultConferencingAppLocation = (
     locationBodyString = app?.appData?.location?.type || locationBodyString;
   } else if (organizationDefaultLocation) {
     locationBodyString = organizationDefaultLocation;
-  } else {
-    locationBodyString = "integrations:daily";
   }
 
   return locationBodyString;
