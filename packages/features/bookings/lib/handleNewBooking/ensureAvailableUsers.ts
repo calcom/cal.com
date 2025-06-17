@@ -164,7 +164,7 @@ const _ensureAvailableUsers = async (
       }
     } catch (error) {
       loggerWithEventDetails.error(`Error checking restriction schedule.`, piiFreeInputDataForLogging);
-      throw new Error(ErrorCode.ErrorCheckingRestrictionSchedule);
+      throw error;
     }
   }
 
