@@ -129,7 +129,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
   }
 
-  const prevOrganisation = await prisma.team.findFirst({
+  const prevOrganisation = await prisma.team.findUnique({
     where: {
       id: currentOrgId,
     },

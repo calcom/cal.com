@@ -13,7 +13,7 @@ import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
-import { BookingStatus, RRResetInterval } from "@calcom/prisma/enums";
+import { BookingStatus, RRTimestampBasis, RRResetInterval } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -66,7 +66,11 @@ interface GetLuckyUserParams<T extends PartialUser> {
   eventType: {
     id: number;
     isRRWeightsEnabled: boolean;
-    team: { parentId?: number | null; rrResetInterval: RRResetInterval | null } | null;
+    team: {
+      parentId?: number | null;
+      rrResetInterval: RRResetInterval | null;
+      rrTimestampBasis: RRTimestampBasis;
+    } | null;
     includeNoShowInRRCalculation: boolean;
     excludeSalesforceBookingsFromRR?: boolean;
   };
@@ -82,17 +86,65 @@ interface GetLuckyUserParams<T extends PartialUser> {
     weight?: number | null;
   }[];
   routingFormResponse: RoutingFormResponse | null;
+  meetingStartTime?: Date;
 }
 
 // === dayjs.utc().startOf("month").toDate();
-const startOfMonth = () => new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
+const startOfMonth = (date: Date = new Date()) =>
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
 
-const startOfToday = () =>
-  new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()));
+const startOfDay = (date: Date = new Date()) =>
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 
-const getIntervalStartDate = (interval: RRResetInterval) => {
+const endOfDay = (date: Date) =>
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+
+const endOfMonth = (date: Date) =>
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+
+export const getIntervalEndDate = ({
+  interval,
+  rrTimestampBasis,
+  meetingStartTime,
+}: {
+  interval: RRResetInterval;
+  rrTimestampBasis: RRTimestampBasis;
+  meetingStartTime?: Date;
+}) => {
+  if (rrTimestampBasis === RRTimestampBasis.START_TIME) {
+    if (!meetingStartTime) {
+      throw new Error("Meeting start time is required");
+    }
+    if (interval === RRResetInterval.DAY) {
+      return endOfDay(meetingStartTime);
+    }
+    return endOfMonth(meetingStartTime);
+  }
+
+  return new Date();
+};
+
+export const getIntervalStartDate = ({
+  interval,
+  rrTimestampBasis,
+  meetingStartTime,
+}: {
+  interval: RRResetInterval;
+  rrTimestampBasis: RRTimestampBasis;
+  meetingStartTime?: Date;
+}) => {
+  if (rrTimestampBasis === RRTimestampBasis.START_TIME) {
+    if (!meetingStartTime) {
+      throw new Error("Meeting start time is required");
+    }
+    if (interval === RRResetInterval.DAY) {
+      return startOfDay(meetingStartTime);
+    }
+    return startOfMonth(meetingStartTime);
+  }
+
   if (interval === RRResetInterval.DAY) {
-    return startOfToday();
+    return startOfDay();
   }
   return startOfMonth();
 };
@@ -401,14 +453,16 @@ async function getCalendarBusyTimesOfInterval(
     credentials: CredentialForCalendarService[];
     userLevelSelectedCalendars: SelectedCalendar[];
   }[],
-  interval: RRResetInterval
+  interval: RRResetInterval,
+  rrTimestampBasis: RRTimestampBasis,
+  meetingStartTime?: Date
 ): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
   return Promise.all(
     usersWithCredentials.map((user) =>
       getBusyCalendarTimes(
         user.credentials,
-        getIntervalStartDate(interval).toISOString(),
-        new Date().toISOString(),
+        getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }).toISOString(),
+        getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }).toISOString(),
         user.userLevelSelectedCalendars,
         true,
         true
@@ -426,23 +480,37 @@ async function getBookingsOfInterval({
   virtualQueuesData,
   interval,
   includeNoShowInRRCalculation,
+<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
   excludeSalesforceBookingsFromRR = false,
+=======
+  rrTimestampBasis,
+  meetingStartTime,
+>>>>>>> main -- Current Change
 }: {
   eventTypeId: number;
   users: { id: number; email: string }[];
   virtualQueuesData: VirtualQueuesDataType | null;
   interval: RRResetInterval;
   includeNoShowInRRCalculation: boolean;
+<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
   excludeSalesforceBookingsFromRR?: boolean;
+=======
+  rrTimestampBasis: RRTimestampBasis;
+  meetingStartTime?: Date;
+>>>>>>> main -- Current Change
 }) {
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
     users,
-    startDate: getIntervalStartDate(interval),
-    endDate: new Date(),
+    startDate: getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),
+    endDate: getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }),
     virtualQueuesData,
     includeNoShowInRRCalculation,
+<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
     excludeSalesforceBookingsFromRR,
+=======
+    rrTimestampBasis,
+>>>>>>> main -- Current Change
   });
 }
 
@@ -573,7 +641,7 @@ async function fetchAllDataNeededForCalculations<
 >(getLuckyUserParams: GetLuckyUserParams<T>) {
   const startTime = performance.now();
 
-  const { availableUsers, allRRHosts, eventType } = getLuckyUserParams;
+  const { availableUsers, allRRHosts, eventType, meetingStartTime } = getLuckyUserParams;
   const notAvailableHosts = (function getNotAvailableHosts() {
     const availableUserIds = new Set(availableUsers.map((user) => user.id));
     return allRRHosts.reduce(
@@ -598,7 +666,15 @@ async function fetchAllDataNeededForCalculations<
 
   const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
 
-  const interval = getLuckyUserParams.eventType.team?.rrResetInterval ?? RRResetInterval.MONTH;
+  const interval =
+    eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrResetInterval
+      ? getLuckyUserParams.eventType.team?.rrResetInterval
+      : RRResetInterval.MONTH;
+
+  const rrTimestampBasis =
+    eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrTimestampBasis
+      ? getLuckyUserParams.eventType.team.rrTimestampBasis
+      : RRTimestampBasis.CREATED_AT;
 
   const [
     userBusyTimesOfInterval,
@@ -610,7 +686,9 @@ async function fetchAllDataNeededForCalculations<
   ] = await Promise.all([
     getCalendarBusyTimesOfInterval(
       allRRHosts.map((host) => host.user),
-      interval
+      interval,
+      rrTimestampBasis,
+      meetingStartTime
     ),
     getBookingsOfInterval({
       eventTypeId: eventType.id,
@@ -620,7 +698,12 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
       excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
+=======
+      rrTimestampBasis,
+      meetingStartTime,
+>>>>>>> main -- Current Change
     }),
 
     getBookingsOfInterval({
@@ -629,7 +712,12 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
       excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
+=======
+      rrTimestampBasis,
+      meetingStartTime,
+>>>>>>> main -- Current Change
     }),
 
     getBookingsOfInterval({
@@ -640,7 +728,12 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
       excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
+=======
+      rrTimestampBasis,
+      meetingStartTime,
+>>>>>>> main -- Current Change
     }),
 
     prisma.host.findMany({
@@ -651,7 +744,7 @@ async function fetchAllDataNeededForCalculations<
         eventTypeId: eventType.id,
         isFixed: false,
         createdAt: {
-          gte: getIntervalStartDate(interval),
+          gte: getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),
         },
       },
     }),
@@ -727,8 +820,8 @@ async function fetchAllDataNeededForCalculations<
         in: allRRHosts.map((host) => host.user.id),
       },
       end: {
-        lte: new Date(),
-        gte: getIntervalStartDate(interval),
+        lte: getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }),
+        gte: getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),
       },
     },
     select: {
