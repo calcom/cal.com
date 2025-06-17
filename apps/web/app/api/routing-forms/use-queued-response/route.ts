@@ -1,3 +1,5 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
@@ -5,8 +7,6 @@ import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getRespo
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 
 const useQueuedResponseSchema = z.object({
@@ -14,7 +14,7 @@ const useQueuedResponseSchema = z.object({
   params: z.record(z.string(), z.string().or(z.array(z.string()))),
 });
 
-const useQueuedResponseHandler = async ({
+const queuedResponseHandler = async ({
   queuedFormResponseId,
   params,
 }: {
@@ -62,7 +62,10 @@ const useQueuedResponseHandler = async ({
 
   const chosenRoute = serializableForm.routes?.find((r) => r.id === queuedFormResponse.chosenRouteId);
   await onSubmissionOfFormResponse({
-    form: serializableForm,
+    form: {
+      ...queuedFormResponse.form,
+      ...serializableForm,
+    },
     formResponseInDb: formResponse,
     chosenRouteAction: chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : null) : null,
   });
@@ -73,33 +76,38 @@ const useQueuedResponseHandler = async ({
   };
 };
 
-export default defaultHandler({
-  POST: Promise.resolve({
-    default: defaultResponder(async (req, res) => {
-      try {
-        const { params, queuedFormResponseId } = useQueuedResponseSchema.parse(JSON.parse(req.body));
-        const result = await useQueuedResponseHandler({
-          queuedFormResponseId,
-          params,
-        });
+async function handler(req: Request) {
+  try {
+    const body = await req.json();
+    const { params, queuedFormResponseId } = useQueuedResponseSchema.parse(body);
+    const result = await queuedResponseHandler({
+      queuedFormResponseId,
+      params,
+    });
 
-        return res.status(200).json({ status: "success", data: result });
-      } catch (error) {
-        if (error instanceof ZodError) {
-          logger.error("Invalid input", safeStringify(error));
-          return res.status(400).json({
-            status: "error",
-            data: { message: "Invalid input" },
-          });
-        }
-
-        logger.error("Error in useQueuedResponseHandler", safeStringify(error));
-
-        return res.status(500).json({
+    return NextResponse.json({ status: "success", data: result });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      logger.error("Invalid input", safeStringify(error));
+      return NextResponse.json(
+        {
           status: "error",
-          data: { message: "Internal server error" },
-        });
-      }
-    }),
-  }),
-});
+          message: "Invalid input",
+        },
+        { status: 400 }
+      );
+    }
+
+    logger.error("Error in queuedResponseHandler", safeStringify(error));
+
+    return NextResponse.json(
+      {
+        status: "error",
+        message: "Internal server error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export const POST = defaultResponderForAppDir(handler);
