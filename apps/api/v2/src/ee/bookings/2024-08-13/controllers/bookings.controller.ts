@@ -241,7 +241,7 @@ export class BookingsController_2024_08_13 {
     
     \nCancelling recurring seated bookings:
     For recurring seated bookings it is not possible to cancel all of them with 1 call
-    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.`,
+    like with non-seated recurring bookings by providing recurring booking uid - you have to cancel each recurrence booking by its bookingUid + seatUid.`,
   })
   @ApiBody({
     schema: {
