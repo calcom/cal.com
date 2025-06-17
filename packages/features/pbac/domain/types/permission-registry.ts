@@ -35,12 +35,13 @@ export interface PermissionDetails {
   descriptionI18nKey: string;
 }
 
-export interface ResourceConfig {
+export type ResourceConfig = {
   _resource?: {
     i18nKey: string;
   };
-  [(key in CrudAction) | CustomAction]: PermissionDetails | undefined;
-}
+} & {
+  [key in CrudAction | CustomAction]?: PermissionDetails;
+};
 
 export type PermissionRegistry = {
   [key in Resource]: ResourceConfig;
