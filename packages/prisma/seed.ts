@@ -310,10 +310,14 @@ async function createOrganizationAndAddMembersAndTeams({
       const batchResults = await Promise.all(
         batch.map(async (member) => {
           const { theme, ...rest } = member.memberData;
+          const passwordHash = member.memberData.password.create?.hash;
+          if (!passwordHash) {
+            throw new Error(`Missing password for user ${member.memberData.username}`);
+          }
           const newUser = await createUserAndEventType({
             user: {
               ...rest,
-              password: member.memberData.password.create?.hash ?? "",
+              password: passwordHash,
             },
             eventTypes: [
               {
