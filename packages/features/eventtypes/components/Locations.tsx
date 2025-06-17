@@ -394,8 +394,8 @@ const Locations: React.FC<LocationsProps> = ({
 
                       {!isPlatform && (
                         <Controller
-                          name="calVideoSettings.enableAutomaticRecording"
-                          defaultValue={!!eventType.calVideoSettings?.enableAutomaticRecording}
+                          name="calVideoSettings.enableAutomaticRecordingForOrganizer"
+                          defaultValue={!!eventType.calVideoSettings?.enableAutomaticRecordingForOrganizer}
                           render={({ field: { onChange, value } }) => {
                             return (
                               <SettingsToggle
