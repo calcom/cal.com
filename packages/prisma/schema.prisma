@@ -193,6 +193,7 @@ model EventType {
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
   rescheduleWithSameRoundRobinHost Boolean @default(false)
+  excludeSalesforceBookingsFromRR  Boolean @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)

@@ -4,7 +4,7 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
 
@@ -47,6 +47,7 @@ const buildWhereClauseForActiveBookings = ({
   users,
   virtualQueuesData,
   includeNoShowInRRCalculation = false,
+  excludeSalesforceBookingsFromRR = false,
 }: {
   eventTypeId: number;
   startDate?: Date;
@@ -60,6 +61,7 @@ const buildWhereClauseForActiveBookings = ({
     };
   } | null;
   includeNoShowInRRCalculation: boolean;
+  excludeSalesforceBookingsFromRR?: boolean;
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
@@ -97,6 +99,17 @@ const buildWhereClauseForActiveBookings = ({
     ? {
         routedFromRoutingFormReponse: {
           chosenRouteId: virtualQueuesData.chosenRouteId,
+        },
+      }
+    : {}),
+  ...(excludeSalesforceBookingsFromRR
+    ? {
+        NOT: {
+          assignmentReason: {
+            some: {
+              reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
+            },
+          },
         },
       }
     : {}),
@@ -290,6 +303,7 @@ export class BookingRepository {
     endDate,
     virtualQueuesData,
     includeNoShowInRRCalculation,
+    excludeSalesforceBookingsFromRR = false,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
@@ -303,6 +317,7 @@ export class BookingRepository {
       };
     } | null;
     includeNoShowInRRCalculation: boolean;
+    excludeSalesforceBookingsFromRR: boolean;
   }) {
     const allBookings = await prisma.booking.findMany({
       where: buildWhereClauseForActiveBookings({
@@ -312,6 +327,7 @@ export class BookingRepository {
         users,
         virtualQueuesData,
         includeNoShowInRRCalculation,
+        excludeSalesforceBookingsFromRR,
       }),
       select: {
         id: true,

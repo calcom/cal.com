@@ -367,6 +367,19 @@ const RoundRobinHosts = ({
             )}
           />
         </>
+        <Controller<FormValues>
+          name="excludeSalesforceBookingsFromRR"
+          render={({ field: { value: excludeSalesforceBookingsFromRR, onChange } }) => (
+            <SettingsToggle
+              title={t("exclude_salesforce_bookings_from_round_robin")}
+              description={t("exclude_salesforce_bookings_from_round_robin_description")}
+              checked={excludeSalesforceBookingsFromRR}
+              onCheckedChange={(active) => {
+                onChange(active);
+              }}
+            />
+          )}
+        />
         <AddMembersWithSwitch
           placeholder={t("add_a_member")}
           teamId={teamId}

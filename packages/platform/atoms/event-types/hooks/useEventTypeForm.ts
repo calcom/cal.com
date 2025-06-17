@@ -128,6 +128,7 @@ export const useEventTypeForm = ({
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
       customReplyToEmail: eventType.customReplyToEmail || null,
       calVideoSettings: eventType.calVideoSettings,

@@ -151,6 +151,7 @@ export type FormValues = {
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
+  excludeSalesforceBookingsFromRR: boolean;
   calVideoSettings?: {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;

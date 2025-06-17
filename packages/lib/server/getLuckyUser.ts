@@ -68,6 +68,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     isRRWeightsEnabled: boolean;
     team: { parentId?: number | null; rrResetInterval: RRResetInterval | null } | null;
     includeNoShowInRRCalculation: boolean;
+    excludeSalesforceBookingsFromRR?: boolean;
   };
   // all routedTeamMemberIds or all hosts of event types
   allRRHosts: {
@@ -425,12 +426,14 @@ async function getBookingsOfInterval({
   virtualQueuesData,
   interval,
   includeNoShowInRRCalculation,
+  excludeSalesforceBookingsFromRR = false,
 }: {
   eventTypeId: number;
   users: { id: number; email: string }[];
   virtualQueuesData: VirtualQueuesDataType | null;
   interval: RRResetInterval;
   includeNoShowInRRCalculation: boolean;
+  excludeSalesforceBookingsFromRR?: boolean;
 }) {
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
@@ -439,6 +442,7 @@ async function getBookingsOfInterval({
     endDate: new Date(),
     virtualQueuesData,
     includeNoShowInRRCalculation,
+    excludeSalesforceBookingsFromRR,
   });
 }
 
@@ -616,6 +620,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
     }),
 
     getBookingsOfInterval({
@@ -624,6 +629,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
     }),
 
     getBookingsOfInterval({
@@ -634,6 +640,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
     }),
 
     prisma.host.findMany({
