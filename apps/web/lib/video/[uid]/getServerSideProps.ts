@@ -63,11 +63,13 @@ const shouldEnableAutomaticTranscription = ({
 const shouldEnableAutomaticRecording = ({
   hasTeamPlan,
   calVideoSettings,
+  isOrganizer,
 }: {
   hasTeamPlan: boolean;
   calVideoSettings?: CalVideoSettings | null;
+  isOrganizer: boolean;
 }) => {
-  if (!hasTeamPlan) return false;
+  if (!hasTeamPlan || !isOrganizer) return false;
   if (!calVideoSettings) return false;
 
   return !!calVideoSettings.enableAutomaticRecording;
