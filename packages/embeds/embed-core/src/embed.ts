@@ -1282,6 +1282,17 @@ class CalApi {
     }
   }
 
+  /**
+   * Usecase - Prerender headless router path(i.e. `/router?form={FORM_ID}&param1=value1&......`)
+   *
+   * - Loads the headless router path in iframe hidden behind the scenes
+   * - Stores the response in a temporary queue at backend.
+   * - Redirects to appropriate booking page based on the Routing Rules
+   * - Loads the availability as per the team members identified by Routing - Attribute Rules
+   * - At this point, the booking page is ready to be used but is hidden behind the scenes
+   *
+   * A call to `modal` instruction(which automatically happens when an element with `data-cal-link` attribute is clicked) would then show this prerendered booking page sending a request `use-queued-response` that records the field values now as a response and connect it to the queued-response
+   */
   prerender({
     calLink,
     type,
@@ -1294,7 +1305,18 @@ class CalApi {
     pageType?: EmbedPageType;
     calOrigin?: string;
     options?: {
+      /**
+       * Time in milliseconds after which the prerendered slots/availability should be considered stale and would be requested again when the modal is opened. This could slow down the booking page load by the time taken by slots loading request which shouldn't be too high
+       *
+       * Default value is 1 min
+       */
       slotsStaleTimeMs?: number;
+      /**
+       * Time in milliseconds after which the iframe would be forcefully reloaded when the modal is opened and thus booking page load could slow down drastically showing the skeleton loader in the meantime
+       * To avoid reaching this threshold, the user could prerender before this time is reached in usecases where prerender has been done long time ago.
+       *
+       * Default value is 15 mins
+       */
       iframeForceReloadThresholdMs?: number;
     };
   }) {
