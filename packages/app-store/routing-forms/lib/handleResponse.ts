@@ -177,15 +177,23 @@ const _handleResponse = async ({
       }
     } else {
       moduleLogger.debug("Dry run mode - Form response not stored and also webhooks and emails not sent");
-      // Create a mock response for dry run
-      dbFormResponse = {
-        id: 0,
-        formId: form.id,
-        response,
-        chosenRouteId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      if (queueFormResponse) {
+        queuedFormResponse = {
+          id: "00000000-0000-0000-0000-000000000000",
+          formId: form.id,
+          response,
+        };
+      } else {
+        // Create a mock response for dry run
+        dbFormResponse = {
+          id: 0,
+          formId: form.id,
+          response,
+          chosenRouteId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
     }
     return {
       isPreview: !!isPreview,
