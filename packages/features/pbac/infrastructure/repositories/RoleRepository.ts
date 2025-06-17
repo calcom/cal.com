@@ -144,7 +144,7 @@ export class RoleRepository implements IRoleRepository {
     await kysely.transaction().execute(async (trx) => {
       // Update role metadata if provided
       if (updates) {
-        const updateData: Pick<KyselyRole, "name" | "color" | "description"> = {};
+        const updateData: Partial<Pick<KyselyRole, "name" | "color" | "description">> = {};
 
         if (updates.color !== undefined) {
           updateData.color = updates.color || null;
