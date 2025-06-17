@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -9,5 +11,16 @@ export const featureFlagRouter = router({
     const featuresRepository = new FeaturesRepository();
     return featuresRepository.getAllFeatures();
   }),
+  checkTeamFeature: publicProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        feature: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+      const featuresRepository = new FeaturesRepository();
+      return featuresRepository.checkIfTeamHasFeature(input.teamId, input.feature as string);
+    }),
   map,
 });

@@ -24,6 +24,7 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -817,6 +818,19 @@ const UseTeamEventScheduleSettingsToggle = ({
   const { restrictScheduleForHosts, toggleRestrictScheduleState } = useRestrictionScheduleState(
     eventType.restrictionScheduleId
   );
+
+  // Check if team has restriction schedule feature enabled
+  const { data: isRestrictionScheduleEnabled = false } = trpc.viewer.features.checkTeamFeature.useQuery(
+    {
+      teamId: eventType.team?.id || 0,
+      feature: "restriction-schedule",
+    },
+    {
+      enabled: !!eventType.team?.id,
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    }
+  );
+
   return (
     <div className="space-y-4">
       <div className="border-subtle space-y-6 rounded-lg border p-6">
@@ -842,7 +856,7 @@ const UseTeamEventScheduleSettingsToggle = ({
           </div>
         )}
       </div>
-      {!isPlatform ? (
+      {!isPlatform && isRestrictionScheduleEnabled ? (
         <div className="border-subtle space-y-6 rounded-lg border p-6">
           <SettingsToggle
             checked={restrictScheduleForHosts}

@@ -1,3 +1,5 @@
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
+
 import {
   createBookingScenario,
   Timezones,
@@ -33,7 +35,7 @@ const getTestScheduleInput = ({
   startTime: `${yesterdayDateString}T18:30:00.000Z`,
   endTime: `${plus5DateString}T18:29:59.999Z`,
   timeZone: Timezones["+5:30"],
-  isTeamEvent: false,
+  isTeamEvent: true,
   orgSlug: null,
 });
 
@@ -43,6 +45,7 @@ const getBaseScenarioData = (): ScheduleScenario => ({
       id: 1,
       slotInterval: 60,
       length: 60,
+      teamId: 1,
       hosts: [{ userId: 101 }],
     },
   ],
@@ -51,16 +54,54 @@ const getBaseScenarioData = (): ScheduleScenario => ({
       ...TestData.users.example,
       id: 101,
       schedules: [TestData.schedules.IstWorkHours],
+      teams: [
+        {
+          membership: { role: "ADMIN", accepted: true },
+          team: { id: 1, name: "Test Team", slug: "test-team" },
+        },
+      ],
     },
   ],
   apps: [],
 });
+
+// Helper function to set up team and features
+async function setupTeamAndFeatures() {
+  // Create the restriction-schedule feature
+  await prismock.feature.create({
+    data: {
+      slug: "restriction-schedule",
+      enabled: true,
+      description: "Restriction Schedule Feature",
+      type: "OPERATIONAL",
+    },
+  });
+
+  // Create the team
+  await prismock.team.create({
+    data: {
+      id: 1,
+      name: "Test Team",
+      slug: "test-team",
+    },
+  });
+
+  // Enable the restriction-schedule feature for the team
+  await prismock.teamFeatures.create({
+    data: {
+      teamId: 1,
+      featureId: "restriction-schedule",
+      assignedBy: "test",
+    },
+  });
+}
 
 describe("getSchedule", () => {
   setupAndTeardown();
 
   describe("Restriction Schedule", () => {
     test("should respect date override rule in restrictionSchedule (Europe/London, useBookerTimezone=false)", async () => {
+      await setupTeamAndFeatures();
       vi.setSystemTime("2025-06-01T23:30:00Z");
 
       const plus2DateString = "2025-06-02"; // Date with override
@@ -72,6 +113,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             length: 60,
+            teamId: 1,
             restrictionScheduleId: 50,
             useBookerTimezone: false,
             hosts: [{ userId: 101 }],
@@ -94,6 +136,12 @@ describe("getSchedule", () => {
                     date: null,
                   },
                 ],
+              },
+            ],
+            teams: [
+              {
+                membership: { role: "ADMIN", accepted: true },
+                team: { id: 1, name: "Test Team", slug: "test-team" },
               },
             ],
           },
@@ -123,7 +171,7 @@ describe("getSchedule", () => {
           startTime: "2025-06-01T00:00:00.000Z",
           endTime: `${plus5DateString}T23:59:59.999Z`,
           timeZone: "Asia/Kolkata",
-          isTeamEvent: false,
+          isTeamEvent: true,
           orgSlug: null,
         },
       });
@@ -149,6 +197,7 @@ describe("getSchedule", () => {
     });
 
     test("should respect recurring rule in restrictionSchedule (Europe/London, useBookerTimezone=false)", async () => {
+      await setupTeamAndFeatures();
       vi.setSystemTime("2025-06-01T23:30:00Z");
 
       const plus2DateString = "2025-06-02"; // Monday
@@ -160,6 +209,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             length: 60,
+            teamId: 1,
             restrictionScheduleId: 50,
             useBookerTimezone: false,
             hosts: [{ userId: 101 }],
@@ -182,6 +232,12 @@ describe("getSchedule", () => {
                     date: null,
                   },
                 ],
+              },
+            ],
+            teams: [
+              {
+                membership: { role: "ADMIN", accepted: true },
+                team: { id: 1, name: "Test Team", slug: "test-team" },
               },
             ],
           },
@@ -211,7 +267,7 @@ describe("getSchedule", () => {
           startTime: "2025-06-01T00:00:00.000Z",
           endTime: `${plus6DateString}T23:59:59.999Z`,
           timeZone: "Asia/Kolkata",
-          isTeamEvent: false,
+          isTeamEvent: true,
           orgSlug: null,
         },
       });
@@ -242,6 +298,7 @@ describe("getSchedule", () => {
     });
 
     test("should respect recurring rule in restrictionSchedule (Europe/London, useBookerTimezone=true)", async () => {
+      await setupTeamAndFeatures();
       vi.setSystemTime("2025-06-01T23:30:00Z");
 
       const plus2DateString = "2025-06-02"; // Monday
@@ -253,6 +310,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             length: 60,
+            teamId: 1,
             restrictionScheduleId: 50,
             useBookerTimezone: true,
             hosts: [{ userId: 101 }],
@@ -275,6 +333,12 @@ describe("getSchedule", () => {
                     date: null,
                   },
                 ],
+              },
+            ],
+            teams: [
+              {
+                membership: { role: "ADMIN", accepted: true },
+                team: { id: 1, name: "Test Team", slug: "test-team" },
               },
             ],
           },
@@ -304,7 +368,7 @@ describe("getSchedule", () => {
           startTime: "2025-06-01T00:00:00.000Z",
           endTime: `${plus6DateString}T23:59:59.999Z`,
           timeZone: "Asia/Kolkata",
-          isTeamEvent: false,
+          isTeamEvent: true,
           orgSlug: null,
         },
       });
@@ -334,6 +398,7 @@ describe("getSchedule", () => {
     });
 
     test("should return all slots when no restriction schedule is applied", async () => {
+      await setupTeamAndFeatures();
       vi.setSystemTime("2025-06-01T23:30:00Z");
 
       const plus2DateString = "2025-06-02"; // Monday
@@ -345,6 +410,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             length: 60,
+            teamId: 1,
             useBookerTimezone: false,
             hosts: [{ userId: 101 }],
           },
@@ -368,6 +434,12 @@ describe("getSchedule", () => {
                 ],
               },
             ],
+            teams: [
+              {
+                membership: { role: "ADMIN", accepted: true },
+                team: { id: 1, name: "Test Team", slug: "test-team" },
+              },
+            ],
           },
         ],
       };
@@ -381,7 +453,7 @@ describe("getSchedule", () => {
           startTime: "2025-06-01T00:00:00.000Z",
           endTime: `${plus6DateString}T23:59:59.999Z`,
           timeZone: "Asia/Kolkata",
-          isTeamEvent: false,
+          isTeamEvent: true,
           orgSlug: null,
         },
       });

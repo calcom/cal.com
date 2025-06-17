@@ -36,7 +36,10 @@ import {
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { isBookingAllowedByRestrictionSchedule } from "@calcom/lib/restrictionSchedule";
+import {
+  isBookingAllowedByRestrictionSchedule,
+  isRestrictionScheduleEnabled,
+} from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
@@ -504,7 +507,8 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
-  if (eventType.restrictionScheduleId) {
+  const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
+  if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
     const restrictionSchedule = await prisma.schedule.findUnique({
       where: { id: eventType.restrictionScheduleId },
       select: {

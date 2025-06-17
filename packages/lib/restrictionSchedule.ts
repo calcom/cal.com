@@ -1,5 +1,6 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
 export interface RestrictionScheduleAvailability {
   days: number[];
@@ -22,6 +23,19 @@ export interface RestrictionScheduleCheckParams {
   bookerTimezone?: string;
 }
 
+/**
+ * Checks if the restriction schedule feature is enabled for a team
+ * @param teamId - The team ID to check
+ * @returns Promise<boolean> - True if the feature is enabled, false otherwise
+ */
+export async function isRestrictionScheduleEnabled(teamId?: number): Promise<boolean> {
+  if (!teamId) {
+    return false; // Personal events don't have restriction schedules
+  }
+
+  const featureRepo = new FeaturesRepository();
+  return await featureRepo.checkIfTeamHasFeature(teamId, "restriction-schedule");
+}
 /**
  * Checks if a booking time falls within the restriction schedule's availability
  * @param params - The restriction schedule check parameters
@@ -66,12 +80,6 @@ export function isBookingAllowedByRestrictionSchedule({
       const endTimeStr = dayjs.utc(rule.endTime).format("HH:mm");
       const start = dayjs.tz(`${bookingDateStr}T${startTimeStr}`, restrictionTimezone);
       const end = dayjs.tz(`${bookingDateStr}T${endTimeStr}`, restrictionTimezone);
-      console.log("overrideRulesForTheDay", {
-        bookingStartValue: new Date(bookingStartValue),
-        bookingEndValue: new Date(bookingEndValue),
-        start: new Date(start.valueOf()),
-        end: new Date(end.valueOf()),
-      });
       return bookingStartValue >= start.valueOf() && bookingEndValue <= end.valueOf();
     });
     return overrideAllowsBooking;
