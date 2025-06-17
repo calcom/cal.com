@@ -11,7 +11,7 @@ export default function Calendars(props: { calUsername: string; calEmail: string
       <Navbar username={props.calUsername} />
       <div>
         {/* <CalendarSettings allowDelete={true} /> */}
-        <CalendarView username={props.calUsername} eventSlug="thirty-minutes" />
+        <CalendarView username={props.calUsername} eventSlug="sixty-minutes" />
       </div>
     </main>
   );

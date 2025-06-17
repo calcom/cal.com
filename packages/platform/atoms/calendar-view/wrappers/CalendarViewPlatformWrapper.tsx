@@ -4,6 +4,7 @@ import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
+import { Header } from "@calcom/features/bookings/Booker/components/Header";
 import { LargeCalendar } from "@calcom/features/bookings/Booker/components/LargeCalendar";
 import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
@@ -15,15 +16,8 @@ import { getUsernameList } from "@calcom/lib/defaultEvents";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-// import {
-//   transformApiEventTypeForAtom,
-//   transformApiTeamEventTypeForAtom,
-// } from "../event-types/atom-api-transformers/transformApiEventTypeForAtom";
-import {
-  transformApiEventTypeForAtom,
-  transformApiTeamEventTypeForAtom,
-} from "../../event-types/atom-api-transformers/transformApiEventTypeForAtom";
 import { useGetBookingForReschedule } from "../../hooks/bookings/useGetBookingForReschedule";
+import { useAtomGetPublicEvent } from "../../hooks/event-types/public/useAtomGetPublicEvent";
 import { useEventType } from "../../hooks/event-types/public/useEventType";
 import { useTeamEventType } from "../../hooks/event-types/public/useTeamEventType";
 import { useAvailableSlots } from "../../hooks/useAvailableSlots";
@@ -66,59 +60,24 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
     view = "MONTH_VIEW",
   } = props;
 
-  const { isSuccess, isError, isPending, data } = useEventType(username, eventSlug, isTeamEvent);
-  const {
-    isSuccess: isTeamSuccess,
-    isError: isTeamError,
-    isPending: isTeamPending,
-    data: teamEventTypeData,
-  } = useTeamEventType(teamId, eventSlug, isTeamEvent, hostsLimit);
+  const isMobile = false;
 
-  const event = useMemo(() => {
-    if (props.isTeamEvent && !isTeamPending && teamId && teamEventTypeData && teamEventTypeData.length > 0) {
-      return {
-        isSuccess: isTeamSuccess,
-        isError: isTeamError,
-        isPending: isTeamPending,
-        data:
-          teamEventTypeData && teamEventTypeData.length > 0
-            ? transformApiTeamEventTypeForAtom(
-                teamEventTypeData[0],
-                props.entity,
-                props.defaultFormValues,
-                !!props.hostsLimit
-              )
-            : undefined,
-      };
-    }
+  const { isPending } = useEventType(username, eventSlug, isTeamEvent);
+  const { isPending: isTeamPending } = useTeamEventType(teamId, eventSlug, isTeamEvent, hostsLimit);
 
-    return {
-      isSuccess,
-      isError,
-      isPending,
-      data:
-        data && data.length > 0
-          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues, !!props.hostsLimit)
-          : undefined,
-    };
-  }, [
-    props.isTeamEvent,
+  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
+  const selectedDuration = useBookerStore((state) => state.selectedDuration);
+
+  const event = useAtomGetPublicEvent({
+    username,
+    eventSlug: props.eventSlug,
+    isTeamEvent: props.isTeamEvent,
     teamId,
-    props.entity,
-    teamEventTypeData,
-    isSuccess,
-    isError,
-    isPending,
-    data,
-    isTeamPending,
-    isTeamSuccess,
-    isTeamError,
-    props.hostsLimit,
-  ]);
+    selectedDuration,
+  });
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
-  const { extraDays } = bookerLayout;
-  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
+
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
@@ -146,7 +105,6 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
     prefetchNextMonth,
     selectedDate,
   });
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
 
   useEffect(() => {
     setSelectedDuration(props.duration ?? null);
@@ -244,8 +202,17 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
         area="main"
         visible={true}
         className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l">
+        <Header
+          isMyLink={true}
+          eventSlug={eventSlug}
+          enabledLayouts={bookerLayout.bookerLayouts.enabledLayouts}
+          extraDays={7}
+          isMobile={false}
+          nextSlots={6}
+        />
         <LargeCalendar
-          extraDays={extraDays}
+          // need to use the displayStartDate prop to make sure we always pass in monday of the following week
+          extraDays={7}
           schedule={schedule.data}
           isLoading={schedule.isPending}
           event={event}

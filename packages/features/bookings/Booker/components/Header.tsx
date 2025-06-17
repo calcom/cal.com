@@ -40,6 +40,7 @@ export function Header({
   const selectedDateString = useBookerStore((state) => state.selectedDate);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
+  // for calendar view atom month view should always be false
   const isMonthView = layout === BookerLayouts.MONTH_VIEW;
   const today = dayjs();
   const selectedDate = selectedDateString ? dayjs(selectedDateString) : today;
