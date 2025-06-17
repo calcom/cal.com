@@ -20,6 +20,8 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateUserBookingPreview } from "@calcom/web/app/(booking-page-wrapper)/[user]/[type]/preview/actions";
+import { revalidateTeamBookingPreview } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/preview/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 import { TRPCClientError } from "@trpc/react-query";
@@ -138,6 +140,17 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
       revalidateEventTypeEditPage(eventType.id);
+      if (eventType.team?.id || eventType.parent?.teamId) {
+        revalidateTeamBookingPreview({
+          teamSlug: eventType.team?.slug ?? "",
+          eventTypeSlug: eventType.slug,
+        });
+      } else {
+        revalidateUserBookingPreview({
+          userSlug: eventType.users?.[0]?.username ?? "",
+          eventTypeSlug: eventType.slug,
+        });
+      }
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
