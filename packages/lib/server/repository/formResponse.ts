@@ -78,4 +78,49 @@ export class RoutingFormResponseRepository {
       },
     });
   }
+
+  static async getQueuedFormResponseFromId(id: string) {
+    return await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        formId: true,
+        response: true,
+        chosenRouteId: true,
+        createdAt: true,
+        updatedAt: true,
+        actualResponseId: true,
+        form: {
+          select: {
+            team: {
+              select: {
+                parentId: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+            id: true,
+            description: true,
+            position: true,
+            routes: true,
+            createdAt: true,
+            updatedAt: true,
+            name: true,
+            fields: true,
+            updatedById: true,
+            userId: true,
+            teamId: true,
+            disabled: true,
+            settings: true,
+          },
+        },
+      },
+    });
+  }
 }
