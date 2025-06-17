@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
+import { detectBot } from "./lib/botDetection";
 import { csp } from "./lib/csp";
 
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
@@ -14,6 +15,26 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
     // Don't crash if EDGE_CONFIG env var is missing
   }
 };
+
+// Centralized route configuration to prevent sync issues
+// NOTE: If adding dynamic routes (containing ":"), make sure to update
+// the detection logic in isBookingPageRoute function below
+const MATCHED_ROUTES = {
+  nonBooking: [
+    // Routes to enforce CSP
+    "/auth/login",
+    "/login",
+    // Routes to set cookies
+    "/apps/installed",
+    "/auth/logout",
+    // Embed Routes,
+    "/:path*/embed",
+    // API routes
+    "/api/auth/signup",
+    "/api/trpc/:path*",
+  ],
+  booking: ["/:user/:type", "/team/:slug/:type"],
+} as const;
 
 export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup", "/api/trpc/"];
 export function checkPostMethod(req: NextRequest) {
@@ -38,6 +59,36 @@ export function checkStaticFiles(pathname: string) {
   }
 }
 
+function isBookingPageRoute(pathname: string): boolean {
+  // Since middleware only runs on routes defined in config.matcher,
+  // we can determine booking pages by excluding known non-booking routes
+
+  // Extract static routes from our centralized config (excluding dynamic patterns)
+  const staticRoutes = MATCHED_ROUTES.nonBooking.filter((route) => !route.includes(":"));
+
+  const isNonBookingRoute =
+    staticRoutes.some((route) => pathname.startsWith(route)) ||
+    pathname.startsWith("/api/trpc/") ||
+    pathname.endsWith("/embed");
+
+  // If it's not a non-booking route and matches our middleware, it's a booking page
+  return !isNonBookingRoute;
+}
+
+function checkBotDetection(req: NextRequest): NextResponse | null {
+  const url = req.nextUrl;
+
+  if (isBookingPageRoute(url.pathname)) {
+    const { isBot } = detectBot(req.headers);
+    if (isBot) {
+      url.pathname = `${url.pathname}/preview`;
+      return NextResponse.rewrite(url);
+    }
+  }
+
+  return null;
+}
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const postCheckResult = checkPostMethod(req);
   if (postCheckResult) return postCheckResult;
@@ -47,6 +98,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
+
+  const botDetectionResult = checkBotDetection(req);
+  if (botDetectionResult) return botDetectionResult;
 
   if (!url.pathname.startsWith("/api")) {
     //
@@ -167,18 +221,20 @@ export const config = {
   // https://github.com/vercel/next.js/discussions/42458
   // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
   // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
+
+  // SUPER IMPORTANT: Keep this list in sync with MATCHED_ROUTES object above!
   matcher: [
-    // Routes to enforce CSP
+    // Non-booking routes (must match MATCHED_ROUTES.nonBooking)
     "/auth/login",
     "/login",
-    // Routes to set cookies
     "/apps/installed",
     "/auth/logout",
-    // Embed Routes,
-    "/:path*/embed",
-    // API routes
     "/api/auth/signup",
     "/api/trpc/:path*",
+    "/:path*/embed",
+    // Booking routes (must match MATCHED_ROUTES.booking)
+    "/:user/:type",
+    "/team/:slug/:type",
   ],
 };
 
