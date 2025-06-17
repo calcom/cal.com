@@ -40,7 +40,7 @@ export const recordResponseIfQueued = async (params: Record<string, string | str
     return null;
   }
   // Corresponding dry run value for routingFormResponseId is 0
-  if (queuedFormResponseId === "queued-dry-run-id") {
+  if (queuedFormResponseId === "00000000-0000-0000-0000-000000000000") {
     return 0;
   }
   // form is formId and isn't acutal Form data
