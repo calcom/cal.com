@@ -11,12 +11,12 @@ import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/for
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
-const useQueuedResponseSchema = z.object({
+const queuedResponseSchema = z.object({
   queuedFormResponseId: z.string(),
   params: z.record(z.string(), z.string().or(z.array(z.string()))),
 });
 
-export const useQueuedResponseHandler = async ({
+export const queuedResponseHandler = async ({
   queuedFormResponseId,
   params,
 }: {
@@ -76,9 +76,8 @@ export const useQueuedResponseHandler = async ({
 export const handler = async (req: NextRequest) => {
   try {
     const body = await req.json();
-    const { params, queuedFormResponseId } = useQueuedResponseSchema.parse(body);
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const result = await useQueuedResponseHandler({
+    const { params, queuedFormResponseId } = queuedResponseSchema.parse(body);
+    const result = await queuedResponseHandler({
       queuedFormResponseId,
       params,
     });

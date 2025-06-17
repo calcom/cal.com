@@ -1291,7 +1291,7 @@ class CalApi {
    * - Loads the availability as per the team members identified by Routing - Attribute Rules
    * - At this point, the booking page is ready to be used but is hidden behind the scenes
    *
-   * A call to `modal` instruction(which automatically happens when an element with `data-cal-link` attribute is clicked) would then show this prerendered booking page sending a request `use-queued-response` that records the field values now as a response and connect it to the queued-response
+   * A call to `modal` instruction(which automatically happens when an element with `data-cal-link` attribute is clicked) would then show this prerendered booking page sending a request `queued-response` that records the field values now as a response and connect it to the queued-response
    */
   prerender({
     calLink,

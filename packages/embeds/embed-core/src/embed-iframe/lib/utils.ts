@@ -41,7 +41,7 @@ export const recordResponseIfQueued = async (params: Record<string, string | str
   }
   // form is formId and isn't acutal Form data
   const { form: _1, ...actualFormData } = params;
-  const res = await fetch(`/api/routing-forms/use-queued-response`, {
+  const res = await fetch(`/api/routing-forms/queued-response`, {
     method: "POST",
     body: JSON.stringify({ queuedFormResponseId, params: actualFormData }),
   });

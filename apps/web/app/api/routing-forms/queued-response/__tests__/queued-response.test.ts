@@ -5,7 +5,7 @@ import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getRespo
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 
-import { useQueuedResponseHandler } from "../route";
+import { queuedResponseHandler } from "../route";
 
 vi.mock("@calcom/lib/server/repository/formResponse");
 vi.mock("@calcom/app-store/routing-forms/lib/getSerializableForm");
@@ -42,7 +42,7 @@ const mockQueuedFormResponse = {
   actualResponseId: 1,
 };
 
-describe("useQueuedResponseHandler", () => {
+describe("queuedResponseHandler", () => {
   it("should process a queued form response", async () => {
     vi.mocked(RoutingFormResponseRepository.getQueuedFormResponseFromId).mockResolvedValue(
       mockQueuedFormResponse
@@ -104,7 +104,7 @@ describe("useQueuedResponseHandler", () => {
       chosenRouteId: "mock-chosen-route-id",
     } as unknown as Awaited<ReturnType<typeof RoutingFormResponseRepository.recordFormResponse>>);
 
-    const response = await useQueuedResponseHandler({
+    const response = await queuedResponseHandler({
       queuedFormResponseId: "1",
       params: {},
     });
@@ -116,7 +116,7 @@ describe("useQueuedResponseHandler", () => {
 
   it("if no queued form response is found, should return early", async () => {
     vi.mocked(RoutingFormResponseRepository.getQueuedFormResponseFromId).mockResolvedValue(null);
-    const response = await useQueuedResponseHandler({
+    const response = await queuedResponseHandler({
       queuedFormResponseId: "1",
       params: {},
     });
@@ -143,7 +143,7 @@ describe("useQueuedResponseHandler", () => {
       team: null,
     } as unknown as Awaited<ReturnType<typeof getSerializableForm>>);
     await expect(
-      useQueuedResponseHandler({
+      queuedResponseHandler({
         queuedFormResponseId: "1",
         params: {},
       })
