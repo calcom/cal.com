@@ -235,15 +235,12 @@ export function LogInOverlay(props: LogInOverlayProps) {
         description={t("choose_how_you_d_like_to_join_call")}
         className="h-[380px] bg-black text-white sm:max-w-[540px]">
         <div className="">
-          {/* this is the first block */}
           <div className="mt-3 flex flex-col justify-between">
             <div className="flex flex-col">
               <div className="leading-relaxed">
                 <h4 className="text-md font-semibold text-white">{t("join_as_guest")}</h4>
                 <p className="text-subtle text-sm">{t("ideal_for_one_time_calls")}</p>
               </div>
-
-              {/* input fields and button */}
               <div className="mt-4 flex gap-4">
                 <Input
                   type="text"
@@ -264,14 +261,12 @@ export function LogInOverlay(props: LogInOverlayProps) {
               </div>
             </div>
 
-            {/* Divider line */}
             <div className="relative py-6">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-gray-600" />
               </div>
             </div>
 
-            {/* this is the second block */}
             <div className="flex flex-col">
               <div className="leading-relaxed">
                 <h4 className="text-md  font-semibold text-white">{t("signin_to_calcom")}</h4>
