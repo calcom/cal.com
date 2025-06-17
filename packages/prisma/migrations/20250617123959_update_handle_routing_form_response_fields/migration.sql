@@ -1,40 +1,33 @@
-CREATE OR REPLACE FUNCTION handle_routing_form_response_fields()
-RETURNS TRIGGER AS $$
+-- Shared function that contains the core processing logic
+CREATE OR REPLACE FUNCTION _process_routing_form_response_fields(response_id integer, response_data jsonb, form_id text)
+RETURNS void AS $$
 DECLARE
     form_fields jsonb;
     field_record jsonb;
     response_field jsonb;
     field_type text;
-    response_data jsonb;
-    form_id text;
 BEGIN
-    -- For INSERT trigger on RoutingFormResponseDenormalized, we need to get the response data from App_RoutingForms_FormResponse
-    -- For UPDATE trigger on App_RoutingForms_FormResponse, we can use NEW.response directly
-    IF TG_TABLE_NAME = 'RoutingFormResponseDenormalized' THEN
-        SELECT response, "formId" INTO response_data, form_id
-        FROM "App_RoutingForms_FormResponse"
-        WHERE id = NEW.id;
-    ELSE
-        response_data := NEW.response::jsonb;
-        form_id := NEW."formId";
-    END IF;
     -- Validate response_data exists and is a valid JSON object
     IF response_data IS NULL OR jsonb_typeof(response_data) != 'object' THEN
-        RAISE WARNING 'Invalid response data for id %. Type: %', NEW.id, COALESCE(jsonb_typeof(response_data), 'null');
-        RETURN NEW;
+        RAISE WARNING 'Invalid response data for id %. Type: %', response_id, COALESCE(jsonb_typeof(response_data), 'null');
+        RETURN;
     END IF;
+    
     -- Get the fields from App_RoutingForms_Form
     SELECT fields::jsonb INTO form_fields
     FROM "App_RoutingForms_Form"
     WHERE id = form_id;
+    
     -- Delete existing entries for this response
     DELETE FROM "RoutingFormResponseField"
-    WHERE "responseId" = NEW.id;
+    WHERE "responseId" = response_id;
+    
     -- Exit early if form_fields is NULL or not an array
     IF form_fields IS NULL OR jsonb_typeof(form_fields) != 'array' THEN
         RAISE WARNING 'form_fields is NULL or not an array for formId %, skipping processing', form_id;
-        RETURN NEW;
+        RETURN;
     END IF;
+    
     -- Iterate through each field in the response
     FOR field_record IN SELECT * FROM jsonb_array_elements(form_fields)
     LOOP
@@ -48,14 +41,18 @@ BEGIN
                 RAISE WARNING 'Field record % is missing type property, skipping field', field_record->>'id';
                 CONTINUE;
             END IF;
+            
             -- Get the response field object for this field
             response_field := response_data->(field_record->>'id');
+            
             -- Skip if no response for this field
             IF response_field IS NULL THEN
                 CONTINUE;
             END IF;
+            
             -- Get field type
             field_type := field_record->>'type';
+            
             -- Insert new record based on field type
             IF field_type = 'multiselect' THEN
                 -- Handle array values for multiselect
@@ -64,7 +61,7 @@ BEGIN
                     BEGIN
                         INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueStringArray")
                         VALUES (
-                            NEW.id,
+                            response_id,
                             field_record->>'id',
                             ARRAY(SELECT jsonb_array_elements_text(response_field->'value'))
                         );
@@ -79,7 +76,7 @@ BEGIN
                     BEGIN
                         INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueNumber")
                         VALUES (
-                            NEW.id,
+                            response_id,
                             field_record->>'id',
                             (response_field->>'value')::decimal
                         );
@@ -95,7 +92,7 @@ BEGIN
                             -- If it's an array, take the first element
                             INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueString")
                             VALUES (
-                                NEW.id,
+                                response_id,
                                 field_record->>'id',
                                 (response_field->'value'->>0)
                             );
@@ -103,7 +100,7 @@ BEGIN
                             -- If it's a string, use it directly
                             INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueString")
                             VALUES (
-                                NEW.id,
+                                response_id,
                                 field_record->>'id',
                                 response_field->>'value'
                             );
@@ -119,7 +116,7 @@ BEGIN
                     BEGIN
                         INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueString")
                         VALUES (
-                            NEW.id,
+                            response_id,
                             field_record->>'id',
                             response_field->>'value'
                         );
@@ -134,10 +131,55 @@ BEGIN
             CONTINUE;
         END;
     END LOOP;
-    RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
     -- Log any unhandled errors and continue
-    RAISE WARNING 'Unhandled error in handle_routing_form_response_fields for response %', NEW.id;
+    RAISE WARNING 'Unhandled error in _process_routing_form_response_fields for response %', response_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Updated trigger function that uses the shared core function
+CREATE OR REPLACE FUNCTION handle_routing_form_response_fields()
+RETURNS TRIGGER AS $$
+DECLARE
+    response_data jsonb;
+    form_id text;
+BEGIN
+    -- For INSERT trigger on RoutingFormResponseDenormalized, we need to get the response data from App_RoutingForms_FormResponse
+    -- For UPDATE trigger on App_RoutingForms_FormResponse, we can use NEW.response directly
+    IF TG_TABLE_NAME = 'RoutingFormResponseDenormalized' THEN
+        SELECT response, "formId" INTO response_data, form_id
+        FROM "App_RoutingForms_FormResponse"
+        WHERE id = NEW.id;
+    ELSE
+        response_data := NEW.response::jsonb;
+        form_id := NEW."formId";
+    END IF;
+    
+    -- Call the shared core function
+    PERFORM _process_routing_form_response_fields(NEW.id, response_data, form_id);
+    
     RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- New function to reprocess routing form response fields for a specific response ID
+CREATE OR REPLACE FUNCTION reprocess_routing_form_response_fields(response_id integer)
+RETURNS void AS $$
+DECLARE
+    response_data jsonb;
+    form_id text;
+BEGIN
+    -- Get the response data and form ID from App_RoutingForms_FormResponse
+    SELECT response, "formId" INTO response_data, form_id
+    FROM "App_RoutingForms_FormResponse"
+    WHERE id = response_id;
+    
+    -- Check if the response exists
+    IF response_data IS NULL THEN
+        RAISE EXCEPTION 'Response with id % not found', response_id;
+    END IF;
+    
+    -- Call the shared core function
+    PERFORM _process_routing_form_response_fields(response_id, response_data, form_id);
 END;
 $$ LANGUAGE plpgsql;
