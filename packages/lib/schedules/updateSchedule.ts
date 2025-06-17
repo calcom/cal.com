@@ -69,7 +69,7 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
     throw new TRPCError({ code: "BAD_REQUEST", message: "Schedule name cannot be empty" });
   }
 
-  if (input.name === undefined && !input.schedule && !input.timeZone) {
+  if (!input.name) {
     // TODO: Improve
     // We don't want to pass the full schedule for just a set as default update
     // but in the current logic, this wipes the existing availability.
