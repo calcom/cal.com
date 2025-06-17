@@ -31,6 +31,6 @@ BEGIN
         current_id := current_id + batch_size;
 
         -- Optional: Add a small delay between batches if needed
-        PERFORM pg_sleep(2);
+-- PERFORM pg_sleep(2);
     END LOOP;
 END $$;
