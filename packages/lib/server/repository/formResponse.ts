@@ -48,9 +48,16 @@ export class RoutingFormResponseRepository {
       where: {
         id,
       },
-      include: {
+      select: {
+        id: true,
+        formId: true,
+        response: true,
+        chosenRouteId: true,
+        createdAt: true,
+        updatedAt: true,
+        actualResponseId: true,
         form: {
-          include: {
+          select: {
             team: {
               select: {
                 parentId: true,
