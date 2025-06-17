@@ -239,7 +239,7 @@ export const getMessageBody = async (referenceId: string) => {
 
 async function isLockedForSMSSending(userId?: number | null, teamId?: number | null) {
   if (teamId) {
-    const team = await prisma.team.findFirst({
+    const team = await prisma.team.findUnique({
       where: {
         id: teamId,
       },
@@ -269,7 +269,7 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
       return true;
     }
 
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
