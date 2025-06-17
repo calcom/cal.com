@@ -1134,11 +1134,8 @@ const _getBusyTimesFromTeamLimitsForUsers = async (
     const userBusyTimes = busyTimes.filter((busyTime) => busyTime.userId === user.id);
     const limitManager = new LimitManager();
 
-    for (const busyTime of globalLimitManager.getBusyTimes()) {
-      const start = dayjs(busyTime.start);
+    limitManager.mergeBusyTimes(globalLimitManager);
 
-      limitManager.addBusyTime(start, busyTime.unit, timeZone);
-    }
     const bookingLimitsParams = {
       bookings: userBusyTimes,
       bookingLimits,
