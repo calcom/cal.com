@@ -16,6 +16,17 @@ import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/vi
 import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 
+// Mock the FeaturesRepository to enable restriction-schedule feature
+vi.mock("@calcom/features/flags/features.repository", () => ({
+  FeaturesRepository: vi.fn().mockImplementation(() => ({
+    checkIfTeamHasFeature: vi.fn().mockResolvedValue(true),
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+    getAllFeatures: vi.fn().mockResolvedValue([]),
+    getFeatureFlagMap: vi.fn().mockResolvedValue({}),
+    checkIfUserHasFeature: vi.fn().mockResolvedValue(true),
+  })),
+}));
+
 type ScheduleScenario = {
   eventTypes: ScenarioData["eventTypes"];
   users: ScenarioData["users"];
@@ -65,33 +76,14 @@ const getBaseScenarioData = (): ScheduleScenario => ({
   apps: [],
 });
 
-// Helper function to set up team and features
+// Helper function to set up team for the tests
 async function setupTeamAndFeatures() {
-  // Create the restriction-schedule feature
-  await prismock.feature.create({
-    data: {
-      slug: "restriction-schedule",
-      enabled: true,
-      description: "Restriction Schedule Feature",
-      type: "OPERATIONAL",
-    },
-  });
-
-  // Create the team
+  // Create the team (needed for event type configuration)
   await prismock.team.create({
     data: {
       id: 1,
       name: "Test Team",
       slug: "test-team",
-    },
-  });
-
-  // Enable the restriction-schedule feature for the team
-  await prismock.teamFeatures.create({
-    data: {
-      teamId: 1,
-      featureId: "restriction-schedule",
-      assignedBy: "test",
     },
   });
 }
