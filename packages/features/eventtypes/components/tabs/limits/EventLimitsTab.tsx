@@ -30,6 +30,8 @@ import {
   SettingsToggle,
 } from "@calcom/ui/components/form";
 
+import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
+
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
 export type EventLimitsTabCustomClassNames = {
@@ -374,6 +376,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
+  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+
   const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
@@ -387,6 +391,9 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
+  const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
+    (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
+  );
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -680,6 +687,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           );
         }}
       />
+      <MaxActiveBookingsPerBookerController />
       <Controller
         name="periodType"
         render={({ field: { onChange, value } }) => {

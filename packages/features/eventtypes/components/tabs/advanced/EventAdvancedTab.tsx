@@ -449,6 +449,7 @@ export const EventAdvancedTab = ({
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
 
   const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+
   const isRoundRobinEventType =
     eventType.schedulingType && eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
@@ -497,6 +498,9 @@ export const EventAdvancedTab = ({
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
   const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
+  const allowReschedulingCancelledBookingsLocked = shouldLockDisableProps(
+    "allowReschedulingCancelledBookings"
+  );
 
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
@@ -507,6 +511,10 @@ export const EventAdvancedTab = ({
   const [disableCancelling, setDisableCancelling] = useState(eventType.disableCancelling || false);
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
+
+  const [allowReschedulingCancelledBookings, setallowReschedulingCancelledBookings] = useState(
+    eventType.allowReschedulingCancelledBookings ?? false
+  );
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -902,6 +910,8 @@ export const EventAdvancedTab = ({
                         disabled={seatsLocked.disabled}
                         //For old events if value > MAX_SEATS_PER_TIME_SLOT
                         value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : value ?? 1}
+                        step={1}
+                        placeholder="1"
                         min={1}
                         max={MAX_SEATS_PER_TIME_SLOT}
                         containerClassName={classNames(
@@ -913,8 +923,7 @@ export const EventAdvancedTab = ({
                         labelClassName={customClassNames?.seatsOptions?.seatsInput?.label}
                         addOnSuffix={t("seats")}
                         onChange={(e) => {
-                          let enteredValue = Number(e.target.value);
-                          if (enteredValue < 1) enteredValue = 1;
+                          const enteredValue = parseInt(e.target.value);
                           onChange(Math.min(enteredValue, MAX_SEATS_PER_TIME_SLOT));
                         }}
                         data-testid="seats-per-time-slot"
@@ -1025,6 +1034,26 @@ export const EventAdvancedTab = ({
             description={t("allow_rescheduling_past_events_description")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+
+      <Controller
+        name="allowReschedulingCancelledBookings"
+        render={({ field: { onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("allow_rescheduling_cancelled_bookings")}
+            data-testid="allow-rescheduling-cancelled-bookings-toggle"
+            {...allowReschedulingCancelledBookingsLocked}
+            description={t("description_allow_rescheduling_cancelled_bookings")}
+            checked={allowReschedulingCancelledBookings}
+            onCheckedChange={(val) => {
+              setallowReschedulingCancelledBookings(val);
+              onChange(val);
+            }}
           />
         )}
       />
