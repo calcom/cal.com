@@ -18,6 +18,10 @@ const permissionStringSchema = z.custom<PermissionString>((val) => {
 
   const isValidResource = Object.values(Resource).includes(resource as Resource);
 
+  if (action === "_resource") {
+    return true;
+  }
+
   const isValidAction =
     Object.values(CrudAction).includes(action as CrudAction) ||
     Object.values(CustomAction).includes(action as CustomAction);
