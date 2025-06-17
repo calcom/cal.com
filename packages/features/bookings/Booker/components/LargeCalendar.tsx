@@ -17,7 +17,9 @@ export const LargeCalendar = ({
   schedule,
   isLoading,
   event,
+  calendarStartDate,
 }: {
+  calendarStartDate?: Date;
   extraDays: number;
   schedule?: useScheduleForEventReturnType["data"];
   isLoading: boolean;
@@ -86,7 +88,7 @@ export const LargeCalendar = ({
         startHour={0}
         endHour={23}
         events={overlayEventsForDate}
-        startDate={startDate}
+        startDate={!!calendarStartDate ? calendarStartDate : startDate}
         endDate={endDate}
         onEmptyCellClick={(date) => setSelectedTimeslot(date.toISOString())}
         gridCellsPerHour={60 / eventDuration}
