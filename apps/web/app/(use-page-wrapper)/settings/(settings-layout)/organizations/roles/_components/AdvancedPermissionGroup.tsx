@@ -23,7 +23,7 @@ export function AdvancedPermissionGroup({
   onChange,
 }: AdvancedPermissionGroupProps) {
   const { t } = useLocale();
-  const { hasAllPermissions, toggleSinglePermission, toggleResourcePermissionLevel } = usePermissions();
+  const { toggleSinglePermission, toggleResourcePermissionLevel } = usePermissions();
   const resourceConfig = PERMISSION_REGISTRY[resource];
   const [isExpanded, setIsExpanded] = useState(false);
 
