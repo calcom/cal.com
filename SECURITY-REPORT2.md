@@ -8,3 +8,4 @@ A stored HTML injection vulnerability was discovered in Cal.com’s meeting sche
 
 Conclusion
 The presence of stored HTML injection in Cal.com’s scheduling system poses a serious risk...
+
