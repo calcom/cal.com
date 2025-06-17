@@ -18,12 +18,12 @@ export interface DailyCustomTrayButton {
 export const CalAiTranscribe = ({
   showRecordingButton,
   enableAutomaticTranscription,
-  enableAutomaticRecording,
+  enableAutomaticRecordingForOrganizer,
   showTranscriptionButton,
 }: {
   showRecordingButton: boolean;
   enableAutomaticTranscription: boolean;
-  enableAutomaticRecording: boolean;
+  enableAutomaticRecordingForOrganizer: boolean;
   showTranscriptionButton: boolean;
 }) => {
   const daily = useDaily();
@@ -75,7 +75,7 @@ export const CalAiTranscribe = ({
     if (enableAutomaticTranscription && !transcription?.isTranscribing) {
       daily?.startTranscription();
     }
-    if (enableAutomaticRecording && !recording?.isRecording) {
+    if (enableAutomaticRecordingForOrganizer && !recording?.isRecording) {
       daily?.startRecording({
         // 480p
         videoBitrate: 2000,
@@ -135,7 +135,6 @@ export const CalAiTranscribe = ({
       updateCustomTrayButtons({
         transcription: BUTTONS.WAIT_FOR_TRANSCRIPTION_TO_START,
       });
-
       daily?.startTranscription();
     }
   };

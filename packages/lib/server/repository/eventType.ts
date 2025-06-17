@@ -706,7 +706,7 @@ export class EventTypeRepository {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
           enableAutomaticTranscription: true,
-          enableAutomaticRecording: true,
+          enableAutomaticRecordingForOrganizer: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
