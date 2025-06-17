@@ -24,6 +24,10 @@ import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
+import { sendRoundRobinScheduledEmailsAndSMS, sendRoundRobinCancelledEmailsAndSMS } from "@calcom/emails";
+import { getEventName } from "@calcom/lib/event";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import {
   handleNewRecurringBooking,
   getTranslation,
@@ -54,6 +58,8 @@ import {
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 import { EventType, User, Team } from "@calcom/prisma/client";
+
+import { UpdateBookingHostsInput_2024_08_13, HostAction } from "../inputs/update-booking-hosts.input";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -1017,5 +1023,334 @@ export class BookingsService_2024_08_13 {
       // It can be made customizable through the API endpoint later.
       t: await getTranslation("en", "common"),
     });
+  }
+
+  async updateBookingHosts(
+    bookingUid: string,
+    body: UpdateBookingHostsInput_2024_08_13,
+    requestUser: UserWithProfile
+  ): Promise<BookingOutput_2024_08_13> {
+    // Get the booking with all necessary relations
+    const booking = await this.bookingsRepository.getByUidWithUser(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    // Check if booking is in the future
+    if (dayjs(booking.startTime).isBefore(dayjs())) {
+      throw new BadRequestException("Cannot update hosts for past bookings");
+    }
+
+    // Get the event type with hosts and team information
+    const eventType = await this.eventTypesRepository.getEventTypeByIdIncludeUsersAndTeam(
+      booking.eventTypeId!
+    );
+    if (!eventType) {
+      throw new NotFoundException(`Event type not found for booking ${bookingUid}`);
+    }
+
+    // Check permissions - only hosts or team members can update hosts
+    const isAuthorized = await this.isUserAuthorizedToUpdateHosts(requestUser, booking, eventType);
+    if (!isAuthorized) {
+      throw new BadRequestException("You don't have permission to update hosts for this booking");
+    }
+
+    // Get current attendees who are hosts
+    const currentBookingAttendees = await this.prismaReadService.prisma.attendee.findMany({
+      where: { bookingId: booking.id },
+    });
+
+    // Validate and process host actions
+    const { hostsToAdd, hostsToRemove } = await this.validateAndProcessHostActions(
+      body.hosts,
+      currentBookingAttendees,
+      eventType
+    );
+
+    // Get current host user IDs by looking up attendee emails
+    const currentAttendeeEmails = currentBookingAttendees.map((a) => a.email);
+    const currentUsers = await Promise.all(
+      currentAttendeeEmails.map((email) => this.usersRepository.findByEmail(email))
+    );
+    const currentHostIds = currentUsers
+      .filter((user): user is NonNullable<typeof user> => user !== null)
+      .map((user) => user.id);
+    const remainingHostIds = currentHostIds.filter((id) => !hostsToRemove.includes(id));
+
+    if (remainingHostIds.length === 0 && hostsToAdd.length === 0) {
+      throw new BadRequestException("Cannot remove all hosts from a booking");
+    }
+
+    // Get platform client params for email settings
+    const platformClientParams = booking.eventTypeId
+      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+
+    // Process database updates
+    await this.executeHostUpdates(booking.id, hostsToAdd, hostsToRemove);
+
+    // Send notifications to new hosts
+    if (hostsToAdd.length > 0 && emailsEnabled) {
+      await this.sendNewHostNotifications(booking, hostsToAdd, eventType);
+    }
+
+    // Send notifications to removed hosts
+    if (hostsToRemove.length > 0 && emailsEnabled) {
+      await this.sendRemovedHostNotifications(booking, hostsToRemove, eventType);
+    }
+
+    // Return updated booking
+    const updatedBooking = await this.getBooking(bookingUid);
+    return updatedBooking as BookingOutput_2024_08_13;
+  }
+
+  private async isUserAuthorizedToUpdateHosts(
+    user: UserWithProfile,
+    booking: any,
+    eventType: any
+  ): Promise<boolean> {
+    // Check if user is the booking owner
+    if (booking.userId === user.id) {
+      return true;
+    }
+
+    // Check if user is one of the event type hosts
+    const isEventTypeHost = eventType.hosts?.some((host: any) => host.userId === user.id);
+    if (isEventTypeHost) {
+      return true;
+    }
+
+    // Check if user is part of the team (for team event types)
+    if (eventType.teamId) {
+      const teamMembership = await this.prismaReadService.prisma.membership.findFirst({
+        where: {
+          teamId: eventType.teamId,
+          userId: user.id,
+          accepted: true,
+        },
+      });
+      return !!teamMembership;
+    }
+
+    return false;
+  }
+
+  private async validateAndProcessHostActions(
+    hostActions: { action: HostAction; userId: number }[],
+    currentBookingAttendees: any[],
+    eventType: any
+  ): Promise<{ hostsToAdd: number[]; hostsToRemove: number[] }> {
+    const hostsToAdd: number[] = [];
+    const hostsToRemove: number[] = [];
+
+    for (const hostAction of hostActions) {
+      const { action, userId } = hostAction;
+
+      // Validate that the user exists
+      const user = await this.usersRepository.findById(userId);
+      if (!user) {
+        throw new NotFoundException(`User with id ${userId} not found`);
+      }
+
+      if (action === HostAction.ADD) {
+        // Check if user is already a host by email
+        const userToAdd = await this.usersRepository.findById(userId);
+        const isAlreadyHost = currentBookingAttendees.some((attendee) => attendee.email === userToAdd?.email);
+        if (isAlreadyHost) {
+          throw new BadRequestException(`User ${userId} is already a host for this booking`);
+        }
+
+        // Validate that user is authorized to be a host for this event type
+        const isValidHost = await this.isUserValidHost(userId, eventType);
+        if (!isValidHost) {
+          throw new BadRequestException(`User ${userId} is not authorized to be a host for this event type`);
+        }
+
+        hostsToAdd.push(userId);
+      } else if (action === HostAction.REMOVE) {
+        // Check if user is currently a host by email
+        const userToRemove = await this.usersRepository.findById(userId);
+        const isCurrentHost = currentBookingAttendees.some(
+          (attendee) => attendee.email === userToRemove?.email
+        );
+        if (!isCurrentHost) {
+          throw new BadRequestException(`User ${userId} is not currently a host for this booking`);
+        }
+
+        hostsToRemove.push(userId);
+      }
+    }
+
+    return { hostsToAdd, hostsToRemove };
+  }
+
+  private async isUserValidHost(userId: number, eventType: any): Promise<boolean> {
+    // For individual event types, check if user is the owner
+    if (!eventType.teamId) {
+      return eventType.userId === userId;
+    }
+
+    // For team event types, check if user is a team member or explicitly listed as host
+    const isExplicitHost = eventType.hosts?.some((host: any) => host.userId === userId);
+    if (isExplicitHost) {
+      return true;
+    }
+
+    // Check team membership
+    const teamMembership = await this.prismaReadService.prisma.membership.findFirst({
+      where: {
+        teamId: eventType.teamId,
+        userId: userId,
+        accepted: true,
+      },
+    });
+
+    return !!teamMembership;
+  }
+
+  private async executeHostUpdates(
+    bookingId: number,
+    hostsToAdd: number[],
+    hostsToRemove: number[]
+  ): Promise<void> {
+    const operations: Promise<any>[] = [];
+
+    // Add new hosts as attendees
+    for (const userId of hostsToAdd) {
+      const user = await this.usersRepository.findById(userId);
+      if (user) {
+        operations.push(
+          this.prismaReadService.prisma.attendee.create({
+            data: {
+              bookingId,
+              email: user.email,
+              name: user.name || user.username || user.email,
+              timeZone: user.timeZone,
+              locale: user.locale || "en",
+            },
+          })
+        );
+      }
+    }
+
+    // Remove hosts from attendees
+    if (hostsToRemove.length > 0) {
+      const usersToRemove = await this.usersRepository.findByIds(hostsToRemove);
+      const emailsToRemove = usersToRemove.map((user) => user.email);
+
+      operations.push(
+        this.prismaReadService.prisma.attendee.deleteMany({
+          where: {
+            bookingId,
+            email: { in: emailsToRemove },
+          },
+        })
+      );
+    }
+
+    await Promise.all(operations);
+  }
+
+  private async sendNewHostNotifications(booking: any, newHostIds: number[], eventType: any): Promise<void> {
+    const newHosts = await this.usersRepository.findByIds(newHostIds);
+
+    const calEvent = await this.buildCalendarEvent(booking, eventType);
+
+    const membersForNotification = await Promise.all(
+      newHosts.map(async (host) => ({
+        ...host,
+        name: host.name || "",
+        username: host.username || "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(host.timeFormat),
+        language: {
+          translate: await getTranslation(host.locale || "en", "common"),
+          locale: host.locale || "en",
+        },
+      }))
+    );
+
+    await sendRoundRobinScheduledEmailsAndSMS({
+      calEvent,
+      members: membersForNotification,
+      eventTypeMetadata: eventType.metadata,
+    });
+  }
+
+  private async sendRemovedHostNotifications(
+    booking: any,
+    removedHostIds: number[],
+    eventType: any
+  ): Promise<void> {
+    const removedHosts = await this.usersRepository.findByIds(removedHostIds);
+
+    const calEvent = await this.buildCalendarEvent(booking, eventType);
+
+    const membersForNotification = await Promise.all(
+      removedHosts.map(async (host) => ({
+        ...host,
+        name: host.name || "",
+        username: host.username || "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(host.timeFormat),
+        language: {
+          translate: await getTranslation(host.locale || "en", "common"),
+          locale: host.locale || "en",
+        },
+      }))
+    );
+
+    await sendRoundRobinCancelledEmailsAndSMS(calEvent, membersForNotification, eventType.metadata);
+  }
+
+  private async buildCalendarEvent(booking: any, eventType: any): Promise<any> {
+    // Build calendar event object for email notifications
+    // This follows the same pattern as other booking notifications
+    const organizer = booking.user || eventType.owner;
+    const attendees = await this.prismaReadService.prisma.attendee.findMany({
+      where: { bookingId: booking.id },
+    });
+
+    return {
+      type: eventType.title,
+      title: getEventName({
+        eventName: eventType.title,
+        eventType: eventType.title,
+        host: organizer.name || organizer.username || organizer.email,
+        attendeeName: attendees[0]?.name || "Guest",
+        eventDuration: eventType.length,
+        t: await getTranslation(organizer.locale || "en", "common"),
+      }),
+      description: eventType.description || "",
+      startTime: booking.startTime.toISOString(),
+      endTime: booking.endTime.toISOString(),
+      organizer: {
+        email: organizer.email,
+        name: organizer.name || organizer.username || organizer.email,
+        timeZone: organizer.timeZone,
+        language: {
+          translate: await getTranslation(organizer.locale || "en", "common"),
+          locale: organizer.locale || "en",
+        },
+      },
+      attendees: await Promise.all(
+        attendees.map(async (attendee) => ({
+          email: attendee.email,
+          name: attendee.name,
+          timeZone: attendee.timeZone,
+          language: {
+            translate: await getTranslation(attendee.locale || "en", "common"),
+            locale: attendee.locale || "en",
+          },
+        }))
+      ),
+      uid: booking.uid,
+      bookingId: booking.id,
+      location: booking.location,
+      eventType: {
+        slug: eventType.slug,
+        schedulingType: eventType.schedulingType,
+        hosts: eventType.hosts,
+      },
+    };
   }
 }
