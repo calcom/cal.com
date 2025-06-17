@@ -2242,47 +2242,34 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
       });
 
-      describe("Can update booking with different locations", async () => {
-        const email = `user-booking-locations-${randomString(10)}@gmail.com`;
-        const username = `user-bookings-locations-${randomString(10)}`;
-        const locale = "en";
-        const timeZone = "Europe/London";
-        const attendee = await userRepositoryFixture.create({
-          email,
-          username,
-          locale,
-          timeZone,
-        });
+      describe("Can update booking with different locations", () => {
+        let booking: Booking;
+        let bookingId: number;
+        let bookingUid: string;
 
-        const booking = await bookingsRepositoryFixture.create({
-          uid: `booking-uid-${randomString(10)}`,
-          title: "booking title",
-          startTime: "2048-08-14T09:00:00.000Z",
-          endTime: "2048-08-14T10:00:00.000Z",
-          eventType: {
-            connect: {
-              id: eventTypeId,
+        beforeAll(async () => {
+          booking = await bookingsRepositoryFixture.create({
+            uid: `booking-uid-${randomString(10)}`,
+            title: "booking title",
+            startTime: "2048-08-14T09:00:00.000Z",
+            endTime: "2048-08-14T10:00:00.000Z",
+            eventType: {
+              connect: {
+                id: eventTypeId,
+              },
             },
-          },
-          status: "ACCEPTED",
-          metadata: {},
-          responses: "null",
-          user: {
-            connect: {
-              id: user.id,
+            status: "ACCEPTED",
+            metadata: {},
+            responses: "null",
+            user: {
+              connect: {
+                id: user.id,
+              },
             },
-          },
-          attendees: {
-            create: {
-              email: email,
-              name: username,
-              timeZone,
-              locale,
-            },
-          },
+          });
+          bookingUid = booking.uid;
+          bookingId = booking.id;
         });
-        const bookingUid = booking.uid;
-        const bookingId = booking.id;
 
         it("can update location to type address", async () => {
           const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
