@@ -114,10 +114,10 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             },
           }
         : undefined,
-      restrictionSchedule: eventType.restrictionScheduleId
+      restrictionSchedule: _restrictionScheduleId
         ? {
             connect: {
-              id: eventType.restrictionScheduleId,
+              id: _restrictionScheduleId,
             },
           }
         : undefined,
