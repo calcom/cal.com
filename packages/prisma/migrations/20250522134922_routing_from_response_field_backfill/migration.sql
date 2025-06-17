@@ -100,16 +100,28 @@ BEGIN
                         END IF;
                     ELSIF field_type = 'number' THEN
                         -- Handle number values
-                        IF response_field->>'value' IS NOT NULL AND jsonb_typeof(response_field->'value') = 'number' THEN
+                        -- Accept both JSON number values and string values that can be converted to numbers
+                        IF response_field->>'value' IS NOT NULL THEN
                             BEGIN
-                                INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueNumber")
-                                VALUES (
-                                    response_record.id,
-                                    field_record->>'id',
-                                    (response_field->>'value')::decimal
-                                );
+                                IF jsonb_typeof(response_field->'value') = 'number' THEN
+                                    -- If it's already a JSON number, use it directly
+                                    INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueNumber")
+                                    VALUES (
+                                        response_record.id,
+                                        field_record->>'id',
+                                        (response_field->>'value')::decimal
+                                    );
+                                ELSIF jsonb_typeof(response_field->'value') = 'string' THEN
+                                    -- If it's a string, try to convert it to a number
+                                    INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueNumber")
+                                    VALUES (
+                                        response_record.id,
+                                        field_record->>'id',
+                                        (response_field->>'value')::decimal
+                                    );
+                                END IF;
                             EXCEPTION WHEN OTHERS THEN
-                                RAISE WARNING 'Failed to insert number value for responseId % field %', response_record.id, field_record->>'id';
+                                RAISE WARNING 'Failed to insert number value for responseId % field % (value: %)', response_record.id, field_record->>'id', response_field->>'value';
                             END;
                         END IF;
                     ELSIF field_type = 'select' THEN
