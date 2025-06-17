@@ -31,7 +31,7 @@ import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";
 
 interface MembershipOption {
-  value: MembershipRole | string; // Updated to allow custom role IDs
+  value: MembershipRole | string;
   label: string;
   isCustomRole?: boolean;
 }
@@ -59,13 +59,8 @@ const editSchema = z.object({
   email: emailSchema,
   avatar: z.string(),
   bio: z.string(),
-  role: z.union(
-    [z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]), z.string()],
-    z.string()
-  ),
+  role: z.union([z.nativeEnum(MembershipRole), z.string()]),
   timeZone: timeZoneSchema,
-  // schedules: z.array(z.string()),
-  // teams: z.array(z.string()),
   attributes: z.array(attributeSchema).optional(),
 });
 
@@ -233,7 +228,7 @@ export function EditForm({
                 options={membershipOptions}
                 onChange={(option) => {
                   if (option) {
-                    form.setValue("role", option.value as MembershipRole);
+                    form.setValue("role", option.value);
                   }
                 }}
               />
@@ -243,7 +238,7 @@ export function EditForm({
                 defaultValue={selectedUser?.role ?? "MEMBER"}
                 value={form.watch("role")}
                 options={membershipOptions}
-                onValueChange={(value: MembershipRole) => {
+                onValueChange={(value) => {
                   form.setValue("role", value);
                 }}
               />
