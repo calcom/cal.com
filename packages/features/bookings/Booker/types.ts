@@ -11,6 +11,7 @@ import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Bo
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import type { GetBookingType } from "../lib/get-booking";
 
@@ -95,6 +96,16 @@ export interface BookerProps {
   /**
    * Refers to the private link from event types page.
    */
+
+  /**
+   * Callback function triggered when available timeslots have been successfully fetched.
+   * This allows consumers to hook into the event—for example, for logging, analytics,
+   * or triggering related UI updates after timeslot data is loaded.
+   *
+   * @param slots A record of available slots
+   */
+  onTimeslotsLoaded?: (slots: Record<string, Slot[]>) => void;
+
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
   teamMemberEmail?: string | null;

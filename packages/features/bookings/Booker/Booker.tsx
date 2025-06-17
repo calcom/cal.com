@@ -79,6 +79,7 @@ const BookerComponent = ({
   confirmButtonDisabled,
   timeZones,
   eventMetaChildren,
+  onTimeslotsLoaded,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -207,6 +208,12 @@ const BookerComponent = ({
   useEffect(() => {
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
+
+  useEffect(() => {
+    if (!schedule.isPending && schedule.data?.slots) {
+      onTimeslotsLoaded?.(schedule.data.slots);
+    }
+  }, [schedule.isPending, schedule.data?.slots, onTimeslotsLoaded]);
 
   const onSubmit = (timeSlot?: string) => {
     renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
