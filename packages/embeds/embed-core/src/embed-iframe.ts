@@ -455,7 +455,9 @@ export const methods = {
 
     // We now record the response to routingFormResponse and connect that with queuedResponse, as the user actually opened the modal which is confirmed by this connect method call
     const newlyRecordedResponseId = await recordResponseIfQueued(params);
-    if (!newlyRecordedResponseId) {
+    // Allow 0 which is for dry run
+    // Negative values are not possible
+    if (typeof newlyRecordedResponseId !== "number") {
       return;
     }
     await ensureRoutingFormResponseIdInUrl({
