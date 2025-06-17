@@ -11,6 +11,7 @@ import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShou
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
@@ -36,10 +37,7 @@ import {
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import {
-  isBookingAllowedByRestrictionSchedule,
-  isRestrictionScheduleEnabled,
-} from "@calcom/lib/restrictionSchedule";
+import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
@@ -533,16 +531,40 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         });
       }
 
-      availableTimeSlots = timeSlots.filter((slot) => {
-        const slotEndTime = slot.time.add(input.duration || eventType.length, "minute");
+      // Use buildDateRanges for optimized restriction schedule filtering
+      const restrictionTimezone = eventType.useBookerTimezone
+        ? input.timeZone
+        : restrictionSchedule.timeZone!;
+      const eventLength = input.duration || eventType.length;
 
-        return isBookingAllowedByRestrictionSchedule({
-          restrictionSchedule,
-          bookingStartTime: slot.time,
-          bookingEndTime: slotEndTime,
-          useBookerTimezone: eventType.useBookerTimezone,
-          bookerTimezone: input.timeZone,
-        });
+      // Convert restriction schedule to buildDateRanges format
+      const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
+        days: rule.days,
+        startTime: rule.startTime,
+        endTime: rule.endTime,
+        date: rule.date,
+      }));
+
+      // Get merged date ranges for restriction schedule
+      const { dateRanges: restrictionRanges } = buildDateRanges({
+        availability: restrictionAvailability,
+        timeZone: restrictionTimezone || "UTC",
+        dateFrom: startTime,
+        dateTo: endTime,
+        travelSchedules: [], // Not needed for restriction schedules
+      });
+
+      // Efficiently filter slots using pre-computed ranges
+      availableTimeSlots = timeSlots.filter((slot) => {
+        const slotStart = slot.time;
+        const slotEnd = slot.time.add(eventLength, "minute");
+
+        // Check if slot falls within any restriction range
+        return restrictionRanges.some(
+          (range) =>
+            (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
+            (slotEnd.isBefore(range.end) || slotEnd.isSame(range.end))
+        );
       });
     } else {
       availableTimeSlots = timeSlots;

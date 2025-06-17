@@ -1,6 +1,7 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { mergeOverlappingRanges } from "@calcom/lib/date-ranges";
 
 export interface RestrictionScheduleAvailability {
   days: number[];
@@ -62,8 +63,7 @@ export function isBookingAllowedByRestrictionSchedule({
   const dateOverrides = restrictionSchedule.availability.filter((a) => !!a.date);
   const recurringRules = restrictionSchedule.availability.filter((a) => !a.date);
 
-  const bookingStartTimeNormalized = dayjs(bookingStartTime.utc()).tz(restrictionTimezone);
-  const bookingEndTimeNormalized = dayjs(bookingEndTime.utc()).tz(restrictionTimezone);
+  const bookingStartTimeNormalized = bookingStartTime.utc().tz(restrictionTimezone);
   const bookingDateStr = bookingStartTimeNormalized.format("YYYY-MM-DD");
   const bookingWeekday = bookingStartTimeNormalized.day();
   const bookingStartValue = bookingStartTime.valueOf();
@@ -75,23 +75,44 @@ export function isBookingAllowedByRestrictionSchedule({
   const recurringRulesForTheDay = recurringRules.filter((a) => a.days.includes(bookingWeekday));
 
   if (overrideRulesForTheDay.length > 0) {
-    const overrideAllowsBooking = overrideRulesForTheDay.some((rule) => {
+    // Convert override rules to date ranges and merge overlapping/adjacent ones
+    const overrideRanges = overrideRulesForTheDay.map((rule) => {
       const startTimeStr = dayjs.utc(rule.startTime).format("HH:mm");
       const endTimeStr = dayjs.utc(rule.endTime).format("HH:mm");
       const start = dayjs.tz(`${bookingDateStr}T${startTimeStr}`, restrictionTimezone);
       const end = dayjs.tz(`${bookingDateStr}T${endTimeStr}`, restrictionTimezone);
-      return bookingStartValue >= start.valueOf() && bookingEndValue <= end.valueOf();
+      return {
+        start: start.toDate(),
+        end: end.toDate(),
+      };
+    });
+
+    const mergedOverrideRanges = mergeOverlappingRanges(overrideRanges);
+
+    const overrideAllowsBooking = mergedOverrideRanges.some((range) => {
+      return bookingStartValue >= range.start.valueOf() && bookingEndValue <= range.end.valueOf();
     });
     return overrideAllowsBooking;
   }
+
   if (recurringRulesForTheDay.length === 0) return false;
-  const recurringAllowsBooking = recurringRulesForTheDay.some((rule) => {
+
+  // Convert recurring rules to date ranges and merge overlapping/adjacent ones
+  const recurringRanges = recurringRulesForTheDay.map((rule) => {
     const startTimeStr = dayjs.utc(rule.startTime).format("HH:mm");
     const endTimeStr = dayjs.utc(rule.endTime).format("HH:mm");
     const start = dayjs.tz(`${bookingDateStr}T${startTimeStr}`, restrictionTimezone);
     const end = dayjs.tz(`${bookingDateStr}T${endTimeStr}`, restrictionTimezone);
+    return {
+      start: start.toDate(),
+      end: end.toDate(),
+    };
+  });
 
-    return bookingStartValue >= start.valueOf() && bookingEndValue <= end.valueOf();
+  const mergedRecurringRanges = mergeOverlappingRanges(recurringRanges);
+
+  const recurringAllowsBooking = mergedRecurringRanges.some((range) => {
+    return bookingStartValue >= range.start.valueOf() && bookingEndValue <= range.end.valueOf();
   });
   return recurringAllowsBooking;
 }
