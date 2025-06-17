@@ -98,7 +98,7 @@ export default class GoogleCalendarService implements Calendar {
         organizer: true,
         // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
         displayName: event.organizer.name,
-        email: hostExternalCalendarId ?? selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
+        email: hostExternalCalendarId || selectedHostDestinationCalendar?.externalId || event.organizer.email,
       },
       ...eventAttendees,
     ];
