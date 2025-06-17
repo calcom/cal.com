@@ -83,7 +83,7 @@ export function EditForm({
   const session = useSession();
   const org = session?.data?.user?.org;
   const utils = trpc.useUtils();
-  const form = useForm({
+  const form = useForm<EditSchema>({
     resolver: zodResolver(editSchema),
     defaultValues: {
       name: selectedUser?.name ?? "",
@@ -101,7 +101,7 @@ export function EditForm({
   const { data: teamRoles, isLoading: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
     { teamId: org?.id },
     {
-      enabled: true, // We can add a feature flag check here if needed
+      enabled: !!org?.id, // Only enable the query when we have a valid team ID
       staleTime: 30000, // Cache for 30 seconds
     }
   );
@@ -466,7 +466,6 @@ function AttributesList(props: { selectedUserId: number }) {
     </div>
   );
 }
-
 /**
  * Ensures that options that are not owned by cal.com are not removed
  * Such options are created by dsync and removed only through corresponding dsync
