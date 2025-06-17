@@ -480,24 +480,18 @@ async function getBookingsOfInterval({
   virtualQueuesData,
   interval,
   includeNoShowInRRCalculation,
-<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
   excludeSalesforceBookingsFromRR = false,
-=======
   rrTimestampBasis,
   meetingStartTime,
->>>>>>> main -- Current Change
 }: {
   eventTypeId: number;
   users: { id: number; email: string }[];
   virtualQueuesData: VirtualQueuesDataType | null;
   interval: RRResetInterval;
   includeNoShowInRRCalculation: boolean;
-<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
   excludeSalesforceBookingsFromRR?: boolean;
-=======
   rrTimestampBasis: RRTimestampBasis;
   meetingStartTime?: Date;
->>>>>>> main -- Current Change
 }) {
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
@@ -506,11 +500,8 @@ async function getBookingsOfInterval({
     endDate: getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }),
     virtualQueuesData,
     includeNoShowInRRCalculation,
-<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
     excludeSalesforceBookingsFromRR,
-=======
     rrTimestampBasis,
->>>>>>> main -- Current Change
   });
 }
 
@@ -698,12 +689,9 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
       excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
-=======
       rrTimestampBasis,
       meetingStartTime,
->>>>>>> main -- Current Change
     }),
 
     getBookingsOfInterval({
@@ -712,12 +700,9 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
       excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
-=======
       rrTimestampBasis,
       meetingStartTime,
->>>>>>> main -- Current Change
     }),
 
     getBookingsOfInterval({
@@ -728,12 +713,9 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-<<<<<<< JagjeevanAK/RR-refactor -- Incoming Change
       excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
-=======
       rrTimestampBasis,
       meetingStartTime,
->>>>>>> main -- Current Change
     }),
 
     prisma.host.findMany({
