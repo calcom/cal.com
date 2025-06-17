@@ -97,7 +97,7 @@ BEGIN
                             VALUES (
                                 NEW.id,
                                 field_record->>'id',
-                                (response_field->'value'->0)::text
+                                (response_field->'value'->>0)
                             );
                         ELSIF jsonb_typeof(response_field->'value') = 'string' THEN
                             -- If it's a string, use it directly
