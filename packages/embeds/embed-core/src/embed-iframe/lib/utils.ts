@@ -39,6 +39,10 @@ export const recordResponseIfQueued = async (params: Record<string, string | str
   if (!queuedFormResponseId) {
     return null;
   }
+  // Corresponding dry run value for routingFormResponseId is 0
+  if (queuedFormResponseId === "queued-dry-run-id") {
+    return 0;
+  }
   // form is formId and isn't acutal Form data
   const { form: _1, ...actualFormData } = params;
   const res = await fetch(`/api/routing-forms/queued-response`, {
