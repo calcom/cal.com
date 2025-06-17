@@ -46,7 +46,7 @@ function getResponsesFromOldBooking(
 }
 
 async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boolean) {
-  const rawBooking = await prisma.booking.findFirst({
+  const rawBooking = await prisma.booking.findUnique({
     where: {
       uid,
     },
@@ -253,7 +253,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
   if (!booking || booking.eventTypeId === null) return null;
 
   // Validate booking event type has seats enabled
-  const eventType = await prisma.eventType.findFirst({
+  const eventType = await prisma.eventType.findUnique({
     where: {
       id: booking.eventTypeId,
     },

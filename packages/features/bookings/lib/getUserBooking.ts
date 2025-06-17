@@ -1,7 +1,7 @@
 import prisma from "@calcom/prisma";
 
 const getUserBooking = async (uid: string) => {
-  const bookingInfo = await prisma.booking.findFirst({
+  const bookingInfo = await prisma.booking.findUnique({
     where: {
       uid: uid,
     },
