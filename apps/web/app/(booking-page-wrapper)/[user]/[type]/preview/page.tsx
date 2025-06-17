@@ -10,6 +10,9 @@ import { getBookingPreviewProps } from "@server/lib/[user]/[type]/getStaticPrevi
 
 import { UserBookingPreview } from "./user-booking-preview";
 
+// Enable ISR - 1 hour cache
+export const revalidate = 3600;
+
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getBookingPreviewProps(legacyCtx);

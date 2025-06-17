@@ -2,11 +2,16 @@ import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { headers, cookies } from "next/headers";
 
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 
 import { getTeamBookingPreviewProps } from "@server/lib/team/[slug]/[type]/getStaticPreviewProps";
 
 import { TeamBookingPreview } from "./team-booking-preview";
+
+// Enable ISR - 1 hour cache
+export const revalidate = 3600;
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
