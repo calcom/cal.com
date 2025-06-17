@@ -241,6 +241,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       it("should successfully handle multiple actions in single request", async () => {
+        // First add user2 as a host to set up the test state independently
+        const setupBody: UpdateBookingHostsInput_2024_08_13 = {
+          hosts: [{ action: HostAction.ADD, userId: user2.id }],
+        };
+
+        await request(app.getHttpServer())
+          .patch(`/v2/bookings/${testBooking.uid}/hosts`)
+          .send(setupBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
+
+        // Now test multiple actions in a single request
         const body: UpdateBookingHostsInput_2024_08_13 = {
           hosts: [
             { action: HostAction.REMOVE, userId: user2.id }, // Remove user2

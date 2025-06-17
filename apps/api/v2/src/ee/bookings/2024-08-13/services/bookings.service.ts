@@ -14,6 +14,7 @@ import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -97,6 +98,7 @@ export class BookingsService_2024_08_13 {
     private readonly bookingSeatRepository: BookingSeatRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly prismaReadService: PrismaReadService,
+    private readonly prismaWriteService: PrismaWriteService,
     private readonly kyselyReadService: KyselyReadService,
     private readonly billingService: BillingService,
     private readonly usersService: UsersService,
@@ -1064,6 +1066,7 @@ export class BookingsService_2024_08_13 {
     // Get current attendees who are hosts
     const currentBookingAttendees = await this.prismaReadService.prisma.attendee.findMany({
       where: { bookingId: booking.id },
+      select: { email: true },
     });
 
     // Validate and process host actions
@@ -1075,12 +1078,8 @@ export class BookingsService_2024_08_13 {
 
     // Get current host user IDs by looking up attendee emails
     const currentAttendeeEmails = currentBookingAttendees.map((a) => a.email);
-    const currentUsers = await Promise.all(
-      currentAttendeeEmails.map((email) => this.usersRepository.findByEmail(email))
-    );
-    const currentHostIds = currentUsers
-      .filter((user): user is NonNullable<typeof user> => user !== null)
-      .map((user) => user.id);
+    const currentUsers = await this.usersRepository.findByEmails(currentAttendeeEmails);
+    const currentHostIds = currentUsers.map((user) => user.id);
     const remainingHostIds = currentHostIds.filter((id) => !hostsToRemove.includes(id));
 
     if (remainingHostIds.length === 0 && hostsToAdd.length === 0) {
@@ -1223,7 +1222,7 @@ export class BookingsService_2024_08_13 {
       const user = await this.usersRepository.findById(userId);
       if (user) {
         operations.push(
-          this.prismaReadService.prisma.attendee.create({
+          this.prismaWriteService.prisma.attendee.create({
             data: {
               bookingId,
               email: user.email,
@@ -1242,7 +1241,7 @@ export class BookingsService_2024_08_13 {
       const emailsToRemove = usersToRemove.map((user) => user.email);
 
       operations.push(
-        this.prismaReadService.prisma.attendee.deleteMany({
+        this.prismaWriteService.prisma.attendee.deleteMany({
           where: {
             bookingId,
             email: { in: emailsToRemove },

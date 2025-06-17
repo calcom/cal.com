@@ -108,6 +108,16 @@ export class UsersRepository {
     });
   }
 
+  async findByEmails(emails: string[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        email: {
+          in: emails,
+        },
+      },
+    });
+  }
+
   async findByIdWithCalendars(userId: number) {
     return this.dbRead.prisma.user.findUnique({
       where: {
