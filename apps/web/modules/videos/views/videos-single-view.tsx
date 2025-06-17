@@ -217,18 +217,18 @@ function ProgressBar(props: ProgressBarProps) {
 }
 
 interface LogInOverlayProps {
-  setUserName: (userName: string) => void;
-  setCreateDailyFrame: (state: boolean) => void;
+  isLoggedIn: boolean;
+  bookingUid: string;
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
 
   const { isLoggedIn, bookingUid } = props;
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(!isLoggedIn);
 
   return (
-    <Dialog open={!isLoggedIn} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_join_call")}
