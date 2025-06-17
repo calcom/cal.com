@@ -18,8 +18,14 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
-import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { BadRequestException } from "@nestjs/common";
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from "@nestjs/common";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
@@ -1052,7 +1058,7 @@ export class BookingsService_2024_08_13 {
     // Check permissions - only hosts or team members can update hosts
     const isAuthorized = await this.isUserAuthorizedToUpdateHosts(requestUser, booking, eventType);
     if (!isAuthorized) {
-      throw new BadRequestException("You don't have permission to update hosts for this booking");
+      throw new ForbiddenException("You don't have permission to update hosts for this booking");
     }
 
     // Get current attendees who are hosts
@@ -1123,14 +1129,14 @@ export class BookingsService_2024_08_13 {
 
     // Check if user is part of the team (for team event types)
     if (eventType.teamId) {
-      const teamMembership = await this.prismaReadService.prisma.membership.findFirst({
+      const teamMembershipCount = await this.prismaReadService.prisma.membership.count({
         where: {
           teamId: eventType.teamId,
           userId: user.id,
           accepted: true,
         },
       });
-      return !!teamMembership;
+      return teamMembershipCount > 0;
     }
 
     return false;
@@ -1154,9 +1160,8 @@ export class BookingsService_2024_08_13 {
       }
 
       if (action === HostAction.ADD) {
-        // Check if user is already a host by email
-        const userToAdd = await this.usersRepository.findById(userId);
-        const isAlreadyHost = currentBookingAttendees.some((attendee) => attendee.email === userToAdd?.email);
+        // Check if user is already a host by email (reuse the user object)
+        const isAlreadyHost = currentBookingAttendees.some((attendee) => attendee.email === user.email);
         if (isAlreadyHost) {
           throw new BadRequestException(`User ${userId} is already a host for this booking`);
         }
@@ -1169,11 +1174,8 @@ export class BookingsService_2024_08_13 {
 
         hostsToAdd.push(userId);
       } else if (action === HostAction.REMOVE) {
-        // Check if user is currently a host by email
-        const userToRemove = await this.usersRepository.findById(userId);
-        const isCurrentHost = currentBookingAttendees.some(
-          (attendee) => attendee.email === userToRemove?.email
-        );
+        // Check if user is currently a host by email (reuse the user object)
+        const isCurrentHost = currentBookingAttendees.some((attendee) => attendee.email === user.email);
         if (!isCurrentHost) {
           throw new BadRequestException(`User ${userId} is not currently a host for this booking`);
         }
@@ -1198,7 +1200,7 @@ export class BookingsService_2024_08_13 {
     }
 
     // Check team membership
-    const teamMembership = await this.prismaReadService.prisma.membership.findFirst({
+    const teamMembershipCount = await this.prismaReadService.prisma.membership.count({
       where: {
         teamId: eventType.teamId,
         userId: userId,
@@ -1206,7 +1208,7 @@ export class BookingsService_2024_08_13 {
       },
     });
 
-    return !!teamMembership;
+    return teamMembershipCount > 0;
   }
 
   private async executeHostUpdates(

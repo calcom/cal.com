@@ -305,17 +305,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
           hosts: [{ action: HostAction.REMOVE, userId: user.id }],
         };
 
-        return request(app.getHttpServer())
-          .patch(`/v2/bookings/${singleHostBooking.uid}/hosts`)
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(400)
-          .then(async (response) => {
-            expect(response.body.message).toContain("Cannot remove all hosts");
+        try {
+          const response = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${singleHostBooking.uid}/hosts`)
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
 
-            // Clean up
-            await bookingsRepositoryFixture.deleteById(singleHostBooking.id);
-          });
+          expect(response.body.message).toContain("Cannot remove all hosts");
+        } finally {
+          // Clean up
+          await bookingsRepositoryFixture.deleteById(singleHostBooking.id);
+        }
       });
 
       it("should fail when trying to add non-existent user", async () => {
@@ -398,17 +399,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
           hosts: [{ action: HostAction.REMOVE, userId: newUser.id }],
         };
 
-        return request(app.getHttpServer())
-          .patch(`/v2/bookings/${testBooking.uid}/hosts`)
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(400)
-          .then(async (response) => {
-            expect(response.body.message).toContain(`User ${newUser.id} is not currently a host`);
+        try {
+          const response = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${testBooking.uid}/hosts`)
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
 
-            // Clean up
-            await userRepositoryFixture.deleteByEmail(newUser.email);
-          });
+          expect(response.body.message).toContain(`User ${newUser.id} is not currently a host`);
+        } finally {
+          // Clean up
+          await userRepositoryFixture.deleteByEmail(newUser.email);
+        }
       });
 
       it("should fail when trying to update hosts for past booking", async () => {
@@ -448,17 +450,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
           hosts: [{ action: HostAction.ADD, userId: user2.id }],
         };
 
-        return request(app.getHttpServer())
-          .patch(`/v2/bookings/${pastBooking.uid}/hosts`)
-          .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(400)
-          .then(async (response) => {
-            expect(response.body.message).toContain("Cannot update hosts for past bookings");
+        try {
+          const response = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${pastBooking.uid}/hosts`)
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
 
-            // Clean up
-            await bookingsRepositoryFixture.deleteById(pastBooking.id);
-          });
+          expect(response.body.message).toContain("Cannot update hosts for past bookings");
+        } finally {
+          // Clean up
+          await bookingsRepositoryFixture.deleteById(pastBooking.id);
+        }
       });
     });
 
