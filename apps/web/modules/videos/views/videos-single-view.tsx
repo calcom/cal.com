@@ -67,6 +67,7 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
+        userName: overrideName ?? loggedInUserName ?? undefined,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
@@ -216,8 +217,8 @@ function ProgressBar(props: ProgressBarProps) {
 }
 
 interface LogInOverlayProps {
-  isLoggedIn: boolean;
-  bookingUid: string;
+  setUserName: (userName: string) => void;
+  setCreateDailyFrame: (state: boolean) => void;
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
@@ -225,10 +226,9 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
   const { isLoggedIn, bookingUid } = props;
   const [open, setOpen] = useState(true);
-  const [userName, setUserName] = useState("");
 
   return (
-    <Dialog open={true} onOpenChange={setOpen}>
+    <Dialog open={!isLoggedIn} onOpenChange={setOpen}>
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_join_call")}
@@ -249,11 +249,14 @@ export function LogInOverlay(props: LogInOverlayProps) {
                   placeholder="name"
                   className="w-full flex-1"
                   value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
+                  onChange={(e) => {
+                    setUserName(e.target.value);
+                  }}
                 />
                 <Button
                   color="primary"
                   onClick={() => {
+                    setCreateDailyFrame(true);
                     setOpen(false);
                   }}>
                   {t("continue")}
@@ -296,7 +299,7 @@ interface VideoMeetingInfo {
 }
 
 export function VideoMeetingInfo(props: VideoMeetingInfo) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const { booking, rediectAttendeeToOnExit } = props;
   const { t } = useLocale();
 
