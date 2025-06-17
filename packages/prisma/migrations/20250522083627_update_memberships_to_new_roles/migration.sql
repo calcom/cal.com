@@ -115,14 +115,14 @@ FROM (
 ) AS permissions(resource, action);
 
 -- Create function to handle membership role changes
--- Keep this is place until we fully depricate old roles
+-- Keep this in place until we fully deprecate old roles
 CREATE OR REPLACE FUNCTION update_membership_custom_role()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Update customRoleId based on role
     CASE NEW.role
         WHEN 'OWNER' THEN
-            NEW."customRoleId" = 'owner_role';
+            NEW."customRoleId" := 'owner_role';
         WHEN 'ADMIN' THEN
             NEW."customRoleId" = 'admin_role';
         WHEN 'MEMBER' THEN

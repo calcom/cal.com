@@ -15,7 +15,7 @@ export class PermissionMapper {
     }[]
   ): TeamPermissions[] {
     return dbPermissions
-      .filter((membership) => membership.teamId && membership.role?.id && membership.role.permissions)
+      .filter((membership) => membership.teamId != null && membership.role?.id != null && membership.role.permissions)
       .map((membership) => ({
         teamId: membership.teamId,
         roleId: membership.role!.id!,
