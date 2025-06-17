@@ -94,7 +94,7 @@ const Day = ({
           ? `${
               !customClassName?.dayActive && hasAvailableSlots
                 ? "hover:border-brand-default text-emphasis bg-emphasis"
-                : `hover:border-brand-default ${customClassName?.dayActive}`
+                : `hover:border-brand-default ${customClassName?.dayActive ?? ""}`
             }`
           : `${customClassName ? "" : " text-mute"}`
       )}
