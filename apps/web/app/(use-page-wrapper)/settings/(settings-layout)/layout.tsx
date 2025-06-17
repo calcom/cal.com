@@ -17,7 +17,10 @@ const getTeamFeatures = unstable_cache(
     const featuresRepository = new FeaturesRepository();
     return await featuresRepository.getTeamFeatures(teamId);
   },
-  ["team-features"]
+  ["team-features"],
+  {
+    revalidate: 120,
+  }
 );
 
 export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
