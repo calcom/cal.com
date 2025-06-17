@@ -24,7 +24,6 @@ import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton"
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import { getErrorMessage } from "../../src/lib/utils";
 import type {
   BulkUpdatParams,
   UpdateUsersDefaultConferencingAppParams,
@@ -79,7 +78,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const showToast = (message: string, variant: "success" | "warning" | "error") => {
+  const showToast = (message: string, _variant: "success" | "warning" | "error") => {
     if (!disableToasts) {
       toast({ description: message });
     }
@@ -119,10 +118,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
         queryKey: [defaultConferencingAppQueryKey],
       });
     },
-    onError: (error) => {
-      const rawErrorMessage = getErrorMessage(error, "error_removing_app");
-      const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
-      showToast(errorMessage, "error");
+    onError: (_error) => {
+      // Global interceptor handles error notification
       handleModelClose();
     },
     teamId,
@@ -151,10 +148,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
         queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
         onSuccessCallback();
       },
-      onError: (error) => {
-        const rawErrorMessage = getErrorMessage(error, "error_updating_default_app");
-        const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
-        showToast(errorMessage, "error");
+      onError: (_error) => {
+        // Global interceptor handles error notification
         onErrorCallback();
       },
     });
@@ -182,11 +177,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
       showToast("app installed successfully", "success");
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
     },
-    onError: (error) => {
+    onError: (_error) => {
+      // Global interceptor handles error notification
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
-      const rawErrorMessage = getErrorMessage(error, "error_unable_to_install_app");
-      const errorMessage = t(rawErrorMessage, { defaultValue: rawErrorMessage });
-      showToast(errorMessage, "error");
     },
     returnTo,
     onErrorReturnTo,

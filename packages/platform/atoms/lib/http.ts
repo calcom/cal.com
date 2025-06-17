@@ -2,13 +2,36 @@ import axios from "axios";
 
 import { CAL_API_VERSION_HEADER, X_CAL_CLIENT_ID, X_CAL_PLATFORM_EMBED } from "@calcom/platform-constants";
 
-// Immediately Invoked Function Expression to create simple singleton class like
+import { getErrorMessage } from "../src/lib/utils";
 
+// Global toast function and settings that will be set by components
+let globalToastFunction: ((message: string, variant: "success" | "warning" | "error") => void) | null = null;
+let globalDisableToasts = false;
+
+// Immediately Invoked Function Expression to create simple singleton class like
 const http = (function () {
   const instance = axios.create({
     timeout: 10000,
     headers: {},
   });
+
+  // Response interceptor for global error handling
+  instance.interceptors.response.use(
+    (response) => {
+      return response;
+    },
+    (error) => {
+      // show toast if global toasts are enabled and toast function is available
+      if (globalToastFunction && !globalDisableToasts) {
+        const errorMessage = getErrorMessage(error, "Something went wrong");
+        globalToastFunction(errorMessage, "error");
+      }
+
+      // re-throw the error so individual components can still handle it if needed
+      return Promise.reject(error);
+    }
+  );
+
   let refreshUrl = "";
   return {
     instance: instance,
@@ -18,6 +41,13 @@ const http = (function () {
     patch: instance.patch,
     delete: instance.delete,
     responseInterceptor: instance.interceptors.response,
+    // method to set the global toast function and disable setting
+    setGlobalToastFunction: (toastFn: typeof globalToastFunction) => {
+      globalToastFunction = toastFn;
+    },
+    setGlobalDisableToasts: (disabled: boolean) => {
+      globalDisableToasts = disabled;
+    },
     setRefreshUrl: (url: string) => {
       refreshUrl = url;
     },
