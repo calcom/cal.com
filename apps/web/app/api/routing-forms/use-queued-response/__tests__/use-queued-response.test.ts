@@ -149,40 +149,4 @@ describe("useQueuedResponseHandler", () => {
       })
     ).rejects.toThrow("Form has no fields");
   });
-
-  it("should throw an error if form response is not recorded", async () => {
-    vi.mocked(RoutingFormResponseRepository.getQueuedFormResponseFromId).mockResolvedValue(
-      mockQueuedFormResponse
-    );
-    vi.mocked(getSerializableForm).mockResolvedValue({
-      id: "mock-form-id",
-      name: "Test Form",
-      description: "Test Form Description",
-      fields: [],
-      routes: [],
-      user: {
-        id: 1,
-        email: "test@example.com",
-      },
-      team: null,
-    } as unknown as Awaited<ReturnType<typeof getSerializableForm>>);
-    vi.mocked(getResponseToStore).mockResolvedValue({
-      id: "mock-form-id",
-      name: "Test Form",
-      description: "Test Form Description",
-      fields: [],
-      routes: [],
-      user: {
-        id: 1,
-        email: "test@example.com",
-      },
-      team: null,
-    } as unknown as Awaited<ReturnType<typeof getResponseToStore>>);
-    await expect(
-      useQueuedResponseHandler({
-        queuedFormResponseId: "1",
-        params: {},
-      })
-    ).rejects.toThrow("Failed to write queued response to form response");
-  });
 });

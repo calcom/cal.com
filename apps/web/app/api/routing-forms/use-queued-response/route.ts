@@ -57,11 +57,6 @@ export const useQueuedResponseHandler = async ({
     chosenRouteId: queuedFormResponse.chosenRouteId,
   });
 
-  if (!formResponse) {
-    logger.error("Failed to write queued response to form response");
-    throw new Error("Failed to write queued response to form response");
-  }
-
   const chosenRoute = serializableForm.routes?.find((r) => r.id === queuedFormResponse.chosenRouteId);
   await onSubmissionOfFormResponse({
     form: {
