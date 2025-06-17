@@ -83,7 +83,7 @@ export function EditForm({
   const session = useSession();
   const org = session?.data?.user?.org;
   const utils = trpc.useUtils();
-  const form = useForm({
+  const form = useForm<EditSchema>({
     resolver: zodResolver(editSchema),
     defaultValues: {
       name: selectedUser?.name ?? "",
@@ -99,9 +99,10 @@ export function EditForm({
   const isOwner = org?.role === MembershipRole.OWNER;
 
   const { data: teamRoles, isLoading: isLoadingRoles } = trpc.viewer.pbac.getTeamRoles.useQuery(
+    // @ts-expect-error this query is only ran when we have an orgId so can ignore this
     { teamId: org?.id },
     {
-      enabled: true, // We can add a feature flag check here if needed
+      enabled: !!org?.id, // Only enable the query when we have a valid team ID
       staleTime: 30000, // Cache for 30 seconds
     }
   );
@@ -180,8 +181,7 @@ export function EditForm({
             timeZone: values.timeZone,
             // @ts-expect-error they're there in local types but for some reason it errors?
             attributeOptions: values.attributes
-              ? // @ts-expect-error  same as above
-                { userId: selectedUser?.id ?? "", attributes: values.attributes }
+              ? { userId: selectedUser?.id ?? "", attributes: values.attributes }
               : undefined,
           });
           setEditMode(false);
@@ -466,7 +466,6 @@ function AttributesList(props: { selectedUserId: number }) {
     </div>
   );
 }
-
 /**
  * Ensures that options that are not owned by cal.com are not removed
  * Such options are created by dsync and removed only through corresponding dsync
