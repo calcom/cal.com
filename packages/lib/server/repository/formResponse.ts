@@ -43,6 +43,42 @@ export class RoutingFormResponseRepository {
     });
   }
 
+  static async findFormResponseIncludeForm({ routingFormResponseId }: { routingFormResponseId: number }) {
+    return await prisma.app_RoutingForms_FormResponse.findUnique({
+      where: {
+        id: routingFormResponseId,
+      },
+      select: {
+        response: true,
+        form: {
+          select: {
+            routes: true,
+            fields: true,
+          },
+        },
+        chosenRouteId: true,
+      },
+    });
+  }
+
+  static async findQueuedFormResponseIncludeForm({ queuedFormResponseId }: { queuedFormResponseId: string }) {
+    return await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
+      where: {
+        id: queuedFormResponseId,
+      },
+      select: {
+        response: true,
+        form: {
+          select: {
+            routes: true,
+            fields: true,
+          },
+        },
+        chosenRouteId: true,
+      },
+    });
+  }
+
   static async getQueuedFormResponseFromId(id: string) {
     return await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
       where: {
