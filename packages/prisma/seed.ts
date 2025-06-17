@@ -309,10 +309,11 @@ async function createOrganizationAndAddMembersAndTeams({
 
       const batchResults = await Promise.all(
         batch.map(async (member) => {
+          const { theme, ...rest } = member.memberData;
           const newUser = await createUserAndEventType({
             user: {
-              ...member.memberData,
-              password: member.memberData.password.create?.hash,
+              ...rest,
+              password: member.memberData.password.create?.hash ?? "",
             },
             eventTypes: [
               {
