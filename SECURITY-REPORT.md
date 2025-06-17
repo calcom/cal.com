@@ -38,3 +38,4 @@ This data is exposed via URLs indexed by VirusTotal.
 
 ## Related Issue
 https://github.com/calcom/cal.com/issues/21668
+
