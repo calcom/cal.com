@@ -15,7 +15,10 @@ export class PermissionMapper {
     }[]
   ): TeamPermissions[] {
     return dbPermissions
-      .filter((membership) => membership.teamId && membership.role?.id && membership.role.permissions)
+      .filter(
+        (membership) =>
+          membership.teamId != null && membership.role?.id != null && membership.role.permissions
+      )
       .map((membership) => ({
         teamId: membership.teamId,
         roleId: membership.role!.id!,
@@ -62,7 +65,7 @@ export class PermissionMapper {
 
     // Initialize all actions as false
     Object.values(CrudAction).forEach((action) => {
-      if (action !== "*" && this.isActionAvailableForResource(resource, action)) {
+      if (action !== CrudAction.All && this.isActionAvailableForResource(resource, action)) {
         actionMap[action as ResourceActions<R>] = false;
       }
     });

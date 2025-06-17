@@ -23,7 +23,7 @@ export function AdvancedPermissionGroup({
   onChange,
 }: AdvancedPermissionGroupProps) {
   const { t } = useLocale();
-  const { hasAllPermissions, toggleSinglePermission, toggleResourcePermissionLevel } = usePermissions();
+  const { toggleSinglePermission, toggleResourcePermissionLevel } = usePermissions();
   const resourceConfig = PERMISSION_REGISTRY[resource];
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -33,7 +33,9 @@ export function AdvancedPermissionGroup({
   // Get all possible permissions for this resource
   const allPermissions = isAllResources
     ? ["*.*"]
-    : Object.entries(resourceConfig).map(([action]) => `${resource}.${action}`);
+    : Object.entries(resourceConfig)
+        .filter(([action]) => action !== INTERNAL_DATAACCESS_KEY)
+        .map(([action]) => `${resource}.${action}`);
 
   // Check if all permissions for this resource are selected
   const isAllSelected = isAllResources
