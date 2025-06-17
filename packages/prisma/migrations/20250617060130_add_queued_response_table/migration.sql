@@ -1,6 +1,3 @@
--- AlterTable
-ALTER TABLE "App_RoutingForms_FormResponse" ADD COLUMN     "queuedFormResponseId" TEXT;
-
 -- CreateTable
 CREATE TABLE "App_RoutingForms_QueuedFormResponse" (
     "id" TEXT NOT NULL,
