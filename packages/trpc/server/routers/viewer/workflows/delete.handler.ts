@@ -17,7 +17,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
 
-  const workflowToDelete = await prisma.workflow.findFirst({
+  const workflowToDelete = await prisma.workflow.findUnique({
     where: {
       id,
     },
