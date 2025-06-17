@@ -1157,9 +1157,9 @@ model App_RoutingForms_FormResponse {
   createdAt    DateTime              @default(now())
   updatedAt    DateTime?             @updatedAt
 
-  routedToBookingUid        String?                           @unique
+  routedToBookingUid        String?                              @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
-  routedToBooking           Booking?                          @relation(fields: [routedToBookingUid], references: [uid])
+  routedToBooking           Booking?                             @relation(fields: [routedToBookingUid], references: [uid])
   chosenRouteId             String?
   routingFormResponseFields RoutingFormResponseField[]
   routingFormResponses      RoutingFormResponseDenormalized[]
@@ -1172,15 +1172,15 @@ model App_RoutingForms_FormResponse {
 }
 
 model App_RoutingForms_QueuedFormResponse {
-  id            String                @id @default(cuid())
-  form          App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId        String
-  response      Json
-  chosenRouteId String?
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime?             @updatedAt
-  actualResponseId    Int?            @unique
-  actualResponse      App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
+  id               String                         @id @default(cuid())
+  form             App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId           String
+  response         Json
+  chosenRouteId    String?
+  createdAt        DateTime                       @default(now())
+  updatedAt        DateTime?                      @updatedAt
+  actualResponseId Int?                           @unique
+  actualResponse   App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
 }
 
 model RoutingFormResponseField {
