@@ -1952,7 +1952,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         eventTypeWithAllLocationsId = createdEventType.id;
       });
 
-      describe("can book with different locations", async () => {
+      describe("can book with different locations", () => {
         it("can book with cal video location", async () => {
           const bookingBody: CreateBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
