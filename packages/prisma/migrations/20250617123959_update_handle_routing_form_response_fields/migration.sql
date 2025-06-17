@@ -56,15 +56,26 @@ BEGIN
             -- Insert new record based on field type
             IF field_type = 'multiselect' THEN
                 -- Handle array values for multiselect
-                -- Only insert if value is not null and is a valid JSON array
-                IF response_field->>'value' IS NOT NULL AND jsonb_typeof(response_field->'value') = 'array' THEN
+                -- Accept both array values and string values
+                IF response_field->>'value' IS NOT NULL THEN
                     BEGIN
-                        INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueStringArray")
-                        VALUES (
-                            response_id,
-                            field_record->>'id',
-                            ARRAY(SELECT jsonb_array_elements_text(response_field->'value'))
-                        );
+                        IF jsonb_typeof(response_field->'value') = 'array' THEN
+                            -- If it's already an array, use it directly
+                            INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueStringArray")
+                            VALUES (
+                                response_id,
+                                field_record->>'id',
+                                ARRAY(SELECT jsonb_array_elements_text(response_field->'value'))
+                            );
+                        ELSIF jsonb_typeof(response_field->'value') = 'string' THEN
+                            -- If it's a string, convert it to a single-element array
+                            INSERT INTO "RoutingFormResponseField" ("responseId", "fieldId", "valueStringArray")
+                            VALUES (
+                                response_id,
+                                field_record->>'id',
+                                ARRAY[response_field->>'value']
+                            );
+                        END IF;
                     EXCEPTION WHEN OTHERS THEN
                         RAISE WARNING 'Failed to insert multiselect values for field %', field_record->>'id';
                     END;
