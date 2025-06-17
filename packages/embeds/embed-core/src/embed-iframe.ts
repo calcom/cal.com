@@ -29,6 +29,9 @@ const eventsAllowedInPrerendering = [
   // so that iframe height is adjusted according to the content, and iframe is ready to be shown when needed
   "__dimensionChanged",
 
+  // When this event is fired, the iframe is still in prerender state but is going to be moved out of prerender state
+  "__connectInitiated",
+
   // For other events, we should consider introducing prerender specific events and not reuse existing events
 ];
 
@@ -302,6 +305,42 @@ function showPageAsNonEmbed() {
   }
 }
 
+async function ensureRoutingFormResponseIdInUrl({
+  newlyRecordedResponseId,
+  toBeThereParams,
+  toRemoveParams,
+}: {
+  newlyRecordedResponseId: number;
+  toBeThereParams: Record<string, string | string[]>;
+  toRemoveParams: string[];
+}) {
+  // Update routingFormResponseId in url only after connect is completed, to keep things simple
+  // Adding cal.routingFormResponseId in query param later shouldn't change anything in UI plus no slot request would go again due ot this.
+
+  const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
+    toBeThereParams: {
+      ...toBeThereParams,
+      "cal.routingFormResponseId": newlyRecordedResponseId.toString(),
+    },
+    toRemoveParams,
+  });
+  // Immediately stop ensuring query params in url as the page is already ready
+  // We could think about doing it after some time if needed later.
+  stopEnsuringQueryParamsInUrl();
+}
+
+async function waitForRenderStateToBeCompleted() {
+  return new Promise<void>((resolve) => {
+    (function tryToConnect() {
+      if (embedStore.renderState !== "completed") {
+        runAsap(tryToConnect);
+        return;
+      }
+      resolve();
+    })();
+  });
+}
+
 // It is a map of methods that can be called by parent using doInIframe({method: "methodName", arg: "argument"})
 export const methods = {
   ui: function style(uiConfig: UiConfig) {
@@ -378,28 +417,23 @@ export const methods = {
     // We can't accept URLSearchParams as it isn't cloneable and thus postMessage doesn't support it
     params: Record<string, string | string[]>;
   }) {
+    sdkActionManager?.fire("__connectInitiated", {});
     log("Method: connect, requested with params", { config, params });
     const {
       iframeAttrs: _1,
       "cal.embed.noSlotsFetchOnConnect": noSlotsFetchOnConnect,
       ...queryParamsFromConfig
     } = config;
-
-    // We now record the response to routingFormResponse and connect that with queuedResponse, as the user actually opened the modal which is confirmed by this connect method call
-    // We await for the response to be recorded so that we can update the URL with cal.routingFormResponseId
-    // TODO: We could later evaluate if we could make it async, maybe cal.routingFormResponseId is needed only during the booking and it is possible to add cal.routingFormResponseId query param later(after showing the booking page).
-    // This delay is a few 100ms which could be fine for now.
-    const newlyRecordedResponseId = await recordResponseIfQueued(params);
+    // We reset it to allow informing parent again through `__dimensionChanged` event about possibly updated dimensions with changes in config
+    embedStore.parentInformedAboutContentHeight = false;
 
     if (noSlotsFetchOnConnect !== "true") {
       log("Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch");
       // Incrementing the version forces the slots call to be made again
       embedStore.connectVersion = embedStore.connectVersion + 1;
     }
-    const connectVersion = embedStore.connectVersion;
-    // We reset it to allow informing parent again through `__dimensionChanged` event about possibly updated dimensions with changes in config
-    embedStore.parentInformedAboutContentHeight = false;
 
+    const connectVersion = embedStore.connectVersion;
     // Config is just a typed and more declarative way to pass the query params from the parent(except iframeAttrs which is meant to be consumed by parent and not supposed to passed to child)
     // So, query params can come directly by providing them to calLink or through config
     const toBeThereParams = {
@@ -407,23 +441,28 @@ export const methods = {
       // Query params from config takes precedence over query params in url
       ...(queryParamsFromConfig as Record<string, string | string[]>),
       "cal.embed.connectVersion": connectVersion.toString(),
-      // Set cal.routingFormResponseId now if new response is created.
-      ...(newlyRecordedResponseId ? { "cal.routingFormResponseId": newlyRecordedResponseId.toString() } : {}),
     };
 
-    (function tryToConnect() {
-      if (embedStore.renderState !== "completed") {
-        runAsap(tryToConnect);
-        return;
-      }
+    const toRemoveParams = ["preload", "prerender", "cal.skipSlotsFetch"];
+    await waitForRenderStateToBeCompleted();
 
-      log("Method: connect, renderState is completed. Connecting");
-      connectPreloadedEmbed({
-        // We know after removing iframeAttrs, that it is of this type
-        toBeThereParams,
-        toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
-      });
-    })();
+    log("Method: connect, renderState is completed. Connecting");
+    await connectPreloadedEmbed({
+      // We know after removing iframeAttrs, that it is of this type
+      toBeThereParams,
+      toRemoveParams,
+    });
+
+    // We now record the response to routingFormResponse and connect that with queuedResponse, as the user actually opened the modal which is confirmed by this connect method call
+    const newlyRecordedResponseId = await recordResponseIfQueued(params);
+    if (!newlyRecordedResponseId) {
+      return;
+    }
+    await ensureRoutingFormResponseIdInUrl({
+      newlyRecordedResponseId,
+      toBeThereParams,
+      toRemoveParams,
+    });
   },
 };
 
@@ -640,7 +679,7 @@ function actOnColorScheme(colorScheme: string | null | undefined) {
  * Apply configurations to the preloaded page and then ask parent to show the embed
  * url has the config as params
  */
-function connectPreloadedEmbed({
+async function connectPreloadedEmbed({
   toBeThereParams,
   toRemoveParams,
 }: {
@@ -664,17 +703,25 @@ function connectPreloadedEmbed({
 
   // Firing this event would stop the loader and show the embed
   // This causes loader to go away later.
-  runAsap(function tryToFireLinkReady() {
-    if (!isLinkReady({ embedStore }) || waitForFrames > 0) {
-      waitForFrames--;
-      runAsap(tryToFireLinkReady);
-      return;
-    }
-    // link is ready now, so we could stop doing it.
-    // Also the page is visible to user now.
-    stopEnsuringQueryParamsInUrl();
-    sdkActionManager?.fire("linkReady", {});
+  await new Promise<void>((resolve) => {
+    runAsap(function tryToFireLinkReady() {
+      if (!isLinkReady({ embedStore }) || waitForFrames > 0) {
+        waitForFrames--;
+        runAsap(tryToFireLinkReady);
+        return;
+      }
+      // link is ready now, so we could stop doing it.
+      // Also the page is visible to user now.
+      stopEnsuringQueryParamsInUrl();
+      sdkActionManager?.fire("__connectCompleted", {});
+      sdkActionManager?.fire("linkReady", {});
+      resolve();
+    });
   });
+
+  return {
+    stopEnsuringQueryParamsInUrl,
+  };
 }
 
 const isPrerendering = () => {

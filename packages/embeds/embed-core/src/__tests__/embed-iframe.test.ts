@@ -250,16 +250,18 @@ describe("methods", async () => {
   let methods: typeof import("../embed-iframe").methods;
   let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore;
   let isLinkReadyMock: ReturnType<typeof vi.fn> | undefined;
+  let isBookerReadyMock: ReturnType<typeof vi.fn> | undefined;
   let ensureQueryParamsInUrlMock: ReturnType<typeof vi.fn> | undefined;
   let recordResponseIfQueuedMock: ReturnType<typeof vi.fn> | undefined;
   beforeEach(async () => {
-    vi.useFakeTimers();
+    vi.useRealTimers();
     fakeCurrentDocumentUrl();
     vi.doMock("../embed-iframe/lib/utils", async (importOriginal) => {
       const actual = await importOriginal<typeof import("../embed-iframe/lib/utils")>();
       return {
         ...actual,
         isLinkReady: isLinkReadyMock,
+        isBookerReady: isBookerReadyMock,
         recordResponseIfQueued: recordResponseIfQueuedMock,
       };
     });
@@ -277,12 +279,14 @@ describe("methods", async () => {
       };
     });
     isLinkReadyMock = vi.fn();
+    isBookerReadyMock = vi.fn();
     ensureQueryParamsInUrlMock = vi.fn().mockImplementation(() => {
+      console.log("Fake ensureQueryParamsInUrl called");
       return {
         stopEnsuringQueryParamsInUrl: vi.fn(),
       };
     });
-    recordResponseIfQueuedMock = vi.fn();
+    recordResponseIfQueuedMock = vi.fn().mockResolvedValue(1);
     ({ methods } = await import("../embed-iframe"));
     ({ embedStore } = await import("../embed-iframe/lib/embedStore"));
   });
@@ -293,6 +297,8 @@ describe("methods", async () => {
       const currentConnectVersion = 1;
       embedStore.connectVersion = currentConnectVersion;
       fakeCurrentDocumentUrl({ params: { "cal.embed.connectVersion": "1" } });
+      isLinkReadyMock?.mockReturnValue(true);
+      isBookerReadyMock?.mockReturnValue(true);
       await methods.connect({
         config: {},
         params: {},
@@ -310,6 +316,8 @@ describe("methods", async () => {
       const currentConnectVersion = 1;
       embedStore.connectVersion = currentConnectVersion;
       fakeCurrentDocumentUrl({ params: { "cal.embed.connectVersion": "1" } });
+      isLinkReadyMock?.mockReturnValue(true);
+      isBookerReadyMock?.mockReturnValue(true);
       await methods.connect({
         config: {
           "cal.embed.noSlotsFetchOnConnect": "true",
@@ -337,11 +345,14 @@ describe("methods", async () => {
       });
       const convertedRoutingFormResponseId = 101;
       recordResponseIfQueuedMock?.mockResolvedValue(convertedRoutingFormResponseId);
+      isLinkReadyMock?.mockReturnValue(true);
+      isBookerReadyMock?.mockReturnValue(true);
       await methods.connect({
         config: {},
         params: {},
       });
-      expect(embedStore.router.ensureQueryParamsInUrl).toHaveBeenCalledWith({
+
+      expect(ensureQueryParamsInUrlMock).toHaveBeenCalledWith({
         toBeThereParams: {
           "cal.embed.connectVersion": (currentConnectVersion + 1).toString(),
           "cal.routingFormResponseId": convertedRoutingFormResponseId.toString(),
@@ -352,6 +363,14 @@ describe("methods", async () => {
   });
 
   describe("methods.parentKnowsIframeReady", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it("should set renderState to 'completed' on link ready", () => {
       isLinkReadyMock?.mockReturnValue(true);
       methods.parentKnowsIframeReady({});
