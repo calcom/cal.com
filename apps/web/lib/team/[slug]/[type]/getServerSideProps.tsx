@@ -301,7 +301,11 @@ const getEventHosts = (
   hosts: Pick<User, "username" | "name">[],
   users: Pick<User, "username" | "name">[]
 ) => {
-  if (!isPrivateTeam && hosts.length > 0) {
+  if (isPrivateTeam) {
+    return [];
+  }
+
+  if (hosts.length > 0) {
     return hosts
       .filter((user) => user.username)
       .map((user) => ({
@@ -309,7 +313,8 @@ const getEventHosts = (
         name: user.name ?? "",
       }));
   }
-  if (!isPrivateTeam && hosts.length === 0 && users.length > 0) {
+
+  if (users.length > 0) {
     return [
       {
         username: users[0].username ?? "",
