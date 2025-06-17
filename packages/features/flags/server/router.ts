@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { AppFlags } from "@calcom/features/flags/config";
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -20,7 +21,7 @@ export const featureFlagRouter = router({
     )
     .query(async ({ input }) => {
       const featuresRepository = new FeaturesRepository();
-      return featuresRepository.checkIfTeamHasFeature(input.teamId, input.feature as string);
+      return featuresRepository.checkIfTeamHasFeature(input.teamId, input.feature as keyof AppFlags);
     }),
   map,
 });
