@@ -226,6 +226,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
   const { isLoggedIn, bookingUid } = props;
   const [open, setOpen] = useState(!isLoggedIn);
+  const [userName, setUserName] = useState("");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -256,7 +257,6 @@ export function LogInOverlay(props: LogInOverlayProps) {
                 <Button
                   color="primary"
                   onClick={() => {
-                    setCreateDailyFrame(true);
                     setOpen(false);
                   }}>
                   {t("continue")}
