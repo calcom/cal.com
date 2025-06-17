@@ -364,10 +364,12 @@ export class ProfileRepository {
     if (!organizationId) {
       return null;
     }
-    const profile = await prisma.profile.findFirst({
+    const profile = await prisma.profile.findUnique({
       where: {
-        userId,
-        organizationId,
+        userId_organizationId: {
+          userId,
+          organizationId,
+        },
       },
       include: {
         organization: {
@@ -401,10 +403,12 @@ export class ProfileRepository {
     organizationId: number;
     username: string;
   }) {
-    const profile = await prisma.profile.findFirst({
+    const profile = await prisma.profile.findUnique({
       where: {
-        username,
-        organizationId,
+        username_organizationId: {
+          username,
+          organizationId,
+        },
       },
       include: {
         organization: {

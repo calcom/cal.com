@@ -20,7 +20,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { uid } = querySchema.parse(context.query);
   const session = await getServerSession({ req: context.req });
 
-  const rawPayment = await prisma.payment.findFirst({
+  const rawPayment = await prisma.payment.findUnique({
     where: {
       uid,
     },
