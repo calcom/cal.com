@@ -15,7 +15,7 @@ export async function getTeamIdFromEventType({
 
   // If it's a managed event we need to find the teamId for it from the parent
   if (eventType?.parentId) {
-    const managedEvent = await prisma.eventType.findFirst({
+    const managedEvent = await prisma.eventType.findUnique({
       where: {
         id: eventType.parentId,
       },

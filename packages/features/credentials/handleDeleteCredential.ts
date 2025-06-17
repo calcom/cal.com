@@ -136,7 +136,7 @@ const handleDeleteCredential = async ({
       credential.app?.categories.includes(AppCategories.calendar) &&
       eventType.destinationCalendar?.credential?.appId === credential.appId
     ) {
-      const destinationCalendar = await prisma.destinationCalendar.findFirst({
+      const destinationCalendar = await prisma.destinationCalendar.findUnique({
         where: {
           id: eventType.destinationCalendar?.id,
         },
