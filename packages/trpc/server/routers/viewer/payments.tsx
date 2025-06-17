@@ -26,7 +26,7 @@ export const paymentsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
 
-      const booking = await prisma.booking.findFirstOrThrow({
+      const booking = await prisma.booking.findUniqueOrThrow({
         where: {
           id: input.bookingId,
         },
