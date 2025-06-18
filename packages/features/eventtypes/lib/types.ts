@@ -159,6 +159,8 @@ export type FormValues = {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;
     enableAutomaticTranscription?: boolean;
+    disableTranscriptionForGuests?: boolean;
+    disableTranscriptionForOrganizer?: boolean;
     redirectUrlOnExit?: string;
   };
   maxActiveBookingPerBookerOfferReschedule: boolean;
