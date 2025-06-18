@@ -1,5 +1,5 @@
 import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
-import { CalendarState } from "@/ee/calendars/controllers/calendars.controller";
+import type { CalendarState } from "@/ee/calendars/controllers/calendars.controller";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
