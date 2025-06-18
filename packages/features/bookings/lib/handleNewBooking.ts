@@ -276,12 +276,16 @@ export const buildDestinationCalendarsForCollectiveEvent = ({
 
   // Start with original destination calendar if provided (for organizer)
   if (originalDestinationCalendar && originalDestinationCalendar.length > 0) {
-    teamDestinationCalendars.push(...originalDestinationCalendar);
+    teamDestinationCalendars.push(
+      ...originalDestinationCalendar.map((cal) => ({ ...cal, externalId: processExternalId(cal) }))
+    );
   }
 
   // For collective events, add all team members' destination calendars
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
-    const filteredUsers = users.filter((user) => user.email !== organizerUser.email);
+    const filteredUsers = users.filter(
+      (user) => (user.email ?? "").toLowerCase() !== organizerUser.email.toLowerCase()
+    );
 
     for (const user of filteredUsers) {
       if (user.destinationCalendar) {
@@ -346,7 +350,7 @@ export const buildEventForTeamEventType = async ({
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = filteredUsers
-    .filter((user) => user.email !== organizerUser.email)
+    .filter((user) => (user.email ?? "").toLowerCase() !== organizerUser.email.toLowerCase())
     .map(async (user) => {
       return {
         id: user.id,
@@ -1561,7 +1565,7 @@ async function handler(
       evt.iCalUID = undefined;
     } else {
       // For collective events during rescheduling, rebuild destination calendars to include all current hosts
-      if (eventType.schedulingType === SchedulingType.COLLECTIVE && isTeamEventType) {
+      if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
         loggerWithEventDetails.debug("Rebuilding destination calendars for collective event reschedule");
 
         try {
