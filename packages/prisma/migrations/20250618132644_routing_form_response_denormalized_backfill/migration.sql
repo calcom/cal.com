@@ -13,6 +13,12 @@ BEGIN
     SELECT COALESCE(MAX(id), 0) INTO end_id FROM "App_RoutingForms_FormResponse";
     SELECT COUNT(*) INTO total_count FROM "App_RoutingForms_FormResponse";
     
+    -- Handle case where there are no records to process
+    IF total_count = 0 THEN
+        RAISE NOTICE 'No records found in App_RoutingForms_FormResponse table. Migration completed.';
+        RETURN;
+    END IF;
+    
     RAISE NOTICE 'Starting migration: processing up to ID % (total responses: %)', end_id, total_count;
 
     FOR current_id IN SELECT * FROM generate_series(start_id, end_id, chunk_size)
@@ -103,7 +109,6 @@ BEGIN
                 WHERE rd.id = r.id
             )
             ON CONFLICT (id) DO NOTHING;
-
             processed_count := processed_count + chunk_size;
             
             RAISE NOTICE 'Chunk processed: IDs %-% (progress: %.1f%%)', 
@@ -119,3 +124,4 @@ BEGIN
     RAISE NOTICE 'Migration completed: processed up to ID % (%.1f%% of total range)', 
         end_id, (end_id::float / total_count * 100);
 END $$;
+
