@@ -197,13 +197,7 @@ const _ensureAvailableUsers = async (
         travelSchedules,
       });
 
-      const bookingAllowedByRestrictionSchedule = restrictionRanges.some(
-        (range) =>
-          (startDateTimeUtc.isAfter(range.start) || startDateTimeUtc.isSame(range.start)) &&
-          (endDateTimeUtc.isBefore(range.end) || endDateTimeUtc.isSame(range.end))
-      );
-
-      if (!bookingAllowedByRestrictionSchedule) {
+      if (!hasDateRangeForBooking(restrictionRanges, startDateTimeUtc, endDateTimeUtc)) {
         loggerWithEventDetails.error(
           `Booking outside restriction schedule availability.`,
           piiFreeInputDataForLogging
