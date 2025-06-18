@@ -37,4 +37,4 @@ This data is exposed via URLs indexed by VirusTotal.
 - Audit and Revoke Exposed Links
 
 ## Related Issue
-https://github.com/calcom/cal.com/issues/21667
+https://github.com/calcom/cal.com/issues/21668
