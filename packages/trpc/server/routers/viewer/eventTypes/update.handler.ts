@@ -127,6 +127,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           disableRecordingForOrganizer: true,
           disableRecordingForGuests: true,
           enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
         },
       },
