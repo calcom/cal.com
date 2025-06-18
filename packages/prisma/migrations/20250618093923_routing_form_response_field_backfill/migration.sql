@@ -23,9 +23,8 @@ BEGIN
             
             -- Show progress every 100 responses
             IF processed_count % 100 = 0 THEN
-                RAISE NOTICE 'Progress: %/% responses processed (%.1f%%)', 
-                    processed_count, total_count, 
-                    (processed_count::float / total_count * 100);
+                RAISE NOTICE 'Progress: %/% responses processed', 
+                    processed_count, total_count;
             END IF;
             
             -- Sleep after each chunk_size responses
@@ -39,7 +38,6 @@ BEGIN
         END;
     END LOOP;
     
-    RAISE NOTICE 'Migration completed: processed %/% responses (%.1f%%)', 
-        processed_count, total_count, 
-        (processed_count::float / total_count * 100);
+    RAISE NOTICE 'Migration completed: processed %/% responses', 
+        processed_count, total_count;
 END $$;
