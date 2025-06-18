@@ -7,7 +7,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
-const log = logger.getSubLogger({ prefix: ["[[booking-preview]]"] });
+const log = logger.getSubLogger({ prefix: ["[[user-booking-preview]]"] });
 
 export type BookingPreviewPageProps = {
   eventType: {
@@ -31,6 +31,24 @@ export type BookingPreviewPageProps = {
   }[];
   organizationName: string | null;
   isDynamicGroup: boolean;
+  // Additional properties for metadata generation
+  isSEOIndexable: boolean;
+  eventData: {
+    title: string;
+    hidden: boolean;
+    profile: {
+      name: string;
+      image: string;
+    };
+    subsetOfUsers: Array<{
+      name: string;
+      username: string;
+    }>;
+    entity: {
+      orgSlug: string | null;
+    };
+  };
+  isBrandingHidden: boolean;
 };
 
 export const getBookingPreviewProps = async (
@@ -65,11 +83,17 @@ export const getBookingPreviewProps = async (
         name: true,
         username: true,
         avatarUrl: true,
+        allowSEOIndexing: true,
         profiles: {
           select: {
             organization: {
               select: {
                 name: true,
+                organizationSettings: {
+                  select: {
+                    allowSEOIndexing: true,
+                  },
+                },
               },
             },
           },
@@ -94,6 +118,14 @@ export const getBookingPreviewProps = async (
     // Use first user's organization for simplicity
     const organization = users[0]?.profiles[0]?.organization || null;
 
+    // For dynamic groups, all users must allow SEO indexing
+    const allowSEOIndexing =
+      isValidOrgDomain && currentOrgDomain
+        ? organization?.organizationSettings?.allowSEOIndexing
+          ? users.every((user) => user.allowSEOIndexing)
+          : false
+        : users.every((user) => user.allowSEOIndexing);
+
     return {
       eventType: {
         title: `${eventSlug} with ${users.map((u) => u.name || u.username).join(", ")}`,
@@ -108,6 +140,20 @@ export const getBookingPreviewProps = async (
       profiles,
       organizationName: organization?.name || null,
       isDynamicGroup: true,
+      isSEOIndexable: allowSEOIndexing,
+      eventData: {
+        title: `${eventSlug} with ${users.map((u) => u.name || u.username).join(", ")}`,
+        hidden: false,
+        profile: profiles[0],
+        subsetOfUsers: users.map((u) => ({
+          name: u.name || u.username || "",
+          username: u.username || "",
+        })),
+        entity: {
+          orgSlug: currentOrgDomain,
+        },
+      },
+      isBrandingHidden: false,
     };
   }
 
@@ -151,11 +197,17 @@ export const getBookingPreviewProps = async (
           name: true,
           username: true,
           avatarUrl: true,
+          allowSEOIndexing: true,
           profiles: {
             select: {
               organization: {
                 select: {
                   name: true,
+                  organizationSettings: {
+                    select: {
+                      allowSEOIndexing: true,
+                    },
+                  },
                 },
               },
             },
@@ -178,6 +230,14 @@ export const getBookingPreviewProps = async (
   }
   const organization = owner.profiles[0]?.organization || null;
 
+  // Determine SEO indexing - same logic as getServerSideProps
+  const allowSEOIndexing =
+    isValidOrgDomain && currentOrgDomain
+      ? organization?.organizationSettings?.allowSEOIndexing
+        ? owner.allowSEOIndexing
+        : false
+      : owner.allowSEOIndexing;
+
   const profile = {
     name: owner.name || owner.username || "",
     image: getUserAvatarUrl({
@@ -199,5 +259,16 @@ export const getBookingPreviewProps = async (
     profile,
     organizationName: organization?.name || null,
     isDynamicGroup: false,
+    isSEOIndexable: !!allowSEOIndexing,
+    eventData: {
+      title: eventType.title,
+      hidden: false,
+      profile,
+      subsetOfUsers: [],
+      entity: {
+        orgSlug: currentOrgDomain,
+      },
+    },
+    isBrandingHidden: false,
   };
 };

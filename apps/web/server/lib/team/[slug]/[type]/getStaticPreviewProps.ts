@@ -31,6 +31,23 @@ export type TeamBookingPreviewPageProps = {
     theme: string | null;
   };
   organizationName: string | null;
+  isSEOIndexable: boolean;
+  eventData: {
+    title: string;
+    hidden: boolean;
+    profile: {
+      name: string;
+      image: string;
+    };
+    users: Array<{
+      name: string;
+      username: string;
+    }>;
+    entity: {
+      orgSlug: string | null;
+    };
+  };
+  isBrandingHidden: boolean;
 };
 
 export const getTeamBookingPreviewProps = async (
@@ -66,6 +83,16 @@ export const getTeamBookingPreviewProps = async (
       parent: {
         select: {
           name: true,
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+            },
+          },
+        },
+      },
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
         },
       },
     },
@@ -103,6 +130,12 @@ export const getTeamBookingPreviewProps = async (
 
   const orgParent = team.parent;
 
+  // Determine SEO indexing for teams
+  const allowSEOIndexing =
+    isValidOrgDomain && currentOrgDomain
+      ? orgParent?.organizationSettings?.allowSEOIndexing ?? false
+      : team.organizationSettings?.allowSEOIndexing ?? true; // Default true for non-org teams
+
   return {
     eventType: {
       title: eventType.title,
@@ -121,5 +154,19 @@ export const getTeamBookingPreviewProps = async (
       theme: team.theme,
     },
     organizationName: orgParent?.name || team.name,
+    isSEOIndexable: !!allowSEOIndexing,
+    eventData: {
+      title: eventType.title,
+      hidden: eventType.hidden,
+      profile: {
+        name: team.name,
+        image: team.logoUrl || "",
+      },
+      users: [],
+      entity: {
+        orgSlug: currentOrgDomain,
+      },
+    },
+    isBrandingHidden: false,
   };
 };
