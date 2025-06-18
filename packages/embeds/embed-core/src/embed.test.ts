@@ -2,6 +2,10 @@ import "../test/__mocks__/windowMatchMedia";
 
 import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 
+import {
+  EMBED_MODAL_IFRAME_SLOT_STALE_TIME,
+  EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS,
+} from "./constants";
 import { submitResponseAndGetRoutingResult } from "./utils";
 
 vi.mock("./tailwindCss", () => ({
@@ -339,6 +343,10 @@ describe("Cal", () => {
           layout: modalArg.config.layout,
         });
 
+        // Verify that the embedRenderStartTime and embedConfig are set, which are used by getNextActionForModal to decide if the modal should be reused or not
+        expect(calInstance.embedRenderStartTime).toBeGreaterThan(0);
+        expect(calInstance.embedConfig).toBeDefined();
+
         expectIframeToHaveMatchingUrl({
           element: modalBox,
           expectedIframeUrlObject: {
@@ -347,6 +355,44 @@ describe("Cal", () => {
               ...modalArg.config,
               prerender: "true",
               embedType: "modal",
+              "cal.skipSlotsFetch": "true",
+            }),
+            origin: null,
+          },
+        });
+      });
+
+      it("should create modal having iframe with queueFormResponse=true param when prerendering headless router", () => {
+        const modalArg = {
+          ...baseModalArgs,
+          calLink: "router?form=123&email=john@example.com",
+          config: {
+            ...baseModalArgs.config,
+            "cal.embed.pageType": "doesntmatter",
+          },
+          calOrigin: null,
+          __prerender: true,
+        };
+        calInstance.api.modal(modalArg);
+
+        const modalBox = expectCalModalBoxToBeInDocument({
+          state: "prerendering",
+          pageType: modalArg.config["cal.embed.pageType"],
+          theme: modalArg.config.theme,
+          layout: modalArg.config.layout,
+        });
+
+        expectIframeToHaveMatchingUrl({
+          element: modalBox,
+          expectedIframeUrlObject: {
+            pathname: `${new URL(modalArg.calLink, "http://example.com").pathname}`,
+            searchParams: new URLSearchParams({
+              ...modalArg.config,
+              prerender: "true",
+              embedType: "modal",
+              "cal.queueFormResponse": "true",
+              email: "john@example.com",
+              form: "123",
             }),
             origin: null,
           },
@@ -433,7 +479,9 @@ describe("Cal", () => {
             expect(calInstance.doInIframe).toHaveBeenCalledWith({
               method: "connect",
               arg: {
-                config: expectedConfigAfterPrefilling,
+                config: {
+                  ...expectedConfigAfterPrefilling,
+                },
                 params: {},
               },
             });
@@ -543,7 +591,7 @@ describe("Cal", () => {
                 pathname: `/${modalArg.calLink}`,
                 searchParams: new URLSearchParams({
                   ...expectedConfig,
-                  // It remains because internally we remove prerender=true in iframe
+                  // It remains because internally we remove prerender=true in iframe - through connect flow
                   prerender: "true",
                   "cal.skipSlotsFetch": "true",
                 }),
@@ -554,7 +602,9 @@ describe("Cal", () => {
             expect(calInstance.doInIframe).toHaveBeenCalledWith({
               method: "connect",
               arg: {
-                config: expectedConfigAfterPrefilling,
+                config: {
+                  ...expectedConfigAfterPrefilling,
+                },
                 params: {},
               },
             });
@@ -587,7 +637,9 @@ describe("Cal", () => {
               },
               expectedIframeUrlObject: {
                 pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams(expectedConfigAfterPrefilling),
+                searchParams: new URLSearchParams({
+                  ...expectedConfigAfterPrefilling,
+                }),
                 origin: null,
               },
             });
@@ -683,7 +735,9 @@ describe("Cal", () => {
               expect.objectContaining({
                 method: "connect",
                 arg: {
-                  config: configWithPrefilledValues,
+                  config: {
+                    ...configWithPrefilledValues,
+                  },
                   params: {},
                 },
               })
@@ -768,7 +822,9 @@ describe("Cal", () => {
               },
               expectedIframeUrlObject: {
                 pathname: headlessRouterRedirectUrlWithPathOnly,
-                searchParams: new URLSearchParams(configWithPrefilledValuesAndHeadlessRouterRedirectParams),
+                searchParams: new URLSearchParams({
+                  ...configWithPrefilledValuesAndHeadlessRouterRedirectParams,
+                }),
                 origin: null,
               },
             });
@@ -1062,7 +1118,7 @@ describe("Cal", () => {
         ...baseArgs,
         stateData: {
           ...baseArgs.stateData,
-          previousEmbedRenderStartTime: Date.now() - 1000000, // Much older timestamp
+          previousEmbedRenderStartTime: Date.now() - EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS - 1, // Much older timestamp
           embedRenderStartTime: Date.now(),
         },
       });
@@ -1157,6 +1213,34 @@ describe("Cal", () => {
 
       const result = calInstance.getNextActionForModal(baseArgs);
       expect(result).toBe("noAction");
+    });
+
+    it("should return connect-no-slots-fetch when reuseFully is true and slots are not stale", () => {
+      const result = calInstance.getNextActionForModal({
+        ...baseArgs,
+        stateData: {
+          ...baseArgs.stateData,
+          prerenderOptions: {
+            reuseFully: true,
+          },
+        },
+      });
+      expect(result).toBe("connect-no-slots-fetch");
+    });
+
+    it("should return connect when reuseFully is true but slots are stale", () => {
+      const result = calInstance.getNextActionForModal({
+        ...baseArgs,
+        stateData: {
+          ...baseArgs.stateData,
+          prerenderOptions: {
+            reuseFully: true,
+          },
+          previousEmbedRenderStartTime: Date.now() - EMBED_MODAL_IFRAME_SLOT_STALE_TIME - 1,
+          embedRenderStartTime: Date.now(),
+        },
+      });
+      expect(result).toBe("connect");
     });
   });
 });

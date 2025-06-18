@@ -36,7 +36,7 @@ export const prefillAvatar = async ({ email }: IPrefillAvatar) => {
   if (!base64Image) return;
 
   const avatar = await resizeBase64Image(base64Image);
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: { email: email },
   });
 

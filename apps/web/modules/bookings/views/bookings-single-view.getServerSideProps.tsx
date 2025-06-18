@@ -234,7 +234,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         eventTypeId: eventType.id,
         team: eventType.team,
         owner: eventType.users[0] ?? null,
-        orgSlug: currentOrgDomain,
+        organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
       }),
       profile,
       eventType,
