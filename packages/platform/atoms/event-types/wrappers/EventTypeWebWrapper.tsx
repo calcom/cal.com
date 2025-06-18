@@ -140,14 +140,15 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
       revalidateEventTypeEditPage(eventType.id);
-      if (eventType.team?.id || eventType.parent?.teamId) {
+      const userSlug = eventType.users?.[0]?.username;
+      if (eventType.team?.slug) {
         revalidateTeamBookingPreview({
-          teamSlug: eventType.team?.slug ?? "",
+          teamSlug: eventType.team.slug,
           eventTypeSlug: eventType.slug,
         });
-      } else {
+      } else if (userSlug) {
         revalidateUserBookingPreview({
-          userSlug: eventType.users?.[0]?.username ?? "",
+          userSlug,
           eventTypeSlug: eventType.slug,
         });
       }
