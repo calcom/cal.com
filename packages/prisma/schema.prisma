@@ -1233,6 +1233,7 @@ view RoutingFormResponse {
 
 model RoutingFormResponseDenormalized {
   id                      Int                           @id
+  uuid                    String                        @unique
   formId                  String
   formName                String
   formTeamId              Int?
