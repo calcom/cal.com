@@ -87,7 +87,11 @@ export function processWorkingHours(
 
     if (results[startResult.valueOf()]) {
       // if a result already exists, we merge the end time
-      results[startResult.valueOf()].end = dayjs.max(results[startResult.valueOf()].end, endResult);
+      results[endResult.valueOf()] = {
+        start: results[startResult.valueOf()].start,
+        end: dayjs.max(results[startResult.valueOf()].end, endResult),
+      };
+      delete results[startResult.valueOf()]; // delete the previous end time
       continue;
     }
     // otherwise we create a new result
@@ -182,6 +186,7 @@ export function buildDateRanges({
           dateTo,
           travelSchedules,
         });
+
         return processed;
       }, {})
     )
