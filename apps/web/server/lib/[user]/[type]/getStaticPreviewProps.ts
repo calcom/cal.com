@@ -97,7 +97,7 @@ export const getBookingPreviewProps = async (
   });
 
   if (!eventType || eventType.hidden) {
-    log.debug(`Event type not found: ${usernameList[0]}/${eventSlug}`);
+    log.debug("Event type not found");
     return notFound();
   }
 
