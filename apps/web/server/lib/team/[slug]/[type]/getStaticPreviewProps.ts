@@ -38,26 +38,50 @@ export const getTeamBookingPreviewProps = async (
 ): Promise<TeamBookingPreviewPageProps> => {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
-  const queryValidation = querySchema.safeParse(context.params);
+  const queryValidation = querySchema.safeParse(context.query);
   if (!queryValidation.success) {
     return notFound();
   }
 
   const { slug: teamSlug, type: eventSlug } = queryValidation.data;
-  const isOrgContext = isValidOrgDomain && currentOrgDomain;
-  const eventType = await prisma.eventType.findFirst({
+
+  // First, get the team to obtain the teamId
+  const team = await prisma.team.findFirst({
     where: {
-      slug: eventSlug,
-      team: getSlugOrRequestedSlug(teamSlug),
-      ...(isOrgContext
+      ...getSlugOrRequestedSlug(teamSlug),
+      ...(isValidOrgDomain && currentOrgDomain
         ? {
-            team: {
-              parent: {
-                slug: currentOrgDomain,
-              },
+            parent: {
+              slug: currentOrgDomain,
             },
           }
         : {}),
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logoUrl: true,
+      theme: true,
+      parent: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!team) {
+    log.debug(`Team not found: ${teamSlug}`);
+    return notFound();
+  }
+
+  const eventType = await prisma.eventType.findUnique({
+    where: {
+      teamId_slug: {
+        teamId: team.id,
+        slug: eventSlug,
+      },
     },
     select: {
       title: true,
@@ -69,28 +93,14 @@ export const getTeamBookingPreviewProps = async (
       requiresConfirmation: true,
       schedulingType: true,
       hidden: true,
-      team: {
-        select: {
-          name: true,
-          slug: true,
-          logoUrl: true,
-          theme: true,
-          parent: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
     },
   });
 
-  if (!eventType || eventType.hidden || !eventType.team) {
-    log.debug(`Team event type not found: ${teamSlug}/${eventSlug}`);
+  if (!eventType || eventType.hidden) {
+    log.debug(`Team event type not found or hidden: ${teamSlug}/${eventSlug}`);
     return notFound();
   }
 
-  const team = eventType.team;
   const orgParent = team.parent;
 
   return {
