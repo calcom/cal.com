@@ -264,7 +264,7 @@ export default class GoogleCalendarService implements Calendar {
       } else {
         this.log.info(
           `Creating event for booking ${calEvent?.uid}`,
-          safeStringify({ selectedCalendar, payload: { start: payload?.start, end: payload?.end } })
+          safeStringify({ payload: { start: payload?.start, end: payload?.end } })
         );
         const eventResponse = await calendar.events.insert({
           calendarId: selectedCalendar,
