@@ -55,6 +55,8 @@ export default function BillingCredits() {
   const router = useRouter();
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [selectedMonth, setSelectedMonth] = useState<MonthOption>(monthOptions[0]);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const utils = trpc.useUtils();
 
   const {
     register,
@@ -79,24 +81,25 @@ export default function BillingCredits() {
     },
   });
 
-  const downloadExpenseLogMutation = trpc.viewer.credits.downloadExpenseLog.useMutation({
-    onSuccess: (data) => {
-      if (data.csvData) {
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      const result = await utils.viewer.credits.downloadExpenseLog.fetch({
+        teamId,
+        startDate: selectedMonth.startDate,
+        endDate: selectedMonth.endDate,
+      });
+      if (result?.csvData) {
         const filename = `credit-expense-log-${selectedMonth.value.toLowerCase().replace(" ", "-")}.csv`;
-        downloadAsCsv(data.csvData, filename);
+        downloadAsCsv(result.csvData, filename);
+      } else {
+        showToast(t("error_downloading_expense_log"), "error");
       }
-    },
-    onError: () => {
+    } catch (error) {
       showToast(t("error_downloading_expense_log"), "error");
-    },
-  });
-
-  const handleDownload = () => {
-    downloadExpenseLogMutation.mutate({
-      teamId,
-      startDate: selectedMonth.startDate,
-      endDate: selectedMonth.endDate,
-    });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   if (!IS_SMS_CREDITS_ENABLED) {
@@ -209,10 +212,7 @@ export default function BillingCredits() {
               </div>
             </div>
             <div className="mt-auto">
-              <Button
-                onClick={handleDownload}
-                loading={downloadExpenseLogMutation.isPending}
-                StartIcon="file-down">
+              <Button onClick={handleDownload} loading={isDownloading} StartIcon="file-down">
                 {t("download")}
               </Button>
             </div>

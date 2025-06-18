@@ -48,7 +48,7 @@ export const creditsRouter = router({
       input,
     });
   }),
-  downloadExpenseLog: authedProcedure.input(ZDownloadExpenseLogSchema).mutation(async ({ input, ctx }) => {
+  downloadExpenseLog: authedProcedure.input(ZDownloadExpenseLogSchema).query(async ({ input, ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.downloadExpenseLog) {
       UNSTABLE_HANDLER_CACHE.downloadExpenseLog = await import("./downloadExpenseLog.handler").then(
         (mod) => mod.downloadExpenseLogHandler
