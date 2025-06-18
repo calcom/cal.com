@@ -574,6 +574,76 @@ describe("buildDateRanges", () => {
       end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
     });
   });
+  it("supports availability past midnight through merging adjacent date ranges", () => {
+    // tests a 90 minute slot remains available
+    const items = [
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 23, 0)), // 11 PM
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 11:59 PM (EOD)
+      },
+      {
+        days: [2, 3, 4, 5, 6],
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 12 AM
+        endTime: new Date(Date.UTC(0, 0, 0, 0, 30)), // 12:30 AM
+      },
+    ];
+
+    const dateFrom = dayjs("2023-06-13T00:00:00Z"); // 2023-06-12T20:00:00-04:00 (America/New_York)
+    const dateTo = dayjs("2023-06-15T00:00:00Z");
+
+    const timeZone = "Europe/London";
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    expect(results.length).toBe(2);
+
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2023-06-13T22:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-13T23:30:00Z").tz(timeZone),
+    });
+
+    expect(results[1]).toEqual({
+      start: dayjs("2023-06-14T22:00:00Z").tz(timeZone),
+      end: dayjs("2023-06-14T23:30:00Z").tz(timeZone),
+    });
+  });
+  it("supports multi-day availability past midnight through merging adjacent date ranges", () => {
+    // tests a 2 day date range remains available
+    const items = [
+      {
+        days: [1, 2],
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 11 PM
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 11:59 PM (EOD)
+      },
+    ];
+
+    const dateFrom = dayjs("2023-06-11T00:00:00Z"); // 2023-06-12T20:00:00-04:00 (America/New_York)
+    const dateTo = dayjs("2023-06-14T00:00:00Z");
+
+    const timeZone = "Europe/London";
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    expect(results.length).toBe(1);
+
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2023-06-11T23:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-13T23:00:00Z").tz(timeZone),
+    });
+  });
 });
 
 describe("subtract", () => {
