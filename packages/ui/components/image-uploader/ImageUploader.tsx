@@ -97,7 +97,8 @@ export default function ImageUploader({
     const file = e.target.files[0];
 
     if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
+      const errorMessage = t("image_size_limit_exceed");
+      showToast(errorMessage, "error");
     } else {
       setFile(file);
     }
