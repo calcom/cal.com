@@ -2,6 +2,7 @@
 
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { Icon } from "@calcom/ui/components/icon";
+import { PreviewBanner } from "@calcom/web/app/(booking-page-wrapper)/[user]/[type]/preview/preview-banner";
 
 import type { TeamBookingPreviewPageProps } from "@server/lib/team/[slug]/[type]/getStaticPreviewProps";
 
@@ -12,10 +13,14 @@ export function TeamBookingPreview(props: TeamBookingPreviewPageProps) {
   useTheme(team.theme);
 
   const organizationName = entity.name;
+  const bookingUrl = `/team/${team.slug}/${eventType.slug}`;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-24">
       <main>
+        {/* Preview Banner */}
+        <PreviewBanner bookingUrl={bookingUrl} />
+
         {/* Event Type Header */}
         <div className="border-subtle bg-default text-default mb-8 rounded-xl border p-6">
           {/* Team Logo/Avatar */}

@@ -5,6 +5,8 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import type { BookingPreviewPageProps } from "@server/lib/[user]/[type]/getStaticPreviewProps";
 
+import { PreviewBanner } from "./preview-banner";
+
 export function UserBookingPreview(props: BookingPreviewPageProps) {
   const { eventType, profile, entity } = props;
 
@@ -12,10 +14,14 @@ export function UserBookingPreview(props: BookingPreviewPageProps) {
   useTheme(profile.theme);
 
   const organizationName = entity.name;
+  const bookingUrl = `/${profile.username}/${eventType.slug}`;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-24">
       <main>
+        {/* Preview Banner */}
+        <PreviewBanner bookingUrl={bookingUrl} />
+
         {/* Event Type Header */}
         <div className="border-subtle bg-default text-default mb-8 rounded-xl border p-6">
           {/* User Avatar */}
