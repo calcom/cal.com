@@ -21,15 +21,10 @@ BEGIN
             PERFORM reprocess_routing_form_response_fields(response_record.id);
             processed_count := processed_count + 1;
             
-            -- Show progress every 100 responses
-            IF processed_count % 100 = 0 THEN
-                RAISE NOTICE 'Progress: %/% responses processed', 
-                    processed_count, total_count;
-            END IF;
-            
             -- Sleep after each chunk_size responses
             IF processed_count % chunk_size = 0 THEN
-                RAISE NOTICE 'Completed chunk of % responses, sleeping for % seconds...', chunk_size, sleep_interval;
+                RAISE NOTICE 'Progress: %/% responses processed, sleeping for % seconds...',
+                    processed_count, total_count, sleep_interval;
                 PERFORM pg_sleep(sleep_interval);
             END IF;
         EXCEPTION WHEN OTHERS THEN
