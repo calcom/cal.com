@@ -2,7 +2,7 @@
 
 import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
-import { DailyProvider } from "@daily-co/daily-react";
+import { DailyProvider, useDaily } from "@daily-co/daily-react";
 import { useDailyEvent } from "@daily-co/daily-react";
 import { useState, useEffect, useRef } from "react";
 
@@ -34,9 +34,7 @@ export default function JoinCall(props: PageProps) {
     calVideoLogo,
     displayLogInOverlay,
     loggedInUserName,
-    overrideName,
     showRecordingButton,
-    enableAutomaticTranscription,
     rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
@@ -66,7 +64,7 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
-        userName: overrideName ?? loggedInUserName ?? undefined,
+        userName: loggedInUserName ? loggedInUserName ?? undefined : undefined,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
@@ -89,14 +87,11 @@ export default function JoinCall(props: PageProps) {
           },
         }),
       });
-
-      if (overrideName) {
-        callFrame.setUserName(overrideName);
-      }
     } catch (err) {
       callFrame = DailyIframe.getCallInstance();
     } finally {
       setDaily(callFrame ?? null);
+
       callFrame?.join();
     }
 
@@ -111,10 +106,7 @@ export default function JoinCall(props: PageProps) {
       <div
         className="mx-auto hidden sm:block"
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe
-          showRecordingButton={showRecordingButton}
-          enableAutomaticTranscription={enableAutomaticTranscription}
-        />
+        <CalAiTranscribe showRecordingButton={showRecordingButton} />
       </div>
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
@@ -225,42 +217,82 @@ export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
   const { isLoggedIn, bookingUid } = props;
   const [open, setOpen] = useState(!isLoggedIn);
+  const [guestName, setGuestName] = useState("");
+  const daily = useDaily();
+
+  const handleGuestJoin = () => {
+    if (guestName.trim()) {
+      daily?.setUserName(guestName);
+      setOpen(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_join_call")}
-        className="bg-black text-white sm:max-w-[480px]">
-        <div className="pb-8">
-          <div className="space-y-8">
-            <Button color="primary" className="mt-4 w-full justify-center " onClick={() => setOpen(false)}>
-              {t("continue_as_guest")}
+        className="bg-black text-white max-w-[480px]"
+        showCloseButton={true}
+      >
+        <div className="flex flex-col gap-6">
+          {/* Guest Join Section */}
+          <div className="rounded-lg border border-gray-700 bg-gray-800 p-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-white">{t("join_as_guest")}</h3>
+              <p className="text-sm text-gray-300">{t("ideal_for_one_time_calls")}</p>
+            </div>
+            
+            <div className="mb-4">
+              <label htmlFor="guest-name" className="mb-2 block text-sm font-medium text-gray-300">
+                {t("your_name")}
+              </label>
+              <input
+                id="guest-name"
+                type="text"
+                placeholder={t("your_name_placeholder")}
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                className="w-full rounded border border-gray-600 bg-gray-700 px-3 py-2 text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+            
+            <Button
+              disabled={!guestName.trim()}
+              color="primary"
+              className="w-full justify-center"
+              onClick={handleGuestJoin}
+            >
+              {t("continue")}
             </Button>
+          </div>
 
-            {/* Divider */}
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-600" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-black px-4 text-sm text-gray-400">{t("or")}</span>
-              </div>
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-700"></div>
             </div>
+            <div className="relative flex justify-center">
+              <span className="bg-black px-3 text-sm text-gray-400">{t("or")}</span>
+            </div>
+          </div>
 
-            <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-white">{t("sign_in_to_cal_com")}</h4>
+          {/* Sign In Section */}
+          <div className="rounded-lg border border-gray-700 bg-gray-800 p-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-white">{t("sign_in_to_cal_com")}</h3>
               <p className="text-sm text-gray-300">{t("track_your_meetings")}</p>
-              <Button
-                color="primary"
-                className="mt-4 w-full justify-center"
-                onClick={() =>
-                  (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
-                }>
-                <Icon name="external-link" className="mr-2 h-4 w-4" />
-                {t("log_in_to_cal_com")}
-              </Button>
             </div>
+            
+            <Button
+              color="minimal"
+              className="w-full justify-center bg-gray-900 text-white hover:bg-gray-800"
+              onClick={() => 
+                (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
+              }
+            >
+              {t("sign_in")}
+            </Button>
           </div>
         </div>
       </DialogContent>
