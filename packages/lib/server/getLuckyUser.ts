@@ -70,8 +70,8 @@ interface GetLuckyUserParams<T extends PartialUser> {
       rrResetInterval: RRResetInterval | null;
       rrTimestampBasis: RRTimestampBasis;
     } | null;
-    multipleRRHosts: boolean;
-    rrHostsPerMeeting: number;
+    multipleRRHosts?: boolean;
+    rrHostsPerMeeting?: number;
     rrHostCount?: number;
     includeNoShowInRRCalculation: boolean;
   };
