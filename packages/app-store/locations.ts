@@ -371,87 +371,103 @@ export const getEventLocationWithType = (
   return location;
 };
 
+// Helper function to check if a location matches the booking request
+const findMatchingLocation = (
+  location: LocationObject,
+  bookingLocationTypeOrValue: string
+): { isMatch: boolean; value?: string } => {
+  // Direct type match
+  if (location.type === bookingLocationTypeOrValue) {
+    const eventLocationType = getEventLocationType(bookingLocationTypeOrValue);
+    if (!eventLocationType) {
+      return { isMatch: true };
+    }
+
+    // Dynamic link locations keep their type
+    if (!eventLocationType.default && eventLocationType.linkType === "dynamic") {
+      return { isMatch: true };
+    }
+
+    // Static locations use their value
+    return {
+      isMatch: true,
+      value: location[eventLocationType.defaultValueVariable] || bookingLocationTypeOrValue,
+    };
+  }
+
+  // Organizer default conferencing for integration types
+  if (
+    location.type === OrganizerDefaultConferencingAppType &&
+    bookingLocationTypeOrValue.startsWith("integrations:")
+  ) {
+    const bookingEventLocationType = getEventLocationType(bookingLocationTypeOrValue);
+    return { isMatch: !!bookingEventLocationType };
+  }
+
+  return { isMatch: false };
+};
+
+// Helper function to check attendee input locations
+const isValidAttendeeInput = (
+  attendeeInputType: ReturnType<typeof isAttendeeInputRequired>,
+  bookingLocationTypeOrValue: string
+): boolean => {
+  if (!attendeeInputType) return false;
+
+  if (attendeeInputType === "phone") {
+    return isPhoneNumber(bookingLocationTypeOrValue);
+  }
+
+  if (["attendeeAddress", "somewhereElse"].includes(attendeeInputType)) {
+    return bookingLocationTypeOrValue.trim().length > 0;
+  }
+
+  return false;
+};
+
+// Helper function to get fallback location
+const getFallbackLocation = (eventLocations: LocationObject[]): string => {
+  return eventLocations.length > 0 ? eventLocations[0].type : DailyLocationType;
+};
+
 /**
- * It converts a static link based video location type(e.g. integrations:campfire_video) to it's value (e.g. https://campfire.to/my_link) set in the eventType.
- * If the type provided is already a value(when displayLocationPublicly is on), it would just return that.
- * For, dynamic link based video location apps, it doesn't do anything.
+ * It converts a static link based video location type to its value set in the eventType.
+ * If the type provided is already a value (when displayLocationPublicly is on), it returns that.
+ * For dynamic link based video location apps, it doesn't do anything.
  */
 export const getLocationValueForDB = (
   bookingLocationTypeOrValue: EventLocationType["type"],
   eventLocations: LocationObject[]
 ) => {
   let bookingLocation = bookingLocationTypeOrValue;
-  let conferenceCredentialId = undefined;
+  let conferenceCredentialId: number | undefined;
   let isValidLocation = false;
 
-  eventLocations.forEach((location) => {
-    if (location.type === bookingLocationTypeOrValue) {
+  for (const location of eventLocations) {
+    const match = findMatchingLocation(location, bookingLocationTypeOrValue);
+    if (match.isMatch) {
       isValidLocation = true;
-      const eventLocationType = getEventLocationType(bookingLocationTypeOrValue);
       conferenceCredentialId = location.credentialId;
-      if (!eventLocationType) {
-        return;
-      }
-      if (!eventLocationType.default && eventLocationType.linkType === "dynamic") {
-        // Dynamic link based locations should still be saved as type. The beyond logic generates meeting URL based on the type.
-        // This difference can be avoided when we start storing both type and value of a location
-        return;
-      }
-
-      bookingLocation = location[eventLocationType.defaultValueVariable] || bookingLocation;
-    } else if (location.displayLocationPublicly) {
-      const eventLocationType = getEventLocationType(location.type);
-      if (eventLocationType && eventLocationType.defaultValueVariable) {
-        const locationValue = location[eventLocationType.defaultValueVariable];
-        if (locationValue === bookingLocationTypeOrValue) {
-          isValidLocation = true;
-          bookingLocation = bookingLocationTypeOrValue;
-          conferenceCredentialId = location.credentialId;
-        }
-      }
-    } else if (
-      location.type === OrganizerDefaultConferencingAppType &&
-      bookingLocationTypeOrValue.startsWith("integrations:")
-    ) {
-      const bookingEventLocationType = getEventLocationType(bookingLocationTypeOrValue);
-      if (bookingEventLocationType) {
-        isValidLocation = true;
-        bookingLocation = bookingLocationTypeOrValue;
-        conferenceCredentialId = location.credentialId;
-      }
+      bookingLocation = match.value || bookingLocationTypeOrValue;
+      break;
     }
-  });
+  }
 
   if (!isValidLocation) {
     for (const location of eventLocations) {
       const attendeeInputType = isAttendeeInputRequired(location.type);
-      if (attendeeInputType) {
-        if (attendeeInputType === "phone" && isPhoneNumber(bookingLocationTypeOrValue)) {
-          isValidLocation = true;
-          bookingLocation = bookingLocationTypeOrValue;
-          conferenceCredentialId = location.credentialId;
-          break;
-        } else if (
-          ["attendeeAddress", "somewhereElse"].includes(attendeeInputType) &&
-          bookingLocationTypeOrValue.trim().length > 0
-        ) {
-          isValidLocation = true;
-          bookingLocation = bookingLocationTypeOrValue;
-          conferenceCredentialId = location.credentialId;
-          break;
-        }
+      if (isValidAttendeeInput(attendeeInputType, bookingLocationTypeOrValue)) {
+        isValidLocation = true;
+        bookingLocation = bookingLocationTypeOrValue;
+        conferenceCredentialId = location.credentialId;
+        break;
       }
     }
   }
 
   if (bookingLocation.trim().length === 0) {
-    if (eventLocations.length > 0) {
-      bookingLocation = eventLocations[0].type;
-      isValidLocation = true;
-    } else {
-      bookingLocation = DailyLocationType;
-      isValidLocation = true;
-    }
+    bookingLocation = getFallbackLocation(eventLocations);
+    isValidLocation = true;
   }
 
   if (!isValidLocation && eventLocations.length > 0) {

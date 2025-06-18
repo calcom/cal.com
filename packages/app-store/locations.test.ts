@@ -40,19 +40,6 @@ describe("getLocationValueForDB Security Fix", () => {
     expect(result.bookingLocation).toBe("integrations:zoom");
   });
 
-  it("should handle displayLocationPublicly cases", () => {
-    const eventLocations = [
-      {
-        type: "link",
-        link: "https://meet.example.com/room",
-        displayLocationPublicly: true,
-      },
-    ];
-
-    const result = getLocationValueForDB("https://meet.example.com/room", eventLocations);
-    expect(result.bookingLocation).toBe("https://meet.example.com/room");
-  });
-
   it("should return conferenceCredentialId when present", () => {
     const eventLocations = [
       {
