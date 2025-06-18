@@ -183,11 +183,6 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
 
   const mutation = trpc.viewer.organizations.update.useMutation({
     onError: (err) => {
-      console.log("Full error object:", err);
-      console.log("Error message:", err.message);
-      console.log("Error cause:", err.cause);
-      console.log("Error data:", err.data);
-
       // Handle JSON parsing errors from body size limit exceeded
       if (err.message.includes("Unexpected token") && err.message.includes("Body excee")) {
         showToast(t("converted_image_size_limit_exceed"), "error");
