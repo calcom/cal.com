@@ -132,6 +132,8 @@ export const useEventTypeForm = ({
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+      multipleRRHosts: eventType.multipleRRHosts,
+      rrHostsPerMeeting: eventType.rrHostsPerMeeting,
       maxLeadThreshold: eventType.maxLeadThreshold,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
