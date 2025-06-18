@@ -16,9 +16,8 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-// Centralized route configuration to prevent sync issues
-// NOTE: If adding dynamic routes (containing ":"), make sure to update
-// the detection logic in isBookingPageRoute function below
+// SUPER IMPORTANT: If adding dynamic routes, make sure to update
+// the detection logic for `isNonBookingRoute` in `isBookingPageRoute` function below
 const MATCHED_ROUTES = {
   nonBooking: [
     // Routes to enforce CSP
