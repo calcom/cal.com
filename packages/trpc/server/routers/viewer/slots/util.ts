@@ -506,12 +506,27 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
       select: {
         id: true,
         timeZone: true,
+        userId: true,
         availability: {
           select: {
             days: true,
             startTime: true,
             endTime: true,
             date: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            defaultScheduleId: true,
+            travelSchedules: {
+              select: {
+                id: true,
+                timeZone: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
           },
         },
       },
@@ -537,12 +552,23 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         date: rule.date,
       }));
 
+      // Include travel schedules if restriction schedule is the user's default schedule
+      const isDefaultSchedule = restrictionSchedule.user.defaultScheduleId === restrictionSchedule.id;
+      const travelSchedules =
+        isDefaultSchedule && !eventType.useBookerTimezone
+          ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
+              startDate: dayjs(schedule.startDate),
+              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+              timeZone: schedule.timeZone,
+            }))
+          : [];
+
       const { dateRanges: restrictionRanges } = buildDateRanges({
         availability: restrictionAvailability,
         timeZone: restrictionTimezone || "UTC",
         dateFrom: startTime,
         dateTo: endTime,
-        travelSchedules: [],
+        travelSchedules,
       });
 
       availableTimeSlots = timeSlots.filter((slot) => {
