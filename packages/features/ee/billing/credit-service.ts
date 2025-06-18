@@ -127,6 +127,7 @@ export class CreditService {
       });
   }
 
+  /* also returns true if team has no available credits but limitReachedAt is not yet set */
   async hasAvailableCredits({ userId, teamId }: { userId?: number | null; teamId?: number | null }) {
     return await prisma.$transaction(async (tx) => {
       if (!IS_SMS_CREDITS_ENABLED) return true;
@@ -157,12 +158,14 @@ export class CreditService {
           );
           return true;
         }
+        // limtReachedAt is set and still no available credits
+        return false;
       }
 
       if (userId) {
         const teamWithAvailableCredits = await this._getTeamWithAvailableCredits({ userId, tx });
 
-        if (teamWithAvailableCredits && teamWithAvailableCredits?.availableCredits > 0) return true;
+        if (teamWithAvailableCredits && !teamWithAvailableCredits.limitReached) return true;
 
         const userCredits = await this._getAllCredits({ userId, tx });
 
@@ -223,6 +226,7 @@ export class CreditService {
       teamId: memberships[0].teamId,
       availableCredits: 0,
       creditType: CreditType.ADDITIONAL,
+      limitReached: true,
     };
   }
 
