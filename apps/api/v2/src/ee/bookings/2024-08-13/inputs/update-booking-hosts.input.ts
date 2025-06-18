@@ -8,7 +8,6 @@ import {
   ValidateNested,
   ArrayMinSize,
   ValidateIf,
-  IsOptional,
 } from "class-validator";
 
 export enum HostAction {
