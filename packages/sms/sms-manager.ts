@@ -41,7 +41,7 @@ const handleSendingSMS = async ({
         phoneNumber: reminderPhone,
         body: smsMessage,
         sender: senderID,
-        teamId,
+        ...(!!teamId ? { teamId } : { userId: organizerUserId }),
         bookingUid,
       },
     });
