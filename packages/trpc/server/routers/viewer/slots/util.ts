@@ -41,6 +41,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
@@ -302,12 +303,14 @@ const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingN
   return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
 };
 
+export type GetAvailableSlotsResponse = Awaited<ReturnType<typeof _getAvailableSlots>>;
 const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> => {
   const {
     _enableTroubleshooter: enableTroubleshooter = false,
     _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
     _shouldServeCache,
     routingFormResponseId,
+    queuedFormResponseId,
   } = input;
   const orgDetails = input?.orgSlug
     ? {
@@ -374,20 +377,12 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   let routingFormResponse = null;
   if (routingFormResponseId) {
-    routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
-      where: {
-        id: routingFormResponseId,
-      },
-      select: {
-        response: true,
-        form: {
-          select: {
-            routes: true,
-            fields: true,
-          },
-        },
-        chosenRouteId: true,
-      },
+    routingFormResponse = await RoutingFormResponseRepository.findFormResponseIncludeForm({
+      routingFormResponseId,
+    });
+  } else if (queuedFormResponseId) {
+    routingFormResponse = await RoutingFormResponseRepository.findQueuedFormResponseIncludeForm({
+      queuedFormResponseId,
     });
   }
 
