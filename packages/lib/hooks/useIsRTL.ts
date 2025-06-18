@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { useMemo } from "react";
 
 import { isRTLLanguage, getTextDirection } from "../isRTL";
@@ -9,15 +8,6 @@ import { isRTLLanguage, getTextDirection } from "../isRTL";
  * @returns Object with RTL detection utilities
  */
 export function useIsRTL(interfaceLanguage?: string) {
-  // Always call useRouter to follow React hooks rules
-  let router;
-  try {
-    router = useRouter();
-  } catch (error) {
-    // Router not mounted, will fallback to other methods
-    router = null;
-  }
-
   const locale = useMemo(() => {
     // Handle interface language from event data
     if (interfaceLanguage && interfaceLanguage !== "") {
@@ -25,16 +15,7 @@ export function useIsRTL(interfaceLanguage?: string) {
       return interfaceLanguage;
     }
     
-    // Fall back to router locale
-    if (router?.locale) {
-      return router.locale;
-    }
-    
-    if (router?.defaultLocale) {
-      return router.defaultLocale;
-    }
-    
-    // Fall back to browser language
+    // Fall back to browser language when no interface language is provided
     if (typeof window !== "undefined" && window.navigator) {
       // Extract language code from browser language (e.g., "ar-SA" → "ar")
       return window.navigator.language.split('-')[0] || "en";
@@ -42,7 +23,7 @@ export function useIsRTL(interfaceLanguage?: string) {
     
     // Default fallback
     return "en";
-  }, [interfaceLanguage, router?.locale, router?.defaultLocale]);
+  }, [interfaceLanguage]);
 
   const isRTL = useMemo(() => isRTLLanguage(locale), [locale]);
   const direction = useMemo(() => getTextDirection(locale), [locale]);
