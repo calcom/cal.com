@@ -194,29 +194,46 @@ export function buildDateRanges({
   );
 
   const groupedDateOverrides = groupByDate(
-    availability.reduce((processed: DateRange[], item) => {
-      // early return if item is not a date override
-      if (!("date" in item && !!item.date)) {
+    Object.values(
+      availability.reduce((processed: Record<number, DateRange>, item) => {
+        // early return if item is not a date override
+        if (!("date" in item && !!item.date)) {
+          return processed;
+        }
+        const itemDateAsUtc = dayjs.utc(item.date);
+        // TODO: Remove the .subtract(1, "day") and .add(1, "day") part and
+        // refactor this to actually work with correct dates.
+        // As of 2024-02-20, there are mismatches between local and UTC dates for overrides
+        // and the dateFrom and dateTo fields, resulting in this if not returning true, which
+        // results in "no available users found" errors.
+        if (
+          itemDateAsUtc.isBetween(
+            dateFrom.subtract(1, "day").startOf("day"),
+            dateTo.add(1, "day").endOf("day"),
+            null,
+            "[]"
+          )
+        ) {
+          // unlike working hours, date overrides are always one. No loop per day.
+          const newProcessedDateOverride = processDateOverride({
+            item,
+            itemDateAsUtc,
+            timeZone,
+            travelSchedules,
+          });
+          if (processed[newProcessedDateOverride.start.valueOf()]) {
+            // if a result already exists, we merge the end time
+            processed[newProcessedDateOverride.start.valueOf()].end = dayjs.max(
+              processed[newProcessedDateOverride.start.valueOf()].end,
+              newProcessedDateOverride.end
+            );
+            return processed;
+          }
+          processed[newProcessedDateOverride.end.valueOf()] = newProcessedDateOverride;
+        }
         return processed;
-      }
-      const itemDateAsUtc = dayjs.utc(item.date);
-      // TODO: Remove the .subtract(1, "day") and .add(1, "day") part and
-      // refactor this to actually work with correct dates.
-      // As of 2024-02-20, there are mismatches between local and UTC dates for overrides
-      // and the dateFrom and dateTo fields, resulting in this if not returning true, which
-      // results in "no available users found" errors.
-      if (
-        itemDateAsUtc.isBetween(
-          dateFrom.subtract(1, "day").startOf("day"),
-          dateTo.add(1, "day").endOf("day"),
-          null,
-          "[]"
-        )
-      ) {
-        processed.push(processDateOverride({ item, itemDateAsUtc, timeZone, travelSchedules }));
-      }
-      return processed;
-    }, [])
+      }, {})
+    )
   );
 
   const dateRanges = Object.values({

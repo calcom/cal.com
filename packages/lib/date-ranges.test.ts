@@ -644,6 +644,41 @@ describe("buildDateRanges", () => {
       end: dayjs.utc("2023-06-13T23:00:00Z").tz(timeZone),
     });
   });
+  it("supports multi-day availability past midnight through merging adjacent date ranges (date overrides)", () => {
+    // tests a 2 day date range remains available
+    const items = [
+      {
+        date: new Date("2023-06-12T00:00:00Z"),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 11 PM
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 11:59 PM (EOD)
+      },
+      {
+        date: new Date("2023-06-13T00:00:00Z"),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 11 PM
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 11:59 PM (EOD)
+      },
+    ];
+
+    const dateFrom = dayjs("2023-06-11T00:00:00Z"); // 2023-06-12T20:00:00-04:00 (America/New_York)
+    const dateTo = dayjs("2023-06-14T00:00:00Z");
+
+    const timeZone = "Europe/London";
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    expect(results.length).toBe(1);
+
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2023-06-11T23:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-13T23:00:00Z").tz(timeZone),
+    });
+  });
 });
 
 describe("subtract", () => {
