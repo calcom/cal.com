@@ -63,7 +63,7 @@ export function BillingCreditsSkeleton() {
           <div className="flex">
             <div className="mr-auto mt-1">
               <div>
-                <SkeletonText className="mt mb-2 h-4 w-[156px]" /> {/* Label */}
+                <SkeletonText className="mb-2 h-4 w-[156px]" /> {/* Label */}
               </div>
               <div>
                 <SkeletonText className="mt-2 h-8 w-[156px] rounded-md" /> {/* Select */}

@@ -56,7 +56,7 @@ describe("CreditsRepository", () => {
     });
 
     it("should use userId if teamId is undefined", async () => {
-      const result = await CreditsRepository.findCreditBalanceWithTeamOrUser({ userId: 1 });
+      await CreditsRepository.findCreditBalanceWithTeamOrUser({ userId: 1 });
 
       expect(prismaMock.creditBalance.findUnique).toHaveBeenCalledWith({
         where: { userId: 1 },
