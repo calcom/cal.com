@@ -7773,6 +7773,64 @@
         "tags": ["Bookings"]
       }
     },
+    "/v2/bookings/{bookingUid}/hosts": {
+      "patch": {
+        "operationId": "BookingsController_2024_08_13_updateBookingHosts",
+        "summary": "Add or remove a host to a booking",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookingHostsInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateBookingHostsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
     "/v2/calendars/{calendar}/event/{eventUid}": {
       "get": {
         "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
@@ -23733,6 +23791,59 @@
             "items": {
               "$ref": "#/components/schemas/BookingReference"
             }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "HostActionDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "enum": ["add", "remove"],
+            "type": "string",
+            "example": "add",
+            "description": "Action to perform on the host"
+          },
+          "userId": {
+            "type": "number",
+            "example": 123,
+            "description": "User ID of the host to add or remove. Either userId or name must be provided, but not both."
+          },
+          "name": {
+            "type": "string",
+            "description": "Email/name of the host to add or remove. Either userId or name must be provided, but not both."
+          }
+        },
+        "required": ["action"]
+      },
+      "UpdateBookingHostsInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "hosts": {
+            "description": "Array of host actions to perform",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HostActionDto"
+            }
+          }
+        },
+        "required": ["hosts"]
+      },
+      "UpdateBookingHostsOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "Updated booking with new hosts",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BookingOutput_2024_08_13"
+              }
+            ]
           }
         },
         "required": ["status", "data"]
