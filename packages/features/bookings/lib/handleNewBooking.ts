@@ -254,6 +254,57 @@ const buildDryRunEventManager = () => {
   };
 };
 
+/**
+ * Builds destination calendars for collective events during booking creation or rescheduling.
+ * Ensures all hosts' calendars are included in the destination calendar array.
+ */
+export const buildDestinationCalendarsForCollectiveEvent = ({
+  eventType,
+  users,
+  organizerUser,
+  originalDestinationCalendar,
+}: {
+  eventType: { schedulingType: SchedulingType | null };
+  users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
+    destinationCalendar: DestinationCalendar | null;
+    isFixed?: boolean;
+  })[];
+  organizerUser: { email: string };
+  originalDestinationCalendar?: DestinationCalendar[] | null;
+}): DestinationCalendar[] => {
+  const teamDestinationCalendars: DestinationCalendar[] = [];
+
+  // Start with original destination calendar if provided (for organizer)
+  if (originalDestinationCalendar && originalDestinationCalendar.length > 0) {
+    teamDestinationCalendars.push(...originalDestinationCalendar);
+  }
+
+  // For collective events, add all team members' destination calendars
+  if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
+    const filteredUsers = users.filter((user) => user.email !== organizerUser.email);
+
+    for (const user of filteredUsers) {
+      if (user.destinationCalendar) {
+        // Check if this calendar is already in the array to avoid duplicates
+        const exists = teamDestinationCalendars.some(
+          (existingCal) =>
+            existingCal.userId === user.destinationCalendar?.userId &&
+            existingCal.integration === user.destinationCalendar?.integration
+        );
+
+        if (!exists) {
+          teamDestinationCalendars.push({
+            ...user.destinationCalendar,
+            externalId: processExternalId(user.destinationCalendar),
+          });
+        }
+      }
+    }
+  }
+
+  return teamDestinationCalendars;
+};
+
 export const buildEventForTeamEventType = async ({
   existingEvent: evt,
   users,
@@ -277,7 +328,7 @@ export const buildEventForTeamEventType = async ({
   if (!schedulingType) {
     throw new Error("Scheduling type is required for team event type");
   }
-  const teamDestinationCalendars: DestinationCalendar[] = [];
+
   const fixedUsers = users.filter((user) => user.isFixed);
   const nonFixedUsers = users.filter((user) => !user.isFixed);
   const filteredUsers =
@@ -285,19 +336,18 @@ export const buildEventForTeamEventType = async ({
       ? [...fixedUsers, ...(nonFixedUsers.length > 0 ? [nonFixedUsers[0]] : [])]
       : users;
 
+  // Build destination calendars using the new helper function
+  const teamDestinationCalendars = buildDestinationCalendarsForCollectiveEvent({
+    eventType: { schedulingType },
+    users: filteredUsers,
+    organizerUser,
+    originalDestinationCalendar: evt.destinationCalendar,
+  });
+
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = filteredUsers
     .filter((user) => user.email !== organizerUser.email)
     .map(async (user) => {
-      // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
-      // push to teamDestinationCalendars if it's a team event but collective only
-      if (schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-        teamDestinationCalendars.push({
-          ...user.destinationCalendar,
-          externalId: processExternalId(user.destinationCalendar),
-        });
-      }
-
       return {
         id: user.id,
         email: user.email ?? "",
@@ -314,9 +364,7 @@ export const buildEventForTeamEventType = async ({
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  evt = CalendarEventBuilder.fromEvent(evt)
-    .withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
-    .build();
+  evt = CalendarEventBuilder.fromEvent(evt).withDestinationCalendar(teamDestinationCalendars).build();
 
   return CalendarEventBuilder.fromEvent(evt)
     .withTeam({
@@ -1512,14 +1560,55 @@ async function handler(
       // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
       evt.iCalUID = undefined;
     } else {
-      // In case of rescheduling, we need to keep the previous host destination calendar
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withDestinationCalendar(
-          originalRescheduledBooking?.destinationCalendar
-            ? [originalRescheduledBooking?.destinationCalendar]
-            : evt.destinationCalendar
-        )
-        .build();
+      // For collective events during rescheduling, rebuild destination calendars to include all current hosts
+      if (eventType.schedulingType === SchedulingType.COLLECTIVE && isTeamEventType) {
+        loggerWithEventDetails.debug("Rebuilding destination calendars for collective event reschedule");
+
+        try {
+          const updatedDestinationCalendars = buildDestinationCalendarsForCollectiveEvent({
+            eventType: { schedulingType: eventType.schedulingType },
+            users,
+            organizerUser,
+            originalDestinationCalendar: originalRescheduledBooking?.destinationCalendar
+              ? [originalRescheduledBooking?.destinationCalendar]
+              : evt.destinationCalendar,
+          });
+
+          evt = CalendarEventBuilder.fromEvent(evt)
+            .withDestinationCalendar(updatedDestinationCalendars)
+            .build();
+
+          loggerWithEventDetails.debug(
+            "Successfully rebuilt destination calendars for collective event reschedule",
+            {
+              calendarsCount: updatedDestinationCalendars.length,
+              calendarTypes: updatedDestinationCalendars.map((cal) => cal.integration),
+            }
+          );
+        } catch (error) {
+          loggerWithEventDetails.error(
+            "Failed to rebuild destination calendars for collective event reschedule, falling back to original",
+            error
+          );
+          // Fallback to original behavior if there's an error
+          evt = CalendarEventBuilder.fromEvent(evt)
+            .withDestinationCalendar(
+              originalRescheduledBooking?.destinationCalendar
+                ? [originalRescheduledBooking?.destinationCalendar]
+                : evt.destinationCalendar
+            )
+            .build();
+        }
+      } else {
+        // In case of non-collective rescheduling, use the previous host destination calendar
+        evt = CalendarEventBuilder.fromEvent(evt)
+          .withDestinationCalendar(
+            originalRescheduledBooking?.destinationCalendar
+              ? [originalRescheduledBooking?.destinationCalendar]
+              : evt.destinationCalendar
+          )
+          .build();
+      }
     }
 
     const updateManager = await eventManager.reschedule(
@@ -1752,6 +1841,42 @@ async function handler(
               cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
             },
             eventType?.metadata
+          );
+        }
+      }
+
+      // After sending reschedule emails, we need to create calendar events for ALL destination calendars
+      if (eventType.schedulingType === SchedulingType.COLLECTIVE && areCalendarEventsEnabled) {
+        loggerWithEventDetails.debug(
+          "Creating calendar events for collective event reschedule",
+          safeStringify({
+            calEvent: getPiiFreeCalendarEvent(evt),
+            destinationCalendarsCount: evt.destinationCalendar?.length || 0,
+          })
+        );
+
+        const createManager = await eventManager.create(evt);
+        results = createManager.results;
+        referencesToCreate = createManager.referencesToCreate;
+
+        if (results.length > 0 && results.every((res) => !res.success)) {
+          const error = {
+            errorCode: "BookingReschedulingMeetingFailed",
+            message: "Rescheduling failed",
+          };
+
+          loggerWithEventDetails.error(
+            `EventManager.create failure during collective event reschedule ${organizerUser.username}`,
+            safeStringify({ error, results })
+          );
+        } else {
+          loggerWithEventDetails.debug(
+            "Successfully created calendar events for collective event reschedule",
+            safeStringify({
+              calEvent: getPiiFreeCalendarEvent(evt),
+              resultsCount: results.length,
+              successfulResults: results.filter((res) => res.success).length,
+            })
           );
         }
       }
