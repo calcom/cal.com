@@ -10,11 +10,12 @@ interface FieldTypeChangeWarningDialogProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   currentFieldType: string;
   onCreateNewField?: () => void;
+  onConfirmChange?: () => void;
 }
 
 const FieldTypeChangeWarningDialog = (props: FieldTypeChangeWarningDialogProps) => {
   const { t } = useLocale();
-  const { isOpen, setIsOpen, currentFieldType, onCreateNewField } = props;
+  const { isOpen, setIsOpen, currentFieldType, onCreateNewField, onConfirmChange } = props;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -32,6 +33,16 @@ const FieldTypeChangeWarningDialog = (props: FieldTypeChangeWarningDialogProps) 
           <Button onClick={() => setIsOpen(false)} color="minimal">
             {t("understood")}
           </Button>
+          {onConfirmChange && (
+            <Button
+              onClick={() => {
+                setIsOpen(false);
+                onConfirmChange();
+              }}
+              color="destructive">
+              {t("change_anyway")}
+            </Button>
+          )}
           {onCreateNewField && (
             <Button
               onClick={() => {
