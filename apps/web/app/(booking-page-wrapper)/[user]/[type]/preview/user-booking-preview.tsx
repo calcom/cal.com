@@ -8,8 +8,7 @@ import type { BookingPreviewPageProps } from "@server/lib/[user]/[type]/getStati
 import { PreviewBanner } from "./preview-banner";
 
 export function UserBookingPreview(props: BookingPreviewPageProps) {
-  const { eventType, profile, entity } = props;
-  const organizationName = entity.name;
+  const { eventType, profile, organizationName } = props;
   const bookingUrl = `/${profile.username}/${eventType.slug}`;
 
   return (

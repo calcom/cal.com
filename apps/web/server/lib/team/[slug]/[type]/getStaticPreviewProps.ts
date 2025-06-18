@@ -2,16 +2,13 @@ import type { GetServerSidePropsContext } from "next";
 import { notFound } from "next/navigation";
 
 import { orgDomainConfig, getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { prisma } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["[[team-booking-preview]]"] });
 
 export type TeamBookingPreviewPageProps = {
   eventType: {
-    id: number;
     title: string;
     description: string | null;
     length: number;
@@ -19,25 +16,15 @@ export type TeamBookingPreviewPageProps = {
     price: number;
     currency: string;
     requiresConfirmation: boolean;
-    descriptionAsSafeHTML: string;
     schedulingType: string | null;
   };
   team: {
-    id: number;
     name: string;
     slug: string | null;
     logoUrl: string | null;
     theme: string | null;
-    brandColor: string;
-    darkBrandColor: string;
-    hideBranding: boolean;
   };
-  entity: {
-    logoUrl?: string | null;
-    orgSlug?: string | null;
-    name?: string | null;
-  };
-  isPreviewPage: boolean;
+  organizationName: string | null;
 };
 
 export const getTeamBookingPreviewProps = async (
@@ -64,7 +51,6 @@ export const getTeamBookingPreviewProps = async (
         : {}),
     },
     select: {
-      id: true,
       title: true,
       description: true,
       length: true,
@@ -76,24 +62,13 @@ export const getTeamBookingPreviewProps = async (
       hidden: true,
       team: {
         select: {
-          id: true,
           name: true,
           slug: true,
           logoUrl: true,
           theme: true,
-          brandColor: true,
-          darkBrandColor: true,
-          hideBranding: true,
           parent: {
             select: {
-              slug: true,
               name: true,
-              logoUrl: true,
-            },
-          },
-          _count: {
-            select: {
-              members: true,
             },
           },
         },
@@ -114,7 +89,6 @@ export const getTeamBookingPreviewProps = async (
 
   return {
     eventType: {
-      id: eventType.id,
       title: eventType.title,
       description: eventType.description,
       length: eventType.length,
@@ -123,23 +97,13 @@ export const getTeamBookingPreviewProps = async (
       currency: eventType.currency,
       requiresConfirmation: eventType.requiresConfirmation,
       schedulingType: eventType.schedulingType,
-      descriptionAsSafeHTML: markdownToSafeHTML(eventType.description) || "",
     },
     team: {
-      id: team.id,
       name: team.name,
       slug: team.slug,
       logoUrl: team.logoUrl,
       theme: team.theme,
-      brandColor: team.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
-      darkBrandColor: team.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
-      hideBranding: team.hideBranding ?? false,
     },
-    entity: {
-      logoUrl: orgParent?.logoUrl || team.logoUrl,
-      orgSlug: currentOrgDomain,
-      name: orgParent?.name || team.name,
-    },
-    isPreviewPage: true,
+    organizationName: orgParent?.name || team.name,
   };
 };

@@ -2,18 +2,15 @@ import type { GetServerSidePropsContext } from "next";
 import { notFound } from "next/navigation";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { prisma } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["[[booking-preview]]"] });
 
 export type BookingPreviewPageProps = {
   eventType: {
-    id: number;
     title: string;
     description: string | null;
     length: number;
@@ -21,24 +18,13 @@ export type BookingPreviewPageProps = {
     price: number;
     currency: string;
     requiresConfirmation: boolean;
-    descriptionAsSafeHTML: string;
   };
   profile: {
     name: string;
     image: string;
-    theme: string | null;
-    brandColor: string;
-    darkBrandColor: string;
-    organization: any;
-    allowSEOIndexing: boolean;
     username: string | null;
   };
-  entity: {
-    logoUrl?: string | null;
-    orgSlug?: string | null;
-    name?: string | null;
-  };
-  isPreviewPage: boolean;
+  organizationName: string | null;
 };
 
 export const getBookingPreviewProps = async (
@@ -55,7 +41,7 @@ export const getBookingPreviewProps = async (
 
   const dataFetchStart = Date.now();
 
-  // Lightweight query - get event type and user info without availability data
+  // Lightweight query - only fetch what's needed for preview
   const eventType = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
@@ -81,7 +67,6 @@ export const getBookingPreviewProps = async (
       team: null,
     },
     select: {
-      id: true,
       title: true,
       description: true,
       length: true,
@@ -90,24 +75,17 @@ export const getBookingPreviewProps = async (
       currency: true,
       requiresConfirmation: true,
       hidden: true,
-      // Get owner info but avoid heavy user queries
+      // Get minimal owner info
       owner: {
         select: {
-          id: true,
           name: true,
           username: true,
           avatarUrl: true,
-          theme: true,
-          brandColor: true,
-          darkBrandColor: true,
-          allowSEOIndexing: true,
           profiles: {
             select: {
               organization: {
                 select: {
-                  slug: true,
                   name: true,
-                  logoUrl: true,
                 },
               },
             },
@@ -126,7 +104,11 @@ export const getBookingPreviewProps = async (
   const dataFetchEnd = Date.now();
   log.debug(`Booking preview data fetch took: ${dataFetchEnd - dataFetchStart}ms`);
 
-  const owner = eventType.owner!;
+  const owner = eventType.owner;
+  if (!owner) {
+    // Should never happen
+    return notFound();
+  }
   const organization = owner.profiles[0]?.organization || null;
 
   const profile = {
@@ -134,17 +116,11 @@ export const getBookingPreviewProps = async (
     image: getUserAvatarUrl({
       avatarUrl: owner.avatarUrl,
     }),
-    theme: owner.theme,
-    brandColor: owner.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
-    darkBrandColor: owner.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
-    allowSEOIndexing: owner.allowSEOIndexing ?? true,
     username: owner.username,
-    organization,
   };
 
   return {
     eventType: {
-      id: eventType.id,
       title: eventType.title,
       description: eventType.description,
       length: eventType.length,
@@ -152,14 +128,8 @@ export const getBookingPreviewProps = async (
       price: eventType.price,
       currency: eventType.currency,
       requiresConfirmation: eventType.requiresConfirmation,
-      descriptionAsSafeHTML: markdownToSafeHTML(eventType.description) || "",
     },
     profile,
-    entity: {
-      logoUrl: organization?.logoUrl,
-      orgSlug: currentOrgDomain,
-      name: organization?.name,
-    },
-    isPreviewPage: true,
+    organizationName: organization?.name || null,
   };
 };

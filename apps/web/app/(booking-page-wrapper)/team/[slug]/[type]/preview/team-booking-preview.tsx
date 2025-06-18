@@ -8,12 +8,11 @@ import { PreviewBanner } from "@calcom/web/app/(booking-page-wrapper)/[user]/[ty
 import type { TeamBookingPreviewPageProps } from "@server/lib/team/[slug]/[type]/getStaticPreviewProps";
 
 export function TeamBookingPreview(props: TeamBookingPreviewPageProps) {
-  const { eventType, team, entity } = props;
+  const { eventType, team, organizationName } = props;
 
   // Use theme from team
   useTheme(team.theme);
 
-  const organizationName = entity.name;
   const bookingUrl = `/team/${team.slug}/${eventType.slug}`;
 
   return (
