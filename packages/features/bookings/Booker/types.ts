@@ -61,13 +61,6 @@ export interface BookerProps {
    */
   selectedDate?: Date;
 
-  /**
-   * To control the initial date displayed when the SlotPicker opens.
-   * Allows consumers to dynamically set the default start date for the component.
-   * @optional
-   */
-  startDate?: Date;
-
   hideBranding?: boolean;
   /**
    * If false and the current username indicates a dynamic booking,

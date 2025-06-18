@@ -79,25 +79,12 @@ const BookerComponent = ({
   confirmButtonDisabled,
   timeZones,
   eventMetaChildren,
-  startDate,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
 
-  const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const selectedDate = useBookerStore((state) => state.selectedDate);
-
-  useEffect(() => {
-    if (!startDate) return;
-
-    const startDateString = dayjs(startDate).isValid() ? dayjs(startDate).format("YYYY-MM-DD") : null;
-
-    if (startDateString && startDateString !== selectedDate) {
-      setSelectedDate(startDateString);
-    }
-  }, [startDate, selectedDate, setSelectedDate]);
-
   const {
     shouldShowFormInDialog,
     hasDarkBackground,

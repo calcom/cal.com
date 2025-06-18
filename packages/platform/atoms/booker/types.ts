@@ -81,6 +81,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   timeZones?: Timezone[];
   isBookingDryRun?: boolean;
   eventMetaChildren?: React.ReactNode;
+  startDate?: Date;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
