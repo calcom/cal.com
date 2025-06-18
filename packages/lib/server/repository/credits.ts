@@ -168,8 +168,10 @@ export class CreditsRepository {
     }
 
     return (tx ?? prisma).creditBalance.create({
-      ...data,
-      ...(!teamId ? { userId } : {}),
+      data: {
+        ...data,
+        ...(!teamId ? { userId } : {}),
+      },
     });
   }
 
