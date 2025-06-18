@@ -1,11 +1,17 @@
 import type { GetServerSidePropsContext } from "next";
 import { notFound } from "next/navigation";
+import { z } from "zod";
 
 import { orgDomainConfig, getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["[[team-booking-preview]]"] });
+
+const querySchema = z.object({
+  slug: z.string(),
+  type: z.string(),
+});
 
 export type TeamBookingPreviewPageProps = {
   eventType: {
@@ -31,14 +37,19 @@ export const getTeamBookingPreviewProps = async (
   context: GetServerSidePropsContext
 ): Promise<TeamBookingPreviewPageProps> => {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const teamSlug = context.query.slug as string;
-  const eventSlug = context.query.type as string;
 
+  const queryValidation = querySchema.safeParse(context.params);
+  if (!queryValidation.success) {
+    return notFound();
+  }
+
+  const { slug: teamSlug, type: eventSlug } = queryValidation.data;
+  const isOrgContext = isValidOrgDomain && currentOrgDomain;
   const eventType = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
       team: getSlugOrRequestedSlug(teamSlug),
-      ...(isValidOrgDomain && currentOrgDomain
+      ...(isOrgContext
         ? {
             team: {
               parent: {

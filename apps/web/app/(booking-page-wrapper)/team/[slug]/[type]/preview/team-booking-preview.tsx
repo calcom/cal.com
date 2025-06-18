@@ -1,6 +1,5 @@
 "use client";
 
-import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { Icon } from "@calcom/ui/components/icon";
 import { PreviewBanner } from "@calcom/web/app/(booking-page-wrapper)/[user]/[type]/preview/preview-banner";
@@ -9,9 +8,6 @@ import type { TeamBookingPreviewPageProps } from "@server/lib/team/[slug]/[type]
 
 export function TeamBookingPreview(props: TeamBookingPreviewPageProps) {
   const { eventType, team, organizationName } = props;
-
-  // Use theme from team
-  useTheme(team.theme);
 
   const bookingUrl = `/team/${team.slug}/${eventType.slug}`;
 
