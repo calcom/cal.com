@@ -4,9 +4,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { z } from "zod";
 
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
+import isRouter from "../lib/isRouter";
+import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
 import type { TargetRoutingFormForResponse } from "./formSubmissionUtils";
+import { onSubmissionOfFormResponse } from "./formSubmissionUtils";
+import { handleResponse } from "./handleResponse";
 
 vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
   findTeamMembersMatchingAttributeLogic: vi.fn(),
@@ -35,16 +40,6 @@ vi.mock("@calcom/lib/sentryWrapper", () => ({
   withReporting: (fn: unknown) => fn,
 }));
 
-// It's important to import the modules AFTER the mocks are defined.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { default: logger } = await import("@calcom/lib/logger");
-
-const { RoutingFormResponseRepository } = await import("@calcom/lib/server/repository/formResponse");
-const { onSubmissionOfFormResponse } = await import("./formSubmissionUtils");
-const { default: routerGetCrmContactOwnerEmail } = await import("./crmRouting/routerGetCrmContactOwnerEmail");
-const { default: isRouter } = await import("../lib/isRouter");
-const { handleResponse } = await import("./handleResponse");
-
 const mockForm: TargetRoutingFormForResponse = {
   id: "form-id",
   name: "Test Form",
@@ -52,71 +47,61 @@ const mockForm: TargetRoutingFormForResponse = {
     {
       id: "name",
       label: "Name",
-      type: "text",
+      type: "text" as const,
       required: true,
       identifier: "name",
-      formId: "form-id",
-      position: 0,
-      placeholder: null,
-      description: null,
+      placeholder: undefined,
+      selectText: undefined,
+      deleted: false,
     },
     {
       id: "email",
       label: "Email",
-      type: "email",
+      type: "email" as const,
       required: true,
       identifier: "email",
-      formId: "form-id",
-      position: 1,
-      placeholder: null,
-      description: null,
+      placeholder: undefined,
+      selectText: undefined,
+      deleted: false,
     },
     {
       id: "guests",
       label: "Guests",
-      type: "text",
+      type: "text" as const,
       required: false,
       identifier: "guests",
-      formId: "form-id",
-      position: 2,
-      placeholder: null,
-      description: null,
+      placeholder: undefined,
+      selectText: undefined,
+      deleted: false,
     },
   ],
   routes: [],
   userId: 1,
   teamId: 1,
-  team: {
+  user: {
     id: 1,
-    name: "Test Team",
-    slug: "test-team",
-    parentId: 2,
-    logo: null,
-    bio: null,
-    hideBranding: false,
-    brandColor: null,
-    darkBrandColor: null,
-    timeZone: "UTC",
-    weekStart: "Sunday",
-    timeFormat: null,
-    allowTeamWideScheduling: true,
-    metadata: {},
-    isPrivate: false,
-    isOrganization: false,
+    email: "test@example.com",
   },
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  team: {
+    parentId: 2,
+  },
+  createdAt: "2023-01-01T00:00:00.000Z",
+  updatedAt: "2023-01-01T00:00:00.000Z",
   description: null,
-  enabled: true,
-  isDefault: false,
-  fieldsOrder: ["name", "email", "guests"],
+  disabled: false,
+  settings: {
+    emailOwnerOnSubmission: false,
+  },
+  connectedForms: [],
+  routers: [],
+  teamMembers: [],
   position: 0,
-  slug: "test-form",
+  updatedById: null,
 };
 
 const mockResponse: z.infer<typeof ZResponseInputSchema>["response"] = {
-  name: { value: "John Doe" },
-  email: { value: "john.doe@example.com" },
+  name: { value: "John Doe", label: "Name" },
+  email: { value: "john.doe@example.com", label: "Email" },
 };
 
 describe("handleResponse", () => {
@@ -127,7 +112,7 @@ describe("handleResponse", () => {
   it("should throw a TRPCError for missing required fields", async () => {
     await expect(
       handleResponse({
-        response: { email: { value: "test@test.com" } }, // Name is missing
+        response: { email: { value: "test@test.com", label: "Email" } }, // Name is missing
         form: mockForm,
         formFillerId: "user1",
         chosenRouteId: null,
@@ -140,8 +125,8 @@ describe("handleResponse", () => {
     await expect(
       handleResponse({
         response: {
-          name: { value: "John Doe" },
-          email: { value: "invalid-email" },
+          name: { value: "John Doe", label: "Name" },
+          email: { value: "invalid-email", label: "Email" },
         },
         form: mockForm,
         formFillerId: "user1",
@@ -157,6 +142,8 @@ describe("handleResponse", () => {
       formId: mockForm.id,
       response: mockResponse,
       chosenRouteId: null,
+      formFillerId: "user1",
+      routedToBookingUid: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -185,7 +172,15 @@ describe("handleResponse", () => {
   });
 
   it("should queue form response when queueFormResponse is true", async () => {
-    const queuedResponse = { id: "queued-id", formId: mockForm.id, response: mockResponse };
+    const queuedResponse = {
+      id: "queued-id",
+      formId: mockForm.id,
+      response: mockResponse,
+      chosenRouteId: null,
+      actualResponseId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     vi.mocked(RoutingFormResponseRepository.recordQueuedFormResponse).mockResolvedValue(queuedResponse);
 
     const result = await handleResponse({
@@ -246,25 +241,17 @@ describe("handleResponse", () => {
   it("should handle chosen route and call routing logic", async () => {
     const chosenRoute = {
       id: "route1",
-      name: "Route 1",
+      queryValue: { type: "group", children1: {} } as any,
       action: {
-        type: "round_robin",
-        value: "team-members",
+        type: "customPageMessage" as const,
+        value: "Thank you for your submission!",
       },
-      position: 0,
-      formId: mockForm.id,
-      condition: "AND",
-      criteria: [],
-      attributeRoutingConfig: {
-        crmSource: {
-          crm: "hubspot",
-          emailAttribute: "email",
-        },
-      },
-      attributesQueryValue: {},
-      fallbackAttributesQueryValue: [],
+      attributeRoutingConfig: null,
+      attributesQueryValue: { type: "group", children1: {} } as any,
+      fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
+      isFallback: false,
     };
-    const formWithRoute = { ...mockForm, routes: [chosenRoute] };
+    const formWithRoute: TargetRoutingFormForResponse = { ...mockForm, routes: [chosenRoute as any] };
 
     vi.mocked(routerGetCrmContactOwnerEmail).mockResolvedValue({
       email: "owner@example.com",
@@ -272,8 +259,13 @@ describe("handleResponse", () => {
       crmAppSlug: "hubspot",
     });
     vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
-      teamMembersMatchingAttributeLogic: [{ userId: 123, name: "Test User" }],
-      timeTaken: { total: 100 },
+      teamMembersMatchingAttributeLogic: [{ userId: 123, result: "MATCH" as any }],
+      checkedFallback: false,
+      fallbackAttributeLogicBuildingWarnings: [],
+      mainAttributeLogicBuildingWarnings: [],
+      timeTaken: {
+        ttGetAttributesForLogic: 50,
+      },
     });
 
     const result = await handleResponse({
@@ -291,11 +283,17 @@ describe("handleResponse", () => {
   });
 
   it("should throw error if chosen route is a router", async () => {
-    const chosenRoute = { id: "route1", name: "A router" };
+    const chosenRoute = {
+      id: "route1",
+      name: "A router",
+      description: "Router description",
+      isRouter: true as const,
+      routes: [],
+    };
     vi.mocked(isRouter).mockReturnValue(true);
-    const formWithRoute = {
+    const formWithRoute: TargetRoutingFormForResponse = {
       ...mockForm,
-      routes: [chosenRoute],
+      routes: [chosenRoute as any],
     };
 
     await expect(
