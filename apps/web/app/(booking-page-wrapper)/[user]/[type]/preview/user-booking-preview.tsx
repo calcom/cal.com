@@ -1,6 +1,7 @@
 "use client";
 
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { BookingPreviewPageProps } from "@server/lib/[user]/[type]/getStaticPreviewProps";
@@ -61,7 +62,12 @@ export function UserBookingPreview(props: BookingPreviewPageProps) {
 
           {eventType.description && (
             <div className="text-default text-sm">
-              <p>{eventType.description}</p>
+              <div
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{
+                  __html: markdownToSafeHTMLClient(eventType.description),
+                }}
+              />
             </div>
           )}
         </div>

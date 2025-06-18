@@ -1,6 +1,7 @@
 "use client";
 
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { Icon } from "@calcom/ui/components/icon";
 import { PreviewBanner } from "@calcom/web/app/(booking-page-wrapper)/[user]/[type]/preview/preview-banner";
 
@@ -69,7 +70,7 @@ export function TeamBookingPreview(props: TeamBookingPreviewPageProps) {
                 {eventType.schedulingType === "ROUND_ROBIN"
                   ? "Round Robin"
                   : eventType.schedulingType === "COLLECTIVE"
-                  ? "Group Meeting"
+                  ? "Collective"
                   : "Team Event"}
               </span>
             )}
@@ -77,7 +78,12 @@ export function TeamBookingPreview(props: TeamBookingPreviewPageProps) {
 
           {eventType.description && (
             <div className="text-default text-sm">
-              <p>{eventType.description}</p>
+              <div
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{
+                  __html: markdownToSafeHTMLClient(eventType.description),
+                }}
+              />
             </div>
           )}
         </div>
