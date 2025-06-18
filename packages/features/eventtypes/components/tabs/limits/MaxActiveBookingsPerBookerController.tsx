@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { TextField, CheckboxField } from "@calcom/ui/components/form";
 
-export default function MaxActiveBookingsPerBookerController() {
+import type { EventLimitsTabProps } from "./EventLimitsTab";
+
+export default function MaxActiveBookingsPerBookerController({
+  eventType,
+  customClassNames,
+}: EventLimitsTabProps) {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
@@ -19,6 +25,15 @@ export default function MaxActiveBookingsPerBookerController() {
   const maxActiveBookingPerBookerOfferReschedule = formMethods.watch(
     "maxActiveBookingPerBookerOfferReschedule"
   );
+
+  const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
+    eventType,
+    translate: t,
+    formMethods,
+  });
+
+  const maxActiveBookingsPerBookerLocked = shouldLockDisableProps("maxActiveBookingsPerBooker");
+
   return (
     <Controller
       name="maxActiveBookingsPerBooker"
@@ -27,7 +42,8 @@ export default function MaxActiveBookingsPerBookerController() {
         return (
           <SettingsToggle
             labelClassName={classNames("text-sm")}
-            disabled={isRecurringEvent}
+            {...maxActiveBookingsPerBookerLocked}
+            disabled={isRecurringEvent || maxActiveBookingsPerBookerLocked.disabled}
             tooltip={isRecurringEvent ? t("recurring_event_doesnt_support_booker_booking_limit") : ""}
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
@@ -51,6 +67,7 @@ export default function MaxActiveBookingsPerBookerController() {
                 required
                 type="number"
                 value={value ?? ""}
+                disabled={maxActiveBookingsPerBookerLocked.disabled}
                 onChange={(e) => {
                   onChange(e.target.value === "" ? null : parseInt(e.target.value, 10));
                 }}
@@ -64,6 +81,7 @@ export default function MaxActiveBookingsPerBookerController() {
                 checked={!!maxActiveBookingPerBookerOfferReschedule}
                 descriptionAsLabel
                 description={t("offer_to_reschedule_last_booking")}
+                disabled={maxActiveBookingsPerBookerLocked.disabled}
                 onChange={(e) => {
                   formMethods.setValue("maxActiveBookingPerBookerOfferReschedule", e.target.checked, {
                     shouldDirty: true,

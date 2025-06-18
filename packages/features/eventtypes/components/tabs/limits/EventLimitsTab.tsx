@@ -687,7 +687,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           );
         }}
       />
-      <MaxActiveBookingsPerBookerController />
+      <MaxActiveBookingsPerBookerController eventType={eventType} customClassNames={customClassNames} />
       <Controller
         name="periodType"
         render={({ field: { onChange, value } }) => {
