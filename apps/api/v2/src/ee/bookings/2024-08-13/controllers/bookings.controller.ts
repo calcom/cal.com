@@ -32,6 +32,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Patch,
 } from "@nestjs/common";
 import {
   ApiOperation,
@@ -69,6 +70,9 @@ import {
   CreateRecurringBookingInput_2024_08_13,
   DeclineBookingInput_2024_08_13,
 } from "@calcom/platform-types";
+
+import { UpdateBookingHostsInput_2024_08_13 } from "../inputs/update-booking-hosts.input";
+import { UpdateBookingHostsOutput_2024_08_13 } from "../outputs/update-booking-hosts.output";
 
 @Controller({
   path: "/v2/bookings",
@@ -460,6 +464,28 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookingReferences,
+    };
+  }
+
+  @Patch("/:bookingUid/hosts")
+  @PlatformPlan("SCALE")
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @Permissions([BOOKING_WRITE])
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Add or remove a host to a booking",
+  })
+  @HttpCode(HttpStatus.OK)
+  async updateBookingHosts(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: UpdateBookingHostsInput_2024_08_13,
+    @GetUser() user: UserWithProfile
+  ): Promise<UpdateBookingHostsOutput_2024_08_13> {
+    const bookingHosts = await this.bookingsService.updateBookingHost(bookingUid, body, user);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: bookingHosts,
     };
   }
 }
