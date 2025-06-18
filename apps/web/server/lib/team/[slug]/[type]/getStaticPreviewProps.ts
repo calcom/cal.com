@@ -34,8 +34,6 @@ export const getTeamBookingPreviewProps = async (
   const teamSlug = context.query.slug as string;
   const eventSlug = context.query.type as string;
 
-  const dataFetchStart = Date.now();
-
   const eventType = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
@@ -80,9 +78,6 @@ export const getTeamBookingPreviewProps = async (
     log.debug(`Team event type not found: ${teamSlug}/${eventSlug}`);
     return notFound();
   }
-
-  const dataFetchEnd = Date.now();
-  log.debug(`Team booking preview data fetch took: ${dataFetchEnd - dataFetchStart}ms`);
 
   const team = eventType.team;
   const orgParent = team.parent;

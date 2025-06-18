@@ -39,9 +39,6 @@ export const getBookingPreviewProps = async (
     return notFound();
   }
 
-  const dataFetchStart = Date.now();
-
-  // Lightweight query - only fetch what's needed for preview
   const eventType = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
@@ -100,9 +97,6 @@ export const getBookingPreviewProps = async (
     log.debug("Event type not found");
     return notFound();
   }
-
-  const dataFetchEnd = Date.now();
-  log.debug(`Booking preview data fetch took: ${dataFetchEnd - dataFetchStart}ms`);
 
   const owner = eventType.owner;
   if (!owner) {
