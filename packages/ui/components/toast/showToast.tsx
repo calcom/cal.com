@@ -77,7 +77,6 @@ type ToastVariants = "success" | "warning" | "error";
 export function showToast(
   message: string,
   variant: ToastVariants,
-  // Options or duration (duration for backwards compatibility reasons)
   options: number | ExternalToast = TOAST_VISIBLE_DURATION
 ) {
   const _options: ExternalToast = typeof options === "number" ? { duration: options } : options;
