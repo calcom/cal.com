@@ -121,7 +121,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (!orgId) {
     orgId = await getOrgIdFromMemberOrTeamId({
-      memberId: parsedUserId,
+      ...(!parsedTeamId ? { memberId: parsedUserId } : {}),
       teamId: parsedTeamId,
     });
   }
