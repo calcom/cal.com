@@ -1,11 +1,13 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -21,6 +23,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { FieldTypeChangeWarningDialog } from "../../components/FieldTypeChangeWarningDialog";
 import SingleForm from "../../components/SingleForm";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import { FieldTypes } from "../../lib/FieldTypes";
@@ -55,6 +58,8 @@ function Field({
   appUrl: string;
 }) {
   const { t } = useLocale();
+  const isEmbed = useIsEmbed();
+  const [showFieldTypeDialog, setShowFieldTypeDialog] = useState(false);
 
   const router = hookForm.getValues(`${hookFieldNamespace}.router`);
   const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
@@ -121,33 +126,52 @@ function Field({
               name={`${hookFieldNamespace}.type`}
               control={hookForm.control}
               defaultValue={routerField?.type}
-              render={({ field: { value, onChange } }) => {
+              render={({ field: { value } }) => {
                 const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                 return (
-                  <SelectField
-                    maxMenuHeight={200}
-                    styles={{
-                      singleValue: (baseStyles) => ({
-                        ...baseStyles,
-                        fontSize: "14px",
-                      }),
-                      option: (baseStyles) => ({
-                        ...baseStyles,
-                        fontSize: "14px",
-                      }),
-                    }}
-                    label="Type"
-                    isDisabled={!!router}
-                    containerClassName="data-testid-field-type"
-                    options={FieldTypes}
-                    onChange={(option) => {
-                      if (!option) {
-                        return;
-                      }
-                      onChange(option.value);
-                    }}
-                    defaultValue={defaultValue}
-                  />
+                  <>
+                    <SelectField
+                      maxMenuHeight={200}
+                      styles={{
+                        singleValue: (baseStyles) => ({
+                          ...baseStyles,
+                          fontSize: "14px",
+                        }),
+                        option: (baseStyles) => ({
+                          ...baseStyles,
+                          fontSize: "14px",
+                        }),
+                      }}
+                      label="Type"
+                      isDisabled={!!router}
+                      containerClassName="data-testid-field-type"
+                      options={FieldTypes}
+                      onChange={(option) => {
+                        if (!option) {
+                          return;
+                        }
+                        setShowFieldTypeDialog(true);
+                      }}
+                      defaultValue={defaultValue}
+                    />
+                    <FieldTypeChangeWarningDialog
+                      isOpen={showFieldTypeDialog}
+                      setIsOpen={setShowFieldTypeDialog}
+                      currentFieldType={defaultValue?.label || "Unknown"}
+                      onCreateNewField={() => {
+                        const addButton = document.querySelector(
+                          '[data-testid="add-field"]'
+                        ) as HTMLButtonElement;
+                        if (addButton) {
+                          addButton.click();
+                          if (!isEmbed) {
+                            // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- User action triggered, conditional within !isEmbed check
+                            addButton.scrollIntoView({ behavior: "smooth" });
+                          }
+                        }
+                      }}
+                    />
+                  </>
                 );
               }}
             />
