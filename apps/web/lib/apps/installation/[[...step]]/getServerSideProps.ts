@@ -94,6 +94,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     userId: true,
     destinationCalendar: true,
     bookingFields: true,
+    calVideoSettings: true,
   });
   let eventTypeGroups: TEventTypeGroup[] | null = [];
 
@@ -133,7 +134,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
         .sort((eventTypeA, eventTypeB) => eventTypeB.position - eventTypeA.position),
     }));
   } else {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },

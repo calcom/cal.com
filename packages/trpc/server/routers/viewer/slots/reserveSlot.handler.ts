@@ -42,7 +42,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   // If this is a seated event then don't reserve a slot
   if (eventType.seatsPerTimeSlot) {
     // Check to see if this is the last attendee
-    const bookingWithAttendees = await prisma.booking.findFirst({
+    const bookingWithAttendees = await prisma.booking.findUnique({
       where: { uid: bookingUid },
       select: { attendees: true },
     });
