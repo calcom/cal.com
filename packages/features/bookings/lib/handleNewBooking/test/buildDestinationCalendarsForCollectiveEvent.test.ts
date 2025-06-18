@@ -22,6 +22,8 @@ describe("buildDestinationCalendarsForCollectiveEvent", () => {
       primaryEmail: "user1@example.com",
       eventTypeId: null,
       bookingId: null,
+      delegationCredentialId: null,
+      domainWideDelegationCredentialId: null,
     },
   };
 
@@ -40,6 +42,8 @@ describe("buildDestinationCalendarsForCollectiveEvent", () => {
       primaryEmail: "user2@example.com",
       eventTypeId: null,
       bookingId: null,
+      delegationCredentialId: null,
+      domainWideDelegationCredentialId: null,
     },
   };
 
@@ -62,6 +66,8 @@ describe("buildDestinationCalendarsForCollectiveEvent", () => {
       primaryEmail: "organizer@example.com",
       eventTypeId: null,
       bookingId: null,
+      delegationCredentialId: null,
+      domainWideDelegationCredentialId: null,
     },
   ];
 
@@ -114,6 +120,8 @@ describe("buildDestinationCalendarsForCollectiveEvent", () => {
           id: 999,
           userId: 2, // Same userId as mockUser2
           integration: "google_calendar", // Same integration as mockUser2
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
         },
       };
 
@@ -281,6 +289,8 @@ describe("buildDestinationCalendarsForCollectiveEvent", () => {
         destinationCalendar: {
           ...mockUser2.destinationCalendar!,
           integration: "outlook_calendar",
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
         },
       };
 
