@@ -97,6 +97,9 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       attendees: true,
     },
     data: {
+      iCalSequence: {
+        increment: 1,
+      },
       attendees: {
         createMany: {
           data: guestsFullDetails,
@@ -136,6 +139,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     attendees: attendeesList,
     uid: booking.uid,
+    iCalSequence: bookingAttendees.iCalSequence,
     recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
     location: booking.location,
     destinationCalendar: booking?.destinationCalendar
