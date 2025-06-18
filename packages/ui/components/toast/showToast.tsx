@@ -40,7 +40,7 @@ export const ErrorToast = ({ message, onClose, toastId }: IToast) => (
       <Icon name="info" className="text-semantic-error  size-4" />
     </span>
     <div className="flex items-center">
-      <p data-testid="toast-success" className="m-0 w-full text-left">
+      <p data-testid="toast-error" className="m-0 w-full text-left">
         {message}
       </p>
     </div>
@@ -60,7 +60,7 @@ export const WarningToast = ({ message, onClose, toastId }: IToast) => (
       <Icon name="info" className="text-semantic-attention size-4" />
     </span>
     <div className="flex items-center">
-      <p data-testid="toast-success" className="m-0 w-full text-left">
+      <p data-testid="toast-warning" className="m-0 w-full text-left">
         {message}
       </p>
     </div>
