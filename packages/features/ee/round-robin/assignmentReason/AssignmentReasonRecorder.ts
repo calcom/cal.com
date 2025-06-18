@@ -35,7 +35,7 @@ export default class AssignmentReasonRecorder {
     teamId: number;
   }) {
     // Get the routing form data
-    const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
+    const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
       where: {
         id: routingFormResponseId,
       },
@@ -186,7 +186,7 @@ export default class AssignmentReasonRecorder {
     reassignReason?: string;
     reassignmentType: RRReassignmentType;
   }) {
-    const reassignedBy = await prisma.user.findFirst({
+    const reassignedBy = await prisma.user.findUnique({
       where: {
         id: reassignById,
       },

@@ -509,7 +509,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
-  const workflow = await ctx.prisma.workflow.findFirst({
+  const workflow = await ctx.prisma.workflow.findUnique({
     where: {
       id,
     },
