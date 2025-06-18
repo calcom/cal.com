@@ -14,8 +14,7 @@ export function PreviewBanner({ bookingUrl }: PreviewBannerProps) {
         <div className="flex items-center">
           <Icon name="eye" className="text-attention mr-2 h-5 w-5" />
           <div>
-            <p className="text-emphasis font-medium">This is a preview</p>
-            <p className="text-subtle text-sm">This page is optimized for search engines.</p>
+            <p className="text-emphasis font-medium">This is a preview of a booking page</p>
           </div>
         </div>
         <Button href={bookingUrl} className="ml-4" size="sm">
