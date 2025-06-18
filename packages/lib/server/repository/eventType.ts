@@ -125,6 +125,9 @@ export class EventTypeRepository {
   static async create(data: IEventType) {
     return await prisma.eventType.create({
       data: this.generateCreateEventTypeData(data),
+      include: {
+        calVideoSettings: true,
+      },
     });
   }
 
@@ -527,6 +530,8 @@ export class EventTypeRepository {
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
+      maxActiveBookingsPerBooker: true,
+      maxActiveBookingPerBookerOfferReschedule: true,
       assignAllTeamMembers: true,
       allowReschedulingPastBookings: true,
       hideOrganizerEmail: true,
@@ -692,6 +697,9 @@ export class EventTypeRepository {
         select: {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
+          enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
         },
       },
