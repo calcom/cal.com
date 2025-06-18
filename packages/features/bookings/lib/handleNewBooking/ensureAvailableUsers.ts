@@ -3,13 +3,13 @@ import type { Logger } from "tslog";
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
 import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
-import { isBookingAllowedByRestrictionSchedule } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
@@ -123,7 +123,6 @@ const _ensureAvailableUsers = async (
     },
   });
 
-  // Check restriction schedule first, before checking individual user availability
   if (eventType.restrictionScheduleId) {
     try {
       const restrictionSchedule = await prisma.schedule.findUnique({
@@ -147,13 +146,37 @@ const _ensureAvailableUsers = async (
         throw new Error(ErrorCode.RestrictionScheduleNotFound);
       }
 
-      const bookingAllowedByRestrictionSchedule = isBookingAllowedByRestrictionSchedule({
-        restrictionSchedule,
-        bookingStartTime: dayjs(startDateTimeUtc),
-        bookingEndTime: dayjs(endDateTimeUtc),
-        useBookerTimezone: eventType.useBookerTimezone,
-        bookerTimezone: input.timeZone,
+      const restrictionTimezone = eventType.useBookerTimezone
+        ? input.timeZone
+        : restrictionSchedule.timeZone!;
+
+      if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
+        loggerWithEventDetails.error(
+          `No timezone is set for the restriction schedule and useBookerTimezone is false`
+        );
+        throw new Error(ErrorCode.BookingNotAllowedByRestrictionSchedule);
+      }
+
+      const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
+        days: rule.days,
+        startTime: rule.startTime,
+        endTime: rule.endTime,
+        date: rule.date,
+      }));
+
+      const { dateRanges: restrictionRanges } = buildDateRanges({
+        availability: restrictionAvailability,
+        timeZone: restrictionTimezone,
+        dateFrom: startDateTimeUtc,
+        dateTo: endDateTimeUtc,
+        travelSchedules: [],
       });
+
+      const bookingAllowedByRestrictionSchedule = restrictionRanges.some(
+        (range) =>
+          (startDateTimeUtc.isAfter(range.start) || startDateTimeUtc.isSame(range.start)) &&
+          (endDateTimeUtc.isBefore(range.end) || endDateTimeUtc.isSame(range.end))
+      );
 
       if (!bookingAllowedByRestrictionSchedule) {
         loggerWithEventDetails.error(

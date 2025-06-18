@@ -525,13 +525,11 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         });
       }
 
-      // Use buildDateRanges for optimized restriction schedule filtering
       const restrictionTimezone = eventType.useBookerTimezone
         ? input.timeZone
         : restrictionSchedule.timeZone!;
       const eventLength = input.duration || eventType.length;
 
-      // Convert restriction schedule to buildDateRanges format
       const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
         days: rule.days,
         startTime: rule.startTime,
@@ -539,21 +537,18 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         date: rule.date,
       }));
 
-      // Get merged date ranges for restriction schedule
       const { dateRanges: restrictionRanges } = buildDateRanges({
         availability: restrictionAvailability,
         timeZone: restrictionTimezone || "UTC",
         dateFrom: startTime,
         dateTo: endTime,
-        travelSchedules: [], // Not needed for restriction schedules
+        travelSchedules: [],
       });
 
-      // Efficiently filter slots using pre-computed ranges
       availableTimeSlots = timeSlots.filter((slot) => {
         const slotStart = slot.time;
         const slotEnd = slot.time.add(eventLength, "minute");
 
-        // Check if slot falls within any restriction range
         return restrictionRanges.some(
           (range) =>
             (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
