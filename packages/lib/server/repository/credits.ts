@@ -112,7 +112,7 @@ export class CreditsRepository {
     return await prismaClient.creditBalance.findUnique({
       where: {
         teamId,
-        userId: !teamId ? userId : undefined,
+        ...(!teamId ? { userId } : {}),
       },
       select: {
         additionalCredits: true,

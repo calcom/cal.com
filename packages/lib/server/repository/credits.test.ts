@@ -11,6 +11,10 @@ describe("CreditsRepository", () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe("findCreditBalance", () => {
     it("should use teamId if both userId and teamId are provided", async () => {
       await CreditsRepository.findCreditBalance({ teamId: 1, userId: 5 });
