@@ -6,9 +6,14 @@ DECLARE
     current_id INTEGER;
     sleep_interval FLOAT := 1;  -- Sleep duration in seconds
     missing_records_exist BOOLEAN;
+    processed_count INTEGER := 0;
+    total_count INTEGER;
 BEGIN
-    -- Get the maximum ID from the App_RoutingForms_FormResponse table
+    -- Get the maximum ID and total count from the App_RoutingForms_FormResponse table
     SELECT COALESCE(MAX(id), 0) INTO end_id FROM "App_RoutingForms_FormResponse";
+    SELECT COUNT(*) INTO total_count FROM "App_RoutingForms_FormResponse";
+    
+    RAISE NOTICE 'Starting migration: processing up to ID % (total responses: %)', end_id, total_count;
 
     FOR current_id IN SELECT * FROM generate_series(start_id, end_id, chunk_size)
     LOOP
@@ -99,7 +104,18 @@ BEGIN
             )
             ON CONFLICT (id) DO NOTHING;
 
+            processed_count := processed_count + chunk_size;
+            
+            RAISE NOTICE 'Chunk processed: IDs %-% (progress: %.1f%%)', 
+                current_id, current_id + chunk_size - 1, 
+                (processed_count::float / total_count * 100);
+            
             PERFORM pg_sleep(sleep_interval);  -- Add delay between chunks
+        ELSE
+            RAISE NOTICE 'Chunk skipped: IDs %-% (no missing records)', current_id, current_id + chunk_size - 1;
         END IF;
     END LOOP;
+    
+    RAISE NOTICE 'Migration completed: processed up to ID % (%.1f%% of total range)', 
+        end_id, (end_id::float / total_count * 100);
 END $$;
