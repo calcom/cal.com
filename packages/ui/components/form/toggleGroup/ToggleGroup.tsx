@@ -84,7 +84,7 @@ export const ToggleGroup = ({
                 )}
                 dir="auto">
                 {option.iconLeft && <span className="flex h-4 w-4 items-center">{option.iconLeft}</span>}
-                <span dir="auto">{option.label}</span>
+                {option.label}
               </div>
             </RadixToggleGroup.Item>
           </OptionalTooltipWrapper>

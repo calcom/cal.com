@@ -3,36 +3,11 @@ import { vi } from "vitest";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { useIsRTL } from "./useIsRTL";
 
-// Mock next/router
-const mockRouter = {
-  locale: "en",
-  defaultLocale: "en",
-  push: vi.fn(),
-  pathname: "/",
-  query: {},
-  asPath: "/",
-};
-
-vi.mock("next/router", () => ({
-  useRouter: vi.fn(() => mockRouter),
-}));
-
-// Mock useRouter
-const mockUseRouter = vi.mocked(vi.fn(() => mockRouter));
-vi.mocked(vi.doMock("next/router", () => ({
-  useRouter: mockUseRouter,
-})));
-
 describe("useIsRTL hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseRouter.mockReturnValue(mockRouter);
     
-    // Reset router locale
-    mockRouter.locale = "en";
-    mockRouter.defaultLocale = "en";
-    
-    // Reset navigator
+    // Reset navigator to default English
     vi.stubGlobal('navigator', {
       language: 'en-US'
     });
@@ -45,7 +20,6 @@ describe("useIsRTL hook", () => {
 
   describe("with interface language parameter", () => {
     it("should use Arabic interface language", () => {
-      mockRouter.locale = "en"; // Router is English
       const { result } = renderHook(() => useIsRTL("ar"));
       
       expect(result.current.isRTL).toBe(true);
@@ -55,7 +29,6 @@ describe("useIsRTL hook", () => {
     });
 
     it("should use Hebrew interface language", () => {
-      mockRouter.locale = "en"; // Router is English
       const { result } = renderHook(() => useIsRTL("he"));
       
       expect(result.current.isRTL).toBe(true);
@@ -65,7 +38,6 @@ describe("useIsRTL hook", () => {
     });
 
     it("should use English interface language", () => {
-      mockRouter.locale = "ar"; // Router is Arabic
       const { result } = renderHook(() => useIsRTL("en"));
       
       expect(result.current.isRTL).toBe(false);
@@ -82,11 +54,27 @@ describe("useIsRTL hook", () => {
       expect(result.current.locale).toBe("ar-SA");
       expect(result.current.fontClass).toBe("font-tajawal");
     });
+
+    it("should handle null interface language", () => {
+      vi.stubGlobal('navigator', {
+        language: 'en-US'
+      });
+      
+      const { result } = renderHook(() => useIsRTL(null));
+      
+      expect(result.current.isRTL).toBe(false);
+      expect(result.current.direction).toBe("ltr");
+      expect(result.current.locale).toBe("en");
+      expect(result.current.fontClass).toBe("");
+    });
   });
 
   describe("without interface language parameter", () => {
-    it("should detect RTL from router locale - Arabic", () => {
-      mockRouter.locale = "ar";
+    it("should fallback to browser language - Arabic", () => {
+      vi.stubGlobal('navigator', {
+        language: 'ar-SA'
+      });
+      
       const { result } = renderHook(() => useIsRTL());
       
       expect(result.current.isRTL).toBe(true);
@@ -95,8 +83,11 @@ describe("useIsRTL hook", () => {
       expect(result.current.fontClass).toBe("font-tajawal");
     });
 
-    it("should detect LTR from router locale - English", () => {
-      mockRouter.locale = "en";
+    it("should fallback to browser language - English", () => {
+      vi.stubGlobal('navigator', {
+        language: 'en-US'
+      });
+      
       const { result } = renderHook(() => useIsRTL());
       
       expect(result.current.isRTL).toBe(false);
@@ -105,19 +96,22 @@ describe("useIsRTL hook", () => {
       expect(result.current.fontClass).toBe("");
     });
 
-    it("should use defaultLocale when locale is undefined", () => {
-      mockRouter.locale = undefined as any;
-      mockRouter.defaultLocale = "ar";
+    it("should default to English when no browser language available", () => {
+      vi.stubGlobal('navigator', undefined);
+      
       const { result } = renderHook(() => useIsRTL());
       
-      expect(result.current.locale).toBe("ar");
-      expect(result.current.isRTL).toBe(true);
+      expect(result.current.locale).toBe("en");
+      expect(result.current.isRTL).toBe(false);
     });
   });
 
   describe("empty interface language parameter", () => {
-    it("should fallback to router locale when interface language is empty string", () => {
-      mockRouter.locale = "ar";
+    it("should fallback to browser language when interface language is empty string", () => {
+      vi.stubGlobal('navigator', {
+        language: 'ar-EG'
+      });
+      
       const { result } = renderHook(() => useIsRTL(""));
       
       expect(result.current.isRTL).toBe(true);
@@ -126,11 +120,8 @@ describe("useIsRTL hook", () => {
       expect(result.current.fontClass).toBe("font-tajawal");
     });
 
-    it("should fallback to default when router fails", () => {
-      // Mock router to throw error
-      mockUseRouter.mockImplementation(() => {
-        throw new Error("Router not mounted");
-      });
+    it("should fallback to default when no browser language available", () => {
+      vi.stubGlobal('navigator', undefined);
 
       const { result } = renderHook(() => useIsRTL(""));
       
@@ -142,11 +133,7 @@ describe("useIsRTL hook", () => {
   });
 
   describe("error handling and fallbacks", () => {
-    it("should fallback to 'en' when router fails and no browser language available", () => {
-      mockUseRouter.mockImplementation(() => {
-        throw new Error("Router not mounted");
-      });
-
+    it("should fallback to 'en' when no browser language available", () => {
       // Mock server environment (no navigator)
       vi.stubGlobal('navigator', undefined);
 
@@ -158,10 +145,6 @@ describe("useIsRTL hook", () => {
     });
 
     it("should fallback to 'en' when browser language is invalid", () => {
-      mockUseRouter.mockImplementation(() => {
-        throw new Error("Router not mounted");
-      });
-
       // Mock navigator with empty language
       vi.stubGlobal('navigator', {
         language: ''

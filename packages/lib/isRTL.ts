@@ -119,9 +119,9 @@ function autoSwapDirectionalClasses(classes: string): string {
       if (cls.includes('rounded-bl')) return cls.replace('rounded-bl', 'rounded-br');
       if (cls.includes('rounded-br')) return cls.replace('rounded-br', 'rounded-bl');
       
-      // Swap text alignment
-      if (cls === 'text-left') return 'text-right';
-      if (cls === 'text-right') return 'text-left';
+      // Swap text alignment (including responsive variants)
+      if (cls.includes('text-left')) return cls.replace('text-left', 'text-right');
+      if (cls.includes('text-right')) return cls.replace('text-right', 'text-left');
       
       // Return unchanged if no directional property found
       return cls;

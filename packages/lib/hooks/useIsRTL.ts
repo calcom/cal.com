@@ -7,7 +7,7 @@ import { isRTLLanguage, getTextDirection } from "../isRTL";
  * @param interfaceLanguage - Optional interface language from event data
  * @returns Object with RTL detection utilities
  */
-export function useIsRTL(interfaceLanguage?: string) {
+export function useIsRTL(interfaceLanguage?: string | null) {
   const locale = useMemo(() => {
     // Handle interface language from event data
     if (interfaceLanguage && interfaceLanguage !== "") {
