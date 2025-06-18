@@ -12,8 +12,7 @@ import type { EventLimitsTabProps } from "./EventLimitsTab";
 
 export default function MaxActiveBookingsPerBookerController({
   eventType,
-  customClassNames,
-}: EventLimitsTabProps) {
+}: Pick<EventLimitsTabProps, "eventType">) {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
@@ -26,7 +25,7 @@ export default function MaxActiveBookingsPerBookerController({
     "maxActiveBookingPerBookerOfferReschedule"
   );
 
-  const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
+  const { shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
     formMethods,
