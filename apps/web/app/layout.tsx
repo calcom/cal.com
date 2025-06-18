@@ -1,5 +1,5 @@
 import { dir } from "i18next";
-import { Inter } from "next/font/google";
+import { Inter, Tajawal } from "next/font/google";
 import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
 import React from "react";
@@ -16,6 +16,13 @@ import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const tajawalFont = Tajawal({ 
+  subsets: ["arabic", "latin"], 
+  variable: "--font-tajawal", 
+  preload: true, 
+  display: "swap",
+  weight: ["300", "400", "500", "700"]
+});
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
@@ -102,10 +109,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const ns = "common";
   const translations = await loadTranslations(locale, ns);
-
+  
   return (
     <html
-      className="notranslate"
+      className={`notranslate ${interFont.variable} ${calFont.variable} ${tajawalFont.variable}`}
       translate="no"
       lang={locale}
       dir={direction}
@@ -113,10 +120,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
+            --font-tajawal: ${tajawalFont.style.fontFamily.replace(/\'/g, "")};
+          }
+          
+          /* Ensure font-tajawal class works properly */
+          .font-tajawal {
+            font-family: var(--font-tajawal), system-ui, sans-serif;
           }
         `}</style>
       </head>

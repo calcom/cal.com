@@ -16,6 +16,7 @@ import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-sche
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useIsRTL } from "@calcom/lib/hooks/useIsRTL";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
@@ -83,6 +84,7 @@ const BookerComponent = ({
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
+  const { isRTL: _isRTL, direction, fontClass } = useIsRTL(event.data?.interfaceLanguage);
 
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
@@ -312,12 +314,14 @@ const BookerComponent = ({
       {(isBookingDryRunProp || isBookingDryRun(searchParams)) && <DryRunMessage isEmbed={isEmbed} />}
 
       <div
+        dir={direction}
         className={classNames(
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
           "main",
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW && !isEmbed && "my-20 ",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip",
+          fontClass,
           `${customClassNames?.bookerWrapper}`
         )}>
         <div

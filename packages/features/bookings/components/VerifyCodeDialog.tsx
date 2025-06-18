@@ -108,7 +108,7 @@ export const VerifyCodeDialog = ({
               <Input className={digitClassName} name="2fa6" inputMode="decimal" {...digits[5]} />
             </div>
             {error && (
-              <div className="mt-2 flex items-center gap-x-2 text-sm text-red-700">
+              <div className="mt-2 flex items-center gap-x-2 rtl:gap-x-reverse text-sm text-red-700">
                 <div>
                   <Icon name="info" className="h-3 w-3" />
                 </div>

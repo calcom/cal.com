@@ -95,7 +95,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 {descriptionAsSafeHtml ? (
                   <span
                     className={classNames(
-                      "text-default ml-2 text-sm",
+                      "text-default ltr:ml-2 rtl:mr-2 text-sm",
                       !label && "font-medium",
                       rest.descriptionClassName
                     )}
@@ -107,7 +107,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 ) : (
                   <span
                     className={classNames(
-                      "text-default ml-2 text-sm",
+                      "text-default ltr:ml-2 rtl:mr-2 text-sm",
                       !label && "font-medium",
                       rest.descriptionClassName
                     )}>

@@ -74,7 +74,7 @@ type AddonProps = {
   position?: "start" | "end";
 };
 
-const Addon = ({ children, className, error, onClickAddon, size = "md", position = "start" }: AddonProps) => (
+const Addon = ({ children, className, error, onClickAddon, size: _size = "md", position: _position = "start" }: AddonProps) => (
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
@@ -143,7 +143,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       )}
       {addOnLeading || addOnSuffix ? (
         <div
-          dir="ltr"
+          dir={type === "number" ? "ltr" : undefined}
           className={classNames(
             inputStyles({ size }),
             "group relative mb-1 flex min-w-0 items-center gap-1",

@@ -33,6 +33,7 @@ import type { nameObjectSchema } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useIsRTL } from "@calcom/lib/hooks/useIsRTL";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -97,6 +98,7 @@ const useBrandColors = ({
 
 export default function Success(props: PageProps) {
   const { t } = useLocale();
+  const { isRTL: _isRTL, direction, fontClass } = useIsRTL(props.eventType?.interfaceLanguage);
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
@@ -408,7 +410,13 @@ export default function Success(props: PageProps) {
   })();
 
   return (
-    <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
+    <div 
+      dir={direction}
+      className={classNames(
+        isEmbed ? "" : "h-screen",
+        fontClass
+      )} 
+      data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
         <EventReservationSchema
           reservationId={bookingInfo.uid}
@@ -604,7 +612,7 @@ export default function Success(props: PageProps) {
                               {bookingInfo?.user && (
                                 <div className="mb-3">
                                   <div>
-                                    <span data-testid="booking-host-name" className="mr-2">
+                                    <span data-testid="booking-host-name" className="ltr:mr-2 rtl:ml-2">
                                       {bookingInfo.user.name}
                                     </span>
                                     <Badge variant="blue">{t("Host")}</Badge>

@@ -248,6 +248,7 @@ module.exports = {
       fontFamily: {
         cal: ["var(--font-cal)", ...fontFamily.serif],
         sans: ["var(--font-inter)", ...fontFamily.sans],
+        tajawal: ["var(--font-tajawal)", "system-ui", ...fontFamily.sans],
         mono: ["Roboto Mono", "monospace"],
       },
       maxHeight: (theme) => ({
