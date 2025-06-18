@@ -20,4 +20,5 @@ export enum ErrorCode {
   BookingConflict = "booking_conflict_error",
   BookerLimitExceeded = "booker_limit_exceeded_error",
   BookerLimitExceededReschedule = "booker_limit_exceeded_error_reschedule",
+  InvalidLocationForEventType = "invalid_location_for_event_type_error",
 }
