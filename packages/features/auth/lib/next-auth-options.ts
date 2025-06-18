@@ -32,6 +32,7 @@ import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -437,7 +438,7 @@ export const getOptions = ({
     encode: async ({ token, maxAge, secret }) => {
       log.debug("jwt:encode", safeStringify({ token, maxAge }));
       if (token?.sub && isNumber(token.sub)) {
-        const user = await prisma.user.findFirst({
+        const user = await prisma.user.findUnique({
           where: { id: Number(token.sub) },
           select: { metadata: true },
         });
@@ -488,7 +489,7 @@ export const getOptions = ({
         } as JWT;
       }
       const autoMergeIdentities = async () => {
-        const existingUser = await prisma.user.findFirst({
+        const existingUser = await prisma.user.findUnique({
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           where: { email: token.email! },
           select: {
@@ -712,7 +713,8 @@ export const getOptions = ({
     },
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
-      const licenseKeyService = await LicenseKeySingleton.getInstance();
+      const deploymentRepo = new DeploymentRepository(prisma);
+      const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
       const hasValidLicense = await licenseKeyService.checkLicense();
       const profileId = token.profileId;
       const calendsoSession: Session = {
@@ -853,7 +855,7 @@ export const getOptions = ({
           // If the email address doesn't match, check if an account already exists
           // with the new email address. If it does, for now we return an error. If
           // not, update the email of their account and log them in.
-          const userWithNewEmail = await prisma.user.findFirst({
+          const userWithNewEmail = await prisma.user.findUnique({
             where: { email: user.email },
           });
 
@@ -873,12 +875,9 @@ export const getOptions = ({
         // a new account. If an account already exists with the incoming email
         // address return an error for now.
 
-        const existingUserWithEmail = await prisma.user.findFirst({
+        const existingUserWithEmail = await prisma.user.findUnique({
           where: {
-            email: {
-              equals: user.email,
-              mode: "insensitive",
-            },
+            email: user.email,
           },
           include: {
             password: true,
@@ -971,7 +970,7 @@ export const getOptions = ({
               return true;
             }
           }
-          return `auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
+          return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
         // Associate with organization if enabled by flag and idP is Google (for now)
@@ -1053,7 +1052,7 @@ export const getOptions = ({
               dub.track.lead({
                 clickId,
                 eventName: "Sign Up",
-                customerId: user.id.toString(),
+                externalId: user.id.toString(),
                 customerName: user.name,
                 customerEmail: user.email,
                 customerAvatar: user.image,

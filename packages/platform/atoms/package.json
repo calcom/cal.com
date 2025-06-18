@@ -4,15 +4,14 @@
   "type": "module",
   "description": "Customizable UI components to integrate scheduling into your product.",
   "authors": "Cal.com, Inc.",
-  "version": "1.0.52",
+  "version": "1.0.105",
   "scripts": {
     "dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
-    "build": "NODE_OPTIONS='--max_old_space_size=16384' yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && mkdir ./dist/packages/prisma-client && cp -rf ../../../node_modules/.prisma/client/*.d.ts ./dist/packages/prisma-client",
-    "publish": "rm -rf dist && yarn build && npm publish --access public",
+    "build": "NODE_OPTIONS='--max_old_space_size=16384' rm -rf dist && yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify && mkdir ./dist/packages/prisma-client && cp -rf ../../../node_modules/.prisma/client/*.d.ts ./dist/packages/prisma-client",
+    "publish": "yarn build && npm publish --access public",
     "test": "jest"
   },
   "devDependencies": {
-    "@calcom/platform-libraries": "0.0.2",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.3.1",
@@ -28,7 +27,7 @@
     "postcss-prefixwrap": "1.46.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "ts-jest": "^29.1.2",
-    "typescript": "^4.9.4",
+    "typescript": "^5.8.3",
     "vite": "^5.0.10",
     "vite-plugin-dts": "^3.7.3",
     "vite-plugin-inspect": "^0.8.4",

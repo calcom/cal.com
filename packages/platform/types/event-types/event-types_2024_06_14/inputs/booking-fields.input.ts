@@ -22,7 +22,7 @@ const inputBookingFieldTypes = [
   "url",
 ] as const;
 
-const inputBookingFieldSlugs = ["name", "email", "title", "notes", "guests"] as const;
+const inputBookingFieldSlugs = ["title", "location", "notes", "guests", "rescheduleReason"] as const;
 
 export class NameDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
@@ -187,6 +187,21 @@ export class TitleDefaultFieldInput_2024_06_14 {
       the title field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+}
+
+export class LocationDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({
+    example: "location",
+    description:
+      "only allowed value for type is `location`. This booking field is displayed only when event type has 2 or more locations in order to allow person doing the booking pick the location.",
+  })
+  slug!: "location";
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  label?: string;
 }
 
 export class NotesDefaultFieldInput_2024_06_14 {
@@ -865,6 +880,7 @@ type InputDefaultField_2024_06_14 =
   | SplitNameDefaultFieldInput_2024_06_14
   | EmailDefaultFieldInput_2024_06_14
   | TitleDefaultFieldInput_2024_06_14
+  | LocationDefaultFieldInput_2024_06_14
   | NotesDefaultFieldInput_2024_06_14
   | GuestsDefaultFieldInput_2024_06_14
   | RescheduleReasonDefaultFieldInput_2024_06_14;
@@ -891,6 +907,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     splitName: SplitNameDefaultFieldInput_2024_06_14,
     email: EmailDefaultFieldInput_2024_06_14,
     title: TitleDefaultFieldInput_2024_06_14,
+    location: LocationDefaultFieldInput_2024_06_14,
     notes: NotesDefaultFieldInput_2024_06_14,
     guests: GuestsDefaultFieldInput_2024_06_14,
     rescheduleReason: RescheduleReasonDefaultFieldInput_2024_06_14,
@@ -921,18 +938,22 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     for (const field of bookingFields) {
       const { type, slug } = field;
       const fieldNeedsType =
-        slug !== "title" && slug !== "notes" && slug !== "guests" && slug !== "rescheduleReason";
+        slug !== "title" &&
+        slug !== "notes" &&
+        slug !== "guests" &&
+        slug !== "rescheduleReason" &&
+        slug !== "location";
 
       if (fieldNeedsType && !type) {
         throw new BadRequestException(
-          `All booking fields except ones with slug equal to title, notes, guests and rescheduleReason must have a 'type' property.`
+          `All booking fields except ones with slug equal to title, notes, guests, rescheduleReason and location must have a 'type' property.`
         );
       }
 
       const fieldNeedsSlug = type !== "name" && type !== "splitName" && type !== "email";
       if (fieldNeedsSlug && !slug) {
         throw new BadRequestException(
-          `Each booking field except ones with type equal to name and email must have a 'slug' property.`
+          `Each booking field except ones with type equal to name, splitName, email must have a 'slug' property.`
         );
       }
 
@@ -945,10 +966,12 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
         slugs.push(slug);
       }
 
-      const ClassType = type ? this.classMap[type] : this.classMap[slug];
+      const ClassType = fieldNeedsType ? this.classMap[type] : this.classMap[slug];
       if (!ClassType) {
         throw new BadRequestException(
-          type ? `Unsupported booking field type '${type}'.` : `Unsupported booking field slug '${slug}'.`
+          fieldNeedsType
+            ? `Unsupported booking field type '${type}'.`
+            : `Unsupported booking field slug '${slug}'.`
         );
       }
 
@@ -956,7 +979,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
       const errors = await validate(instance);
       if (errors.length > 0) {
         const message = errors.flatMap((error) => Object.values(error.constraints || {})).join(", ");
-        throw new BadRequestException(`Validation failed for ${type} booking field: ${message}`);
+        throw new BadRequestException(`Validation failed for ${type || slug} booking field: ${message}`);
       }
     }
 
@@ -979,52 +1002,4 @@ export function ValidateInputBookingFields_2024_06_14(validationOptions?: Valida
       validator: new InputBookingFieldValidator_2024_06_14(),
     });
   };
-}
-
-function isDefaultField(field: InputBookingField_2024_06_14): field is InputDefaultField_2024_06_14 {
-  if (
-    isDefaultNameField(field) ||
-    isDefaultEmailField(field) ||
-    isDefaultTitleField(field) ||
-    isDefaultNotesField(field) ||
-    isDefaultGuestsField(field) ||
-    isDefaultRescheduleReasonField(field)
-  ) {
-    return true;
-  }
-  return false;
-}
-
-function isDefaultNameField(field: InputBookingField_2024_06_14): field is NameDefaultFieldInput_2024_06_14 {
-  return ("type" in field && field.type === "name") || ("slug" in field && field.slug === "name");
-}
-
-function isDefaultEmailField(
-  field: InputBookingField_2024_06_14
-): field is EmailDefaultFieldInput_2024_06_14 {
-  return ("type" in field && field.type === "email") || ("slug" in field && field.slug === "email");
-}
-
-function isDefaultTitleField(
-  field: InputBookingField_2024_06_14
-): field is TitleDefaultFieldInput_2024_06_14 {
-  return "slug" in field && field.slug === "title";
-}
-
-function isDefaultNotesField(
-  field: InputBookingField_2024_06_14
-): field is NotesDefaultFieldInput_2024_06_14 {
-  return "slug" in field && field.slug === "notes";
-}
-
-function isDefaultGuestsField(
-  field: InputBookingField_2024_06_14
-): field is GuestsDefaultFieldInput_2024_06_14 {
-  return "slug" in field && field.slug === "guests";
-}
-
-function isDefaultRescheduleReasonField(
-  field: InputBookingField_2024_06_14
-): field is RescheduleReasonDefaultFieldInput_2024_06_14 {
-  return "slug" in field && field.slug === "rescheduleReason";
 }

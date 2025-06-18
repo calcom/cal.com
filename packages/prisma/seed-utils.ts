@@ -469,13 +469,23 @@ export async function seedRoutingForms(
     },
   });
   if (form) {
-    console.log(`Skipping Routing Form - Form Seed, "Seeded Form - Pro" already exists`);
+    console.log(`Skipping Routing Form - Form Seed, ${seededForm.name} already exists`);
     return;
   }
 
   if (attributeRaw.length === 0) {
     throw new Error("No attributes found - Please call seedAttributes first");
   }
+
+  const formFieldSkillsOptions = attributeRaw[2].options.map((opt) => ({
+    id: opt.id,
+    label: opt.value,
+  }));
+
+  const formFieldLocationOptions = attributeRaw[1].options.map((opt) => ({
+    id: opt.id,
+    label: opt.value,
+  }));
 
   await prisma.app_RoutingForms_Form.create({
     data: {
@@ -491,6 +501,21 @@ export async function seedRoutingForms(
           queryValue: {
             id: "aaba9988-cdef-4012-b456-719300f53ef8",
             type: "group",
+            children1: {
+              "b98b98a8-0123-4456-b89a-b19300f55277": {
+                type: "rule",
+                properties: {
+                  field: seededForm.formFieldSkills.id,
+                  value: [
+                    formFieldSkillsOptions.filter((opt) => opt.label === "JavaScript").map((opt) => opt.id),
+                  ],
+                  operator: "multiselect_equals",
+                  valueSrc: ["value"],
+                  valueType: ["multiselect"],
+                  valueError: [null],
+                },
+              },
+            },
           },
           attributesQueryValue: {
             id: "ab99bbb9-89ab-4cde-b012-319300f53ef8",
@@ -522,6 +547,19 @@ export async function seedRoutingForms(
           queryValue: {
             id: "aaba9948-cdef-4012-b456-719300f53ef8",
             type: "group",
+            children1: {
+              "c98b98a8-1123-4456-e89a-a19300f55277": {
+                type: "rule",
+                properties: {
+                  field: seededForm.formFieldSkills.id,
+                  value: [formFieldSkillsOptions.filter((opt) => opt.label === "Sales").map((opt) => opt.id)],
+                  operator: "multiselect_equals",
+                  valueSrc: ["value"],
+                  valueType: ["multiselect"],
+                  valueError: [null],
+                },
+              },
+            },
           },
           attributesQueryValue: {
             id: "ab988888-89ab-4cde-b012-319300f53ef8",
@@ -559,20 +597,14 @@ export async function seedRoutingForms(
           id: seededForm.formFieldLocation.id,
           type: "select",
           label: "Location",
-          options: attributeRaw[1].options.map((opt) => ({
-            id: opt.id,
-            label: opt.value,
-          })),
+          options: formFieldLocationOptions,
           required: true,
         },
         {
           id: seededForm.formFieldSkills.id,
           type: "multiselect",
           label: "skills",
-          options: attributeRaw[2].options.map((opt) => ({
-            id: opt.id,
-            label: opt.value,
-          })),
+          options: formFieldSkillsOptions,
           required: true,
         },
         {

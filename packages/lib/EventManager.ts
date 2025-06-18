@@ -152,7 +152,8 @@ export default class EventManager {
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
       )
       // see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
-      // This sorting is mostly applicable for fallback which happens when there is no explicity destinationCalendar set. That could be true for really old accounts but not for new
+      // This sorting is mostly applicable for fallback which happens when there is no explicit destinationCalendar set.
+      // That could be true for really old accounts but not for new
       .sort(latestCredentialFirst)
       // Keep Delegation Credentials first so because those credentials never expire and are preferred.
       // Also, those credentials have consistent permission for all the members avoiding the scenario where user doesn't give all permissions
@@ -179,12 +180,13 @@ export default class EventManager {
    * @param event
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
+    // TODO this method shouldn't be modifying the event object that's passed in
     const evt = processLocation(event);
 
     // Fallback to cal video if no location is set
     if (!evt.location) {
       // See if cal video is enabled & has keys
-      const calVideo = await prisma.app.findFirst({
+      const calVideo = await prisma.app.findUnique({
         where: {
           slug: "daily-video",
         },
@@ -258,7 +260,7 @@ export default class EventManager {
       return result.type.includes("_calendar");
     };
 
-    const createdCRMEvents = await this.createAllCRMEvents(clonedCalEvent);
+    const createdCRMEvents = await this.createAllCRMEvents(evt);
 
     results.push(...createdCRMEvents);
 
@@ -459,7 +461,7 @@ export default class EventManager {
     }
 
     // Get details of existing booking.
-    const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findUnique({
       where: {
         uid: rescheduleUid,
       },
@@ -1140,3 +1142,5 @@ export default class EventManager {
       return this.appOptions[credential.appId as keyof typeof this.appOptions];
   }
 }
+
+export const placeholderCreatedEvent = { results: [], referencesToCreate: [] };

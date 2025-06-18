@@ -1,11 +1,14 @@
-/* Schedule any workflow reminder that falls within 7 days for SMS */
+/* Schedule any workflow reminder that falls within the next 2 hours for SMS */
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
 import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -14,7 +17,6 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import { select } from "../lib/getWorkflowReminders";
-import * as twilio from "../lib/reminders/providers/twilioProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
@@ -52,7 +54,7 @@ export async function handler(req: NextRequest) {
       method: WorkflowMethods.SMS,
       scheduled: false,
       scheduledDate: {
-        lte: dayjs().add(7, "day").toISOString(),
+        lte: dayjs().add(2, "hour").toISOString(),
       },
     },
     select: {
@@ -178,25 +180,45 @@ export async function handler(req: NextRequest) {
           message = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
         }
 
-        const scheduledSMS = await twilio.scheduleSMS(
-          sendTo,
-          message,
-          reminder.scheduledDate,
-          senderID,
-          userId,
-          teamId
-        );
+        const scheduledNotification = await scheduleSmsOrFallbackEmail({
+          twilioData: {
+            phoneNumber: sendTo,
+            body: message,
+            scheduledDate: reminder.scheduledDate,
+            sender: senderID,
+            bookingUid: reminder.booking.uid,
+            userId,
+            teamId,
+          },
+          fallbackData:
+            reminder.workflowStep.action && isAttendeeAction(reminder.workflowStep.action)
+              ? {
+                  email: reminder.booking.attendees[0].email,
+                  t: await getTranslation(locale || "en", "common"),
+                  replyTo: reminder.booking?.user?.email ?? "",
+                  workflowStepId: reminder.workflowStep.id,
+                }
+              : undefined,
+        });
 
-        if (scheduledSMS) {
-          await prisma.workflowReminder.update({
-            where: {
-              id: reminder.id,
-            },
-            data: {
-              scheduled: true,
-              referenceId: scheduledSMS.sid,
-            },
-          });
+        if (scheduledNotification) {
+          if (scheduledNotification.sid) {
+            await prisma.workflowReminder.update({
+              where: {
+                id: reminder.id,
+              },
+              data: {
+                scheduled: true,
+                referenceId: scheduledNotification.sid,
+              },
+            });
+          } else if (scheduledNotification.emailReminderId) {
+            await prisma.workflowReminder.delete({
+              where: {
+                id: reminder.id,
+              },
+            });
+          }
         } else {
           await prisma.workflowReminder.update({
             where: {

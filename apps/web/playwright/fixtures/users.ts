@@ -395,7 +395,7 @@ export const createUsersFixture = (
               },
               {
                 id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: "https://cal.com" },
+                action: { type: "externalRedirectUrl", value: "https://cal.com/peer" },
                 queryValue: {
                   id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
                   type: "group",
@@ -768,6 +768,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
      * @deprecated use apiLogin instead
      */
     login: async () => login({ ...(await self()), password: user.username }, store.page),
+    loginOnNewBrowser: async (browser: Browser) => {
+      const newContext = await browser.newContext();
+      const newPage = await newContext.newPage();
+      await login({ ...(await self()), password: user.username }, newPage);
+      // Don't forget to: newContext.close();
+      return [newContext, newPage] as const;
+    },
     logout: async () => {
       await page.goto("/auth/logout");
     },
@@ -1074,9 +1081,11 @@ export async function apiLogin(
     json: "true",
     csrfToken,
   };
-  return page.context().request.post("/api/auth/callback/credentials", {
+  const response = await page.context().request.post("/api/auth/callback/credentials", {
     data,
   });
+  expect(response.status()).toBe(200);
+  return response;
 }
 
 export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, slug: string, page: Page) {

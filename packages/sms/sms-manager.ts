@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { getSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSenderIdSupport";
-import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
+import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_ID } from "@calcom/lib/constants";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
@@ -13,11 +13,13 @@ const handleSendingSMS = async ({
   smsMessage,
   senderID,
   teamId,
+  bookingUid,
 }: {
   reminderPhone: string;
   smsMessage: string;
   senderID: string;
   teamId: number;
+  bookingUid?: string | null;
 }) => {
   const team = await prisma.team.findUnique({
     where: { id: teamId },
@@ -45,10 +47,19 @@ const handleSendingSMS = async ({
       rateLimitingType: "sms",
     });
 
-    const sms = await twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
-    return sms;
+    const smsOrFallbackEmail = await sendSmsOrFallbackEmail({
+      twilioData: {
+        phoneNumber: reminderPhone,
+        body: smsMessage,
+        sender: senderID,
+        teamId,
+        bookingUid,
+      },
+    });
+
+    return smsOrFallbackEmail;
   } catch (e) {
-    console.error("twilio.sendSMS failed", e);
+    console.error("sendSmsOrFallbackEmail failed", e);
     throw e; // propagate the error
   }
 };
@@ -83,7 +94,7 @@ export default abstract class SMSManager {
 
   abstract getMessage(attendee: Person): string;
 
-  async sendSMSToAttendee(attendee: Person) {
+  async sendSMSToAttendee(attendee: Person, bookingUid?: string | null) {
     const teamId = this.teamId;
     const attendeePhoneNumber = attendee.phoneNumber;
     const isPhoneOnlyBooking = attendeePhoneNumber && isSmsCalEmail(attendee.email);
@@ -92,7 +103,7 @@ export default abstract class SMSManager {
 
     const smsMessage = this.getMessage(attendee);
     const senderID = getSenderId(attendeePhoneNumber, SENDER_ID);
-    return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId });
+    return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId, bookingUid });
   }
 
   async sendSMSToAttendees() {
@@ -100,7 +111,7 @@ export default abstract class SMSManager {
     const smsToSend: Promise<unknown>[] = [];
 
     for (const attendee of this.calEvent.attendees) {
-      smsToSend.push(this.sendSMSToAttendee(attendee));
+      smsToSend.push(this.sendSMSToAttendee(attendee, this.calEvent.uid));
     }
 
     await Promise.all(smsToSend);

@@ -61,21 +61,35 @@ function buildSqlCondition(condition: any): string {
   }
 }
 
+export interface DateRange {
+  startDate: string;
+  endDate: string;
+  formattedDate: string;
+}
+
+export interface GetDateRangesParams {
+  startDate: string;
+  endDate: string;
+  timeZone: string;
+  timeView: "day" | "week" | "month" | "year";
+  weekStart: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
+}
+
 class EventsInsights {
   static countGroupedByStatusForRanges = async (
-    whereConditional: Prisma.BookingTimeStatusWhereInput,
+    whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput,
     startDate: Dayjs,
     endDate: Dayjs,
-    timeView: "week" | "month" | "year" | "day"
+    dateRanges: DateRange[],
+    timeZone: string
   ): Promise<AggregateResult> => {
-    // Determine the date truncation and date range based on timeView
     const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD HH:mm:ss");
     const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD HH:mm:ss");
     const whereClause = buildSqlCondition(whereConditional);
 
     const data = await prisma.$queryRaw<
       {
-        periodStart: Date;
+        date: Date;
         bookingsCount: number;
         timeStatus: string;
         noShowHost: boolean;
@@ -83,59 +97,64 @@ class EventsInsights {
       }[]
     >`
     SELECT
-      "periodStart",
+      "date",
       CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
       CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
       "timeStatus",
       "noShowHost"
     FROM (
       SELECT
-        DATE_TRUNC(${timeView}, "createdAt") AS "periodStart",
+        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
         "a"."noShow" AS "isNoShowGuest",
         "timeStatus",
         "noShowHost"
       FROM
-        "BookingTimeStatus"
+        "BookingTimeStatusDenormalized"
       JOIN
-        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatus"."id"
+        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatusDenormalized"."id"
       WHERE
         "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
         AND ${Prisma.raw(whereClause)}
-    ) AS truncated_dates
+    ) AS bookings
     GROUP BY
-      "periodStart",
+      "date",
       "timeStatus",
       "noShowHost"
     ORDER BY
-      "periodStart";
+      "date";
   `;
 
     const aggregate: AggregateResult = {};
-    data.forEach(({ periodStart, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
-      const formattedDate = dayjs(periodStart).format("MMM D, YYYY");
 
-      if (dayjs(periodStart).isAfter(endDate)) {
-        return;
-      }
+    // Initialize all date ranges with zero counts
+    dateRanges.forEach(({ formattedDate }) => {
+      aggregate[formattedDate] = {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        noShowHost: 0,
+        noShowGuests: 0,
+        _all: 0,
+        uncompleted: 0,
+      };
+    });
 
-      // Ensure the date entry exists in the aggregate object
-      if (!aggregate[formattedDate]) {
-        aggregate[formattedDate] = {
-          completed: 0,
-          rescheduled: 0,
-          cancelled: 0,
-          noShowHost: 0,
-          _all: 0,
-          uncompleted: 0,
-          noShowGuests: 0,
-        };
-      }
+    // Process the raw data
+    data.forEach(({ date, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
+      // Find which date range this date belongs to
+      const dateRange = dateRanges.find((range) =>
+        dayjs(date).isBetween(range.startDate, range.endDate, null, "[]")
+      );
+
+      if (!dateRange) return;
+
+      const formattedDate = dateRange.formattedDate;
+      const statusKey = timeStatus as keyof StatusAggregate;
 
       // Add to the specific status count
-      const statusKey = timeStatus as keyof StatusAggregate;
       aggregate[formattedDate][statusKey] += Number(bookingsCount);
 
-      // Always add to the total count (_all)
+      // Add to the total count (_all)
       aggregate[formattedDate]["_all"] += Number(bookingsCount);
 
       // Track no-show host counts separately
@@ -147,46 +166,11 @@ class EventsInsights {
       aggregate[formattedDate]["noShowGuests"] += noShowGuests;
     });
 
-    // Generate a complete list of expected date labels based on the timeline
-    let current = dayjs(startDate);
-    const expectedDates: string[] = [];
-
-    while (current.isBefore(endDate) || current.isSame(endDate)) {
-      const formattedDate = current.format("MMM D, YYYY");
-      expectedDates.push(formattedDate);
-
-      // Increment based on the selected timeView
-      if (timeView === "day") {
-        current = current.add(1, "day");
-      } else if (timeView === "week") {
-        current = current.add(1, "week");
-      } else if (timeView === "month") {
-        current = current.add(1, "month");
-      } else if (timeView === "year") {
-        current = current.add(1, "year");
-      }
-    }
-
-    // Fill in any missing dates with zero counts
-    expectedDates.forEach((label) => {
-      if (!aggregate[label]) {
-        aggregate[label] = {
-          completed: 0,
-          rescheduled: 0,
-          cancelled: 0,
-          noShowHost: 0,
-          noShowGuests: 0,
-          _all: 0,
-          uncompleted: 0,
-        };
-      }
-    });
-
     return aggregate;
   };
 
-  static getTotalNoShowGuests = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const bookings = await prisma.bookingTimeStatus.findMany({
+  static getTotalNoShowGuests = async (where: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
+    const bookings = await prisma.bookingTimeStatusDenormalized.findMany({
       where,
       select: {
         id: true,
@@ -206,8 +190,8 @@ class EventsInsights {
     return totalNoShowGuests;
   };
 
-  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const data = await prisma.bookingTimeStatus.groupBy({
+  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
+    const data = await prisma.bookingTimeStatusDenormalized.groupBy({
       where,
       by: ["timeStatus", "noShowHost"],
       _count: {
@@ -237,8 +221,8 @@ class EventsInsights {
     );
   };
 
-  static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.aggregate({
+  static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
+    return await prisma.bookingTimeStatusDenormalized.aggregate({
       _avg: {
         rating: true,
       },
@@ -251,8 +235,8 @@ class EventsInsights {
     });
   };
 
-  static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    const result = await prisma.bookingTimeStatus.findMany({
+  static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
+    const result = await prisma.bookingTimeStatusDenormalized.findMany({
       where: {
         ...whereConditional,
         rating: {
@@ -269,96 +253,18 @@ class EventsInsights {
     return csat;
   };
 
-  static getTimeLine = async (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
-    let resultTimeLine: string[] = [];
-
-    if (timeView) {
-      switch (timeView) {
-        case "day":
-          resultTimeLine = this.getDailyTimeline(startDate, endDate);
-          break;
-        case "week":
-          resultTimeLine = this.getWeekTimeline(startDate, endDate);
-          break;
-        case "month":
-          resultTimeLine = this.getMonthTimeline(startDate, endDate);
-          break;
-        case "year":
-          resultTimeLine = this.getYearTimeline(startDate, endDate);
-          break;
-        default:
-          resultTimeLine = this.getWeekTimeline(startDate, endDate);
-          break;
-      }
+  static getTimeView = (startDate: string, endDate: string) => {
+    const diff = dayjs(endDate).diff(dayjs(startDate), "day");
+    if (diff > 365) {
+      return "year";
+    } else if (diff > 90) {
+      return "month";
+    } else if (diff > 30) {
+      return "week";
+    } else {
+      return "day";
     }
-
-    return resultTimeLine;
   };
-
-  static getTimeView = (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
-    let resultTimeView = timeView;
-
-    if (startDate.diff(endDate, "day") > 90) {
-      resultTimeView = "month";
-    } else if (startDate.diff(endDate, "day") > 365) {
-      resultTimeView = "year";
-    }
-
-    return resultTimeView;
-  };
-
-  static getDailyTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
-    const now = dayjs();
-    const endOfDay = now.endOf("day");
-    let pivotDate = dayjs(startDate);
-    const dates: string[] = [];
-    while ((pivotDate.isBefore(endDate) || pivotDate.isSame(endDate)) && pivotDate.isBefore(endOfDay)) {
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-      pivotDate = pivotDate.add(1, "day");
-    }
-    return dates;
-  }
-
-  static getWeekTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
-    let pivotDate = dayjs(endDate);
-    const dates: string[] = [];
-
-    // Add the endDate as the last date in the timeline
-    dates.push(pivotDate.format("YYYY-MM-DD"));
-
-    // Move backwards in 6-day increments until reaching or passing the startDate
-    while (pivotDate.isAfter(startDate)) {
-      pivotDate = pivotDate.subtract(7, "day");
-      if (pivotDate.isBefore(startDate)) {
-        break;
-      }
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-    }
-
-    // Reverse the array to have the timeline in ascending order
-    return dates.reverse();
-  }
-
-  static getMonthTimeline(startDate: Dayjs, endDate: Dayjs) {
-    let pivotDate = dayjs(startDate);
-    const dates = [];
-    while (pivotDate.isBefore(endDate)) {
-      pivotDate = pivotDate.set("month", pivotDate.get("month") + 1);
-
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-    }
-    return dates;
-  }
-
-  static getYearTimeline(startDate: Dayjs, endDate: Dayjs) {
-    const pivotDate = dayjs(startDate);
-    const dates = [];
-    while (pivotDate.isBefore(endDate)) {
-      pivotDate.set("year", pivotDate.get("year") + 1);
-      dates.push(pivotDate.format("YYYY-MM-DD"));
-    }
-    return dates;
-  }
 
   static getPercentage = (actualMetric: number, previousMetric: number) => {
     const differenceActualVsPrevious = actualMetric - previousMetric;
@@ -374,6 +280,127 @@ class EventsInsights {
     return result;
   };
 
+  static getDateRanges({
+    startDate: _startDate,
+    endDate: _endDate,
+    timeZone,
+    timeView,
+    weekStart,
+  }: GetDateRangesParams): DateRange[] {
+    if (!["day", "week", "month", "year"].includes(timeView)) {
+      return [];
+    }
+
+    const startDate = dayjs(_startDate).tz(timeZone);
+    const endDate = dayjs(_endDate).tz(timeZone);
+    const ranges: DateRange[] = [];
+    let currentStartDate = startDate;
+
+    while (currentStartDate.isBefore(endDate)) {
+      let currentEndDate = currentStartDate.endOf(timeView).tz(timeZone);
+
+      // Adjust week boundaries based on weekStart parameter
+      if (timeView === "week") {
+        const weekStartNum =
+          {
+            Sunday: 0,
+            Monday: 1,
+            Tuesday: 2,
+            Wednesday: 3,
+            Thursday: 4,
+            Friday: 5,
+            Saturday: 6,
+          }[weekStart] ?? 0;
+
+        currentEndDate = currentEndDate.add(weekStartNum, "day");
+        if (currentEndDate.subtract(7, "day").isAfter(currentStartDate)) {
+          currentEndDate = currentEndDate.subtract(7, "day");
+        }
+      }
+
+      if (currentEndDate.isAfter(endDate)) {
+        currentEndDate = endDate;
+        ranges.push({
+          startDate: currentStartDate.toISOString(),
+          endDate: currentEndDate.toISOString(),
+          formattedDate: this.formatPeriod({
+            start: currentStartDate,
+            end: currentEndDate,
+            timeView,
+            wholeStart: startDate,
+            wholeEnd: endDate,
+          }),
+        });
+        break;
+      }
+
+      ranges.push({
+        startDate: currentStartDate.toISOString(),
+        endDate: currentEndDate.toISOString(),
+        formattedDate: this.formatPeriod({
+          start: currentStartDate,
+          end: currentEndDate,
+          timeView,
+          wholeStart: startDate,
+          wholeEnd: endDate,
+        }),
+      });
+
+      currentStartDate = currentEndDate.add(1, "day").startOf("day").tz(timeZone);
+    }
+
+    return ranges;
+  }
+
+  static formatPeriod({
+    start,
+    end,
+    timeView,
+    wholeStart,
+    wholeEnd,
+  }: {
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+    timeView: TimeViewType;
+    wholeStart: dayjs.Dayjs;
+    wholeEnd: dayjs.Dayjs;
+  }): string {
+    const omitYear = wholeStart.year() === wholeEnd.year();
+
+    switch (timeView) {
+      case "day":
+        const shouldShowMonth = wholeStart.isSame(start, "day") || start.date() === 1;
+
+        if (shouldShowMonth) {
+          return omitYear ? start.format("MMM D") : start.format("MMM D, YYYY");
+        } else {
+          return omitYear ? start.format("D") : start.format("D, YYYY");
+        }
+      case "week":
+        const startFormat = "MMM D";
+        let endFormat = "MMM D";
+        if (start.format("MMM") === end.format("MMM")) {
+          endFormat = "D";
+        }
+
+        if (start.format("YYYY") !== end.format("YYYY")) {
+          return `${start.format(`${startFormat} , YYYY`)} - ${end.format(`${endFormat}, YYYY`)}`;
+        }
+
+        if (omitYear) {
+          return `${start.format(startFormat)} - ${end.format(endFormat)}`;
+        } else {
+          return `${start.format(startFormat)} - ${end.format(endFormat)}, ${end.format("YYYY")}`;
+        }
+      case "month":
+        return omitYear ? start.format("MMM") : start.format("MMM YYYY");
+      case "year":
+        return start.format("YYYY");
+      default:
+        return "";
+    }
+  }
+
   static getCsvData = async (
     props: RawDataInput & {
       organizationId: number | null;
@@ -385,11 +412,11 @@ class EventsInsights {
     const limit = props.limit ?? 100; // Default batch size
     const offset = props.offset ?? 0;
 
-    const totalCountPromise = prisma.bookingTimeStatus.count({
+    const totalCountPromise = prisma.bookingTimeStatusDenormalized.count({
       where: whereConditional,
     });
 
-    const csvDataPromise = prisma.bookingTimeStatus.findMany({
+    const csvDataPromise = prisma.bookingTimeStatusDenormalized.findMany({
       select: {
         id: true,
         uid: true,
@@ -402,7 +429,7 @@ class EventsInsights {
         endTime: true,
         paid: true,
         userEmail: true,
-        username: true,
+        userUsername: true,
         rating: true,
         ratingFeedback: true,
         noShowHost: true,
@@ -496,7 +523,7 @@ class EventsInsights {
     } = props;
 
     // Obtain the where conditional
-    let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
+    let whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput = {};
 
     if (startDate && endDate) {
       whereConditional.createdAt = {
@@ -598,10 +625,12 @@ class EventsInsights {
     sessionUserId: number;
     teamId: number;
   }) => {
-    const isOwnerAdminOfTeam = await prisma.membership.findFirst({
+    const isOwnerAdminOfTeam = await prisma.membership.findUnique({
       where: {
-        userId: sessionUserId,
-        teamId,
+        userId_teamId: {
+          userId: sessionUserId,
+          teamId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
@@ -632,10 +661,12 @@ class EventsInsights {
       return false;
     }
 
-    const isOwnerAdminOfParentTeam = await prisma.membership.findFirst({
+    const isOwnerAdminOfParentTeam = await prisma.membership.findUnique({
       where: {
-        userId: sessionUserId,
-        teamId: team.parentId,
+        userId_teamId: {
+          userId: sessionUserId,
+          teamId: team.parentId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],

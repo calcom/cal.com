@@ -21,13 +21,12 @@ import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
-
-import useMeQuery from "@lib/hooks/useMeQuery";
 
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
@@ -115,6 +114,7 @@ function BookingsContent({ status }: BookingsProps) {
   const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
   const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
   const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
+  const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
 
   const { limit, offset } = useDataTable();
 
@@ -128,6 +128,7 @@ function BookingsContent({ status }: BookingsProps) {
       userIds,
       attendeeName,
       attendeeEmail,
+      bookingUid,
       afterStartDate: dateRange?.startDate
         ? dayjs(dateRange?.startDate).startOf("day").toISOString()
         : undefined,
@@ -210,6 +211,21 @@ function BookingsContent({ status }: BookingsProps) {
             type: ColumnFilterType.DATE_RANGE,
             dateRangeOptions: {
               range: status === "past" ? "past" : "custom",
+            },
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
+        id: "bookingUid",
+        header: t("booking_uid"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              allowedOperators: ["equals"],
             },
           },
         },
@@ -336,6 +352,7 @@ function BookingsContent({ status }: BookingsProps) {
         attendeeName: false,
         attendeeEmail: false,
         dateRange: false,
+        bookingUid: false,
       },
     },
     getCoreRowModel: getCoreRowModel(),

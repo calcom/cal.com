@@ -129,7 +129,9 @@ export default function Success(props: PageProps) {
     rescheduleLocation = bookingInfo.responses.location.optionValue;
   }
 
-  const parsedBookingMetadata = bookingMetadataSchema.parse(bookingInfo?.metadata || {});
+  const parsed = bookingMetadataSchema.safeParse(bookingInfo?.metadata ?? null);
+  const parsedBookingMetadata = parsed.success ? parsed.data : null;
+
   const bookingWithParsedMetadata = {
     ...bookingInfo,
     metadata: parsedBookingMetadata,
@@ -236,6 +238,7 @@ export default function Success(props: PageProps) {
   if (eventType.isDynamic && bookingInfo.responses?.title) {
     evtName = bookingInfo.responses.title as string;
   }
+
   const eventNameObject = {
     attendeeName: bookingInfo.responses.name as z.infer<typeof nameObjectSchema> | string,
     eventType: eventType.title,
@@ -243,7 +246,7 @@ export default function Success(props: PageProps) {
     host: props.profile.name || "Nameless",
     location: location,
     bookingFields: bookingInfo.responses,
-    eventDuration: eventType.length,
+    eventDuration: dayjs(bookingInfo.endTime).diff(bookingInfo.startTime, "minutes"),
     t,
   };
 

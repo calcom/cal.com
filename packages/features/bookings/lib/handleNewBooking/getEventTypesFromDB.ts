@@ -1,8 +1,8 @@
 import type { LocationObject } from "@calcom/app-store/locations";
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { parseRecurringEvent } from "@calcom/lib";
 import type { DefaultEvent } from "@calcom/lib/defaultEvents";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -44,6 +44,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           bookingLimits: true,
           includeManagedEventsInLimits: true,
           rrResetInterval: true,
+          rrTimestampBasis: true,
         },
       },
       bookingFields: true,
@@ -62,7 +63,10 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       requiresConfirmationForFreeEmail: true,
       requiresBookerEmailVerification: true,
       maxLeadThreshold: true,
+      includeNoShowInRRCalculation: true,
       minimumBookingNotice: true,
+      maxActiveBookingsPerBooker: true,
+      maxActiveBookingPerBookerOfferReschedule: true,
       userId: true,
       price: true,
       currency: true,

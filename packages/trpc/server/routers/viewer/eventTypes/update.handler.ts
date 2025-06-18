@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -11,11 +12,13 @@ import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -61,6 +64,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     locations,
     bookingLimits,
     durationLimits,
+    maxActiveBookingsPerBooker,
     destinationCalendar,
     customInputs,
     recurringEvent,
@@ -83,6 +87,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
+    calVideoSettings,
     ...rest
   } = input;
 
@@ -90,9 +95,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id },
     select: {
       title: true,
+      locations: true,
       description: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      maxActiveBookingsPerBooker: true,
       fieldTranslations: {
         select: {
           field: true,
@@ -115,6 +122,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           llmId: true,
         },
       },
+      calVideoSettings: {
+        select: {
+          disableRecordingForOrganizer: true,
+          disableRecordingForGuests: true,
+          enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
+          redirectUrlOnExit: true,
+        },
+      },
       children: {
         select: {
           userId: true,
@@ -131,6 +148,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           name: true,
           slug: true,
           parentId: true,
+          rrTimestampBasis: true,
           parent: {
             select: {
               slug: true,
@@ -199,6 +217,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     disableGuests: guestsField?.hidden ?? false,
     seatsPerTimeSlot,
+    maxLeadThreshold:
+      eventType.team?.rrTimestampBasis && eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+        ? null
+        : rest.maxLeadThreshold,
   };
   data.locations = locations ?? undefined;
 
@@ -239,6 +261,28 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (!isValid)
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
     data.bookingLimits = bookingLimits;
+  }
+
+  if (maxActiveBookingsPerBooker) {
+    if (maxActiveBookingsPerBooker && maxActiveBookingsPerBooker < 1) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booker booking limit must be greater than 0." });
+    }
+
+    if (maxActiveBookingsPerBooker && (recurringEvent || eventType.recurringEvent)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Recurring Events and booker active bookings limit cannot be active at the same time.",
+      });
+    }
+
+    if (eventType.maxActiveBookingsPerBooker && recurringEvent) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Recurring Events and booker active bookings limit cannot be active at the same time.",
+      });
+    }
+
+    data.maxActiveBookingsPerBooker = maxActiveBookingsPerBooker;
   }
 
   if (durationLimits) {
@@ -516,6 +560,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     }
+  }
+
+  if (calVideoSettings) {
+    await CalVideoSettingsRepository.createOrUpdateCalVideoSettings({
+      eventTypeId: id,
+      calVideoSettings,
+    });
+  }
+
+  const parsedEventTypeLocations = eventTypeLocations.safeParse(eventType.locations ?? []);
+
+  const isCalVideoLocationActive = locations
+    ? locations.some((location) => location.type === DailyLocationType)
+    : parsedEventTypeLocations.success &&
+      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+
+  if (eventType.calVideoSettings && !isCalVideoLocationActive) {
+    await CalVideoSettingsRepository.deleteCalVideoSettings(id);
   }
 
   // Logic for updating `fieldTranslations`

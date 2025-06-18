@@ -46,6 +46,7 @@ export const bookingCreateBodySchema = z.object({
     utm_term: z.string().optional(),
     utm_content: z.string().optional(),
   }).optional(),
+  dub_id: z.string().nullish()
 });
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;

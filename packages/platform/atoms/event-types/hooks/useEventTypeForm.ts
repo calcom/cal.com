@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -27,9 +27,15 @@ type Fields = z.infer<typeof eventTypeBookingFieldsSchema>;
 export const useEventTypeForm = ({
   eventType,
   onSubmit,
+  onFormStateChange,
 }: {
   eventType: EventTypeSetupProps["eventType"];
   onSubmit: (data: EventTypeUpdateInput) => void;
+  onFormStateChange?: (formState: {
+    isDirty: boolean;
+    dirtyFields: Partial<FormValues>;
+    values: FormValues;
+  }) => void;
 }) => {
   const { t } = useLocale();
   const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
@@ -127,8 +133,12 @@ export const useEventTypeForm = ({
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
+      includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
       customReplyToEmail: eventType.customReplyToEmail || null,
+      calVideoSettings: eventType.calVideoSettings,
+      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
+      maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
     };
   }, [eventType, periodDates]);
 
@@ -161,6 +171,17 @@ export const useEventTypeForm = ({
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFieldsSchema,
           locations: locationsResolver(t),
+          calVideoSettings: z
+            .object({
+              redirectUrlOnExit: z.string().url().nullish(),
+              disableRecordingForOrganizer: z.boolean().nullable(),
+              disableRecordingForGuests: z.boolean().nullable(),
+              enableAutomaticTranscription: z.boolean().nullable(),
+              disableTranscriptionForGuests: z.boolean().nullable(),
+              disableTranscriptionForOrganizer: z.boolean().nullable(),
+            })
+            .optional()
+            .nullable(),
         })
         // TODO: Add schema for other fields later.
         .passthrough()
@@ -170,6 +191,19 @@ export const useEventTypeForm = ({
   const {
     formState: { isDirty: isFormDirty, dirtyFields },
   } = form;
+
+  // Watch all form values to trigger onFormStateChange on any change
+  const watchedValues = form.watch();
+
+  useEffect(() => {
+    if (onFormStateChange) {
+      onFormStateChange({
+        isDirty: isFormDirty,
+        dirtyFields: dirtyFields as Partial<FormValues>,
+        values: watchedValues,
+      });
+    }
+  }, [isFormDirty, watchedValues, onFormStateChange]);
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -194,7 +228,6 @@ export const useEventTypeForm = ({
   };
 
   const getDirtyFields = (values: FormValues): Partial<FormValues> => {
-    console.log("🚀 ~ getDirtyFields ~ values:", values);
     if (!isFormDirty) {
       return {};
     }
@@ -383,7 +416,6 @@ export const useEventTypeForm = ({
     }, {}) as EventTypeUpdateInput;
 
     if (dirtyFieldExists) {
-      console.log("🚀 ~ handleSubmit ~ filteredPayload:", filteredPayload);
       onSubmit({ ...filteredPayload, id: eventType.id });
     }
   };

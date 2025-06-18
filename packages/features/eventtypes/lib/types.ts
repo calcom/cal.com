@@ -72,6 +72,7 @@ export type FormValues = {
   eventTitle: string;
   eventName: string;
   slug: string;
+  interfaceLanguage: string | null;
   isInstantEvent: boolean;
   instantMeetingParameters: string[];
   instantMeetingExpiryTimeOffsetInSeconds: number;
@@ -122,6 +123,7 @@ export type FormValues = {
   scheduleName: string;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
+  maxActiveBookingsPerBooker: number | null;
   beforeEventBuffer: number;
   afterEventBuffer: number;
   slotInterval: number | null;
@@ -150,6 +152,15 @@ export type FormValues = {
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
+  calVideoSettings?: {
+    disableRecordingForOrganizer?: boolean;
+    disableRecordingForGuests?: boolean;
+    enableAutomaticTranscription?: boolean;
+    disableTranscriptionForGuests?: boolean;
+    disableTranscriptionForOrganizer?: boolean;
+    redirectUrlOnExit?: string;
+  };
+  maxActiveBookingPerBookerOfferReschedule: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
