@@ -1,6 +1,6 @@
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
-export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+export const eventTypeSelect = {
   id: true,
   teamId: true,
   schedulingType: true,
@@ -79,10 +79,10 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       name: true,
     },
   },
-});
+} satisfies Prisma.EventTypeSelect;
 
 // Create a separate select for schedule-related fields
-export const eventTypeScheduleSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+export const eventTypeScheduleSelect = {
   ...eventTypeSelect,
   schedule: {
     select: {
@@ -96,4 +96,4 @@ export const eventTypeScheduleSelect = Prisma.validator<Prisma.EventTypeSelect>(
       name: true,
     },
   },
-});
+} satisfies Prisma.EventTypeSelect;
