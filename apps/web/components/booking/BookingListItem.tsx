@@ -131,7 +131,7 @@ function BookingListItem(booking: BookingItemProps) {
     };
   });
 
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
       // Invalidate and refetch the bookings query to update the UI
@@ -938,10 +938,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
 
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
-      utils.viewer.bookings.invalidate();
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1030,9 +1030,11 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     };
   });
   const { t } = useLocale();
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+  const utils = trpc.useUtils();
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(t(data.message), "success");
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1133,7 +1135,8 @@ const NoShowAttendeesDialog = ({
     }))
   );
 
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+  const utils = trpc.useUtils();
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       const newValue = data.attendees[0];
       setNoShowAttendees((old) =>
@@ -1142,6 +1145,7 @@ const NoShowAttendeesDialog = ({
         )
       );
       showToast(t(data.message), "success");
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1172,7 +1176,7 @@ const NoShowAttendeesDialog = ({
             </div>
           </form>
         ))}
-        <DialogFooter>
+        <DialogFooter noSticky>
           <DialogClose>{t("done")}</DialogClose>
         </DialogFooter>
       </DialogContent>

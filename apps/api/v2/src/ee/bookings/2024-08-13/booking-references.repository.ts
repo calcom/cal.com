@@ -24,4 +24,26 @@ export class BookingReferencesRepository_2024_08_13 {
       },
     });
   }
+
+  async getBookingReferencesIncludeSensitiveCredentials(eventUid: string) {
+    return this.dbRead.prisma.bookingReference.findFirst({
+      where: {
+        uid: eventUid,
+      },
+      include: {
+        credential: true,
+        delegationCredential: true,
+        booking: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
