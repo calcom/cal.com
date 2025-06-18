@@ -619,7 +619,7 @@ describe("buildDateRanges", () => {
     const items = [
       {
         days: [1, 2],
-        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 11 PM
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 12 AM
         endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 11:59 PM (EOD)
       },
     ];
