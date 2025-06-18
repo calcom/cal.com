@@ -39,6 +39,7 @@ function Field({
   moveUp,
   moveDown,
   appUrl,
+  hasFormResponses,
 }: {
   fieldIndex: number;
   hookForm: HookForm;
@@ -56,10 +57,12 @@ function Field({
     fn: () => void;
   };
   appUrl: string;
+  hasFormResponses: boolean;
 }) {
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
   const [showFieldTypeDialog, setShowFieldTypeDialog] = useState(false);
+  const [pendingFieldType, setPendingFieldType] = useState<string | null>(null);
 
   const router = hookForm.getValues(`${hookFieldNamespace}.router`);
   const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
@@ -79,6 +82,7 @@ function Field({
     name: `${hookFieldNamespace}.type`,
   });
 
+  const fieldHasData = hasFormResponses;
   const preCountFieldLabel = label || routerField?.label || "Field";
   const fieldLabel = `${fieldIndex + 1}. ${preCountFieldLabel}`;
 
@@ -126,7 +130,7 @@ function Field({
               name={`${hookFieldNamespace}.type`}
               control={hookForm.control}
               defaultValue={routerField?.type}
-              render={({ field: { value } }) => {
+              render={({ field: { value, onChange } }) => {
                 const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                 return (
                   <>
@@ -150,7 +154,15 @@ function Field({
                         if (!option) {
                           return;
                         }
-                        setShowFieldTypeDialog(true);
+                        const isNewField = !label || label.trim() === "" || label === "Field";
+                        const shouldWarnAboutDataLoss = fieldHasData && !isNewField && value !== option.value;
+
+                        if (shouldWarnAboutDataLoss) {
+                          setPendingFieldType(option.value);
+                          setShowFieldTypeDialog(true);
+                        } else {
+                          onChange(option.value);
+                        }
                       }}
                       defaultValue={defaultValue}
                     />
@@ -168,6 +180,12 @@ function Field({
                             // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- User action triggered, conditional within !isEmbed check
                             addButton.scrollIntoView({ behavior: "smooth" });
                           }
+                        }
+                      }}
+                      onConfirmChange={() => {
+                        if (pendingFieldType) {
+                          onChange(pendingFieldType);
+                          setPendingFieldType(null);
                         }
                       }}
                     />
@@ -266,6 +284,7 @@ const FormEdit = ({
               fieldIndex={key}
               hookForm={hookForm}
               hookFieldNamespace={`${fieldsNamespace}.${key}`}
+              hasFormResponses={form._count?.responses > 0}
               deleteField={{
                 check: () => hookFormFields.length > 1,
                 fn: () => {
