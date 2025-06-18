@@ -1,6 +1,5 @@
 "use client";
 
-import useTheme from "@calcom/lib/hooks/useTheme";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -10,10 +9,6 @@ import { PreviewBanner } from "./preview-banner";
 
 export function UserBookingPreview(props: BookingPreviewPageProps) {
   const { eventType, profile, entity } = props;
-
-  // Use theme from profile
-  useTheme(profile.theme);
-
   const organizationName = entity.name;
   const bookingUrl = `/${profile.username}/${eventType.slug}`;
 
