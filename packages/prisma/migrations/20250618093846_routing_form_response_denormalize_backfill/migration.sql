@@ -124,4 +124,3 @@ BEGIN
     RAISE NOTICE 'Migration completed: processed up to ID % (%.1f%% of total range)', 
         end_id, (end_id::float / total_count * 100);
 END $$;
-
