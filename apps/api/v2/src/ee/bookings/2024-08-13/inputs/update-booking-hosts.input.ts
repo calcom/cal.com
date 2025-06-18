@@ -20,13 +20,12 @@ export class HostActionDto {
   @ApiProperty({ enum: HostAction, example: "add", description: "Action to perform on the host" })
   action!: HostAction;
 
-  @ValidateIf((o) => !o.name)
+  @ValidateIf((o) => !o.usernameOrEmail)
   @IsNumber()
   @ApiProperty({
     type: Number,
     example: 123,
-    description:
-      "User ID of the host to add or remove. Either userId or name must be provided, but not both.",
+    description: "User ID of the host to add or remove. Either userId or usernameOrEmail must be provided.",
     required: false,
   })
   userId?: number;
@@ -36,10 +35,10 @@ export class HostActionDto {
   @ApiProperty({
     type: String,
     description:
-      "Email/name of the host to add or remove. Either userId or name must be provided, but not both.",
+      "Username or email address of the host to add or remove. Either userId or usernameOrEmail must be provided.",
     required: false,
   })
-  name?: string;
+  usernameOrEmail?: string;
 }
 
 export class UpdateBookingHostsInput_2024_08_13 {

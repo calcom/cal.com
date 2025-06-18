@@ -57,8 +57,7 @@ import {
 import { PrismaClient } from "@calcom/prisma";
 import { EventType, User, Team } from "@calcom/prisma/client";
 
-import { UpdateBookingHostsInput_2024_08_13 } from "../inputs/update-booking-hosts.input";
-import { HostAction } from "../inputs/update-booking-hosts.input";
+import { UpdateBookingHostsInput_2024_08_13, HostAction } from "../inputs/update-booking-hosts.input";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -1208,30 +1207,62 @@ export class BookingsService_2024_08_13 {
   }
 
   private async getAllReferencedUsers(
-    hostActions: Array<{ action: HostAction; userId?: number; name?: string }>
+    hostActions: Array<{ action: HostAction; userId?: number; usernameOrEmail?: string }>
   ): Promise<Map<string, any>> {
     const userIds = new Set<number>();
     const emails = new Set<string>();
+    const usernames = new Set<string>();
 
-    // Collect all user references
+    // Collect all user references and categorize them
     for (const action of hostActions) {
       if (action.userId) {
         userIds.add(action.userId);
       }
-      if (action.name) {
-        emails.add(action.name);
+      if (action.usernameOrEmail) {
+        // Simple heuristic: if it contains @, treat as email, otherwise username
+        if (action.usernameOrEmail.includes("@")) {
+          emails.add(action.usernameOrEmail);
+        } else {
+          usernames.add(action.usernameOrEmail);
+        }
       }
     }
 
-    // Batch fetch all users
-    const [usersByIds, usersByEmails] = await Promise.all([
-      userIds.size > 0 ? this.usersRepository.findByIds(Array.from(userIds)) : [],
+    // Batch fetch all users with only required fields
+    const [usersByIds, usersByEmails, usersByUsernames] = await Promise.all([
+      userIds.size > 0
+        ? this.prismaReadService.prisma.user.findMany({
+            where: { id: { in: Array.from(userIds) } },
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              name: true,
+              timeZone: true,
+              locale: true,
+            },
+          })
+        : [],
       emails.size > 0
         ? this.prismaReadService.prisma.user.findMany({
             where: { email: { in: Array.from(emails) } },
             select: {
               id: true,
               email: true,
+              username: true,
+              name: true,
+              timeZone: true,
+              locale: true,
+            },
+          })
+        : [],
+      usernames.size > 0
+        ? this.prismaReadService.prisma.user.findMany({
+            where: { username: { in: Array.from(usernames) } },
+            select: {
+              id: true,
+              email: true,
+              username: true,
               name: true,
               timeZone: true,
               locale: true,
@@ -1251,11 +1282,17 @@ export class BookingsService_2024_08_13 {
       userMap.set(`email:${user.email}`, user);
     });
 
+    usersByUsernames.forEach((user) => {
+      if (user.username) {
+        userMap.set(`username:${user.username}`, user);
+      }
+    });
+
     return userMap;
   }
 
   private async validateAndProcessHostActions(
-    hostActions: Array<{ action: HostAction; userId?: number; name?: string }>,
+    hostActions: Array<{ action: HostAction; userId?: number; usernameOrEmail?: string }>,
     currentHostIds: number[],
     teamMemberIds: number[],
     userMap: Map<string, any>
@@ -1272,14 +1309,18 @@ export class BookingsService_2024_08_13 {
     const processedUserIds = new Set<number>();
 
     for (const hostAction of hostActions) {
-      const { action, userId, name } = hostAction;
+      const { action, userId, usernameOrEmail } = hostAction;
 
-      // Validate that either userId or name is provided
-      if (!userId && !name) {
-        throw new BadRequestException("Either userId or name must be provided for each host action");
+      // Validate that either userId or usernameOrEmail is provided
+      if (!userId && !usernameOrEmail) {
+        throw new BadRequestException(
+          "Either userId or usernameOrEmail must be provided for each host action"
+        );
       }
-      if (userId && name) {
-        throw new BadRequestException("Cannot provide both userId and name in the same host action");
+      if (userId && usernameOrEmail) {
+        throw new BadRequestException(
+          "Cannot provide both userId and usernameOrEmail in the same host action"
+        );
       }
 
       let resolvedUserId: number;
@@ -1291,14 +1332,29 @@ export class BookingsService_2024_08_13 {
           throw new BadRequestException(`User with id ${userId} not found`);
         }
         resolvedUserId = userId;
-      } else if (name) {
-        resolvedUser = userMap.get(`email:${name}`);
+      } else if (usernameOrEmail) {
+        // Try to find by email first, then by username
+        const lookupKey = usernameOrEmail.includes("@")
+          ? `email:${usernameOrEmail}`
+          : `username:${usernameOrEmail}`;
+        resolvedUser = userMap.get(lookupKey);
+
         if (!resolvedUser) {
-          throw new BadRequestException(`User with email ${name} not found`);
+          // If not found, try the other lookup method as fallback
+          const fallbackKey = usernameOrEmail.includes("@")
+            ? `username:${usernameOrEmail}`
+            : `email:${usernameOrEmail}`;
+          resolvedUser = userMap.get(fallbackKey);
+        }
+
+        if (!resolvedUser) {
+          throw new BadRequestException(
+            `User with ${usernameOrEmail.includes("@") ? "email" : "username"} '${usernameOrEmail}' not found`
+          );
         }
         resolvedUserId = resolvedUser.id;
       } else {
-        throw new BadRequestException("Invalid host action: missing both userId and name");
+        throw new BadRequestException("Invalid host action: missing both userId and usernameOrEmail");
       }
 
       // Prevent duplicate operations on same user

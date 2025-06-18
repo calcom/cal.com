@@ -15,6 +15,6 @@ export class UpdateBookingHostsOutput_2024_08_13 {
     description: "Updated booking with new hosts",
   })
   @ValidateNested()
-  @Type(() => Object)
+  @Type(() => BookingOutput_2024_08_13)
   data!: BookingOutput_2024_08_13;
 }
