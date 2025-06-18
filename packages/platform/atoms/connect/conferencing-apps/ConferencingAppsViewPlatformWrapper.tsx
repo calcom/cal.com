@@ -78,7 +78,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const showToast = (message: string, variant: "success" | "warning" | "error") => {
+  const showToast = (message: string, _variant: "success" | "warning" | "error") => {
     if (!disableToasts) {
       toast({ description: message });
     }
@@ -118,8 +118,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
         queryKey: [defaultConferencingAppQueryKey],
       });
     },
-    onError: () => {
-      showToast(t("error_removing_app"), "error");
+    onError: (_error) => {
+      // Global interceptor handles error notification
       handleModelClose();
     },
     teamId,
@@ -148,8 +148,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
         queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
         onSuccessCallback();
       },
-      onError: (error) => {
-        showToast(`Error: ${error.message}`, "error");
+      onError: (_error) => {
+        // Global interceptor handles error notification
         onErrorCallback();
       },
     });
@@ -177,9 +177,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
       showToast("app installed successfully", "success");
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
     },
-    onError: () => {
+    onError: (_error) => {
+      // Global interceptor handles error notification
       queryClient.invalidateQueries({ queryKey: [atomsConferencingAppsQueryKey] });
-      showToast(`Error: unable to install app`, "error");
     },
     returnTo,
     onErrorReturnTo,
