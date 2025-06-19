@@ -54,8 +54,11 @@ export function AdvancedPermissionGroup({
         className="flex cursor-pointer items-center justify-between gap-1.5 p-4"
         onClick={() => setIsExpanded(!isExpanded)}>
         <Icon
-          name="chevron-down"
-          className={classNames("h-4 w-4 transition-transform", isExpanded ? "rotate-180" : "")}
+          name={isAllResources ? "chevron-right" : "chevron-down"}
+          className={classNames(
+            "h-4 w-4 transition-transform",
+            isExpanded && !isAllResources ? "rotate-180" : ""
+          )}
         />
         <div className="flex items-center gap-2">
           <Checkbox
