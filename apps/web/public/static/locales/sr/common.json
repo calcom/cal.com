@@ -71,7 +71,7 @@
   "invite_team_individual_segment": "Pozovite jednu osobu",
   "invite_team_bulk_segment": "Pozovite grupno",
   "invite_team_notifcation_badge": "Poz.",
-  "your_event_has_been_scheduled": "Vaš dogadjaj je odložen",
+  "your_event_has_been_scheduled": "Vaš događaj je zakazan",
   "your_event_has_been_scheduled_recurring": "Vaš ponavljajući događaj je zakazan",
   "accept_our_license": "Prihvatite našu dozvolu tako što ćete promeniti .env varijablu <1>NEXT_PUBLIC_LICENSE_CONSENT</1> u '{{agree}}'.",
   "remove_banner_instructions": "Da uklonite baner, molim vas da otvorite vaš .env file i promenite <1>NEXT_PUBLIC_LICENSE_CONSENT</1> varijablu u '{{agree}}'.",
