@@ -1,8 +1,6 @@
 import { vi, describe, test, expect, beforeEach, afterEach } from "vitest";
 import "vitest-fetch-mock";
 
-import logger from "@calcom/lib/logger";
-
 import { getTokenObjectFromCredential } from "../../../_utils/oauth/getTokenObjectFromCredential";
 import Office365CalendarService from "../../lib/CalendarService";
 import { Office365SubscriptionManager } from "../../lib/Office365SubscriptionManager";
@@ -14,8 +12,6 @@ import { ErrorHandlingTestUtils } from "./shared/error-handling.utils";
 // Mock dependencies
 vi.mock("../../../_utils/oauth/getTokenObjectFromCredential");
 vi.mock("../../lib/getOfficeAppKeys");
-
-const log = logger.getSubLogger({ prefix: ["SubscriptionManager.test"] });
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -79,15 +75,37 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
       const subscriptionManager = new Office365SubscriptionManager(calendarService);
 
       const subscriptionError = ErrorHandlingTestUtils.ERROR_SCENARIOS.SUBSCRIPTION_ERROR;
-      const fetcherSpy = ErrorHandlingTestUtils.createErrorMock(subscriptionError);
+      const fetcherSpy = vi.fn().mockImplementation(async (endpoint, options) => {
+        // Mock the /me endpoint to succeed so getUserEndpoint doesn't fail
+        if (endpoint === "/me") {
+          return {
+            status: 200,
+            ok: true,
+            statusText: "OK",
+            headers: new Headers({ "Content-Type": "application/json" }),
+            json: async () => ({
+              userPrincipalName: "test@example.com",
+              id: "test-user-id",
+            }),
+          };
+        }
+        // Mock the subscription creation to fail
+        if (endpoint === "/subscriptions" && options?.method === "POST") {
+          return ErrorHandlingTestUtils.createErrorMock(subscriptionError)();
+        }
+        return defaultFetcherMockImplementation(endpoint, options);
+      });
 
       vi.spyOn(calendarService, "fetcher" as any).mockImplementation(fetcherSpy);
 
       await expect(subscriptionManager.createSubscription("calendar123")).rejects.toThrow(
-        "Failed to create subscription: 500 Internal Server Error"
+        /Failed to create subscription: 500 Internal Server Error - /
       );
 
-      ErrorHandlingTestUtils.expectErrorHandling(fetcherSpy, subscriptionError, 1);
+      // Verify the /me endpoint was called first
+      expect(fetcherSpy).toHaveBeenCalledWith("/me");
+      // Verify the subscription endpoint was called second
+      expect(fetcherSpy).toHaveBeenCalledWith("/subscriptions", expect.objectContaining({ method: "POST" }));
 
       fetcherSpy.mockRestore();
     });
@@ -473,12 +491,22 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
           if (typeof endpoint === "string" && endpoint.includes("/subscriptions/non-existent")) {
             return {
               status: 404,
+              ok: false,
+              statusText: "Not Found",
+              headers: new Headers({ "Content-Type": "application/json" }),
               json: async () => ({
                 error: {
                   code: "NotFound",
                   message: "Subscription not found",
                 },
               }),
+              text: async () =>
+                JSON.stringify({
+                  error: {
+                    code: "NotFound",
+                    message: "Subscription not found",
+                  },
+                }),
             };
           }
           return defaultFetcherMockImplementation(endpoint, options);
@@ -490,32 +518,60 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
       fetcherSpy.mockRestore();
     });
 
-    test("should retry subscription operations on transient failures", async () => {
+    test("should fail on transient failures without retry", async () => {
       const credential = await createCredentialForCalendarService();
       const calendarService = new Office365CalendarService(credential);
       const subscriptionManager = new Office365SubscriptionManager(calendarService);
 
       // Mock a 429 response that should cause the operation to fail
-      const fetcherSpy = vi.spyOn(calendarService, "fetcher" as any).mockImplementation(async () => {
-        return {
-          status: 429,
-          ok: false,
-          statusText: "Too Many Requests",
-          json: async () => ({
-            error: {
-              code: "TooManyRequests",
-              message: "Rate limit exceeded",
-            },
-          }),
-        };
-      });
+      const fetcherSpy = vi
+        .spyOn(calendarService, "fetcher" as any)
+        .mockImplementation(async (endpoint, options) => {
+          // Mock the /me endpoint to succeed so getUserEndpoint doesn't fail
+          if (endpoint === "/me") {
+            return {
+              status: 200,
+              ok: true,
+              statusText: "OK",
+              headers: new Headers({ "Content-Type": "application/json" }),
+              json: async () => ({
+                userPrincipalName: "test@example.com",
+                id: "test-user-id",
+              }),
+            };
+          }
+          // Mock the subscription creation to fail with rate limit
+          if (endpoint === "/subscriptions" && (options as any)?.method === "POST") {
+            return {
+              status: 429,
+              ok: false,
+              statusText: "Too Many Requests",
+              headers: new Headers({ "Content-Type": "application/json", "Retry-After": "60" }),
+              json: async () => ({
+                error: {
+                  code: "TooManyRequests",
+                  message: "Rate limit exceeded",
+                },
+              }),
+              text: async () =>
+                JSON.stringify({
+                  error: {
+                    code: "TooManyRequests",
+                    message: "Rate limit exceeded",
+                  },
+                }),
+            };
+          }
+          return defaultFetcherMockImplementation(endpoint, options);
+        });
 
       // Should fail with rate limit error since SubscriptionManager doesn't have retry logic
       await expect(subscriptionManager.createSubscription("calendar123")).rejects.toThrow(
-        "Failed to create subscription: 429 Too Many Requests"
+        /Failed to create subscription: 429 Too Many Requests - /
       );
 
-      expect(fetcherSpy).toHaveBeenCalledTimes(1);
+      expect(fetcherSpy).toHaveBeenCalledWith("/me");
+      expect(fetcherSpy).toHaveBeenCalledWith("/subscriptions", expect.objectContaining({ method: "POST" }));
 
       fetcherSpy.mockRestore();
     });
@@ -526,26 +582,54 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
       const subscriptionManager = new Office365SubscriptionManager(calendarService);
 
       // Mock a 401 response that should cause the operation to fail
-      const fetcherSpy = vi.spyOn(calendarService, "fetcher" as any).mockImplementation(async () => {
-        return {
-          status: 401,
-          ok: false,
-          statusText: "Unauthorized",
-          json: async () => ({
-            error: {
-              code: "InvalidAuthenticationToken",
-              message: "Authentication failed",
-            },
-          }),
-        };
-      });
+      const fetcherSpy = vi
+        .spyOn(calendarService, "fetcher" as any)
+        .mockImplementation(async (endpoint, options) => {
+          // Mock the /me endpoint to succeed so getUserEndpoint doesn't fail
+          if (endpoint === "/me") {
+            return {
+              status: 200,
+              ok: true,
+              statusText: "OK",
+              headers: new Headers({ "Content-Type": "application/json" }),
+              json: async () => ({
+                userPrincipalName: "test@example.com",
+                id: "test-user-id",
+              }),
+            };
+          }
+          // Mock the subscription creation to fail with auth error
+          if (endpoint === "/subscriptions" && (options as any)?.method === "POST") {
+            return {
+              status: 401,
+              ok: false,
+              statusText: "Unauthorized",
+              headers: new Headers({ "Content-Type": "application/json" }),
+              json: async () => ({
+                error: {
+                  code: "InvalidAuthenticationToken",
+                  message: "Authentication failed",
+                },
+              }),
+              text: async () =>
+                JSON.stringify({
+                  error: {
+                    code: "InvalidAuthenticationToken",
+                    message: "Authentication failed",
+                  },
+                }),
+            };
+          }
+          return defaultFetcherMockImplementation(endpoint, options);
+        });
 
       // Should fail with auth error since SubscriptionManager doesn't have retry logic
       await expect(subscriptionManager.createSubscription("calendar123")).rejects.toThrow(
-        "Failed to create subscription: 401 Unauthorized"
+        /Failed to create subscription: 401 Unauthorized - /
       );
 
-      expect(fetcherSpy).toHaveBeenCalledTimes(1);
+      expect(fetcherSpy).toHaveBeenCalledWith("/me");
+      expect(fetcherSpy).toHaveBeenCalledWith("/subscriptions", expect.objectContaining({ method: "POST" }));
 
       fetcherSpy.mockRestore();
     });

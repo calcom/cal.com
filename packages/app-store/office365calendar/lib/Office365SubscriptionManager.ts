@@ -43,7 +43,10 @@ export class Office365SubscriptionManager {
         clientState: getWebhookToken(), // For verifying webhook authenticity
       };
 
-      log.debug("Creating subscription with request body", safeStringify(requestBody));
+      log.debug(
+        "Creating subscription with request body",
+        safeStringify({ ...requestBody, clientState: "***REDACTED***" })
+      );
 
       const response = await this.calendarService.fetcher(`/subscriptions`, {
         method: "POST",

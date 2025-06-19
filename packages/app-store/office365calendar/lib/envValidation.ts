@@ -18,22 +18,19 @@ interface ValidationResult {
  * Validates required environment variables for Office365 calendar integration
  */
 export function validateOffice365Environment(): ValidationResult {
-  const env: EnvironmentConfig = process.env;
+  const env = process.env as EnvironmentConfig;
   const missingVars: string[] = [];
   const warnings: string[] = [];
 
-  // Required environment variables
-  const requiredVars = ["NEXT_PUBLIC_WEBAPP_URL"];
+  // Either MICROSOFT_WEBHOOK_URL or NEXT_PUBLIC_WEBAPP_URL is required for webhook URL
+  if (!env.MICROSOFT_WEBHOOK_URL && !env.NEXT_PUBLIC_WEBAPP_URL) {
+    missingVars.push("MICROSOFT_WEBHOOK_URL or NEXT_PUBLIC_WEBAPP_URL");
+  }
 
   // Optional but recommended environment variables
   const recommendedVars = ["MICROSOFT_WEBHOOK_TOKEN"];
 
-  // Check required variables
-  for (const varName of requiredVars) {
-    if (!env[varName as keyof EnvironmentConfig]) {
-      missingVars.push(varName);
-    }
-  }
+  // No need to check individual required variables since we check the combination above
 
   // Check recommended variables
   for (const varName of recommendedVars) {
@@ -95,7 +92,9 @@ export function getWebhookUrl(): string {
     throw new Error("Neither MICROSOFT_WEBHOOK_URL nor NEXT_PUBLIC_WEBAPP_URL is configured");
   }
 
-  return `${baseUrl}/api/integrations/office365calendar/webhook`;
+  // Ensure baseUrl doesn't end with slash to prevent double slashes
+  const cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+  return `${cleanBaseUrl}/api/integrations/office365calendar/webhook`;
 }
 
 /**

@@ -638,7 +638,7 @@ export default class Office365CalendarService implements Calendar {
   };
 
   private handleErrorJsonOffice365Calendar = <Type>(response: Response): Promise<Type | string> => {
-    if (response.headers.get("content-encoding") === "gzip") {
+    if (response.headers?.get?.("content-encoding") === "gzip") {
       return response.text();
     }
 
@@ -646,7 +646,7 @@ export default class Office365CalendarService implements Calendar {
       return new Promise((resolve) => resolve({} as Type));
     }
 
-    if (!response.ok && response.status < 200 && response.status >= 300) {
+    if (!response.ok && (response.status < 200 || response.status >= 300)) {
       // Log error details using proper logger instead of console.log
       response
         .json()
@@ -654,7 +654,7 @@ export default class Office365CalendarService implements Calendar {
           this.log.error("Office365 API Error", {
             status: response.status,
             statusText: response.statusText,
-            errorBody,
+            // errorBody omitted to avoid logging sensitive information
             url: response.url,
           });
         })
@@ -905,10 +905,7 @@ export default class Office365CalendarService implements Calendar {
     data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">,
     eventTypeIds: SelectedCalendarEventTypeIds
   ) {
-    this.log.debug(
-      "upsertSelectedCalendarsForEventTypeIds",
-      safeStringify({ data, eventTypeIds, credential: this.credential })
-    );
+    this.log.debug("upsertSelectedCalendarsForEventTypeIds", safeStringify({ data, eventTypeIds }));
     if (!this.credential.userId) {
       logger.error("upsertSelectedCalendarsForEventTypeIds failed. userId is missing.");
       return;

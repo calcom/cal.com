@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE "SelectedCalendar" ADD COLUMN     "outlookSubscriptionExpiration" TEXT,
+ALTER TABLE "SelectedCalendar" ADD COLUMN     "outlookSubscriptionExpiration" TIMESTAMPTZ,
 ADD COLUMN     "outlookSubscriptionId" TEXT;
 
 -- CreateIndex

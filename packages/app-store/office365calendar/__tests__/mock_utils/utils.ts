@@ -108,7 +108,13 @@ export async function createCredentialForCalendarService({
       user: { connect: { id: defaultUser.id } },
       app: { connect: { slug: app.slug } },
     },
-    include: { user: true },
+    include: {
+      user: {
+        select: {
+          email: true, // Only select required field
+        },
+      },
+    },
   });
 
   return {
@@ -241,13 +247,19 @@ export async function createDelegationCredentialForCalendarCache({
     },
   });
 
+  const inMemoryCredential = createInMemoryCredential({
+    userId: credentialInDb.userId!,
+    delegationCredentialId,
+    delegatedTo,
+  });
+
   return {
-    ...createInMemoryCredential({
-      userId: credentialInDb.userId!,
-      delegationCredentialId,
-      delegatedTo,
-    }),
     ...credentialInDb,
+    // Override with delegation-specific properties (preserve delegation info)
+    delegatedToId: inMemoryCredential.delegatedToId,
+    delegatedTo: inMemoryCredential.delegatedTo,
+    invalid: inMemoryCredential.invalid,
+    key: inMemoryCredential.key, // Use delegation token, not DB credential
   };
 }
 

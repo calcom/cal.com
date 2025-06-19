@@ -1,12 +1,12 @@
 // packages/app-store/office365calendar/lib/Office365CalendarCache.ts
-import type Office365CalendarService from "office365calendar/lib/CalendarService";
-
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { EventBusyDate, IntegrationCalendar } from "@calcom/types/Calendar";
+
+import type Office365CalendarService from "./CalendarService";
 
 const log = logger.getSubLogger({ prefix: ["Office365CalendarCache"] });
 
@@ -30,10 +30,10 @@ export class Office365CalendarCache {
     log.info("[Office365CalendarCache] getCacheOrFetchAvailability called", {
       dateFrom,
       dateTo,
-      calendarIds,
+      calendarCount: calendarIds.length,
       shouldServeCache,
-      credentialId: this.credentialId,
-      userId: this.userId,
+      hasCredentialId: !!this.credentialId,
+      hasUserId: !!this.userId,
     });
 
     try {
@@ -68,7 +68,11 @@ export class Office365CalendarCache {
       });
 
       if (cachedAvailability) {
-        log.info("[Cache Hit] Returning cached availability", { dateFrom, dateTo, calendarIds });
+        log.info("[Cache Hit] Returning cached availability", {
+          dateFrom,
+          dateTo,
+          calendarCount: calendarIds.length,
+        });
         return cachedAvailability.value as unknown as EventBusyDate[];
       }
 
@@ -76,7 +80,7 @@ export class Office365CalendarCache {
       log.info("[Cache Miss] No cached data found, fetching fresh availability", {
         dateFrom,
         dateTo,
-        calendarIds,
+        calendarCount: calendarIds.length,
       });
       const data = await this.calendarService.fetchAvailability({
         timeMin: dateFrom,

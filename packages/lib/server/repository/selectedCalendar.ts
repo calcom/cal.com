@@ -306,6 +306,13 @@ export class SelectedCalendarRepository {
           select: {
             ...credentialForCalendarServiceSelect,
             selectedCalendars: {
+              select: {
+                id: true,
+                externalId: true,
+                integration: true,
+                userId: true,
+                credentialId: true,
+              },
               orderBy: {
                 externalId: "asc",
               },
@@ -326,6 +333,13 @@ export class SelectedCalendarRepository {
           select: {
             ...credentialForCalendarServiceSelect,
             selectedCalendars: {
+              select: {
+                id: true,
+                externalId: true,
+                integration: true,
+                userId: true,
+                credentialId: true,
+              },
               orderBy: {
                 externalId: "asc",
               },
@@ -354,6 +368,16 @@ export class SelectedCalendarRepository {
           select: {
             ...credentialForCalendarServiceSelect,
             selectedCalendars: {
+              select: {
+                id: true,
+                externalId: true,
+                integration: true,
+                userId: true,
+                credentialId: true,
+                outlookSubscriptionId: true,
+                outlookSubscriptionExpiration: true,
+                eventTypeId: true,
+              },
               orderBy: {
                 externalId: "asc",
               },

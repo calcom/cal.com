@@ -7,42 +7,89 @@ import dayjs from "@calcom/dayjs";
  */
 
 // Get current date and next week dates
-const now = dayjs();
-const nextWeek = now.add(1, "week");
-const currentWeekStart = now.startOf("week");
-const nextWeekStart = nextWeek.startOf("week");
+// Use function to get fresh timestamps for each test run
+const getNow = () => dayjs().utc().millisecond(0);
 
 export const TEST_DATES = {
   // Current week dates
-  TODAY: now.format("YYYY-MM-DD"),
-  TODAY_ISO: now.toISOString(),
-  CURRENT_WEEK_START: currentWeekStart.format("YYYY-MM-DD"),
-  CURRENT_WEEK_START_ISO: currentWeekStart.toISOString(),
-  CURRENT_WEEK_END: currentWeekStart.add(6, "days").format("YYYY-MM-DD"),
-  CURRENT_WEEK_END_ISO: currentWeekStart.add(6, "days").toISOString(),
+  get TODAY() {
+    return getNow().format("YYYY-MM-DD");
+  },
+  get TODAY_ISO() {
+    return getNow().toISOString();
+  },
+  get CURRENT_WEEK_START() {
+    return getNow().startOf("week").format("YYYY-MM-DD");
+  },
+  get CURRENT_WEEK_START_ISO() {
+    return getNow().startOf("week").toISOString();
+  },
+  get CURRENT_WEEK_END() {
+    return getNow().startOf("week").add(6, "days").format("YYYY-MM-DD");
+  },
+  get CURRENT_WEEK_END_ISO() {
+    return getNow().startOf("week").add(6, "days").toISOString();
+  },
 
   // Next week dates for future bookings
-  NEXT_WEEK_START: nextWeekStart.format("YYYY-MM-DD"),
-  NEXT_WEEK_START_ISO: nextWeekStart.toISOString(),
-  NEXT_WEEK_END: nextWeekStart.add(6, "days").format("YYYY-MM-DD"),
-  NEXT_WEEK_END_ISO: nextWeekStart.add(6, "days").toISOString(),
+  get NEXT_WEEK_START() {
+    return getNow().add(1, "week").startOf("week").format("YYYY-MM-DD");
+  },
+  get NEXT_WEEK_START_ISO() {
+    return getNow().add(1, "week").startOf("week").toISOString();
+  },
+  get NEXT_WEEK_END() {
+    return getNow().add(1, "week").startOf("week").add(6, "days").format("YYYY-MM-DD");
+  },
+  get NEXT_WEEK_END_ISO() {
+    return getNow().add(1, "week").startOf("week").add(6, "days").toISOString();
+  },
 
   // Specific day times for testing round-robin scenarios
-  TOMORROW: now.add(1, "day").format("YYYY-MM-DD"),
-  TOMORROW_9AM: now.add(1, "day").hour(9).minute(0).second(0).toISOString(),
-  TOMORROW_10AM: now.add(1, "day").hour(10).minute(0).second(0).toISOString(),
-  TOMORROW_2PM: now.add(1, "day").hour(14).minute(0).second(0).toISOString(),
-  TOMORROW_3PM: now.add(1, "day").hour(15).minute(0).second(0).toISOString(),
+  get TOMORROW() {
+    return getNow().add(1, "day").format("YYYY-MM-DD");
+  },
+  get TOMORROW_9AM() {
+    return getNow().add(1, "day").hour(9).minute(0).second(0).millisecond(0).toISOString();
+  },
+  get TOMORROW_10AM() {
+    return getNow().add(1, "day").hour(10).minute(0).second(0).millisecond(0).toISOString();
+  },
+  get TOMORROW_2PM() {
+    return getNow().add(1, "day").hour(14).minute(0).second(0).millisecond(0).toISOString();
+  },
+  get TOMORROW_3PM() {
+    return getNow().add(1, "day").hour(15).minute(0).second(0).millisecond(0).toISOString();
+  },
 
   // Date ranges for availability testing
-  AVAILABILITY_START: nextWeekStart.hour(0).minute(0).second(0).toISOString(),
-  AVAILABILITY_END: nextWeekStart.hour(23).minute(59).second(59).toISOString(),
+  get AVAILABILITY_START() {
+    return getNow().add(1, "week").startOf("week").hour(0).minute(0).second(0).millisecond(0).toISOString();
+  },
+  get AVAILABILITY_END() {
+    return getNow()
+      .add(1, "week")
+      .startOf("week")
+      .hour(23)
+      .minute(59)
+      .second(59)
+      .millisecond(999)
+      .toISOString();
+  },
 
   // Extended ranges for chunking tests (optimization scenarios)
-  EXTENDED_START: now.format("YYYY-MM-DD"),
-  EXTENDED_END: now.add(120, "days").format("YYYY-MM-DD"), // ~4 months for chunking tests
-  EXTENDED_START_ISO: now.toISOString(),
-  EXTENDED_END_ISO: now.add(120, "days").toISOString(),
+  get EXTENDED_START() {
+    return getNow().format("YYYY-MM-DD");
+  },
+  get EXTENDED_END() {
+    return getNow().add(120, "days").format("YYYY-MM-DD");
+  }, // ~4 months for chunking tests
+  get EXTENDED_START_ISO() {
+    return getNow().toISOString();
+  },
+  get EXTENDED_END_ISO() {
+    return getNow().add(120, "days").toISOString();
+  },
 };
 
 /**
@@ -55,7 +102,7 @@ export const generateTestDates = {
    * Used for testing multiple calendar scenarios
    */
   getBusyTimesForDay: (dayOffset = 1) => {
-    const targetDay = now.add(dayOffset, "day");
+    const targetDay = getNow().add(dayOffset, "day");
     return [
       {
         start: targetDay.hour(9).minute(0).second(0).toDate(),
@@ -73,7 +120,7 @@ export const generateTestDates = {
    * Used for testing optimization scenarios
    */
   getAvailabilityRange: (startDayOffset = 1, durationDays = 1) => {
-    const startDate = now.add(startDayOffset, "day");
+    const startDate = getNow().add(startDayOffset, "day");
     const endDate = startDate.add(durationDays, "day");
     return {
       start: startDate.hour(0).minute(0).second(0).toISOString(),
@@ -88,7 +135,7 @@ export const generateTestDates = {
   getRoundRobinDates: (numDays = 7) => {
     const dates = [];
     for (let i = 1; i <= numDays; i++) {
-      const date = now.add(i, "day");
+      const date = getNow().add(i, "day");
       dates.push({
         date: date.format("YYYY-MM-DD"),
         iso: date.toISOString(),
@@ -106,7 +153,7 @@ export const generateTestDates = {
   getTeamEventScenarios: (memberCount = 3, daysAhead = 7) => {
     const scenarios = [];
     for (let i = 1; i <= daysAhead; i++) {
-      const date = now.add(i, "day");
+      const date = getNow().add(i, "day");
       scenarios.push({
         date: date.format("YYYY-MM-DD"),
         members: Array.from({ length: memberCount }, (_, index) => ({
@@ -138,7 +185,7 @@ export const generateMockData = {
    * Generate mock calendar events for a specific day
    */
   calendarEvents: (dayOffset = 1) => {
-    const targetDay = now.add(dayOffset, "day");
+    const targetDay = getNow().add(dayOffset, "day");
     return [
       {
         id: `event-1-${targetDay.format("YYYY-MM-DD")}`,
@@ -165,7 +212,7 @@ export const generateMockData = {
     resource: `/me/calendars('${calendarId}')/events`,
     changeType: "created,updated,deleted",
     notificationUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/office365calendar/webhook`,
-    expirationDateTime: now.add(1, "day").toISOString(),
+    expirationDateTime: getNow().add(1, "day").toISOString(),
     clientState: process.env.MICROSOFT_WEBHOOK_TOKEN || "test-webhook-token",
   }),
 

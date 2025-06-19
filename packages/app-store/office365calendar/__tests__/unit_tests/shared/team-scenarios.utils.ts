@@ -80,9 +80,8 @@ export class TeamScenariosTestUtils {
       for (let member = 1; member <= teamSize; member++) {
         dayScenario.members.push({
           memberId: member,
-          available: Math.random() > 0.3, // 70% chance of being available
-          busySlots:
-            Math.random() > 0.5 ? [{ start: "2024-01-01T09:00:00Z", end: "2024-01-01T10:00:00Z" }] : [],
+          available: member % 3 !== 0, // Deterministic: every 3rd member is unavailable
+          busySlots: member % 2 === 0 ? [{ start: "2024-01-01T09:00:00Z", end: "2024-01-01T10:00:00Z" }] : [],
         });
       }
 

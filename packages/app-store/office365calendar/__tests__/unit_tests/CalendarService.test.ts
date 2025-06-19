@@ -276,12 +276,15 @@ describe("Office365CalendarService - Core Functionality", () => {
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBe(true);
 
-      // The listCalendars method makes two calls:
-      // 1. To get calendars: /me/calendars?$select=id,name,isDefaultCalendar,canEdit
-      // 2. To get user info: /me
-      expect(fetcherSpy).toHaveBeenCalledTimes(2);
-      expect(fetcherSpy).toHaveBeenCalledWith("/me/calendars?$select=id,name,isDefaultCalendar,canEdit");
-      expect(fetcherSpy).toHaveBeenCalledWith("/me");
+      // The listCalendars method makes three calls:
+      // 1. /me (from getAzureUserId)
+      // 2. To get calendars: /users/{email}/calendars?$select=id,name,isDefaultCalendar,canEdit
+      // 3. To get user info: /users/{email}
+      expect(fetcherSpy).toHaveBeenCalledTimes(3);
+      expect(fetcherSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/\/users\/.*\/calendars\?\$select=id,name,isDefaultCalendar,canEdit/)
+      );
+      expect(fetcherSpy).toHaveBeenCalledWith(expect.stringMatching(/\/users\/.*$/));
 
       fetcherSpy.mockRestore();
     });

@@ -75,18 +75,27 @@ export const ErrorHandlingTestUtils = {
           status: 500,
           ok: false,
           statusText: "Internal Server Error",
+          headers: new Headers({ "Content-Type": "application/json" }),
           json: async () => ({
             error: {
               code: "InternalServerError",
               message: scenario.error().message,
             },
           }),
+          text: async () =>
+            JSON.stringify({
+              error: {
+                code: "InternalServerError",
+                message: scenario.error().message,
+              },
+            }),
         });
       }
       return Promise.resolve({
         status: 200,
         ok: true,
         statusText: "OK",
+        headers: new Headers({ "Content-Type": "application/json" }),
         json: () => Promise.resolve({}),
       });
     });
@@ -104,6 +113,7 @@ export const ErrorHandlingTestUtils = {
           status: 429, // Rate limited
           ok: false,
           statusText: "Too Many Requests",
+          headers: new Headers({ "Content-Type": "application/json", "Retry-After": "60" }),
           json: async () => ({
             error: {
               code: "TooManyRequests",
@@ -116,6 +126,7 @@ export const ErrorHandlingTestUtils = {
         status: 200,
         ok: true,
         statusText: "OK",
+        headers: new Headers({ "Content-Type": "application/json" }),
         json: () =>
           Promise.resolve({
             id: "subscription-123",

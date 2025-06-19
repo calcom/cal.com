@@ -35,7 +35,12 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     parsedPayload = webhookPayloadSchema.parse(req.body);
   } catch (err) {
-    log.error("Invalid webhook payload", safeStringify({ error: err, body: req.body }));
+    log.error("Invalid webhook payload", {
+      error: err,
+      hasBody: !!req.body,
+      bodyType: typeof req.body,
+    });
+
     res.status(400).json({
       message: "Invalid webhook payload",
     });
@@ -44,6 +49,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 
   // Handle empty notifications
   if (!parsedPayload.value || parsedPayload.value.length === 0) {
+    log.info("Webhook received with empty notifications");
     res.json(response);
     return;
   }
@@ -117,23 +123,29 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 
         if (changeType === "deleted") {
           batch.hasDeleted = true;
-          log.info("Marked calendar for cache refresh due to deleted event", {
+          // 🔵 DEBUG: Detailed info with sensitive calendar ID
+          log.debug("Marked calendar for cache refresh due to deleted event", {
             credentialId,
             calendarId: calendar.externalId,
             subscriptionId,
           });
+          log.info("Marked calendar for cache refresh due to deleted event");
         } else if (changeType === "created") {
-          log.info("Marked calendar for cache refresh due to created event", {
+          // 🔵 DEBUG: Detailed info with sensitive calendar ID
+          log.debug("Marked calendar for cache refresh due to created event", {
             credentialId,
             calendarId: calendar.externalId,
             subscriptionId,
           });
+          log.info("Marked calendar for cache refresh due to created event");
         } else if (changeType === "updated") {
-          log.info("Marked calendar for cache refresh due to updated event", {
+          // 🔵 DEBUG: Detailed info with sensitive calendar ID
+          log.debug("Marked calendar for cache refresh due to updated event", {
             credentialId,
             calendarId: calendar.externalId,
             subscriptionId,
           });
+          log.info("Marked calendar for cache refresh due to updated event");
         }
       }
 
@@ -169,18 +181,24 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 
       if (calendarService.fetchAvailabilityAndSetCache) {
         const actionType = batch.hasDeleted ? "refresh (includes deleted events)" : "update";
-        log.info(`Calling fetchAvailabilityAndSetCache to ${actionType}`, {
+
+        log.debug(`Calling fetchAvailabilityAndSetCache to ${actionType}`, {
           credentialId,
           calendarsCount: calendarsToUpdate.length,
           calendarIds: calendarsToUpdate.map((c) => c.externalId),
           hasDeleted: batch.hasDeleted,
         });
 
+        log.info(`Calling fetchAvailabilityAndSetCache to ${actionType}`, {
+          credentialId,
+          calendarsCount: calendarsToUpdate.length,
+          hasDeleted: batch.hasDeleted,
+        });
+
         await calendarService.fetchAvailabilityAndSetCache(calendarsToUpdate);
         response.processed += calendarsToUpdate.length;
 
-        log.info(`Successfully processed calendar cache ${actionType}`, {
-          credentialId,
+        log.info(`Successfully completed calendar cache ${actionType}`, {
           processedCount: calendarsToUpdate.length,
           hasDeleted: batch.hasDeleted,
         });
@@ -222,21 +240,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Handle validation token immediately - this is checked before body parsing affects performance
   if (req.query.validationToken) {
     const validationToken = req.query.validationToken as string;
+
     log.info("Validation request received, responding immediately.", {
       method: req.method,
-      validationToken,
+      validationToken: "[REDACTED]",
     });
-    res.setHeader("Content-Type", "text/plain");
-    res.status(200).send(validationToken);
-    log.info("Validation token response sent.");
-    return; // Stop here - don't call webhookHandler
+
+    return res.status(200).send(validationToken);
   }
 
   // For non-validation requests, use the main webhook handler
-  await webhookHandler(req, res);
+  try {
+    await webhookHandler(req, res);
+  } catch (error) {
+    // Ensure we don't accidentally log sensitive query params in error logs
+    log.error("Webhook handler error", {
+      method: req.method,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    res.status(500).json({ message: "Internal server error" });
+  }
 }
 
 // Conditional body parsing: Disable for validation requests, enable for webhook POST
+// 📝 NOTE: Function-based bodyParser is a valid Next.js feature for conditional parsing
+// This prevents timeout issues during webhook validation by skipping unnecessary body parsing
 export const config = {
   api: {
     bodyParser: (req: NextApiRequest) => {

@@ -57,7 +57,7 @@ async function getAccessToken() {
 // Create Credential with DelegatedCredential for real Office365CalendarService integration
 // Uses 'client_credentials' grant type which is non-interactive, ideal for tests
 // Skips the test if credentials are not available or if any error fetching tokens
-async function fetchTokensAndCreateCredential(userId: number, orgId: number) {
+async function fetchTokenAndCreateCredential(userId: number, orgId: number) {
   let credential: CredentialForCalendarServiceWithTenantId | undefined = undefined;
 
   try {
@@ -194,7 +194,7 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
   const teamEvent = await testUser.getFirstTeamEvent(team.id, SchedulingType.ROUND_ROBIN);
   const teamEventSlug = teamEvent.slug;
 
-  outlookCredential = await fetchTokensAndCreateCredential(testUser.id, org.id);
+  outlookCredential = await fetchTokenAndCreateCredential(testUser.id, org.id);
 
   test.skip(!outlookCredential?.id, "Outlook QA credential not found");
 

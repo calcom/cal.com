@@ -37,7 +37,7 @@ export class PerformanceTestUtils {
 
     calls.forEach((call) => {
       const endpoint = call[0];
-      const options = call[1];
+      const _options = call[1];
 
       if (typeof endpoint === "string") {
         if (endpoint.includes("/$batch")) {
@@ -76,9 +76,9 @@ export class PerformanceTestUtils {
    * Measures execution time for performance testing
    */
   static async measureExecutionTime<T>(operation: () => Promise<T>): Promise<PerformanceMetrics> {
-    const startTime = performance.now();
+    const startTime = Date.now();
     await operation();
-    const endTime = performance.now();
+    const endTime = Date.now();
 
     return {
       executionTime: endTime - startTime,

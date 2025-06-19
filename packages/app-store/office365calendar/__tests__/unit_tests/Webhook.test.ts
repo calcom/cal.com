@@ -1,8 +1,6 @@
 import { vi, describe, test, expect, beforeEach, afterEach } from "vitest";
 import "vitest-fetch-mock";
 
-import logger from "@calcom/lib/logger";
-
 import { getTokenObjectFromCredential } from "../../../_utils/oauth/getTokenObjectFromCredential";
 import { getOfficeAppKeys } from "../../lib/getOfficeAppKeys";
 import { ErrorHandlingTestUtils } from "./shared/error-handling.utils";
@@ -10,8 +8,6 @@ import { ErrorHandlingTestUtils } from "./shared/error-handling.utils";
 // Mock dependencies
 vi.mock("../../../_utils/oauth/getTokenObjectFromCredential");
 vi.mock("../../lib/getOfficeAppKeys");
-
-const log = logger.getSubLogger({ prefix: ["Webhook.test"] });
 
 beforeEach(() => {
   vi.clearAllMocks();

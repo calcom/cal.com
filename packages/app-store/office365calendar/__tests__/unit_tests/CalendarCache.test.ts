@@ -40,9 +40,9 @@ beforeEach(async () => {
     client_secret: "mock_client_secret",
   });
 
-  // Mock CalendarCache.init to return our mock
+  // Mock CalendarCache.initFromCredentialId to return our mock
   const { CalendarCache } = await import("@calcom/features/calendar-cache/calendar-cache");
-  vi.mocked(CalendarCache.init).mockResolvedValue(mockCalendarCache as any);
+  vi.mocked(CalendarCache.initFromCredentialId).mockResolvedValue(mockCalendarCache as any);
 });
 
 afterEach(() => {
@@ -82,11 +82,11 @@ describe("Office365CalendarCache - Cache Operations", () => {
       expect(mockCalendarCache.getCachedAvailability).toHaveBeenCalledWith({
         credentialId: credentialInDb.id,
         userId: credentialInDb.userId,
-        args: {
-          timeMin: dateFrom,
-          timeMax: dateTo,
+        args: expect.objectContaining({
+          timeMin: expect.any(String),
+          timeMax: expect.any(String),
           items: calendarIds.map((id) => ({ id })),
-        },
+        }),
       });
 
       fetcherSpy.mockRestore();

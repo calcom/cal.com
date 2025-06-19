@@ -24,7 +24,7 @@ export const webhookPayloadSchema = z.object({
           id: z.string().optional(),
         })
         .optional(),
-      subscriptionExpirationDateTime: z.string().optional(),
+      subscriptionExpirationDateTime: z.string().datetime().optional(),
       tenantId: z.string().optional(),
     })
   ),

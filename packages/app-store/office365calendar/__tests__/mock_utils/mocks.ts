@@ -2,6 +2,19 @@ import { vi } from "vitest";
 
 import { TEST_DATES, generateMockData } from "../dates";
 
+// Type definitions for test scenarios
+interface TeamMember {
+  id: number;
+  email: string;
+  name: string;
+  calendars: {
+    externalId: string;
+    integration: string;
+    primary: boolean;
+    busyTimes: any[];
+  }[];
+}
+
 /**
  * Mock Response class that properly implements the Response interface
  * with correct ok property based on status code
@@ -66,7 +79,7 @@ export const defaultFetcherMockImplementation = vi.fn(async (endpoint, init) => 
         ["Content-Type", "application/json"],
         ["Retry-After", "0"],
       ]),
-      json: async () => Promise.resolve(JSON.stringify({ responses: batchResponse.responses })),
+      json: async () => Promise.resolve({ responses: batchResponse.responses }),
     });
   }
 
@@ -488,7 +501,7 @@ export const mockWebhookPayloads = {
         subscriptionId: subId,
         clientState: process.env.MICROSOFT_WEBHOOK_TOKEN || "test-webhook-token",
         resource: `me/calendars/${calId}/events/event${index}`,
-        changeType: Math.random() > 0.5 ? "created" : "updated",
+        changeType: index % 2 === 0 ? "created" : "updated",
         subscriptionExpirationDateTime: TEST_DATES.EXTENDED_END_ISO,
         resourceData: {
           "@odata.type": "#Microsoft.Graph.Event",
@@ -563,15 +576,19 @@ export const mockTeamEventScenarios = {
     for (let day = 1; day <= daysAhead; day++) {
       const dayScenario = {
         day,
-        members: [],
+        members: [] as Array<{
+          memberId: number;
+          available: boolean;
+          busySlots: { start: string; end: string }[];
+        }>,
       };
 
       for (let member = 1; member <= teamSize; member++) {
         dayScenario.members.push({
           memberId: member,
-          available: Math.random() > 0.3, // 70% chance of being available
+          available: member % 3 !== 0, // Deterministic: every 3rd member is unavailable
           busySlots:
-            Math.random() > 0.5 ? [{ start: TEST_DATES.TOMORROW_9AM, end: TEST_DATES.TOMORROW_10AM }] : [],
+            member % 2 === 0 ? [{ start: TEST_DATES.TOMORROW_9AM, end: TEST_DATES.TOMORROW_10AM }] : [],
         });
       }
 
