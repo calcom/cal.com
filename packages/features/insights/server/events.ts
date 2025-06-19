@@ -525,7 +525,7 @@ class EventsInsights {
 
       return {
         ...bookingTimeStatus,
-        noShowGuest: attendeeData.firstAttendeeNoShow,
+        noShowGuest: attendeeData.noShowGuest,
         attendee1: attendeeData.attendee1,
         attendee2: attendeeData.attendee2,
         attendee3: attendeeData.attendee3,
