@@ -156,6 +156,11 @@ Cal.config = Cal.config || {};
 Cal.config.forwardQueryParams=true
 ```
 
+#### Enabling Logging
+You can enable logging for the embed by adding the `cal.embed.logging=1` query parameter to the URL of the page where the embed is placed. This is useful for debugging issues with the embed. It will log all important things in parent as well as in the iframe(i.e. child)
+
+For example, if your page is `https.example.com/contact`, you can enable logging by visiting `https.example.com/contact?cal.embed.logging=1`.
+
 ### Advanced Features
 
 #### Routing Prerendering System

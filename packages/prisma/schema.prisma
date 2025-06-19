@@ -72,10 +72,12 @@ model CalVideoSettings {
   eventTypeId Int       @id
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
 
-  disableRecordingForOrganizer Boolean @default(false)
-  disableRecordingForGuests    Boolean @default(false)
-  enableAutomaticTranscription Boolean @default(false)
-  redirectUrlOnExit            String?
+  disableRecordingForOrganizer     Boolean @default(false)
+  disableRecordingForGuests        Boolean @default(false)
+  enableAutomaticTranscription     Boolean @default(false)
+  redirectUrlOnExit                String?
+  disableTranscriptionForGuests    Boolean @default(false)
+  disableTranscriptionForOrganizer Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
