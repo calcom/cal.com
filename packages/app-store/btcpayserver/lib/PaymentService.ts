@@ -84,10 +84,7 @@ export class PaymentService implements IAbstractPaymentService {
     try {
       const booking = await prisma.booking.findFirst({
         where: { id: bookingId },
-        select: {
-          uid: true,
-          title: true,
-        },
+        select: { title: true },
       });
       if (!booking || !this.credentials?.storeId) {
         throw new Error("BTCPay server: Booking or store ID not found");
@@ -118,7 +115,7 @@ export class PaymentService implements IAbstractPaymentService {
         `/api/v1/stores/${this.credentials.storeId}/invoices`,
         { method: "POST", body: JSON.stringify(invoiceRequest) }
       )) as BTCPayInvoice;
- 
+
       const paymentData = await prisma.payment.create({
         data: {
           uid,

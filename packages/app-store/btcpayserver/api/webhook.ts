@@ -53,6 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: {
         id: true,
         amount: true,
+        success: true,
         bookingId: true,
         booking: {
           select: {
@@ -66,6 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     if (!payment) throw new HttpCode({ statusCode: 404, message: "Cal.com: payment not found" });
+    if (payment.success) return res.status(400).send({ message: "Payment already registered" });
     const key = payment.booking?.user?.credentials?.[0].key;
     if (!key) throw new HttpCode({ statusCode: 404, message: "Cal.com: credentials not found" });
 
@@ -81,6 +83,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     hmac.update(rawBody);
     const computedSignature = hmac.digest("hex");
     const expectedSignature = signature.split("=")[1];
+
+    const hexRegex = /^[0-9a-fA-F]+$/;
+    if (!hexRegex.test(computedSignature) || !hexRegex.test(expectedSignature)) {
+      throw new HttpCode({ statusCode: 400, message: "signature mismatch" });
+    }
+
+    if (computedSignature.length !== expectedSignature.length) {
+      throw new HttpCode({ statusCode: 400, message: "signature mismatch" });
+    }
+    console.log(computedSignature);
+    console.log(expectedSignature);
     const isValid = crypto.timingSafeEqual(
       Buffer.from(computedSignature, "hex"),
       Buffer.from(expectedSignature, "hex")
