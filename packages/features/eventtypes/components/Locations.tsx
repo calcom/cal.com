@@ -388,6 +388,39 @@ const Locations: React.FC<LocationsProps> = ({
                         }}
                       />
 
+                      {!isPlatform && (
+                        <Controller
+                          name="calVideoSettings.disableTranscriptionForGuests"
+                          defaultValue={!!eventType.calVideoSettings?.disableTranscriptionForGuests}
+                          render={({ field: { onChange, value } }) => {
+                            return (
+                              <SettingsToggle
+                                title={t("disable_transcription_for_guests")}
+                                labelClassName="text-sm"
+                                checked={value}
+                                onCheckedChange={onChange}
+                              />
+                            );
+                          }}
+                        />
+                      )}
+                      {!isPlatform && (
+                        <Controller
+                          name="calVideoSettings.disableTranscriptionForOrganizer"
+                          defaultValue={!!eventType.calVideoSettings?.disableTranscriptionForOrganizer}
+                          render={({ field: { onChange, value } }) => {
+                            return (
+                              <SettingsToggle
+                                title={t("disable_transcription_for_organizer")}
+                                labelClassName="text-sm"
+                                checked={value}
+                                onCheckedChange={onChange}
+                              />
+                            );
+                          }}
+                        />
+                      )}
+
                       <TextField
                         label={t("enter_redirect_url_on_exit_description")}
                         defaultValue={eventType.calVideoSettings?.redirectUrlOnExit || ""}
