@@ -68,6 +68,7 @@ function getActionsToTake({
     throw new IgnorableError("No selectedCalendar or calendarSync found for push notification");
   }
 
+  // Means calendar is selected for conflict checking and we should sync availability-cache
   if (selectedCalendar) {
     syncActions.push("availability-cache");
     externalCalendarId = selectedCalendar.externalId;
@@ -78,12 +79,15 @@ function getActionsToTake({
     );
   }
 
+  // Means calendar should be synced for events
   if (calendarSync) {
-    // resourceState is 'sync' when a subscription is created. We don't need to sync events in that case.
+    // resourceState 'sync' means that the subscription is created, nothing else has changed in the calendar events.
+    // So, we don't need unnecessary attempts to sync events.
     if (resourceState !== "sync") {
       syncActions.push("events-sync");
     }
 
+    // Data validation because externalCalendarId is coming from CalendarSync as well as SelectedCalendar
     if (externalCalendarId && externalCalendarId !== calendarSync.externalCalendarId) {
       log.error(
         "Data inconsistency: Selected calendar externalId and Synced calendar externalId do not match for the same subscription.",
@@ -143,6 +147,11 @@ function getActionsToTake({
   return { syncActions, calendar: { externalCalendarId, credentialId } };
 }
 
+/**
+ * Retrieves calendar-related information and services based on channelId and resourceId  OR the subscription passed
+ * It identifies the necessary synchronization actions (e.g., for availability cache or event sync)
+ * and initializes the calendar service required to handle these actions.
+ */
 async function getCalendarFromChannelId({
   channelId,
   resourceId,

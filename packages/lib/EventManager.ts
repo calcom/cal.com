@@ -132,6 +132,33 @@ export type EventManagerInitParams = {
   eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>;
 };
 
+const enrichReferencesWithExternalCalendarIdFromResults = ({
+  referencesToCreate,
+  results,
+}: {
+  referencesToCreate: PartialReference[];
+  results: Array<EventResult<Event>>;
+}) => {
+  const enrichedReferences = referencesToCreate.map((reference) => {
+    const thirdPartyAppResultForTheReference = results.find((result) => {
+      if (isCalendarLikeResult(result)) {
+        const updatedEvent =
+          result.updatedEvent instanceof Array ? result.updatedEvent[0] : result.updatedEvent;
+        // @ts-expect-error - id is present in updatedEvent
+        return updatedEvent?.id === reference.uid;
+      }
+      return false;
+    });
+    return {
+      ...reference,
+      // Ensure that externalCalendarId is set from the latest updatedEvent otherwise fallback to the original externalCalendarId
+      externalCalendarId: thirdPartyAppResultForTheReference?.externalId || reference.externalCalendarId,
+    };
+  });
+
+  return enrichedReferences;
+};
+
 export default class EventManager {
   calendarCredentials: CredentialForCalendarService[];
   videoCredentials: CredentialForCalendarService[];
@@ -577,25 +604,14 @@ export default class EventManager {
 
     const _referencesToCreate = shouldUpdateBookingReferences
       ? updatedBookingReferences
-      : [...booking.references].map((reference) => ({
+      : // Ensure that we clone the reference to avoid mutating the original reference
+        [...booking.references].map((reference) => ({
           ...reference,
         }));
 
-    const referencesToCreate = _referencesToCreate.map((reference) => {
-      const thirdPartyAppResultForTheReference = results.find((result) => {
-        if (isCalendarLikeResult(result)) {
-          const updatedEvent =
-            result.updatedEvent instanceof Array ? result.updatedEvent[0] : result.updatedEvent;
-          // @ts-expect-error - id is present in updatedEvent
-          return updatedEvent?.id === reference.uid;
-        }
-        return false;
-      });
-      return {
-        ...reference,
-        // Ensure that externalCalendarId is set from the latest updatedEvent
-        externalCalendarId: thirdPartyAppResultForTheReference?.externalId || reference.externalCalendarId,
-      };
+    const referencesToCreate = enrichReferencesWithExternalCalendarIdFromResults({
+      referencesToCreate: _referencesToCreate,
+      results,
     });
 
     log.debug(

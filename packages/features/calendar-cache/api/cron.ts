@@ -60,19 +60,33 @@ function getUniqueCalendarsByExternalId<
   );
 }
 
+async function getCalendarSubscriptionMap({
+  calendarsWithEventTypeIdsGroupedTogether,
+}: {
+  calendarsWithEventTypeIdsGroupedTogether: ReturnType<typeof getUniqueCalendarsByExternalId>;
+}) {
+  const externalCalendarIds = Object.keys(calendarsWithEventTypeIdsGroupedTogether);
+  const calendarSubscriptions =
+    externalCalendarIds.length > 0
+      ? await CalendarSubscriptionRepository.findMany({
+          where: {
+            providerType: "google_calendar",
+            externalCalendarId: {
+              in: externalCalendarIds,
+            },
+          },
+        })
+      : [];
+  return new Map(calendarSubscriptions.map((cs) => [cs.externalCalendarId, cs]));
+}
+
 const handleCalendarsToUnwatch = async () => {
   const calendarsToUnwatch = await SelectedCalendarRepository.getNextBatchToUnwatch(500);
   log.info(`Found ${calendarsToUnwatch.length} calendars to unwatch`);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
-  const calendarSubscriptions = await CalendarSubscriptionRepository.findMany({
-    where: {
-      providerType: "google_calendar",
-      externalCalendarId: {
-        in: Object.keys(calendarsWithEventTypeIdsGroupedTogether),
-      },
-    },
+  const calendarSubscriptionMap = await getCalendarSubscriptionMap({
+    calendarsWithEventTypeIdsGroupedTogether,
   });
-  const calendarSubscriptionMap = new Map(calendarSubscriptions.map((cs) => [cs.externalCalendarId, cs]));
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { eventTypeIds, credentialId, id }]) => {
@@ -152,20 +166,9 @@ const handleCalendarsToWatch = async () => {
   const calendarsToWatch = await SelectedCalendarRepository.getNextBatchToWatch(500);
   log.info(`Found ${calendarsToWatch.length} calendars to watch`);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
-  const externalCalendarIds = Object.keys(calendarsWithEventTypeIdsGroupedTogether);
-  const calendarSubscriptions =
-    externalCalendarIds.length > 0
-      ? await CalendarSubscriptionRepository.findMany({
-          where: {
-            providerType: "google_calendar",
-            externalCalendarId: {
-              in: externalCalendarIds,
-            },
-          },
-        })
-      : [];
-
-  const calendarSubscriptionMap = new Map(calendarSubscriptions.map((cs) => [cs.externalCalendarId, cs]));
+  const calendarSubscriptionMap = await getCalendarSubscriptionMap({
+    calendarsWithEventTypeIdsGroupedTogether,
+  });
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { credentialId, eventTypeIds, id }]) => {
