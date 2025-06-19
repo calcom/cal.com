@@ -32,6 +32,7 @@ export const AvailabilitySettingsWebWrapper = ({
   const fromEventType = searchParams?.get("fromEventType");
   const scheduleId = schedule.id;
   const { timeFormat } = me.data || { timeFormat: null };
+  const { data: connectedCalendarsData } = trpc.viewer.calendars.connectedCalendars.useQuery();
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
@@ -107,7 +108,14 @@ export const AvailabilitySettingsWebWrapper = ({
 
   return (
     <AvailabilitySettings
-      schedule={schedule}
+      schedule={{
+        ...schedule,
+        timeBlocks: schedule.timeBlocks.map((timeBlock) => {
+          return {
+            value: timeBlock,
+          };
+        }),
+      }}
       travelSchedules={isDefaultSchedule ? travelSchedules || [] : []}
       isDeleting={deleteMutation.isPending}
       isLoading={false}
@@ -119,11 +127,13 @@ export const AvailabilitySettingsWebWrapper = ({
       handleDelete={() => {
         scheduleId && deleteMutation.mutate({ scheduleId });
       }}
-      handleSubmit={async ({ dateOverrides, ...values }) => {
+      handleSubmit={async ({ dateOverrides, timeBlocks, ...values }) => {
         scheduleId &&
           updateMutation.mutate({
             scheduleId,
             dateOverrides: dateOverrides.flatMap((override) => override.ranges),
+            // convert into an array of strings from an array of objects
+            timeBlocks: timeBlocks.map((timeBlock) => timeBlock.value.trim()).filter((value) => value !== ""),
             ...values,
           });
       }}
@@ -136,6 +146,7 @@ export const AvailabilitySettingsWebWrapper = ({
         isEventTypesFetching,
         handleBulkEditDialogToggle: handleBulkEditDialogToggle,
       }}
+      connectedCalendars={connectedCalendarsData?.connectedCalendars || []}
     />
   );
 };

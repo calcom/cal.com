@@ -1,10 +1,10 @@
 import type {
   Booking,
-  Prisma,
   OutOfOfficeEntry,
   OutOfOfficeReason,
-  User,
+  Prisma,
   EventType as PrismaEventType,
+  User,
 } from "@prisma/client";
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
@@ -34,7 +34,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
-import { getBusyTimes } from "./getBusyTimes";
+import getBusyTimes from "./getBusyTimes";
 import { withReporting } from "./sentryWrapper";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
@@ -101,6 +101,7 @@ const _getEventType = async (id: number) => {
               },
               timeZone: true,
               id: true,
+              timeBlocks: true,
             },
           },
         },
@@ -122,6 +123,7 @@ const _getEventType = async (id: number) => {
               endTime: true,
             },
           },
+          timeBlocks: true,
           timeZone: true,
         },
       },
@@ -400,7 +402,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
     : user.userLevelSelectedCalendars;
 
-  const busyTimes = await getBusyTimes({
+  const { busyTimes, timeBlocks } = await getBusyTimes({
     credentials: user.credentials,
     startTime: getBusyTimesStart,
     endTime: getBusyTimesEnd,
@@ -417,6 +419,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     currentBookings: initialData?.currentBookings,
     bypassBusyCalendarTimes,
     shouldServeCache,
+    timeBlocksList: schedule?.timeBlocks,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
@@ -447,10 +450,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   ) {
     throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
   }
+  const availabilitySource =
+    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability);
 
-  const availability = (
-    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
-  ).map((a) => ({
+  if (timeBlocks.length > 0) {
+    availabilitySource.push(...timeBlocks);
+  }
+
+  const availability = availabilitySource.map((a) => ({
     ...a,
     userId: user.id,
   }));

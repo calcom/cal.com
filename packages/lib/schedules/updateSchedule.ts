@@ -77,6 +77,7 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
         : user.defaultScheduleId === input.scheduleId,
     };
   }
+  const timeBlocks = input.timeBlocks?.filter((timeBlock) => timeBlock !== "");
 
   const schedule = await prisma.schedule.update({
     where: {
@@ -85,6 +86,7 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
     data: {
       timeZone: input.timeZone,
       name: input.name,
+      timeBlocks,
       availability: {
         deleteMany: {
           scheduleId: {

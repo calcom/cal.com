@@ -14,6 +14,7 @@ import type {
   Calendar,
   CalendarServiceEvent,
   EventBusyDate,
+  EventBusyData,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -49,6 +50,7 @@ interface BodyValue {
   end: { dateTime: string };
   evt: { showAs: string };
   start: { dateTime: string };
+  subject?: string;
 }
 
 export default class Office365CalendarService implements Calendar {
@@ -295,11 +297,32 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async getAvailability(
+  async getCalIds(selectedCalendars: IntegrationCalendar[]): Promise<string[]> {
+    const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
+      if (calendar.integration === this.integrationName && calendar.externalId)
+        calendarIds.push(calendar.externalId);
+
+      return calendarIds;
+    }, [] as string[]);
+
+    if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
+      // Only calendars of other integrations selected
+      return Promise.resolve([]);
+    }
+
+    const ids = await (selectedCalendarIds.length === 0
+      ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
+      : Promise.resolve(selectedCalendarIds));
+    return ids;
+  }
+
+  // fetches calendar data (free-busy/event data) from office365 calendar
+  async fetchCalendarData(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+    selectedCalendars: IntegrationCalendar[],
+    calendarSelectParams: string
+  ): Promise<EventBusyData[]> {
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);
 
@@ -307,24 +330,8 @@ export default class Office365CalendarService implements Calendar {
       dateFromParsed.toISOString()
     )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
-    const calendarSelectParams = "$select=showAs,start,end";
-
     try {
-      const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
-        if (calendar.integration === this.integrationName && calendar.externalId)
-          calendarIds.push(calendar.externalId);
-
-        return calendarIds;
-      }, [] as string[]);
-
-      if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
-        // Only calendars of other integrations selected
-        return Promise.resolve([]);
-      }
-
-      const ids = await (selectedCalendarIds.length === 0
-        ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
-        : Promise.resolve(selectedCalendarIds));
+      const ids = await this.getCalIds(selectedCalendars);
       const requestsPromises = ids.map(async (calendarId, id) => ({
         id,
         method: "GET",
@@ -338,20 +345,57 @@ export default class Office365CalendarService implements Calendar {
         responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
       }
       let alreadySuccessResponse = [] as ISettledResponse[];
-
       // Validate if any 429 status Retry-After is present
       const retryAfter =
         !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
-
       if (retryAfter && responseBatchApi.responses) {
         responseBatchApi = await this.fetchRequestWithRetryAfter(requests, responseBatchApi.responses, 2);
       }
-
       // Recursively fetch nextLink responses
       alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
-
       return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
     } catch (err) {
+      return Promise.reject([]);
+    }
+  }
+
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[]> {
+    const calendarSelectParams = "$select=showAs,start,end";
+
+    try {
+      const freebusyData = await this.fetchCalendarData(
+        dateFrom,
+        dateTo,
+        selectedCalendars,
+        calendarSelectParams
+      );
+      return freebusyData;
+    } catch (err) {
+      return Promise.reject([]);
+    }
+  }
+
+  async getEventList(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyData[]> {
+    const calendarSelectParams = "$select=showAs,start,end,subject";
+
+    try {
+      const eventData = await this.fetchCalendarData(
+        dateFrom,
+        dateTo,
+        selectedCalendars,
+        calendarSelectParams
+      );
+      return eventData;
+    } catch (error) {
+      console.log(error);
       return Promise.reject([]);
     }
   }
@@ -595,12 +639,21 @@ export default class Office365CalendarService implements Calendar {
     return responses.reduce(
       (acc: BufferedBusyTime[], subResponse: { body: { value?: BodyValue[]; error?: Error[] } }) => {
         if (!subResponse.body?.value) return acc;
+        function checkforAllDayEvent(dateTime: string | undefined | null) {
+          const parsedDateTime = dayjs(dateTime).utc();
+          return parsedDateTime.isSame(parsedDateTime.startOf("day"));
+        }
         return acc.concat(
           subResponse.body.value.reduce((acc: BufferedBusyTime[], evt: BodyValue) => {
             if (evt.showAs === "free" || evt.showAs === "workingElsewhere") return acc;
             return acc.concat({
-              start: `${evt.start.dateTime}Z`,
-              end: `${evt.end.dateTime}Z`,
+              start: checkforAllDayEvent(`${evt.start.dateTime}Z`)
+                ? dayjs(`${evt.start.dateTime}Z`).startOf("day").utc().format()
+                : `${evt.start.dateTime}Z`,
+              end: checkforAllDayEvent(`${evt.end.dateTime}Z`)
+                ? dayjs(`${evt.end.dateTime}Z`).subtract(1, "day").endOf("day").utc().format()
+                : `${evt.end.dateTime}Z`,
+              title: evt.subject ?? undefined,
             });
           }, [])
         );

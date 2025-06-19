@@ -4,7 +4,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeSelectedCalendar, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
+import type { EventBusyData, EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
@@ -81,8 +81,9 @@ const getCalendarsEvents = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  shouldServeCache?: boolean
-): Promise<EventBusyDate[][]> => {
+  shouldServeCache?: boolean,
+  includeEventTitle?: boolean
+): Promise<EventBusyData[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
     // filter out invalid credentials - these won't work.
@@ -141,13 +142,21 @@ const getCalendarsEvents = async (
         selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
       })
     );
-    const eventBusyDates = await calendarService.getAvailability(
-      dateFrom,
-      dateTo,
-      passedSelectedCalendars,
-      shouldServeCache,
-      allowFallbackToPrimary
-    );
+    let eventBusyDates = [];
+    // we are getting event titles from only google calendar and office 365 calendar services for now
+    if (includeEventTitle && (type === "google_calendar" || type === "office365_calendar")) {
+      eventBusyDates = calendarService.getEventList
+        ? await calendarService.getEventList(dateFrom, dateTo, passedSelectedCalendars)
+        : [];
+    } else {
+      eventBusyDates = await calendarService.getAvailability(
+        dateFrom,
+        dateTo,
+        passedSelectedCalendars,
+        shouldServeCache,
+        allowFallbackToPrimary
+      );
+    }
     performance.mark("eventBusyDatesEnd");
     performance.measure(
       `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,

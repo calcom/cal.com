@@ -58,7 +58,7 @@ const mockBookings = ({
 
 describe("getBusyTimes", () => {
   it("blocks a regular time slot", async () => {
-    const busyTimes = await getBusyTimes({
+    const { busyTimes } = await getBusyTimes({
       credentials: [],
       userId: 1,
       userEmail: "exampleuser1@example.com",
@@ -85,7 +85,7 @@ describe("getBusyTimes", () => {
     ]);
   });
   it("should block before and after buffer times", async () => {
-    const busyTimes = await getBusyTimes({
+    const { busyTimes } = await getBusyTimes({
       credentials: [],
       userId: 1,
       userEmail: "exampleuser1@example.com",
@@ -106,7 +106,7 @@ describe("getBusyTimes", () => {
     ]);
   });
   it("should have busy times only if seated with remaining seats when buffers exist", async () => {
-    const busyTimes = await getBusyTimes({
+    const { busyTimes } = await getBusyTimes({
       credentials: [],
       userId: 1,
       eventTypeId: 1,

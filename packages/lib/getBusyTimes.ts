@@ -14,7 +14,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { EventBusyDetails } from "@calcom/types/Calendar";
+import type { EventBusyDetails, EventBusyData } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
@@ -47,6 +47,7 @@ const _getBusyTimes = async (params: {
     | null;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
+  timeBlocksList?: string[];
 }) => {
   const {
     credentials,
@@ -64,6 +65,7 @@ const _getBusyTimes = async (params: {
     duration,
     bypassBusyCalendarTimes = false,
     shouldServeCache,
+    timeBlocksList,
   } = params;
 
   logger.silly(
@@ -117,6 +119,13 @@ const _getBusyTimes = async (params: {
     });
   }
 
+  const timeBlocks: {
+    date: Date | null;
+    startTime: Date;
+    endTime: Date;
+    days: number[];
+    isTimeBlock?: boolean;
+  }[] = [];
   const bookingSeatCountMap: { [x: string]: number } = {};
   const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
     const { id, startTime, endTime, eventType, title, ...rest } = booking;
@@ -178,12 +187,14 @@ const _getBusyTimes = async (params: {
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
     const startConnectedCalendarsGet = performance.now();
-    const calendarBusyTimes = await getBusyCalendarTimes(
+    const calendarBusyTimesWithTimeBlocks = await getBusyCalendarTimes(
       credentials,
       startTime,
       endTime,
       selectedCalendars,
-      shouldServeCache
+      shouldServeCache,
+      undefined,
+      timeBlocksList?.length ? true : false
     );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
@@ -191,9 +202,28 @@ const _getBusyTimes = async (params: {
         endConnectedCalendarsGet - startConnectedCalendarsGet
       } ms for user ${username}`,
       JSON.stringify({
-        calendarBusyTimes,
+        calendarBusyTimesWithTimeBlocks,
       })
     );
+
+    const calendarBusyTimes: EventBusyData[] = [];
+    if (timeBlocksList?.length) {
+      calendarBusyTimesWithTimeBlocks.forEach((busyTime) => {
+        if (timeBlocksList?.some((timeBlock) => busyTime.title === timeBlock)) {
+          timeBlocks.push({
+            date: null,
+            startTime: dayjs(busyTime.start).utc(true).toDate(),
+            endTime: dayjs(busyTime.end).utc(true).toDate(),
+            days: [],
+            isTimeBlock: true,
+          });
+        } else {
+          calendarBusyTimes.push(busyTime);
+        }
+      });
+    } else {
+      calendarBusyTimes.push(...calendarBusyTimesWithTimeBlocks);
+    }
 
     const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
       const [start, end] = key.split("<>");
@@ -244,7 +274,7 @@ const _getBusyTimes = async (params: {
       allBusyTimes: busyTimes,
     })
   );
-  return busyTimes;
+  return { busyTimes, timeBlocks };
 };
 
 export const getBusyTimes = withReporting(_getBusyTimes, "getBusyTimes");
