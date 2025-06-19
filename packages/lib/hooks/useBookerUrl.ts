@@ -4,7 +4,7 @@ import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 export const useBookerUrl = (options?: { excludeWebsiteUrl?: boolean }) => {
   const orgBranding = useOrgBranding();
 
-  if (options.excludeWebsiteUrl) {
+  if (options?.excludeWebsiteUrl) {
     return orgBranding?.fullDomain ?? WEBAPP_URL;
   }
 
