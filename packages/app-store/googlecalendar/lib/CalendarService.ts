@@ -13,6 +13,7 @@ import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/date
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
@@ -311,8 +312,8 @@ export default class GoogleCalendarService implements Calendar {
         delete error.config.body;
       }
       this.log.error(
-        "There was an error creating event in google calendar: ",
-        safeStringify({ error, selectedCalendar, credentialId })
+        `There was an error creating event in google calendar: externalCalendarId ${externalCalendarId}, credentialId ${credentialId}`,
+        safeStringify({ error, selectedCalendar, event: getPiiFreeCalendarEvent(calEvent) })
       );
       throw error;
     }
@@ -423,27 +424,41 @@ export default class GoogleCalendarService implements Calendar {
 
     const selectedCalendar = externalCalendarId || "primary";
 
+    this.log.info(`Attempting to delete event with uid: ${uid} from calendar: ${selectedCalendar}`);
+
     try {
-      const event = await calendar.events.delete({
+      const response = await calendar.events.delete({
         calendarId: selectedCalendar,
         eventId: uid,
         sendNotifications: false,
         sendUpdates: "none",
       });
-      return event?.data;
+      this.log.info(
+        `Successfully deleted event with uid: ${uid} from calendar: ${selectedCalendar}. Response status: ${response.status}`
+      );
+      return response?.data;
     } catch (error) {
       this.log.error(
-        "There was an error deleting event from google calendar: ",
-        safeStringify({ error, event, externalCalendarId })
+        "There was an error deleting event from google calendar:",
+        safeStringify({ error, event: getPiiFreeCalendarEvent(event), externalCalendarId, uid })
       );
+
       const err = error as GoogleCalError;
       /**
        *  410 is when an event is already deleted on the Google cal before on cal.com
        *  404 is when the event is on a different calendar
        */
-      if (err.code === 410) return;
-      console.error("There was an error contacting google calendar service: ", err);
-      if (err.code === 404) return;
+      if (err.code === 410) {
+        this.log.info(`Event with uid: ${uid} was already deleted from Google Calendar.`);
+        return;
+      }
+      if (err.code === 404) {
+        this.log.info(
+          `Event with uid: ${uid} not found in calendar: ${selectedCalendar}. It might be in a different calendar.`
+        );
+        return;
+      }
+      this.log.error("There was an error contacting google calendar service: ", err);
       throw err;
     }
   }
