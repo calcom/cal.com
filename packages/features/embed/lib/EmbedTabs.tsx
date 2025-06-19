@@ -329,7 +329,7 @@ const getInstructionString = ({
 };
 
 function useGetEmbedSnippetString(namespace: string | null) {
-  const bookerUrl = useBookerUrl();
+  const bookerUrl = useBookerUrl({ excludeWebsiteUrl: true });
   // TODO: Import this string from @calcom/embed-snippet
   // Right now the problem is that embed-snippet export is not minified and has comments which makes it unsuitable for giving it to users.
   // If we can minify that during build time and then import the built code here, that could work

@@ -319,6 +319,6 @@ export const useEmbedTypes = () => {
 };
 
 export const useEmbedCalOrigin = () => {
-  const bookerUrl = useBookerUrl();
+  const bookerUrl = useBookerUrl({ excludeWebsiteUrl: true });
   return bookerUrl;
 };
