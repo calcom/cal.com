@@ -11,6 +11,7 @@ import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShou
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
@@ -36,6 +37,7 @@ import {
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
@@ -497,14 +499,100 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
+  const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
+  if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
+    const restrictionSchedule = await prisma.schedule.findUnique({
+      where: { id: eventType.restrictionScheduleId },
+      select: {
+        id: true,
+        timeZone: true,
+        userId: true,
+        availability: {
+          select: {
+            days: true,
+            startTime: true,
+            endTime: true,
+            date: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            defaultScheduleId: true,
+            travelSchedules: {
+              select: {
+                id: true,
+                timeZone: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (restrictionSchedule) {
+      if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
+        throw new TRPCError({
+          message: "No timezone is set for the restricted schedule",
+          code: "BAD_REQUEST",
+        });
+      }
+
+      const restrictionTimezone = eventType.useBookerTimezone
+        ? input.timeZone
+        : restrictionSchedule.timeZone!;
+      const eventLength = input.duration || eventType.length;
+
+      const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
+        days: rule.days,
+        startTime: rule.startTime,
+        endTime: rule.endTime,
+        date: rule.date,
+      }));
+
+      // Include travel schedules if restriction schedule is the user's default schedule
+      const isDefaultSchedule = restrictionSchedule.user.defaultScheduleId === restrictionSchedule.id;
+      const travelSchedules =
+        isDefaultSchedule && !eventType.useBookerTimezone
+          ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
+              startDate: dayjs(schedule.startDate),
+              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+              timeZone: schedule.timeZone,
+            }))
+          : [];
+
+      const { dateRanges: restrictionRanges } = buildDateRanges({
+        availability: restrictionAvailability,
+        timeZone: restrictionTimezone || "UTC",
+        dateFrom: startTime,
+        dateTo: endTime,
+        travelSchedules,
+      });
+
+      availableTimeSlots = timeSlots.filter((slot) => {
+        const slotStart = slot.time;
+        const slotEnd = slot.time.add(eventLength, "minute");
+
+        return restrictionRanges.some(
+          (range) =>
+            (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
+            (slotEnd.isBefore(range.end) || slotEnd.isSame(range.end))
+        );
+      });
+    } else {
+      availableTimeSlots = timeSlots;
+    }
+  } else {
+    availableTimeSlots = timeSlots;
+  }
 
   const reservedSlots = await _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
     eventTypeId: eventType.id,
     usersWithCredentials,
   });
-
-  availableTimeSlots = timeSlots;
 
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,
