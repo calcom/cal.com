@@ -124,21 +124,19 @@ function Field({
                   <>
                     <div className="data-testid-field-type">
                       <Label htmlFor="field-type-button">{t("type")}</Label>
-                      <button
-                        id="field-type-button"
+                      <Button
                         type="button"
                         onClick={() => setShowFieldTypeDialog(true)}
                         disabled={!!router}
+                        color="secondary"
                         className={classNames(
-                          "border-default bg-default text-default h-8 rounded-[10px] border px-3 py-2",
-                          "flex w-full items-center justify-between text-left text-sm",
-                          "hover:border-emphasis focus:border-emphasis focus:shadow-outline-gray-focused focus:ring-0",
+                          "h-8 w-full justify-between text-left text-sm",
                           !!router && "bg-subtle cursor-not-allowed"
                         )}
                         data-testid="field-type">
                         <span className="text-default">{defaultValue?.label || "Select field type"}</span>
                         <Icon name="chevron-down" className="text-default h-4 w-4" />
-                      </button>
+                      </Button>
                     </div>
                     <FieldTypeChangeWarningDialog
                       isOpen={showFieldTypeDialog}
