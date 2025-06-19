@@ -3259,5 +3259,6 @@
   "duration_max_error": "Duration cannot exceed {{max}} minutes (24 hours)",
   "booking_not_allowed_by_restriction_schedule_error": "Booking outside restriction schedule availability.",
   "restriction_schedule_not_found_error": "Restriction schedule not found",
+  "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
