@@ -213,7 +213,7 @@ Prerender when there are high chances of user clicking the CTA.
 Cal('prerender', {
   calLink: "router?formId=123&ATLEAST_ALL_FIELDS_REQUIRED_BY_ROUTING_RULES_SHOULD_BE_PRESENT_HERE",
   // Prerender right now works only with "modal", so 'element click' embed is able to reuse this prerendered iframe
-  type: "modal"
+  type: "modal",
   // Shows skeleton loader for a Team Event's booking slots page
   pageType: "team.event.booking.slots"
 });
