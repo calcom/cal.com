@@ -999,9 +999,12 @@ class CalApi {
     const containerEl = document.body;
     this.cal.isPrerendering = !!__prerender;
     if (__prerender) {
-      // TODO: Make `reuseFully` a configurable param as well later.
       // If someone's preloading the headless router path, we must reuse the iframe fully as is as Router would redirect to a Booking Page and that should be shown as is
-      this.prerenderOptions = { ...prerenderOptions, reuseFully: isHeadlessRouterPath };
+      this.prerenderOptions = {
+        ...prerenderOptions,
+        // If user has given a preference to reuseFully honour it. Otherwise, if it's a headless router path, we should reuse fully by default
+        reuseFully: prerenderOptions.reuseFully ?? isHeadlessRouterPath,
+      };
       // Add prerender query param
       config.prerender = "true";
 
