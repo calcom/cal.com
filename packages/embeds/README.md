@@ -178,7 +178,7 @@ Key aspects:
 - Loads the booking page but doesn't send the slots availability request
 - Tries to reuse whenever it makes sense and do a fresh load otherwise
 
-Modal's Iframe Reuse and Reload Conditions. There could be three situations:
+Modal's Iframe Reuse and Reload Conditions. There could be four situations:
 
 1. Show modal as is. No connect and no requests happen - Corresponding action is "noAction"
 2. Connect but don't fetch the slots- Corresponding action is "connect-no-slots-fetch"
