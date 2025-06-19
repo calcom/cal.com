@@ -73,9 +73,11 @@ export interface DailyCustomTrayButton {
 export const CalAiTranscribe = ({
   showRecordingButton,
   enableAutomaticTranscription,
+  showTranscriptionButton,
 }: {
   showRecordingButton: boolean;
   enableAutomaticTranscription: boolean;
+  showTranscriptionButton: boolean;
 }) => {
   const daily = useDaily();
   const { t } = useLocale();
@@ -101,7 +103,11 @@ export const CalAiTranscribe = ({
             recording,
           }
         : {}),
-      transcription,
+      ...(showTranscriptionButton
+        ? {
+            transcription,
+          }
+        : {}),
     });
   };
 
