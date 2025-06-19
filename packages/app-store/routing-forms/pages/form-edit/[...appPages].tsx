@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -21,6 +22,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { FieldTypeChangeWarningDialog } from "../../components/FieldTypeChangeWarningDialog";
 import SingleForm from "../../components/SingleForm";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import { FieldTypes } from "../../lib/FieldTypes";
@@ -36,6 +38,7 @@ function Field({
   moveUp,
   moveDown,
   appUrl,
+  form,
 }: {
   fieldIndex: number;
   hookForm: HookForm;
@@ -53,8 +56,10 @@ function Field({
     fn: () => void;
   };
   appUrl: string;
+  form: RoutingFormWithResponseCount;
 }) {
   const { t } = useLocale();
+  const [showFieldTypeWarning, setShowFieldTypeWarning] = useState(false);
 
   const router = hookForm.getValues(`${hookFieldNamespace}.router`);
   const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
@@ -123,31 +128,43 @@ function Field({
               defaultValue={routerField?.type}
               render={({ field: { value, onChange } }) => {
                 const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
+                const hasResponses = form._count.responses > 0;
+
                 return (
-                  <SelectField
-                    maxMenuHeight={200}
-                    styles={{
-                      singleValue: (baseStyles) => ({
-                        ...baseStyles,
-                        fontSize: "14px",
-                      }),
-                      option: (baseStyles) => ({
-                        ...baseStyles,
-                        fontSize: "14px",
-                      }),
-                    }}
-                    label="Type"
-                    isDisabled={!!router}
-                    containerClassName="data-testid-field-type"
-                    options={FieldTypes}
-                    onChange={(option) => {
-                      if (!option) {
-                        return;
-                      }
-                      onChange(option.value);
-                    }}
-                    defaultValue={defaultValue}
-                  />
+                  <>
+                    <SelectField
+                      maxMenuHeight={200}
+                      styles={{
+                        singleValue: (baseStyles) => ({
+                          ...baseStyles,
+                          fontSize: "14px",
+                        }),
+                        option: (baseStyles) => ({
+                          ...baseStyles,
+                          fontSize: "14px",
+                        }),
+                      }}
+                      label="Type"
+                      isDisabled={!!router}
+                      containerClassName="data-testid-field-type"
+                      options={FieldTypes}
+                      onChange={(option) => {
+                        if (!option) {
+                          return;
+                        }
+                        if (hasResponses) {
+                          setShowFieldTypeWarning(true);
+                          return;
+                        }
+                        onChange(option.value);
+                      }}
+                      defaultValue={defaultValue}
+                    />
+                    <FieldTypeChangeWarningDialog
+                      isOpen={showFieldTypeWarning}
+                      setIsOpen={setShowFieldTypeWarning}
+                    />
+                  </>
                 );
               }}
             />
@@ -242,6 +259,7 @@ const FormEdit = ({
               fieldIndex={key}
               hookForm={hookForm}
               hookFieldNamespace={`${fieldsNamespace}.${key}`}
+              form={form}
               deleteField={{
                 check: () => hookFormFields.length > 1,
                 fn: () => {
