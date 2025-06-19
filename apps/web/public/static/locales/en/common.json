@@ -2408,6 +2408,7 @@
   "scheduling_for_your_team": "Workflow automation",
   "scheduling_for_your_team_description": "Schedule for your team with collective and round-robin scheduling",
   "no_members_found": "No members found",
+  "no_members": "No members",
   "directory_sync": "Directory Sync",
   "directory_name": "Directory Name",
   "directory_provider": "Directory Provider",

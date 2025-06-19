@@ -171,7 +171,7 @@ export function AdminOrgTable() {
                 </Cell>
                 <Cell widthClassNames="w-auto">
                   <span className="break-all">
-                    {org.members.length ? org.members[0].user.email : "No members"}
+                    {org.members.length ? org.members[0].user.email : t("no_members")}
                   </span>
                 </Cell>
                 <Cell>
