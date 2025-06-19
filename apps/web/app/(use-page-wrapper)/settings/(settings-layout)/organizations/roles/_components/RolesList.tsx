@@ -96,7 +96,8 @@ export function RolesList({
           </div>
           {/* Footer */}
           <div className="px-5 py-4 ">
-            <p className="text-subtle text-sm font-medium leading-tight">{t("learn_more_permissions")}</p>
+            {/* Commenting out for now as we don't have a learn more permissions page in docs */}
+            {/* <p className="text-subtle text-sm font-medium leading-tight">{t("learn_more_permissions")}</p> */}
           </div>
         </div>
       </div>
@@ -141,7 +142,6 @@ function RoleItem({
         </div>
         {/* Role Name */}
         <div className="text-default w-24 truncate text-sm font-semibold leading-none">
-
           <span>{role.name}</span>
         </div>
 
