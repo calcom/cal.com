@@ -208,7 +208,7 @@ Modal's Iframe Reuse and Reload Conditions. There could be four situations:
 #### Prerendering headless router
 
 **Without namespace:**
-Prerender when there are high changes of user clicking the CTA.
+Prerender when there are high chances of user clicking the CTA.
 ```js
 Cal('prerender', {
   calLink: "router?formId=123&ATLEAST_ALL_FIELDS_REQUIRED_BY_ROUTING_RULES_SHOULD_BE_PRESENT_HERE",
