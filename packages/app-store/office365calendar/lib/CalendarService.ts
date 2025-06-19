@@ -485,7 +485,7 @@ export default class Office365CalendarService implements Calendar {
     return office365Event;
   };
 
-  private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
+  public fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
     return this.auth.requestRaw({
       url: `${this.apiGraphUrl}${endpoint}`,
       options: {
@@ -650,7 +650,7 @@ export default class Office365CalendarService implements Calendar {
       // Log error details using proper logger instead of console.log
       response
         .json()
-        .then((errorBody) => {
+        .then((_errorBody) => {
           this.log.error("Office365 API Error", {
             status: response.status,
             statusText: response.statusText,
@@ -955,7 +955,7 @@ export default class Office365CalendarService implements Calendar {
    * @param uid Event UID
    * @returns The event object or null if not found
    */
-  public async fetchEventByUid(uid: string): Promise<any | null> {
+  public async fetchEventByUid(uid: string): Promise<Event | null> {
     try {
       const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`);
       if (!response.ok) return null;

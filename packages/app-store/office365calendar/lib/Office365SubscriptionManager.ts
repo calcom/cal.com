@@ -2,6 +2,7 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
+import type Office365CalendarService from "./CalendarService";
 import { getWebhookToken, getWebhookUrl } from "./envValidation";
 
 const log = logger.getSubLogger({ prefix: ["Office365SubscriptionManager"] });
@@ -9,9 +10,9 @@ const log = logger.getSubLogger({ prefix: ["Office365SubscriptionManager"] });
 export const MICROSOFT_SUBSCRIPTION_TTL = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
 
 export class Office365SubscriptionManager {
-  private calendarService: any; // Replace with proper type when implementing
+  private calendarService: Office365CalendarService;
 
-  constructor(calendarService: any) {
+  constructor(calendarService: Office365CalendarService) {
     this.calendarService = calendarService;
   }
 
