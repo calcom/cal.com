@@ -49,6 +49,8 @@
   "disable_recording_for_guests": "Disable recording for guests",
   "enable_automatic_transcription": "Enable automatic transcription after joining the meeting",
   "disable_recording_for_organizer": "Disable recording for organizer",
+  "disable_transcription_for_guests": "Disable transcription for guests",
+  "disable_transcription_for_organizer": "Disable transcription for organizer",
   "event_request_declined_recurring": "Your recurring event request has been declined",
   "event_request_cancelled": "Your scheduled event was canceled",
   "event_request_reassigned": "Your scheduled event was reassigned",
@@ -3255,5 +3257,6 @@
   "booker_limit_exceeded_error_reschedule": "You already have a booking for this event on {{date}}. Would you like to reschedule to the new selected time?",
   "duration_min_error": "Duration must be at least {{min}} minute(s)",
   "duration_max_error": "Duration cannot exceed {{max}} minutes (24 hours)",
+  "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
