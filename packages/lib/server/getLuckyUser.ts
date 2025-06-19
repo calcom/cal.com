@@ -72,6 +72,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
       rrTimestampBasis: RRTimestampBasis;
     } | null;
     includeNoShowInRRCalculation: boolean;
+    excludeSalesforceBookingsFromRR?: boolean;
   };
   // all routedTeamMemberIds or all hosts of event types
   allRRHosts: {
@@ -479,6 +480,7 @@ async function getBookingsOfInterval({
   virtualQueuesData,
   interval,
   includeNoShowInRRCalculation,
+  excludeSalesforceBookingsFromRR = false,
   rrTimestampBasis,
   meetingStartTime,
 }: {
@@ -487,6 +489,7 @@ async function getBookingsOfInterval({
   virtualQueuesData: VirtualQueuesDataType | null;
   interval: RRResetInterval;
   includeNoShowInRRCalculation: boolean;
+  excludeSalesforceBookingsFromRR?: boolean;
   rrTimestampBasis: RRTimestampBasis;
   meetingStartTime?: Date;
 }) {
@@ -497,6 +500,7 @@ async function getBookingsOfInterval({
     endDate: getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }),
     virtualQueuesData,
     includeNoShowInRRCalculation,
+    excludeSalesforceBookingsFromRR,
     rrTimestampBasis,
   });
 }
@@ -685,6 +689,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
       rrTimestampBasis,
       meetingStartTime,
     }),
@@ -695,6 +700,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
       rrTimestampBasis,
       meetingStartTime,
     }),
@@ -707,6 +713,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      excludeSalesforceBookingsFromRR: eventType.excludeSalesforceBookingsFromRR,
       rrTimestampBasis,
       meetingStartTime,
     }),

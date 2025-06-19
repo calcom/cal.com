@@ -539,6 +539,7 @@ export class EventTypeRepository {
       rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
+      excludeSalesforceBookingsFromRR: true,
       successRedirectUrl: true,
       forwardParamsSuccessRedirect: true,
       currency: true,
