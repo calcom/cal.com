@@ -231,8 +231,10 @@ export { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSche
 export const eventTypeSlug = z
   .string()
   .trim()
-  .min(1)
-  .transform((val) => slugify(val));
+  .transform((val) => slugify(val))
+  .refine((val) => val.length >= 1, {
+    message: "Please enter at least one character",
+  });
 
 export const stringToDate = z.string().transform((a) => new Date(a));
 
