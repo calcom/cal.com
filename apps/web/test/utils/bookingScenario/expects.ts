@@ -1274,7 +1274,6 @@ export function expectSuccessfulCalendarEventUpdationInCalendar(
     uid: string;
   }
 ) {
-  console.log("calendarMock.updateEventCalls.", calendarMock.updateEventCalls);
   expect(calendarMock.updateEventCalls.length).toBe(1);
   const call = calendarMock.updateEventCalls[0];
   const { uid, event, externalCalendarId } = call.args;
