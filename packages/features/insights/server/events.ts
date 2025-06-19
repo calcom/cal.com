@@ -80,7 +80,8 @@ class EventsInsights {
     whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput,
     startDate: Dayjs,
     endDate: Dayjs,
-    dateRanges: DateRange[]
+    dateRanges: DateRange[],
+    timeZone: string
   ): Promise<AggregateResult> => {
     const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD HH:mm:ss");
     const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD HH:mm:ss");
@@ -96,14 +97,14 @@ class EventsInsights {
       }[]
     >`
     SELECT
-      DATE("createdAt") as "date",
+      "date",
       CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
       CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
       "timeStatus",
       "noShowHost"
     FROM (
       SELECT
-        "createdAt",
+        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
         "a"."noShow" AS "isNoShowGuest",
         "timeStatus",
         "noShowHost"
@@ -116,7 +117,7 @@ class EventsInsights {
         AND ${Prisma.raw(whereClause)}
     ) AS bookings
     GROUP BY
-      DATE("createdAt"),
+      "date",
       "timeStatus",
       "noShowHost"
     ORDER BY
@@ -624,10 +625,12 @@ class EventsInsights {
     sessionUserId: number;
     teamId: number;
   }) => {
-    const isOwnerAdminOfTeam = await prisma.membership.findFirst({
+    const isOwnerAdminOfTeam = await prisma.membership.findUnique({
       where: {
-        userId: sessionUserId,
-        teamId,
+        userId_teamId: {
+          userId: sessionUserId,
+          teamId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
@@ -658,10 +661,12 @@ class EventsInsights {
       return false;
     }
 
-    const isOwnerAdminOfParentTeam = await prisma.membership.findFirst({
+    const isOwnerAdminOfParentTeam = await prisma.membership.findUnique({
       where: {
-        userId: sessionUserId,
-        teamId: team.parentId,
+        userId_teamId: {
+          userId: sessionUserId,
+          teamId: team.parentId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
