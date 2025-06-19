@@ -2893,8 +2893,6 @@
   "field_type_change_data_integrity_warning": "This field is currently set as '{{fieldType}}'. Changing the field type could make existing form responses incompatible and cause data loss.",
   "field_type_change_suggestion": "If you need a different field type, we recommend creating a new field instead.",
   "understood": "Understood",
-  "change_anyway": "Change Anyway",
-  "create_new_field": "Create New Field",
   "reassigned_by": "Reassigned by",
   "row": "row",
   "rows": "rows",
