@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -11,11 +12,15 @@ import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -61,6 +66,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     locations,
     bookingLimits,
     durationLimits,
+    maxActiveBookingsPerBooker,
     destinationCalendar,
     customInputs,
     recurringEvent,
@@ -83,6 +89,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
+    restrictionScheduleId,
+    calVideoSettings,
     ...rest
   } = input;
 
@@ -90,9 +98,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id },
     select: {
       title: true,
+      locations: true,
       description: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      maxActiveBookingsPerBooker: true,
       fieldTranslations: {
         select: {
           field: true,
@@ -115,6 +125,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           llmId: true,
         },
       },
+      calVideoSettings: {
+        select: {
+          disableRecordingForOrganizer: true,
+          disableRecordingForGuests: true,
+          enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
+          redirectUrlOnExit: true,
+        },
+      },
       children: {
         select: {
           userId: true,
@@ -131,6 +151,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           name: true,
           slug: true,
           parentId: true,
+          rrTimestampBasis: true,
           parent: {
             select: {
               slug: true,
@@ -199,6 +220,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     disableGuests: guestsField?.hidden ?? false,
     seatsPerTimeSlot,
+    maxLeadThreshold:
+      eventType.team?.rrTimestampBasis && eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+        ? null
+        : rest.maxLeadThreshold,
   };
   data.locations = locations ?? undefined;
 
@@ -239,6 +264,28 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (!isValid)
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
     data.bookingLimits = bookingLimits;
+  }
+
+  if (maxActiveBookingsPerBooker) {
+    if (maxActiveBookingsPerBooker && maxActiveBookingsPerBooker < 1) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booker booking limit must be greater than 0." });
+    }
+
+    if (maxActiveBookingsPerBooker && (recurringEvent || eventType.recurringEvent)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Recurring Events and booker active bookings limit cannot be active at the same time.",
+      });
+    }
+
+    if (eventType.maxActiveBookingsPerBooker && recurringEvent) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Recurring Events and booker active bookings limit cannot be active at the same time.",
+      });
+    }
+
+    data.maxActiveBookingsPerBooker = maxActiveBookingsPerBooker;
   }
 
   if (durationLimits) {
@@ -296,6 +343,45 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
+  const membershipRepo = new MembershipRepository(ctx.prisma);
+
+  if (restrictionScheduleId) {
+    // Verify that the user owns the restriction schedule or is a team member
+    const scheduleRepo = new ScheduleRepository(ctx.prisma);
+    const restrictionSchedule = await scheduleRepo.findScheduleByIdForOwnershipCheck({
+      scheduleId: restrictionScheduleId,
+    });
+    // If the user doesn't own the schedule, check if they're a team member
+    if (restrictionSchedule?.userId !== ctx.user.id) {
+      if (!teamId || !restrictionSchedule) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "The restriction schedule is not owned by you or your team",
+        });
+      }
+      const hasMembership = await membershipRepo.hasMembership({
+        teamId,
+        userId: restrictionSchedule.userId,
+      });
+      if (!hasMembership) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "The restriction schedule is not owned by you or your team",
+        });
+      }
+    }
+
+    data.restrictionSchedule = {
+      connect: {
+        id: restrictionScheduleId,
+      },
+    };
+  } else if (restrictionScheduleId === null || restrictionScheduleId === 0) {
+    data.restrictionSchedule = {
+      disconnect: true,
+    };
+  }
+
   if (users?.length) {
     data.users = {
       set: [],
@@ -305,14 +391,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (teamId && hosts) {
     // check if all hosts can be assigned (memberships that have accepted invite)
-    const memberships =
-      (await ctx.prisma.membership.findMany({
-        where: {
-          teamId,
-          accepted: true,
-        },
-      })) || [];
-    const teamMemberIds = memberships.map((membership) => membership.userId);
+    const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
     // guard against missing IDs, this may mean a member has just been removed
     // or this request was forged.
     // we let this pass through on organization sub-teams
@@ -516,6 +595,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     }
+  }
+
+  if (calVideoSettings) {
+    await CalVideoSettingsRepository.createOrUpdateCalVideoSettings({
+      eventTypeId: id,
+      calVideoSettings,
+    });
+  }
+
+  const parsedEventTypeLocations = eventTypeLocations.safeParse(eventType.locations ?? []);
+
+  const isCalVideoLocationActive = locations
+    ? locations.some((location) => location.type === DailyLocationType)
+    : parsedEventTypeLocations.success &&
+      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+
+  if (eventType.calVideoSettings && !isCalVideoLocationActive) {
+    await CalVideoSettingsRepository.deleteCalVideoSettings(id);
   }
 
   // Logic for updating `fieldTranslations`

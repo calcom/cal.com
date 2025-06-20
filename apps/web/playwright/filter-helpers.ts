@@ -1,6 +1,10 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+// Helper function to get text within a specific table column
+export const getByTableColumnText = (page: Page, columnId: string, text: string) =>
+  page.locator(`[data-testid="data-table-td-${columnId}"]`).getByText(text);
+
 /**
  * Add a filter from the filter dropdown
  */
@@ -167,4 +171,8 @@ export async function listSegments(page: Page): Promise<string[]> {
 
   await page.keyboard.press("Escape");
   return segments;
+}
+
+export function locateSelectedSegmentName(page: Page, expectedName: string) {
+  return page.locator('[data-testid="filter-segment-select"]').filter({ hasText: expectedName });
 }
