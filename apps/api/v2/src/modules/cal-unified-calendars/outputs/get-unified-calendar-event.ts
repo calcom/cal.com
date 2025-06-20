@@ -211,6 +211,18 @@ export class CalendarEventHost {
     description: "Display name of the event host",
   })
   name?: string;
+
+  @IsString()
+  @IsOptional()
+  @IsEnum(CalendarEventResponseStatus)
+  @ApiPropertyOptional({
+    enum: CalendarEventResponseStatus,
+    nullable: true,
+    enumName: "CalendarEventResponseStatus",
+    description: "Host's response to the invitation",
+    example: CalendarEventResponseStatus.ACCEPTED,
+  })
+  responseStatus!: CalendarEventResponseStatus | null;
 }
 
 export class CalendarEventAttendee {
