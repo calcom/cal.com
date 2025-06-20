@@ -8,6 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -55,6 +56,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   const router = useRouter();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
+  const isBillingDisabled = !HOSTED_CAL_FEATURES && isAdmin;
   const defaultOrgOwnerEmail = session.data.user.email ?? "";
   const { useOnboardingStore } = useOnboarding({ step: "start" });
   const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
@@ -92,7 +94,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         slug: data.slug,
       });
 
-      if (isAdmin) {
+      if (isAdmin && data.userId !== session.data.user.id) {
         router.push("/settings/organizations/new/handover");
       } else {
         router.push("/settings/organizations/new/about");
@@ -251,7 +253,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           />
         </div>
 
-        {isAdmin && (
+        {!isBillingDisabled && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
