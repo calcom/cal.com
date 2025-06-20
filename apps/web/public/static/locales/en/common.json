@@ -3240,6 +3240,10 @@
   "requires_credits": "Requires credits",
   "requires_credits_tooltip": "You need enough credits in your account to use this feature",
   "available_credits": "Available credits",
+  "choose_restriction_schedule": "Add restriction schedule",
+  "choose_restriction_schedule_description": "Enable this if you want to restrict the availability of hosts for this event type based on a restriction schedule. This only removes the slots that are not in the restriction schedule, it does not add any new slots.",
+  "use_booker_timezone": "Use booker's timezone",
+  "use_booker_timezone_info": "Apply the selected restriction schedule in the booker's timezone",
   "load_balancing_warning": "This will disable Load Balancing on all your Round Robin event types",
   "rr_load_balancing_disabled": "Load Balancing is only available when the timestamp basis is set to Booking Creation Time",
   "round_robin_settings_description": "Customize the default round robin settings for this team",
@@ -3255,6 +3259,8 @@
   "booker_limit_exceeded_error_reschedule": "You already have a booking for this event on {{date}}. Would you like to reschedule to the new selected time?",
   "duration_min_error": "Duration must be at least {{min}} minute(s)",
   "duration_max_error": "Duration cannot exceed {{max}} minutes (24 hours)",
+  "booking_not_allowed_by_restriction_schedule_error": "Booking outside restriction schedule availability.",
+  "restriction_schedule_not_found_error": "Restriction schedule not found",
   "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
