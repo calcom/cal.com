@@ -143,6 +143,9 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
           bio: organizationOnboarding.bio,
           logo: organizationOnboarding.logo,
         });
+        if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data.user.email) {
+          reset();
+        }
       }
     } else {
       // First step doesn't require onboardingId
@@ -156,9 +159,6 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     }
 
     // Admin must start fresh, so that they can create organization with any email and data doesn't mix from different org creations
-    if (isAdmin) {
-      reset();
-    }
   }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, onboardingId, reset, step, router]);
 
   useEffect(() => {
