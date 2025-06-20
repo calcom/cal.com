@@ -50,7 +50,7 @@ const getCachedTeams = unstable_cache(
 
 const Page = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  const orgId = session?.user?.org?.id ?? session?.user?.profile?.organizationId;
+  const orgId = session?.user?.profile?.organizationId ?? session?.user?.org?.id;
   const userId = session?.user?.id;
   if (!userId) {
     return redirect("/auth/login?callbackUrl=/settings/organizations/members");
