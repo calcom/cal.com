@@ -44,4 +44,24 @@ export class AttributeToUserRepository {
 
     return attributesAssignedToTeamMembers;
   }
+
+  static async findManyByOrgAndTeamIds({ orgId, teamId }: { orgId: number; teamId: number }) {
+    const teamIds = [orgId];
+    if (teamId !== orgId) {
+      teamIds.push(teamId);
+    }
+
+    const result = await prisma.attributeToUser.findMany({
+      where: {
+        member: {
+          teamId: {
+            in: teamIds,
+          },
+          accepted: true,
+        },
+      },
+    });
+
+    return result;
+  }
 }
