@@ -10,7 +10,7 @@ import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { revalidateTeamsList } from "@calcom/web/app/cache/team";
 
 type InvitationLinkSettingsModalProps = {
   isOpen: boolean;

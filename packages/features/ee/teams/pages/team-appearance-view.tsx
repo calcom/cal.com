@@ -18,7 +18,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateOrganizationTeams } from "@calcom/web/app/cache/organization";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
 

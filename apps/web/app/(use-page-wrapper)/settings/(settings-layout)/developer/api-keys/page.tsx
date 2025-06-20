@@ -1,11 +1,10 @@
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
+import { getCachedApiKeys } from "app/cache/apiKey";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
-import { ApiKeyRepository } from "@calcom/lib/server/repository/apiKey";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -19,14 +18,6 @@ export const generateMetadata = async () =>
     undefined,
     "/settings/developer/api-keys"
   );
-
-const getCachedApiKeys = unstable_cache(
-  async (userId: number) => {
-    return await ApiKeyRepository.findApiKeysFromUserId({ userId });
-  },
-  undefined,
-  { revalidate: 3600, tags: ["viewer.apiKeys.list"] } // Cache for 1 hour
-);
 
 const Page = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });

@@ -8,7 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
-import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateOrganizationTeams } from "@calcom/web/app/cache/organization";
 
 type MembershipRoleOption = {
   label: string;

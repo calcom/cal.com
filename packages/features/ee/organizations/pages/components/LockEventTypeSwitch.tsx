@@ -12,7 +12,7 @@ import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateCurrentOrg } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateCurrentOrg } from "@calcom/web/app/cache/organization";
 
 enum CurrentEventTypeOptions {
   DELETE = "DELETE",

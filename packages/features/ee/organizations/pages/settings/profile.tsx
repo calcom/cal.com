@@ -37,7 +37,7 @@ import {
 } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { revalidateCurrentOrg } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateCurrentOrg } from "@calcom/web/app/cache/organization";
 
 import { useOrgBranding } from "../../../organizations/context/provider";
 

@@ -43,8 +43,8 @@ import {
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateTeamsList } from "@calcom/web/app/cache/team";
+import { revalidateOrganizationTeams } from "@calcom/web/app/cache/organization";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 

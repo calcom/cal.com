@@ -30,8 +30,8 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateTeamsList } from "@calcom/web/app/cache/team";
+import { revalidateOrganizationTeams } from "@calcom/web/app/cache/organization";
 
 import { TeamRole } from "./TeamPill";
 

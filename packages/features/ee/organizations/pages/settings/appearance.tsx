@@ -19,7 +19,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateCurrentOrg } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateCurrentOrg } from "@calcom/web/app/cache/organization";
 
 type BrandColorsFormValues = {
   brandColor: string;

@@ -14,7 +14,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form, Input, SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateOrganizationTeams } from "@calcom/web/app/cache/organization";
 
 interface ProfileViewProps {
   team: RouterOutputs["viewer"]["teams"]["get"];

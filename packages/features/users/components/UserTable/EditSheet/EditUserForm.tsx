@@ -26,7 +26,7 @@ import {
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SheetHeader, SheetBody, SheetFooter, SheetTitle } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateCurrentOrg } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateCurrentOrg } from "@calcom/web/app/cache/organization";
 
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";

@@ -31,8 +31,8 @@ import { TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-import { revalidateOrganizationTeams } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import { revalidateTeamsList } from "@calcom/web/app/cache/team";
+import { revalidateOrganizationTeams } from "@calcom/web/app/cache/organization";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 

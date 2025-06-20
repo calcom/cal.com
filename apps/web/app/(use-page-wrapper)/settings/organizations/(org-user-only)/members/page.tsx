@@ -1,11 +1,10 @@
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
+import { getCachedOrgAttributes } from "app/cache/attribute";
+import { getCachedCurrentOrg, getCachedOrgTeams } from "app/cache/organization";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -21,33 +20,6 @@ export const generateMetadata = async () =>
     "/settings/organizations/members"
   );
 
-const getCachedCurrentOrg = unstable_cache(
-  async (userId: number, orgId: number) => {
-    return await OrganizationRepository.findCurrentOrg({
-      userId,
-      orgId,
-    });
-  },
-  undefined,
-  { revalidate: 3600, tags: ["OrganizationRepository.findCurrentOrg"] } // Cache for 1 hour
-);
-
-const getCachedAttributes = unstable_cache(
-  async (orgId: number) => {
-    return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
-  },
-  undefined,
-  { revalidate: 3600, tags: ["AttributeRepository.findAllByOrgIdWithOptions"] } // Cache for 1 hour
-);
-
-const getCachedTeams = unstable_cache(
-  async (orgId: number) => {
-    return await OrganizationRepository.getTeams({ organizationId: orgId });
-  },
-  undefined,
-  { revalidate: 3600, tags: ["OrganizationRepository.getTeams"] } // Cache for 1 hour
-);
-
 const Page = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const orgId = session?.user?.profile?.organizationId ?? session?.user?.org?.id;
@@ -61,8 +33,8 @@ const Page = async () => {
 
   const [org, teams, attributes] = await Promise.all([
     getCachedCurrentOrg(userId, orgId),
-    getCachedTeams(orgId),
-    getCachedAttributes(orgId),
+    getCachedOrgTeams(orgId),
+    getCachedOrgAttributes(orgId),
   ]);
 
   const facetedTeamValues = {
