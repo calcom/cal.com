@@ -42,7 +42,7 @@ const prismaWithoutClientExtensions =
   globalForPrisma.prismaWithoutClientExtensions || new PrismaClientWithoutExtensions(prismaOptions);
 
 export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
-  new PrismaClientWithoutExtension({ ...prismaOptions, ...options })
+  new PrismaClientWithoutExtensions({ ...prismaOptions, ...options })
     .$extends(usageTrackingExtention(prismaWithoutClientExtensions))
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
