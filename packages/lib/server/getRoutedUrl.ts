@@ -32,6 +32,18 @@ const querySchema = z
   })
   .catchall(z.string().or(z.array(z.string())));
 
+const getDeterministicHashForResponse = (fieldsResponses: Record<string, unknown>) => {
+  const sortedFields = Object.keys(fieldsResponses)
+    .sort()
+    .reduce((obj: Record<string, unknown>, key) => {
+      obj[key] = fieldsResponses[key];
+      return obj;
+    }, {});
+  const paramsString = JSON.stringify(sortedFields);
+  const hash = createHash("sha256").update(paramsString).digest("hex");
+  return hash;
+};
+
 function hasEmbedPath(pathWithQuery: string) {
   const onlyPath = pathWithQuery.split("?")[0];
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
@@ -60,17 +72,10 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     ...fieldsResponses
   } = queryParsed.data;
 
-  const sortedFields = Object.keys(fieldsResponses)
-    .sort()
-    .reduce((obj: Record<string, unknown>, key) => {
-      obj[key] = fieldsResponses[key];
-      return obj;
-    }, {});
-  const paramsString = JSON.stringify(sortedFields);
-  const hash = createHash("sha256").update(paramsString).digest("hex");
+  const responseHash = getDeterministicHashForResponse(fieldsResponses);
 
   await checkRateLimitAndThrowError({
-    identifier: `form:${formId}:hash:${hash}`,
+    identifier: `form:${formId}:hash:${responseHash}`,
   });
 
   const isBookingDryRun = isBookingDryRunParam === "true";
