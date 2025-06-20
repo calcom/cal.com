@@ -42,6 +42,7 @@ export interface DailyVideoCallData {
   url: string;
 }
 
+// Regions available to create DailyVideo Rooms in.
 const REGION_CODES = [
   "af-south-1",
   "ap-northeast-2",
@@ -55,11 +56,6 @@ const REGION_CODES = [
   "us-west-2",
 ] as const;
 
-/**
- * Type alias for the union of all possible AWS region codes.
- * This type is derived from the 'AWS_REGION_CODES.in  constant array
- * using 'typeof' and indexed access.
- */
 type RoomGeo = (typeof REGION_CODES)[number];
 
 const isS3StorageEnabled =
@@ -374,6 +370,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     });
   }
 
+  // Region on which the DailyVideo room is created can be controlled by ENV var
+  // undefined region leaves the choice to DailyVideo
   const region =
     process?.env?.DAILY_VIDEO_REGION &&
     REGION_CODES.includes(process?.env?.DAILY_VIDEO_REGION as unknown as RoomGeo)
