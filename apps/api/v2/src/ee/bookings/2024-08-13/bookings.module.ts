@@ -38,6 +38,8 @@ import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
+import { GoogleApiCacheModule } from "@calcom/app-store/_utils/googleapis/NestJsIntegration";
+
 @Module({
   imports: [
     PrismaModule,
@@ -53,6 +55,7 @@ import { Module } from "@nestjs/common";
     StripeModule,
     TeamsModule,
     TeamsEventTypesModule,
+    GoogleApiCacheModule,
   ],
   providers: [
     TokensRepository,

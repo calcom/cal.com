@@ -51,5 +51,6 @@ export const getCalendar = async (
   }
   log.info("Got calendarApp", calendarApp.lib.CalendarService);
   const CalendarService = calendarApp.lib.CalendarService;
+
   return new CalendarService(credential);
 };

@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { GoogleApiCacheFactory } from "@calcom/app-store/_utils/googleapis";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
@@ -30,11 +31,13 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     creationSource: CreationSource.WEBAPP,
   };
 
+  const cacheManager = GoogleApiCacheFactory.createEdgeCacheManager();
   const booking = await handleNewBooking({
     bookingData: req.body,
     userId: session?.user?.id || -1,
     hostname: req.headers.host || "",
     forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+    googleApiCacheManager: cacheManager,
   });
   return booking;
 }
