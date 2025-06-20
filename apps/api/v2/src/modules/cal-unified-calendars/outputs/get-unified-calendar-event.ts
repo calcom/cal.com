@@ -219,7 +219,7 @@ export class CalendarEventHost {
     enum: CalendarEventResponseStatus,
     nullable: true,
     enumName: "CalendarEventResponseStatus",
-    description: "Attendee's response to the invitation",
+    description: "Host's response to the invitation",
     example: CalendarEventResponseStatus.ACCEPTED,
   })
   responseStatus!: CalendarEventResponseStatus | null;

@@ -24102,7 +24102,7 @@
       },
       "CalendarEventResponseStatus": {
         "type": "string",
-        "description": "Attendee's response to the invitation",
+        "description": "Host's response to the invitation",
         "enum": ["accepted", "pending", "declined", "needsAction"]
       },
       "CalendarEventAttendee": {
