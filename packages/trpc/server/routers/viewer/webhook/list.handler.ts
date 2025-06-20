@@ -17,7 +17,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     AND: [{ appId: !input?.appId ? null : input.appId }],
   };
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
     },

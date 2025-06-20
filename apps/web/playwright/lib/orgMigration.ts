@@ -65,10 +65,12 @@ export async function moveUserToOrg({
     );
   }
 
-  const userWithSameUsernameInOrg = await prisma.user.findFirst({
+  const userWithSameUsernameInOrg = await prisma.user.findUnique({
     where: {
-      username: targetOrgUsername,
-      organizationId: targetOrgId,
+      username_organizationId: {
+        username: targetOrgUsername,
+        organizationId: targetOrgId,
+      },
     },
   });
 

@@ -1,6 +1,7 @@
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { z } from "zod";
 
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
@@ -39,7 +40,15 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { schedulingType, teamId, metadata, locations: inputLocations, scheduleId, ...rest } = input;
+  const {
+    schedulingType,
+    teamId,
+    metadata,
+    locations: inputLocations,
+    scheduleId,
+    calVideoSettings,
+    ...rest
+  } = input;
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
@@ -47,6 +56,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const locations: EventTypeLocation[] =
     inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
+
+  const isCalVideoLocationActive = locations.some((location) => location.type === DailyLocationType);
 
   const data: Prisma.EventTypeCreateInput = {
     ...rest,
@@ -57,6 +68,16 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     locations,
     schedule: scheduleId ? { connect: { id: scheduleId } } : undefined,
   };
+
+  if (isCalVideoLocationActive && calVideoSettings) {
+    data.calVideoSettings = {
+      create: {
+        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+        redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+      },
+    };
+  }
 
   if (teamId && schedulingType) {
     const hasMembership = await ctx.prisma.membership.findFirst({

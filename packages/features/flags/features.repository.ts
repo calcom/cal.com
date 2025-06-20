@@ -1,6 +1,5 @@
 import { captureException } from "@sentry/nextjs";
 
-import kysely from "@calcom/kysely";
 import db from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -57,27 +56,6 @@ export class FeaturesRepository implements IFeaturesRepository {
       acc[flag.slug as keyof AppFlags] = flag.enabled;
       return acc;
     }, {} as AppFlags);
-  }
-
-  /**
-   * Gets all features enabled for a specific team in a map format.
-   * @param teamId - The ID of the team to get features for
-   * @returns Promise<{ [slug: string]: boolean } | null>
-   */
-  public async getTeamFeatures(teamId: number) {
-    const result = await kysely
-      .selectFrom("TeamFeatures")
-      .innerJoin("Feature", "Feature.slug", "TeamFeatures.featureId")
-      .select(["Feature.slug", "Feature.enabled"])
-      .where("TeamFeatures.teamId", "=", teamId)
-      .execute();
-
-    if (!result.length) return null;
-
-    return result.reduce<Record<keyof AppFlags, boolean>>((acc, feature) => {
-      acc[feature.slug as keyof AppFlags] = true;
-      return acc;
-    }, {} as Record<keyof AppFlags, boolean>);
   }
 
   /**
@@ -192,10 +170,12 @@ export class FeaturesRepository implements IFeaturesRepository {
   async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags): Promise<boolean> {
     try {
       // Early return if team has feature directly assigned
-      const teamHasFeature = await db.teamFeatures.findFirst({
+      const teamHasFeature = await db.teamFeatures.findUnique({
         where: {
-          teamId,
-          featureId,
+          teamId_featureId: {
+            teamId,
+            featureId,
+          },
         },
       });
       if (teamHasFeature) return true;

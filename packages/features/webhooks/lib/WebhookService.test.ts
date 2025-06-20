@@ -3,15 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { WebhookService } from "./WebhookService";
+import type { GetWebhooksReturnType } from "./getWebhooks";
 import getWebhooks from "./getWebhooks";
 
-vi.mock("./getWebhooks", () => ({
-  default: vi.fn(),
-}));
-
-vi.mock("./sendOrSchedulePayload", () => ({
-  default: vi.fn(),
-}));
+vi.mock("./getWebhooks");
+vi.mock("./sendOrSchedulePayload");
 
 vi.mock("@calcom/lib/logger", async () => {
   const actual = await vi.importActual<typeof import("@calcom/lib/logger")>("@calcom/lib/logger");
@@ -41,19 +37,22 @@ describe("WebhookService", () => {
   });
 
   it("should initialize with options and webhooks", async () => {
-    const mockWebhooks = [
+    const mockWebhooks: GetWebhooksReturnType = [
       {
         id: "webhookId",
         subscriberUrl: "url",
         secret: "secret",
         appId: "appId",
         payloadTemplate: "payloadTemplate",
+        eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+        timeUnit: "MINUTE",
+        time: 5,
       },
     ];
     vi.mocked(getWebhooks).mockResolvedValue(mockWebhooks);
 
     // Has to be called with await due to the iffi being async
-    const service = await new WebhookService(mockOptions);
+    const service = await WebhookService.init(mockOptions);
 
     expect(service).toBeInstanceOf(WebhookService);
     expect(await service.getWebhooks()).toEqual(mockWebhooks);

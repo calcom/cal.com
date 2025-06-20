@@ -229,7 +229,13 @@ export type IntervalLimitsType = IntervalLimit | null;
 
 export { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 
-export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
+export const eventTypeSlug = z
+  .string()
+  .trim()
+  .transform((val) => slugify(val))
+  .refine((val) => val.length >= 1, {
+    message: "Please enter at least one character",
+  });
 
 export const stringToDate = z.string().transform((a) => new Date(a));
 
@@ -260,6 +266,7 @@ const PlatformClientParamsSchema = z.object({
   platformCancelUrl: z.string().nullable().optional(),
   platformBookingUrl: z.string().nullable().optional(),
   platformBookingLocation: z.string().optional(),
+  areCalendarEventsEnabled: z.boolean().optional(),
 });
 
 export type PlatformClientParams = z.infer<typeof PlatformClientParamsSchema>;
@@ -630,6 +637,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
@@ -661,6 +669,8 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   workflows: true,
   bookingFields: true,
   durationLimits: true,
+  maxActiveBookingsPerBooker: true,
+  maxActiveBookingPerBookerOfferReschedule: true,
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,

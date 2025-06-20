@@ -348,7 +348,8 @@ export const insightsRouter = router({
       whereConditional,
       dayjs(startDate),
       dayjs(endDate),
-      dateRanges
+      dateRanges,
+      ctx.user.timeZone
     );
 
     const result = dateRanges.map(({ formattedDate }) => {

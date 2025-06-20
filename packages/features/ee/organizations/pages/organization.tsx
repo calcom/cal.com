@@ -25,10 +25,12 @@ export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => 
   }
 
   // Check if logged in user has OWNER/ADMIN role in organization
-  const membership = await prisma.membership.findFirst({
+  const membership = await prisma.membership.findUnique({
     where: {
-      userId: session?.user.id,
-      teamId: session?.user.profile.organizationId,
+      userId_teamId: {
+        userId: session?.user.id,
+        teamId: session?.user.profile.organizationId,
+      },
     },
     select: {
       role: true,

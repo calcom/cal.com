@@ -45,7 +45,7 @@ function getResponsesFromOldBooking(
 }
 
 async function getBooking(prisma: PrismaClient, uid: string) {
-  const rawBooking = await prisma.booking.findFirst({
+  const rawBooking = await prisma.booking.findUnique({
     where: {
       uid,
     },

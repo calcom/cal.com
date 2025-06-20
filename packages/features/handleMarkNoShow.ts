@@ -208,7 +208,7 @@ const getWebhooksService = async (bookingUid: string, platformClientId?: string)
     memberId: booking?.eventType?.userId,
     teamId: booking?.eventType?.teamId,
   });
-  const webhooks = await new WebhookService({
+  const webhooks = await WebhookService.init({
     teamId: booking?.eventType?.teamId,
     userId: booking?.eventType?.userId,
     eventTypeId: booking?.eventType?.id,

@@ -191,10 +191,12 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
     teamMembers = teamAllInfo.teamMembers;
     totalTeamMembers = teamAllInfo.totalTeamMembers;
   } else {
-    const isMember = await prisma.membership.findFirst({
+    const isMember = await prisma.membership.findUnique({
       where: {
-        teamId,
-        userId: ctx.user.id,
+        userId_teamId: {
+          userId: ctx.user.id,
+          teamId,
+        },
       },
     });
 

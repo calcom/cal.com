@@ -49,6 +49,7 @@ export const paymentDataSelect = {
           metadata: true,
           users: {
             select: {
+              id: true,
               name: true,
               username: true,
               hideBranding: true,
@@ -59,6 +60,11 @@ export const paymentDataSelect = {
             select: {
               name: true,
               hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
           price: true,

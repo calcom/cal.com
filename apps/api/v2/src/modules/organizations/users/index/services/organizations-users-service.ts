@@ -90,6 +90,7 @@ export class OrganizationsUsersService {
           autoAccept: userCreateBody.autoAccept,
         },
       },
+      language: "en",
     });
 
     const createdUser = createdUserCall[0];

@@ -6,7 +6,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@calcom/prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -32,6 +31,7 @@ import {
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+import { User } from "@calcom/prisma/client";
 import { Team } from "@calcom/prisma/client";
 
 describe("Organizations Event Types Endpoints", () => {
@@ -85,11 +85,13 @@ describe("Organizations Event Types Endpoints", () => {
       teamMember1 = await userRepositoryFixture.create({
         email: teammate1Email,
         username: teammate1Email,
+        name: "alice",
       });
 
       teamMember2 = await userRepositoryFixture.create({
         email: teammate2Email,
         username: teammate2Email,
+        name: "bob",
       });
 
       falseTestUser = await userRepositoryFixture.create({
@@ -403,6 +405,21 @@ describe("Organizations Event Types Endpoints", () => {
 
           const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
           expect(responseTeamEvent).toBeDefined();
+          expect(responseTeamEvent?.hosts).toEqual([
+            {
+              userId: teamMember1.id,
+              name: teamMember1.name,
+              username: teamMember1.username,
+              avatarUrl: teamMember1.avatarUrl,
+            },
+            {
+              userId: teamMember2.id,
+              name: teamMember2.name,
+              username: teamMember2.username,
+              avatarUrl: teamMember2.avatarUrl,
+            },
+          ]);
+
           if (!responseTeamEvent) {
             throw new Error("Team event not found");
           }

@@ -135,7 +135,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
         .sort((eventTypeA, eventTypeB) => eventTypeB.position - eventTypeA.position),
     }));
   } else {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },

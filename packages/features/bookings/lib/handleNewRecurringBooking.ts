@@ -9,6 +9,7 @@ export type PlatformParams = {
   platformBookingUrl?: string;
   platformRescheduleUrl?: string;
   platformBookingLocation?: string;
+  areCalendarEventsEnabled?: boolean;
 };
 
 export type BookingHandlerInput = {
@@ -45,6 +46,7 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
     platformCancelUrl: input.platformCancelUrl,
     platformBookingUrl: input.platformBookingUrl,
     platformBookingLocation: input.platformBookingLocation,
+    areCalendarEventsEnabled: input.areCalendarEventsEnabled,
   };
 
   if (isRoundRobin) {

@@ -128,7 +128,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
   }
 
-  const prevOrganisation = await prisma.team.findFirst({
+  const prevOrganisation = await prisma.team.findUnique({
     where: {
       id: currentOrgId,
     },
@@ -160,7 +160,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     metadata: mergeMetadata({ ...input.metadata }),
   };
 
-  if (input.banner && input.banner.startsWith("data:image/png;base64,")) {
+  if (
+    input.banner &&
+    (input.banner.startsWith("data:image/png;base64,") ||
+      input.banner.startsWith("data:image/jpeg;base64,") ||
+      input.banner.startsWith("data:image/jpg;base64,"))
+  ) {
     const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
     data.bannerUrl = await uploadLogo({
       logo: banner,
@@ -171,7 +176,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.bannerUrl = null;
   }
 
-  if (input.logoUrl && input.logoUrl.startsWith("data:image/png;base64,")) {
+  if (
+    input.logoUrl &&
+    (input.logoUrl.startsWith("data:image/png;base64,") ||
+      input.logoUrl.startsWith("data:image/jpeg;base64,") ||
+      input.logoUrl.startsWith("data:image/jpg;base64,"))
+  ) {
     data.logoUrl = await uploadLogo({
       logo: await resizeBase64Image(input.logoUrl),
       teamId: currentOrgId,

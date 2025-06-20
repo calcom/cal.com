@@ -170,4 +170,15 @@ export class BookingsRepository_2024_08_13 {
       },
     });
   }
+
+  async getByUidWithBookingReference(uid: string) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: {
+        uid,
+      },
+      select: {
+        references: true,
+      },
+    });
+  }
 }

@@ -160,6 +160,8 @@ export default async function handleChildrenEventTypes({
       newUserIds.map((userId) => {
         return prisma.eventType.create({
           data: {
+            instantMeetingScheduleId: eventType.instantMeetingScheduleId ?? undefined,
+            profileId: profileId ?? null,
             ...managedEventTypeValues,
             ...{
               ...unlockedEventTypeValues,
@@ -193,6 +195,10 @@ export default async function handleChildrenEventTypes({
             assignRRMembersUsingSegment: false,
             useEventLevelSelectedCalendars: false,
             profileId: profileId ?? null,
+            restrictionScheduleId: null,
+            useBookerTimezone: false,
+            allowReschedulingCancelledBookings:
+              managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
           },
         });
       })
@@ -259,12 +265,16 @@ export default async function handleChildrenEventTypes({
             ...updatePayloadFiltered,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
             scheduleId: eventType.scheduleId || null,
+            restrictionScheduleId: null,
+            useBookerTimezone: false,
             hashedLink:
               "multiplePrivateLinks" in unlockedFieldProps
                 ? undefined
                 : {
                     deleteMany: {},
                   },
+            allowReschedulingCancelledBookings:
+              managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
             metadata: {
               ...(eventType.metadata as Prisma.JsonObject),
               ...(metadata?.multipleDuration && "length" in unlockedFieldProps
