@@ -12,10 +12,18 @@ vi.mock("@calcom/features/redis/RedisService");
 vi.mock("@calcom/features/ee/api-keys/lib/apiKeys", () => ({
   hashAPIKey: vi.fn((key) => `hashed_${key}`),
 }));
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi.fn(() => Promise.resolve((key: string) => key)),
+}));
+vi.mock("@calcom/emails/email-manager", () => ({
+  sendAccountLockWarningEmail: vi.fn(),
+}));
 vi.mock("@calcom/prisma", () => ({
   default: {
     user: {
       update: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
     apiKey: {
       findUnique: vi.fn(),
@@ -346,6 +354,15 @@ describe("autoLock", () => {
         if (key.includes(".warning.")) return null; // No warning sent yet
         return "2"; // Current count
       });
+
+      const mockUser = {
+        id: 123,
+        email: "test@example.com",
+        username: "testuser",
+        locale: "en",
+      };
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
 
       await handleAutoLock({
         identifier: "test@example.com",

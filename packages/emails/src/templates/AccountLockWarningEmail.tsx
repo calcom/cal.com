@@ -14,7 +14,7 @@ export const AccountLockWarningEmail = (props: {
 }) => {
   const { user, currentCount, threshold } = props;
   const remainingAttempts = threshold - currentCount;
-  const supportMailto = `mailto:support@cal.com?subject=Account Lock Warning&body=Hello,%0A%0AI received a warning about my account being locked due to rate limit violations. Please help me resolve this issue.%0A%0AThank you`;
+  const supportMailto = `mailto:support@cal.com?subject=Account Lock Warning&body=Hello,%0A%0AI received a warning about my account being locked due to rate limit violations. Please help me resolve this issue.%0A%0ANote: API v1 has a limit of 30 requests per 60 seconds, while API v2 has an increased limit of 120 requests per 60 seconds. If you are using API v1, consider upgrading to API v2 for higher rate limits.%0A%0AThank you`;
 
   return (
     <V2BaseEmailHtml subject={user.t("account_lock_warning_subject")}>
