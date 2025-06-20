@@ -194,7 +194,6 @@ export default async function handleChildrenEventTypes({
             rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
             useEventLevelSelectedCalendars: false,
-            profileId: profileId ?? null,
             restrictionScheduleId: null,
             useBookerTimezone: false,
             allowReschedulingCancelledBookings:
