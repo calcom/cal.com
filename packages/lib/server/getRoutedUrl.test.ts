@@ -1,3 +1,4 @@
+import "../../../tests/libs/__mocks__/prisma";
 import "@calcom/lib/__mocks__/logger";
 
 import type { GetServerSidePropsContext } from "next";
