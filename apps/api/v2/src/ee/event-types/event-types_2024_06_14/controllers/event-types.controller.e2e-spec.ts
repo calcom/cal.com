@@ -965,6 +965,9 @@ describe("Event types Endpoints", () => {
         calVideoSettings: {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
+          enableAutomaticRecordingForOrganizer: true,
         },
         bookingFields: [
           nameBookingField,
@@ -1091,6 +1094,15 @@ describe("Event types Endpoints", () => {
           );
           expect(updatedEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(
             body.calVideoSettings?.disableRecordingForOrganizer
+          );
+          expect(updatedEventType.calVideoSettings?.disableTranscriptionForGuests).toEqual(
+            body.calVideoSettings?.disableTranscriptionForGuests
+          );
+          expect(updatedEventType.calVideoSettings?.disableTranscriptionForOrganizer).toEqual(
+            body.calVideoSettings?.disableTranscriptionForOrganizer
+          );
+          expect(updatedEventType.calVideoSettings?.enableAutomaticRecordingForOrganizer).toEqual(
+            body.calVideoSettings?.enableAutomaticRecordingForOrganizer
           );
 
           eventType.title = newTitle;
@@ -1860,6 +1872,9 @@ describe("Event types Endpoints", () => {
           calVideoSettings: {
             disableRecordingForGuests: true,
             disableRecordingForOrganizer: true,
+            disableTranscriptionForGuests: true,
+            disableTranscriptionForOrganizer: true,
+            enableAutomaticRecordingForOrganizer: true,
           },
           locations: [
             {
@@ -1882,6 +1897,9 @@ describe("Event types Endpoints", () => {
             expect(createdEventType.locations).toEqual(body.locations);
             expect(createdEventType.calVideoSettings?.disableRecordingForGuests).toEqual(true);
             expect(createdEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(true);
+            expect(createdEventType.calVideoSettings?.disableTranscriptionForGuests).toEqual(true);
+            expect(createdEventType.calVideoSettings?.disableTranscriptionForOrganizer).toEqual(true);
+            expect(createdEventType.calVideoSettings?.enableAutomaticRecordingForOrganizer).toEqual(true);
             firstCreatedEventType = responseBody.data;
           });
       });
