@@ -147,6 +147,7 @@ describe("SMSManager", () => {
           body: expect.stringContaining(mockCalEvent.attendees[0].name),
           sender: expect.any(String),
           teamId: undefined,
+          userId: 1,
           bookingUid: "test-booking-uid",
         },
       });
