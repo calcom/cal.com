@@ -10,10 +10,6 @@ export async function revalidateOrganizationTeams() {
   revalidateTag("viewer.organizations.getTeams");
 }
 
-export async function revalidateOrganizationFacetedValues() {
-  revalidateTag("viewer.organizations.getFacetedValues");
-}
-
 export async function revalidateCurrentOrg() {
   revalidateTag("OrganizationRepository.findCurrentOrg");
 }
