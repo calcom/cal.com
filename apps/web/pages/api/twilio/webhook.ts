@@ -2,9 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import getIP from "@calcom/lib/getIP";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
@@ -31,13 +29,6 @@ const InputSchema = z.object({
   Twilio status callback: creates expense log when sms is delivered or undelivered
 */
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const userIp = getIP(req);
-
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "common",
-    identifier: `twilio-webhook-${userIp}`,
-  });
-
   const signature = req.headers["x-twilio-signature"];
   const baseUrl = `${WEBAPP_URL}/api/twilio/webhook`;
 
