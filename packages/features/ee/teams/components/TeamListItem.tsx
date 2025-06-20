@@ -274,6 +274,7 @@ export default function TeamListItem(props: Props) {
                               color="destructive"
                               type="button"
                               StartIcon="trash"
+                              className="rounded-t-none"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>

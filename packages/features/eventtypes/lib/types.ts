@@ -152,12 +152,18 @@ export type FormValues = {
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
+  restrictionScheduleId: number | null;
+  useBookerTimezone: boolean;
+  restrictionScheduleName: string | null;
   calVideoSettings?: {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;
     enableAutomaticTranscription?: boolean;
+    disableTranscriptionForGuests?: boolean;
+    disableTranscriptionForOrganizer?: boolean;
     redirectUrlOnExit?: string;
   };
+  maxActiveBookingPerBookerOfferReschedule: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

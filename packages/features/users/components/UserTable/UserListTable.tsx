@@ -31,6 +31,7 @@ import {
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -110,8 +111,18 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 export type UserListTableProps = {
   org: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>>;
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
-  facetedTeamValues?: RouterOutputs["viewer"]["organizations"]["getFacetedValues"];
   attributes?: RouterOutputs["viewer"]["attributes"]["list"];
+  facetedTeamValues?: {
+    roles: MembershipRole[];
+    teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+    attributes: {
+      id: string;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
 };
 
 export function UserListTable(props: UserListTableProps) {

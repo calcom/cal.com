@@ -247,11 +247,11 @@ export class OrganizationRepository {
   }
 
   static async findCurrentOrg({ userId, orgId }: { userId: number; orgId: number }) {
-    const membership = await prisma.membership.findFirst({
+    const membership = await prisma.membership.findUnique({
       where: {
-        userId,
-        team: {
-          id: orgId,
+        userId_teamId: {
+          userId,
+          teamId: orgId,
         },
       },
       include: {

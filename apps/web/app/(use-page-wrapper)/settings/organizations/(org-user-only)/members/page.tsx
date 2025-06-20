@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -47,14 +48,6 @@ const getCachedTeams = unstable_cache(
   { revalidate: 3600, tags: ["viewer.organizations.getTeams"] } // Cache for 1 hour
 );
 
-const getCachedFacetedValues = unstable_cache(
-  async (orgId: number) => {
-    return await OrganizationRepository.getFacetedValues({ organizationId: orgId });
-  },
-  undefined,
-  { revalidate: 3600, tags: ["viewer.organizations.getFacetedValues"] } // Cache for 1 hour
-);
-
 const Page = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const orgId = session?.user?.org?.id ?? session?.user?.profile?.organizationId;
@@ -66,12 +59,23 @@ const Page = async () => {
     return redirect("/settings/my-account/profile");
   }
 
-  const [org, teams, facetedTeamValues, attributes] = await Promise.all([
+  const [org, teams, attributes] = await Promise.all([
     getCachedCurrentOrg(userId, orgId),
     getCachedTeams(orgId),
-    getCachedFacetedValues(orgId),
     getCachedAttributes(orgId),
   ]);
+
+  const facetedTeamValues = {
+    roles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    teams,
+    attributes: attributes.map((attribute) => ({
+      id: attribute.id,
+      name: attribute.name,
+      options: Array.from(new Set(attribute.options.map((option) => option.value))).map((value) => ({
+        value,
+      })),
+    })),
+  };
 
   return (
     <MembersView org={org} teams={teams} facetedTeamValues={facetedTeamValues} attributes={attributes} />
