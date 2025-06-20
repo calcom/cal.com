@@ -3,11 +3,11 @@
 import { revalidateTag } from "next/cache";
 
 export async function revalidateAttributesList() {
-  revalidateTag("viewer.attributes.list");
+  revalidateTag("AttributeRepository.findAllByOrgIdWithOptions");
 }
 
 export async function revalidateOrganizationTeams() {
-  revalidateTag("viewer.organizations.getTeams");
+  revalidateTag("OrganizationRepository.getTeams");
 }
 
 export async function revalidateCurrentOrg() {

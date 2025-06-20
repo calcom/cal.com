@@ -37,7 +37,7 @@ const getCachedAttributes = unstable_cache(
     return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
   },
   undefined,
-  { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour
+  { revalidate: 3600, tags: ["AttributeRepository.findAllByOrgIdWithOptions"] } // Cache for 1 hour
 );
 
 const getCachedTeams = unstable_cache(
@@ -45,7 +45,7 @@ const getCachedTeams = unstable_cache(
     return await OrganizationRepository.getTeams({ organizationId: orgId });
   },
   undefined,
-  { revalidate: 3600, tags: ["viewer.organizations.getTeams"] } // Cache for 1 hour
+  { revalidate: 3600, tags: ["OrganizationRepository.getTeams"] } // Cache for 1 hour
 );
 
 const Page = async () => {
