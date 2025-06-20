@@ -26,6 +26,12 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       description: newDescription,
       length: newLength,
     } = input;
+
+    await checkRateLimitAndThrowError({
+      identifier: `duplicate-event-type:${originalEventTypeId}`,
+      rateLimitingType: "core",
+    });
+
     const eventType = await prisma.eventType.findUnique({
       where: {
         id: originalEventTypeId,
