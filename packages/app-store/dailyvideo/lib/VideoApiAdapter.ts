@@ -42,6 +42,26 @@ export interface DailyVideoCallData {
   url: string;
 }
 
+const REGION_CODES = [
+  "af-south-1",
+  "ap-northeast-2",
+  "ap-southeast-1",
+  "ap-southeast-2",
+  "ap-south-1",
+  "eu-central-1",
+  "eu-west-2",
+  "sa-east-1",
+  "us-east-1",
+  "us-west-2",
+] as const;
+
+/**
+ * Type alias for the union of all possible AWS region codes.
+ * This type is derived from the 'AWS_REGION_CODES.in  constant array
+ * using 'typeof' and indexed access.
+ */
+type RoomGeo = (typeof REGION_CODES)[number];
+
 const isS3StorageEnabled =
   process.env.CAL_VIDEO_BUCKET_NAME &&
   process.env.CAL_VIDEO_BUCKET_REGION &&
@@ -203,11 +223,15 @@ export const setEnableRecordingUIAndUserIdForOrganizer = async (
 };
 
 const DailyVideoApiAdapter = (): VideoApiAdapter => {
-  async function createOrUpdateMeeting(endpoint: string, event: CalendarEvent): Promise<VideoCallData> {
+  async function createOrUpdateMeeting(
+    endpoint: string,
+    event: CalendarEvent,
+    region?: RoomGeo
+  ): Promise<VideoCallData> {
     if (!event.uid) {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
     }
-    const body = await translateEvent(event);
+    const body = await translateEvent(event, region);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: {
@@ -226,7 +250,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     });
   }
 
-  const translateEvent = async (event: CalendarEvent) => {
+  const translateEvent = async (event: CalendarEvent, region?: RoomGeo) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // Adds 14 days from the end of the booking as the expiration date
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60 * 24 * 14;
@@ -248,6 +272,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     return {
       privacy: "public",
       properties: {
+        ...(region ? { geo: region } : {}),
         enable_prejoin_ui: true,
         enable_knocking: true,
         enable_screenshare: true,
@@ -284,7 +309,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     };
   };
 
-  async function createInstantMeeting(endTime: string) {
+  async function createInstantMeeting(endTime: string, region?: RoomGeo) {
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(endTime).getTime() / 1000) + 60 * 60;
     const { scale_plan: scalePlan } = await getDailyAppKeys();
@@ -296,6 +321,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     const body = {
       privacy: "public",
       properties: {
+        ...(region ? { geo: region } : {}),
         enable_prejoin_ui: true,
         enable_knocking: true,
         enable_screenshare: true,
@@ -348,19 +374,24 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     });
   }
 
+  const region =
+    process?.env?.DAILY_VIDEO_REGION &&
+    REGION_CODES.includes(process?.env?.DAILY_VIDEO_REGION as unknown as RoomGeo)
+      ? (process?.env?.DAILY_VIDEO_REGION as RoomGeo)
+      : undefined;
   return {
     /** Daily doesn't need to return busy times, so we return empty */
     getAvailability: () => {
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> =>
-      createOrUpdateMeeting("/rooms", event),
+      createOrUpdateMeeting("/rooms", event, region),
     deleteMeeting: async (uid: string): Promise<void> => {
       await fetcher(`/rooms/${uid}`, { method: "DELETE" });
       return Promise.resolve();
     },
     updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> =>
-      createOrUpdateMeeting(`/rooms/${bookingRef.uid}`, event),
+      createOrUpdateMeeting(`/rooms/${bookingRef.uid}`, event, region),
     getRecordings: async (roomName: string): Promise<GetRecordingsResponseSchema> => {
       try {
         const res = await fetcher(`/recordings?room_name=${roomName}`).then(
@@ -371,7 +402,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error("Something went wrong! Unable to get recording");
       }
     },
-    createInstantCalVideoRoom: (endTime: string) => createInstantMeeting(endTime),
+    createInstantCalVideoRoom: (endTime: string) => createInstantMeeting(endTime, region),
     getRecordingDownloadLink: async (recordingId: string): Promise<GetAccessLinkResponseSchema> => {
       try {
         const res = await fetcher(`/recordings/${recordingId}/access-link?valid_for_secs=43200`).then(
