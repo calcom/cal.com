@@ -103,7 +103,7 @@ export class GoogleApiCache {
           })
         );
       }
-      return cached.response;
+      return cached.response as T;
     }
 
     if (this.config.enableLogging) {
