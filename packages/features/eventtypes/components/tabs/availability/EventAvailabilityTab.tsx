@@ -813,7 +813,7 @@ const UseTeamEventScheduleSettingsToggle = ({
   ...rest
 }: UseTeamEventScheduleSettingsToggle) => {
   const { t } = useLocale();
-  const isPlatform = useIsPlatform();
+  // const isPlatform = useIsPlatform();
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
   const { restrictScheduleForHosts, toggleRestrictScheduleState } = useRestrictionScheduleState(
     eventType.restrictionScheduleId
@@ -856,7 +856,7 @@ const UseTeamEventScheduleSettingsToggle = ({
           </div>
         )}
       </div>
-      {!isPlatform && isRestrictionScheduleEnabled ? (
+      {isRestrictionScheduleEnabled ? (
         <div className="border-subtle space-y-6 rounded-lg border p-6">
           <SettingsToggle
             checked={restrictScheduleForHosts}
