@@ -665,9 +665,20 @@ export class ProfileRepository {
     return normalizeProfile(profile);
   }
 
-  static async findByUserIdAndOrgSlug({ userId, orgSlug }: { userId: number; orgSlug: string }) {
-    const profile = await prisma.profile.findFirst({
-      where: { userId, organization: { slug: orgSlug } },
+  static async findByUserIdAndOrgSlug({
+    userId,
+    organizationId,
+  }: {
+    userId: number;
+    organizationId: number;
+  }) {
+    const profile = await prisma.profile.findUnique({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId,
+        },
+      },
       include: {
         organization: {
           select: organizationSelect,
