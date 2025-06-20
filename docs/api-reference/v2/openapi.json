@@ -24150,6 +24150,11 @@
             "type": "string",
             "nullable": true,
             "description": "Display name of the event host"
+          },
+          "responseStatus": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
           }
         },
         "required": ["email"]
