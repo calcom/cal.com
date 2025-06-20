@@ -197,6 +197,9 @@ async function createOrganizationWithNonExistentUserAsOwner({
     );
     const owner = await findUserToBeOrgOwner(email);
     if (!owner) {
+      // Can happen when the organization was created earlier and the webhook had failed and when the webhook got fired again in next subscription update, then the email was deleted already
+      // The fix would be to change the email in Onboarding record to new owner of the organization
+      // TODO: Identify the owner of the organization from Membership table and use that email instead here.
       throw new Error(`Org exists but owner could not be found for email: ${email}`);
     }
     return { organization, owner };
