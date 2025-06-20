@@ -66,14 +66,23 @@ vi.mock("googleapis-common", async () => {
   const actual = await vi.importActual("googleapis-common");
   return {
     ...actual,
-    OAuth2Client: vi.fn().mockImplementation((...args: [string, string, string]) => {
-      lastCreatedOAuth2Client = {
-        type: "oauth2",
-        args,
-        setCredentials: setCredentialsMock,
-      };
-      return lastCreatedOAuth2Client;
-    }),
+    OAuth2Client: vi
+      .fn()
+      .mockImplementation(
+        (options: {
+          clientId: string;
+          clientSecret: string;
+          redirectUri: string;
+          eagerRefreshThresholdMillis?: number;
+        }) => {
+          lastCreatedOAuth2Client = {
+            type: "oauth2",
+            args: [options.clientId, options.clientSecret, options.redirectUri],
+            setCredentials: setCredentialsMock,
+          };
+          return lastCreatedOAuth2Client;
+        }
+      ),
     JWT: vi.fn().mockImplementation((config: MockJWT["config"]) => {
       lastCreatedJWT = {
         type: "jwt",
