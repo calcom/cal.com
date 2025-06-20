@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 
-import kysely from "@calcom/kysely";
 import db from "@calcom/prisma";
 
 import type { AppFlags } from "./config";
@@ -65,17 +64,24 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<{ [slug: string]: boolean } | null>
    */
   public async getTeamFeatures(teamId: number) {
-    const result = await kysely
-      .selectFrom("TeamFeatures")
-      .innerJoin("Feature", "Feature.slug", "TeamFeatures.featureId")
-      .select(["Feature.slug", "Feature.enabled"])
-      .where("TeamFeatures.teamId", "=", teamId)
-      .execute();
+    const result = await db.teamFeatures.findMany({
+      where: {
+        teamId,
+      },
+      include: {
+        feature: {
+          select: {
+            slug: true,
+            enabled: true,
+          },
+        },
+      },
+    });
 
     if (!result.length) return null;
 
     const features: Record<keyof AppFlags, boolean> = Object.fromEntries(
-      result.map((feature) => [feature.slug, true])
+      result.map((teamFeature) => [teamFeature.feature.slug, true])
     ) as Record<keyof AppFlags, boolean>;
 
     return features;
