@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -19,14 +19,7 @@ const passwordResetRequestSchema = z.object({
 
 async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
-
-  // fallback to email if ip is not present
-  let ip = req.headers.get("x-real-ip");
-
-  const forwardedFor = req.headers.get("x-forwarded-for");
-  if (!ip && forwardedFor) {
-    ip = forwardedFor?.split(",").at(0) ?? null;
-  }
+  const ip = getIP(req);
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
