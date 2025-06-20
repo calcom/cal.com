@@ -24,6 +24,7 @@ import EventSuccessfullyReScheduledSMS from "../sms/attendee/event-rescheduled-s
 import EventSuccessfullyScheduledSMS from "../sms/attendee/event-scheduled-sms";
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
 import type { OrganizationAdminNoSlotsEmailInput } from "./src/templates/OrganizationAdminNoSlots";
+import AccountLockWarningEmail from "./templates/account-lock-warning-email";
 import type { EmailVerifyLink } from "./templates/account-verify-email";
 import AccountVerifyEmail from "./templates/account-verify-email";
 import type { OrganizationNotification } from "./templates/admin-organization-notification";
@@ -867,4 +868,18 @@ export const sendDelegationCredentialDisabledEmail = async ({
         conferencingAppName,
       })
   );
+};
+
+export const sendAccountLockWarningEmail = async (input: {
+  user: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  };
+  currentCount: number;
+  threshold: number;
+}) => {
+  const { user, currentCount, threshold } = input;
+  await sendEmail(() => new AccountLockWarningEmail({ user, currentCount, threshold }));
 };

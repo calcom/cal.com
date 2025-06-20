@@ -2,12 +2,14 @@ import type { RatelimitResponse } from "@unkey/ratelimit";
 
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { RedisService } from "@calcom/features/redis/RedisService";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 
 import logger from "./logger";
 
 // This is the number of times a user can exceed the rate limit before being locked
 const DEFAULT_AUTOLOCK_THRESHOLD = 5;
+const DEFAULT_AUTOLOCK_WARNING_THRESHOLD = 3;
 // This is the duration of the rate limit check window
 const DEFAULT_CHECK_THRESHOLD_WINDOW_DURATION = 60 * 30 * 1000; // 30 minutes in milliseconds
 
@@ -17,6 +19,7 @@ interface HandleAutoLockInput {
   rateLimitResponse: RatelimitResponse;
   identifierKeyword?: string; // For instances where we have like "addSecondaryEmail.${email}"
   autolockThreshold?: number;
+  autolockWarningThreshold?: number;
   autolockDuration?: number; // in milliseconds
 }
 
@@ -38,6 +41,7 @@ export async function handleAutoLock({
   rateLimitResponse,
   identifierKeyword,
   autolockThreshold = DEFAULT_AUTOLOCK_THRESHOLD,
+  autolockWarningThreshold = DEFAULT_AUTOLOCK_WARNING_THRESHOLD,
   autolockDuration = DEFAULT_CHECK_THRESHOLD_WINDOW_DURATION,
 }: HandleAutoLockInput): Promise<boolean> {
   const { success, remaining } = rateLimitResponse;
@@ -66,6 +70,10 @@ export async function handleAutoLock({
       log.info(
         `Rate limit exceeded for ${identifierType}: ${identifier}. Current count: ${currentCount}/${autolockThreshold}`
       );
+
+      if (currentCount + 1 >= autolockWarningThreshold && currentCount + 1 < autolockThreshold) {
+        await sendWarningEmailIfNeeded(identifierType, identifier, currentCount + 1, autolockThreshold);
+      }
 
       // If they have exceeded the threshold, lock them
       if (currentCount + 1 >= autolockThreshold) {
@@ -173,5 +181,102 @@ export async function lockUser(identifierType: string, identifier: string, lockR
       email: user.email,
       username: user.username,
     });
+  }
+}
+
+async function sendWarningEmailIfNeeded(
+  identifierType: string,
+  identifier: string,
+  currentCount: number,
+  threshold: number
+) {
+  const redis = new RedisService();
+  const warningKey = `autolock:${identifierType}:${identifier}.warning.${currentCount}`;
+
+  const warningSent = await redis.get(warningKey);
+  if (warningSent) {
+    return; // Already sent warning for this count
+  }
+
+  try {
+    const user = await getUserForWarningEmail(identifierType, identifier);
+    if (!user) {
+      log.warn(`Could not find user for warning email: ${identifierType}:${identifier}`);
+      return;
+    }
+
+    const { sendAccountLockWarningEmail } = await import("@calcom/emails/email-manager");
+
+    await sendAccountLockWarningEmail({
+      user,
+      currentCount,
+      threshold,
+    });
+
+    await redis.set(warningKey, "1");
+    await redis.expire(warningKey, 60 * 60 * 24); // Expire after 24 hours
+
+    log.info(
+      `Sent account lock warning email to ${identifierType}: ${identifier} (${currentCount}/${threshold})`
+    );
+  } catch (error) {
+    log.error(`Failed to send warning email: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+async function getUserForWarningEmail(identifierType: string, identifier: string) {
+  const userData = await getUserData(identifierType, identifier);
+  if (!userData) return null;
+
+  const t = await getTranslation(userData.locale || "en", "common");
+
+  return {
+    id: userData.id,
+    name: userData.username || userData.email.split("@")[0],
+    email: userData.email,
+    t,
+  };
+}
+
+async function getUserData(identifierType: string, identifier: string) {
+  switch (identifierType) {
+    case "userId":
+      return await prisma.user.findUnique({
+        where: { id: Number(identifier) },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          locale: true,
+        },
+      });
+    case "email":
+      return await prisma.user.findUnique({
+        where: { email: identifier },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          locale: true,
+        },
+      });
+    case "apiKey":
+      const hashedApiKey = hashAPIKey(identifier);
+      const apiKey = await prisma.apiKey.findUnique({
+        where: { hashedKey: hashedApiKey },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              locale: true,
+            },
+          },
+        },
+      });
+      return apiKey?.user || null;
+    default:
+      return null;
   }
 }

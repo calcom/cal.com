@@ -3260,5 +3260,8 @@
   "booking_not_allowed_by_restriction_schedule_error": "Booking outside restriction schedule availability.",
   "restriction_schedule_not_found_error": "Restriction schedule not found",
   "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
+  "account_lock_warning_subject": "Account Lock Warning - Action Required",
+  "account_lock_warning_message": "Your account is approaching the rate limit threshold. You have {{remainingAttempts}} more violations before your account will be automatically locked. Please reduce your request frequency to avoid being locked out.",
+  "contact_support": "Contact Support",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
