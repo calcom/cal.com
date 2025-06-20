@@ -8,6 +8,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { getPagination } from "@/lib/pagination/pagination";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { GoogleApiCacheService } from "@/modules/googleapis-cache/googleapis-cache.service";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
@@ -24,7 +25,6 @@ import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { GoogleApiCacheService } from "@calcom/app-store/_utils/googleapis/NestJsIntegration";
 import {
   handleNewRecurringBooking,
   getTranslation,

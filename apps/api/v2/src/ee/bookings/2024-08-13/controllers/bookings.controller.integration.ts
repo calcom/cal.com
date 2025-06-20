@@ -1,6 +1,5 @@
+import { GoogleApiCacheService } from "@/modules/googleapis-cache/googleapis-cache.service";
 import { Injectable } from "@nestjs/common";
-
-import { GoogleApiCacheService } from "@calcom/app-store/_utils/googleapis/NestJsIntegration";
 
 @Injectable()
 export class BookingsControllerIntegration {
