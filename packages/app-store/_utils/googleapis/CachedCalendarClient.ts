@@ -4,7 +4,7 @@ import type { CacheConfig } from "./GoogleApiCache";
 import type { CachedFetchManager } from "./cachedFetch";
 import { cachedFetch } from "./cachedFetch";
 
-export class CachedCalendarClient {
+export class CachedCalendarClient implements calendar_v3.Calendar {
   private client: calendar_v3.Calendar;
   private credentialId: number;
   private cacheManager?: CachedFetchManager;
@@ -13,6 +13,42 @@ export class CachedCalendarClient {
     this.client = client;
     this.credentialId = credentialId;
     this.cacheManager = cacheManager;
+  }
+
+  get context(): calendar_v3.Calendar["context"] {
+    return this.client.context;
+  }
+
+  get acl(): calendar_v3.Calendar["acl"] {
+    return this.client.acl;
+  }
+
+  get calendars() {
+    return this.client.calendars;
+  }
+
+  get channels() {
+    return this.client.channels;
+  }
+
+  get colors() {
+    return this.client.colors;
+  }
+
+  get events() {
+    return this.client.events;
+  }
+
+  get freebusy() {
+    return this.client.freebusy;
+  }
+
+  get settings() {
+    return this.client.settings;
+  }
+
+  get calendarList() {
+    return this.client.calendarList;
   }
 
   get originalClient(): calendar_v3.Calendar {

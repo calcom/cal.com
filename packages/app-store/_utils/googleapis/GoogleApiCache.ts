@@ -6,7 +6,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 const log = logger.getSubLogger({ prefix: ["GoogleApiCache"] });
 
 interface CacheEntry {
-  response: any;
+  response: unknown;
   timestamp: number;
   requestSignature: string;
 }
@@ -32,19 +32,23 @@ export class GoogleApiCache {
     };
   }
 
-  private generateRequestSignature(method: string, params: any): string {
+  private generateRequestSignature(method: string, params: unknown): string {
     const normalizedParams = this.normalizeParams(params);
     const signatureData = `${method}:${JSON.stringify(normalizedParams)}`;
     return createHash("sha256").update(signatureData).digest("hex");
   }
 
-  private normalizeParams(params: any): any {
+  private normalizeParams(params: unknown): unknown {
     if (!params) return {};
 
-    const { requestId, quotaUser, ...normalizedParams } = params;
+    const {
+      requestId: _requestId,
+      quotaUser: _quotaUser,
+      ...normalizedParams
+    } = params as Record<string, unknown>;
 
     if (typeof normalizedParams === "object" && normalizedParams !== null) {
-      const sorted: any = {};
+      const sorted: Record<string, unknown> = {};
       Object.keys(normalizedParams)
         .sort()
         .forEach((key) => {
@@ -60,11 +64,11 @@ export class GoogleApiCache {
     const now = Date.now();
     const expiredKeys: string[] = [];
 
-    this.cache.forEach((entry, key) => {
+    for (const [key, entry] of Array.from(this.cache.entries())) {
       if (now - entry.timestamp > this.config.cacheWindowMs) {
         expiredKeys.push(key);
       }
-    });
+    }
 
     expiredKeys.forEach((key) => this.cache.delete(key));
 
@@ -81,7 +85,7 @@ export class GoogleApiCache {
     }
   }
 
-  public async dedupe<T>(method: string, params: any, apiCall: () => Promise<T>): Promise<T> {
+  public async dedupe<T>(method: string, params: unknown, apiCall: () => Promise<T>): Promise<T> {
     this.cleanExpiredEntries();
 
     const requestSignature = this.generateRequestSignature(method, params);
