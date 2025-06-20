@@ -600,8 +600,6 @@ export default class GoogleCalendarService implements Calendar {
       const calIdsWithTimeZone = await getCalIdsWithTimeZone();
       const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({ id: calIdWithTimeZone.id }));
 
-      const originalStartDate = dayjs(dateFrom);
-      const originalEndDate = dayjs(dateTo);
       const freeBusyData = await this.getCacheOrFetchAvailability({
         timeMin: dateFrom,
         timeMax: dateTo,
@@ -872,9 +870,8 @@ export default class GoogleCalendarService implements Calendar {
       return {
         id: event.id,
         status: event.status,
-        // startTime and endTime need to be correctly interpreted in timezone, so for now even though they are sent, we don't update Booking start time and end time
-        startTime: event.start?.dateTime ? dayjs(event.start.dateTime) : null,
-        endTime: event.end?.dateTime ? dayjs(event.end.dateTime) : null,
+        startTime: event.start?.dateTime ? new Date(event.start.dateTime).getTime() : null,
+        endTime: event.end?.dateTime ? new Date(event.end.dateTime).getTime() : null,
         organizerResponseStatus: organizer?.responseStatus || null,
         htmlLink: event.htmlLink || null,
       };

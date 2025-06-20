@@ -70,15 +70,16 @@ TODO:
 - [ ] Timezone testing for Calendar event time change sync
 
 - Tests:
-   - [ ] Subscription renewal
-   - [ ] Reusing subscription from SelectedCalendar and CalendarSubscription both
+   - [x] Subscription renewal
+   - [x] Reusing subscription from SelectedCalendar and CalendarSubscription both
+   - [ ] Events requiring confirmation - testing
 
 Follow up:
 - [ ] Cleanup
    - [ ] unsubscribe from channel, resourceId which are not connected to any CalendarSync record or don't have SelectedCalendar record with same channelId and resourceId.
 - [ ] Feature Completeness
    - [ ] Cancel when all attendees(booker + guests and not organizer) have declined the calendar-event
-   - [ ] Send email and trigger other things that are done when a booking is updated
-   - [ ] Delegation Credential support
-   - [ ] Calendar Event time change sync support(Test with different timezone of Google Calendar and Cal.com account and machine's timezone.)
+   - [x] Send email and trigger other things that are done when a booking is updated
+   - [x] Delegation Credential support
+   - [x] Calendar Event time change sync support(Test with different timezone of Google Calendar and Cal.com account)
 - [ ] Test and support recurring events(Beta)

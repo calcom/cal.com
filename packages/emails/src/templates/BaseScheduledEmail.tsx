@@ -1,6 +1,7 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
+import { getHumanReadableActorId } from "@calcom/features/services/lib/getHumanReadableActorId";
 import { formatPrice } from "@calcom/lib/price";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -50,7 +51,8 @@ export const BaseScheduledEmail = (
     )}, ${t(getRecipientStart("MMMM").toLowerCase())} ${getRecipientStart("D, YYYY")}`,
   });
 
-  let rescheduledBy = props.calEvent.rescheduledBy;
+  let rescheduledBy = getHumanReadableActorId(props.calEvent.rescheduledBy);
+
   if (
     rescheduledBy &&
     rescheduledBy === props.calEvent.organizer.email &&
