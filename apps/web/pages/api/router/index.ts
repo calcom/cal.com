@@ -1,3 +1,5 @@
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
@@ -13,6 +15,13 @@ export default defaultHandler({
   }),
   POST: Promise.resolve({
     default: defaultResponder(async (req, res) => {
+      const userIp = getIP(req);
+
+      await checkRateLimitAndThrowError({
+        rateLimitingType: "core",
+        identifier: `router.api-${userIp}`,
+      });
+
       // getRoutedUrl has more detailed schema validation, we do a basic one here.
       const params = req.body;
       res.setHeader("Access-Control-Allow-Origin", "*");
