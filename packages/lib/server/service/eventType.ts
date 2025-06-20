@@ -6,7 +6,7 @@ import { EventTypeMetaDataSchema, EventTypeAppMetadataSchema } from "@calcom/pri
 
 export class EventTypeService {
   static async getEventTypeAppDataFromId(eventTypeId: number, appSlug: keyof typeof appDataSchemas) {
-    const eventType = await prisma.eventType.findFirst({
+    const eventType = await prisma.eventType.findUnique({
       where: {
         id: eventTypeId,
       },

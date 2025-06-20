@@ -2519,7 +2519,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.208"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.223"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -2676,7 +2676,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/atoms@workspace:packages/platform/atoms"
   dependencies:
-    "@calcom/platform-libraries": 0.0.2
     "@radix-ui/react-dialog-atoms": "npm:@radix-ui/react-dialog@^1.0.4"
     "@radix-ui/react-slot": ^1.0.2
     "@radix-ui/react-switch": ^1.1.0
@@ -3568,7 +3567,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries-0.0.2@npm:@calcom/platform-libraries@0.0.2, @calcom/platform-libraries@npm:0.0.2":
+"@calcom/platform-libraries-0.0.2@npm:@calcom/platform-libraries@0.0.2":
   version: 0.0.2
   resolution: "@calcom/platform-libraries@npm:0.0.2"
   dependencies:
@@ -3578,13 +3577,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.208":
-  version: 0.0.208
-  resolution: "@calcom/platform-libraries@npm:0.0.208"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.223":
+  version: 0.0.223
+  resolution: "@calcom/platform-libraries@npm:0.0.223"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: bee3d47c331a210e452fd5b26ed75075f4906f07ba44903385ee2ddd764e4a6294eca0795a207fd875e8483d2beb60e6546dc4b9bda8a78e028b7a47ac5f2275
+  checksum: eec88d521be2ab7c999e3435d1fea3b44c1304bb937c82fa9507028f23455e21c4473f6a73d3f2ef52b8e0b48de0c44834ec2c803f11e6c137bfde1989481fc6
   languageName: node
   linkType: hard
 

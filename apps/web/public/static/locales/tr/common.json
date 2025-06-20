@@ -3043,7 +3043,6 @@
   "you_do_not_have_permission_to_create_an_organization_for_this_email": "Bu e-posta için bir organizasyon oluşturma izniniz yok",
   "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "Bir veya daha fazla takımı taşıma izniniz yok",
   "organization_has_subscription_already": "Organizasyonun zaten bir aboneliği var",
-  "rr_reset_interval": "Round Robin Sıfırlama Aralığı",
   "interval": "Aralık",
   "rr_reset_interval_description": "Round robin rezervasyon sayısının dengeli dağılımı sağlamak için ne sıklıkta sıfırlanacağını belirler.",
   "daily": "Günlük",
