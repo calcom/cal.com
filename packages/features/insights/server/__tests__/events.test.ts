@@ -1,17 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import "../../../../../tests/libs/__mocks__/prisma";
+
+import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 
 import { EventsInsights } from "../events";
-
-vi.mock("@calcom/prisma", () => ({
-  default: {
-    booking: {
-      findMany: vi.fn().mockResolvedValue([]),
-      count: vi.fn().mockResolvedValue(0),
-    },
-  },
-}));
 
 describe("EventsInsights", () => {
   describe("getDateRanges", () => {
