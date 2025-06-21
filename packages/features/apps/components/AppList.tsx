@@ -1,6 +1,8 @@
+import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
+import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
@@ -28,6 +30,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
+import { Icon } from "@calcom/ui/components/icon";
 
 export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
 
@@ -64,6 +67,41 @@ export const AppList = ({
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
   );
+  const searchParams = useSearchParams();
+  const upgrade = searchParams?.get("upgrade");
+
+  const isUpgrade = upgrade === "true";
+  const mutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      if (data?.setupPending) return;
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+    },
+  });
+
+  const handleUpgrade = async (
+    type: App["type"],
+    slug: App["slug"],
+    variant: App["variant"],
+    credentialId: number,
+    teamId?: number
+  ) => {
+    mutation.mutate({
+      type: type,
+      variant: variant,
+      slug: slug,
+      upgrade: true,
+      credentialId: credentialId,
+      ...(teamId && { teamId }),
+      // for oAuth apps
+      ...{
+        returnTo: `/apps/installed/${variant}${isUpgrade ? "upgrade=true" : ""}`,
+      },
+    });
+  };
+
   const onSuccessCallback = useCallback(() => {
     setBulkUpdateModal(true);
     showToast("Default app updated successfully", "success");
@@ -74,6 +112,7 @@ export const AppList = ({
   }: {
     item: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
       credentialOwner?: CredentialOwner;
+      isUpgradable?: boolean;
     };
   }) => {
     const appSlug = item?.slug;
@@ -93,7 +132,21 @@ export const AppList = ({
         credentialOwner={item?.credentialOwner}
         actions={
           !item.credentialOwner?.readOnly ? (
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              {item?.isUpgradable && (
+                <div
+                  onClick={() => {
+                    handleUpgrade(
+                      item.type,
+                      item.slug,
+                      item.variant,
+                      item?.credentialOwner?.credentialId || item?.userCredentialIds?.[0],
+                      item?.credentialOwner?.teamId
+                    );
+                  }}>
+                  <Icon name="refresh-ccw" className="text-muted inline-block h-5 w-5 cursor-pointer" />
+                </div>
+              )}
               <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button StartIcon="ellipsis" variant="icon" color="secondary" />
@@ -149,12 +202,16 @@ export const AppList = ({
   const appsWithTeamCredentials = data.items.filter((app) => app.teams.length);
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
     const appCards = [];
+    const credIdToUpgradableMap = app.credIdToUpgradableMap || {};
+    const credId = app?.userCredentialIds?.[0];
 
-    if (app.userCredentialIds.length) {
-      appCards.push(<ChildAppCard item={app} />);
+    if (app.userCredentialIds.length && (!isUpgrade || (isUpgrade && credIdToUpgradableMap[credId]))) {
+      appCards.push(
+        <ChildAppCard item={{ ...app, isUpgradable: !!(credId && credIdToUpgradableMap[credId]) }} />
+      );
     }
     for (const team of app.teams) {
-      if (team) {
+      if (team && (!isUpgrade || (isUpgrade && team.isUpgradable))) {
         appCards.push(
           <ChildAppCard
             item={{
@@ -166,6 +223,7 @@ export const AppList = ({
                 credentialId: team.credentialId,
                 readOnly: !team.isAdmin,
               },
+              isUpgradable: team.isUpgradable,
             }}
           />
         );
@@ -182,7 +240,10 @@ export const AppList = ({
         {data.items
           .filter((item) => item.invalidCredentialIds)
           .map((item, i) => {
-            if (!item.teams.length) return <ChildAppCard key={i} item={item} />;
+            const credIdToUpgradableMap = item.credIdToUpgradableMap || {};
+            const credId = item?.userCredentialIds?.[0];
+            const isUpgradable = !!(credId && credIdToUpgradableMap[credId]);
+            if (!item.teams.length) return <ChildAppCard key={i} item={{ ...item, isUpgradable }} />;
           })}
       </List>
       {locationType && (
