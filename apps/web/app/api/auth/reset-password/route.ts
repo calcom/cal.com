@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
+import getIP from "@calcom/lib/getIP";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -18,6 +19,12 @@ const passwordResetRequestSchema = z.object({
 
 async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
+  const ip = getIP(req);
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: ip ?? body?.requestId,
+  });
 
   const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(body);
   // rate-limited there is a low, very low chance that a password request stays valid long enough
