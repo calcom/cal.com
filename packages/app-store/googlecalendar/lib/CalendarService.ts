@@ -291,6 +291,23 @@ export default class GoogleCalendarService implements Calendar {
         });
       }
 
+      if (!event?.id) {
+        // Try to find event by iCalUID
+        const iCalUIDToSearch = event?.iCalUID || calEvent.iCalUID;
+        if (iCalUIDToSearch) {
+          const foundEvent = await this.findEventByiCalUID(
+            iCalUIDToSearch,
+            selectedCalendar,
+            calendar,
+            calEvent.title
+          );
+
+          if (foundEvent?.id) {
+            event = foundEvent;
+          }
+        }
+      }
+
       return {
         uid: "",
         ...event,
@@ -317,6 +334,40 @@ export default class GoogleCalendarService implements Calendar {
       throw error;
     }
   }
+
+  async findEventByiCalUID(
+    iCalUID: string,
+    calendarId: string,
+    calendar: calendar_v3.Calendar,
+    summary?: string
+  ): Promise<calendar_v3.Schema$Event | undefined> {
+    log.debug(`Attempting to find event by iCalUID: ${iCalUID} in calendar: ${calendarId}`);
+    try {
+      const response = await calendar.events.list({
+        calendarId: calendarId,
+        iCalUID: iCalUID,
+        showDeleted: false,
+        singleEvents: true,
+      });
+
+      if (response.data.items && response.data.items.length > 0) {
+        // If summary is provided, filter by that too for more precision
+        const matchingEvents = summary
+          ? response.data.items.filter((item) => item.summary === summary)
+          : response.data.items;
+
+        if (matchingEvents.length > 0) {
+          return matchingEvents[0];
+        }
+      }
+      log.warn(`No active event found with iCalUID: ${iCalUID} in calendar: ${calendarId}`);
+      return undefined;
+    } catch (error) {
+      log.error(`Error finding event by iCalUID ${iCalUID}: `, safeStringify({ error, calendarId }));
+      return undefined;
+    }
+  }
+
   async getFirstEventInRecurrence(
     recurringEventId: string | null | undefined,
     selectedCalendar: string,
