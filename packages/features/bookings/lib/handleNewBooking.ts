@@ -70,6 +70,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import { convertTimeToUTC } from "@calcom/lib/timeUtils";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -593,6 +594,7 @@ async function handler(
   validateEventLength({
     reqBodyStart: reqBody.start,
     reqBodyEnd: reqBody.end,
+    timeZone: reqBody.timeZone,
     eventTypeMultipleDuration: eventType.metadata?.multipleDuration,
     eventTypeLength: eventType.length,
     logger: loggerWithEventDetails,
@@ -660,6 +662,7 @@ async function handler(
   await checkBookingAndDurationLimits({
     eventType,
     reqBodyStart: reqBody.start,
+    timeZone: reqBody.timeZone,
     reqBodyRescheduleUid: reqBody.rescheduleUid,
   });
 
@@ -859,7 +862,7 @@ async function handler(
           ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
           eventType,
           routingFormResponse,
-          meetingStartTime: new Date(reqBody.start),
+          meetingStartTime: new Date(convertTimeToUTC(reqBody.start, reqBody.timeZone)),
         });
         if (!newLuckyUser) {
           break; // prevent infinite loop
@@ -1034,7 +1037,10 @@ async function handler(
     log.info("Removed guests from the booking", guestsRemoved);
   }
 
-  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
+  const seed = `${organizerUser.username}:${convertTimeToUTC(
+    reqBody.start,
+    reqBody.timeZone
+  )}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
@@ -1113,8 +1119,8 @@ async function handler(
     .withBasicDetails({
       bookerUrl,
       title: eventName,
-      startTime: dayjs(reqBody.start).utc().format(),
-      endTime: dayjs(reqBody.end).utc().format(),
+      startTime: convertTimeToUTC(reqBody.start, reqBody.timeZone),
+      endTime: convertTimeToUTC(reqBody.end, reqBody.timeZone),
       additionalNotes,
     })
     .withEventType({
@@ -1187,7 +1193,10 @@ async function handler(
     eventDescription: eventType.description,
     price: paymentAppData.price,
     currency: eventType.currency,
-    length: dayjs(reqBody.end).diff(dayjs(reqBody.start), "minutes"),
+    length: dayjs(convertTimeToUTC(reqBody.end, reqBody.timeZone)).diff(
+      dayjs(convertTimeToUTC(reqBody.start, reqBody.timeZone)),
+      "minutes"
+    ),
   };
 
   const teamId = await getTeamIdFromEventType({ eventType });
