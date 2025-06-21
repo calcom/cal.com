@@ -13,8 +13,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
