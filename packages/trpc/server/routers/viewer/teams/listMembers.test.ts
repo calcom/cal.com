@@ -1,11 +1,15 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Bring this test back with the correct setup (no illegal imports)
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import type { TrpcSessionUser } from "../../../types";
 import listMembers from "./listMembers.handler";
 
+vi.mock("@calcom/prisma", () => {
+  return {
+    prisma: vi.fn(),
+  };
+});
+
+// TODO: Bring this back but without test dependencies in @calcom/web
 const createTeamWithMembers = async ({ isPrivate = false }: { isPrivate?: boolean }) => {
   const team = {
     id: 1,
