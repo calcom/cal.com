@@ -1,0 +1,22 @@
+{
+  "reporter": ["text", "html", "json", "lcov"],
+  "reports-dir": "coverage",
+  "all": true,
+  "include": ["packages/**/*.{ts,tsx,js,jsx}", "apps/**/*.{ts,tsx,js,jsx}"],
+  "exclude": [
+    "**/*.test.{ts,tsx,js,jsx}",
+    "**/*.spec.{ts,tsx,js,jsx}",
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/build/**",
+    "packages/embeds/**",
+    "apps/api/v1/**",
+    "apps/api/v2/**"
+  ],
+  "check-coverage": true,
+  "lines": 80,
+  "branches": 70,
+  "functions": 75,
+  "statements": 80
+}

@@ -230,6 +230,39 @@ jobs:
     uses: ./.github/workflows/cleanup-report.yml
     secrets: inherit
 
+  coverage-gate:
+    needs: [changes, unit-test]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    steps:
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-reports
+          path: coverage/
+      - name: Check coverage thresholds
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+              const coverage = require('./coverage/coverage-summary.json');
+              const { lines, branches, functions, statements } = coverage.total;
+              console.log('Coverage Summary:');
+              console.log('Lines:', lines.pct + '%');
+              console.log('Branches:', branches.pct + '%');
+              console.log('Functions:', functions.pct + '%');
+              console.log('Statements:', statements.pct + '%');
+              
+              if (lines.pct < 80 || branches.pct < 70 || functions.pct < 75 || statements.pct < 80) {
+                console.error('Coverage thresholds not met!');
+                process.exit(1);
+              }
+              console.log('All coverage thresholds met!');
+            "
+          else
+            echo 'No coverage summary found'
+            exit 1
+          fi
+
   required:
     needs:
       [
@@ -237,6 +270,7 @@ jobs:
         lint,
         type-check,
         unit-test,
+        coverage-gate,
         integration-test,
         check-label,
         build,
