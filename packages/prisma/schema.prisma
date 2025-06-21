@@ -43,9 +43,10 @@ enum PeriodType {
 }
 
 enum CreationSource {
-  API_V1 @map("api_v1")
-  API_V2 @map("api_v2")
-  WEBAPP @map("webapp")
+  API_V1           @map("api_v1")
+  API_V2           @map("api_v2")
+  WEBAPP           @map("webapp")
+  SELF_SERVE_ADMIN @map("self_serve_admin")
 }
 
 model Host {
