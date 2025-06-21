@@ -1,8 +1,8 @@
 import type { Browser, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
+import { prisma } from "@calcom/prisma/e2e";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";

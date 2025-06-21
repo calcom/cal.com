@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { randomString } from "@calcom/lib/random";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { addFilter, openFilter } from "./filter-helpers";
