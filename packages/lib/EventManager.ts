@@ -836,6 +836,40 @@ export default class EventManager {
 
     /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
+    
+    // Map location types to credential types for proper matching
+    const locationToCredentialTypeMap: Record<string, string> = {
+      "google:meet": "google_video",
+      "office365:video": "office365_video",
+      "zoom:video": "zoom_video",
+      "daily": "daily_video",
+      "jitsi": "jitsi_video",
+      "huddle01_video": "huddle01_video",
+      "tandem": "tandem_video",
+      "whereby": "whereby_video",
+      "whatsapp": "whatsapp_video",
+      "webex": "webex_video",
+      "telegram": "telegram_video",
+      "skype": "skype_video",
+      "sirius": "sirius_video",
+      "signal": "signal_video",
+      "shimmer": "shimmer_video",
+      "salesroom": "salesroom_video",
+      "roam": "roam_video",
+      "riverside": "riverside_video",
+      "ping": "ping_video",
+      "mirotalk": "mirotalk_video",
+      "jelly": "jelly_video",
+      "facetime": "facetime_video",
+      "element-call": "element_call_video",
+      "eightxeight": "eightxeight_video",
+      "discord": "discord_video",
+      "demodesk": "demodesk_video",
+      "campfire": "campfire_video",
+    };
+
+    const credentialType = locationToCredentialTypeMap[integrationName] || integrationName;
+    
     let videoCredential;
     if (event.conferenceCredentialId) {
       videoCredential = this.videoCredentials.find(
@@ -843,10 +877,10 @@ export default class EventManager {
       );
     } else {
       videoCredential = this.videoCredentials.find((credential: CredentialForCalendarService) =>
-        credential.type.includes(integrationName)
+        credential.type === credentialType
       );
       log.warn(
-        `Could not find conferenceCredentialId for event with location: ${event.location}, trying to use last added video credential`
+        `Could not find conferenceCredentialId for event with location: ${event.location}, trying to use credential with type: ${credentialType}`
       );
     }
 
