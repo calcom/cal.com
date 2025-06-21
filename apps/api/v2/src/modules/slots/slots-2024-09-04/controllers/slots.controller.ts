@@ -83,6 +83,7 @@ export class SlotsController_2024_09_04 {
       - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.
       - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.
       - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use "range" as value.
+      - bookingUidToReschedule: When rescheduling an existing booking, provide the booking's unique identifier to exclude its time slot from busy time calculations. This ensures the original booking time appears as available for rescheduling.
       `,
   })
   @ApiQuery({
@@ -172,6 +173,13 @@ export class SlotsController_2024_09_04 {
       You can pass date without hours which defaults to start of day or specify hours:
       2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.`,
     example: "2050-09-05",
+  })
+  @ApiQuery({
+    name: "bookingUidToReschedule",
+    required: false,
+    description:
+      "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
+    example: "abc123def456",
   })
   @DocsResponse({
     status: 200,

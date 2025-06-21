@@ -23,7 +23,9 @@
       "@calcom/platform-libraries/slots": ["../../../packages/platform/libraries/slots.ts"],
       "@calcom/platform-libraries/emails": ["../../../packages/platform/libraries/emails.ts"],
       "@calcom/platform-libraries/schedules": ["../../../packages/platform/libraries/schedules.ts"],
-      "@calcom/platform-libraries/app-store": ["../../../packages/platform/libraries/app-store.ts"]
+      "@calcom/platform-libraries/app-store": ["../../../packages/platform/libraries/app-store.ts"],
+      "@calcom/platform-libraries/workflows": ["../../../packages/platform/libraries/workflows.ts"],
+      "@calcom/platform-libraries/conferencing": ["../../../packages/platform/libraries/conferencing.ts"]
     },
     "incremental": true,
     "skipLibCheck": true,

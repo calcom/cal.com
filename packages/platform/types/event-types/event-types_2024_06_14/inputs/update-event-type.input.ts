@@ -63,6 +63,7 @@ import {
   CREATE_EVENT_SLUG_EXAMPLE,
   CREATE_EVENT_TITLE_EXAMPLE,
   Host,
+  CalVideoSettings,
 } from "./create-event-type.input";
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
@@ -404,6 +405,15 @@ class BaseUpdateEventTypeInput {
       "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
   })
   hideOrganizerEmail?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CalVideoSettings)
+  @DocsPropertyOptional({
+    description: "Cal video settings for the event type",
+    type: CalVideoSettings,
+  })
+  calVideoSettings?: CalVideoSettings;
 }
 export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
   @IsOptional()

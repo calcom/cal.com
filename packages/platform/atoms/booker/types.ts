@@ -3,7 +3,7 @@ import type React from "react";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import type { BookerStore } from "@calcom/features/bookings/Booker/store";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
-import type { BookingResponse } from "@calcom/platform-libraries";
+import type { BookingResponse } from "@calcom/features/bookings/types";
 import type {
   ApiSuccessResponse,
   ApiErrorResponse,

@@ -235,7 +235,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     inputFields: InputFields
   ) {
     for (const [, connectedForm] of Object.entries(serializedForm.connectedForms)) {
-      const connectedFormDb = await prisma.app_RoutingForms_Form.findFirst({
+      const connectedFormDb = await prisma.app_RoutingForms_Form.findUnique({
         where: {
           id: connectedForm.id,
         },

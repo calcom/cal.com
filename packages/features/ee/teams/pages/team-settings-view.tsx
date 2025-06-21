@@ -25,7 +25,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
-import RoundRobinResetInterval from "../components/RoundRobinResetInterval";
+import RoundRobinSettings from "../components/RoundRobinSettings";
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
@@ -210,7 +210,7 @@ const TeamSettingsViewWrapper = () => {
       <BookingLimitsView team={team} />
       <PrivacySettingsView team={team} />
       <InternalNotePresetsView team={team} />
-      <RoundRobinResetInterval team={team} />
+      <RoundRobinSettings team={team} />
     </>
   );
 };

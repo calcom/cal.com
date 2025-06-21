@@ -19,7 +19,7 @@ import {
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/members/actions";
+import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
 
 import { DeleteAttributeModal } from "./DeleteAttributeModal";
 import { ListSkeleton } from "./ListSkeleton";
@@ -112,6 +112,7 @@ function AttributeItem({
                 type="button"
                 StartIcon="trash-2"
                 color="destructive"
+                className="rounded-t-none"
                 onClick={() => setAttributeToDelete(attribute)}>
                 {t("delete")}
               </DropdownItem>

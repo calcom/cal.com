@@ -119,7 +119,7 @@ const processWorkflowStep = async (
         const limitGuestsDate = new Date("2025-01-13");
 
         if (workflow.userId) {
-          const user = await prisma.user.findFirst({
+          const user = await prisma.user.findUnique({
             where: {
               id: workflow.userId,
             },

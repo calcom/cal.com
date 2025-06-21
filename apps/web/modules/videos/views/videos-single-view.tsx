@@ -34,7 +34,10 @@ export default function JoinCall(props: PageProps) {
     calVideoLogo,
     displayLogInOverlay,
     loggedInUserName,
+    overrideName,
     showRecordingButton,
+    enableAutomaticTranscription,
+    showTranscriptionButton,
     rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
@@ -64,7 +67,7 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
-        userName: loggedInUserName ? loggedInUserName ?? undefined : undefined,
+        userName: overrideName ?? loggedInUserName ?? undefined,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
@@ -78,20 +81,27 @@ export default function JoinCall(props: PageProps) {
                   },
                 }
               : {}),
-            transcription: {
-              label: "Cal.ai",
-              tooltip: "Transcription powered by AI",
-              iconPath: TRANSCRIPTION_STOPPED_ICON,
-              iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
-            },
+            ...(showTranscriptionButton
+              ? {
+                  transcription: {
+                    label: "Cal.ai",
+                    tooltip: "Transcription powered by AI",
+                    iconPath: TRANSCRIPTION_STOPPED_ICON,
+                    iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+                  },
+                }
+              : {}),
           },
         }),
       });
+
+      if (overrideName) {
+        callFrame.setUserName(overrideName);
+      }
     } catch (err) {
       callFrame = DailyIframe.getCallInstance();
     } finally {
       setDaily(callFrame ?? null);
-
       callFrame?.join();
     }
 
@@ -106,7 +116,11 @@ export default function JoinCall(props: PageProps) {
       <div
         className="mx-auto hidden sm:block"
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe showRecordingButton={showRecordingButton} />
+        <CalAiTranscribe
+          showRecordingButton={showRecordingButton}
+          enableAutomaticTranscription={enableAutomaticTranscription}
+          showTranscriptionButton={showTranscriptionButton}
+        />
       </div>
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (

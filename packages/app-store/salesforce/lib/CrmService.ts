@@ -1356,7 +1356,7 @@ export default class SalesforceCRMService implements CRM {
       if (!organizerEmail) {
         this.log.warn(`No organizer email found for bookingUid ${bookingUid}`);
       }
-      const booking = await prisma.booking.findFirst({
+      const booking = await prisma.booking.findUnique({
         where: { uid: bookingUid },
         select: { createdAt: true },
       });

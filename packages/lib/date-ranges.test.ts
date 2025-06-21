@@ -545,13 +545,13 @@ describe("buildDateRanges", () => {
     });
 
     expect(dateRanges[0]).toEqual({
-      start: dayjs("2023-06-13T14:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-13T19:00:00Z").tz(timeZone),
+      start: dayjs.utc("2023-06-13T14:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-13T19:00:00Z").tz(timeZone),
     });
 
     expect(dateRanges[1]).toEqual({
-      start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
+      start: dayjs.utc("2023-06-14T12:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-14T21:00:00Z").tz(timeZone),
     });
     expect(oooExcludedDateRanges.length).toBe(1);
     expect(oooExcludedDateRanges[0]).toEqual({

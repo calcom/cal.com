@@ -21,6 +21,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       id: true,
       customInputs: true,
       disableGuests: true,
+      restrictionScheduleId: true,
+      useBookerTimezone: true,
       users: {
         select: {
           credentials: {
@@ -44,6 +46,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           bookingLimits: true,
           includeManagedEventsInLimits: true,
           rrResetInterval: true,
+          rrTimestampBasis: true,
         },
       },
       bookingFields: true,
@@ -64,6 +67,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       maxLeadThreshold: true,
       includeNoShowInRRCalculation: true,
       minimumBookingNotice: true,
+      maxActiveBookingsPerBooker: true,
+      maxActiveBookingPerBookerOfferReschedule: true,
       userId: true,
       price: true,
       currency: true,

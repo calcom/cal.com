@@ -29,7 +29,7 @@ export const webhookProcedure = authedProcedure
 
     if (id) {
       //check if user is authorized to edit webhook
-      const webhook = await prisma.webhook.findFirst({
+      const webhook = await prisma.webhook.findUnique({
         where: {
           id: id,
         },
@@ -54,7 +54,7 @@ export const webhookProcedure = authedProcedure
         }
 
         if (webhook.teamId) {
-          const user = await prisma.user.findFirst({
+          const user = await prisma.user.findUnique({
             where: {
               id: ctx.user.id,
             },
@@ -75,7 +75,7 @@ export const webhookProcedure = authedProcedure
             });
           }
         } else if (webhook.eventTypeId) {
-          const eventType = await prisma.eventType.findFirst({
+          const eventType = await prisma.eventType.findUnique({
             where: {
               id: webhook.eventTypeId,
             },
@@ -104,7 +104,7 @@ export const webhookProcedure = authedProcedure
     } else {
       //check if user is authorized to create webhook on event type or team
       if (teamId) {
-        const user = await prisma.user.findFirst({
+        const user = await prisma.user.findUnique({
           where: {
             id: ctx.user.id,
           },
@@ -119,7 +119,7 @@ export const webhookProcedure = authedProcedure
           });
         }
       } else if (eventTypeId) {
-        const eventType = await prisma.eventType.findFirst({
+        const eventType = await prisma.eventType.findUnique({
           where: {
             id: eventTypeId,
           },

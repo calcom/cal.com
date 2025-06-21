@@ -6,29 +6,14 @@ import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { prisma } from "@calcom/prisma";
-import type { App_RoutingForms_Form } from "@calcom/prisma/client";
-import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import { TRPCError } from "@trpc/server";
 
 import isRouter from "../lib/isRouter";
-import { onFormSubmission } from "../trpc/utils";
-import type { FormResponse, SerializableForm } from "../types/types";
 import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
-
-export type Form = SerializableForm<
-  App_RoutingForms_Form & {
-    user: {
-      id: number;
-      email: string;
-    };
-    team: {
-      parentId: number | null;
-    } | null;
-  }
->;
+import { onSubmissionOfFormResponse, type TargetRoutingFormForResponse } from "./formSubmissionUtils";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
 
@@ -39,12 +24,14 @@ const _handleResponse = async ({
   // formFillerId,
   chosenRouteId,
   isPreview,
+  queueFormResponse,
 }: {
   response: z.infer<typeof ZResponseInputSchema>["response"];
-  form: Form;
+  form: TargetRoutingFormForResponse;
   formFillerId: string;
   chosenRouteId: string | null;
   isPreview: boolean;
+  queueFormResponse?: boolean;
 }) => {
   try {
     if (!form.fields) {
@@ -97,26 +84,6 @@ const _handleResponse = async ({
           .map((f) => `'${f.label}' with value '${f.value}' should be valid ${f.type}`)
           .join(", ")}`,
       });
-    }
-
-    const settings = RoutingFormSettings.parse(form.settings);
-    let userWithEmails: string[] = [];
-    if (form.teamId && (settings?.sendToAll || settings?.sendUpdatesTo?.length)) {
-      const whereClause: Prisma.MembershipWhereInput = { teamId: form.teamId };
-      if (!settings?.sendToAll) {
-        whereClause.userId = { in: settings.sendUpdatesTo };
-      }
-      const userEmails = await prisma.membership.findMany({
-        where: whereClause,
-        select: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      });
-      userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
     }
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
@@ -185,41 +152,53 @@ const _handleResponse = async ({
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
-
-    let dbFormResponse;
+    let dbFormResponse, queuedFormResponse;
     if (!isPreview) {
-      dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
-        data: {
-          // TODO: Why do we not save formFillerId available in the input?
-          // formFillerId,
+      if (queueFormResponse) {
+        queuedFormResponse = await RoutingFormResponseRepository.recordQueuedFormResponse({
           formId: form.id,
-          response: response,
+          response,
           chosenRouteId,
-        },
-      });
+        });
+        dbFormResponse = null;
+      } else {
+        dbFormResponse = await RoutingFormResponseRepository.recordFormResponse({
+          formId: form.id,
+          response,
+          chosenRouteId,
+        });
+        queuedFormResponse = null;
 
-      await onFormSubmission(
-        { ...serializableFormWithFields, userWithEmails },
-        dbFormResponse.response as FormResponse,
-        dbFormResponse.id,
-        chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
-      );
+        await onSubmissionOfFormResponse({
+          form: serializableFormWithFields,
+          formResponseInDb: dbFormResponse,
+          chosenRouteAction: chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : null) : null,
+        });
+      }
     } else {
       moduleLogger.debug("Dry run mode - Form response not stored and also webhooks and emails not sent");
-      // Create a mock response for dry run
-      dbFormResponse = {
-        id: 0,
-        formId: form.id,
-        response,
-        chosenRouteId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      if (queueFormResponse) {
+        queuedFormResponse = {
+          id: "00000000-0000-0000-0000-000000000000",
+          formId: form.id,
+          response,
+        };
+      } else {
+        // Create a mock response for dry run
+        dbFormResponse = {
+          id: 0,
+          formId: form.id,
+          response,
+          chosenRouteId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
     }
-
     return {
       isPreview: !!isPreview,
       formResponse: dbFormResponse,
+      queuedFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
       crmContactOwnerEmail,
       crmContactOwnerRecordType,

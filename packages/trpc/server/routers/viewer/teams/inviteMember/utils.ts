@@ -84,7 +84,7 @@ export function checkInputEmailIsValid(email: string) {
 }
 
 export async function getTeamOrThrow(teamId: number) {
-  const team = await prisma.team.findFirst({
+  const team = await prisma.team.findUnique({
     where: {
       id: teamId,
     },

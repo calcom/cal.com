@@ -101,6 +101,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       const {
         teamMembersMatchingAttributeLogic,
         formResponse,
+        queuedFormResponse,
         attributeRoutingConfig,
         crmContactOwnerEmail,
         crmContactOwnerRecordType,
@@ -116,7 +117,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       }
       const allURLSearchParams = getUrlSearchParamsToForward({
         formResponse: chosenRouteWithFormResponse.response,
-        formResponseId: formResponse.id,
+        formResponseId: formResponse?.id ?? null,
+        queuedFormResponseId: queuedFormResponse?.id ?? null,
         fields,
         searchParams: new URLSearchParams(window.location.search),
         teamMembersMatchingAttributeLogic,

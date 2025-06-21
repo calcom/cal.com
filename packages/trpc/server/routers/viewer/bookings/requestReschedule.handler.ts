@@ -44,7 +44,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const { user } = ctx;
   const { bookingId, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingId, cancellationReason, user }));
-  const bookingToReschedule = await prisma.booking.findFirstOrThrow({
+  const bookingToReschedule = await prisma.booking.findUniqueOrThrow({
     select: {
       id: true,
       uid: true,
@@ -127,7 +127,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   let event: Partial<EventType> = {};
   if (bookingToReschedule.eventTypeId) {
-    event = await prisma.eventType.findFirstOrThrow({
+    event = await prisma.eventType.findUniqueOrThrow({
       select: {
         title: true,
         schedulingType: true,

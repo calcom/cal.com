@@ -132,12 +132,9 @@ export function processDateOverride({
   };
 }
 
+// This function processes out-of-office dates and returns a date range for each OOO date.
 function processOOO(outOfOffice: Dayjs, timeZone: string) {
-  const utcOffset = outOfOffice.tz(timeZone).utcOffset();
-  const utcDate = outOfOffice.subtract(utcOffset, "minute");
-
-  const OOOdate = utcDate.tz(timeZone);
-
+  const OOOdate = outOfOffice.tz(timeZone, true);
   return {
     start: OOOdate,
     end: OOOdate,
@@ -171,7 +168,7 @@ export function buildDateRanges({
     }, [])
   );
   const OOOdates = outOfOffice
-    ? Object.keys(outOfOffice).map((outOfOffice) => processOOO(dayjs(outOfOffice), timeZone))
+    ? Object.keys(outOfOffice).map((outOfOffice) => processOOO(dayjs.utc(outOfOffice), timeZone))
     : [];
 
   const groupedOOO = groupByDate(OOOdates);

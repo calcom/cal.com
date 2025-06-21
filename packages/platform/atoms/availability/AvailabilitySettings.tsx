@@ -38,7 +38,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
-import type { AvailabilityFormValues } from "./types";
+import type { AvailabilityFormValues, scheduleClassNames } from "./types";
 
 export type Schedule = {
   id: number;
@@ -58,13 +58,7 @@ export type CustomClassNames = {
   formClassName?: string;
   timezoneSelectClassName?: string;
   subtitlesClassName?: string;
-  scheduleClassNames?: {
-    scheduleContainer?: string;
-    scheduleDay?: string;
-    dayRanges?: string;
-    timeRanges?: string;
-    labelAndSwitchContainer?: string;
-  };
+  scheduleClassNames?: scheduleClassNames;
   overridesModalClassNames?: string;
   hiddenSwitchClassname?: {
     container?: string;
@@ -564,7 +558,11 @@ export function AvailabilitySettings({
           }}
           className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
           <div className="flex-1 flex-row xl:mr-0">
-            <div className="border-subtle mb-6 rounded-md border">
+            <div
+              className={cn(
+                "border-subtle mb-6 rounded-md border",
+                customClassNames?.scheduleClassNames?.scheduleContainer
+              )}>
               <div>
                 {typeof weekStart === "string" && (
                   <Schedule
@@ -573,7 +571,7 @@ export function AvailabilitySettings({
                       copyTime: t("copy_times_to"),
                       deleteTime: t("delete"),
                     }}
-                    className={
+                    classNames={
                       customClassNames?.scheduleClassNames ? { ...customClassNames.scheduleClassNames } : {}
                     }
                     control={form.control}

@@ -15,7 +15,7 @@ interface ResponseHandlerOptions {
 export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) => {
   const { prisma } = ctx;
   const { formId, response, formFillerId, chosenRouteId = null, isPreview = false } = input;
-  const form = await prisma.app_RoutingForms_Form.findFirst({
+  const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: formId,
     },

@@ -1181,6 +1181,7 @@ async function main() {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "acme.com",
           isAdminAPIEnabled: true,
+          isAdminReviewed: true,
         },
       },
       members: [
@@ -1277,6 +1278,7 @@ async function main() {
         organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "dunder-mifflin.com",
+          isAdminReviewed: true,
         },
       },
       members: [
