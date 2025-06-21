@@ -1,3 +1,4 @@
+import kyselyMock from "../../../../../tests/libs/__mocks__/kysely";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, beforeEach } from "vitest";
@@ -137,6 +138,7 @@ describe("getAttributes", () => {
   beforeEach(async () => {
     // @ts-expect-error reset is a method on Prismock
     await prismock.reset();
+    kyselyMock.__setMockData([]);
   });
 
   describe("getAttributesForTeam", () => {
@@ -261,6 +263,45 @@ describe("getAttributes", () => {
         attributeOptionId: "engineering-id",
       });
 
+      kyselyMock.__setMockData([
+        {
+          id: 1,
+          memberId: orgMembership.id,
+          attributeOptionId: "engineering-and-sales-id",
+          weight: null,
+          createdAt: new Date(),
+          createdById: null,
+          createdByDSyncId: null,
+          updatedAt: new Date(),
+          updatedById: null,
+          updatedByDSyncId: null,
+        },
+        {
+          id: 2,
+          memberId: orgMembership.id,
+          attributeOptionId: "india-id",
+          weight: null,
+          createdAt: new Date(),
+          createdById: null,
+          createdByDSyncId: null,
+          updatedAt: new Date(),
+          updatedById: null,
+          updatedByDSyncId: null,
+        },
+        {
+          id: 3,
+          memberId: orgMembership.id,
+          attributeOptionId: "engineering-id",
+          weight: null,
+          createdAt: new Date(),
+          createdById: null,
+          createdByDSyncId: null,
+          updatedAt: new Date(),
+          updatedById: null,
+          updatedByDSyncId: null,
+        },
+      ]);
+
       const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
         await getAttributesAssignmentData({ teamId: team.id, orgId });
 
@@ -332,6 +373,21 @@ describe("getAttributes", () => {
         // Assigning a group option that has its sub-options not assigned directly to the user
         attributeOptionId: "engineering-and-sales-id",
       });
+
+      kyselyMock.__setMockData([
+        {
+          id: 1,
+          memberId: orgMembership.id,
+          attributeOptionId: "engineering-and-sales-id",
+          weight: null,
+          createdAt: new Date(),
+          createdById: null,
+          createdByDSyncId: null,
+          updatedAt: new Date(),
+          updatedById: null,
+          updatedByDSyncId: null,
+        },
+      ]);
 
       const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
         await getAttributesAssignmentData({ teamId: team.id, orgId });
@@ -431,6 +487,33 @@ describe("getAttributes", () => {
         orgMembershipId: orgMembership.id,
         attributeOptionId: "opt2",
       });
+
+      kyselyMock.__setMockData([
+        {
+          id: 1,
+          memberId: orgMembership.id,
+          attributeOptionId: "opt1",
+          weight: null,
+          createdAt: new Date(),
+          createdById: null,
+          createdByDSyncId: null,
+          updatedAt: new Date(),
+          updatedById: null,
+          updatedByDSyncId: null,
+        },
+        {
+          id: 2,
+          memberId: orgMembership.id,
+          attributeOptionId: "opt2",
+          weight: null,
+          createdAt: new Date(),
+          createdById: null,
+          createdByDSyncId: null,
+          updatedAt: new Date(),
+          updatedById: null,
+          updatedByDSyncId: null,
+        },
+      ]);
 
       const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
         await getAttributesAssignmentData({ teamId: team.id, orgId });
