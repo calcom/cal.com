@@ -1,10 +1,13 @@
-import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
+import { getCachedOrgAttributes } from "app/cache/attribute";
+import { getCachedCurrentOrg, getCachedOrgTeams } from "app/cache/organization";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { MembersView } from "~/members/members-view";
 
@@ -17,18 +20,23 @@ export const generateMetadata = async () =>
     "/settings/organizations/members"
   );
 
-const getCachedAttributes = unstable_cache(
-  async (orgId: number) => {
-    return await AttributeRepository.findAllByOrgIdWithOptions({ orgId });
-  },
-  undefined,
-  { revalidate: 3600, tags: ["viewer.attributes.list"] } // Cache for 1 hour
-);
-
 const Page = async () => {
-  const orgCaller = await createRouterCaller(viewerOrganizationsRouter);
-  const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
-  const attributes = await getCachedAttributes(org.id);
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const orgId = session?.user?.profile?.organizationId ?? session?.user?.org?.id;
+  const userId = session?.user?.id;
+  if (!userId) {
+    return redirect("/auth/login?callbackUrl=/settings/organizations/members");
+  }
+  if (!orgId) {
+    return redirect("/settings/my-account/profile");
+  }
+
+  const [org, teams, attributes] = await Promise.all([
+    getCachedCurrentOrg(userId, orgId),
+    getCachedOrgTeams(orgId),
+    getCachedOrgAttributes(orgId),
+  ]);
+
   const facetedTeamValues = {
     roles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
     teams,
