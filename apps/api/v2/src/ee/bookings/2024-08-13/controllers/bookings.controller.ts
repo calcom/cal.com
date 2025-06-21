@@ -32,6 +32,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Patch,
 } from "@nestjs/common";
 import {
   ApiOperation,
@@ -68,6 +69,7 @@ import {
   CreateInstantBookingInput_2024_08_13,
   CreateRecurringBookingInput_2024_08_13,
   DeclineBookingInput_2024_08_13,
+  UpdateBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -460,6 +462,27 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookingReferences,
+    };
+  }
+
+  @Patch("/:bookingUid")
+  @HttpCode(HttpStatus.OK)
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Update a booking",
+    description: "Update an already existing booking",
+  })
+  async updateBooking(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: UpdateBookingInput_2024_08_13
+  ): Promise<GetBookingOutput_2024_08_13> {
+    const updatedBooking = await this.bookingsService.updateBooking(bookingUid, body);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: updatedBooking,
     };
   }
 }
