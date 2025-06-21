@@ -177,6 +177,8 @@ export const useEventTypeForm = ({
               disableRecordingForOrganizer: z.boolean().nullable(),
               disableRecordingForGuests: z.boolean().nullable(),
               enableAutomaticTranscription: z.boolean().nullable(),
+              disableTranscriptionForGuests: z.boolean().nullable(),
+              disableTranscriptionForOrganizer: z.boolean().nullable(),
             })
             .optional()
             .nullable(),
