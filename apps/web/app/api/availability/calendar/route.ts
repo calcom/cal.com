@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import { CalendarSubscriptionService } from "@calcom/features/calendar-sync/calendarSubscription.service";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -88,10 +89,18 @@ async function deleteHandler(req: NextRequest) {
   const { integration, externalId, credentialId, eventTypeId } =
     selectedCalendarSelectSchema.parse(searchParams);
 
-  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
+  const [calendarCacheRepository, calendarSubscription] = await Promise.all([
+    CalendarCache.initFromCredentialId(credentialId),
+    CalendarSubscriptionService.findbyExternalIdAndIntegration({
+      externalId,
+      integration,
+    }),
+  ]);
+
   await calendarCacheRepository.unwatchCalendar({
     calendarId: externalId,
     eventTypeIds: [eventTypeId ?? null],
+    calendarSubscription: calendarSubscription,
   });
 
   await SelectedCalendarRepository.delete({
