@@ -227,19 +227,20 @@ export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
-  org: string | null,
+  orgSlug: string | null,
   prisma: PrismaClient,
   fromRedirectOfNonOrgLink: boolean,
   currentUserId?: number,
-  fetchAllUsers = false
+  fetchAllUsers = false,
+  orgId?: number
 ) => {
   const usernameList = getUsernameList(username);
-  const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
+  const orgQuery = orgSlug ? getSlugOrRequestedSlug(orgSlug) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
     const usersInOrgContext = await UserRepository.findUsersByUsername({
       usernameList,
-      orgSlug: org,
+      orgSlug: orgSlug,
     });
     const users = usersInOrgContext;
 
@@ -267,18 +268,27 @@ export const getPublicEvent = async (
     const disableBookingTitle = !defaultEvent.isDynamic;
     const unPublishedOrgUser = users.find((user) => user.profile?.organization?.slug === null);
 
-    let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined;
-    if (org) {
-      orgDetails = await prisma.team.findFirstOrThrow({
-        where: {
-          slug: org,
-        },
-        select: {
-          logoUrl: true,
-          name: true,
-        },
-      });
-    }
+    const orgDetails: Pick<Team, "logoUrl" | "name"> | undefined = orgId
+      ? await prisma.team.findUniqueOrThrow({
+          where: {
+            id: orgId,
+          },
+          select: {
+            logoUrl: true,
+            name: true,
+          },
+        })
+      : orgSlug
+      ? await prisma.team.findFirstOrThrow({
+          where: {
+            slug: orgSlug,
+          },
+          select: {
+            logoUrl: true,
+            name: true,
+          },
+        })
+      : undefined;
 
     return {
       ...defaultEvent,
@@ -309,14 +319,14 @@ export const getPublicEvent = async (
           ? {
               image: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
               name: orgDetails?.name,
-              username: org,
+              username: orgSlug,
             }
           : {}),
       },
       entity: {
         considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
         fromRedirectOfNonOrgLink,
-        orgSlug: org,
+        orgSlug: orgSlug,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
         teamSlug: null,
         logoUrl: null,
@@ -437,19 +447,28 @@ export const getPublicEvent = async (
     eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
   }
 
-  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null;
-  if (org) {
-    orgDetails = await prisma.team.findFirst({
-      where: {
-        slug: org,
-        parentId: null,
-      },
-      select: {
-        logoUrl: true,
-        name: true,
-      },
-    });
-  }
+  const orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null = orgId
+    ? await prisma.team.findUnique({
+        where: {
+          id: orgId,
+        },
+        select: {
+          logoUrl: true,
+          name: true,
+        },
+      })
+    : orgSlug
+    ? await prisma.team.findFirst({
+        where: {
+          slug: orgSlug,
+          parentId: null,
+        },
+        select: {
+          logoUrl: true,
+          name: true,
+        },
+      })
+    : undefined;
 
   let showInstantEventConnectNowModal = eventWithUserProfiles.isInstantEvent;
 
@@ -507,7 +526,7 @@ export const getPublicEvent = async (
         (eventWithUserProfiles.team?.slug === null ||
           eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
           eventWithUserProfiles.team?.parent?.slug === null),
-      orgSlug: org,
+      orgSlug: orgSlug,
       teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
       name:
         (eventWithUserProfiles.owner?.profile?.organization?.name ||

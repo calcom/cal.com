@@ -8,10 +8,12 @@ export class EventRepository {
       input.username,
       input.eventSlug,
       input.isTeamEvent,
-      input.org,
+      input.orgSlug,
       prisma,
       input.fromRedirectOfNonOrgLink,
-      userId
+      userId,
+      false,
+      input.orgId
     );
     return event;
   }

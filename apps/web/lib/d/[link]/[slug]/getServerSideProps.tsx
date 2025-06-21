@@ -23,7 +23,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
-  const org = isValidOrgDomain ? currentOrgDomain : null;
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
 
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
@@ -86,7 +86,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       return notFound;
     }
 
-    if (!org) {
+    if (!orgSlug) {
       const redirect = await getTemporaryOrgRedirect({
         slugs: [username],
         redirectType: RedirectType.User,
@@ -103,7 +103,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
     const [user] = await UserRepository.findUsersByUsername({
       usernameList: [name],
-      orgSlug: org,
+      orgSlug: orgSlug,
     });
 
     if (!user) {
@@ -128,8 +128,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       username: name,
       eventSlug: slug,
       isTeamEvent,
-      org,
+      orgSlug,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+      orgId: session?.user?.org?.id ?? session?.user?.profile?.organizationId ?? undefined,
     },
     session?.user?.id
   );
