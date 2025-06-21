@@ -29,25 +29,6 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  //delete all scheduled sms reminders where scheduled date is past current date
-  await prisma.workflowReminder.deleteMany({
-    where: {
-      OR: [
-        {
-          method: WorkflowMethods.SMS,
-          scheduledDate: {
-            lte: dayjs().toISOString(),
-          },
-        },
-        {
-          retryCount: {
-            gt: 1,
-          },
-        },
-      ],
-    },
-  });
-
   //find all unscheduled SMS reminders
   const unscheduledReminders = (await prisma.workflowReminder.findMany({
     where: {
@@ -210,12 +191,6 @@ export async function handler(req: NextRequest) {
               data: {
                 scheduled: true,
                 referenceId: scheduledNotification.sid,
-              },
-            });
-          } else if (scheduledNotification.emailReminderId) {
-            await prisma.workflowReminder.delete({
-              where: {
-                id: reminder.id,
               },
             });
           }
