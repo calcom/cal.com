@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
@@ -72,6 +72,80 @@ type LocationsProps = {
   customClassNames?: LocationCustomClassNames;
 };
 
+type LocationInputProps = {
+  eventLocationType: EventLocationType;
+  defaultValue?: string;
+  index: number;
+  customClassNames?: LocationInputCustomClassNames;
+  disableLocationProp?: boolean;
+};
+
+const LocationInput: React.FC<LocationInputProps> = ({
+  eventLocationType,
+  index,
+  customClassNames,
+  defaultValue,
+  disableLocationProp,
+}) => {
+  const { t } = useLocale();
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    // Focus the input when it's rendered
+    if (inputRef.current && !defaultValue) {
+      inputRef.current.focus();
+    }
+  }, [defaultValue]);
+
+  if (eventLocationType?.organizerInputType === "text") {
+    return (
+      <Controller
+        name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
+        defaultValue={defaultValue}
+        render={({ field: { onChange, value, ref } }) => {
+          return (
+            <Input
+              ref={(e) => {
+                ref(e);
+                inputRef.current = e;
+              }}
+              name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+              placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+              type="text"
+              required
+              onChange={onChange}
+              value={value}
+              {...(disableLocationProp ? { disabled: true } : {})}
+              className={classNames("my-0", customClassNames?.addressInput)}
+            />
+          );
+        }}
+      />
+    );
+  } else if (eventLocationType?.organizerInputType === "phone") {
+    return (
+      <Controller
+        name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
+        defaultValue={defaultValue}
+        render={({ field: { onChange, value } }) => {
+          return (
+            <PhoneInput
+              required
+              disabled={disableLocationProp}
+              placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+              name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+              className={customClassNames?.phoneInput}
+              value={value}
+              onChange={onChange}
+            />
+          );
+        }}
+      />
+    );
+  }
+  return null;
+};
+
 const getLocationFromType = (type: EventLocationType["type"], locationOptions: TLocationOptions) => {
   for (const locationOption of locationOptions) {
     const option = locationOption.options.find((option) => option.value === type);
@@ -112,7 +186,7 @@ const Locations: React.FC<LocationsProps> = ({
   disableLocationProp,
   isManagedEventType,
   getValues,
-  setValue,
+  setValue: _setValue,
   control,
   formState,
   team,
@@ -167,64 +241,6 @@ const Locations: React.FC<LocationsProps> = ({
     eventType,
     locationOptions: props.locationOptions,
   });
-
-  const LocationInput = (props: {
-    eventLocationType: EventLocationType;
-    defaultValue?: string;
-    index: number;
-    customClassNames?: LocationInputCustomClassNames;
-  }) => {
-    const { eventLocationType, index, customClassNames, ...remainingProps } = props;
-    if (eventLocationType?.organizerInputType === "text") {
-      const { defaultValue, ...rest } = remainingProps;
-
-      return (
-        <Controller
-          name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-          defaultValue={defaultValue}
-          render={({ field: { onChange, value } }) => {
-            return (
-              <Input
-                name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
-                type="text"
-                required
-                onChange={onChange}
-                value={value}
-                {...(disableLocationProp ? { disabled: true } : {})}
-                className={classNames("my-0", customClassNames?.addressInput)}
-                {...rest}
-              />
-            );
-          }}
-        />
-      );
-    } else if (eventLocationType?.organizerInputType === "phone") {
-      const { defaultValue, ...rest } = remainingProps;
-
-      return (
-        <Controller
-          name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-          defaultValue={defaultValue}
-          render={({ field: { onChange, value } }) => {
-            return (
-              <PhoneInput
-                required
-                disabled={disableLocationProp}
-                placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
-                name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                className={customClassNames?.phoneInput}
-                value={value}
-                onChange={onChange}
-                {...rest}
-              />
-            );
-          }}
-        />
-      );
-    }
-    return null;
-  };
 
   const [showEmptyLocationSelect, setShowEmptyLocationSelect] = useState(false);
   const defaultInitialLocation = defaultValue || null;
@@ -459,6 +475,7 @@ const Locations: React.FC<LocationsProps> = ({
                         eventLocationType={eventLocationType}
                         index={index}
                         customClassNames={customClassNames?.organizerContactInput?.locationInput}
+                        disableLocationProp={disableLocationProp}
                       />
                     </div>
                     <ErrorMessage
