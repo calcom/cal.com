@@ -3,6 +3,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { checkBookingLimits } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { checkDurationLimits } from "@calcom/lib/intervalLimits/server/checkDurationLimits";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import { convertTimeToUTC } from "@calcom/lib/timeUtils";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 
@@ -11,19 +12,22 @@ type EventType = Pick<NewBookingEventType, "bookingLimits" | "durationLimits" | 
 type InputProps = {
   eventType: EventType;
   reqBodyStart: string;
+  timeZone: string;
   reqBodyRescheduleUid?: string;
 };
 
 const _checkBookingAndDurationLimits = async ({
   eventType,
   reqBodyStart,
+  timeZone,
   reqBodyRescheduleUid,
 }: InputProps) => {
   if (
     Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
     Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
   ) {
-    const startAsDate = dayjs(reqBodyStart).toDate();
+    const startUTC = convertTimeToUTC(reqBodyStart, timeZone);
+    const startAsDate = dayjs(startUTC).toDate();
     if (eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
       await checkBookingLimits(
         eventType.bookingLimits as IntervalLimit,
