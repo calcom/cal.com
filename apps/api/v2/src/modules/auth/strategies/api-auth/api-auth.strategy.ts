@@ -14,11 +14,19 @@ import { Injectable, InternalServerErrorException, UnauthorizedException } from 
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
+import * as jwt from "jsonwebtoken";
 import { getToken } from "next-auth/jwt";
 
 import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 import type { AllowedAuthMethod } from "../../decorators/api-auth-guard-only-allow.decorator";
+
+interface OAuthTokenPayload {
+  userId?: number;
+  teamId?: number;
+  scope: string[];
+  token_type: string;
+}
 
 export type ApiAuthGuardUser = UserWithProfile & { isSystemAdmin: boolean };
 export type ApiAuthGuardRequest = Request & {
@@ -26,9 +34,11 @@ export type ApiAuthGuardRequest = Request & {
   organizationId: number | null;
   user: ApiAuthGuardUser;
   allowedAuthMethods?: AllowedAuthMethod[];
+  // removed requiredThirdPartyScopes: string[];
 };
 export const NO_AUTH_PROVIDED_MESSAGE =
   "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers";
+
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
   constructor(
@@ -54,22 +64,49 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
       const allowedMethods = request.allowedAuthMethods;
       const noSpecificAuthExpected = !allowedMethods || !allowedMethods.length;
+
       const oAuthAllowed = noSpecificAuthExpected || allowedMethods.includes("OAUTH_CLIENT_CREDENTIALS");
       const apiKeyAllowed = noSpecificAuthExpected || allowedMethods.includes("API_KEY");
       const accessTokenAllowed = noSpecificAuthExpected || allowedMethods.includes("ACCESS_TOKEN");
       const nextAuthAllowed = noSpecificAuthExpected || allowedMethods.includes("NEXT_AUTH");
+      const thirdPartyAccessTokenAllowed =
+        noSpecificAuthExpected || allowedMethods.includes("THIRD_PARTY_ACCESS_TOKEN");
 
       if (oAuthClientId && oAuthClientSecret && oAuthAllowed) {
         request.authMethod = AuthMethods["OAUTH_CLIENT"];
         return await this.authenticateOAuthClient(oAuthClientId, oAuthClientSecret, request);
       }
 
-      if (bearerToken && (apiKeyAllowed || accessTokenAllowed)) {
-        const requestOrigin = request.get("Origin");
-        request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
-          ? AuthMethods["API_KEY"]
-          : AuthMethods["ACCESS_TOKEN"];
-        return await this.authenticateBearerToken(bearerToken, request, requestOrigin);
+      if (bearerToken) {
+        const encryptionKey = this.config.get<string>("CALENDSO_ENCRYPTION_KEY");
+
+        // Attempt to authenticate as Third-Party Access Token if allowed
+        if (thirdPartyAccessTokenAllowed && encryptionKey) {
+          try {
+            const decodedToken = jwt.verify(bearerToken, encryptionKey) as OAuthTokenPayload;
+
+            if (
+              decodedToken &&
+              decodedToken.token_type === "Access Token" &&
+              (decodedToken.userId || decodedToken.teamId)
+            ) {
+              request.authMethod = AuthMethods["THIRD_PARTY_ACCESS_TOKEN"];
+              return await this.authenticateThirdPartyAccessToken(bearerToken, request);
+            }
+          } catch (jwtError) {
+            console.log(
+              "Bearer token is not a valid third-party JWT or does not fit criteria for third_party_access_token. Trying other methods if allowed."
+            );
+          }
+        }
+
+        if (apiKeyAllowed || accessTokenAllowed) {
+          const requestOrigin = request.get("Origin");
+          request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
+            ? AuthMethods["API_KEY"]
+            : AuthMethods["ACCESS_TOKEN"];
+          return await this.authenticateBearerToken(bearerToken, request, requestOrigin);
+        }
       }
 
       const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
@@ -83,8 +120,11 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       if (noAuthProvided) {
         throw new UnauthorizedException(`ApiAuthStrategy - ${NO_AUTH_PROVIDED_MESSAGE}`);
       }
+
       throw new UnauthorizedException(
-        `ApiAuthStrategy - Invalid authentication method. Please provide one of the allowed methods: ${allowedMethods}`
+        `ApiAuthStrategy - Invalid authentication method. Please provide one of the allowed methods: ${
+          allowedMethods && allowedMethods.length > 0 ? allowedMethods.join(", ") : "Any supported method"
+        }`
       );
     } catch (err) {
       if (err instanceof Error) {
@@ -270,5 +310,58 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     request.organizationId = organizationId;
 
     return user;
+  }
+
+  async authenticateThirdPartyAccessToken(token: string, request: ApiAuthGuardRequest) {
+    // Removed requiredScopes parameter
+    const encryptionKey = this.config.get<string>("CALENDSO_ENCRYPTION_KEY");
+    if (!encryptionKey) {
+      throw new InternalServerErrorException("CALENDSO_ENCRYPTION_KEY environment variable is not set.");
+    }
+
+    let decodedToken: OAuthTokenPayload;
+    try {
+      decodedToken = jwt.verify(token, encryptionKey) as OAuthTokenPayload;
+    } catch (e) {
+      console.error("Third-party access token verification failed:", e);
+      throw new UnauthorizedException("ApiAuthStrategy - third-party token - Invalid or malformed token.");
+    }
+
+    if (!decodedToken) {
+      throw new UnauthorizedException("ApiAuthStrategy - third-party token - Invalid token payload.");
+    }
+
+    if (decodedToken.token_type !== "Access Token") {
+      throw new UnauthorizedException("ApiAuthStrategy - third-party token - Invalid token type.");
+    }
+
+    let user: UserWithProfile | null = null;
+    let organizationId: number | null = null;
+
+    if (decodedToken.userId) {
+      user = await this.userRepository.findByIdWithProfile(decodedToken.userId);
+      if (user) {
+        organizationId = this.usersService.getUserMainOrgId(user) as number;
+      }
+    } else if (decodedToken.teamId) {
+      const teamOwner = await this.userRepository.findOwnerByTeamIdWithProfile(decodedToken.teamId);
+      if (!teamOwner) {
+        throw new UnauthorizedException(
+          "ApiAuthStrategy - third-party token - No owner found for the associated team."
+        );
+      }
+      user = teamOwner;
+      organizationId =
+        teamOwner.profiles?.find((p) => p.organizationId === decodedToken.teamId)?.organizationId ?? null;
+    }
+
+    if (!user) {
+      throw new UnauthorizedException(
+        "ApiAuthStrategy - third-party token - No user or team owner associated with the token."
+      );
+    }
+
+    request.organizationId = organizationId;
+    return this.success(this.getSuccessUser(user));
   }
 }
