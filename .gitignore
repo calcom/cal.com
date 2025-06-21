@@ -65,6 +65,10 @@ tsconfig.tsbuildinfo
 # turbo
 .turbo
 
+# Coverage reports
+coverage/
+*.lcov
+
 # Prisma generated files
 packages/prisma/zod/*.ts
 packages/prisma/enums

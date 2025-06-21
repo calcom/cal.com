@@ -1,0 +1,87 @@
+name: Coverage Report
+on:
+  workflow_run:
+    workflows: ["Unit"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  coverage-report:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Download coverage artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }},
+            });
+            
+            const coverageArtifact = artifacts.data.artifacts.find(artifact => 
+              artifact.name === 'coverage-reports'
+            );
+            
+            if (coverageArtifact) {
+              const download = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: coverageArtifact.id,
+                archive_format: 'zip',
+              });
+              
+              const fs = require('fs');
+              fs.writeFileSync('coverage-reports.zip', Buffer.from(download.data));
+            }
+      
+      - name: Extract coverage reports
+        run: |
+          if [ -f coverage-reports.zip ]; then
+            unzip coverage-reports.zip
+            ls -la coverage/ || echo "No coverage directory found"
+          fi
+      
+      - name: Comment coverage on PR
+        uses: actions/github-script@v7
+        if: github.event.workflow_run.event == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            let coverageComment = '## 📊 Coverage Report\n\n';
+            
+            try {
+              const coverageSummary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+              const { lines, branches, functions, statements } = coverageSummary.total;
+              
+              coverageComment += `| Metric | Coverage | Threshold |\n`;
+              coverageComment += `|--------|----------|----------|\n`;
+              coverageComment += `| Lines | ${lines.pct}% | 80% |\n`;
+              coverageComment += `| Branches | ${branches.pct}% | 70% |\n`;
+              coverageComment += `| Functions | ${functions.pct}% | 75% |\n`;
+              coverageComment += `| Statements | ${statements.pct}% | 80% |\n\n`;
+              
+              if (lines.pct < 80 || branches.pct < 70 || functions.pct < 75 || statements.pct < 80) {
+                coverageComment += '❌ **Coverage thresholds not met!**\n\n';
+              } else {
+                coverageComment += '✅ **All coverage thresholds met!**\n\n';
+              }
+            } catch (error) {
+              coverageComment += '❌ Could not parse coverage report\n\n';
+            }
+            
+            const prNumber = ${{ github.event.workflow_run.pull_requests[0].number }};
+            if (prNumber) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: coverageComment
+              });
+            }
