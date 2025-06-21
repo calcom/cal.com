@@ -821,6 +821,7 @@ export class EventTypeRepository {
       },
       select: {
         id: true,
+        userId: true,
         slug: true,
         minimumBookingNotice: true,
         length: true,
