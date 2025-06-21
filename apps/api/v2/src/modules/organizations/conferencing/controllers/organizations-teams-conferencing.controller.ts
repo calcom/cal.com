@@ -61,38 +61,11 @@ export type OAuthCallbackState = {
   version: API_VERSIONS_VALUES,
 })
 @DocsTags("Orgs / Teams / Conferencing")
-export class OrganizationsConferencingController {
+export class OrganizationsTeamsConferencingController {
   constructor(
     private readonly conferencingService: ConferencingService,
-    private readonly organizationsConferencingService: OrganizationsConferencingService,
-    private readonly tokensRepository: TokensRepository
+    private readonly organizationsConferencingService: OrganizationsConferencingService
   ) {}
-
-  @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
-  @ApiParam({
-    name: "app",
-    description: "Conferencing application type",
-    enum: [GOOGLE_MEET],
-    required: true,
-  })
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-  @Post("/teams/:teamId/conferencing/:app/connect")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Connect your conferencing application to a team" })
-  async connectTeamApp(
-    @GetUser() user: UserWithProfile,
-    @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("app") app: string
-  ): Promise<ConferencingAppOutputResponseDto> {
-    const credential = await this.organizationsConferencingService.connectTeamNonOauthApps({
-      teamId,
-      app,
-    });
-
-    return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
-  }
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")

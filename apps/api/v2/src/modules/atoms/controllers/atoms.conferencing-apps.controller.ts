@@ -31,12 +31,28 @@ These endpoints should not be recommended for use by third party and are exclude
 export class AtomsConferencingAppsController {
   constructor(private readonly conferencingService: ConferencingAtomsService) {}
 
+  @Get("/organizations/:orgId/conferencing")
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Version(VERSION_NEUTRAL)
+  async listTeamInstalledConferencingApps(
+    @GetUser() user: UserWithProfile,
+    @Param("orgId", ParseIntPipe) orgId: number
+  ): Promise<ApiResponse<ConnectedApps>> {
+    const conferencingApps = await this.conferencingService.getTeamConferencingApps(user, orgId);
+    return {
+      status: SUCCESS_STATUS,
+      data: conferencingApps,
+    };
+  }
+
   @Get("/organizations/:orgId/teams/:teamId/conferencing")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Version(VERSION_NEUTRAL)
-  async listTeamInstalledConferencingApps(
+  async listOrgInstalledConferencingApps(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<ApiResponse<ConnectedApps>> {
