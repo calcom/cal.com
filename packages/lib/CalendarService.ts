@@ -99,7 +99,15 @@ const getDuration = (start: string, end: string): DurationObject => ({
 });
 
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
+  attendees.map(({ email, name }) => ({
+    name,
+    email,
+    partstat: "NEEDS-ACTION",
+    // TODO: Make this configurable via UI option with default "not added" for backwards compatibility
+    // Hardcode to "CLIENT" in order to validate/test ics SCHEDULE-AGENT patchfunctionality
+    // https://github.com/calcom/cal.com/issues/9485
+    scheduleAgent: "CLIENT" as const,
+  }));
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
@@ -154,7 +162,14 @@ export default abstract class BaseCalendarService implements Calendar {
         title: event.title,
         description: event.calendarDescription,
         location: getLocation(event),
-        organizer: { email: event.organizer.email, name: event.organizer.name },
+        organizer: {
+          email: event.organizer.email,
+          name: event.organizer.name,
+          // TODO: Make this configurable via UI option with default "not added" for backwards compatibility
+          // Hardcode to "CLIENT" in order to validate/test ics SCHEDULE-AGENT patchfunctionality
+          // https://github.com/calcom/cal.com/issues/9485
+          scheduleAgent: "CLIENT" as const,
+        },
         attendees: this.getAttendees(event),
         /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
          * "Attendees" MUST NOT be present
