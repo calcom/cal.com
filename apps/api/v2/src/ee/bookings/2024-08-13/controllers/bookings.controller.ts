@@ -270,7 +270,14 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Cancel a booking",
     description: `:bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.
-    For seated bookings to cancel one individual booking provide :bookingUid and :seatUid in the request body. For recurring seated bookings it is not possible to cancel all of them with 1 call
+    
+    \nCancelling seated bookings:
+    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.
+    \n1. As an attendee - provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and seatUid in the request body \`{"seatUid": "123-123-123"}\` . This will remove this particular attendance from the booking.
+    \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and cancellationReason in the request body \`{"cancellationReason": "Will travel"}\` and \`Authorization: Bearer token\` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.
+    
+    \nCancelling recurring seated bookings:
+    For recurring seated bookings it is not possible to cancel all of them with 1 call
     like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.`,
   })
   @ApiBody({
