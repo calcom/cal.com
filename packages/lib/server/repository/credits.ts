@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { CreditType } from "@calcom/prisma/enums";
+import type { CreditType } from "@calcom/prisma/enums";
 
 export class CreditsRepository {
   static async findCreditBalance(
@@ -95,26 +95,45 @@ export class CreditsRepository {
     }
   }
 
-  static async findCreditBalanceWithExpenseLogs({ teamId }: { teamId: number }, tx?: PrismaTransaction) {
+  static async findCreditBalanceWithExpenseLogs(
+    {
+      teamId,
+      userId,
+      startDate = dayjs().startOf("month").toDate(),
+      endDate = new Date(),
+      creditType,
+    }: { teamId?: number; userId?: number; startDate?: Date; endDate?: Date; creditType?: CreditType },
+    tx?: PrismaTransaction
+  ) {
+    if (!teamId && !userId) return null;
+
     const prismaClient = tx ?? prisma;
 
     return await prismaClient.creditBalance.findUnique({
       where: {
         teamId,
+        ...(!teamId ? { userId } : {}),
       },
       select: {
         additionalCredits: true,
         expenseLogs: {
           where: {
             date: {
-              gte: dayjs().startOf("month").toDate(),
-              lte: new Date(),
+              gte: startDate,
+              lte: endDate,
             },
-            creditType: CreditType.MONTHLY,
+            ...(creditType ? { creditType } : {}),
+          },
+          orderBy: {
+            date: "desc",
           },
           select: {
             date: true,
             credits: true,
+            creditType: true,
+            bookingUid: true,
+            smsSid: true,
+            smsSegments: true,
           },
         },
       },

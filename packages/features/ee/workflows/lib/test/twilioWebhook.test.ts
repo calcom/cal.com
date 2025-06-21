@@ -11,6 +11,7 @@ vi.mock("@calcom/lib/constants", async () => {
 vi.mock("../reminders/providers/twilioProvider", () => ({
   validateWebhookRequest: vi.fn().mockResolvedValue(true),
   getCountryCodeForNumber: vi.fn().mockResolvedValue("US"),
+  getMessageInfo: vi.fn().mockResolvedValue({ price: null, numSegments: null }),
 }));
 
 const mockChargeCredits = vi.fn().mockResolvedValue({ teamId: 1 });
@@ -118,12 +119,6 @@ describe("Twilio Webhook Handler", () => {
 
       vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
         default: vi.fn().mockResolvedValue(null),
-      }));
-
-      vi.mock("../reminders/providers/twilioProvider", () => ({
-        validateWebhookRequest: vi.fn().mockResolvedValue(true),
-        getCountryCodeForNumber: vi.fn().mockResolvedValue("US"),
-        getPriceForSMS: vi.fn().mockResolvedValue(null),
       }));
 
       const mockRequest = {
