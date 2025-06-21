@@ -46,22 +46,13 @@ export class AttributeToUserRepository {
   }
 
   static async findManyByOrgAndTeamIds({ orgId, teamId }: { orgId: number; teamId: number }) {
-    const teamIds = [orgId];
-    if (teamId !== orgId) {
-      teamIds.push(teamId);
-    }
-
-    const result = await prisma.attributeToUser.findMany({
+    return await prisma.attributeToUser.findMany({
       where: {
         member: {
-          teamId: {
-            in: teamIds,
-          },
+          teamId: { in: [orgId, teamId] },
           accepted: true,
         },
       },
     });
-
-    return result;
   }
 }
