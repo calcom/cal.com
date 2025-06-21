@@ -1,27 +1,47 @@
-import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
-
 import kysely from "@calcom/kysely";
 
-import type { PermissionString } from "../types/permission-registry";
+import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
+import type { TeamPermissions } from "../../domain/models/Permission";
+import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
+import type { CrudAction, CustomAction } from "../../domain/types/permission-registry";
+import { Resource, type PermissionString } from "../../domain/types/permission-registry";
 
-type DbPermission = {
-  resource: string | null;
-  action: string | null;
-};
+export class PermissionRepository implements IPermissionRepository {
+  async getUserMemberships(userId: number): Promise<TeamPermissions[]> {
+    const memberships = await kysely
+      .selectFrom("Membership")
+      .innerJoin("Role", "Role.id", "Membership.customRoleId")
+      .leftJoin("RolePermission", "RolePermission.roleId", "Role.id")
+      .select(["Membership.teamId", "Role.id as roleId", "RolePermission.resource", "RolePermission.action"])
+      .where("Membership.userId", "=", userId)
+      .execute();
 
-type DbRole = {
-  id: string | null;
-  permissions: DbPermission[];
-};
+    // Group permissions by teamId and roleId
+    const membershipsWithPermissions = memberships.reduce((acc, membership) => {
+      const key = `${membership.teamId}-${membership.roleId}`;
+      if (!acc[key]) {
+        acc[key] = {
+          teamId: membership.teamId,
+          role: {
+            id: membership.roleId,
+            permissions: [],
+          },
+        };
+      }
+      if (membership.resource && membership.action) {
+        acc[key].role.permissions.push({
+          resource: membership.resource,
+          action: membership.action,
+        });
+      }
+      return acc;
+    }, {} as Record<string, any>);
 
-type DbMembership = {
-  teamId: number;
-  role: DbRole | null;
-};
+    return PermissionMapper.toDomain(Object.values(membershipsWithPermissions));
+  }
 
-export class PermissionRepository {
   async getMembershipByMembershipId(membershipId: number) {
-    return kysely
+    const result = await kysely
       .selectFrom("Membership")
       .leftJoin("Team", "Team.id", "Membership.teamId")
       .select([
@@ -33,10 +53,17 @@ export class PermissionRepository {
       ])
       .where("Membership.id", "=", membershipId)
       .executeTakeFirst();
+
+    if (!result) return null;
+
+    return {
+      ...result,
+      team_parentId: result.team_parentId || undefined,
+    };
   }
 
   async getMembershipByUserAndTeam(userId: number, teamId: number) {
-    return kysely
+    const result = await kysely
       .selectFrom("Membership")
       .leftJoin("Team", "Team.id", "Membership.teamId")
       .select([
@@ -49,42 +76,24 @@ export class PermissionRepository {
       .where("Membership.userId", "=", userId)
       .where("Membership.teamId", "=", teamId)
       .executeTakeFirst();
+
+    if (!result) return null;
+
+    return {
+      ...result,
+      team_parentId: result.team_parentId || undefined,
+    };
   }
 
-  async getOrgMembership(userId: number, parentId: number) {
-    return kysely
+  async getOrgMembership(userId: number, orgId: number) {
+    const result = await kysely
       .selectFrom("Membership")
-      .select(["Membership.id", "Membership.teamId", "Membership.userId", "Membership.customRoleId"])
-      .where("Membership.userId", "=", userId)
-      .where("Membership.teamId", "=", parentId)
+      .select(["id", "teamId", "userId", "customRoleId"])
+      .where("userId", "=", userId)
+      .where("teamId", "=", orgId)
       .executeTakeFirst();
-  }
 
-  async getUserMemberships(userId: number): Promise<DbMembership[]> {
-    return kysely
-      .selectFrom("Membership")
-      .leftJoin("Role", "Role.id", "Membership.customRoleId")
-      .leftJoin("RolePermission", "RolePermission.roleId", "Role.id")
-      .select((eb) => [
-        "Membership.teamId",
-        jsonObjectFrom(
-          eb
-            .selectFrom("Role")
-            .select((eb) => [
-              "Role.id",
-              jsonArrayFrom(
-                eb
-                  .selectFrom("RolePermission")
-                  .select(["RolePermission.resource", "RolePermission.action"])
-                  .whereRef("RolePermission.roleId", "=", "Role.id")
-              ).as("permissions"),
-            ])
-            .whereRef("Role.id", "=", "Membership.customRoleId")
-        ).as("role"),
-      ])
-      .where("Membership.userId", "=", userId)
-      .distinctOn(["Membership.teamId"])
-      .execute();
+    return result || null;
   }
 
   async checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean> {
@@ -150,5 +159,30 @@ export class PermissionRepository {
       .executeTakeFirstOrThrow();
 
     return Number(matchingPermissionsCount.count) >= permissions.length;
+  }
+
+  async getResourcePermissions(
+    userId: number,
+    teamId: number,
+    resource: Resource
+  ): Promise<(CrudAction | CustomAction)[]> {
+    // Get team-level permissions
+    const membership = await kysely
+      .selectFrom("Membership")
+      .select("customRoleId")
+      .where("userId", "=", userId)
+      .where("teamId", "=", teamId)
+      .executeTakeFirst();
+
+    if (!membership?.customRoleId) return [];
+
+    const teamPermissions = await kysely
+      .selectFrom("RolePermission")
+      .select(["action", "resource"])
+      .where("roleId", "=", membership.customRoleId)
+      .where((eb) => eb.or([eb("resource", "=", resource), eb("resource", "=", Resource.All)]))
+      .execute();
+
+    return teamPermissions.map((p) => p.action as CrudAction | CustomAction);
   }
 }
