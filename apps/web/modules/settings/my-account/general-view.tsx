@@ -93,7 +93,7 @@ const GeneralQueryView = ({ revalidatePage }: GeneralQueryViewProps) => {
   );
 };
 
-const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: GeneralViewProps) => {
+export const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: GeneralViewProps) => {
   const utils = trpc.useContext();
   const {
     t,
