@@ -158,11 +158,18 @@ export default async function handleChildrenEventTypes({
     // Create event types for new users added
     await prisma.$transaction(
       newUserIds.map((userId) => {
+        // Exclude profileId and instantMeetingScheduleId from managed values to avoid duplication
+        const {
+          profileId: _,
+          instantMeetingScheduleId: __,
+          ...managedValuesWithoutExplicit
+        } = managedEventTypeValues;
+
         return prisma.eventType.create({
           data: {
             instantMeetingScheduleId: eventType.instantMeetingScheduleId ?? undefined,
             profileId: profileId ?? null,
-            ...managedEventTypeValues,
+            ...managedValuesWithoutExplicit,
             ...{
               ...unlockedEventTypeValues,
               // pre-genned as allowed null

@@ -236,6 +236,18 @@ export const EventTypeDuplicateInput = z
   })
   .strict();
 
+const calVideoSettingsSchema = z
+  .object({
+    disableRecordingForGuests: z.boolean().optional().nullable(),
+    disableRecordingForOrganizer: z.boolean().optional().nullable(),
+    enableAutomaticTranscription: z.boolean().optional().nullable(),
+    disableTranscriptionForGuests: z.boolean().optional().nullable(),
+    disableTranscriptionForOrganizer: z.boolean().optional().nullable(),
+    redirectUrlOnExit: z.string().url().optional().nullable(),
+  })
+  .optional()
+  .nullable();
+
 export const createEventTypeInput = z
   .object({
     title: z.string().min(1),
@@ -253,6 +265,7 @@ export const createEventTypeInput = z
     beforeEventBuffer: z.number().int().min(0).optional(),
     afterEventBuffer: z.number().int().min(0).optional(),
     scheduleId: z.number().int().optional(),
+    calVideoSettings: calVideoSettingsSchema,
   })
   .partial({ hidden: true, locations: true })
   .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {
