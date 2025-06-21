@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import kysely from "@calcom/kysely";
 import prisma from "@calcom/prisma";
 
 export class AttributeToUserRepository {
@@ -43,5 +44,26 @@ export class AttributeToUserRepository {
     });
 
     return attributesAssignedToTeamMembers;
+  }
+
+  static async findManyByOrgAndTeamIds({ orgId, teamId }: { orgId: number; teamId: number }) {
+    return await kysely
+      .selectFrom("AttributeToUser")
+      .innerJoin("Membership", "Membership.id", "AttributeToUser.memberId")
+      .select([
+        "AttributeToUser.id",
+        "AttributeToUser.memberId",
+        "AttributeToUser.attributeOptionId",
+        "AttributeToUser.weight",
+        "AttributeToUser.createdAt",
+        "AttributeToUser.createdById",
+        "AttributeToUser.createdByDSyncId",
+        "AttributeToUser.updatedAt",
+        "AttributeToUser.updatedById",
+        "AttributeToUser.updatedByDSyncId",
+      ])
+      .where("Membership.teamId", "in", [orgId, teamId])
+      .where("Membership.accepted", "=", true)
+      .execute();
   }
 }

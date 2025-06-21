@@ -1,4 +1,3 @@
-// TODO: Queries in this file are not optimized. Need to optimize them.
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -216,17 +215,12 @@ async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: numb
 }
 
 async function _queryAllData({ orgId, teamId }: { orgId: number; teamId: number }) {
-  const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] = await Promise.all([
-    _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
-    AttributeRepository.findManyByOrgId({ orgId }),
-  ]);
-
-  const orgMembershipIds = Array.from(orgMembershipToUserIdForTeamMembers.keys());
-
-  // Get all the attributes assigned to the members of the team
-  const attributesToUsersForTeam = await AttributeToUserRepository.findManyByOrgMembershipIds({
-    orgMembershipIds,
-  });
+  const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg, attributesToUsersForTeam] =
+    await Promise.all([
+      _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
+      AttributeRepository.findManyByOrgId({ orgId }),
+      AttributeToUserRepository.findManyByOrgAndTeamIds({ orgId, teamId }),
+    ]);
 
   return {
     attributesOfTheOrg,
