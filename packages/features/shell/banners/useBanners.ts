@@ -29,12 +29,25 @@ const useBannersInternal = () => {
 
 const useBannersHeight = (banners: AllBannerProps | null) => {
   const bannersHeight = useMemo(() => {
-    const activeBanners =
-      banners &&
-      Object.entries(banners).filter(([_, value]) => {
-        return value && (!Array.isArray(value) || value.length > 0);
-      });
-    return (activeBanners?.length ?? 0) * TOP_BANNER_HEIGHT;
+    if (!banners) return 0;
+
+    let totalHeight = 0;
+    
+    Object.entries(banners).forEach(([key, value]) => {
+      if (!value) return;
+      
+      if (Array.isArray(value)) {
+        // For arrays (like invalidAppCredentialBanners), count each item as a separate banner
+        if (value.length > 0) {
+          totalHeight += value.length * TOP_BANNER_HEIGHT;
+        }
+      } else {
+        // For non-array values, count as one banner
+        totalHeight += TOP_BANNER_HEIGHT;
+      }
+    });
+    
+    return totalHeight;
   }, [banners]);
 
   return bannersHeight;
