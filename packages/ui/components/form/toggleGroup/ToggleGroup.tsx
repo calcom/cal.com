@@ -81,7 +81,8 @@ export const ToggleGroup = ({
                   "flex items-center gap-1",
                   orientation === "horizontal" && "justify-center",
                   orientation === "vertical" && "justify-start"
-                )}>
+                )}
+                dir="auto">
                 {option.iconLeft && <span className="flex h-4 w-4 items-center">{option.iconLeft}</span>}
                 {option.label}
               </div>

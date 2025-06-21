@@ -159,7 +159,7 @@ export const Components: Record<FieldType, Component> = {
       }
 
       return (
-        <div className="flex space-x-4">
+        <div className="flex space-x-4 rtl:space-x-reverse">
           {variant.fields.map((variantField) => (
             <InputField
               // Because the container is flex(and thus margin is being computed towards container height), I need to explicitly ensure that margin-bottom for the input becomes 0, which is mb-2 otherwise
@@ -306,7 +306,7 @@ export const Components: Record<FieldType, Component> = {
                 value.push("");
                 setValue(value);
               }}
-              className="mr-auto h-fit whitespace-normal text-left">
+              className="ltr:mr-auto rtl:ml-auto h-fit whitespace-normal ltr:text-left rtl:text-right">
               <span className="flex-1">{label}</span>
             </Button>
           )}
@@ -355,7 +355,7 @@ export const Components: Record<FieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+                <span className="text-emphasis ltr:ml-2 rtl:mr-2 text-sm">{option.label ?? ""}</span>
               </label>
             );
           })}
@@ -453,7 +453,7 @@ export const Components: Record<FieldType, Component> = {
                         }}
                         checked={value?.value === option.value}
                       />
-                      <span className="text-emphasis me-2 ms-2 text-sm">
+                      <span className="text-emphasis ltr:ml-2 rtl:mr-2 text-sm">
                         {option.value === "somewhereElse"
                           ? t("somewhere_else")
                           : getCleanLabel(option.label) ?? ""}
@@ -477,7 +477,7 @@ export const Components: Record<FieldType, Component> = {
                           didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
                         )}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
-                      <span className="text-default -mb-2 ml-1 text-sm font-medium">*</span>
+                      <span className="text-default -mb-2 ltr:ml-1 rtl:mr-1 text-sm font-medium">*</span>
                     ) : null}
                     {options[0].value === "phone" && (
                       <InfoBadge content={t("number_in_international_format")} />

@@ -96,7 +96,7 @@ export const EventMetaBlock = ({
           alt=""
           // @TODO: Use SVG's instead of images, so we can get rid of the filter.
           className={classNames(
-            "mr-2 mt-[2px] h-4 w-4 flex-shrink-0",
+            "ltr:mr-2 rtl:ml-2 mt-[2px] h-4 w-4 flex-shrink-0",
             isDark === undefined && "[filter:invert(0.5)_brightness(0.5)]",
             (isDark === undefined || isDark) && "dark:[filter:invert(0.65)_brightness(0.9)]"
           )}
