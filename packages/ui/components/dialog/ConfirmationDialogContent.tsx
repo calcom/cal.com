@@ -85,7 +85,12 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
             {isPending ? loadingText : confirmBtnText}
           </DialogClose>
         )}
-        <DialogClose disabled={isPending}>{cancelBtnText}</DialogClose>
+        <DialogClose
+          disabled={isPending}
+          color={variety === "danger" ? "destructive" : "minimal"}
+          className={variety === "danger" ? "" : "hover:bg-subtle"}>
+          {cancelBtnText}
+        </DialogClose>
       </div>
     </>
   );
