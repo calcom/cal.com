@@ -123,7 +123,7 @@ export class BookingRepository {
 
   /** Determines if the user is the organizer, team admin, or org admin that the booking was created under */
   static async doesUserIdHaveAccessToBooking({ userId, bookingId }: { userId: number; bookingId: number }) {
-    const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findUnique({
       where: {
         id: bookingId,
       },
@@ -165,7 +165,7 @@ export class BookingRepository {
   }
 
   static async findReschedulerByUid({ uid }: { uid: string }) {
-    return await prisma.booking.findFirst({
+    return await prisma.booking.findUnique({
       where: {
         uid,
       },
@@ -394,6 +394,8 @@ export class BookingRepository {
                 disableRecordingForGuests: true,
                 disableRecordingForOrganizer: true,
                 enableAutomaticTranscription: true,
+                disableTranscriptionForGuests: true,
+                disableTranscriptionForOrganizer: true,
                 redirectUrlOnExit: true,
               },
             },

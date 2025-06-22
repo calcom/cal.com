@@ -112,6 +112,7 @@ function AttributeItem({
                 type="button"
                 StartIcon="trash-2"
                 color="destructive"
+                className="rounded-t-none"
                 onClick={() => setAttributeToDelete(attribute)}>
                 {t("delete")}
               </DropdownItem>
