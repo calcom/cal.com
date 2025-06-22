@@ -107,14 +107,10 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
-  const seatsToCancel = Array.isArray(seatReferenceUid)
-    ? seatReferenceUid
-    : seatReferenceUid
-    ? [seatReferenceUid]
-    : [];
+  const seatsToCancel = seatReferenceUid ? [seatReferenceUid].flat() : [];
 
   // For seated events, require host permissions when canceling multiple seats or the entire booking
-  // Only individual attendees can cancel their own seats without being a host
+  // Only individual attendees can cancel their own seats without being a host (seatsToCancel.length would be 1)
   if (bookingToDelete.eventType?.seatsPerTimeSlot && seatsToCancel.length !== 1) {
     const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
       if (host.user.id === userId) return true;

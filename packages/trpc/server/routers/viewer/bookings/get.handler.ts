@@ -552,10 +552,7 @@ export async function getBookings({
                           .whereRef("Booking.id", "=", "BookingSeat.bookingId")
                           .where("Booking.userId", "=", user.id)
                       );
-                      return eb.or([
-                        isOwner,
-                        eb.and([eb.not(isOwner), qb("Attendee.email", "=", user.email)]),
-                      ]);
+                      return eb.or([isOwner, qb("Attendee.email", "=", user.email)]);
                     })
                 ).as("attendee"),
               ])

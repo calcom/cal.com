@@ -45,20 +45,15 @@ async function cancelAttendeeSeat(
   const { seatReferenceUid } = input.data;
   const bookingToDelete = data.bookingToDelete;
 
-  const seatsToCancel = Array.isArray(seatReferenceUid)
-    ? Array.from(new Set(seatReferenceUid))
-    : seatReferenceUid
-    ? [seatReferenceUid]
-    : [];
+  const seatsToCancel = Array.from(new Set(seatReferenceUid ? [seatReferenceUid].flat() : []));
 
-  // Return if there are no attendees or if user is trying to delete all attendees
-  if (
-    seatsToCancel.length === 0 ||
-    !bookingToDelete?.attendees.length ||
-    bookingToDelete.attendees.length < 2 ||
-    seatsToCancel.length >= bookingToDelete.attendees.length
-  )
+  const shouldCancelAllSeats =
+    seatsToCancel.length === 0 || seatsToCancel.length >= bookingToDelete.attendees.length;
+
+  // Return if user is trying to delete all attendees
+  if (shouldCancelAllSeats) {
     return;
+  }
 
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
@@ -114,11 +109,12 @@ async function cancelAttendeeSeat(
         });
 
         if (credential) {
+          const remainingAttendees = evt.attendees.filter(
+            (evtAttendee) => !attendees.some((attendee) => attendee.email === evtAttendee.email)
+          );
           const updatedEvt = {
             ...evt,
-            attendees: evt.attendees.filter(
-              (evtAttendee) => !attendees.some((attendee) => attendee.email === evtAttendee.email)
-            ),
+            attendees: remainingAttendees,
             calendarDescription: getRichDescription(evt),
           };
           if (reference.type.includes("_video")) {
