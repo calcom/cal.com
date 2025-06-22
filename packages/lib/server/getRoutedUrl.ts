@@ -1,4 +1,5 @@
 // !IMPORTANT! changes to this file requires publishing new version of platform libraries in order for the changes to be applied to APIV2
+import { createHash } from "crypto";
 import type { GetServerSidePropsContext } from "next";
 import { stringify } from "querystring";
 import { v4 as uuidv4 } from "uuid";
@@ -16,6 +17,7 @@ import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pag
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
@@ -29,6 +31,18 @@ const querySchema = z
     form: z.string(),
   })
   .catchall(z.string().or(z.array(z.string())));
+
+const getDeterministicHashForResponse = (fieldsResponses: Record<string, unknown>) => {
+  const sortedFields = Object.keys(fieldsResponses)
+    .sort()
+    .reduce((obj: Record<string, unknown>, key) => {
+      obj[key] = fieldsResponses[key];
+      return obj;
+    }, {});
+  const paramsString = JSON.stringify(sortedFields);
+  const hash = createHash("sha256").update(paramsString).digest("hex");
+  return hash;
+};
 
 function hasEmbedPath(pathWithQuery: string) {
   const onlyPath = pathWithQuery.split("?")[0];
@@ -57,6 +71,13 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     "cal.queueFormResponse": queueFormResponseParam,
     ...fieldsResponses
   } = queryParsed.data;
+
+  const responseHash = getDeterministicHashForResponse(fieldsResponses);
+
+  await checkRateLimitAndThrowError({
+    identifier: `form:${formId}:hash:${responseHash}`,
+  });
+
   const isBookingDryRun = isBookingDryRunParam === "true";
   const shouldQueueFormResponse = queueFormResponseParam === "true";
   const paramsToBeForwardedAsIs = {
