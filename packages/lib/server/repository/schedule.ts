@@ -1,3 +1,4 @@
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
 
@@ -8,7 +9,61 @@ import {
   transformWorkingHoursForAtom,
 } from "../../schedules/transformers";
 
+export type FindDetailedScheduleByIdReturnType = Awaited<
+  ReturnType<typeof ScheduleRepository.findDetailedScheduleById>
+>;
+
 export class ScheduleRepository {
+  // when instantiating, prismaClient injection is required
+  constructor(private prismaClient: PrismaClient) {}
+
+  async findScheduleByIdForBuildDateRanges({ scheduleId }: { scheduleId: number }) {
+    const schedule = await this.prismaClient.schedule.findUnique({
+      where: { id: scheduleId },
+      select: {
+        id: true,
+        timeZone: true,
+        userId: true,
+        availability: {
+          select: {
+            days: true,
+            startTime: true,
+            endTime: true,
+            date: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            defaultScheduleId: true,
+            travelSchedules: {
+              select: {
+                id: true,
+                timeZone: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return schedule;
+  }
+
+  async findScheduleByIdForOwnershipCheck({ scheduleId }: { scheduleId: number }) {
+    const schedule = await this.prismaClient.schedule.findUnique({
+      where: {
+        id: scheduleId,
+      },
+      select: {
+        userId: true,
+      },
+    });
+    return schedule;
+  }
+
   static async findScheduleById({ id }: { id: number }) {
     const schedule = await prisma.schedule.findUnique({
       where: {

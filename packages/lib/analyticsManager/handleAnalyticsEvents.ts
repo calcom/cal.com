@@ -9,18 +9,24 @@ interface HandleAnalyticsEventsProps {
     name: string;
     eventName: string;
   };
+  isTeamEventType: boolean;
 }
 
 export const handleAnalyticsEvents = async ({
   credentials,
   rawBookingData,
   bookingInfo,
+  isTeamEventType,
 }: HandleAnalyticsEventsProps) => {
   const { dub_id } = await rawBookingData;
 
   if (!dub_id || typeof dub_id !== "string") return;
 
-  const dubCredential = credentials.find((cred) => cred.appId === "dub");
+  const dubCredential = credentials.find((cred) => {
+    if (cred.appId !== "dub") return false;
+    if (isTeamEventType && !cred.teamId) return false;
+    return true;
+  });
 
   if (!dubCredential) return;
 
