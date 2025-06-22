@@ -52,7 +52,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const utils = trpc.useUtils();
   const [parent] = useAutoAnimate<HTMLUListElement>();
 
-  const mutation = trpc.viewer.routingFormOrder.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.routingFormOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       await utils.viewer.appRoutingForms.forms.cancel();

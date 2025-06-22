@@ -1,7 +1,7 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -38,7 +38,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
-import type { AvailabilityFormValues } from "./types";
+import type { AvailabilityFormValues, scheduleClassNames } from "./types";
 
 export type Schedule = {
   id: number;
@@ -58,13 +58,7 @@ export type CustomClassNames = {
   formClassName?: string;
   timezoneSelectClassName?: string;
   subtitlesClassName?: string;
-  scheduleClassNames?: {
-    scheduleContainer?: string;
-    scheduleDay?: string;
-    dayRanges?: string;
-    timeRanges?: string;
-    labelAndSwitchContainer?: string;
-  };
+  scheduleClassNames?: scheduleClassNames;
   overridesModalClassNames?: string;
   hiddenSwitchClassname?: {
     container?: string;
@@ -103,6 +97,7 @@ type AvailabilitySettingsProps = {
   customClassNames?: CustomClassNames;
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
+  onFormStateChange?: (formState: AvailabilityFormValues) => void;
   bulkUpdateModalProps?: {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -275,6 +270,7 @@ export function AvailabilitySettings({
   customClassNames,
   disableEditableHeading = false,
   enableOverrides = false,
+  onFormStateChange,
   bulkUpdateModalProps,
   allowSetToDefault = true,
   allowDelete = true,
@@ -288,6 +284,17 @@ export function AvailabilitySettings({
       schedule: schedule.availability || [],
     },
   });
+
+  const watchedValues = useWatch({
+    control: form.control,
+  });
+
+  // Trigger callback whenever the form state changes
+  useEffect(() => {
+    if (onFormStateChange && watchedValues) {
+      onFormStateChange(watchedValues as AvailabilityFormValues);
+    }
+  }, [watchedValues, onFormStateChange]);
 
   const [Shell, Schedule, TimezoneSelect] = useMemo(() => {
     return isPlatform
@@ -551,7 +558,11 @@ export function AvailabilitySettings({
           }}
           className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
           <div className="flex-1 flex-row xl:mr-0">
-            <div className="border-subtle mb-6 rounded-md border">
+            <div
+              className={cn(
+                "border-subtle mb-6 rounded-md border",
+                customClassNames?.scheduleClassNames?.scheduleContainer
+              )}>
               <div>
                 {typeof weekStart === "string" && (
                   <Schedule
@@ -560,7 +571,7 @@ export function AvailabilitySettings({
                       copyTime: t("copy_times_to"),
                       deleteTime: t("delete"),
                     }}
-                    className={
+                    classNames={
                       customClassNames?.scheduleClassNames ? { ...customClassNames.scheduleClassNames } : {}
                     }
                     control={form.control}

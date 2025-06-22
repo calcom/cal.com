@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -13,6 +13,7 @@ import type {
   LocationFormValues,
   EventTypeSetupProps,
   CheckboxClassNames,
+  FormValues,
 } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type {
@@ -25,11 +26,13 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations">;
+export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations" | "calVideoSettings">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
 export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
@@ -128,6 +131,8 @@ const Locations: React.FC<LocationsProps> = ({
     control,
     name: "locations",
   });
+
+  const formMethods = useFormContext<FormValues>();
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
@@ -244,7 +249,7 @@ const Locations: React.FC<LocationsProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillLocation, seatsEnabled]);
 
-  const isPlatorm = useIsPlatform();
+  const isPlatform = useIsPlatform();
 
   return (
     <div className={classNames("w-full", customClassNames?.container)}>
@@ -252,6 +257,8 @@ const Locations: React.FC<LocationsProps> = ({
         {locationFields.map((field, index) => {
           const eventLocationType = getEventLocationType(field.type);
           const defaultLocation = field;
+
+          const isCalVideo = field.type === "integrations:daily";
 
           const option = getLocationFromType(field.type, locationOptions);
           return (
@@ -315,7 +322,9 @@ const Locations: React.FC<LocationsProps> = ({
                     data-testid={`delete-locations.${index}.type`}
                     className={classNames("min-h-9 block h-9 px-2", customClassNames?.removeLocationButton)}
                     type="button"
-                    onClick={() => remove(index)}
+                    onClick={() => {
+                      remove(index);
+                    }}
                     aria-label={t("remove")}>
                     <div className="h-4 w-4">
                       <Icon
@@ -329,6 +338,109 @@ const Locations: React.FC<LocationsProps> = ({
                   </button>
                 )}
               </div>
+
+              {isCalVideo && !isPlatform && (
+                <div className="bg-muted mt-2 space-y-2 rounded-lg p-4">
+                  <div className="w-full">
+                    <div className="flex flex-col gap-2">
+                      <Controller
+                        name="calVideoSettings.disableRecordingForGuests"
+                        defaultValue={!!eventType.calVideoSettings?.disableRecordingForGuests}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("disable_recording_for_guests")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+
+                      <Controller
+                        name="calVideoSettings.disableRecordingForOrganizer"
+                        defaultValue={!!eventType.calVideoSettings?.disableRecordingForOrganizer}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("disable_recording_for_organizer")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+
+                      <Controller
+                        name="calVideoSettings.enableAutomaticTranscription"
+                        defaultValue={!!eventType.calVideoSettings?.enableAutomaticTranscription}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("enable_automatic_transcription")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+
+                      {!isPlatform && (
+                        <Controller
+                          name="calVideoSettings.disableTranscriptionForGuests"
+                          defaultValue={!!eventType.calVideoSettings?.disableTranscriptionForGuests}
+                          render={({ field: { onChange, value } }) => {
+                            return (
+                              <SettingsToggle
+                                title={t("disable_transcription_for_guests")}
+                                labelClassName="text-sm"
+                                checked={value}
+                                onCheckedChange={onChange}
+                              />
+                            );
+                          }}
+                        />
+                      )}
+                      {!isPlatform && (
+                        <Controller
+                          name="calVideoSettings.disableTranscriptionForOrganizer"
+                          defaultValue={!!eventType.calVideoSettings?.disableTranscriptionForOrganizer}
+                          render={({ field: { onChange, value } }) => {
+                            return (
+                              <SettingsToggle
+                                title={t("disable_transcription_for_organizer")}
+                                labelClassName="text-sm"
+                                checked={value}
+                                onCheckedChange={onChange}
+                              />
+                            );
+                          }}
+                        />
+                      )}
+
+                      <TextField
+                        label={t("enter_redirect_url_on_exit_description")}
+                        defaultValue={eventType.calVideoSettings?.redirectUrlOnExit || ""}
+                        data-testid="calVideoSettings.redirectUrlOnExit"
+                        containerClassName="mt-2"
+                        {...formMethods.register("calVideoSettings.redirectUrlOnExit", {
+                          setValueAs: (v) => (!v || v.trim() === "" ? null : v),
+                        })}
+                      />
+                      <ErrorMessage
+                        errors={formMethods.formState.errors?.calVideoSettings}
+                        name="redirectUrlOnExit"
+                        className={classNames("text-error text-sm")}
+                        as="div"
+                        id="calVideoSettings.redirectUrlOnExit-error"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {eventLocationType?.organizerInputType && (
                 <div className="mt-2 space-y-2">
@@ -482,7 +594,7 @@ const Locations: React.FC<LocationsProps> = ({
           </li>
         )}
       </ul>
-      {props.showAppStoreLink && !isPlatorm && (
+      {props.showAppStoreLink && !isPlatform && (
         <p className="text-default mt-2 text-sm">
           <ServerTrans
             t={t}

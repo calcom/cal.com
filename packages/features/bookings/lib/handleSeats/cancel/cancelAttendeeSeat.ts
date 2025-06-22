@@ -2,6 +2,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
@@ -118,6 +119,7 @@ async function cancelAttendeeSeat(
             attendees: evt.attendees.filter(
               (evtAttendee) => !attendees.some((attendee) => attendee.email === evtAttendee.email)
             ),
+            calendarDescription: getRichDescription(evt),
           };
           if (reference.type.includes("_video")) {
             integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));

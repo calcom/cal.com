@@ -125,6 +125,9 @@ export class EventTypeRepository {
   static async create(data: IEventType) {
     return await prisma.eventType.create({
       data: this.generateCreateEventTypeData(data),
+      include: {
+        calVideoSettings: true,
+      },
     });
   }
 
@@ -453,6 +456,15 @@ export class EventTypeRepository {
     });
   }
 
+  static async findByIdWithUserAccess({ id, userId }: { id: number; userId: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+        OR: [{ userId }, { hosts: { some: { userId } } }, { users: { some: { id: userId } } }],
+      },
+    });
+  }
+
   static async findById({ id, userId }: { id: number; userId: number }) {
     const userSelect = Prisma.validator<Prisma.UserSelect>()({
       name: true,
@@ -508,6 +520,7 @@ export class EventTypeRepository {
       disableGuests: true,
       disableCancelling: true,
       disableRescheduling: true,
+      allowReschedulingCancelledBookings: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
@@ -517,6 +530,8 @@ export class EventTypeRepository {
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
+      maxActiveBookingsPerBooker: true,
+      maxActiveBookingPerBookerOfferReschedule: true,
       assignAllTeamMembers: true,
       allowReschedulingPastBookings: true,
       hideOrganizerEmail: true,
@@ -548,6 +563,7 @@ export class EventTypeRepository {
           name: true,
           slug: true,
           parentId: true,
+          rrTimestampBasis: true,
           parent: {
             select: {
               slug: true,
@@ -576,6 +592,8 @@ export class EventTypeRepository {
           },
         },
       },
+      restrictionScheduleId: true,
+      useBookerTimezone: true,
       users: {
         select: userSelect,
       },
@@ -587,6 +605,12 @@ export class EventTypeRepository {
         },
       },
       instantMeetingSchedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      restrictionSchedule: {
         select: {
           id: true,
           name: true,
@@ -677,6 +701,16 @@ export class EventTypeRepository {
       maxLeadThreshold: true,
       includeNoShowInRRCalculation: true,
       useEventLevelSelectedCalendars: true,
+      calVideoSettings: {
+        select: {
+          disableRecordingForGuests: true,
+          disableRecordingForOrganizer: true,
+          enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
+          redirectUrlOnExit: true,
+        },
+      },
     });
 
     // This is more efficient than using a complex join with team.members in the query
@@ -747,6 +781,7 @@ export class EventTypeRepository {
           select: {
             parentId: true,
             rrResetInterval: true,
+            rrTimestampBasis: true,
           },
         },
       },
@@ -815,6 +850,8 @@ export class EventTypeRepository {
         maxLeadThreshold: true,
         includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,
+        restrictionScheduleId: true,
+        useBookerTimezone: true,
         team: {
           select: {
             id: true,
@@ -822,6 +859,7 @@ export class EventTypeRepository {
             includeManagedEventsInLimits: true,
             parentId: true,
             rrResetInterval: true,
+            rrTimestampBasis: true,
           },
         },
         parent: {

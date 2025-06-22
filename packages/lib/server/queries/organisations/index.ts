@@ -26,10 +26,12 @@ export async function isOrganisationOwner(userId: number, orgId: number) {
 }
 
 export async function isOrganisationMember(userId: number, orgId: number) {
-  return !!(await prisma.membership.findFirst({
+  return !!(await prisma.membership.findUnique({
     where: {
-      userId,
-      teamId: orgId,
+      userId_teamId: {
+        userId,
+        teamId: orgId,
+      },
     },
   }));
 }
