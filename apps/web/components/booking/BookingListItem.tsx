@@ -221,19 +221,30 @@ function BookingListItem(booking: BookingItemProps) {
     return booking.seatsReferences[0].referenceUid;
   };
 
-  const checkIfUserIsAuthorizedToConfirmBooking = (booking: BookingItem, loggedInUser: LoggedInUser) => {
-    const isUserOwner = booking?.user?.id === loggedInUser.userId;
-    const isUserTeamEventHost = booking?.eventType?.hosts?.some(
-      (host) => host.userId === loggedInUser.userId
+  const checkIfUserIsAuthorizedToConfirmBooking = (
+    { user, eventType }: Pick<BookingItemProps, "user" | "eventType">,
+    {
+      userId,
+      userIsOrgAdminOrOwner,
+      teamsWhereUserIsAdminOrOwner,
+    }: Pick<LoggedInUser, "userId" | "userIsOrgAdminOrOwner" | "teamsWhereUserIsAdminOrOwner">
+  ) => {
+    const isUserOwner = user?.id === userId;
+    const isUserTeamEventHost = eventType?.hosts?.some((host) => host.userId === userId);
+    const isUserTeamAdminOrOwner = teamsWhereUserIsAdminOrOwner?.some(
+      (team) => team.teamId === eventType?.team?.id || team.teamId === eventType?.parent?.teamId
     );
-    const isUserTeamAdminOrOwner = loggedInUser?.teamsWhereUserIsAdminOrOwner?.some(
-      (team) =>
-        team.teamId === booking.eventType?.team?.id || team.teamId === booking.eventType?.parent?.teamId
-    );
-    return isUserOwner || isUserTeamEventHost || loggedInUser.userIsOrgAdminOrOwner || isUserTeamAdminOrOwner;
+    return isUserOwner || isUserTeamEventHost || userIsOrgAdminOrOwner || isUserTeamAdminOrOwner;
   };
 
-  const pendingActions: ActionType[] = checkIfUserIsAuthorizedToConfirmBooking(booking, booking.loggedInUser)
+  const pendingActions: ActionType[] = checkIfUserIsAuthorizedToConfirmBooking(
+    { user: booking.user, eventType: booking.eventType },
+    {
+      userId: booking.loggedInUser.userId,
+      userIsOrgAdminOrOwner: booking.loggedInUser.userIsOrgAdminOrOwner,
+      teamsWhereUserIsAdminOrOwner: booking.loggedInUser.teamsWhereUserIsAdminOrOwner,
+    }
+  )
     ? [
         {
           id: "reject",
