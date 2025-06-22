@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { TimeUnit, WorkflowTriggerEvents } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsNumber, ValidateNested } from "class-validator";
+
+import { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 export const BEFORE_EVENT = "beforeEvent";
 export const EVENT_CANCELLED = "eventCancelled";
