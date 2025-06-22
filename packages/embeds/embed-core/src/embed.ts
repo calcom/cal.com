@@ -51,6 +51,21 @@ type CalConfig = {
   uiDebug?: boolean;
 };
 
+type ModalPrerenderOptions = {
+  slotsStaleTimeMs?: number;
+  iframeForceReloadThresholdMs?: number;
+  reuseFully?: boolean;
+};
+
+type ModalStateData = {
+  embedConfig: PrefillAndIframeAttrsConfigWithGuestAndColorScheme;
+  previousEmbedConfig: PrefillAndIframeAttrsConfigWithGuestAndColorScheme | null;
+  embedRenderStartTime: number;
+  previousEmbedRenderStartTime: number | null;
+  isConnectionInitiated: boolean;
+  prerenderOptions: ModalPrerenderOptions | null;
+};
+
 type InitArgConfig = Partial<CalConfig> & {
   origin?: string;
 };
@@ -309,7 +324,7 @@ export class Cal {
     config?: PrefillAndIframeAttrsConfig;
     calOrigin: string | null;
   }) {
-    log("Loading in iframe", calLink);
+    log("Loading in iframe", calLink, "with config", JSON.stringify(config));
     iframe.dataset.calLink = calLink;
     const calConfig = this.getCalConfig();
     const { iframeAttrs, ...queryParamsFromConfig } = config;
@@ -334,8 +349,10 @@ export class Cal {
 
     urlInstance.searchParams.set("embed", this.namespace);
 
-    if (calConfig.debug) {
-      urlInstance.searchParams.set("debug", `${calConfig.debug}`);
+    const pageParams = this.getQueryParamsFromPage();
+    // cal.embed.logging=1 enabled logging in parent and by setting debug=true in iframe, it enables logging in iframe(child) as well
+    if (calConfig.debug || pageParams["cal.embed.logging"] === "1") {
+      urlInstance.searchParams.set("debug", "true");
     }
 
     // Keep iframe invisible, till the embedded calLink sets its color-scheme. This is so that there is no flash of non-transparent(white/black) background
@@ -522,13 +539,7 @@ export class Cal {
   }: {
     modal: { uid: string };
     pathWithQueryToLoad: string;
-    stateData: {
-      embedConfig: PrefillAndIframeAttrsConfig;
-      previousEmbedConfig: PrefillAndIframeAttrsConfig | null;
-      isConnectionInitiated: boolean;
-      previousEmbedRenderStartTime: number | null;
-      embedRenderStartTime: number;
-    };
+    stateData: ModalStateData;
   }) {
     const {
       embedConfig,
@@ -536,6 +547,7 @@ export class Cal {
       isConnectionInitiated,
       previousEmbedRenderStartTime,
       embedRenderStartTime,
+      prerenderOptions,
     } = stateData;
     const calConfig = this.getCalConfig();
     const lastLoadedUrlInIframeObject = this.getLastLoadedLinkInframe();
@@ -570,43 +582,59 @@ export class Cal {
       ? embedRenderStartTime - previousEmbedRenderStartTime
       : 0;
     const crossedReloadThreshold = previousEmbedRenderStartTime
-      ? timeSinceLastRender > EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS
+      ? timeSinceLastRender >
+        (prerenderOptions?.iframeForceReloadThresholdMs ?? EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS)
       : false;
 
     const areSlotsStale = previousEmbedRenderStartTime
-      ? timeSinceLastRender > EMBED_MODAL_IFRAME_SLOT_STALE_TIME
+      ? timeSinceLastRender > (prerenderOptions?.slotsStaleTimeMs ?? EMBED_MODAL_IFRAME_SLOT_STALE_TIME)
       : false;
 
     // Note that we don't worry about change in embed config because that is passed on as query params to the iframe and that is already supported by "connect" flow
     const isResetNeeded = !isSameCalLink || isInFailedState || crossedReloadThreshold;
 
-    const actionToTake = isResetNeeded
-      ? "fullReload"
-      : !isSameConfig || !areSameQueryParams || !isConnectionInitiated || areSlotsStale
-      ? "connect"
-      : "noAction";
+    const getActionToTake = () => {
+      if (isResetNeeded) {
+        return "fullReload";
+      }
 
-    log("Next Modal Action:", actionToTake, {
-      path: {
-        isSame: isSameCalLink,
-        urlToLoadPath,
-        lastLoadedPathInIframe,
-      },
-      config: {
-        isSame: isSameConfig,
-        previousEmbedConfig,
-        embedConfig,
-      },
-      queryParams: {
-        isSame: areSameQueryParams,
-        lastLoadedUrlInIframeObjectSearchParams,
-        urlToLoadObjectSearchParams,
-      },
-      areSlotsStale,
-      crossedReloadThreshold,
-      isInFailedState,
-      isConnectionInitiated,
-    });
+      if (prerenderOptions?.reuseFully && !areSlotsStale) {
+        return "connect-no-slots-fetch";
+      }
+
+      if (!isSameConfig || !areSameQueryParams || !isConnectionInitiated || areSlotsStale) {
+        return "connect";
+      }
+      return "noAction";
+    };
+
+    const actionToTake = getActionToTake();
+
+    log(
+      "Next Modal Action:",
+      { actionToTake, prerenderOptions },
+      {
+        path: {
+          isSame: isSameCalLink,
+          urlToLoadPath,
+          lastLoadedPathInIframe,
+        },
+        config: {
+          isSame: isSameConfig,
+          previousEmbedConfig,
+          embedConfig,
+        },
+        queryParams: {
+          isSame: areSameQueryParams,
+          lastLoadedUrlInIframeObjectSearchParams,
+          urlToLoadObjectSearchParams,
+        },
+        areSlotsStale,
+        crossedReloadThreshold,
+        isInFailedState,
+        isConnectionInitiated,
+      }
+    );
 
     return actionToTake;
 
@@ -665,13 +693,7 @@ export class Cal {
   }: {
     modal: { uid: string; element: Element; calOrigin: string | null };
     calLinkUrlObject: URL;
-    stateData: {
-      embedConfig: PrefillAndIframeAttrsConfigWithGuestAndColorScheme;
-      previousEmbedConfig: PrefillAndIframeAttrsConfigWithGuestAndColorScheme | null;
-      embedRenderStartTime: number;
-      previousEmbedRenderStartTime: number | null;
-      isConnectionInitiated: boolean;
-    };
+    stateData: ModalStateData;
   }) {
     const { uid: modalBoxUid, element: modalEl, calOrigin: _calOrigin } = modal;
     const { embedConfig } = stateData;
@@ -755,6 +777,7 @@ class CalApi {
   static initializedNamespaces = [] as string[];
   modalUid?: string;
   prerenderedModalUid?: string;
+  prerenderOptions?: ModalPrerenderOptions;
   constructor(cal: Cal) {
     this.cal = cal;
   }
@@ -946,12 +969,27 @@ class CalApi {
     config = {},
     calOrigin,
     __prerender = false,
+    prerenderOptions = {},
   }: {
     calLink: string;
     config?: PrefillAndIframeAttrsConfig;
     calOrigin?: string;
     __prerender?: boolean;
+    prerenderOptions?: ModalPrerenderOptions;
   }) {
+    const calConfig = this.cal.getCalConfig();
+    // Clone so that it doesn't mutate the original config
+    config = { ...config };
+    // calOrigin could have been passed as empty string by the user
+    calOrigin = calOrigin || calConfig.calOrigin;
+    const calLinkUrlObject = new URL(calLink, calOrigin);
+    const isHeadlessRouterPath = calLinkUrlObject ? isRouterPath(calLinkUrlObject.toString()) : false;
+
+    if (__prerender && this.cal.modalBox) {
+      // If we are re-prerendering, we destroy the previous modalbox, allowing user to prerender as many times as they want
+      this.cal.modalBox.remove();
+    }
+
     // `this.modalUid` is set in non-preload case(Temporarily not being-set)
     // `this.prerenderedModalUid` is set for a modal created through "prerender"
     const uid = this.modalUid || this.prerenderedModalUid || String(Date.now()) || "0";
@@ -959,15 +997,24 @@ class CalApi {
     const isConnectionInitiated = !!(this.modalUid && this.prerenderedModalUid);
 
     const containerEl = document.body;
-
     this.cal.isPrerendering = !!__prerender;
-
     if (__prerender) {
+      // TODO: Make `reuseFully` a configurable param as well later.
+      // If someone's preloading the headless router path, we must reuse the iframe fully as is as Router would redirect to a Booking Page and that should be shown as is
+      this.prerenderOptions = { ...prerenderOptions, reuseFully: isHeadlessRouterPath };
       // Add prerender query param
       config.prerender = "true";
-      // When prerendering, we don't want to preload slots as they might be outdated anyway by the time they are used
-      // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.com resources
-      config["cal.skipSlotsFetch"] = "true";
+
+      // If we are prerendering a headless router path, we don't want to record the response immediately.
+      if (isHeadlessRouterPath) {
+        config["cal.queueFormResponse"] = "true";
+      }
+
+      if (!this.prerenderOptions?.reuseFully) {
+        // When prerendering, we don't want to preload slots as they might be outdated anyway by the time they are used
+        // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.com resources
+        config["cal.skipSlotsFetch"] = "true";
+      }
     }
 
     const configWithGuestKeyAndColorScheme = withColorScheme(
@@ -978,22 +1025,17 @@ class CalApi {
       containerEl
     );
 
-    const calConfig = this.cal.getCalConfig();
-    // calOrigin could have been passed as empty string by the user
-    calOrigin = calOrigin || calConfig.calOrigin;
+    const previousEmbedRenderStartTime = this.cal.embedRenderStartTime;
+    const previousEmbedConfig = this.cal.embedConfig;
 
     const embedRenderStartTime = Date.now();
-    const previousEmbedConfig = this.cal.embedConfig;
-    const previousEmbedRenderStartTime = this.cal.embedRenderStartTime;
+    this.cal.embedRenderStartTime = embedRenderStartTime;
     this.cal.embedConfig = configWithGuestKeyAndColorScheme;
 
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
 
     // isConnectionPossible
     if (!!existingModalEl && !!this.cal.iframe) {
-      const calLinkUrlObject = new URL(calLink, calOrigin);
-      const isHeadlessRouterPath = calLinkUrlObject ? isRouterPath(calLinkUrlObject.toString()) : false;
-
       log(`Trying to reuse modal ${uid}`);
       const stateData = {
         embedConfig: configWithGuestKeyAndColorScheme,
@@ -1001,8 +1043,11 @@ class CalApi {
         embedRenderStartTime,
         previousEmbedRenderStartTime,
         isConnectionInitiated,
+        prerenderOptions: this.prerenderOptions ?? null,
       };
-      if (isHeadlessRouterPath) {
+
+      // If we want to reuse fully then we shouldn't submit response again
+      if (isHeadlessRouterPath && !this.prerenderOptions?.reuseFully) {
         // Immediately take it to loading state. Either through connect or through loadInIframe, it would later be updated
         existingModalEl.setAttribute("state", "loading");
 
@@ -1021,6 +1066,10 @@ class CalApi {
         });
 
         if (actionToTake === "noAction") {
+          if (__prerender) {
+            // A prerender instruction can never show the modal
+            return;
+          }
           log(`Reopening modal without any other action needed ${uid}`);
           // Reopen the modal, nothing else to do
           existingModalEl.setAttribute("state", "reopened");
@@ -1039,11 +1088,18 @@ class CalApi {
             iframe: this.cal.iframe,
             config: configWithGuestKeyAndColorScheme,
           });
-        } else if (actionToTake === "connect") {
+        } else if (actionToTake === "connect" || actionToTake === "connect-no-slots-fetch") {
           this.cal.doInIframe({
             method: "connect",
             arg: {
-              config: configWithGuestKeyAndColorScheme,
+              config: {
+                ...configWithGuestKeyAndColorScheme,
+                ...(actionToTake === "connect-no-slots-fetch"
+                  ? {
+                      "cal.embed.noSlotsFetchOnConnect": "true",
+                    }
+                  : {}),
+              },
               params: fromEntriesWithDuplicateKeys(calLinkUrlObject.searchParams.entries()),
             },
           });
@@ -1052,7 +1108,6 @@ class CalApi {
 
       // We reach here in case of connect or fullReload
       this.modalUid = uid;
-      this.cal.embedRenderStartTime = embedRenderStartTime;
       return;
     }
 
@@ -1159,13 +1214,17 @@ class CalApi {
     type,
     options = {},
     pageType,
+    calOrigin,
   }: {
     calLink: string;
     type?: "modal" | "floatingButton";
     options?: {
       prerenderIframe?: boolean;
+      slotsStaleTimeMs?: number;
+      iframeForceReloadThresholdMs?: number;
     };
     pageType?: EmbedPageType;
+    calOrigin?: string;
   }) {
     // eslint-disable-next-line prefer-rest-params
     validate(arguments[0], {
@@ -1196,7 +1255,8 @@ class CalApi {
     }
 
     const config = this.cal.getCalConfig();
-    let prerenderIframe = options.prerenderIframe;
+    const { prerenderIframe: prerenderIframeOption, ...prerenderOptions } = options;
+    let prerenderIframe = prerenderIframeOption;
     if (type && prerenderIframe === undefined) {
       prerenderIframe = true;
     }
@@ -1210,8 +1270,9 @@ class CalApi {
         this.cal.isPrerendering = true;
         this.modal({
           calLink,
-          calOrigin: config.calOrigin,
+          calOrigin: calOrigin || config.calOrigin,
           __prerender: true,
+          prerenderOptions,
           ...(pageType ? { config: { "cal.embed.pageType": pageType } } : {}),
         });
       } else {
@@ -1223,19 +1284,50 @@ class CalApi {
     }
   }
 
+  /**
+   * Usecase - Prerender headless router path(i.e. `/router?form={FORM_ID}&param1=value1&......`)
+   *
+   * - Loads the headless router path in iframe hidden behind the scenes
+   * - Stores the response in a temporary queue at backend.
+   * - Redirects to appropriate booking page based on the Routing Rules
+   * - Loads the availability as per the team members identified by Routing - Attribute Rules
+   * - At this point, the booking page is ready to be used but is hidden behind the scenes
+   *
+   * A call to `modal` instruction(which automatically happens when an element with `data-cal-link` attribute is clicked) would then show this prerendered booking page sending a request `queued-response` that records the field values now as a response and connect it to the queued-response
+   */
   prerender({
     calLink,
     type,
     pageType,
+    calOrigin,
+    options = {},
   }: {
     calLink: string;
     type: "modal" | "floatingButton";
     pageType?: EmbedPageType;
+    calOrigin?: string;
+    options?: {
+      /**
+       * Time in milliseconds after which the prerendered slots/availability should be considered stale and would be requested again when the modal is opened. This could slow down the booking page load by the time taken by slots loading request which shouldn't be too high
+       *
+       * Default value is 1 min
+       */
+      slotsStaleTimeMs?: number;
+      /**
+       * Time in milliseconds after which the iframe would be forcefully reloaded when the modal is opened and thus booking page load could slow down drastically showing the skeleton loader in the meantime
+       * To avoid reaching this threshold, the user could prerender before this time is reached in usecases where prerender has been done long time ago.
+       *
+       * Default value is 15 mins
+       */
+      iframeForceReloadThresholdMs?: number;
+    };
   }) {
     this.preload({
       calLink,
       type,
       pageType,
+      calOrigin,
+      options,
     });
   }
 

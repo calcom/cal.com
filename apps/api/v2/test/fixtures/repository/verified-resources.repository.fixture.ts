@@ -16,6 +16,10 @@ export class VerifiedResourcesRepositoryFixtures {
     return this.prismaWriteClient.verifiedNumber.create({ data });
   }
 
+  async createEmail(data: Prisma.VerifiedEmailCreateInput) {
+    return this.prismaWriteClient.verifiedEmail.create({ data });
+  }
+
   async deleteEmailById(id: number) {
     return this.prismaWriteClient.verifiedEmail.delete({ where: { id } });
   }
