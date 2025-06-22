@@ -349,8 +349,10 @@ export class Cal {
 
     urlInstance.searchParams.set("embed", this.namespace);
 
-    if (calConfig.debug) {
-      urlInstance.searchParams.set("debug", `${calConfig.debug}`);
+    const pageParams = this.getQueryParamsFromPage();
+    // cal.embed.logging=1 enabled logging in parent and by setting debug=true in iframe, it enables logging in iframe(child) as well
+    if (calConfig.debug || pageParams["cal.embed.logging"] === "1") {
+      urlInstance.searchParams.set("debug", "true");
     }
 
     // Keep iframe invisible, till the embedded calLink sets its color-scheme. This is so that there is no flash of non-transparent(white/black) background
