@@ -462,28 +462,73 @@ class EventsInsights {
             noShow: true,
           },
         },
+        seatsReferences: {
+          select: {
+            attendee: {
+              select: {
+                name: true,
+                email: true,
+                noShow: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees[0] || null]));
+    const bookingMap = new Map(
+      bookings.map((booking) => {
+        const attendeeList =
+          booking.seatsReferences.length > 0
+            ? booking.seatsReferences.map((ref) => ref.attendee)
+            : booking.attendees;
+
+        const formattedAttendees = attendeeList
+          .slice(0, 3)
+          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null));
+
+        return [
+          booking.uid,
+          {
+            noShowGuest: attendeeList[0]?.noShow || false,
+            attendee1: formattedAttendees[0] || null,
+            attendee2: formattedAttendees[1] || null,
+            attendee3: formattedAttendees[2] || null,
+          },
+        ];
+      })
+    );
 
     const data = csvData.map((bookingTimeStatus) => {
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
-        return bookingTimeStatus;
+        return {
+          ...bookingTimeStatus,
+          noShowGuest: false,
+          attendee1: null,
+          attendee2: null,
+          attendee3: null,
+        };
       }
 
-      const booker = bookingMap.get(bookingTimeStatus.uid);
+      const attendeeData = bookingMap.get(bookingTimeStatus.uid);
 
-      if (!booker) {
-        return bookingTimeStatus;
+      if (!attendeeData) {
+        return {
+          ...bookingTimeStatus,
+          noShowGuest: false,
+          attendee1: null,
+          attendee2: null,
+          attendee3: null,
+        };
       }
 
       return {
         ...bookingTimeStatus,
-        noShowGuest: booker.noShow,
-        bookerEmail: booker.email,
-        bookerName: booker.name,
+        noShowGuest: attendeeData.noShowGuest,
+        attendee1: attendeeData.attendee1,
+        attendee2: attendeeData.attendee2,
+        attendee3: attendeeData.attendee3,
       };
     });
 
@@ -625,10 +670,12 @@ class EventsInsights {
     sessionUserId: number;
     teamId: number;
   }) => {
-    const isOwnerAdminOfTeam = await prisma.membership.findFirst({
+    const isOwnerAdminOfTeam = await prisma.membership.findUnique({
       where: {
-        userId: sessionUserId,
-        teamId,
+        userId_teamId: {
+          userId: sessionUserId,
+          teamId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
@@ -659,10 +706,12 @@ class EventsInsights {
       return false;
     }
 
-    const isOwnerAdminOfParentTeam = await prisma.membership.findFirst({
+    const isOwnerAdminOfParentTeam = await prisma.membership.findUnique({
       where: {
-        userId: sessionUserId,
-        teamId: team.parentId,
+        userId_teamId: {
+          userId: sessionUserId,
+          teamId: team.parentId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
