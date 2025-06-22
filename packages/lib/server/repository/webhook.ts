@@ -215,7 +215,7 @@ export class WebhookRepository {
       AND: [{ appId: !input?.appId ? null : input.appId }],
     };
 
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
