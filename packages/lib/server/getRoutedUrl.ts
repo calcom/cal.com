@@ -49,7 +49,7 @@ function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
+const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req" | "res">) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
@@ -74,9 +74,24 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
 
   const responseHash = getDeterministicHashForResponse(fieldsResponses);
 
-  await checkRateLimitAndThrowError({
-    identifier: `form:${formId}:hash:${responseHash}`,
-  });
+  try {
+    await checkRateLimitAndThrowError({
+      identifier: `form:${formId}:hash:${responseHash}`,
+    });
+  } catch (e) {
+    if (e instanceof TRPCError && e.code === "TOO_MANY_REQUESTS") {
+      context.res.statusCode = 429;
+      return {
+        props: {
+          ...pageProps,
+          form: null,
+          message: null,
+          errorMessage: e.message,
+        },
+      };
+    }
+    throw e;
+  }
 
   const isBookingDryRun = isBookingDryRunParam === "true";
   const shouldQueueFormResponse = queueFormResponseParam === "true";
