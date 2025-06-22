@@ -52,7 +52,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
               <Icon
                 name="circle-x"
                 data-testid="circle-x"
-                className={classNames("h4 w-4", iconClassName)}
+                className={classNames("h4 w-4 text-semantic-error", iconClassName)}
                 aria-hidden="true"
               />
             )}
@@ -60,7 +60,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
               <Icon
                 name="triangle-alert"
                 data-testid="alert-triangle"
-                className={classNames("h4 w-4", iconClassName)}
+                className={classNames("h4 w-4 text-semantic-attention", iconClassName)}
                 aria-hidden="true"
               />
             )}
@@ -68,7 +68,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
               <Icon
                 name="info"
                 data-testid="info"
-                className={classNames("h4 w-4", iconClassName)}
+                className={classNames("h4 w-4 text-semantic-info", iconClassName)}
                 aria-hidden="true"
               />
             )}
