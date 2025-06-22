@@ -170,11 +170,11 @@ export const DropdownItem = (props: DropdownItemProps) => {
         props.className
       )}>
       <>
-        {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4" />)}
+        {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="mr-1 h-4 w-4 text-current" />)}
         <div className={classNames("w-fit text-sm font-medium leading-none", childrenClassName)}>
           {children}
         </div>
-        {EndIcon && <Icon name={EndIcon} className="h-4 w-4" />}
+        {EndIcon && <Icon name={EndIcon} className="h-4 w-4 text-current" />}
       </>
     </ButtonOrLink>
   );
