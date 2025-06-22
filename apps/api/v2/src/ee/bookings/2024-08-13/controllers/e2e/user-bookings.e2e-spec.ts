@@ -2282,7 +2282,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .patch(`/v2/bookings/${bookingUid}`)
             .send(updatedBookingBody)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-            .expect(201);
+            .expect(200);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
           const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
@@ -2301,7 +2301,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .patch(`/v2/bookings/${bookingUid}`)
             .send(updatedBookingBody)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-            .expect(201);
+            .expect(200);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
           const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
@@ -2320,7 +2320,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .patch(`/v2/bookings/${bookingUid}`)
             .send(updatedBookingBody)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-            .expect(201);
+            .expect(200);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
           const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
@@ -2341,7 +2341,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .patch(`/v2/bookings/${bookingUid}`)
             .send(updatedBookingBody)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-            .expect(201);
+            .expect(200);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
           const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
@@ -2362,7 +2362,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .patch(`/v2/bookings/${bookingUid}`)
             .send(updatedBookingBody)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-            .expect(201);
+            .expect(200);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
           const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
@@ -2383,7 +2383,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .patch(`/v2/bookings/${bookingUid}`)
             .send(updatedBookingBody)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-            .expect(201);
+            .expect(200);
 
           const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
           const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
