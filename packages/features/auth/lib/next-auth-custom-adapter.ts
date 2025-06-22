@@ -1,8 +1,8 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { Adapter, AdapterUser, AdapterSession, AdapterAccount } from "next-auth/adapters";
 
 import type { PrismaClient } from "@calcom/prisma";
 import type { IdentityProvider, Prisma, User, VerificationToken } from "@calcom/prisma/client";
+import { PrismaClientKnownRequestError } from "@calcom/prisma/client/runtime/library";
 
 import { identityProviderNameMap } from "./identityProviderNameMap";
 

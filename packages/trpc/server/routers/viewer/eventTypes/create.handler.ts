@@ -1,4 +1,3 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { z } from "zod";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
@@ -6,6 +5,7 @@ import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { PrismaClientKnownRequestError } from "@calcom/prisma/client/runtime/library";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
