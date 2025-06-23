@@ -37,7 +37,8 @@ function WizardForm<T extends DefaultStep>(props: {
   const { href, steps, nextLabel = "Next", finishLabel = "Finish", prevLabel = "Back", stepLabel } = props;
   const router = useRouter();
   const stepSchema = z.coerce.number().int().min(1).max(steps.length).default(1);
-  const step = stepSchema.parse(searchParams?.get("step"));
+  const stepResult = stepSchema.safeParse(searchParams?.get("step"));
+  const step = stepResult.success ? stepResult.data : 1;
   const currentStep = steps[step - 1];
   const setStep = (newStep: number) => {
     router.replace(`${href}?step=${newStep || 1}`);
