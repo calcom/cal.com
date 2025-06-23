@@ -20,6 +20,9 @@ const calendarMockImplementation = {
         expiration: "1111111111",
       },
     }),
+    get: vi.fn(),
+    patch: vi.fn(),
+    update: vi.fn(),
   },
   freebusy: {
     query: freebusyQueryMock,

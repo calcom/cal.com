@@ -335,6 +335,165 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
+    const calendar = await this.authedCalendar();
+
+    const selectedCalendar =
+      (externalCalendarId
+        ? event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId
+        : undefined) || "primary";
+
+    try {
+      // Determine if this is likely an attendee-only update
+      const isAttendeeUpdate = await this.isAttendeeOnlyUpdate(uid, event, selectedCalendar, calendar);
+
+      if (isAttendeeUpdate) {
+        // Patch method to avoid duplicate event notifications
+        this.log.debug("Detected attendee-only update, using patch method to prevent duplicates", {
+          eventId: uid,
+          attendeeCount: event.attendees?.length || 0,
+        });
+
+        return await this.patchEventAttendees(uid, event, selectedCalendar, calendar);
+      } else {
+        // Traditional update method for comprehensive changes
+        this.log.debug("Detected full event update, using full event update method", {
+          eventId: uid,
+        });
+
+        return await this.fullEventUpdate(uid, event, selectedCalendar, calendar);
+      }
+    } catch (error) {
+      this.log.error(
+        "There was an error updating event in google calendar: ",
+        safeStringify({ error, event, uid })
+      );
+      throw error;
+    }
+  }
+
+  private async isAttendeeOnlyUpdate(
+    uid: string,
+    newEvent: CalendarServiceEvent,
+    calendarId: string,
+    calendar: calendar_v3.Calendar
+  ): Promise<boolean> {
+    try {
+      // Fetch the current event from Google Calendar to compare
+      const currentEventResponse = await calendar.events.get({
+        calendarId,
+        eventId: uid,
+      });
+
+      const currentEvent = currentEventResponse.data;
+      if (!currentEvent) {
+        // If we can't fetch the current event, default to full update for safety
+        this.log.warn("Could not fetch current event for comparison, defaulting to full update", { uid });
+        return false;
+      }
+
+      // Compare key properties to determine if only attendees have changed
+      const titleChanged = currentEvent.summary !== newEvent.title;
+      const descriptionChanged = currentEvent.description !== newEvent.calendarDescription;
+
+      // Time comparison with tolerance for timezone handling
+      const currentStart = currentEvent.start?.dateTime;
+      const newStart = newEvent.startTime;
+      const timeChanged =
+        currentStart &&
+        newStart &&
+        Math.abs(new Date(currentStart).getTime() - new Date(newStart).getTime()) > 60000; // 1 minute tolerance
+
+      const currentLocation = currentEvent.location || "";
+      const newLocation = getLocation(newEvent) || "";
+      const rawNewLocation = newEvent.location || "";
+      // Detect Google Meet without relying on providerName conversion
+      const isGoogleMeetLocation =
+        rawNewLocation === MeetLocationType || currentLocation.includes("meet.google.com");
+      const locationChanged = !isGoogleMeetLocation && currentLocation !== newLocation;
+
+      // If any core event properties changed, this is a full update
+      if (titleChanged || descriptionChanged || timeChanged || locationChanged) {
+        this.log.debug("Detected non-attendee changes, will use full update", {
+          titleChanged,
+          descriptionChanged,
+          timeChanged,
+          locationChanged,
+        });
+        return false;
+      }
+
+      this.log.debug("Only attendee changes detected, will use patch method");
+      return true;
+    } catch (error) {
+      this.log.warn("Error determining update type, defaulting to full update", { error, uid });
+      return false;
+    }
+  }
+
+  private async patchEventAttendees(
+    uid: string,
+    event: CalendarServiceEvent,
+    calendarId: string,
+    calendar: calendar_v3.Calendar
+  ): Promise<any> {
+    const newAttendees = this.getAttendees({ event, hostExternalCalendarId: calendarId });
+    const patchPayload: Partial<calendar_v3.Schema$Event> = {
+      attendees: newAttendees,
+      // Update sequence number
+      sequence: (event as any).sequence ? (event as any).sequence + 1 : 1,
+    };
+
+    this.log.debug("Patching Google Calendar event attendees", {
+      eventId: uid,
+      attendeeCount: newAttendees.length,
+      calendarId,
+    });
+
+    const patchedEvent = await calendar.events.patch({
+      calendarId,
+      eventId: uid,
+      // "externalOnly" to notify only non-Google Calendar guests
+      sendUpdates: "externalOnly",
+      requestBody: patchPayload,
+    });
+
+    this.log.debug("Successfully patched Google Calendar event", {
+      eventId: uid,
+      patchedEventId: patchedEvent.data.id,
+    });
+
+    if (patchedEvent.data.id && patchedEvent.data.hangoutLink && event.location === MeetLocationType) {
+      await this.updateEventWithHangoutLink(
+        patchedEvent.data.id,
+        patchedEvent.data.hangoutLink,
+        event,
+        calendarId,
+        calendar
+      );
+
+      return {
+        uid: "",
+        ...patchedEvent.data,
+        id: patchedEvent.data.id,
+        additionalInfo: {
+          hangoutLink: patchedEvent.data.hangoutLink,
+        },
+        type: "google_calendar",
+        password: "",
+        url: "",
+        iCalUID: patchedEvent.data.iCalUID,
+      };
+    }
+
+    return patchedEvent.data;
+  }
+
+  private async fullEventUpdate(
+    uid: string,
+    event: CalendarServiceEvent,
+    calendarId: string,
+    calendar: calendar_v3.Calendar
+  ): Promise<any> {
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
       description: event.calendarDescription,
@@ -346,7 +505,7 @@ export default class GoogleCalendarService implements Calendar {
         dateTime: event.endTime,
         timeZone: event.organizer.timeZone,
       },
-      attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
+      attendees: this.getAttendees({ event, hostExternalCalendarId: calendarId }),
       reminders: {
         useDefault: true,
       },
@@ -361,60 +520,74 @@ export default class GoogleCalendarService implements Calendar {
       payload["conferenceData"] = event.conferenceData;
     }
 
-    const calendar = await this.authedCalendar();
+    this.log.debug("Performing full Google Calendar event update", {
+      eventId: uid,
+      calendarId,
+    });
 
-    const selectedCalendar =
-      (externalCalendarId
-        ? event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId
-        : undefined) || "primary";
+    const evt = await calendar.events.update({
+      calendarId,
+      eventId: uid,
+      sendNotifications: true,
+      sendUpdates: "none",
+      requestBody: payload,
+      conferenceDataVersion: 1,
+    });
 
+    this.log.debug("Successfully updated Google Calendar event", {
+      eventId: uid,
+      updatedEventId: evt.data.id,
+    });
+
+    if (evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
+      await this.updateEventWithHangoutLink(evt.data.id, evt.data.hangoutLink, event, calendarId, calendar);
+
+      return {
+        uid: "",
+        ...evt.data,
+        id: evt.data.id,
+        additionalInfo: {
+          hangoutLink: evt.data.hangoutLink,
+        },
+        type: "google_calendar",
+        password: "",
+        url: "",
+        iCalUID: evt.data.iCalUID,
+      };
+    }
+
+    return evt.data;
+  }
+
+  private async updateEventWithHangoutLink(
+    eventId: string,
+    hangoutLink: string,
+    event: CalendarServiceEvent,
+    calendarId: string,
+    calendar: calendar_v3.Calendar
+  ): Promise<void> {
     try {
-      const evt = await calendar.events.update({
-        calendarId: selectedCalendar,
-        eventId: uid,
-        sendNotifications: true,
-        sendUpdates: "none",
-        requestBody: payload,
-        conferenceDataVersion: 1,
+      await calendar.events.patch({
+        calendarId,
+        eventId,
+        requestBody: {
+          description: getRichDescription({
+            ...event,
+            additionalInformation: { hangoutLink },
+          }),
+        },
       });
 
-      this.log.debug("Updated Google Calendar Event", {
-        startTime: evt?.data.start,
-        endTime: evt?.data.end,
+      this.log.debug("Updated event description with hangout link", {
+        eventId,
+        hangoutLink,
       });
-
-      if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
-        calendar.events.patch({
-          // Update the same event but this time we know the hangout link
-          calendarId: selectedCalendar,
-          eventId: evt.data.id || "",
-          requestBody: {
-            description: getRichDescription({
-              ...event,
-              additionalInformation: { hangoutLink: evt.data.hangoutLink },
-            }),
-          },
-        });
-        return {
-          uid: "",
-          ...evt.data,
-          id: evt.data.id || "",
-          additionalInfo: {
-            hangoutLink: evt.data.hangoutLink || "",
-          },
-          type: "google_calendar",
-          password: "",
-          url: "",
-          iCalUID: evt.data.iCalUID,
-        };
-      }
-      return evt?.data;
     } catch (error) {
-      this.log.error(
-        "There was an error updating event in google calendar: ",
-        safeStringify({ error, event, uid })
-      );
-      throw error;
+      // Log error but don't fail the entire operation
+      this.log.warn("Failed to update event description with hangout link", {
+        eventId,
+        error: safeStringify(error),
+      });
     }
   }
 
