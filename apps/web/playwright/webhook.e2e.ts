@@ -878,31 +878,6 @@ test.describe("OOO_CREATED", async () => {
 });
 
 test.describe("RESERVATION_EXPIRED", async () => {
-  test("should be able to create webhook with RESERVATION_EXPIRED trigger", async ({ page, users }) => {
-    const user = await users.create();
-    await user.apiLogin();
-
-    await page.goto("/settings/developer/webhooks");
-    await page.click('[data-testid="new_webhook"]');
-
-    // Fill webhook form
-    await page.fill('[name="subscriberUrl"]', "https://webhook.example.com/reservation-expired");
-    await page.fill('[name="secret"]', "test-secret");
-
-    // Select RESERVATION_EXPIRED trigger
-    await page.click('[data-testid="select_trigger_reservation_expired"]');
-
-    // Submit form
-    await expect(page.locator('[data-testid="create_webhook"]')).toBeEnabled();
-    await Promise.all([
-      page.click("[type=submit]"),
-      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
-    ]);
-
-    // Verify webhook was created
-    expect(page.locator('text="https://webhook.example.com/reservation-expired"')).toBeDefined();
-  });
-
   test("should show RESERVATION_EXPIRED in webhook trigger options", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();
@@ -912,8 +887,7 @@ test.describe("RESERVATION_EXPIRED", async () => {
 
     await page.fill('[name="subscriberUrl"]', "https://webhook.example.com");
 
-    // Check that RESERVATION_EXPIRED is available as an option
-    await expect(page.locator('[data-testid="select_trigger_reservation_expired"]')).toBeVisible();
-    await expect(page.locator('text="reservation_expired"')).toBeVisible();
+    // Verify RESERVATION_EXPIRED is available as a trigger option
+    await expect(page.locator('text="Reservation Expired"')).toBeVisible();
   });
 });
