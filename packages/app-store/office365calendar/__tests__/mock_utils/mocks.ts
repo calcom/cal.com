@@ -3,7 +3,7 @@ import { vi } from "vitest";
 import { TEST_DATES, generateMockData } from "../dates";
 
 // Type definitions for test scenarios
-interface TeamMember {
+interface MockTeamMember {
   id: number;
   email: string;
   name: string;
@@ -545,9 +545,9 @@ export const mockTeamEventScenarios = {
    * Team with multiple members and calendars
    */
   multiMemberTeam: (memberCount = 3, calendarsPerMember = 2) => {
-    const team: TeamMember[] = [];
+    const team: MockTeamMember[] = [];
     for (let i = 1; i <= memberCount; i++) {
-      const member: TeamMember = {
+      const member: MockTeamMember = {
         id: i,
         email: `member${i}@example.com`,
         name: `Team Member ${i}`,

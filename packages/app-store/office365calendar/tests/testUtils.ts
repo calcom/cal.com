@@ -315,6 +315,7 @@ export async function createOutlookCalendarEvents(credentialId: number, destinat
   const baseEvent = {
     title: "E2E_TEST_TEAM_EVENT",
     type: "e2e-test-team-event",
+    calendarDescription: "E2E test team event for Office365 calendar integration",
     organizer: {
       id: user.id,
       name: user.name,
