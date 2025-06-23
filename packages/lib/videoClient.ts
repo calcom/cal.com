@@ -92,7 +92,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
   };
   try {
     // Check to see if video app is enabled
-    const enabledApp = await prisma.app.findFirst({
+    const enabledApp = await prisma.app.findUnique({
       where: {
         slug: credential.appId,
       },
