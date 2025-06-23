@@ -23,7 +23,7 @@ export const generateMetadata = async () => {
 };
 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
-const stepSchema = z.coerce.number().int().min(1).max(4).default(1);
+const stepSchema = z.enum(["1", "2", "3", "4"]);
 
 const ServerPage = async ({ params, searchParams: _searchParams }: ServerPageProps) => {
   const searchParams = await _searchParams;
