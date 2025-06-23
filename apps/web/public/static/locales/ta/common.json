@@ -210,5 +210,6 @@
   "meeting_not_joined_question": "கூட்டத்தில் சேரவில்லையா?",
   "reschedule_cta_short": "இங்கே மீண்டும் ஷெடியூல் செய்யவும்.",
   "you_and_conjunction": "நீங்கள் &",
-  "email_survey_triggered_by_workflow": "இந்த ஆய்வு Cal-ல் உள்ள பணிப்பாய்வு மூலம் தூண்டப்பட்டது."
+  "email_survey_triggered_by_workflow": "இந்த ஆய்வு Cal-ல் உள்ள பணிப்பாய்வு மூலம் தூண்டப்பட்டது.",
+  "reservation_expired": "முன்பதிவு காலாவதியானது"
 }

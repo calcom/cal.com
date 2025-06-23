@@ -3207,5 +3207,6 @@
   "available_credits": "Dostupné kredity",
   "members_affected_by_disabling_delegation_credential": "Dotknutí členovia",
   "no_members_affected_by_disabling_delegation_credential": "Žiadni členovia nie sú ovplyvnení vypnutím poverenia delegovania",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Rezervácia vypršala"
 }

@@ -3207,5 +3207,6 @@
   "available_credits": "利用可能なクレジット",
   "members_affected_by_disabling_delegation_credential": "影響を受けるメンバー",
   "no_members_affected_by_disabling_delegation_credential": "委任認証情報の無効化による影響を受けるメンバーはいません",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "予約期限切れ"
 }

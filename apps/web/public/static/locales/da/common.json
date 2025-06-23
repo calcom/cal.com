@@ -3207,5 +3207,6 @@
   "available_credits": "Tilgængelige credits",
   "members_affected_by_disabling_delegation_credential": "Berørte medlemmer",
   "no_members_affected_by_disabling_delegation_credential": "Ingen medlemmer berørt af deaktivering af delegationslegitimation",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Reservation udløbet"
 }

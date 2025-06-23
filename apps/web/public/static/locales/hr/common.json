@@ -452,5 +452,6 @@
   "meeting_not_joined_question": "niste prisustvovali sastanku?",
   "reschedule_cta_short": "Zakažite ponovno ovdje.",
   "you_and_conjunction": "Vi &",
-  "email_survey_triggered_by_workflow": "Ova anketa je pokrenuta Workflow-om u Calu."
+  "email_survey_triggered_by_workflow": "Ova anketa je pokrenuta Workflow-om u Calu.",
+   "reservation_expired": "Rezervacija je istekla"
 }

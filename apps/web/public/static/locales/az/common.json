@@ -3207,5 +3207,6 @@
   "available_credits": "Mövcud kreditlər",
   "members_affected_by_disabling_delegation_credential": "Təsir edilən üzvlər",
   "no_members_affected_by_disabling_delegation_credential": "Nümayəndəlik etimadnaməsinin deaktiv edilməsindən təsirlənən üzv yoxdur",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Rezervasiyanın müddəti bitmişdir"
 }

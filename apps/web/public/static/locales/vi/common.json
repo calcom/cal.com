@@ -3207,5 +3207,6 @@
   "available_credits": "Tín dụng khả dụng",
   "members_affected_by_disabling_delegation_credential": "Thành viên bị ảnh hưởng",
   "no_members_affected_by_disabling_delegation_credential": "Không có thành viên nào bị ảnh hưởng bởi việc tắt thông tin ủy quyền",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Đặt chỗ đã hết hạn"
 }

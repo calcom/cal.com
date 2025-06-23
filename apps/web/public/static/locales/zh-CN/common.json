@@ -3207,5 +3207,6 @@
   "available_credits": "可用积分",
   "members_affected_by_disabling_delegation_credential": "受影响的成员",
   "no_members_affected_by_disabling_delegation_credential": "禁用委托凭据未影响任何成员",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "预订已过期"
 }

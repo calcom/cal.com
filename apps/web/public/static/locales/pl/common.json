@@ -3208,5 +3208,6 @@
   "available_credits": "Dostępne kredyty",
   "members_affected_by_disabling_delegation_credential": "Dotknięci członkowie",
   "no_members_affected_by_disabling_delegation_credential": "Brak członków dotkniętych wyłączeniem poświadczenia delegacji",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Rezerwacja wygasła"
 }

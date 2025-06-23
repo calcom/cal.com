@@ -3207,5 +3207,6 @@
   "available_credits": "可用點數",
   "members_affected_by_disabling_delegation_credential": "受影響的成員",
   "no_members_affected_by_disabling_delegation_credential": "停用委派憑證未影響任何成員",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "預訂已過期"
 }

@@ -3207,5 +3207,6 @@
   "available_credits": "Käytettävissä olevat krediitit",
   "members_affected_by_disabling_delegation_credential": "Vaikutuksen alaiset jäsenet",
   "no_members_affected_by_disabling_delegation_credential": "Valtuutustietojen poistaminen käytöstä ei vaikuta kehenkään jäseneen",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Varaus vanhentunut"
 }
