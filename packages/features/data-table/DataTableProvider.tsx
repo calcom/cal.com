@@ -64,6 +64,8 @@ export type DataTableContextType = {
 
   searchTerm: string;
   setSearchTerm: (searchTerm: string | null) => void;
+
+  timeZone?: string;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -75,6 +77,7 @@ interface DataTableProviderProps {
   ctaContainerClassName?: string;
   defaultPageSize?: number;
   segments?: FilterSegmentOutput[];
+  timeZone?: string;
   preferredSegmentId?: number | null;
 }
 
@@ -85,6 +88,7 @@ export function DataTableProvider({
   defaultPageSize = DEFAULT_PAGE_SIZE,
   ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
   segments: providedSegments,
+  timeZone,
   preferredSegmentId,
 }: DataTableProviderProps) {
   const filterToOpen = useRef<string | undefined>(undefined);
@@ -245,6 +249,7 @@ export function DataTableProvider({
         isSegmentEnabled,
         searchTerm,
         setSearchTerm: setDebouncedSearchTerm,
+        timeZone,
       }}>
       {children}
     </DataTableContext.Provider>
