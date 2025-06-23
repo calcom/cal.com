@@ -10,6 +10,7 @@ import {
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -465,8 +466,8 @@ export const createOrganizationFromOnboarding = async ({
   paymentSubscriptionItemId,
 }: {
   organizationOnboarding: OrganizationOnboardingArg;
-  paymentSubscriptionId: string;
-  paymentSubscriptionItemId: string;
+  paymentSubscriptionId?: string;
+  paymentSubscriptionItemId?: string;
 }) => {
   log.info(
     "createOrganizationFromOnboarding",
@@ -475,6 +476,11 @@ export const createOrganizationFromOnboarding = async ({
       orgSlug: organizationOnboarding.slug,
     })
   );
+
+  if (!IS_SELF_HOSTED && (!paymentSubscriptionId || !paymentSubscriptionItemId)) {
+    throw new Error("payment_subscription_id_and_payment_subscription_item_id_are_required");
+  }
+
   if (
     await hasConflictingOrganization({
       slug: organizationOnboarding.slug,
@@ -488,10 +494,12 @@ export const createOrganizationFromOnboarding = async ({
   const userFromEmail = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
   const orgOwnerTranslation = await getTranslation(userFromEmail?.locale || "en", "common");
 
-  await handleDomainSetup({
-    organizationOnboarding,
-    orgOwnerTranslation,
-  });
+  if (!process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
+    await handleDomainSetup({
+      organizationOnboarding,
+      orgOwnerTranslation,
+    });
+  }
 
   const { organization, owner } = await handleOrganizationCreation({
     organizationOnboarding,
