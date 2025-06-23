@@ -1,17 +1,8 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import {
-  Controller,
-  Req,
-  NotFoundException,
-  Param,
-  Post,
-  Body,
-  HttpException,
-  HttpStatus,
-} from "@nestjs/common";
+import { Controller, Req, NotFoundException, Param, Post, Body, Res } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { Request } from "express";
+import { Request, Response } from "express";
 
 import {
   getRoutedUrl,
@@ -31,21 +22,16 @@ export class RouterController {
   @Post("/forms/:formId/submit")
   async getRoutingFormResponse(
     @Req() request: Request,
+    @Res({ passthrough: true }) res: Response,
     @Param("formId") formId: string,
     @Body() body?: Record<string, string>
   ): Promise<void | (ApiResponse<unknown> & { redirect: boolean })> {
     const params = Object.fromEntries(new URLSearchParams(body ?? {}));
     const routedUrlData = await getRoutedUrl({
       req: request,
+      res,
       query: { ...params, form: formId },
     });
-
-    if (routedUrlData?.props?.statusCode === 429) {
-      throw new HttpException(
-        routedUrlData.props.errorMessage ?? "Too Many Requests",
-        HttpStatus.TOO_MANY_REQUESTS
-      );
-    }
 
     if (routedUrlData?.notFound) {
       throw new NotFoundException("Route not found. Please check the provided form parameter.");

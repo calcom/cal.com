@@ -49,9 +49,7 @@ function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-const _getRoutedUrl = async (
-  context: Pick<GetServerSidePropsContext, "query" | "req"> & { res?: GetServerSidePropsContext["res"] }
-) => {
+const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req" | "res">) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
@@ -82,16 +80,14 @@ const _getRoutedUrl = async (
     });
   } catch (e) {
     if (e instanceof TRPCError && e.code === "TOO_MANY_REQUESTS") {
-      if (context.res) {
-        context.res.statusCode = 429;
-      }
+      context.res.statusCode = 429;
+
       return {
         props: {
           ...pageProps,
           form: null,
           message: null,
           errorMessage: e.message,
-          statusCode: 429,
         },
       };
     }
@@ -191,7 +187,6 @@ const _getRoutedUrl = async (
           form: serializableForm,
           message: null,
           errorMessage: e.message,
-          statusCode: 500,
         },
       };
     }
@@ -208,7 +203,6 @@ const _getRoutedUrl = async (
         form: serializableForm,
         message: decidedAction.value,
         errorMessage: null,
-        statusCode: 200,
       },
     };
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
@@ -259,7 +253,6 @@ const _getRoutedUrl = async (
       form: serializableForm,
       message: null,
       errorMessage: "Unhandled type of action",
-      statusCode: 200,
     },
   };
 };
