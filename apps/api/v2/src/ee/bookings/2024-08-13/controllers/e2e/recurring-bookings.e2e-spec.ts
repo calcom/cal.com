@@ -17,6 +17,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { MockedGoogleApiCacheService } from "test/mocks/mock-googleapis-cache-service";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
@@ -55,6 +56,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         userEmail,
         Test.createTestingModule({
           imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+          providers: [MockedGoogleApiCacheService],
         })
       )
         .overrideGuard(PermissionsGuard)
@@ -370,6 +372,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         userEmail,
         Test.createTestingModule({
           imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+          providers: [MockedGoogleApiCacheService],
         })
       )
         .overrideGuard(PermissionsGuard)
@@ -580,6 +583,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         userEmail,
         Test.createTestingModule({
           imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+          providers: [MockedGoogleApiCacheService],
         })
       )
         .overrideGuard(PermissionsGuard)

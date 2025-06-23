@@ -22,6 +22,7 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { MockedGoogleApiCacheService } from "test/mocks/mock-googleapis-cache-service";
 import { randomString } from "test/utils/randomString";
 
 import {
@@ -74,7 +75,7 @@ describe("Managed user bookings 2024-08-13", () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      providers: [PrismaExceptionFilter, HttpExceptionFilter],
+      providers: [PrismaExceptionFilter, HttpExceptionFilter, MockedGoogleApiCacheService],
       imports: [AppModule, UsersModule],
     }).compile();
 
