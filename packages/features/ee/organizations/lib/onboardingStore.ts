@@ -102,6 +102,10 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
         if (state) {
           set(state);
         } else {
+          // Clear the localStorage entry for this store
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("org-creation-onboarding");
+          }
           set(initialState);
         }
       },
@@ -125,6 +129,10 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   useEffect(() => {
     if (isLoadingOrgOnboarding) {
       return;
+    }
+
+    if (organizationOnboarding?.isComplete) {
+      reset();
     }
 
     if (organizationOnboarding) {
