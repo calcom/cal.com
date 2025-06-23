@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -14,6 +15,7 @@ import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -331,9 +333,13 @@ async function backwardCompatibilityForSubscriptionDetails({
     id: number;
     metadata: Prisma.JsonValue;
   };
-  paymentSubscriptionId: string;
-  paymentSubscriptionItemId: string;
+  paymentSubscriptionId?: string;
+  paymentSubscriptionItemId?: string;
 }) {
+  if (!paymentSubscriptionId || !paymentSubscriptionItemId) {
+    return organization;
+  }
+
   const existingMetadata = teamMetadataSchema.parse(organization.metadata);
   const updatedOrganization = await OrganizationRepository.updateStripeSubscriptionDetails({
     id: organization.id,
@@ -385,9 +391,17 @@ async function handleOrganizationCreation({
 }: {
   organizationOnboarding: OrganizationOnboardingArg;
   owner: OrgOwner;
-  paymentSubscriptionId: string;
-  paymentSubscriptionItemId: string;
+  paymentSubscriptionId?: string;
+  paymentSubscriptionItemId?: string;
 }) {
+  const deploymentRepo = new DeploymentRepository(prisma);
+  const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+  const hasValidLicense = await licenseKeyService.checkLicense();
+
+  if (IS_SELF_HOSTED && !hasValidLicense) {
+    throw new Error("Self hosted license not valid");
+  }
+
   let organization;
   const orgData = {
     id: organizationOnboarding.organizationId,
