@@ -56,6 +56,7 @@ export const BookerPlatformWrapper = (
     confirmButtonDisabled,
     isBookingDryRun,
     handleSlotReservation,
+    onTimeslotsLoaded,
     startDate,
   } = props;
   const layout = BookerLayouts[view];
@@ -276,6 +277,12 @@ export const BookerPlatformWrapper = (
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     ...routingParams,
   });
+
+  useEffect(() => {
+    if (schedule.data && !schedule.isPending && !schedule.error && onTimeslotsLoaded) {
+      onTimeslotsLoaded(schedule.data.slots);
+    }
+  }, [schedule.data, schedule.isPending, schedule.error, onTimeslotsLoaded]);
 
   const bookerForm = useBookingForm({
     event: event?.data,

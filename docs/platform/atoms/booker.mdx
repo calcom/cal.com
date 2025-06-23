@@ -83,7 +83,7 @@ Below is a list of props that can be passed to the booker atom.
 <p></p>
 
 | Name                       | Required | Description                                                                                           |
-|:----------------------------|:----------|:-------------------------------------------------------------------------------------------------------|
+|:---------------------------|:---------|:------------------------------------------------------------------------------------------------------|
 | username                   | Yes      | Username of the person whose schedule is to be displayed                                              |
 | eventSlug                  | Yes      | Unique slug created for a particular event                                                            |
 | orgBannerUrl               | No       | URL of the user's current organization                                                                |
@@ -116,14 +116,16 @@ Below is a list of props that can be passed to the booker atom.
 | onReserveSlotSuccess       | No       | Callback function for successful slot reservation                                                     |
 | onReserveSlotError         | No       | Callback function triggered on slot reservation failure                                               |
 | onDeleteSlotSuccess        | No       | Callback function for successful slot deletion                                                        |
-| onDeleteSlotError          | No       | Callback function triggered on slot deletion failure  
-| view         | No       | Specifies the layout of the booker atom into column, week, or month view                                             |
-| metadata        | No       | Used to pass custom metadata values into the booker. Metadata should be an object eg: `{ bookingSource: "website", userRole: "admin" }`                                                |
-| bannerUrl          | No       | Adds custom banner to the booker atom                                             |
-| onBookerStateChange     | No       | Callback function that is triggered when the state of the booker atom changes.                             |
-| allowUpdatingUrlParams     | No       | Boolean indicating if the URL parameters should be updated, defaults to false.                             |
-| confirmButtonDisabled     | No       | Boolean indicating if the submit button should be disabled, defaults to false.                             |
-| timeZones     | No       | Array of valid IANA timezones to be used in the booker. Eg. ["Asia/Kolkata", "Europe/London"]                             |
+| onDeleteSlotError          | No       | Callback function triggered on slot deletion failure                                                  |
+| view                       | No       | Specifies the layout of the booker atom into column, week, or month view                              |
+| metadata                   | No       | Used to pass custom metadata values into the booker. Metadata should be an object eg: `{ bookingSource: "website", userRole: "admin" }`|
+| bannerUrl                  | No       | Adds custom banner to the booker atom                                                                 |
+| onBookerStateChange        | No       | Callback function that is triggered when the state of the booker atom changes.                        |
+| allowUpdatingUrlParams     | No       | Boolean indicating if the URL parameters should be updated, defaults to false.                        |
+| confirmButtonDisabled      | No       | Boolean indicating if the submit button should be disabled, defaults to false.                        |
+| timeZones                  | No       | Array of valid IANA timezones to be used in the booker. Eg. ["Asia/Kolkata", "Europe/London"]         |
+| onTimeslotsLoaded          | No       | Callback function triggered once the available timeslots have been fetched.                           |
+| startDate                  | No       | Dynamically sets the initial date shown when the booker component is rendered.                        |
 
 ## Styling
 
