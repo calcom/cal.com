@@ -8,6 +8,7 @@ import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -96,7 +97,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
         })
       )
-        .overrideGuard(PermissionsGuard)
+        .overrideGuard([PermissionsGuard, ApiAuthGuard])
         .useValue({
           canActivate: () => true,
         })
