@@ -3172,6 +3172,7 @@ __metadata:
     "@tanstack/react-virtual": ^3.10.9
     "@testing-library/react-hooks": ^8.0.1
     "@types/web-push": ^3.6.3
+    "@unkey/api": ^0.34.0
     "@vercel/functions": ^1.4.0
     akismet-api: ^6.0.0
     class-variance-authority: ^0.7.1
@@ -18983,6 +18984,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@unkey/api@npm:^0.34.0":
+  version: 0.34.0
+  resolution: "@unkey/api@npm:0.34.0"
+  dependencies:
+    "@unkey/rbac": ^0.3.1
+  checksum: 487ad9ab0ae2d0013f35b532227805834d1fadc2f3e5c8cc3694fcf46e71d64f28452987062bb1729a14218eb5e6071cd67992d78b42ff3935556ed526316c6c
+  languageName: node
+  linkType: hard
+
+"@unkey/error@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@unkey/error@npm:0.2.0"
+  dependencies:
+    zod: ^3.23.5
+  checksum: e4610e793d51cbe90b39ccd66c162dbb8bbf8a4a23d67afb48668168e58b2bd75d713c1137f8ffec3c88a34b94595ce9baee418ae2bf09940f9db8eb5240d717
+  languageName: node
+  linkType: hard
+
 "@unkey/ratelimit@npm:^0.1.1":
   version: 0.1.1
   resolution: "@unkey/ratelimit@npm:0.1.1"
@@ -18999,6 +19018,16 @@ __metadata:
     zod: ^3.22.4
     zod-error: ^1.5.0
   checksum: 69fddda11453363da7b6fd881d97d21a6bb31be3c234dec51e5837634be71531ada0d69c51d37ef4d0540fb5d65ce7cbd8843380d30c70741135b27e10878e5d
+  languageName: node
+  linkType: hard
+
+"@unkey/rbac@npm:^0.3.1":
+  version: 0.3.1
+  resolution: "@unkey/rbac@npm:0.3.1"
+  dependencies:
+    "@unkey/error": ^0.2.0
+    zod: ^3.23.5
+  checksum: 895901aca7422c90b5cbbfe725f9b5e1b78b1eefe7542201ab581b44fe511ca6e55a36a5f816166f3003c2b07b22d91c6daa3b9722dfc20eee8ca92a1d9e96ac
   languageName: node
   linkType: hard
 
@@ -48218,6 +48247,13 @@ __metadata:
   version: 3.24.4
   resolution: "zod@npm:3.24.4"
   checksum: 62829789765a9187bd72bed3972a7c1a39fdfe6c59bc752eedabec5f99af701658471b8577d22e0fee2081e6e35d4efc93c02c90e13350755a36feadbf72bbbc
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.23.5":
+  version: 3.25.67
+  resolution: "zod@npm:3.25.67"
+  checksum: 56ab904d33b1cd00041ce64ae05b0628fcbfeb7e707fa31cd498a97b540135e4dfe685200c9c62aea307695ee132870b4bc34f035228ea728aa75cc96a4954cb
   languageName: node
   linkType: hard
 
