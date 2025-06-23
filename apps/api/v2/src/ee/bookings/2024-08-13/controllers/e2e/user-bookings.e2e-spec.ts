@@ -2246,8 +2246,53 @@ describe("Bookings Endpoints 2024-08-13", () => {
         let booking: Booking;
         let bookingId: number;
         let bookingUid: string;
+        let eventTypeWithAllLocationsId: number;
 
         beforeAll(async () => {
+          const eventTypeResponse = await request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .send({
+              title: "book using any location",
+              slug: "book-using-any-location",
+              lengthInMinutes: 15,
+              locations: [
+                {
+                  type: "integration",
+                  integration: "cal-video",
+                },
+                {
+                  type: "address",
+                  address,
+                  public: true,
+                },
+                {
+                  type: "link",
+                  link,
+                  public: true,
+                },
+                {
+                  type: "phone",
+                  phone,
+                  public: true,
+                },
+                {
+                  type: "attendeeAddress",
+                },
+                {
+                  type: "attendeePhone",
+                },
+                {
+                  type: "attendeeDefined",
+                },
+              ],
+            })
+            .expect(201);
+          const eventTypeResponseBody: CreateEventTypeOutput_2024_06_14 = eventTypeResponse.body;
+          const createdEventType = eventTypeResponseBody.data;
+
+          eventTypeWithAllLocationsId = createdEventType.id;
+
           booking = await bookingsRepositoryFixture.create({
             uid: `booking-uid-${randomString(10)}`,
             title: "booking title",
@@ -2255,7 +2300,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             endTime: "2048-08-14T10:00:00.000Z",
             eventType: {
               connect: {
-                id: eventTypeId,
+                id: eventTypeWithAllLocationsId,
               },
             },
             status: "ACCEPTED",
