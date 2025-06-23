@@ -6,9 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { UserPermissionRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { Alert } from "@calcom/ui/components/alert";
@@ -31,12 +29,12 @@ const AddNewTeamMembers = () => {
   return <AddNewTeamMembersForm />;
 };
 
-const useOrgCreation = (isBillingEnabled: boolean) => {
+const useOrgCreation = () => {
   const { t } = useLocale();
   const session = useSession();
   const utils = trpc.useUtils();
   const [serverErrorMessage, setServerErrorMessage] = useState("");
-  const { useOnboardingStore } = useOnboarding();
+  const { useOnboardingStore, isBillingEnabled } = useOnboarding();
   const { reset } = useOnboardingStore();
 
   const checkoutMutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
@@ -77,7 +75,7 @@ const useOrgCreation = (isBillingEnabled: boolean) => {
 
 export const AddNewTeamMembersForm = () => {
   const { t } = useLocale();
-  const { useOnboardingStore } = useOnboarding();
+  const { useOnboardingStore, isBillingEnabled } = useOnboarding();
   const {
     addInvitedMember,
     removeInvitedMember,
@@ -88,10 +86,7 @@ export const AddNewTeamMembersForm = () => {
     bio,
     onboardingId,
   } = useOnboardingStore();
-  const session = useSession();
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-  const isBillingEnabled = !(IS_SELF_HOSTED && isAdmin);
-  const orgCreation = useOrgCreation(isBillingEnabled);
+  const orgCreation = useOrgCreation();
 
   const teamIds = teams.filter((team) => team.isBeingMigrated && team.id > 0).map((team) => team.id);
 

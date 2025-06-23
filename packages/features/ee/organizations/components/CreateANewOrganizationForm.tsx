@@ -8,7 +8,6 @@ import { Controller, useForm } from "react-hook-form";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -56,9 +55,8 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   const router = useRouter();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const isBillingEnabled = !((IS_SELF_HOSTED && isAdmin) || isAdmin);
   const defaultOrgOwnerEmail = session.data.user.email ?? "";
-  const { useOnboardingStore } = useOnboarding({ step: "start" });
+  const { useOnboardingStore, isBillingEnabled } = useOnboarding({ step: "start" });
   const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
     useOnboardingStore();
 
