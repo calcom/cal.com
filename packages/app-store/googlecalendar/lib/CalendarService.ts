@@ -312,7 +312,7 @@ export default class GoogleCalendarService implements Calendar {
       }
       this.log.error(
         "There was an error creating event in google calendar: ",
-        safeStringify({ error, selectedCalendar, credentialId})
+        safeStringify({ error, selectedCalendar, credentialId })
       );
       throw error;
     }
