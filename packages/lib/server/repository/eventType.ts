@@ -593,6 +593,8 @@ export class EventTypeRepository {
           },
         },
       },
+      restrictionScheduleId: true,
+      useBookerTimezone: true,
       users: {
         select: userSelect,
       },
@@ -604,6 +606,12 @@ export class EventTypeRepository {
         },
       },
       instantMeetingSchedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      restrictionSchedule: {
         select: {
           id: true,
           name: true,
@@ -699,6 +707,8 @@ export class EventTypeRepository {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
           enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
         },
       },
@@ -841,6 +851,8 @@ export class EventTypeRepository {
         maxLeadThreshold: true,
         includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,
+        restrictionScheduleId: true,
+        useBookerTimezone: true,
         team: {
           select: {
             id: true,

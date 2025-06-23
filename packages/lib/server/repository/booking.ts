@@ -409,6 +409,8 @@ export class BookingRepository {
                 disableRecordingForGuests: true,
                 disableRecordingForOrganizer: true,
                 enableAutomaticTranscription: true,
+                disableTranscriptionForGuests: true,
+                disableTranscriptionForOrganizer: true,
                 redirectUrlOnExit: true,
               },
             },
