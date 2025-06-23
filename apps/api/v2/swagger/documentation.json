@@ -21279,7 +21279,8 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT"
+              "FORM_SUBMITTED_NO_EVENT",
+              "RESERVATION_EXPIRED"
             ]
           },
           "secret": {
@@ -21356,7 +21357,8 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT"
+              "FORM_SUBMITTED_NO_EVENT",
+              "RESERVATION_EXPIRED"
             ]
           },
           "secret": {
