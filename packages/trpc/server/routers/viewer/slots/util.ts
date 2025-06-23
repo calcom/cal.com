@@ -65,6 +65,16 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
 
+type SlotWithTime = {
+  time: Dayjs;
+  userIds?: number[];
+  away?: boolean;
+  fromUser?: IFromUser;
+  toUser?: IToUser;
+  reason?: string;
+  emoji?: string;
+};
+
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 type GetAvailabilityUserWithoutDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialPayload[];
@@ -495,12 +505,14 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   const slotCacheRepo = new SlotCacheRepository();
 
-  let timeSlots: any[] = [];
+  let timeSlots: SlotWithTime[] = [];
 
   const shouldUseSlotCache = !input.teamMemberEmail;
 
   if (isTeamEvent && shouldUseSlotCache) {
-    const userIds = allUsersAvailability.map((ua) => ua.user?.id).filter(Boolean) as number[];
+    const userIds = allUsersAvailability
+      .map((ua) => ua.user?.id)
+      .filter((id): id is number => typeof id === "number");
     const baseParams = {
       eventTypeId: eventType.id,
       startDate: startTime.toISOString(),
@@ -511,8 +523,8 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
       minimumBookingNotice: eventType.minimumBookingNotice,
       scheduleId: eventType.schedule?.id,
       restrictionScheduleId: eventType.restrictionScheduleId ?? undefined,
-      bookingLimits: eventType.bookingLimits as Record<string, number>,
-      durationLimits: eventType.durationLimits as Record<string, number>,
+      bookingLimits: parseBookingLimit(eventType.bookingLimits),
+      durationLimits: parseDurationLimit(eventType.durationLimits),
     };
 
     const cachedUserSlots = await slotCacheRepo.getCachedSlotsForTeamEvent(eventType.id, userIds, baseParams);
@@ -587,8 +599,8 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         minimumBookingNotice: eventType.minimumBookingNotice,
         scheduleId: eventType.schedule?.id,
         restrictionScheduleId: eventType.restrictionScheduleId ?? undefined,
-        bookingLimits: eventType.bookingLimits as Record<string, number>,
-        durationLimits: eventType.durationLimits as Record<string, number>,
+        bookingLimits: parseBookingLimit(eventType.bookingLimits),
+        durationLimits: parseDurationLimit(eventType.durationLimits),
       };
 
       let cachedSlots = await slotCacheRepo.getCachedSlotsForUser(userParams);
@@ -896,7 +908,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         break; // Instead of continuing the loop, we can break since all future dates will be skipped
       }
 
-      const filteredSlots = (slots as any[]).filter((slot: any) => {
+      const filteredSlots = slots.filter((slot) => {
         const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
           time: slot.time,
           periodLimits,

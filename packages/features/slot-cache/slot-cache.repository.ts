@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
@@ -12,8 +13,8 @@ export interface CachedSlot {
   time: string; // ISO string in UTC
   userIds?: number[];
   away?: boolean;
-  fromUser?: any;
-  toUser?: any;
+  fromUser?: IFromUser;
+  toUser?: IToUser;
   reason?: string;
   emoji?: string;
 }
@@ -23,18 +24,21 @@ export class SlotCacheRepository {
     const cacheKey = generateSlotCacheKey(params);
     const { expandedStart, expandedEnd } = expandDateRangeForCache(params.startDate, params.endDate);
 
-    const cached = await prisma.slotCache.findFirst({
+    const cached = await prisma.slotCache.findUnique({
       where: {
-        eventTypeId: params.eventTypeId,
-        userId: params.userId,
-        cacheKey,
-        startDate: { lte: new Date(expandedStart) },
-        endDate: { gte: new Date(expandedEnd) },
+        eventTypeId_userId_cacheKey: {
+          eventTypeId: params.eventTypeId,
+          userId: params.userId,
+          cacheKey,
+        },
       },
-      orderBy: { createdAt: "desc" },
     });
 
     if (!cached) return null;
+
+    if (cached.startDate > new Date(expandedStart) || cached.endDate < new Date(expandedEnd)) {
+      return null;
+    }
 
     const slots = cached.slots as unknown as CachedSlot[];
     return slots.filter((slot) => {

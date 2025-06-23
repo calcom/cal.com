@@ -1,5 +1,7 @@
 import { createHash } from "crypto";
 
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+
 export interface SlotCacheKeyParams {
   eventTypeId: number;
   userId: number; // Per-person caching
@@ -11,8 +13,8 @@ export interface SlotCacheKeyParams {
   minimumBookingNotice: number;
   scheduleId?: number | null;
   restrictionScheduleId?: number | null;
-  bookingLimits?: Record<string, number>;
-  durationLimits?: Record<string, number>;
+  bookingLimits?: IntervalLimit | null;
+  durationLimits?: IntervalLimit | null;
 }
 
 export function generateSlotCacheKey(params: SlotCacheKeyParams): string {
