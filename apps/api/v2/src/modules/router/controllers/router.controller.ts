@@ -31,14 +31,12 @@ export class RouterController {
   @Post("/forms/:formId/submit")
   async getRoutingFormResponse(
     @Req() request: Request,
-    @Res() response: Response,
     @Param("formId") formId: string,
     @Body() body?: Record<string, string>
   ): Promise<void | (ApiResponse<unknown> & { redirect: boolean })> {
     const params = Object.fromEntries(new URLSearchParams(body ?? {}));
     const routedUrlData = await getRoutedUrl({
       req: request,
-      res: response,
       query: { ...params, form: formId },
     });
 

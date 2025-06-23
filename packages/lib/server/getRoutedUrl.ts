@@ -191,6 +191,7 @@ const _getRoutedUrl = async (
           form: serializableForm,
           message: null,
           errorMessage: e.message,
+          statusCode: 500,
         },
       };
     }
@@ -207,6 +208,7 @@ const _getRoutedUrl = async (
         form: serializableForm,
         message: decidedAction.value,
         errorMessage: null,
+        statusCode: 200,
       },
     };
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
@@ -257,6 +259,7 @@ const _getRoutedUrl = async (
       form: serializableForm,
       message: null,
       errorMessage: "Unhandled type of action",
+      statusCode: 200,
     },
   };
 };
