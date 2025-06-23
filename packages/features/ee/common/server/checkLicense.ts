@@ -29,7 +29,7 @@ async function checkLicense(
   let licenseKey = process.env.CALCOM_LICENSE_KEY;
   if (!licenseKey) {
     /** We try to check on DB only if env is undefined */
-    const deployment = await prisma.deployment.findFirst({ where: { id: 1 } });
+    const deployment = await prisma.deployment.findUnique({ where: { id: 1 } });
     licenseKey = deployment?.licenseKey ?? undefined;
   }
   if (!licenseKey) return false;
