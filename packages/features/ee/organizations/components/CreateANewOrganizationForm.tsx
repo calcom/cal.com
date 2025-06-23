@@ -8,7 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -56,7 +56,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   const router = useRouter();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const isBillingDisabled = !HOSTED_CAL_FEATURES && isAdmin;
+  const isBillingEnabled = !((IS_SELF_HOSTED && isAdmin) || isAdmin);
   const defaultOrgOwnerEmail = session.data.user.email ?? "";
   const { useOnboardingStore } = useOnboarding({ step: "start" });
   const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
@@ -135,7 +135,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
               <Alert severity="error" message={serverErrorMessage} />
             </div>
           )}
-          {isAdmin && (
+          {isBillingEnabled && (
             <div className="mb-5">
               <Controller
                 name="billingPeriod"
@@ -253,7 +253,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           />
         </div>
 
-        {!isBillingDisabled && (
+        {isBillingEnabled && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
@@ -307,7 +307,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         )}
 
         {/* This radio group does nothing - its just for visual purposes */}
-        {!isAdmin && (
+        {isBillingEnabled && (
           <>
             <div className="bg-subtle space-y-5  rounded-lg p-5">
               <h3 className="font-cal text-default text-lg font-semibold leading-4">
