@@ -265,6 +265,46 @@ export async function listBookings(
   }
 }
 
+export async function scheduleReservationExpiredTrigger({
+  slot,
+  subscriberUrl,
+  subscriber,
+  triggerEvent,
+  isDryRun = false,
+}: {
+  slot: { id: number; slotUtcEndDate: Date; slotUtcStartDate: Date; releaseAt: Date };
+  subscriberUrl: string;
+  subscriber: { id: string; appId: string | null };
+  triggerEvent: typeof WebhookTriggerEvents.RESERVATION_EXPIRED;
+  isDryRun?: boolean;
+}) {
+  if (isDryRun) return;
+  try {
+    const payload = JSON.stringify({ triggerEvent, ...slot });
+
+    await prisma.webhookScheduledTriggers.create({
+      data: {
+        payload,
+        appId: subscriber.appId,
+        startAfter: slot.releaseAt,
+        subscriberUrl,
+        webhook: {
+          connect: {
+            id: subscriber.id,
+          },
+        },
+        SelectedSlots: {
+          connect: {
+            id: slot.id,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error schedulling webhook trigger", error);
+  }
+}
+
 export async function scheduleTrigger({
   booking,
   subscriberUrl,
