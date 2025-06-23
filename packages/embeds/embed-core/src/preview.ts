@@ -1,4 +1,7 @@
-import { EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS } from "./constants";
+// We can't import from other files here due to some reason.
+// So define these variables here
+const EMBED_DARK_THEME_CLASS = "cal-dark-theme";
+const EMBED_LIGHT_THEME_CLASS = "cal-light-theme";
 
 // We can't import @calcom/lib/constants here yet as this file is compiled using Vite
 const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || "";
