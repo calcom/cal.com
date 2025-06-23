@@ -97,7 +97,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
         })
       )
-        .overrideGuard([PermissionsGuard, ApiAuthGuard])
+        .overrideGuard(PermissionsGuard)
         .useValue({
           canActivate: () => true,
         })
