@@ -237,7 +237,6 @@ const BookerComponent = ({
         bookingForm={bookingForm}
         eventQuery={event}
         extraOptions={extraOptions}
-        rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
         confirmButtonDisabled={confirmButtonDisabled}
         classNames={{
@@ -278,7 +277,6 @@ const BookerComponent = ({
     loadingStates,
     onGoBackInstantMeeting,
     renderConfirmNotVerifyEmailButtonCond,
-    rescheduleUid,
     seatedEventData,
     setSeatedEventData,
     setSelectedTimeslot,
