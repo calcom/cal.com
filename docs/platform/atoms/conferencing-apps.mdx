@@ -31,7 +31,9 @@ Below is a list of props that can be passed to the Conferencing Apps Atom
 | :------------------ | :------- | :-------------------------------------------------------------------------- |
 | returnTo            | No       | The URL of the page to redirect to after a successful installation.    |
 | onErrorReturnTo     | No       | The URL of the page to redirect to in case an error occurs.            |
-| disableToasts       | No       | boolean value to disable toast notifications in the atom.              |
+| disableToasts       | No       | Boolean value to disable toast notifications in the atom.              |
+| apps                | No       | Array of conferencing app slugs to display in the dropdown. If provided, only these apps will be shown (if not already installed). Valid values are `'google_meet'`, `'zoom'`, and `'office365_video'`.    |
+| disableBulkUpdateEventTypes | No | Boolean value to disable the bulk update of event types when changing conferencing app settings. Default is `false`. |
 
 
 ## Google Meet
