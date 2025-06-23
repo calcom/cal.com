@@ -2405,5 +2405,4 @@ model SlotCache {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventTypeId, userId, cacheKey])
-  @@map("slot_cache")
 }
