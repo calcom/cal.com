@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
