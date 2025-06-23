@@ -6,17 +6,19 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Badge } from "@calcom/ui/components/badge";
-import { Tooltip } from "@calcom/ui/components/tooltip";
-import { TextField } from "@calcom/ui/components/form";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
@@ -29,10 +31,15 @@ const AddNewTeamMembers = () => {
   return <AddNewTeamMembersForm />;
 };
 
-const useCheckout = () => {
+const useOrgCreation = (isBillingEnabled: boolean) => {
   const { t } = useLocale();
+  const session = useSession();
+  const utils = trpc.useUtils();
   const [serverErrorMessage, setServerErrorMessage] = useState("");
-  const mutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
+  const { useOnboardingStore } = useOnboarding();
+  const { reset } = useOnboardingStore();
+
+  const checkoutMutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
     onSuccess: (data) => {
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
@@ -43,10 +50,27 @@ const useCheckout = () => {
     },
   });
 
+  const createOrgMutation = trpc.viewer.organizations.createSelfHosted.useMutation({
+    onSuccess: async (data) => {
+      if (data.organization) {
+        // Invalidate the organizations query to ensure fresh data on the next page
+        await utils.viewer.organizations.listCurrent.invalidate();
+        await session.update();
+        reset();
+        window.location.href = `${window.location.origin}/settings/organizations/profile`;
+      }
+    },
+    onError: (error) => {
+      setServerErrorMessage(t(error.message));
+    },
+  });
+
+  const mutationToUse = isBillingEnabled ? checkoutMutation : createOrgMutation;
+
   return {
-    mutation,
-    mutate: mutation.mutate,
-    isPending: mutation.isPending,
+    mutation: mutationToUse,
+    mutate: mutationToUse.mutate,
+    isPending: mutationToUse.isPending,
     errorMessage: serverErrorMessage,
   };
 };
@@ -64,7 +88,10 @@ export const AddNewTeamMembersForm = () => {
     bio,
     onboardingId,
   } = useOnboardingStore();
-  const checkout = useCheckout();
+  const session = useSession();
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const isBillingEnabled = !(IS_SELF_HOSTED && isAdmin);
+  const orgCreation = useOrgCreation(isBillingEnabled);
 
   const teamIds = teams.filter((team) => team.isBeingMigrated && team.id > 0).map((team) => team.id);
 
@@ -117,9 +144,9 @@ export const AddNewTeamMembersForm = () => {
 
   return (
     <>
-      {checkout.errorMessage && (
+      {orgCreation.errorMessage && (
         <div className="mb-4">
-          <Alert severity="error" message={checkout.errorMessage} />
+          <Alert severity="error" message={orgCreation.errorMessage} />
         </div>
       )}
       <div className="space-y-6">
@@ -180,6 +207,7 @@ export const AddNewTeamMembersForm = () => {
           </ul>
         )}
       </div>
+
       <div className="mt-3 mt-6 flex items-center justify-end">
         <Button
           onClick={() => {
@@ -190,7 +218,7 @@ export const AddNewTeamMembersForm = () => {
               });
               return;
             }
-            checkout.mutation.mutate({
+            orgCreation.mutation.mutate({
               logo,
               bio,
               teams,
@@ -198,8 +226,8 @@ export const AddNewTeamMembersForm = () => {
               onboardingId,
             });
           }}
-          loading={checkout.isPending}>
-          {t("checkout")}
+          loading={orgCreation.isPending}>
+          {isBillingEnabled ? t("checkout") : t("create")}
         </Button>
       </div>
     </>
