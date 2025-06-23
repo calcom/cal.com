@@ -790,7 +790,11 @@ export class Cal {
     // Trying to prerender a link that is already prerendered.
     // Prevent unnecessary repeat prerenders
     if (lastLoadedUrlInIframeObject?.toString() === new URL(calLink, calOrigin).toString()) {
-      return hasCrossedThreshold();
+      const isThresholdCrossed = hasCrossedThreshold();
+      if (isThresholdCrossed) {
+        log("Threshold crossed, allowing repeat prerender");
+      }
+      return false;
     }
     return true;
 
@@ -839,6 +843,26 @@ export class Cal {
     this.isPrerendering = true;
 
     return true;
+  }
+
+  setModalRenderStartVariables({
+    embedConfig,
+    embedRenderStartTime,
+    isPrerendering,
+  }: {
+    embedConfig: PrefillAndIframeAttrsConfig;
+    embedRenderStartTime: number;
+    isPrerendering: boolean;
+  }) {
+    this.embedConfig = embedConfig;
+    this.embedRenderStartTime = embedRenderStartTime;
+  }
+
+  getPreviousModalRenderStartVariables() {
+    return {
+      embedConfig: this.embedConfig,
+      embedRenderStartTime: this.embedRenderStartTime,
+    };
   }
 }
 
@@ -1063,10 +1087,8 @@ class CalApi {
 
     const calLinkUrlObject = new URL(calLink, calOrigin);
     const isHeadlessRouterPath = calLinkUrlObject ? isRouterPath(calLinkUrlObject.toString()) : false;
-    const previousEmbedRenderStartTime = this.cal.embedRenderStartTime;
-    const previousEmbedConfig = this.cal.embedConfig;
-    const embedRenderStartTime = Date.now();
-    this.cal.embedRenderStartTime = embedRenderStartTime;
+    const { embedConfig: previousEmbedConfig, embedRenderStartTime: previousEmbedRenderStartTime } =
+      this.cal.getPreviousModalRenderStartVariables();
 
     let enrichedConfig;
     if (__prerender) {
@@ -1079,7 +1101,9 @@ class CalApi {
 
       if (!shouldAllowPrerender) {
         log(`Prevented unnecessary repeat prerender for ${calLink}`);
-        return;
+        return {
+          status: "prerender-prevented",
+        };
       }
 
       enrichedConfig = buildConfigWithPrerenderRelatedFields({
@@ -1098,12 +1122,16 @@ class CalApi {
       enrichedConfig = configWithGuestKeyAndColorScheme;
     }
 
-    this.cal.embedConfig = enrichedConfig;
+    this.cal.setModalRenderStartVariables({
+      embedConfig: enrichedConfig,
+      embedRenderStartTime,
+      isPrerendering: !!__prerender,
+    });
 
     const stateData = {
       embedConfig: enrichedConfig,
       previousEmbedConfig,
-      embedRenderStartTime: embedRenderStartTime,
+      embedRenderStartTime,
       previousEmbedRenderStartTime,
       isConnectionInitiated,
       prerenderOptions: this.prerenderOptions ?? null,
@@ -1222,6 +1250,9 @@ class CalApi {
     }
     this.handleClose();
     containerEl.appendChild(template.content);
+    return {
+      status: "created",
+    };
   }
 
   private handleClose() {

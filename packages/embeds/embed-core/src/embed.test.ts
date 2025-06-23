@@ -389,6 +389,48 @@ describe("Cal", () => {
         });
       });
 
+      it("Accidental repeat prerender prevention", async () => {
+        const modalArg = {
+          ...baseModalArgs,
+          calLink: "router?form=123&email=john@example.com",
+        };
+
+        const { status: status1 } = await calInstance.api.modal({
+          ...modalArg,
+          __prerender: true,
+        });
+        expect(status1).toBe("created");
+        const embedRenderStartTime = calInstance.embedRenderStartTime;
+
+        const { status: status2 } = await calInstance.api.modal({
+          ...modalArg,
+          __prerender: true,
+        });
+        expect(status2).toBe("prerender-prevented");
+        // embedRenderStartTime should not be updated prerender did not happen
+        expect(calInstance.embedRenderStartTime).toBe(embedRenderStartTime);
+      });
+
+      it("Prerender with non-headless router link and then CTA click with headless router is not allowed", async () => {
+        const modalArg = {
+          ...baseModalArgs,
+          calLink: "john-doe/meeting",
+        };
+
+        const { status: status1 } = await calInstance.api.modal({
+          ...modalArg,
+          __prerender: true,
+        });
+        expect(status1).toBe("created");
+
+        expect(
+          calInstance.api.modal({
+            ...modalArg,
+            calLink: "router?form=123&email=john@example.com",
+          })
+        ).rejects.toThrow("`prerender` instruction should have been fired with headless router path");
+      });
+
       describe("Modal State Transitions", () => {
         it(`should handle prerender -> open(with prefill) -> reopen(with re-submission) scenario`, () => {
           // Prerender the modal
