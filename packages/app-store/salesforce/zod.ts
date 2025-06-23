@@ -56,6 +56,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   onBookingWriteToRecord: z.boolean().optional(),
   onBookingWriteToRecordFields: z.record(z.string(), writeToBookingEntry).optional(),
   ignoreGuests: z.boolean().optional(),
+  excludeSalesforceBookingsFromRR: z.boolean().optional(),
   onCancelWriteToEventRecord: z.boolean().optional(),
   onCancelWriteToEventRecordFields: z.record(z.string(), writeToBookingEntry).optional(),
 });

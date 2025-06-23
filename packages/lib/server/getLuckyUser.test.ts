@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 import { expect, it, describe, vi, beforeAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { EventTypeService } from "@calcom/lib/server/service/eventType";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 
@@ -1445,12 +1446,15 @@ describe("attribute weights and virtual queues", () => {
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([]);
 
+    // Mock Salesforce app data with excludeSalesforceBookingsFromRR set to true
+    const mockEventTypeService = vi.spyOn(EventTypeService, "getEventTypeAppDataFromId");
+    mockEventTypeService.mockResolvedValue({ excludeSalesforceBookingsFromRR: true });
+
     await getLuckyUser({
       availableUsers: users,
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        excludeSalesforceBookingsFromRR: true,
         team: { rrResetInterval: RRResetInterval.MONTH },
       },
       allRRHosts: [],
@@ -1461,6 +1465,8 @@ describe("attribute weights and virtual queues", () => {
 
     // Verify that the query excludes Salesforce assignments
     expect(queryArgs.where?.NOT?.assignmentReason?.some?.reasonEnum).toEqual("SALESFORCE_ASSIGNMENT");
+
+    mockEventTypeService.mockRestore();
   });
 
   it("should include Salesforce bookings in round robin when excludeSalesforceBookingsFromRR is false", async () => {
@@ -1495,12 +1501,15 @@ describe("attribute weights and virtual queues", () => {
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([]);
 
+    // Mock Salesforce app data with excludeSalesforceBookingsFromRR set to false
+    const mockEventTypeService = vi.spyOn(EventTypeService, "getEventTypeAppDataFromId");
+    mockEventTypeService.mockResolvedValue({ excludeSalesforceBookingsFromRR: false });
+
     await getLuckyUser({
       availableUsers: users,
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        excludeSalesforceBookingsFromRR: false,
         team: { rrResetInterval: RRResetInterval.MONTH },
       },
       allRRHosts: [],
@@ -1511,6 +1520,8 @@ describe("attribute weights and virtual queues", () => {
 
     // Verify that the query does NOT exclude Salesforce assignments
     expect(queryArgs.where?.NOT?.assignmentReason?.some?.reasonEnum).toBeUndefined();
+
+    mockEventTypeService.mockRestore();
   });
 });
 
