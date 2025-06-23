@@ -44,7 +44,7 @@ jobs:
           git push
 
       - name: Draft release
-        run: gh release create v$VERSION --generate-notes
+        run: gh release create v$VERSION --generate-notes --draft
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ inputs.next_version }}
