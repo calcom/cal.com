@@ -18,6 +18,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import { getRoutedUrl } from "./getRoutedUrl";
 
 // Mock dependencies
+vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
 vi.mock("@calcom/lib/server/repository/routingForm");
 vi.mock("@calcom/lib/server/repository/user");
@@ -112,6 +113,7 @@ describe("getRoutedUrl", () => {
   it("should return notFound if form is not found", async () => {
     vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(null);
     const context = mockContext({});
+
     const result = await getRoutedUrl(context);
     expect(result).toEqual({ notFound: true });
     expect(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).toHaveBeenCalledWith("form-id");
