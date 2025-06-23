@@ -586,7 +586,7 @@ export const EventAdvancedTab = ({
             {t("booking_questions_description")}
           </p>
         </div>
-        <div className="border-subtle rounded-lg border bg-white p-5">
+        <div className="border-subtle rounded-lg border bg-white p-5 dark:bg-black">
           <FormBuilder
             showPhoneAndEmailToggle
             title={t("confirmation")}
