@@ -447,7 +447,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Section.SubSectionHeader
               icon="refresh-ccw"
               title={t("exclude_salesforce_bookings_from_round_robin")}
-              description={t("exclude_salesforce_bookings_from_round_robin_description")}
               labelFor="exclude-salesforce-bookings-from-rr">
               <Switch
                 id="exclude-salesforce-bookings-from-rr"
@@ -458,6 +457,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 }}
               />
             </Section.SubSectionHeader>
+            <p className="text-subtle mt-2 text-sm">
+              {t("exclude_salesforce_bookings_from_round_robin_description")}
+            </p>
           </Section.SubSection>
         )}
 
