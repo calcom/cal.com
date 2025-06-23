@@ -1,0 +1,80 @@
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { prisma } from "@calcom/prisma";
+
+import { TRPCError } from "@trpc/server";
+
+import type { TrpcSessionUser } from "../../../types";
+import type { TCreateSelfHostedInputSchema } from "./createSelfHosted.schema";
+
+type CreateSelfHostedOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
+  input: TCreateSelfHostedInputSchema;
+};
+
+export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOptions) => {
+  if (!IS_SELF_HOSTED) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Self-hosted is not enabled",
+    });
+  }
+
+  const organizationOnboarding = await OrganizationOnboardingRepository.findById(input.onboardingId);
+
+  if (!organizationOnboarding) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "organization_onboarding_not_found",
+    });
+  }
+
+  if (!organizationOnboarding.orgOwnerEmail) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "organization_onboarding_not_found",
+    });
+  }
+
+  const deploymentRepo = new DeploymentRepository(prisma);
+  const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+  const hasValidLicense = await licenseKeyService.checkLicense();
+
+  if (!hasValidLicense) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "license_not_valid",
+    });
+  }
+
+  const { organization } = await createOrganizationFromOnboarding({
+    organizationOnboarding: {
+      id: input.onboardingId,
+      logo: input.logo ?? null,
+      bio: input.bio ?? null,
+      invitedMembers: input.invitedMembers ?? [],
+      teams: input.teams ?? [],
+      orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
+      slug: organizationOnboarding.slug,
+      name: organizationOnboarding.name,
+      billingPeriod: organizationOnboarding.billingPeriod,
+      seats: organizationOnboarding.seats,
+      pricePerSeat: organizationOnboarding.pricePerSeat,
+      stripeCustomerId: organizationOnboarding.stripeCustomerId,
+      isPlatform: organizationOnboarding.isPlatform,
+      isDomainConfigured: organizationOnboarding.isDomainConfigured,
+      organizationId: organizationOnboarding.organizationId,
+    },
+  });
+
+  return {
+    organization,
+  };
+};
+
+export default createSelfHostedHandler;
