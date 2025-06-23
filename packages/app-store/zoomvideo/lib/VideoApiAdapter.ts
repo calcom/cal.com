@@ -63,12 +63,16 @@ export type ZoomUserSettings = z.infer<typeof zoomUserSettingsSchema>;
 
 /** @link https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings */
 export const zoomUserSettingsSchema = z.object({
-  recording: z.object({
-    auto_recording: z.string(),
-  }),
-  schedule_meeting: z.object({
-    default_password_for_scheduled_meetings: z.string(),
-  }),
+  recording: z
+    .object({
+      auto_recording: z.string(),
+    })
+    .nullish(),
+  schedule_meeting: z
+    .object({
+      default_password_for_scheduled_meetings: z.string(),
+    })
+    .nullish(),
 });
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
