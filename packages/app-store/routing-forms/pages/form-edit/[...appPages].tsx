@@ -11,7 +11,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { BooleanToggleGroupField, Label, TextField, MultiOptionInput } from "@calcom/ui/components/form";
+import {
+  BooleanToggleGroupField,
+  Label,
+  SelectField,
+  TextField,
+  MultiOptionInput,
+} from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -32,6 +38,7 @@ function Field({
   moveUp,
   moveDown,
   appUrl,
+  hasFormResponses,
 }: {
   fieldIndex: number;
   hookForm: HookForm;
@@ -49,6 +56,7 @@ function Field({
     fn: () => void;
   };
   appUrl: string;
+  hasFormResponses: boolean;
 }) {
   const { t } = useLocale();
   const [showFieldTypeDialog, setShowFieldTypeDialog] = useState(false);
@@ -118,28 +126,38 @@ function Field({
               name={`${hookFieldNamespace}.type`}
               control={hookForm.control}
               defaultValue={routerField?.type}
-              render={({ field: { value } }) => {
+              render={({ field: { value, onChange } }) => {
                 const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                 return (
                   <>
-                    <div className="data-testid-field-type">
-                      <Label htmlFor="field-type-button">{t("type")}</Label>
-                      <button
-                        id="field-type-button"
-                        type="button"
-                        onClick={() => setShowFieldTypeDialog(true)}
-                        disabled={!!router}
-                        className={classNames(
-                          "border-default bg-default text-default h-8 rounded-[10px] border px-3 py-2",
-                          "flex w-full items-center justify-between text-left text-sm",
-                          "hover:border-emphasis focus:border-emphasis focus:shadow-outline-gray-focused focus:ring-0",
-                          !!router && "bg-subtle cursor-not-allowed"
-                        )}
-                        data-testid="field-type">
-                        <span className="text-default">{defaultValue?.label || "Select field type"}</span>
-                        <Icon name="chevron-down" className="text-default h-4 w-4" />
-                      </button>
-                    </div>
+                    <SelectField
+                      maxMenuHeight={200}
+                      styles={{
+                        singleValue: (baseStyles) => ({
+                          ...baseStyles,
+                          fontSize: "14px",
+                        }),
+                        option: (baseStyles) => ({
+                          ...baseStyles,
+                          fontSize: "14px",
+                        }),
+                      }}
+                      label="Type"
+                      isDisabled={!!router}
+                      containerClassName="data-testid-field-type"
+                      options={FieldTypes}
+                      onChange={(option) => {
+                        if (!option) {
+                          return;
+                        }
+                        if (option.value !== value && hasFormResponses) {
+                          setShowFieldTypeDialog(true);
+                          return;
+                        }
+                        onChange(option.value);
+                      }}
+                      defaultValue={defaultValue}
+                    />
                     <FieldTypeChangeWarningDialog
                       isOpen={showFieldTypeDialog}
                       setIsOpen={setShowFieldTypeDialog}
@@ -240,6 +258,7 @@ const FormEdit = ({
               fieldIndex={key}
               hookForm={hookForm}
               hookFieldNamespace={`${fieldsNamespace}.${key}`}
+              hasFormResponses={(form._count?.responses ?? 0) > 0}
               deleteField={{
                 check: () => hookFormFields.length > 1,
                 fn: () => {
