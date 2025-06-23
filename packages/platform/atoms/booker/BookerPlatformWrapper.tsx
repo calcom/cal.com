@@ -279,7 +279,7 @@ export const BookerPlatformWrapper = (
 
   useEffect(() => {
     if (schedule.data && !schedule.isPending && !schedule.error && onTimeslotsLoaded) {
-      onTimeslotsLoaded(schedule.data);
+      onTimeslotsLoaded(schedule.data.slots);
     }
   }, [schedule.data, schedule.isPending, schedule.error, onTimeslotsLoaded]);
 
