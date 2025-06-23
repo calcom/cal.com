@@ -439,6 +439,7 @@ async function handleOrganizationCreation({
   // Connect the organization to the onboarding
   await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
     organizationId: organization.id,
+    isCompleted: true,
   });
 
   const updatedOrganization = await backwardCompatibilityForSubscriptionDetails({

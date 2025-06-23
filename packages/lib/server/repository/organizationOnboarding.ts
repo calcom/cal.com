@@ -23,6 +23,7 @@ export type CreateOrganizationOnboardingInput = {
   teams?: { id: number; name: string; isBeingMigrated: boolean; slug: string | null }[];
   error?: string | null;
   isDomainConfigured?: boolean;
+  isCompleted?: boolean;
 };
 
 export class OrganizationOnboardingRepository {
