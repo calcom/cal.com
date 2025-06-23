@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
@@ -110,7 +110,10 @@ export const BookEventForm = ({
 
     const timeoutId = setTimeout(() => setIsMinimumBookingNoticePassed(true), secondsTillBooking * 1000);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+      setIsMinimumBookingNoticePassed(false);
+    };
   }, [timeslot, eventType]);
 
   const isPaidEvent = useMemo(() => {
