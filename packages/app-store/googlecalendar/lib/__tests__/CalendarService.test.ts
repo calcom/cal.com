@@ -255,6 +255,20 @@ beforeEach(() => {
   setLastCreatedJWT(null);
   setLastCreatedOAuth2Client(null);
   createMockJWTInstance({});
+
+  // Reset all mocks before each test
+  calendarMock.calendar_v3.Calendar().events.get.mockClear();
+  calendarMock.calendar_v3.Calendar().events.patch.mockClear();
+  calendarMock.calendar_v3.Calendar().events.update.mockClear();
+
+  // Set up default resolved values for all methods to prevent undefined errors
+  calendarMock.calendar_v3.Calendar().events.update.mockResolvedValue({
+    data: { id: "default-update-event" },
+  });
+
+  calendarMock.calendar_v3.Calendar().events.patch.mockResolvedValue({
+    data: { id: "default-patch-event" },
+  });
 });
 
 describe("Calendar Cache", () => {
@@ -883,5 +897,261 @@ describe("getAvailability", () => {
     );
 
     expect(availabilityWithAllCalendarsAsFallback).toEqual([...mockedBusyTimes1, ...mockedBusyTimes2]);
+  });
+});
+
+describe("updateEvent - Duplicate Event Prevention", () => {
+  beforeEach(() => {
+    setFullMockOAuthManagerRequest();
+    calendarMock.calendar_v3.Calendar().events.get.mockClear();
+    calendarMock.calendar_v3.Calendar().events.patch.mockClear();
+    calendarMock.calendar_v3.Calendar().events.update.mockClear();
+  });
+
+  test("should use patch method for attendee-only updates", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+
+    const existingEvent = {
+      id: "test-event-123",
+      summary: "Team Meeting",
+      description: "Weekly sync",
+      start: { dateTime: "2024-01-15T10:00:00Z" },
+      end: { dateTime: "2024-01-15T11:00:00Z" },
+      attendees: [{ email: "organizer@example.com", organizer: true }, { email: "original@example.com" }],
+    };
+
+    const updatedEvent = {
+      type: "google_calendar",
+      title: "Team Meeting",
+      calendarDescription: "Weekly sync",
+      startTime: "2024-01-15T10:00:00Z",
+      endTime: "2024-01-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        email: "organizer@example.com",
+        name: "Organizer",
+        timeZone: "UTC",
+        language: { translate: vi.fn(), locale: "en" },
+      },
+      attendees: [
+        {
+          email: "original@example.com",
+          name: "Original Attendee",
+          timeZone: "UTC",
+          language: { translate: vi.fn(), locale: "en" },
+        },
+        {
+          email: "newguest@example.com",
+          name: "New Guest",
+          timeZone: "UTC",
+          language: { translate: vi.fn(), locale: "en" },
+        },
+      ],
+    };
+
+    calendarMock.calendar_v3.Calendar().events.get.mockResolvedValueOnce({
+      data: existingEvent,
+    });
+
+    calendarMock.calendar_v3.Calendar().events.patch.mockResolvedValueOnce({
+      data: { ...existingEvent, id: "patched-event" },
+    });
+
+    await calendarService.updateEvent("test-event-123", updatedEvent, "primary");
+
+    expect(calendarMock.calendar_v3.Calendar().events.get).toHaveBeenCalledWith({
+      calendarId: "primary",
+      eventId: "test-event-123",
+    });
+
+    expect(calendarMock.calendar_v3.Calendar().events.patch).toHaveBeenCalledWith({
+      calendarId: "primary",
+      eventId: "test-event-123",
+      sendUpdates: "externalOnly",
+      requestBody: expect.objectContaining({
+        attendees: expect.arrayContaining([
+          expect.objectContaining({
+            email: "primary", // This will be the organizer's calendar ID
+            organizer: true,
+          }),
+          expect.objectContaining({
+            email: "original@example.com",
+            name: "Original Attendee",
+          }),
+          expect.objectContaining({
+            email: "newguest@example.com",
+            name: "New Guest",
+          }),
+        ]),
+        sequence: 1,
+      }),
+    });
+
+    expect(calendarMock.calendar_v3.Calendar().events.update).not.toHaveBeenCalled();
+  });
+
+  test("should use update method when non-attendee properties change", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+
+    const existingEvent = {
+      id: "test-event-456",
+      summary: "Team Meeting",
+      start: { dateTime: "2024-01-15T10:00:00Z" },
+      end: { dateTime: "2024-01-15T11:00:00Z" },
+      attendees: [{ email: "organizer@example.com", organizer: true }],
+    };
+
+    const updatedEvent = {
+      type: "google_calendar",
+      title: "Team Meeting",
+      calendarDescription: "Updated meeting",
+      startTime: "2024-01-15T14:00:00Z", // Time changed
+      endTime: "2024-01-15T15:00:00Z", // Time changed
+      organizer: {
+        id: 1,
+        email: "organizer@example.com",
+        name: "Organizer",
+        timeZone: "UTC",
+        language: { translate: vi.fn(), locale: "en" },
+      },
+      attendees: [
+        {
+          email: "newguest@example.com",
+          name: "New Guest",
+          timeZone: "UTC",
+          language: { translate: vi.fn(), locale: "en" },
+        },
+      ],
+    };
+
+    calendarMock.calendar_v3.Calendar().events.get.mockResolvedValueOnce({
+      data: existingEvent,
+    });
+
+    calendarMock.calendar_v3.Calendar().events.update.mockResolvedValueOnce({
+      data: { ...existingEvent, id: "updated-event" },
+    });
+
+    await calendarService.updateEvent("test-event-456", updatedEvent, "primary");
+
+    expect(calendarMock.calendar_v3.Calendar().events.update).toHaveBeenCalledWith({
+      calendarId: "primary",
+      eventId: "test-event-456",
+      sendNotifications: true,
+      sendUpdates: "none",
+      requestBody: expect.objectContaining({
+        summary: "Team Meeting",
+        start: { dateTime: "2024-01-15T14:00:00Z", timeZone: "UTC" },
+        end: { dateTime: "2024-01-15T15:00:00Z", timeZone: "UTC" },
+      }),
+      conferenceDataVersion: 1,
+    });
+
+    expect(calendarMock.calendar_v3.Calendar().events.patch).not.toHaveBeenCalled();
+  });
+
+  test("should fallback to update method when event comparison fails", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+
+    const updatedEvent = {
+      type: "google_calendar",
+      title: "Fallback Test",
+      calendarDescription: "Test description",
+      startTime: "2024-01-15T10:00:00Z",
+      endTime: "2024-01-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        email: "organizer@example.com",
+        name: "Organizer",
+        timeZone: "UTC",
+        language: { translate: vi.fn(), locale: "en" },
+      },
+      attendees: [],
+    };
+
+    calendarMock.calendar_v3.Calendar().events.get.mockRejectedValueOnce(new Error("API Error"));
+    calendarMock.calendar_v3.Calendar().events.update.mockResolvedValueOnce({
+      data: { id: "fallback-event" },
+    });
+
+    await calendarService.updateEvent("error-event", updatedEvent, "primary");
+
+    expect(calendarMock.calendar_v3.Calendar().events.update).toHaveBeenCalled();
+    expect(calendarMock.calendar_v3.Calendar().events.patch).not.toHaveBeenCalled();
+  });
+
+  test("should preserve hangoutLink in attendee-only updates", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+
+    const meetEvent = {
+      id: "meet-event-789",
+      summary: "Video Call",
+      description: "Video meeting",
+      start: { dateTime: "2024-01-15T10:00:00Z" },
+      end: { dateTime: "2024-01-15T11:00:00Z" },
+      hangoutLink: "https://meet.google.com/abc-defg-hij",
+      attendees: [{ email: "organizer@example.com", organizer: true }],
+    };
+
+    const updatedEvent = {
+      type: "google_calendar",
+      title: "Video Call",
+      calendarDescription: "Video meeting",
+      startTime: "2024-01-15T10:00:00Z",
+      endTime: "2024-01-15T11:00:00Z",
+      location: "integrations:google:meet",
+      organizer: {
+        id: 1,
+        email: "organizer@example.com",
+        name: "Organizer",
+        timeZone: "UTC",
+        language: { translate: vi.fn(), locale: "en" },
+      },
+      attendees: [
+        {
+          email: "newguest@example.com",
+          name: "New Guest",
+          timeZone: "UTC",
+          language: { translate: vi.fn(), locale: "en" },
+        },
+      ],
+    };
+
+    calendarMock.calendar_v3.Calendar().events.get.mockResolvedValueOnce({
+      data: meetEvent,
+    });
+
+    calendarMock.calendar_v3.Calendar().events.patch.mockResolvedValueOnce({
+      data: {
+        ...meetEvent,
+        id: "patched-meet-event",
+        hangoutLink: "https://meet.google.com/abc-defg-hij",
+      },
+    });
+
+    // Second patch call for hangout link update
+    calendarMock.calendar_v3.Calendar().events.patch.mockResolvedValueOnce({
+      data: {
+        id: "patched-meet-event",
+        hangoutLink: "https://meet.google.com/abc-defg-hij",
+      },
+    });
+
+    const result = await calendarService.updateEvent("meet-event-789", updatedEvent, "primary");
+
+    // The method returns the structured result with additionalInfo
+    expect(result).toEqual(
+      expect.objectContaining({
+        id: "patched-meet-event",
+        additionalInfo: expect.objectContaining({
+          hangoutLink: "https://meet.google.com/abc-defg-hij",
+        }),
+      })
+    );
+    expect(calendarMock.calendar_v3.Calendar().events.patch).toHaveBeenCalledTimes(2);
   });
 });
