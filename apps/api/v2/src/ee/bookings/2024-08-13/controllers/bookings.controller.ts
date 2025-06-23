@@ -467,9 +467,6 @@ export class BookingsController_2024_08_13 {
 
   @Patch("/:bookingUid")
   @HttpCode(HttpStatus.OK)
-  @Permissions([BOOKING_WRITE])
-  @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Update a booking",
     description: "Update an already existing booking",
