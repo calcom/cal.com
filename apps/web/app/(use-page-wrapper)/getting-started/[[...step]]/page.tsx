@@ -11,11 +11,15 @@ import { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSi
 import type { PageProps as ClientPageProps } from "~/getting-started/[[...step]]/onboarding-view";
 import Page from "~/getting-started/[[...step]]/onboarding-view";
 
-export const generateMetadata = async () => {
+export const generateMetadata = async ({ params }: ServerPageProps) => {
+  const stepParam = (await params).step;
+  const step = stepParam && Array.isArray(stepParam) ? stepParam.join("/") : "";
   return await _generateMetadata(
     (t) => `${APP_NAME} - ${t("getting_started")}`,
     () => "",
-    true
+    true,
+    undefined,
+    `/getting-started${step ? `/${step}` : ""}`
   );
 };
 

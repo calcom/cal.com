@@ -4,12 +4,12 @@ import appStore from "@calcom/app-store";
 import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { PaymentApp } from "@calcom/types/PaymentService";
@@ -66,7 +66,7 @@ export async function getConnectedApps({
     sortByInstalledFirst,
     appId,
   } = input;
-  let credentials = await getUsersCredentials(user);
+  let credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
   let userTeams: TeamQuery[] = [];
 
   if (includeTeamInstalledApps || teamId) {
@@ -137,6 +137,7 @@ export async function getConnectedApps({
     const teamAppCredentials = userTeams.flatMap((teamApp) => {
       return teamApp.credentials ? buildNonDelegationCredentials(teamApp.credentials.flat()) : [];
     });
+
     if (!includeTeamInstalledApps || teamId) {
       credentials = teamAppCredentials;
     } else {
@@ -168,9 +169,7 @@ export async function getConnectedApps({
               name: team.name,
               logoUrl: team.logoUrl,
               credentialId: c.id,
-              isAdmin:
-                team.members[0].role === MembershipRole.ADMIN ||
-                team.members[0].role === MembershipRole.OWNER,
+              isAdmin: checkAdminOrOwner(team.members[0].role),
             };
           })
       );

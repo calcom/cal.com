@@ -1,11 +1,11 @@
 import { useState } from "react";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { Dialog } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -36,7 +36,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
   } | null>(null);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
-  const mutation = trpc.viewer.deleteCredential.useMutation({
+  const mutation = trpc.viewer.credentials.delete.useMutation({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
       onSuccess && onSuccess();
@@ -47,7 +47,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
       setConfirmationDialogOpen(false);
     },
     async onSettled() {
-      await utils.viewer.connectedCalendars.invalidate();
+      await utils.viewer.calendars.connectedCalendars.invalidate();
       await utils.viewer.apps.integrations.invalidate();
     },
   });

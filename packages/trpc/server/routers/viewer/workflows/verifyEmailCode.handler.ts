@@ -10,7 +10,7 @@ import type { TVerifyEmailCodeInputSchema } from "./verifyEmailCode.schema";
 
 type VerifyEmailCodeOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id">;
   };
   input: TVerifyEmailCodeInputSchema;
 };

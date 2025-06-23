@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
+import { DialogContent } from "@calcom/ui/components/dialog";
 import { Form, PasswordField } from "@calcom/ui/components/form";
 
 import TwoFactor from "@components/auth/TwoFactor";

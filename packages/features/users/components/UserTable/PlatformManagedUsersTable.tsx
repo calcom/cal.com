@@ -10,16 +10,18 @@ import {
   DataTableToolbar,
   DataTableSelectionBar,
   DataTableFilters,
+  DataTableSegment,
   useColumnFilters,
   useDataTable,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Badge } from "@calcom/ui/components/badge";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DeleteMemberModal } from "./DeleteMemberModal";
@@ -57,7 +59,10 @@ type PlatformManagedUsersTableProps = {
 
 export function PlatformManagedUsersTable(props: PlatformManagedUsersTableProps) {
   return (
-    <DataTableProvider defaultPageSize={25}>
+    <DataTableProvider
+      useSegments={useSegments}
+      defaultPageSize={25}
+      tableIdentifier={`platform-managed-users-${props.oAuthClientId}`}>
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
@@ -67,12 +72,11 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
   const { t } = useLocale();
 
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [rowSelection, setRowSelection] = useState({});
 
   const columnFilters = useColumnFilters();
 
-  const { pageIndex, pageSize } = useDataTable();
+  const { pageIndex, pageSize, searchTerm } = useDataTable();
   const limit = pageSize;
   const offset = pageIndex * pageSize;
 
@@ -80,7 +84,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     {
       limit,
       offset,
-      searchTerm: debouncedSearchTerm,
+      searchTerm,
       filters: columnFilters,
       oAuthClientId,
     },
@@ -109,7 +113,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
-            className="translate-y-[2px]"
           />
         ),
         cell: ({ row }) => (
@@ -127,7 +130,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         enableHiding: false,
         size: 200,
         header: () => {
-          return `Managed Users`;
+          return t("managed_users");
         },
         cell: ({ row }) => {
           if (isPending) {
@@ -162,7 +165,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
       {
         id: "role",
         accessorFn: (data) => data.role,
-        header: "Role",
+        header: t("role"),
         size: 100,
         cell: ({ row, table }) => {
           if (isPending) {
@@ -184,7 +187,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
       {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
-        header: "Teams",
+        header: t("teams"),
         size: 140,
         cell: ({ row, table }) => {
           if (isPending) {
@@ -287,24 +290,21 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         totalRowCount={data?.meta?.totalRowCount}
         paginationMode="standard"
         ToolbarLeft={
-          <DataTableToolbar.SearchBar
-            table={table}
-            onSearch={(value) => setDebouncedSearchTerm(value)}
-            className="sm:max-w-64 max-w-full"
-          />
+          <>
+            <DataTableToolbar.SearchBar className="sm:max-w-64 max-w-full" />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            <DataTableFilters.FilterBar table={table} />
+          </>
         }
         ToolbarRight={
           <>
-            <DataTableFilters.AddFilterButton table={table} />
-            <DataTableFilters.ColumnVisibilityButton table={table} />
+            <DataTableFilters.ClearFiltersButton />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
           </>
         }>
-        <div className="flex gap-2 justify-self-start">
-          <DataTableFilters.ActiveFilters table={table} />
-        </div>
-
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="justify-center">
+          <DataTableSelectionBar.Root className="!bottom-16 justify-center md:w-max">
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>

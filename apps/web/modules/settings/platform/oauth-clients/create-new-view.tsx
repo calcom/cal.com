@@ -56,15 +56,16 @@ export default function CreateOAuthClient() {
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
       areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled,
+      areCalendarEventsEnabled: data.areCalendarEventsEnabled,
     });
   };
 
-  if (isUserLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading) return <div className="m-5">{t("loading")}</div>;
 
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell title={t("oAuth_client_creation_form")} isPlatformUser={true} withoutSeo={true}>
+        <Shell title={t("oAuth_client_creation_form")} isPlatformUser={true}>
           <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
@@ -76,7 +77,24 @@ export default function CreateOAuthClient() {
                 </p>
               </div>
             </div>
-            <OAuthClientForm isPending={isSaving} onSubmit={onSubmit} />
+            <OAuthClientForm
+              isPending={isSaving}
+              onSubmit={onSubmit}
+              defaultValues={{
+                areCalendarEventsEnabled: true,
+                areEmailsEnabled: true,
+                eventTypeRead: true,
+                eventTypeWrite: true,
+                bookingRead: true,
+                bookingWrite: true,
+                scheduleRead: true,
+                scheduleWrite: true,
+                appsRead: true,
+                appsWrite: true,
+                profileRead: true,
+                profileWrite: true,
+              }}
+            />
           </div>
         </Shell>
       </div>
@@ -85,7 +103,7 @@ export default function CreateOAuthClient() {
 
   return (
     <div>
-      <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
+      <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

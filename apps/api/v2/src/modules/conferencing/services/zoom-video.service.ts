@@ -1,5 +1,6 @@
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { BadRequestException, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -20,7 +21,11 @@ export class ZoomVideoService {
   private logger = new Logger("ZoomVideoService");
   private redirectUri = `${this.config.get("api.url")}/conferencing/${ZOOM}/oauth/callback`;
 
-  constructor(private readonly config: ConfigService, private readonly appsRepository: AppsRepository) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly appsRepository: AppsRepository,
+    private readonly credentialsRepository: CredentialsRepository
+  ) {}
 
   async getZoomAppKeys() {
     const app = await this.appsRepository.getAppBySlug(ZOOM);
@@ -53,7 +58,7 @@ export class ZoomVideoService {
     return { url };
   }
 
-  async connectZoomApp(state: OAuthCallbackState, code: string, userId: number) {
+  async connectZoomApp(state: OAuthCallbackState, code: string, userId: number, teamId?: number) {
     const { client_id, client_secret } = await this.getZoomAppKeys();
     const redirectUri = encodeURI(this.redirectUri);
     const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
@@ -90,23 +95,31 @@ export class ZoomVideoService {
     if (!userId) {
       throw new UnauthorizedException("Invalid Access token.");
     }
-    const existingCredentialZoomVideo = await this.appsRepository.findAppCredential({
-      type: ZOOM_TYPE,
-      userId,
-      appId: ZOOM,
-    });
+
+    const existingCredentialZoomVideo = teamId
+      ? await this.credentialsRepository.findAllCredentialsByTypeAndTeamId(ZOOM_TYPE, teamId)
+      : await this.credentialsRepository.findAllCredentialsByTypeAndUserId(ZOOM_TYPE, userId);
 
     const credentialIdsToDelete = existingCredentialZoomVideo.map((item) => item.id);
     if (credentialIdsToDelete.length > 0) {
-      await this.appsRepository.deleteAppCredentials(credentialIdsToDelete, userId);
+      teamId
+        ? await this.appsRepository.deleteTeamAppCredentials(credentialIdsToDelete, teamId)
+        : await this.appsRepository.deleteAppCredentials(credentialIdsToDelete, userId);
     }
 
-    await this.appsRepository.createAppCredential(
-      ZOOM_TYPE,
-      responseBody as unknown as Prisma.InputJsonObject,
-      userId,
-      ZOOM
-    );
+    teamId
+      ? await this.appsRepository.createTeamAppCredential(
+          ZOOM_TYPE,
+          responseBody as unknown as Prisma.InputJsonObject,
+          teamId,
+          ZOOM
+        )
+      : await this.appsRepository.createAppCredential(
+          ZOOM_TYPE,
+          responseBody as unknown as Prisma.InputJsonObject,
+          userId,
+          ZOOM
+        );
 
     return { url: state.returnTo ?? "" };
   }

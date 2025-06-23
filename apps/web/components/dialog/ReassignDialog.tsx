@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -13,7 +14,6 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import {
-  Dialog,
   DialogContent,
   DialogFooter,
   DialogClose,

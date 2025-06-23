@@ -1,6 +1,7 @@
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 
 interface SecondaryEmailConfirmModalProps {
   email: string;

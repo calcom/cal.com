@@ -26,7 +26,7 @@ import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { NonRouterRoute, FormResponse } from "../../types/types";
-import { getServerSideProps } from "./getServerSideProps";
+import type { getServerSideProps } from "./getServerSideProps";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
@@ -98,7 +98,15 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   const responseMutation = trpc.viewer.routingForms.public.response.useMutation({
     onSuccess: async (data) => {
-      const { teamMembersMatchingAttributeLogic, formResponse, attributeRoutingConfig } = data;
+      const {
+        teamMembersMatchingAttributeLogic,
+        formResponse,
+        queuedFormResponse,
+        attributeRoutingConfig,
+        crmContactOwnerEmail,
+        crmContactOwnerRecordType,
+        crmAppSlug,
+      } = data;
       const chosenRouteWithFormResponse = chosenRouteWithFormResponseRef.current;
       if (!chosenRouteWithFormResponse) {
         return;
@@ -109,11 +117,15 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       }
       const allURLSearchParams = getUrlSearchParamsToForward({
         formResponse: chosenRouteWithFormResponse.response,
-        formResponseId: formResponse.id,
+        formResponseId: formResponse?.id ?? null,
+        queuedFormResponseId: queuedFormResponse?.id ?? null,
         fields,
         searchParams: new URLSearchParams(window.location.search),
         teamMembersMatchingAttributeLogic,
         attributeRoutingConfig: attributeRoutingConfig ?? null,
+        crmContactOwnerEmail,
+        crmContactOwnerRecordType,
+        crmAppSlug,
       });
       const chosenRoute = chosenRouteWithFormResponse.route;
       const decidedAction = chosenRoute.action;
@@ -210,8 +222,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm {...props} />;
 }
-
-export { getServerSideProps };
 
 const usePrefilledResponse = (form: Props["form"]) => {
   const searchParams = useCompatSearchParams();

@@ -120,6 +120,10 @@ export function TimezoneSelectComponent({
           minHeight: size === "sm" ? "28px" : "36px",
           height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
         }),
+        menuList: (base) => ({
+          ...base,
+          height: grow ? "h-auto " : size === "sm" ? "200px" : "180px",
+        }),
       }}
       onInputChange={handleInputChange}
       {...props}
@@ -136,7 +140,7 @@ export function TimezoneSelectComponent({
           ),
         option: (state) =>
           classNames(
-            "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-md text-default ",
+            "bg-default py-2.5 px-3 rounded-md text-default ",
             state.isFocused && "bg-subtle",
             state.isDisabled && "bg-muted",
             state.isSelected && "bg-emphasis text-default",

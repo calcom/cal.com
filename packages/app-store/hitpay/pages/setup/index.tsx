@@ -13,7 +13,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
-import { HeadSeo } from "@calcom/ui/components/head-seo";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -118,7 +117,7 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
     },
   });
 
-  const deleteMutation = trpc.viewer.deleteCredential.useMutation({
+  const deleteMutation = trpc.viewer.credentials.delete.useMutation({
     onSuccess: () => {
       router.push("/apps/hitpay");
     },
@@ -204,7 +203,6 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
 
   return (
     <>
-      <HeadSeo nextSeoProps={{ noindex: true, nofollow: true }} title="HitPay" description="" />
       <div className="bg-default flex h-screen items-center justify-center">
         {showContent ? (
           <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center space-y-4 p-4 lg:space-y-5">

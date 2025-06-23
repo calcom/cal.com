@@ -8,6 +8,7 @@ import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 import type { TInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
 import { ZInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
+import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { TRPCError } from "@trpc/server";
@@ -38,7 +39,8 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const ctx = await createContext({ req, res }, sessionGetter);
   try {
-    const caller = viewerTeamsRouter.createCaller(ctx);
+    const createCaller = createCallerFactory(viewerTeamsRouter);
+    const caller = createCaller(ctx);
     await caller.inviteMember({
       role: data.role,
       language: data.language,

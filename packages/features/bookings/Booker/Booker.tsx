@@ -1,5 +1,4 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
-import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
@@ -8,19 +7,24 @@ import { shallow } from "zustand/shallow";
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import dayjs from "@calcom/dayjs";
+import PoweredBy from "@calcom/ee/components/PoweredBy";
+import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
+import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
+import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
+import { DatePicker } from "./components/DatePicker";
 import { DryRunMessage } from "./components/DryRunMessage";
 import { EventMeta } from "./components/EventMeta";
 import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
@@ -33,21 +37,11 @@ import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
+import framerFeatures from "./framer-features";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
-
-const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
-
-const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
-const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy").then((mod) => mod.default));
-const UnpublishedEntity = dynamic(() =>
-  import("@calcom/ui/components/unpublished-entity").then((mod) => mod.UnpublishedEntity)
-);
-const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
-  ssr: false,
-});
 
 const BookerComponent = ({
   username,
@@ -84,6 +78,7 @@ const BookerComponent = ({
   hashedLink,
   confirmButtonDisabled,
   timeZones,
+  eventMetaChildren,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -185,6 +180,8 @@ const BookerComponent = ({
     (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
   );
 
+  updateEmbedBookerState({ bookerState, slotsQuery: schedule });
+
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
@@ -240,7 +237,6 @@ const BookerComponent = ({
         bookingForm={bookingForm}
         eventQuery={event}
         extraOptions={extraOptions}
-        rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
         confirmButtonDisabled={confirmButtonDisabled}
         classNames={{
@@ -281,7 +277,6 @@ const BookerComponent = ({
     loadingStates,
     onGoBackInstantMeeting,
     renderConfirmNotVerifyEmailButtonCond,
-    rescheduleUid,
     seatedEventData,
     setSeatedEventData,
     setSelectedTimeslot,
@@ -321,6 +316,7 @@ const BookerComponent = ({
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
           "main",
           "text-default flex min-h-full w-full flex-col items-center",
+          layout === BookerLayouts.MONTH_VIEW && !isEmbed && "my-20 ",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip",
           `${customClassNames?.bookerWrapper}`
         )}>
@@ -405,12 +401,18 @@ const BookerComponent = ({
                   isPlatform={isPlatform}
                   isPrivateLink={!!hashedLink}
                   locale={userLocale}
-                  timeZones={timeZones}
-                />
+                  timeZones={timeZones}>
+                  {eventMetaChildren}
+                </EventMeta>
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
-                      <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
+                      <DatePicker
+                        event={event}
+                        slots={schedule?.data?.slots}
+                        isLoading={schedule.isPending}
+                        scrollToTimeSlots={scrollToTimeSlots}
+                      />
                     </div>
                   )}
               </BookerSection>
@@ -442,7 +444,8 @@ const BookerComponent = ({
                   datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
                 }}
                 event={event}
-                schedule={schedule}
+                slots={schedule?.data?.slots}
+                isLoading={schedule.isPending}
                 scrollToTimeSlots={scrollToTimeSlots}
               />
             </BookerSection>
@@ -580,7 +583,7 @@ const BookerComponent = ({
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
   return (
-    <LazyMotion strict features={loadFramerFeatures}>
+    <LazyMotion strict features={framerFeatures}>
       <BookerComponent {...props} />
     </LazyMotion>
   );

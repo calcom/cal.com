@@ -11,18 +11,20 @@ import {
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import AssignmentReasonRecorder, {
+  RRReassignmentType,
+} from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getEventName } from "@calcom/lib/event";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -63,6 +65,8 @@ export const roundRobinManualReassignment = async ({
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
   });
+
+  roundRobinReassignLogger.info(`User ${reassignedById} initiating manual reassignment to user ${newUserId}`);
 
   let booking = await prisma.booking.findUnique({
     where: { id: bookingId },
@@ -165,7 +169,7 @@ export const roundRobinManualReassignment = async ({
       host: newUser.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
-      eventDuration: eventType.length,
+      eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
       t: newUserT,
     });
 
@@ -185,6 +189,7 @@ export const roundRobinManualReassignment = async ({
       bookingId,
       reassignReason,
       reassignById: reassignedById,
+      reassignmentType: RRReassignmentType.MANUAL,
     });
   } else if (currentRRHost) {
     // Update the round-robin host attendee
@@ -261,11 +266,13 @@ export const roundRobinManualReassignment = async ({
       name: eventType.team?.name || "",
       id: eventType.team?.id || 0,
     },
+    hideOrganizerEmail: eventType.hideOrganizerEmail,
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
     ...getCalEventResponses({
       bookingFields: eventType.bookingFields ?? null,
       booking,
     }),
+    customReplyToEmail: eventType?.customReplyToEmail,
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
   };
@@ -275,7 +282,7 @@ export const roundRobinManualReassignment = async ({
     include: { user: { select: { email: true } } },
   });
 
-  const newUserWithCredentials = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const newUserWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user: { ...newUser, credentials },
   });
 
@@ -416,6 +423,8 @@ async function handleWorkflowsUpdate({
           template: true,
           workflow: {
             select: {
+              userId: true,
+              teamId: true,
               trigger: true,
               time: true,
               timeUnit: true,
@@ -425,6 +434,7 @@ async function handleWorkflowsUpdate({
           reminderBody: true,
           sender: true,
           includeCalendarEvent: true,
+          verifiedAt: true,
         },
       },
     },
@@ -451,7 +461,7 @@ async function handleWorkflowsUpdate({
           time: workflow.time,
           timeUnit: workflow.timeUnit,
         },
-        sendTo: newUser.email,
+        sendTo: [newUser.email],
         template: workflowStep.template,
         emailSubject: workflowStep.emailSubject || undefined,
         emailBody: workflowStep.reminderBody || undefined,
@@ -459,10 +469,13 @@ async function handleWorkflowsUpdate({
         hideBranding: true,
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
+        verifiedAt: workflowStep.verifiedAt,
+        userId: workflow.userId,
+        teamId: workflow.teamId,
       });
     }
 
-    await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
+    await deleteScheduledEmailReminder(workflowReminder.id);
   }
 
   // Send new event workflows to new organizer

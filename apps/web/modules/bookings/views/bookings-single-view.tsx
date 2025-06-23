@@ -28,11 +28,7 @@ import {
 } from "@calcom/features/bookings/lib/SystemField";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
-import {
-  formatToLocalizedDate,
-  formatToLocalizedTime,
-  formatToLocalizedTimezone,
-} from "@calcom/lib/date-fns";
+import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -42,6 +38,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { RefundPolicy } from "@calcom/lib/payment/types";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
@@ -104,7 +101,8 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const { eventType, bookingInfo, requiresLoginToUpdate, rescheduledToUid } = props;
+
+  const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
 
   const {
     allRemainingBookings,
@@ -116,6 +114,7 @@ export default function Success(props: PageProps) {
     noShow,
     rating,
   } = querySchema.parse(routerQuery);
+
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
   const isFeedbackMode = !!(noShow || rating);
@@ -130,7 +129,9 @@ export default function Success(props: PageProps) {
     rescheduleLocation = bookingInfo.responses.location.optionValue;
   }
 
-  const parsedBookingMetadata = bookingMetadataSchema.parse(bookingInfo?.metadata || {});
+  const parsed = bookingMetadataSchema.safeParse(bookingInfo?.metadata ?? null);
+  const parsedBookingMetadata = parsed.success ? parsed.data : null;
+
   const bookingWithParsedMetadata = {
     ...bookingInfo,
     metadata: parsedBookingMetadata,
@@ -150,6 +151,10 @@ export default function Success(props: PageProps) {
   );
   const { data: session } = useSession();
   const isHost = props.isLoggedInUserHost;
+
+  const [showUtmParams, setShowUtmParams] = useState(false);
+
+  const utmParams = bookingInfo.tracking;
 
   const [date, setDate] = useState(dayjs.utc(bookingInfo.startTime));
   const calendarLinks = getCalendarLinks({
@@ -233,6 +238,7 @@ export default function Success(props: PageProps) {
   if (eventType.isDynamic && bookingInfo.responses?.title) {
     evtName = bookingInfo.responses.title as string;
   }
+
   const eventNameObject = {
     attendeeName: bookingInfo.responses.name as z.infer<typeof nameObjectSchema> | string,
     eventType: eventType.title,
@@ -240,7 +246,7 @@ export default function Success(props: PageProps) {
     host: props.profile.name || "Nameless",
     location: location,
     bookingFields: bookingInfo.responses,
-    eventDuration: eventType.length,
+    eventDuration: dayjs(bookingInfo.endTime).diff(bookingInfo.startTime, "minutes"),
     t,
   };
 
@@ -366,6 +372,12 @@ export default function Success(props: PageProps) {
   const isPastBooking = isBookingInPast;
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
+
+  const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
+  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
+
+  const canCancel = !eventType?.disableCancelling;
+  const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
@@ -499,18 +511,59 @@ export default function Success(props: PageProps) {
                               t("booking_with_payment_cancelled")}
                             {props.paymentStatus.success &&
                               !props.paymentStatus.refunded &&
-                              t("booking_with_payment_cancelled_already_paid")}
+                              (() => {
+                                const refundPolicy = eventType?.metadata?.apps?.stripe?.refundPolicy;
+                                const refundDaysCount = eventType?.metadata?.apps?.stripe?.refundDaysCount;
+
+                                // Handle missing team or event type owner (same in processPaymentRefund.ts)
+                                if (!eventType?.teamId && !eventType?.owner) {
+                                  return t("booking_with_payment_cancelled_no_refund");
+                                }
+
+                                // Handle DAYS policy with expired refund window
+                                else if (refundPolicy === RefundPolicy.DAYS && refundDaysCount) {
+                                  const startTime = new Date(bookingInfo.startTime);
+                                  const cancelTime = new Date();
+                                  const daysDiff = Math.floor(
+                                    (cancelTime.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24)
+                                  );
+
+                                  if (daysDiff > refundDaysCount) {
+                                    return t("booking_with_payment_cancelled_refund_window_expired");
+                                  }
+                                }
+                                // Handle NEVER policy
+                                else if (refundPolicy === RefundPolicy.NEVER) {
+                                  return t("booking_with_payment_cancelled_no_refund");
+                                }
+
+                                // Handle ALWAYS policy
+                                else {
+                                  return t("booking_with_payment_cancelled_already_paid");
+                                }
+                              })()}
                             {props.paymentStatus.refunded && t("booking_with_payment_cancelled_refunded")}
                           </h4>
                         )}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left rtl:text-right">
+                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
                             <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                          </>
+                        )}
+                        {previousBooking && (
+                          <>
+                            <div className="font-medium">{t("rescheduled_by")}</div>
+                            <div className="col-span-2 mb-6 last:mb-0">
+                              <p className="break-words">{previousBooking?.rescheduledBy}</p>
+                              <Link className="text-sm underline" href={`/booking/${previousBooking?.uid}`}>
+                                {t("original_booking")}
+                              </Link>
+                            </div>
                           </>
                         )}
                         <div className="font-medium">{t("what")}</div>
@@ -556,9 +609,11 @@ export default function Success(props: PageProps) {
                                     </span>
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
-                                  <p className="text-default">
-                                    {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
-                                  </p>
+                                  {!bookingInfo.eventType?.hideOrganizerEmail && (
+                                    <p className="text-default">
+                                      {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
+                                    </p>
+                                  )}
                                 </div>
                               )}
                               {bookingInfo?.attendees.map((attendee) => (
@@ -630,6 +685,46 @@ export default function Success(props: PageProps) {
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
                               <p className="break-words">{bookingInfo.description}</p>
+                            </div>
+                          </>
+                        )}
+                        {!!utmParams && isHost && (
+                          <>
+                            <div className="mt-9 pr-2 font-medium sm:pr-0">{t("utm_params")}</div>
+                            <div className="col-span-2 mb-2 ml-3 mt-9 sm:ml-0">
+                              <button
+                                data-testid="utm-dropdown"
+                                onClick={() => {
+                                  setShowUtmParams((prev) => !prev);
+                                }}
+                                className="font-medium transition hover:text-blue-500 focus:outline-none">
+                                <div className="flex items-center gap-1">
+                                  {showUtmParams ? t("hide") : t("show")}
+                                  <Icon
+                                    name={showUtmParams ? "chevron-up" : "chevron-down"}
+                                    className="size-4"
+                                  />
+                                </div>
+                              </button>
+
+                              {showUtmParams && (
+                                <div className="col-span-2 mb-2 mt-2">
+                                  {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
+                                  0 ? (
+                                    <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
+                                      {Object.entries(utmParams)
+                                        .filter(([_, value]) => Boolean(value))
+                                        .map(([key, value]) => (
+                                          <li key={key} className="text-muted space-x-1 text-sm">
+                                            <span>{key}</span>: <span>{value}</span>
+                                          </li>
+                                        ))}
+                                    </ul>
+                                  ) : (
+                                    <p className="text-muted text-sm">{t("no_utm_params")}</p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </>
                         )}
@@ -708,6 +803,7 @@ export default function Success(props: PageProps) {
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
                       !isRerouting &&
+                      canCancelOrReschedule &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -718,7 +814,8 @@ export default function Success(props: PageProps) {
 
                             <>
                               {!props.recurringBookings &&
-                                (!isBookingInPast || eventType.allowReschedulingPastBookings) && (
+                                (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
+                                canReschedule && (
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
@@ -731,19 +828,23 @@ export default function Success(props: PageProps) {
                                         {t("reschedule")}
                                       </Link>
                                     </span>
-                                    <span className="mx-2">{t("or_lowercase")}</span>
+                                    {canCancelAndReschedule && (
+                                      <span className="mx-2">{t("or_lowercase")}</span>
+                                    )}
                                   </span>
                                 )}
 
-                              <button
-                                data-testid="cancel"
-                                className={classNames(
-                                  "text-default underline",
-                                  props.recurringBookings && "ltr:mr-2 rtl:ml-2"
-                                )}
-                                onClick={() => setIsCancellationMode(true)}>
-                                {t("cancel")}
-                              </button>
+                              {canCancel && (
+                                <button
+                                  data-testid="cancel"
+                                  className={classNames(
+                                    "text-default underline",
+                                    props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                  )}
+                                  onClick={() => setIsCancellationMode(true)}>
+                                  {t("cancel")}
+                                </button>
+                              )}
                             </>
                           </div>
                         </>

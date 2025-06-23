@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import { MemberInvitationModalWithoutMembers } from "@calcom/ee/teams/components/MemberInvitationModal";
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -17,7 +19,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Dialog, DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -28,11 +30,13 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { TeamRole } from "./TeamPill";
 
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["list"][number];
+  user: RouterOutputs["viewer"]["me"]["get"];
   key: number;
   onActionSelect: (text: string) => void;
   isPending?: boolean;
@@ -44,8 +48,7 @@ export default function TeamListItem(props: Props) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const user = trpc.viewer.me.get.useQuery().data;
-  const team = props.team;
+  const { team, user } = props;
 
   const showDialog = searchParams?.get("inviteModal") === "true";
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(showDialog);
@@ -57,6 +60,7 @@ export default function TeamListItem(props: Props) {
       showToast(t("success"), "success");
       utils.viewer.teams.get.invalidate();
       utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       utils.viewer.teams.hasTeamPlan.invalidate();
       utils.viewer.teams.listInvites.invalidate();
       const userOrganizationId = user?.profile?.organization?.id;
@@ -81,7 +85,7 @@ export default function TeamListItem(props: Props) {
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
-  const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
+  const isAdmin = checkAdminOrOwner(props.team.role);
   const { hideDropdown, setHideDropdown } = props;
 
   const hideInvitationModal = () => {
@@ -268,6 +272,7 @@ export default function TeamListItem(props: Props) {
                               color="destructive"
                               type="button"
                               StartIcon="trash"
+                              className="rounded-t-none"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>

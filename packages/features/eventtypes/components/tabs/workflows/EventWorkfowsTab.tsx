@@ -9,6 +9,7 @@ import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoa
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 import { getActionIcon } from "@calcom/features/ee/workflows/lib/getActionIcon";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowActions } from "@calcom/prisma/enums";
@@ -22,7 +23,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import ServerTrans from "@calcom/web/components/ServerTrans";
+import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 
@@ -54,6 +55,7 @@ const WorkflowListItem = (props: ItemProps) => {
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {
       const offOn = isActive ? "off" : "on";
+      revalidateEventTypeEditPage(eventType.id);
       await utils.viewer.workflows.getAllActiveWorkflows.invalidate();
 
       await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });

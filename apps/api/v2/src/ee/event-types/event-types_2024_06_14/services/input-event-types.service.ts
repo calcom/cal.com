@@ -1,9 +1,7 @@
 import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, BadRequestException } from "@nestjs/common";
-
+import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
 import {
   transformBookingFieldsApiToInternal,
   transformLocationsApiToInternal,
@@ -17,21 +15,24 @@ import {
   systemAfterFieldNotes,
   systemAfterFieldGuests,
   systemAfterFieldRescheduleReason,
-  EventTypeMetaDataSchema,
   transformBookerLayoutsApiToInternal,
   transformConfirmationPolicyApiToInternal,
   transformEventColorsApiToInternal,
-  validateCustomEventName,
   transformSeatsApiToInternal,
   SystemField,
   CustomField,
   InternalLocation,
   InternalLocationSchema,
-} from "@calcom/platform-libraries/event-types";
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { UserWithProfile } from "@/modules/users/users.repository";
+import { Injectable, BadRequestException } from "@nestjs/common";
+
+import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
+import { validateCustomEventName, EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
-  InputEventTransformed_2024_06_14,
+  InputBookingField_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
@@ -53,9 +54,10 @@ export class InputEventTypesService_2024_06_14 {
   ) {}
 
   async transformAndValidateCreateEventTypeInput(
-    userId: UserWithProfile["id"],
+    user: UserWithProfile,
     inputEventType: CreateEventTypeInput_2024_06_14
   ) {
+    await this.validateInputLocations(user, inputEventType.locations);
     const transformedBody = this.transformInputCreateEventType(inputEventType);
 
     await this.validateEventTypeInputs({
@@ -66,19 +68,21 @@ export class InputEventTypesService_2024_06_14 {
     });
 
     transformedBody.destinationCalendar &&
-      (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
+      (await this.validateInputDestinationCalendar(user.id, transformedBody.destinationCalendar));
 
     transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.validateInputUseDestinationCalendarEmail(userId));
+      (await this.validateInputUseDestinationCalendarEmail(user.id));
 
     return transformedBody;
   }
 
   async transformAndValidateUpdateEventTypeInput(
     inputEventType: UpdateEventTypeInput_2024_06_14,
-    userId: UserWithProfile["id"],
+    user: UserWithProfile,
     eventTypeId: number
   ) {
+    await this.validateInputLocations(user, inputEventType.locations);
+
     const transformedBody = await this.transformInputUpdateEventType(inputEventType, eventTypeId);
 
     await this.validateEventTypeInputs({
@@ -90,22 +94,15 @@ export class InputEventTypesService_2024_06_14 {
     });
 
     transformedBody.destinationCalendar &&
-      (await this.validateInputDestinationCalendar(userId, transformedBody.destinationCalendar));
+      (await this.validateInputDestinationCalendar(user.id, transformedBody.destinationCalendar));
 
     transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.validateInputUseDestinationCalendarEmail(userId));
+      (await this.validateInputUseDestinationCalendarEmail(user.id));
 
     return transformedBody;
   }
 
   transformInputCreateEventType(inputEventType: CreateEventTypeInput_2024_06_14) {
-    const defaultLocations: CreateEventTypeInput_2024_06_14["locations"] = [
-      {
-        type: "integration",
-        integration: "cal-video",
-      },
-    ];
-
     const {
       lengthInMinutes,
       lengthInMinutesOptions,
@@ -121,15 +118,23 @@ export class InputEventTypesService_2024_06_14 {
       seats,
       customName,
       useDestinationCalendarEmail,
+      disableGuests,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
+    const locationsTransformed = locations?.length ? this.transformInputLocations(locations) : undefined;
+
+    const effectiveBookingFields =
+      disableGuests !== undefined
+        ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
+        : bookingFields;
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
-      locations: this.transformInputLocations(locations || defaultLocations),
-      bookingFields: this.transformInputBookingFields(bookingFields),
+      locations: locationsTransformed,
+      bookingFields: this.transformInputBookingFields(effectiveBookingFields),
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -170,6 +175,7 @@ export class InputEventTypesService_2024_06_14 {
       seats,
       customName,
       useDestinationCalendarEmail,
+      disableGuests,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -179,11 +185,18 @@ export class InputEventTypesService_2024_06_14 {
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
+    const effectiveBookingFields =
+      disableGuests !== undefined
+        ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
+        : bookingFields;
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
-      bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
+      bookingFields: effectiveBookingFields
+        ? this.transformInputBookingFields(effectiveBookingFields)
+        : undefined,
       bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
@@ -209,6 +222,27 @@ export class InputEventTypesService_2024_06_14 {
     return eventType;
   }
 
+  getBookingFieldsWithGuestsToggled(
+    bookingFields: InputBookingField_2024_06_14[] | undefined,
+    hideGuests: boolean
+  ) {
+    const toggledGuestsBookingField: InputBookingField_2024_06_14 = { slug: "guests", hidden: hideGuests };
+    if (!bookingFields) {
+      return [toggledGuestsBookingField];
+    }
+
+    const bookingFieldsCopy = [...bookingFields];
+
+    const guestsBookingField = bookingFieldsCopy.find((field) => "slug" in field && field.slug === "guests");
+    if (guestsBookingField) {
+      Object.assign(guestsBookingField, { hidden: hideGuests });
+      return bookingFieldsCopy;
+    }
+
+    bookingFieldsCopy.push(toggledGuestsBookingField);
+    return bookingFieldsCopy;
+  }
+
   transformInputLocations(inputLocations: CreateEventTypeInput_2024_06_14["locations"]) {
     return transformLocationsApiToInternal(inputLocations);
   }
@@ -223,6 +257,7 @@ export class InputEventTypesService_2024_06_14 {
     const systemCustomNameField = systemCustomFields?.find((field) => field.type === "name");
     const systemCustomEmailField = systemCustomFields?.find((field) => field.type === "email");
     const systemCustomTitleField = systemCustomFields?.find((field) => field.name === "title");
+    const systemCustomLocationField = systemCustomFields?.find((field) => field.name === "location");
     const systemCustomNotesField = systemCustomFields?.find((field) => field.name === "notes");
     const systemCustomGuestsField = systemCustomFields?.find((field) => field.name === "guests");
     const systemCustomRescheduleReasonField = systemCustomFields?.find(
@@ -232,7 +267,7 @@ export class InputEventTypesService_2024_06_14 {
     const defaultFieldsBefore: (SystemField | CustomField)[] = [
       systemCustomNameField || systemBeforeFieldName,
       systemCustomEmailField || systemBeforeFieldEmail,
-      systemBeforeFieldLocation,
+      systemCustomLocationField || systemBeforeFieldLocation,
     ];
 
     const defaultFieldsAfter = [
@@ -273,7 +308,8 @@ export class InputEventTypesService_2024_06_14 {
       field.name !== "title" &&
       field.name !== "notes" &&
       field.name !== "guests" &&
-      field.name !== "rescheduleReason"
+      field.name !== "rescheduleReason" &&
+      field.name !== "location"
     );
   }
 
@@ -447,5 +483,43 @@ export class InputEventTypesService_2024_06_14 {
     }
 
     return;
+  }
+
+  async validateInputLocations(
+    user: UserWithProfile,
+    inputLocations: CreateEventTypeInput_2024_06_14["locations"] | undefined
+  ) {
+    await Promise.all(
+      inputLocations?.map(async (location) => {
+        if (location.type === "integration") {
+          // cal-video is global, so we can skip this check
+          if (location.integration !== "cal-video") {
+            await this.checkAppIsValidAndConnected(user, location.integration);
+          }
+        }
+      }) ?? []
+    );
+  }
+
+  async checkAppIsValidAndConnected(user: UserWithProfile, appSlug: string) {
+    const conferencingApps = ["google-meet", "office365-video", "zoom"];
+    if (!conferencingApps.includes(appSlug)) {
+      throw new BadRequestException("Invalid app, available apps are: ", conferencingApps.join(", "));
+    }
+
+    if (appSlug === "office365-video") {
+      appSlug = "msteams";
+    }
+
+    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
+
+    const foundApp = getApps(credentials, true).filter((app) => app.slug === appSlug)[0];
+
+    const appLocation = foundApp?.appData?.location;
+
+    if (!foundApp || !appLocation) {
+      throw new BadRequestException(`${appSlug} not connected.`);
+    }
+    return foundApp.credential;
   }
 }

@@ -136,6 +136,7 @@ export class OutputBookingsService_2024_08_13 {
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
+      icsUid: databaseBooking.iCalUID,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -231,6 +232,7 @@ export class OutputBookingsService_2024_08_13 {
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
+      icsUid: databaseBooking.iCalUID,
     };
 
     const bookingTransformed = plainToClass(RecurringBookingOutput_2024_08_13, booking, {
@@ -264,6 +266,7 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
+      cancellationReason: databaseBooking.cancellationReason || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -279,6 +282,7 @@ export class OutputBookingsService_2024_08_13 {
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
+      icsUid: databaseBooking.iCalUID,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -388,6 +392,7 @@ export class OutputBookingsService_2024_08_13 {
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
+      icsUid: databaseBooking.iCalUID,
     };
 
     const parsed = plainToClass(GetRecurringSeatedBookingOutput_2024_08_13, booking, {

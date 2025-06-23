@@ -1,9 +1,9 @@
 "use client";
 
-import { signOut } from "next-auth/react";
 import type { TFunction } from "i18next";
+import { signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useTransition } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
 
@@ -93,6 +93,7 @@ const OnboardingPage = (props: PageProps) => {
   const router = useRouter();
   const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
+  const [isNextStepLoading, startTransition] = useTransition();
 
   const result = stepRouteSchema.safeParse({
     ...params,
@@ -126,7 +127,9 @@ const OnboardingPage = (props: PageProps) => {
   const goToNextStep = () => {
     const nextIndex = currentStepIndex + 1;
     const newStep = steps[nextIndex];
-    router.push(`/getting-started/${stepTransform(newStep)}`);
+    startTransition(() => {
+      router.push(`/getting-started/${stepTransform(newStep)}`);
+    });
   };
 
   return (
@@ -161,9 +164,13 @@ const OnboardingPage = (props: PageProps) => {
                 {currentStep === "user-settings" && (
                   <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
                 )}
-                {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={goToNextStep} />}
+                {currentStep === "connected-calendar" && (
+                  <ConnectedCalendars nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
+                )}
 
-                {currentStep === "connected-video" && <ConnectedVideoStep nextStep={goToNextStep} />}
+                {currentStep === "connected-video" && (
+                  <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
+                )}
 
                 {currentStep === "setup-availability" && (
                   <SetupAvailability nextStep={goToNextStep} defaultScheduleId={user.defaultScheduleId} />

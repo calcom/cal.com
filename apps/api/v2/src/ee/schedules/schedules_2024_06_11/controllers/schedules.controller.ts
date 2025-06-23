@@ -1,5 +1,6 @@
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { VERSION_2024_06_14, VERSION_2024_06_11 } from "@/lib/api-versions";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -46,12 +47,7 @@ import {
     default: VERSION_2024_06_11,
   },
 })
-@ApiHeader({
-  name: "Authorization",
-  description:
-    "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-  required: true,
-})
+@ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
 export class SchedulesController_2024_06_11 {
   constructor(private readonly schedulesService: SchedulesService_2024_06_11) {}
 

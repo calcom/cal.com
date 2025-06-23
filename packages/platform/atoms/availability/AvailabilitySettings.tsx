@@ -1,17 +1,19 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
 import type {
   BulkUpdatParams,
   EventTypes,
 } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
+import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
+import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import WebSchedule, {
   ScheduleComponent as PlatformSchedule,
 } from "@calcom/features/schedules/components/Schedule";
@@ -23,7 +25,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import { EditableHeading } from "@calcom/ui/components/editable-heading";
 import { Form } from "@calcom/ui/components/form";
@@ -36,7 +38,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
-import type { AvailabilityFormValues } from "./types";
+import type { AvailabilityFormValues, scheduleClassNames } from "./types";
 
 export type Schedule = {
   id: number;
@@ -56,13 +58,7 @@ export type CustomClassNames = {
   formClassName?: string;
   timezoneSelectClassName?: string;
   subtitlesClassName?: string;
-  scheduleClassNames?: {
-    scheduleContainer?: string;
-    scheduleDay?: string;
-    dayRanges?: string;
-    timeRanges?: string;
-    labelAndSwitchContainer?: string;
-  };
+  scheduleClassNames?: scheduleClassNames;
   overridesModalClassNames?: string;
   hiddenSwitchClassname?: {
     container?: string;
@@ -86,7 +82,7 @@ type AvailabilitySettingsProps = {
     timeZone: string;
     schedule: Availability[];
   };
-  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   handleDelete: () => void;
   allowDelete?: boolean;
   allowSetToDefault?: boolean;
@@ -101,6 +97,7 @@ type AvailabilitySettingsProps = {
   customClassNames?: CustomClassNames;
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
+  onFormStateChange?: (formState: AvailabilityFormValues) => void;
   bulkUpdateModalProps?: {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -177,7 +174,7 @@ const DateOverride = ({
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
-  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
@@ -273,6 +270,7 @@ export function AvailabilitySettings({
   customClassNames,
   disableEditableHeading = false,
   enableOverrides = false,
+  onFormStateChange,
   bulkUpdateModalProps,
   allowSetToDefault = true,
   allowDelete = true,
@@ -286,6 +284,17 @@ export function AvailabilitySettings({
       schedule: schedule.availability || [],
     },
   });
+
+  const watchedValues = useWatch({
+    control: form.control,
+  });
+
+  // Trigger callback whenever the form state changes
+  useEffect(() => {
+    if (onFormStateChange && watchedValues) {
+      onFormStateChange(watchedValues as AvailabilityFormValues);
+    }
+  }, [watchedValues, onFormStateChange]);
 
   const [Shell, Schedule, TimezoneSelect] = useMemo(() => {
     return isPlatform
@@ -409,7 +418,7 @@ export function AvailabilitySettings({
                     "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
-                  <div className="flex flex-row items-center pt-5">
+                  <div className="flex flex-row items-center pt-16">
                     <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
                     {allowDelete && (
@@ -549,7 +558,11 @@ export function AvailabilitySettings({
           }}
           className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
           <div className="flex-1 flex-row xl:mr-0">
-            <div className="border-subtle mb-6 rounded-md border">
+            <div
+              className={cn(
+                "border-subtle mb-6 rounded-md border",
+                customClassNames?.scheduleClassNames?.scheduleContainer
+              )}>
               <div>
                 {typeof weekStart === "string" && (
                   <Schedule
@@ -558,7 +571,7 @@ export function AvailabilitySettings({
                       copyTime: t("copy_times_to"),
                       deleteTime: t("delete"),
                     }}
-                    className={
+                    classNames={
                       customClassNames?.scheduleClassNames ? { ...customClassNames.scheduleClassNames } : {}
                     }
                     control={form.control}

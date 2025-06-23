@@ -1,13 +1,14 @@
 import type { Prisma } from "@prisma/client";
-import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
+import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { enrichUsersWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { RoutingFormResponse } from "@calcom/lib/server/getLuckyUser";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { userSelect } from "@calcom/prisma";
@@ -50,10 +51,10 @@ type EventType = Pick<
   | "isRRWeightsEnabled"
   | "rescheduleWithSameRoundRobinHost"
   | "teamId"
+  | "includeNoShowInRRCalculation"
 >;
 
 type InputProps = {
-  req: IncomingMessage;
   eventType: EventType;
   eventTypeId: number;
   dynamicUserList: string[];
@@ -62,10 +63,12 @@ type InputProps = {
   contactOwnerEmail: string | null;
   rescheduleUid: string | null;
   routingFormResponse: RoutingFormResponse | null;
+  isPlatform: boolean;
+  hostname: string | undefined;
+  forcedSlug: string | undefined;
 };
 
-export async function loadAndValidateUsers({
-  req,
+const _loadAndValidateUsers = async ({
   eventType,
   eventTypeId,
   dynamicUserList,
@@ -74,15 +77,20 @@ export async function loadAndValidateUsers({
   contactOwnerEmail,
   rescheduleUid,
   routingFormResponse,
+  isPlatform,
+  hostname,
+  forcedSlug,
 }: InputProps): Promise<{
   qualifiedRRUsers: UsersWithDelegationCredentials;
   additionalFallbackRRUsers: UsersWithDelegationCredentials;
   fixedUsers: UsersWithDelegationCredentials;
-}> {
+}> => {
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
-    req,
+    hostname: hostname || "",
+    forcedSlug,
+    isPlatform,
     routedTeamMemberIds,
     contactOwnerEmail,
   });
@@ -120,6 +128,12 @@ export async function loadAndValidateUsers({
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
+  // Determine if users are locked
+  const containsBlockedUser = await checkIfUsersAreBlocked(users);
+
+  if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
   // map fixed users
   users = users.map((user) => ({
     ...user,
@@ -209,4 +223,6 @@ export async function loadAndValidateUsers({
     additionalFallbackRRUsers, // without qualified
     fixedUsers,
   };
-}
+};
+
+export const loadAndValidateUsers = withReporting(_loadAndValidateUsers, "loadAndValidateUsers");
