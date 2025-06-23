@@ -57,13 +57,6 @@ export class RoutingFormsService {
       query: { ...params, "cal.isBookingDryRun": "true", form: formId },
     });
 
-    if (routedUrlData?.props?.statusCode === 429) {
-      throw new HttpException(
-        routedUrlData.props.errorMessage ?? "Too Many Requests",
-        HttpStatus.TOO_MANY_REQUESTS
-      );
-    }
-
     const destination = routedUrlData?.redirect?.destination;
 
     if (!destination) {

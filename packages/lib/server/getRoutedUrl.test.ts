@@ -163,7 +163,6 @@ describe("getRoutedUrl", () => {
         form: mockSerializableForm,
         message: message,
         errorMessage: null,
-        statusCode: 200,
       },
     });
     expect(handleResponse).toHaveBeenCalledWith(
