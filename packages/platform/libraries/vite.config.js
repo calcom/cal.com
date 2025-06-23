@@ -33,6 +33,7 @@ export default defineConfig({
       dynamicRequireRoot: "../../../apps/web",
       dynamicRequireTargets: ["next-i18next.config.js"],
       ignoreDynamicRequires: true,
+      include: ["../../prisma/client/**"],
     },
     rollupOptions: {
       external: [
@@ -189,7 +190,8 @@ export default defineConfig({
       "@calcom/trpc": resolve("../../trpc"),
       "lru-cache": resolve("../../../node_modules/lru-cache/dist/cjs/index.js"),
       "@prisma/client": resolve("../../../node_modules/@prisma/client"),
-      "@calcom/prisma/client": resolve("../../../node_modules/.prisma/client"),
+      "@calcom/prisma/client": resolve("../../prisma/client"),
+      "@calcom/prisma/client/runtime/library": resolve("../../prisma/client/runtime/library.js"),
       "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
       "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
       // eslint-disable-next-line prettier/prettier
