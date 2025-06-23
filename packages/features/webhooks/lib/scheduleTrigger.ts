@@ -17,6 +17,17 @@ const SCHEDULING_TRIGGER: WebhookTriggerEvents[] = [
   WebhookTriggerEvents.MEETING_STARTED,
 ];
 
+type SLOT_TYPE = {
+  id: number;
+  uid: string;
+  userId: number;
+  eventTypeId: number;
+  slotUtcStartDate: Date;
+  slotUtcEndDate: Date;
+  releaseAt: Date;
+  isSeat: boolean;
+};
+
 const log = logger.getSubLogger({ prefix: ["[node-scheduler]"] });
 
 export async function addSubscription({
@@ -272,7 +283,7 @@ export async function scheduleReservationExpiredTrigger({
   triggerEvent,
   isDryRun = false,
 }: {
-  slot: { id: number; slotUtcEndDate: Date; slotUtcStartDate: Date; releaseAt: Date };
+  slot: SLOT_TYPE;
   subscriberUrl: string;
   subscriber: { id: string; appId: string | null };
   triggerEvent: typeof WebhookTriggerEvents.RESERVATION_EXPIRED;

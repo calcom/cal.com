@@ -115,12 +115,6 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
               releaseAt,
               isSeat: eventType.seatsPerTimeSlot !== null,
             },
-            select: {
-              id: true,
-              slotUtcStartDate: true,
-              slotUtcEndDate: true,
-              releaseAt: true,
-            },
           });
 
           const orgId = await getOrgIdFromMemberOrTeamId({ memberId: user.id, teamId });
