@@ -2,6 +2,7 @@ import { useFormContext } from "react-hook-form";
 
 import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import { EventAvailabilityTab } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type { ScheduleQueryData } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { User } from "@calcom/prisma/client";
 
@@ -58,7 +59,7 @@ const EventAvailabilityTabPlatformWrapper = ({
         readOnly: atomSchedule.readOnly,
         id: atomSchedule.id,
         timeZone: atomSchedule.timeZone,
-        schedule: atomSchedule.schedule.map((avail: any) => ({
+        schedule: atomSchedule.schedule.map((avail: ScheduleQueryData["schedule"][number]) => ({
           id: avail.id ?? null,
           startTime: new Date(avail.startTime),
           endTime: new Date(avail.endTime),
