@@ -5,6 +5,7 @@ import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { GoogleApiCacheService } from "@/modules/googleapis-cache/googleapis-cache.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
