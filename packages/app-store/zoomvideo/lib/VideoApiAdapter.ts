@@ -312,6 +312,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
       } catch (err) {
         console.error(err);
+        log.error("Zoom meeting creation failed", safeStringify({ error: err, event }));
         /* Prevents meeting creation failure when Zoom Token is expired */
         throw new Error("Unexpected error");
       }
