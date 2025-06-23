@@ -193,6 +193,12 @@ export async function handler(req: NextRequest) {
                 referenceId: scheduledNotification.sid,
               },
             });
+          } else if (scheduledNotification.emailReminderId) {
+            await prisma.workflowReminder.delete({
+              where: {
+                id: reminder.id,
+              },
+            });
           }
         } else {
           await prisma.workflowReminder.update({
