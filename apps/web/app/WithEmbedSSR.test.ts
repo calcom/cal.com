@@ -247,4 +247,65 @@ describe("withEmbedSsrAppDir", () => {
       expect(notFound).toHaveBeenCalled();
     });
   });
+
+  describe("when redirect destination is external URL, should filter embed param", () => {
+    it("should not add embed param for external HTTPS URLs", async () => {
+      const withEmbedGetSsr = withEmbedSsrAppDir(
+        getServerSidePropsFnGenerator({
+          redirectUrl: "https://external-site.com/success",
+        })
+      );
+
+      await withEmbedGetSsr(
+        getServerSidePropsContextArg({
+          embedRelatedParams: {
+            layout: "week_view",
+            embed: "namespace1",
+          },
+        })
+      ).catch(noop);
+
+      expect(redirect).toHaveBeenCalledWith("https://external-site.com/success?layout=week_view");
+    });
+
+    it("should not add embed param for external HTTP URLs", async () => {
+      const withEmbedGetSsr = withEmbedSsrAppDir(
+        getServerSidePropsFnGenerator({
+          redirectUrl: "http://wordpress-site.com/thank-you",
+        })
+      );
+
+      await withEmbedGetSsr(
+        getServerSidePropsContextArg({
+          embedRelatedParams: {
+            layout: "week_view",
+            embed: "namespace1",
+          },
+        })
+      ).catch(noop);
+
+      expect(redirect).toHaveBeenCalledWith("http://wordpress-site.com/thank-you?layout=week_view");
+    });
+
+    it("should preserve existing query params in external URLs", async () => {
+      const withEmbedGetSsr = withEmbedSsrAppDir(
+        getServerSidePropsFnGenerator({
+          redirectUrl: "https://external-site.com/success?existing=param",
+        })
+      );
+
+      await withEmbedGetSsr(
+        getServerSidePropsContextArg({
+          embedRelatedParams: {
+            layout: "week_view",
+            embed: "namespace1",
+          },
+        })
+      ).catch(noop);
+
+      expect(redirect).toHaveBeenCalledWith(
+        "https://external-site.com/success?existing=param&layout=week_view"
+      );
+    });
+  });
 });

@@ -53,3 +53,20 @@ export function isSafeUrlToLoadResourceFrom(urlString: string) {
     return hostname.split(".").slice(-2).join(".");
   }
 }
+
+export function isExternalUrl(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname;
+
+    const calDomains = [".cal.com", ".cal.dev", ".cal.eu", ".cal.qa", ".cal.local"];
+    const isCalDomain = calDomains.some((domain) => hostname.endsWith(domain));
+
+    const webappUrl = new URL(WEBAPP_URL);
+    const isWebappDomain = hostname === webappUrl.hostname;
+
+    return !isCalDomain && !isWebappDomain;
+  } catch {
+    return true;
+  }
+}

@@ -255,4 +255,78 @@ describe("withEmbedSsr", () => {
       expect(ret).toEqual({ notFound: true });
     });
   });
+
+  describe("when redirect destination is external URL, should filter embed param", () => {
+    it("should not add embed param for external HTTPS URLs", async () => {
+      const withEmbedGetSsr = withEmbedSsr(
+        getServerSidePropsFnGenerator({
+          redirectUrl: "https://external-site.com/success",
+        })
+      );
+
+      const ret = await withEmbedGetSsr(
+        getServerSidePropsContextArg({
+          embedRelatedParams: {
+            layout: "week_view",
+            embed: "namespace1",
+          },
+        })
+      );
+
+      expect(ret).toEqual({
+        redirect: {
+          destination: "https://external-site.com/success?layout=week_view",
+          permanent: false,
+        },
+      });
+    });
+
+    it("should not add embed param for external HTTP URLs", async () => {
+      const withEmbedGetSsr = withEmbedSsr(
+        getServerSidePropsFnGenerator({
+          redirectUrl: "http://wordpress-site.com/thank-you",
+        })
+      );
+
+      const ret = await withEmbedGetSsr(
+        getServerSidePropsContextArg({
+          embedRelatedParams: {
+            layout: "week_view",
+            embed: "namespace1",
+          },
+        })
+      );
+
+      expect(ret).toEqual({
+        redirect: {
+          destination: "http://wordpress-site.com/thank-you?layout=week_view",
+          permanent: false,
+        },
+      });
+    });
+
+    it("should preserve existing query params in external URLs", async () => {
+      const withEmbedGetSsr = withEmbedSsr(
+        getServerSidePropsFnGenerator({
+          redirectUrl: "https://external-site.com/success?existing=param",
+        })
+      );
+
+      const ret = await withEmbedGetSsr(
+        getServerSidePropsContextArg({
+          embedRelatedParams: {
+            layout: "week_view",
+            embed: "namespace1",
+          },
+        })
+      );
+
+      expect(ret).toEqual({
+        redirect: {
+          destination: "https://external-site.com/success?existing=param&layout=week_view",
+          permanent: false,
+        },
+      });
+    });
+  });
 });

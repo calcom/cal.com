@@ -2,6 +2,7 @@ import type { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { WebAppURL } from "@calcom/lib/WebAppURL";
+import { isExternalUrl } from "@calcom/lib/getSafeRedirectUrl";
 
 export type EmbedProps = {
   isEmbed?: boolean;
@@ -29,11 +30,20 @@ const withEmbedSsrAppDir =
       }
 
       const destinationQueryStr = destinationUrlObj.searchParams.toString();
-      // Make sure that redirect happens to /embed page and pass on embed query param as is for preserving Cal JS API namespace
-      const newDestinationUrl = `${urlPrefix}${destinationUrlObj.pathname}/embed?${
-        destinationQueryStr ? `${destinationQueryStr}&` : ""
-      }layout=${layout}&embed=${embed}`;
-      redirect(newDestinationUrl);
+
+      const isExternal = destinationUrl.search(/^(http:|https:).*/) !== -1 && isExternalUrl(destinationUrl);
+
+      if (isExternal) {
+        const newDestinationUrl = `${urlPrefix}${destinationUrlObj.pathname}?${
+          destinationQueryStr ? `${destinationQueryStr}&` : ""
+        }layout=${layout}`;
+        redirect(newDestinationUrl);
+      } else {
+        const newDestinationUrl = `${urlPrefix}${destinationUrlObj.pathname}/embed?${
+          destinationQueryStr ? `${destinationQueryStr}&` : ""
+        }layout=${layout}&embed=${embed}`;
+        redirect(newDestinationUrl);
+      }
     }
 
     if ("notFound" in ssrResponse) {
