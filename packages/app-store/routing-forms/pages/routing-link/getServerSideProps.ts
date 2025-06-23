@@ -26,7 +26,7 @@ export const getServerSideProps = async function getServerSideProps(
 
   const isEmbed = appPages[1] === "embed";
 
-  const form = await prisma.app_RoutingForms_Form.findFirst({
+  const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: formId,
     },

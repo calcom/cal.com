@@ -12,7 +12,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { test } from "./lib/fixtures";
 import {
   createHttpServer,
-  createNewEventType,
+  createNewUserEventType,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
@@ -752,7 +752,7 @@ test.describe("Text area min and max characters text", () => {
 
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
-    await createNewEventType(page, { eventTitle });
+    await createNewUserEventType(page, { eventTitle });
     await page.waitForSelector('[data-testid="event-title"]');
     await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); //fix the race condition
     await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(

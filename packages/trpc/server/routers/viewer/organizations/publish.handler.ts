@@ -22,7 +22,7 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
 
   if (!(await isOrganisationAdmin(ctx.user.id, orgId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const prevTeam = await prisma.team.findFirst({
+  const prevTeam = await prisma.team.findUnique({
     where: {
       id: orgId,
     },
