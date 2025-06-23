@@ -102,3 +102,9 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
 
 export type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
 export type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
+
+export type ModalPrerenderOptions = {
+  slotsStaleTimeMs?: number;
+  iframeForceReloadThresholdMs?: number;
+  __reuseFully?: boolean;
+};

@@ -4,6 +4,7 @@ export const EMBED_MODAL_IFRAME_SLOT_STALE_TIME = 60 * 1000; // 1 minute
 // Keep it high by default to avoid impact on loading time as it would cause a full reload of the iframe user can configure it via options.iframeForceReloadThresholdMs
 // Also full reload means that response would be resubmitted.
 export const EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
+export const EMBED_MODAL_PRERENDER_PREVENT_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 
 if (EMBED_MODAL_IFRAME_SLOT_STALE_TIME > EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS) {
   throw new Error(
