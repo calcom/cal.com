@@ -58,12 +58,14 @@ export class CreditService {
     credits,
     bookingUid,
     smsSid,
+    smsSegments,
   }: {
     userId?: number;
     teamId?: number;
     credits: number | null;
     bookingUid?: string;
     smsSid?: string;
+    smsSegments?: number;
   }) {
     return await prisma
       .$transaction(async (tx) => {
@@ -96,6 +98,7 @@ export class CreditService {
           userId: userIdToCharge,
           credits,
           creditType,
+          smsSegments,
           tx,
         });
 
@@ -289,9 +292,10 @@ export class CreditService {
     userId?: number;
     credits: number | null;
     creditType: CreditType;
+    smsSegments?: number;
     tx: PrismaTransaction;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId, userId, tx } = props;
+    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, tx } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
       await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
 
@@ -331,6 +335,7 @@ export class CreditService {
           date: new Date(),
           bookingUid,
           smsSid,
+          smsSegments,
         },
         tx
       );
@@ -592,7 +597,10 @@ export class CreditService {
   }
 
   protected async _getAllCreditsForTeam({ teamId, tx }: { teamId: number; tx: PrismaTransaction }) {
-    const creditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs({ teamId }, tx);
+    const creditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs(
+      { teamId, creditType: CreditType.MONTHLY },
+      tx
+    );
 
     const totalMonthlyCredits = await this.getMonthlyCredits(teamId);
     const totalMonthlyCreditsUsed =

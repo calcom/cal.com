@@ -10,6 +10,7 @@ import type {
   ApiSuccessResponseWithoutData,
   RoutingFormSearchParams,
 } from "@calcom/platform-types";
+import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
 
@@ -80,6 +81,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   timeZones?: Timezone[];
   isBookingDryRun?: boolean;
   eventMetaChildren?: React.ReactNode;
+  onTimeslotsLoaded?: (slots: Record<string, Slot[]>) => void;
 };
 
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {

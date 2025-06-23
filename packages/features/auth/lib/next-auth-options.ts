@@ -463,7 +463,7 @@ export const getOptions = ({
     encode: async ({ token, maxAge, secret }) => {
       log.debug("jwt:encode", safeStringify({ token, maxAge }));
       if (token?.sub && isNumber(token.sub)) {
-        const user = await prisma.user.findUnique({
+        const user = await prisma.user.findFirst({
           where: { id: Number(token.sub) },
           select: { metadata: true },
         });
@@ -514,7 +514,7 @@ export const getOptions = ({
         } as JWT;
       }
       const autoMergeIdentities = async () => {
-        const existingUser = await prisma.user.findUnique({
+        const existingUser = await prisma.user.findFirst({
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           where: { email: token.email! },
           select: {
@@ -895,7 +895,7 @@ export const getOptions = ({
           // If the email address doesn't match, check if an account already exists
           // with the new email address. If it does, for now we return an error. If
           // not, update the email of their account and log them in.
-          const userWithNewEmail = await prisma.user.findUnique({
+          const userWithNewEmail = await prisma.user.findFirst({
             where: { email: user.email },
           });
 
@@ -915,9 +915,12 @@ export const getOptions = ({
         // a new account. If an account already exists with the incoming email
         // address return an error for now.
 
-        const existingUserWithEmail = await prisma.user.findUnique({
+        const existingUserWithEmail = await prisma.user.findFirst({
           where: {
-            email: user.email,
+            email: {
+              equals: user.email,
+              mode: "insensitive",
+            },
           },
           include: {
             password: {
