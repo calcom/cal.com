@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { SlotCacheRepository } from "@calcom/features/slot-cache/slot-cache.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -44,6 +45,14 @@ async function postHandler(req: NextApiRequest) {
   const calendarServiceForCalendarCache = await getCalendar(credentialForCalendarCache);
 
   await calendarServiceForCalendarCache?.fetchAvailabilityAndSetCache?.(selectedCalendars);
+
+  const slotCacheRepo = new SlotCacheRepository();
+
+  // Get affected user IDs from credential
+  if (credential.userId) {
+    await slotCacheRepo.invalidateUserSlots(credential.userId);
+  }
+
   return { message: "ok" };
 }
 

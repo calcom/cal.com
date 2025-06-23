@@ -8,6 +8,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { SlotCacheRepository } from "@calcom/features/slot-cache/slot-cache.repository";
 import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
@@ -685,5 +686,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       logger.debug((e as Error)?.message);
     }
   }
+
+  const slotCacheRepo = new SlotCacheRepository();
+  await slotCacheRepo.invalidateEventTypeSlots(id);
+
+  if (eventType.team?.id && (hosts || users)) {
+    const teamMembers = eventType.team.members?.map((m) => m.user.id) || [];
+    await Promise.all(teamMembers.map((userId) => slotCacheRepo.invalidateUserSlots(userId)));
+  }
+
   return { eventType };
 };

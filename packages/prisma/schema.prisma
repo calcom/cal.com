@@ -203,9 +203,10 @@ model EventType {
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
-  useBookerTimezone     Boolean   @default(false)
+  useBookerTimezone     Boolean     @default(false)
   restrictionScheduleId Int?
-  restrictionSchedule   Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+  restrictionSchedule   Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+  slotCaches            SlotCache[]
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -418,6 +419,7 @@ model User {
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
+  slotCaches                     SlotCache[]
 
   @@unique([email])
   @@unique([email, username])
@@ -2387,4 +2389,21 @@ model RolePermission {
   @@index([roleId])
   // TODO: come back to this with indexs.
   @@index([action])
+}
+
+model SlotCache {
+  id          String   @id @default(cuid())
+  eventTypeId Int
+  userId      Int // Always required - cache slots per person
+  cacheKey    String // Hash of slot generation parameters
+  startDate   DateTime // UTC start of cached period  
+  endDate     DateTime // UTC end of cached period
+  slots       Json // Array of slot objects with UTC timestamps
+  createdAt   DateTime @default(now())
+
+  eventType EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventTypeId, userId, cacheKey])
+  @@map("slot_cache")
 }
