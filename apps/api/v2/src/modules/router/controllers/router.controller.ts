@@ -11,7 +11,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { Request, Response } from "express";
+import { Request } from "express";
 
 import {
   getRoutedUrl,
