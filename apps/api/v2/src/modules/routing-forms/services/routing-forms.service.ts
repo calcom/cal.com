@@ -1,6 +1,6 @@
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, HttpException, HttpStatus } from "@nestjs/common";
 import { Request } from "express";
 
 import { getRoutedUrl } from "@calcom/platform-libraries";
@@ -54,6 +54,13 @@ export class RoutingFormsService {
       req: request,
       query: { ...params, "cal.isBookingDryRun": "true", form: formId },
     });
+
+    if (routedUrlData?.props?.statusCode === 429) {
+      throw new HttpException(
+        routedUrlData.props.errorMessage ?? "Too Many Requests",
+        HttpStatus.TOO_MANY_REQUESTS
+      );
+    }
 
     const destination = routedUrlData?.redirect?.destination;
 
