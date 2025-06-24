@@ -152,7 +152,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
           bio: organizationOnboarding.bio,
           logo: organizationOnboarding.logo,
         });
-        if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data.user.email) {
+        if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data?.user.email) {
           reset();
         }
       }
