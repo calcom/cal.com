@@ -136,7 +136,14 @@ export const useEventTypeForm = ({
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
       customReplyToEmail: eventType.customReplyToEmail || null,
-      calVideoSettings: eventType.calVideoSettings,
+      calVideoSettings: eventType.calVideoSettings || {
+        disableRecordingForOrganizer: false,
+        disableRecordingForGuests: false,
+        enableAutomaticTranscription: false,
+        redirectUrlOnExit: null,
+        disableTranscriptionForGuests: false,
+        disableTranscriptionForOrganizer: false,
+      },
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
     };
@@ -320,7 +327,8 @@ export const useEventTypeForm = ({
       metadata,
       customInputs,
       assignAllTeamMembers,
-      // We don't need to send send these values to the backend
+      calVideoSettings,
+      // We don't need to send these values to the backend
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       seatsPerTimeSlotEnabled,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -378,6 +386,16 @@ export const useEventTypeForm = ({
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { availability, users, scheduleName, ...rest } = input;
+
+    // Check if Daily.co video is selected as a location
+    const hasDailyVideo = values.locations?.some((location) => location.type === "integrations:daily");
+
+    const shouldSubmit = dirtyFieldExists || hasDailyVideo;
+
+    // Get calVideoSettings from dirty values or current form values
+    const finalCalVideoSettings =
+      calVideoSettings || values.calVideoSettings || defaultValues.calVideoSettings;
+
     const payload = {
       ...rest,
       length,
@@ -405,6 +423,8 @@ export const useEventTypeForm = ({
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
+      // Always include calVideoSettings if Daily.co video is selected
+      ...(hasDailyVideo && { calVideoSettings: finalCalVideoSettings }),
     } satisfies EventTypeUpdateInput;
     // Filter out undefined values
     const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {
@@ -415,7 +435,7 @@ export const useEventTypeForm = ({
       return acc;
     }, {}) as EventTypeUpdateInput;
 
-    if (dirtyFieldExists) {
+    if (shouldSubmit) {
       onSubmit({ ...filteredPayload, id: eventType.id });
     }
   };
