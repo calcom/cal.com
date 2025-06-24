@@ -1,11 +1,12 @@
 import { useForm } from "react-hook-form";
 
-import { Schedule } from "@calcom/features/schedules";
+import Schedule from "@calcom/features/schedules/components/Schedule";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Form } from "@calcom/ui";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -50,13 +51,13 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       handleSubmit={async (values) => {
         try {
           if (defaultScheduleId) {
-            await updateSchedule.mutate({
+            await updateSchedule.mutateAsync({
               scheduleId: defaultScheduleId,
               name: t("default_schedule_name"),
               ...values,
             });
           } else {
-            await createSchedule.mutate({
+            await createSchedule.mutateAsync({
               name: t("default_schedule_name"),
               ...values,
             });

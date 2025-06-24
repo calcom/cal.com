@@ -2,7 +2,7 @@ import { describe, expect, test, vi, afterEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
-import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
+import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";
 
 const getRemainingDaysInMonth = () => {
   const today = dayjs();

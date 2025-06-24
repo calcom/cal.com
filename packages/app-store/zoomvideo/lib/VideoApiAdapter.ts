@@ -63,12 +63,16 @@ export type ZoomUserSettings = z.infer<typeof zoomUserSettingsSchema>;
 
 /** @link https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings */
 export const zoomUserSettingsSchema = z.object({
-  recording: z.object({
-    auto_recording: z.string(),
-  }),
-  schedule_meeting: z.object({
-    default_password_for_scheduled_meetings: z.string(),
-  }),
+  recording: z
+    .object({
+      auto_recording: z.string(),
+    })
+    .nullish(),
+  schedule_meeting: z
+    .object({
+      default_password_for_scheduled_meetings: z.string(),
+    })
+    .nullish(),
 });
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
@@ -308,6 +312,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
       } catch (err) {
         console.error(err);
+        log.error("Zoom meeting creation failed", safeStringify({ error: err, event }));
         /* Prevents meeting creation failure when Zoom Token is expired */
         throw new Error("Unexpected error");
       }

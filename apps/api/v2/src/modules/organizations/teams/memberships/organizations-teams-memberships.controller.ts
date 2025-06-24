@@ -1,4 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -11,12 +16,12 @@ import { OrganizationsRepository } from "@/modules/organizations/index/organizat
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
 import {
-  OrgTeamMembershipOutputDto,
   OrgTeamMembershipsOutputResponseDto,
   OrgTeamMembershipOutputResponseDto,
 } from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
+import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import {
   Controller,
   UseGuards,
@@ -33,11 +38,11 @@ import {
   UnprocessableEntityException,
   Logger,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries";
+import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
 import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
@@ -46,6 +51,9 @@ import { SkipTakePagination } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams / Memberships")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsMembershipsController {
   private logger = new Logger("OrganizationsTeamsMembershipsController");
 
@@ -76,7 +84,7 @@ export class OrganizationsTeamsMembershipsController {
     return {
       status: SUCCESS_STATUS,
       data: orgTeamMemberships.map((membership) =>
-        plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" })
+        plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" })
       ),
     };
   }
@@ -99,7 +107,7 @@ export class OrganizationsTeamsMembershipsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamMembershipOutputDto, orgTeamMembership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, orgTeamMembership, { strategy: "excludeAll" }),
     };
   }
 
@@ -123,7 +131,7 @@ export class OrganizationsTeamsMembershipsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
     };
   }
 
@@ -160,7 +168,7 @@ export class OrganizationsTeamsMembershipsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamMembershipOutputDto, updatedMembership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, updatedMembership, { strategy: "excludeAll" }),
     };
   }
 
@@ -190,7 +198,7 @@ export class OrganizationsTeamsMembershipsController {
     }
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamMembershipOutputDto, membership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
     };
   }
 }

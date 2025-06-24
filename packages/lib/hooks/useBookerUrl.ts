@@ -5,3 +5,8 @@ export const useBookerUrl = () => {
   const orgBranding = useOrgBranding();
   return orgBranding?.fullDomain ?? WEBSITE_URL ?? WEBAPP_URL;
 };
+
+export const useEmbedBookerUrl = () => {
+  const orgBranding = useOrgBranding();
+  return orgBranding?.fullDomain ?? WEBAPP_URL;
+};

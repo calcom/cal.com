@@ -20,6 +20,7 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -43,6 +44,7 @@ export const bookingSelect = {
   title: true,
   uid: true,
   metadata: true,
+  smsReminderNumber: true,
   attendees: {
     select: {
       name: true,
@@ -56,6 +58,8 @@ export const bookingSelect = {
       slug: true,
       id: true,
       schedulingType: true,
+      hideOrganizerEmail: true,
+      customReplyToEmail: true,
       hosts: {
         select: {
           user: {
@@ -133,8 +137,30 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
     return;
   }
 
+  // Check if it's a verified secondary email of the user
+  const secondaryEmail = await prisma.secondaryEmail.findFirst({
+    where: {
+      userId,
+      email,
+      emailVerified: {
+        not: null,
+      },
+    },
+  });
+
+  if (secondaryEmail) {
+    await prisma.verifiedEmail.create({
+      data: {
+        email,
+        userId,
+        teamId,
+      },
+    });
+    return;
+  }
+
   if (teamId) {
-    const team = await prisma.team.findFirst({
+    const team = await prisma.team.findUnique({
       where: {
         id: teamId,
       },
@@ -145,6 +171,12 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
               select: {
                 id: true,
                 email: true,
+                secondaryEmails: {
+                  select: {
+                    email: true,
+                    emailVerified: true,
+                  },
+                },
               },
             },
           },
@@ -162,9 +194,18 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
       throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
     }
 
-    const teamMemberEmail = team.members.filter((member) => member.user.email === email);
+    let foundTeamMember = team.members.find((member) => member.user.email === email);
 
-    if (teamMemberEmail) {
+    // Only check secondary emails if no match was found with primary email
+    if (!foundTeamMember) {
+      foundTeamMember = team.members.find((member) =>
+        member.user.secondaryEmails.some(
+          (secondary) => secondary.email === email && !!secondary.emailVerified
+        )
+      );
+    }
+
+    if (foundTeamMember) {
       await prisma.verifiedEmail.create({
         data: {
           email,
@@ -369,7 +410,7 @@ export async function isAuthorizedToAddActiveOnIds(
 ) {
   for (const id of newActiveIds) {
     if (isOrg) {
-      const newTeam = await prisma.team.findFirst({
+      const newTeam = await prisma.team.findUnique({
         where: {
           id,
         },
@@ -381,7 +422,7 @@ export async function isAuthorizedToAddActiveOnIds(
         return false;
       }
     } else {
-      const newEventType = await prisma.eventType.findFirst({
+      const newEventType = await prisma.eventType.findUnique({
         where: {
           id,
         },
@@ -464,17 +505,27 @@ async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], wo
   return remindersToDelete;
 }
 
-export async function scheduleWorkflowNotifications(
-  activeOn: number[],
-  isOrg: boolean,
-  workflowSteps: Partial<WorkflowStep>[],
-  time: number | null,
-  timeUnit: TimeUnit | null,
-  trigger: WorkflowTriggerEvents,
-  userId: number,
-  teamId: number | null,
-  alreadyScheduledActiveOnIds?: number[]
-) {
+export async function scheduleWorkflowNotifications({
+  activeOn,
+  isOrg,
+  workflowSteps,
+  time,
+  timeUnit,
+  trigger,
+  userId,
+  teamId,
+  alreadyScheduledActiveOnIds,
+}: {
+  activeOn: number[];
+  isOrg: boolean;
+  workflowSteps: Partial<WorkflowStep>[];
+  time: number | null;
+  timeUnit: TimeUnit | null;
+  trigger: WorkflowTriggerEvents;
+  userId: number;
+  teamId: number | null;
+  alreadyScheduledActiveOnIds?: number[];
+}) {
   const bookingsToScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
 
   await scheduleBookingReminders(
@@ -552,6 +603,9 @@ async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledA
         },
       },
       select: bookingSelect,
+      orderBy: {
+        startTime: "asc",
+      },
     });
     return bookingsForReminders;
   } else {
@@ -573,6 +627,9 @@ async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledA
         },
       },
       select: bookingSelect,
+      orderBy: {
+        startTime: "asc",
+      },
     });
     return bookingsForReminders;
   }
@@ -601,10 +658,6 @@ export async function scheduleBookingReminders(
 
   //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
-    // we do not have attendees phone number (user is notified about that when setting this action)
-    if (step.action == WorkflowActions.SMS_ATTENDEE || step.action == WorkflowActions.WHATSAPP_ATTENDEE)
-      return;
-
     const promiseScheduleReminders = bookings.map(async (booking) => {
       const defaultLocale = "en";
       const bookingInfo = {
@@ -631,12 +684,14 @@ export async function scheduleBookingReminders(
         endTime: booking.endTime?.toISOString(),
         title: booking.title,
         language: { locale: booking?.user?.locale || defaultLocale },
+        hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
         eventType: {
           slug: booking.eventType?.slug || "",
           schedulingType: booking.eventType?.schedulingType,
           hosts: booking.eventType?.hosts,
         },
         metadata: booking.metadata,
+        customReplyToEmail: booking.eventType?.customReplyToEmail,
       };
       if (
         step.action === WorkflowActions.EMAIL_HOST ||
@@ -682,6 +737,9 @@ export async function scheduleBookingReminders(
           template: step.template,
           sender: step.sender,
           workflowStepId: step.id,
+          verifiedAt: step?.verifiedAt ?? null,
+          userId,
+          teamId,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({
@@ -699,6 +757,7 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           userId: userId,
           teamId: teamId,
+          verifiedAt: step?.verifiedAt ?? null,
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
@@ -715,7 +774,46 @@ export async function scheduleBookingReminders(
           template: step.template,
           userId: userId,
           teamId: teamId,
+          verifiedAt: step?.verifiedAt ?? null,
         });
+      } else if (booking.smsReminderNumber) {
+        if (step.action === WorkflowActions.SMS_ATTENDEE) {
+          await scheduleSMSReminder({
+            evt: bookingInfo,
+            reminderPhone: booking.smsReminderNumber,
+            triggerEvent: trigger,
+            action: step.action,
+            timeSpan: {
+              time,
+              timeUnit,
+            },
+            message: step.reminderBody || "",
+            workflowStepId: step.id,
+            template: step.template,
+            sender: step.sender,
+            userId: userId,
+            teamId: teamId,
+            verifiedAt: step?.verifiedAt ?? null,
+          });
+        } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
+          await scheduleWhatsappReminder({
+            evt: bookingInfo,
+            reminderPhone: booking.smsReminderNumber,
+            triggerEvent: trigger,
+            action: step.action,
+            timeSpan: {
+              time,
+              timeUnit,
+            },
+            message: step.reminderBody || "",
+            workflowStepId: step.id,
+            template: step.template,
+            sender: step.sender,
+            userId: userId,
+            teamId: teamId,
+            verifiedAt: step?.verifiedAt ?? null,
+          });
+        }
       }
     });
     await Promise.all(promiseScheduleReminders);
@@ -852,7 +950,7 @@ export const getEventTypeWorkflows = async (
   return workflows.map((workflow) => ({ workflow }));
 };
 
-export function getEmailTemplateText(
+export async function getEmailTemplateText(
   template: WorkflowTemplates,
   params: { locale: string; action: WorkflowActions; timeFormat: number | null }
 ) {
@@ -860,13 +958,20 @@ export function getEmailTemplateText(
 
   const timeFormat = getTimeFormatStringFromUserTimeFormat(params.timeFormat);
 
-  let { emailBody, emailSubject } = emailReminderTemplate(true, locale, action, timeFormat);
+  let { emailBody, emailSubject } = emailReminderTemplate({
+    isEditingMode: true,
+    locale,
+    t: await getTranslation(locale ?? "en", "common"),
+    action,
+    timeFormat,
+  });
 
   if (template === WorkflowTemplates.RATING) {
     const ratingTemplate = emailRatingTemplate({
       isEditingMode: true,
       locale,
       action,
+      t: await getTranslation(locale ?? "en", "common"),
       timeFormat,
     });
 

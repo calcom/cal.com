@@ -1,4 +1,7 @@
+import type { IncomingMessage } from "http";
 import { z } from "zod";
+
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 
 export const getScheduleSchema = z
   .object({
@@ -11,7 +14,7 @@ export const getScheduleSchema = z
     // Event type slug
     eventTypeSlug: z.string().optional(),
     // invitee timezone
-    timeZone: z.string().optional(),
+    timeZone: timeZoneSchema.optional(),
     // or list of users (for dynamic events)
     usernameList: z.array(z.string()).min(1).optional(),
     debug: z.boolean().optional(),
@@ -31,6 +34,7 @@ export const getScheduleSchema = z
     _bypassCalendarBusyTimes: z.boolean().optional(),
     _shouldServeCache: z.boolean().optional(),
     routingFormResponseId: z.number().optional(),
+    queuedFormResponseId: z.string().nullish(),
     email: z.string().nullish(),
   })
   .transform((val) => {
@@ -74,3 +78,15 @@ export type Slot = {
 export const removeSelectedSlotSchema = z.object({
   uid: z.string().nullable(),
 });
+
+export interface ContextForGetSchedule extends Record<string, unknown> {
+  req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
+}
+
+export type TGetScheduleInputSchema = z.infer<typeof getScheduleSchema>;
+export const ZGetScheduleInputSchema = getScheduleSchema;
+
+export type GetScheduleOptions = {
+  ctx?: ContextForGetSchedule;
+  input: TGetScheduleInputSchema;
+};

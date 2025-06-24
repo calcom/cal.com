@@ -7,12 +7,12 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
@@ -55,6 +55,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     id: true,
     title: true,
     description: true,
+    interfaceLanguage: true,
     eventName: true,
     slug: true,
     isInstantEvent: true,
@@ -81,6 +82,9 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     price: true,
     currency: true,
     seatsPerTimeSlot: true,
+    disableCancelling: true,
+    disableRescheduling: true,
+    allowReschedulingCancelledBookings: true,
     seatsShowAvailabilityCount: true,
     bookingFields: true,
     teamId: true,
@@ -94,6 +98,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
         name: true,
         logoUrl: true,
         theme: true,
+        hideTeamProfileLink: true,
         parent: {
           select: {
             slug: true,
@@ -139,6 +144,11 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
         timeZone: true,
       },
     },
+    periodType: true,
+    periodDays: true, // days if limiting future bookings
+    periodEndDate: true, //end date limit by range
+    periodStartDate: true, //start date limit by range
+    periodCountCalendarDays: true, // count calendar days? Or only business days based on periodDays
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
@@ -211,24 +221,26 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
+export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
-  org: string | null,
+  orgSlug: string | null,
   prisma: PrismaClient,
   fromRedirectOfNonOrgLink: boolean,
   currentUserId?: number,
-  fetchAllUsers = false
+  fetchAllUsers = false,
+  orgId?: number
 ) => {
   const usernameList = getUsernameList(username);
-  const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
+  const orgQuery = orgSlug ? getSlugOrRequestedSlug(orgSlug) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
     const usersInOrgContext = await UserRepository.findUsersByUsername({
       usernameList,
-      orgSlug: org,
+      orgSlug: orgSlug,
     });
     const users = usersInOrgContext;
 
@@ -256,18 +268,27 @@ export const getPublicEvent = async (
     const disableBookingTitle = !defaultEvent.isDynamic;
     const unPublishedOrgUser = users.find((user) => user.profile?.organization?.slug === null);
 
-    let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined;
-    if (org) {
-      orgDetails = await prisma.team.findFirstOrThrow({
-        where: {
-          slug: org,
-        },
-        select: {
-          logoUrl: true,
-          name: true,
-        },
-      });
-    }
+    const orgDetails: Pick<Team, "logoUrl" | "name"> | undefined = orgId
+      ? await prisma.team.findUniqueOrThrow({
+          where: {
+            id: orgId,
+          },
+          select: {
+            logoUrl: true,
+            name: true,
+          },
+        })
+      : orgSlug
+      ? await prisma.team.findFirstOrThrow({
+          where: {
+            slug: orgSlug,
+          },
+          select: {
+            logoUrl: true,
+            name: true,
+          },
+        })
+      : undefined;
 
     return {
       ...defaultEvent,
@@ -298,17 +319,18 @@ export const getPublicEvent = async (
           ? {
               image: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
               name: orgDetails?.name,
-              username: org,
+              username: orgSlug,
             }
           : {}),
       },
       entity: {
         considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
         fromRedirectOfNonOrgLink,
-        orgSlug: org,
+        orgSlug: orgSlug,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
         teamSlug: null,
         logoUrl: null,
+        hideProfileLink: false,
       },
       isInstantEvent: false,
       instantMeetingParameters: [],
@@ -364,9 +386,11 @@ export const getPublicEvent = async (
           some: {
             username,
             isPlatformManaged: false,
-            movedToProfile: {
-              organization: {
-                isPlatform: true,
+            profiles: {
+              some: {
+                organization: {
+                  isPlatform: true,
+                },
               },
             },
           },
@@ -407,7 +431,7 @@ export const getPublicEvent = async (
     (await getOwnerFromUsersArray(prisma, event.id));
 
   if (users === null) {
-    throw new Error("Event has no owner");
+    throw new Error(`EventType ${event.id} has no owner or users.`);
   }
   //In case the event schedule is not defined ,use the event owner's default schedule
   if (!eventWithUserProfiles.schedule && eventWithUserProfiles.owner?.defaultScheduleId) {
@@ -423,19 +447,28 @@ export const getPublicEvent = async (
     eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
   }
 
-  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null;
-  if (org) {
-    orgDetails = await prisma.team.findFirst({
-      where: {
-        slug: org,
-        parentId: null,
-      },
-      select: {
-        logoUrl: true,
-        name: true,
-      },
-    });
-  }
+  const orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null = orgId
+    ? await prisma.team.findUnique({
+        where: {
+          id: orgId,
+        },
+        select: {
+          logoUrl: true,
+          name: true,
+        },
+      })
+    : orgSlug
+    ? await prisma.team.findFirst({
+        where: {
+          slug: orgSlug,
+          parentId: null,
+        },
+        select: {
+          logoUrl: true,
+          name: true,
+        },
+      })
+    : undefined;
 
   let showInstantEventConnectNowModal = eventWithUserProfiles.isInstantEvent;
 
@@ -470,6 +503,7 @@ export const getPublicEvent = async (
   if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
     users = [];
   }
+
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -492,13 +526,14 @@ export const getPublicEvent = async (
         (eventWithUserProfiles.team?.slug === null ||
           eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
           eventWithUserProfiles.team?.parent?.slug === null),
-      orgSlug: org,
+      orgSlug: orgSlug,
       teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
       name:
         (eventWithUserProfiles.owner?.profile?.organization?.name ||
           eventWithUserProfiles.team?.parent?.name ||
           eventWithUserProfiles.team?.name) ??
         null,
+      hideProfileLink: eventWithUserProfiles.team?.hideTeamProfileLink ?? false,
       ...(orgDetails
         ? {
             logoUrl: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
@@ -512,6 +547,10 @@ export const getPublicEvent = async (
     instantMeetingParameters: eventWithUserProfiles.instantMeetingParameters,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
+    disableCancelling: event.disableCancelling,
+    disableRescheduling: event.disableRescheduling,
+    allowReschedulingCancelledBookings: event.allowReschedulingCancelledBookings,
+    interfaceLanguage: event.interfaceLanguage,
   };
 };
 

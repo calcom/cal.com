@@ -5,7 +5,7 @@ import { WorkflowRepository } from "../repository/workflow";
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
   static async deleteWorkflowRemindersOfRemovedTeam(teamId: number) {
-    const team = await prisma.team.findFirst({
+    const team = await prisma.team.findUnique({
       where: {
         id: teamId,
       },

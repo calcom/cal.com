@@ -11,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 export type EventAvailabilityTabWebWrapperProps = {
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
-  user?: RouterOutputs["viewer"]["me"];
+  user?: RouterOutputs["viewer"]["me"]["get"];
   teamMembers: TeamMembers;
 };
 
@@ -22,6 +22,7 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const scheduleId = formMethods.watch("schedule");
+  const restrictionScheduleId = formMethods.watch("restrictionScheduleId");
 
   const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType: props.eventType,
@@ -39,6 +40,15 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
       { enabled: !!scheduleId || (!props.isTeamEvent && !!props.user?.defaultScheduleId) }
     );
 
+  const { isPending: isRestrictionSchedulePending, data: restrictionScheduleQueryData } =
+    trpc.viewer.availability.schedule.get.useQuery(
+      {
+        scheduleId: restrictionScheduleId || undefined,
+        isManagedEventType: isManagedEventType || isChildrenManagedEventType,
+      },
+      { enabled: !!restrictionScheduleId }
+    );
+
   const { data: schedulesQueryData, isPending: isSchedulesPending } =
     trpc.viewer.availability.list.useQuery(undefined);
 
@@ -51,7 +61,10 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
       isSchedulesPending={isSchedulesPending}
       isSchedulePending={isSchedulePending}
       scheduleQueryData={scheduleQueryData}
+      restrictionScheduleQueryData={restrictionScheduleQueryData}
+      isRestrictionSchedulePending={isRestrictionSchedulePending}
       editAvailabilityRedirectUrl={`/availability/${scheduleQueryData?.id}`}
+      restrictionScheduleRedirectUrl={`/availability/${restrictionScheduleQueryData?.id}`}
       hostSchedulesQuery={hostSchedulesQuery}
     />
   );

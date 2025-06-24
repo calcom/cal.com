@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
 import { cookies } from "next/headers";
@@ -21,14 +22,14 @@ const helpscoutRequestBodySchema = z.object({
  * API for Helpscout to retrieve key information about a user from a ticket
  * Note: HelpScout expects a JSON with a `html` prop to show its content as HTML
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const hsSignature = request.headers.get("x-helpscout-signature");
   if (!hsSignature) return NextResponse.json({ message: "Missing signature" }, { status: 400 });
 
   if (!process.env.CALENDSO_ENCRYPTION_KEY)
     return NextResponse.json({ message: "Missing encryption key" }, { status: 500 });
 
-  const legacyRequest = buildLegacyRequest(headers(), cookies());
+  const legacyRequest = buildLegacyRequest(await headers(), await cookies());
 
   // Get the raw request body
   const rawBody = await getRawBody(legacyRequest);
@@ -94,3 +95,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
+
+export const POST = defaultResponderForAppDir(postHandler);

@@ -1,5 +1,14 @@
 # @calcom/embed-react
 
+## 1.5.3
+
+### Patch Changes
+
+- Added react-19 as peer dependency
+- Updated dependencies
+  - @calcom/embed-core@1.5.3
+  - @calcom/embed-snippet@1.3.3
+
 ## 1.5.2
 
 ### Patch Changes

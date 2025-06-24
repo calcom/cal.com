@@ -208,7 +208,7 @@ export class ConnectedCalendar {
 class DestinationCalendar {
   @IsInt()
   @ApiProperty()
-  id!: number;
+  id!: number | string;
 
   @IsString()
   @ApiProperty()

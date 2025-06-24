@@ -102,3 +102,13 @@ export type LocalRouteWithRaqbStates = LocalRoute & {
 };
 
 export type EditFormRoute = LocalRouteWithRaqbStates | GlobalRoute;
+
+export type RoutingFormWithResponseCount = RoutingForm & {
+  team: {
+    slug: Team["slug"];
+    name: Team["name"];
+  } | null;
+  _count: {
+    responses: number;
+  };
+};

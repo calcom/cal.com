@@ -6,6 +6,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
+import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -21,10 +23,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
-  const org = isValidOrgDomain ? currentOrgDomain : null;
-
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
 
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
@@ -51,6 +50,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
               id: true,
               slug: true,
               hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
         },
@@ -73,13 +77,16 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   if (hashedLink.eventType.team) {
     name = hashedLink.eventType.team.slug || "";
-    hideBranding = hashedLink.eventType.team.hideBranding;
+    hideBranding = shouldHideBrandingForTeamEvent({
+      eventTypeId: hashedLink.eventTypeId,
+      team: hashedLink.eventType.team,
+    });
   } else {
     if (!username) {
       return notFound;
     }
 
-    if (!org) {
+    if (!orgSlug) {
       const redirect = await getTemporaryOrgRedirect({
         slugs: [username],
         redirectType: RedirectType.User,
@@ -96,14 +103,17 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
     const [user] = await UserRepository.findUsersByUsername({
       usernameList: [name],
-      orgSlug: org,
+      orgSlug: orgSlug,
     });
 
     if (!user) {
       return notFound;
     }
 
-    hideBranding = user.hideBranding;
+    hideBranding = shouldHideBrandingForUserEvent({
+      eventTypeId: hashedLink.eventTypeId,
+      owner: user,
+    });
   }
 
   let booking: GetBookingType | null = null;
@@ -113,15 +123,17 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
 
-  // We use this to both prefetch the query on the server,
-  // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
-    username: name,
-    eventSlug: slug,
-    isTeamEvent,
-    org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-  });
+  const eventData = await EventRepository.getPublicEvent(
+    {
+      username: name,
+      eventSlug: slug,
+      isTeamEvent,
+      orgSlug,
+      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+      orgId: session?.user?.org?.id ?? session?.user?.profile?.organizationId ?? undefined,
+    },
+    session?.user?.id
+  );
 
   if (!eventData) {
     return notFound;
@@ -140,7 +152,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       booking,
       user: name,
       slug,
-      trpcState: ssr.dehydrate(),
       isBrandingHidden: hideBranding,
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.

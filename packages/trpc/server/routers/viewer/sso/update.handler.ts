@@ -3,7 +3,7 @@ import { canAccess, samlProductID, samlTenantID, tenantPrefix } from "@calcom/fe
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
 
 type UpdateOptions = {

@@ -10,6 +10,7 @@ import { expect, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -426,6 +427,18 @@ export async function expectBookingToBeInDatabase(
   expect(actualBooking?.references).toEqual(
     expect.arrayContaining((references || []).map((reference) => expect.objectContaining(reference)))
   );
+}
+
+export async function expectBookingTrackingToBeInDatabase(tracking: Tracking, uid?: string) {
+  const actualBooking = await prismaMock.booking.findUnique({
+    where: {
+      uid,
+    },
+    select: {
+      tracking: true,
+    },
+  });
+  expect(actualBooking?.tracking).toEqual(expect.objectContaining(tracking));
 }
 
 export function expectSMSToBeTriggered({ sms, toNumber }: { sms: Fixtures["sms"]; toNumber: string }) {
@@ -1179,6 +1192,7 @@ export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
 
 type ExpectedForSuccessfulCalendarEventCreationInCalendar = {
   calendarId?: string | null;
+  calendarIdUsingFallbackOfFirstCalendarCredential?: string | null;
   /**
    * explciityl set to null if you don't want to match on videoCallUrl
    */
@@ -1195,35 +1209,60 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
 ) {
   const expecteds = expected instanceof Array ? expected : [expected];
   expect(calendarMock.createEventCalls.length).toBe(expecteds.length);
+
   for (let i = 0; i < calendarMock.createEventCalls.length; i++) {
     const expected = expecteds[i];
     const createEventCall = calendarMock.createEventCalls[i];
+
     const { credential } = createEventCall.calendarServiceConstructorArgs;
     const { calEvent } = createEventCall.args;
+
     if (expected.credential) {
       expect(credential).toEqual(expect.objectContaining(expected.credential));
     }
-    expect(calEvent).toEqual(
-      expect.objectContaining({
-        destinationCalendar: expected.calendarId
-          ? [
-              expect.objectContaining({
-                externalId: expected.calendarId,
-              }),
-            ]
-          : expected.destinationCalendars
-          ? expect.arrayContaining(expected.destinationCalendars.map((cal) => expect.objectContaining(cal)))
-          : null,
 
-        ...(expected.videoCallUrl !== null
-          ? {
-              videoCallData: expect.objectContaining({
-                url: expected.videoCallUrl,
-              }),
-            }
-          : {}),
-      })
-    );
+    if (expected.calendarId) {
+      expect(calEvent).toEqual(
+        expect.objectContaining({
+          destinationCalendar: [
+            expect.objectContaining({
+              externalId: expected.calendarId,
+            }),
+          ],
+        })
+      );
+    } else if (expected.destinationCalendars) {
+      expect(calEvent).toEqual(
+        expect.objectContaining({
+          destinationCalendar: expected.destinationCalendars
+            ? expect.arrayContaining(expected.destinationCalendars.map((cal) => expect.objectContaining(cal)))
+            : null,
+        })
+      );
+    } else if (expected.calendarIdUsingFallbackOfFirstCalendarCredential) {
+      // In case of fallback, there is no destinationCalendar set
+      expect(calEvent).toEqual(
+        expect.objectContaining({
+          destinationCalendar: null,
+        })
+      );
+    } else {
+      expect(calEvent).toEqual(
+        expect.objectContaining({
+          destinationCalendar: null,
+        })
+      );
+    }
+
+    if (expected.videoCallUrl !== null) {
+      expect(calEvent).toEqual(
+        expect.objectContaining({
+          videoCallData: expect.objectContaining({
+            url: expected.videoCallUrl,
+          }),
+        })
+      );
+    }
   }
 }
 

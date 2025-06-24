@@ -3,7 +3,7 @@ import type { z } from "zod";
 
 import type { EventTypeFormMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { ButtonProps } from "@calcom/ui";
+import type { ButtonProps } from "@calcom/ui/components/button";
 
 export type IntegrationOAuthCallbackState = {
   returnTo?: string;
@@ -22,7 +22,7 @@ export type CredentialOwner = {
   readOnly?: boolean;
 };
 
-export type EventTypeAppCardApp = RouterOutputs["viewer"]["integrations"]["items"][number] & {
+export type EventTypeAppCardApp = RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
   credentialOwner?: CredentialOwner;
   credentialIds?: number[];
 };

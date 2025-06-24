@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuid } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import type { PrismaClient } from "@calcom/prisma";
@@ -41,7 +42,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   // If this is a seated event then don't reserve a slot
   if (eventType.seatsPerTimeSlot) {
     // Check to see if this is the last attendee
-    const bookingWithAttendees = await prisma.booking.findFirst({
+    const bookingWithAttendees = await prisma.booking.findUnique({
       where: { uid: bookingUid },
       select: { attendees: true },
     });
@@ -99,7 +100,18 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
       });
     }
   }
-  res?.setHeader("Set-Cookie", serialize("uid", uid, { path: "/", sameSite: "lax" }));
+  // We need this cookie to be accessible from embeds where the booking flow is displayed within an iframe on a different origin.
+  // For third‑party iframe contexts (embeds on other sites), browsers require SameSite=None and Secure to make the cookie available.
+  // For local development on http://localhost we fall back to SameSite=Lax to avoid requiring https during development.
+  const useSecureCookies = WEBAPP_URL.startsWith("https://");
+  res?.setHeader(
+    "Set-Cookie",
+    serialize("uid", uid, {
+      path: "/",
+      sameSite: useSecureCookies ? "none" : "lax",
+      secure: useSecureCookies,
+    })
+  );
   return {
     uid: uid,
   };

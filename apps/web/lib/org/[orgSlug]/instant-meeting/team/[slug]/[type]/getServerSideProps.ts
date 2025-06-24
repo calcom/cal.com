@@ -1,9 +1,12 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
+import { EventRepository } from "@calcom/lib/server/repository/event";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -26,6 +29,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: {
       id: true,
       hideBranding: true,
+      parent: {
+        select: {
+          hideBranding: true,
+        },
+      },
     },
   });
 
@@ -35,19 +43,26 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  const org = isValidOrgDomain ? currentOrgDomain : null;
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+  if (!orgSlug) {
+    return {
+      notFound: true,
+    } as const;
+  }
+  const session = await getServerSession({ req: context.req });
+  const eventData = await EventRepository.getPublicEvent(
+    {
+      username: teamSlug,
+      eventSlug: meetingSlug,
+      isTeamEvent: true,
+      orgSlug,
+      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+      orgId: session?.user?.org?.id ?? session?.user?.profile?.organizationId ?? undefined,
+    },
+    session?.user?.id
+  );
 
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
-  const eventData = await ssr.viewer.public.event.fetch({
-    username: teamSlug,
-    eventSlug: meetingSlug,
-    isTeamEvent: true,
-    org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-  });
-
-  if (!eventData || !org) {
+  if (!eventData) {
     return {
       notFound: true,
     } as const;
@@ -67,8 +82,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,
-      trpcState: ssr.dehydrate(),
-      isBrandingHidden: team?.hideBranding,
+      isBrandingHidden: shouldHideBrandingForTeamEvent({
+        eventTypeId: eventData.id,
+        team,
+      }),
       themeBasis: null,
     },
   };
