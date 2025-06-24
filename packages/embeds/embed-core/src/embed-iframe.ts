@@ -595,7 +595,7 @@ function main() {
   }
 
   const willSlotsBeFetched = url.searchParams.get("cal.skipSlotsFetch") !== "true";
-  log(`cal.skipSlotsFetch is ${willSlotsBeFetched ? "false" : "true"} - Slots will be fetched`);
+  log(`Slots will ${willSlotsBeFetched ? "" : "NOT "}be fetched`);
 
   window.addEventListener("message", (e) => {
     const data: Message = e.data;
