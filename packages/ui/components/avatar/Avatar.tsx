@@ -2,6 +2,7 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import { Provider as TooltipPrimitiveProvider } from "@radix-ui/react-tooltip";
 import { cva } from "class-variance-authority";
 import Link from "next/link";
+import { memo } from "react";
 
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import classNames from "@calcom/ui/classNames";
@@ -67,7 +68,7 @@ const avatarClasses = cva(
   }
 );
 
-export function Avatar(props: AvatarProps) {
+export const Avatar = memo(function Avatar(props: AvatarProps) {
   const { imageSrc, size = "md", alt, title, href, indicator } = props;
   const avatarClass = avatarClasses({ size, shape: props.shape });
   const rootClass = classNames("aspect-square rounded-full", avatarClass);
@@ -113,4 +114,4 @@ export function Avatar(props: AvatarProps) {
   ) : (
     <>{avatar}</>
   );
-}
+});

@@ -1,3 +1,5 @@
+import { useMemo, memo } from "react";
+
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
@@ -36,36 +38,47 @@ const indicatorBySize = {
   xl: "h-10 w-10", // 96px
 } as const;
 
-function OrganizationIndicator({
+const OrganizationIndicator = memo(function OrganizationIndicator({
   size,
   organization,
   user,
 }: Pick<UserAvatarProps, "size" | "user"> & { organization: Organization }) {
   const indicatorSize = size && indicatorBySize[size];
+  const organizationAvatarSrc = useMemo(
+    () => getPlaceholderAvatar(organization.logoUrl, organization.slug),
+    [organization.logoUrl, organization.slug]
+  );
+
   return (
     <div className={classNames("absolute bottom-0 right-0 z-10", indicatorSize)}>
       <img
         data-testid="organization-logo"
-        src={getPlaceholderAvatar(organization.logoUrl, organization.slug)}
+        src={organizationAvatarSrc}
         alt={user.username || ""}
         className="flex h-full items-center justify-center rounded-full"
       />
     </div>
   );
-}
+});
 
 /**
  * It is aware of the user's organization to correctly show the avatar from the correct URL
  */
-export function UserAvatar(props: UserAvatarProps) {
-  const { user, previewSrc = getUserAvatarUrl(user), noOrganizationIndicator, ...rest } = props;
+export const UserAvatar = memo(function UserAvatar(props: UserAvatarProps) {
+  const { user, previewSrc, noOrganizationIndicator, ...rest } = props;
+
+  const avatarSrc = useMemo(() => {
+    return previewSrc ?? getUserAvatarUrl(user);
+  }, [previewSrc, user.avatarUrl]);
+
   const organization = user.profile?.organization ?? null;
-  const indicator =
-    organization && !noOrganizationIndicator ? (
+  const indicator = useMemo(() => {
+    return organization && !noOrganizationIndicator ? (
       <OrganizationIndicator size={props.size} organization={organization} user={props.user} />
     ) : (
       props.indicator
     );
+  }, [organization, noOrganizationIndicator, props.size, props.user, props.indicator]);
 
-  return <Avatar {...rest} alt={user.name || "Nameless User"} imageSrc={previewSrc} indicator={indicator} />;
-}
+  return <Avatar {...rest} alt={user.name || "Nameless User"} imageSrc={avatarSrc} indicator={indicator} />;
+});
