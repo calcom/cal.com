@@ -36,6 +36,12 @@ interface GoogleCalError extends Error {
   code?: number;
 }
 
+// Type for the comparison result to pass sequence information
+interface EventComparisonResult {
+  isAttendeeOnlyUpdate: boolean;
+  currentSequence?: number;
+}
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
@@ -334,7 +340,11 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
+  async updateEvent(
+    uid: string,
+    event: CalendarServiceEvent,
+    externalCalendarId: string
+  ): Promise<NewCalendarEventType> {
     const calendar = await this.authedCalendar();
 
     const selectedCalendar =
@@ -343,17 +353,23 @@ export default class GoogleCalendarService implements Calendar {
         : undefined) || "primary";
 
     try {
-      // Determine if this is likely an attendee-only update
-      const isAttendeeUpdate = await this.isAttendeeOnlyUpdate(uid, event, selectedCalendar, calendar);
+      // Determine if this is likely an attendee-only update and get sequence info
+      const comparisonResult = await this.compareEventForUpdateType(uid, event, selectedCalendar, calendar);
 
-      if (isAttendeeUpdate) {
+      if (comparisonResult.isAttendeeOnlyUpdate) {
         // Patch method to avoid duplicate event notifications
         this.log.debug("Detected attendee-only update, using patch method to prevent duplicates", {
           eventId: uid,
           attendeeCount: event.attendees?.length || 0,
         });
 
-        return await this.patchEventAttendees(uid, event, selectedCalendar, calendar);
+        return await this.patchEventAttendees(
+          uid,
+          event,
+          selectedCalendar,
+          calendar,
+          comparisonResult.currentSequence
+        );
       } else {
         // Traditional update method for comprehensive changes
         this.log.debug("Detected full event update, using full event update method", {
@@ -371,12 +387,12 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  private async isAttendeeOnlyUpdate(
+  private async compareEventForUpdateType(
     uid: string,
     newEvent: CalendarServiceEvent,
     calendarId: string,
     calendar: calendar_v3.Calendar
-  ): Promise<boolean> {
+  ): Promise<EventComparisonResult> {
     try {
       // Fetch the current event from Google Calendar to compare
       const currentEventResponse = await calendar.events.get({
@@ -388,28 +404,18 @@ export default class GoogleCalendarService implements Calendar {
       if (!currentEvent) {
         // If we can't fetch the current event, default to full update for safety
         this.log.warn("Could not fetch current event for comparison, defaulting to full update", { uid });
-        return false;
+        return { isAttendeeOnlyUpdate: false };
       }
 
       // Compare key properties to determine if only attendees have changed
       const titleChanged = currentEvent.summary !== newEvent.title;
       const descriptionChanged = currentEvent.description !== newEvent.calendarDescription;
 
-      // Time comparison with tolerance for timezone handling
-      const currentStart = currentEvent.start?.dateTime;
-      const newStart = newEvent.startTime;
-      const timeChanged =
-        currentStart &&
-        newStart &&
-        Math.abs(new Date(currentStart).getTime() - new Date(newStart).getTime()) > 60000; // 1 minute tolerance
+      // Enhanced time comparison - handle both dateTime and date fields
+      const timeChanged = this.hasTimeChanged(currentEvent, newEvent);
 
-      const currentLocation = currentEvent.location || "";
-      const newLocation = getLocation(newEvent) || "";
-      const rawNewLocation = newEvent.location || "";
-      // Detect Google Meet without relying on providerName conversion
-      const isGoogleMeetLocation =
-        rawNewLocation === MeetLocationType || currentLocation.includes("meet.google.com");
-      const locationChanged = !isGoogleMeetLocation && currentLocation !== newLocation;
+      // Enhanced location comparison
+      const locationChanged = this.hasLocationChanged(currentEvent, newEvent);
 
       // If any core event properties changed, this is a full update
       if (titleChanged || descriptionChanged || timeChanged || locationChanged) {
@@ -419,34 +425,117 @@ export default class GoogleCalendarService implements Calendar {
           timeChanged,
           locationChanged,
         });
-        return false;
+        return { isAttendeeOnlyUpdate: false };
       }
 
       this.log.debug("Only attendee changes detected, will use patch method");
-      return true;
+      return {
+        isAttendeeOnlyUpdate: true,
+        currentSequence: currentEvent.sequence || 0,
+      };
     } catch (error) {
       this.log.warn("Error determining update type, defaulting to full update", { error, uid });
-      return false;
+      return { isAttendeeOnlyUpdate: false };
     }
+  }
+
+  private hasTimeChanged(currentEvent: calendar_v3.Schema$Event, newEvent: CalendarServiceEvent): boolean {
+    // Handle both dateTime and date fields for all-day events
+    const currentStart = currentEvent.start?.dateTime || currentEvent.start?.date;
+    const currentEnd = currentEvent.end?.dateTime || currentEvent.end?.date;
+    const newStart = newEvent.startTime;
+    const newEnd = newEvent.endTime;
+
+    if (!currentStart || !currentEnd || !newStart || !newEnd) {
+      return true; // If we can't compare, assume time changed
+    }
+
+    // For all-day events, do date comparison only
+    if (currentEvent.start?.date && currentEvent.end?.date) {
+      // Current event has date fields, so its an all-day event
+      // Compare dates directly
+      const currentStartDate = currentEvent.start.date;
+      const currentEndDate = currentEvent.end.date;
+      const newStartDate = dayjs(newStart).format("YYYY-MM-DD");
+      const newEndDate = dayjs(newEnd).format("YYYY-MM-DD");
+
+      this.log.debug("Comparing all-day event dates", {
+        currentStartDate,
+        currentEndDate,
+        newStartDate,
+        newEndDate,
+        startChanged: currentStartDate !== newStartDate,
+        endChanged: currentEndDate !== newEndDate,
+      });
+
+      return currentStartDate !== newStartDate || currentEndDate !== newEndDate;
+    }
+
+    // For timed events, compare epoch timestamps with tolerance
+    const currentStartTime = new Date(currentStart).getTime();
+    const currentEndTime = new Date(currentEnd).getTime();
+    const newStartTime = new Date(newStart).getTime();
+    const newEndTime = new Date(newEnd).getTime();
+
+    const tolerance = 10000; // 10 seconds
+
+    return (
+      Math.abs(currentStartTime - newStartTime) > tolerance ||
+      Math.abs(currentEndTime - newEndTime) > tolerance
+    );
+  }
+
+  private hasLocationChanged(
+    currentEvent: calendar_v3.Schema$Event,
+    newEvent: CalendarServiceEvent
+  ): boolean {
+    const currentLocation = currentEvent.location || "";
+    const newLocation = getLocation(newEvent) || "";
+    const rawNewLocation = newEvent.location || "";
+
+    // Enhanced Google Meet detection
+    const isGoogleMeetLocation = this.isGoogleMeetLocation(rawNewLocation, currentLocation);
+
+    // If its a Google Meet location, don't consider it a location change
+    return !isGoogleMeetLocation && currentLocation !== newLocation;
+  }
+
+  private isGoogleMeetLocation(newLocation: string, currentLocation: string): boolean {
+    // Check if new location is Google Meet type
+    if (newLocation === MeetLocationType) {
+      return true;
+    }
+
+    // Check if current or new location contains Google Meet patterns
+    const meetPatterns = [
+      "meet.google.com",
+      "meet.google.com/",
+      "https://meet.google.com",
+      "http://meet.google.com",
+    ];
+
+    return meetPatterns.some((pattern) => currentLocation.includes(pattern) || newLocation.includes(pattern));
   }
 
   private async patchEventAttendees(
     uid: string,
     event: CalendarServiceEvent,
     calendarId: string,
-    calendar: calendar_v3.Calendar
-  ): Promise<any> {
+    calendar: calendar_v3.Calendar,
+    currentSequence?: number
+  ): Promise<NewCalendarEventType> {
     const newAttendees = this.getAttendees({ event, hostExternalCalendarId: calendarId });
     const patchPayload: Partial<calendar_v3.Schema$Event> = {
       attendees: newAttendees,
-      // Update sequence number
-      sequence: (event as any).sequence ? (event as any).sequence + 1 : 1,
+      // Use sequence from the current event and increment it
+      sequence: currentSequence ? currentSequence + 1 : 1,
     };
 
     this.log.debug("Patching Google Calendar event attendees", {
       eventId: uid,
       attendeeCount: newAttendees.length,
       calendarId,
+      sequence: patchPayload.sequence,
     });
 
     const patchedEvent = await calendar.events.patch({
@@ -462,30 +551,8 @@ export default class GoogleCalendarService implements Calendar {
       patchedEventId: patchedEvent.data.id,
     });
 
-    if (patchedEvent.data.id && patchedEvent.data.hangoutLink && event.location === MeetLocationType) {
-      await this.updateEventWithHangoutLink(
-        patchedEvent.data.id,
-        patchedEvent.data.hangoutLink,
-        event,
-        calendarId,
-        calendar
-      );
-
-      return {
-        uid: "",
-        ...patchedEvent.data,
-        id: patchedEvent.data.id,
-        additionalInfo: {
-          hangoutLink: patchedEvent.data.hangoutLink,
-        },
-        type: "google_calendar",
-        password: "",
-        url: "",
-        iCalUID: patchedEvent.data.iCalUID,
-      };
-    }
-
-    return patchedEvent.data;
+    // Return consistent NewCalendarEventType structure
+    return this.formatEventResponse(patchedEvent.data, event, calendarId, calendar);
   }
 
   private async fullEventUpdate(
@@ -493,7 +560,7 @@ export default class GoogleCalendarService implements Calendar {
     event: CalendarServiceEvent,
     calendarId: string,
     calendar: calendar_v3.Calendar
-  ): Promise<any> {
+  ): Promise<NewCalendarEventType> {
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
       description: event.calendarDescription,
@@ -539,24 +606,48 @@ export default class GoogleCalendarService implements Calendar {
       updatedEventId: evt.data.id,
     });
 
-    if (evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
-      await this.updateEventWithHangoutLink(evt.data.id, evt.data.hangoutLink, event, calendarId, calendar);
+    // Return consistent NewCalendarEventType structure
+    return this.formatEventResponse(evt.data, event, calendarId, calendar);
+  }
 
-      return {
-        uid: "",
-        ...evt.data,
-        id: evt.data.id,
-        additionalInfo: {
-          hangoutLink: evt.data.hangoutLink,
-        },
-        type: "google_calendar",
-        password: "",
-        url: "",
-        iCalUID: evt.data.iCalUID,
-      };
+  private async formatEventResponse(
+    googleEvent: calendar_v3.Schema$Event,
+    calEvent: CalendarServiceEvent,
+    calendarId: string,
+    calendar: calendar_v3.Calendar
+  ): Promise<NewCalendarEventType> {
+    // Handle hangout link updates if needed
+    if (googleEvent.id && googleEvent.hangoutLink && calEvent.location === MeetLocationType) {
+      try {
+        await this.updateEventWithHangoutLink(
+          googleEvent.id,
+          googleEvent.hangoutLink,
+          calEvent,
+          calendarId,
+          calendar
+        );
+      } catch (error) {
+        // Log but don't fail the entire operation
+        this.log.warn("Failed to update hangout link in description", {
+          eventId: googleEvent.id,
+          error: safeStringify(error),
+        });
+      }
     }
 
-    return evt.data;
+    // Always return consistent NewCalendarEventType structure
+    return {
+      uid: "",
+      ...googleEvent,
+      id: googleEvent.id || "",
+      additionalInfo: {
+        hangoutLink: googleEvent.hangoutLink || "",
+      },
+      type: "google_calendar",
+      password: "",
+      url: "",
+      iCalUID: googleEvent.iCalUID || "",
+    };
   }
 
   private async updateEventWithHangoutLink(
@@ -588,6 +679,8 @@ export default class GoogleCalendarService implements Calendar {
         eventId,
         error: safeStringify(error),
       });
+      // Re-throw to let the caller handle it appropriately
+      throw error;
     }
   }
 
