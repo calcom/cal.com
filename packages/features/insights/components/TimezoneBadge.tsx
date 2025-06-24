@@ -1,16 +1,16 @@
 import { decodeHTML } from "entities";
 import { useMemo } from "react";
 
+import { useDataTable } from "@calcom/features/data-table";
 import NoSSR from "@calcom/lib/components/NoSSR";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
-import { useUserTimePreferences } from "@calcom/trpc/react/hooks/useUserTimePreferences";
 import { Badge } from "@calcom/ui/components/badge";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 const TimezoneBadgeContent = () => {
   const { t } = useLocale();
-  const { timeZone: userTimezone } = useUserTimePreferences();
+  const { timeZone: userTimezone } = useDataTable();
 
   const timezoneData = useMemo(() => {
     // Use Cal's standard CURRENT_TIMEZONE constant
