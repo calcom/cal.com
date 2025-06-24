@@ -1,8 +1,3 @@
-// We can't import from other files here due to some reason.
-// So define these variables here
-const EMBED_DARK_THEME_CLASS = "cal-element-embed-dark";
-const EMBED_LIGHT_THEME_CLASS = "cal-element-embed-light";
-
 // We can't import @calcom/lib/constants here yet as this file is compiled using Vite
 const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || "";
 if (!WEBAPP_URL) {
@@ -169,12 +164,12 @@ function makePreviewPageUseSystemPreference() {
   function handleColorSchemeChange(e: MediaQueryListEvent) {
     if (e.matches) {
       // Dark color scheme
-      document.body.classList.remove(EMBED_LIGHT_THEME_CLASS);
-      document.body.classList.add(EMBED_DARK_THEME_CLASS);
+      document.body.classList.remove("light");
+      document.body.classList.add("dark");
     } else {
       // Light color scheme
-      document.body.classList.add(EMBED_LIGHT_THEME_CLASS);
-      document.body.classList.remove(EMBED_DARK_THEME_CLASS);
+      document.body.classList.add("light");
+      document.body.classList.remove("dark");
     }
   }
 
