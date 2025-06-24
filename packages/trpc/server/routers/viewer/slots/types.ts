@@ -34,6 +34,7 @@ export const getScheduleSchema = z
     _bypassCalendarBusyTimes: z.boolean().optional(),
     _shouldServeCache: z.boolean().optional(),
     routingFormResponseId: z.number().optional(),
+    queuedFormResponseId: z.string().nullish(),
     email: z.string().nullish(),
   })
   .transform((val) => {
