@@ -121,7 +121,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (!orgId) {
     orgId = await getOrgIdFromMemberOrTeamId({
-      memberId: parsedUserId,
+      ...(!parsedTeamId ? { memberId: parsedUserId } : {}),
       teamId: parsedTeamId,
     });
   }
@@ -137,7 +137,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).send(`SMS are free for organizations. Credits set to 0`);
   }
 
-  const price = await twilio.getPriceForSMS(smsSid);
+  const { price, numSegments } = await twilio.getMessageInfo(smsSid);
 
   const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
 
@@ -147,6 +147,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     userId: parsedUserId,
     smsSid,
     bookingUid: parsedBookingUid,
+    smsSegments: numSegments ?? undefined,
   });
 
   if (chargedUserOrTeamId) {
