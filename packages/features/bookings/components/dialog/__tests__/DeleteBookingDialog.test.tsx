@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { DeleteBookingDialog } from "../DeleteBookingDialog";
@@ -57,11 +58,15 @@ describe("DeleteBookingDialog", () => {
     expect(screen.queryByText("delete_booking_title")).not.toBeInTheDocument();
   });
 
-  it("should call onClose when close button is clicked", () => {
+  it("should call onClose when close button is clicked", async () => {
+    const user = userEvent.setup();
     const onClose = vi.fn();
     render(<DeleteBookingDialog {...defaultProps} onClose={onClose} />);
 
-    // This would need proper implementation based on the actual Dialog component API
-    expect(true).toBe(true);
+    // Look for the DialogClose button which should have the default "close" text from useLocale
+    const closeButton = screen.getByRole("button", { name: "close" });
+    await user.click(closeButton);
+
+    expect(onClose).toHaveBeenCalledWith(false);
   });
 });

@@ -23,11 +23,13 @@ export const deleteBookingHandler = async ({ ctx, input }: DeleteBookingOptions)
   // - Only include accepted team memberships for valid permission checks
   const booking = await prisma.booking.findUnique({
     where: { id },
-    include: {
+    select: {
+      id: true,
+      endTime: true,
       eventType: {
-        include: {
+        select: {
           team: {
-            include: {
+            select: {
               members: {
                 where: {
                   userId: user.id,
