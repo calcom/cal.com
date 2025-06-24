@@ -266,6 +266,7 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
+      cancellationReason: databaseBooking.cancellationReason || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
