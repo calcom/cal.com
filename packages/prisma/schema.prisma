@@ -583,6 +583,7 @@ model CreditExpenseLog {
   creditType      CreditType
   date            DateTime
   smsSid          String?
+  smsSegments     Int?
 }
 
 enum CreditType {
