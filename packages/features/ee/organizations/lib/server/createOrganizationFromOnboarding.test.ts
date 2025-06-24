@@ -429,12 +429,12 @@ describe("createOrganizationFromOnboarding", () => {
 
   describe("self-hosted", () => {
     beforeEach(() => {
-      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(true);
     });
 
     it("should fail if the license is invalid", async () => {
       vi.mocked(LicenseKeySingleton.getInstance as ReturnType<typeof vi.fn>).mockResolvedValue({
-        checkLicense: vi.fn().mockResolvedValue(true),
+        checkLicense: vi.fn().mockResolvedValue(false),
       });
       const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
         user: {
