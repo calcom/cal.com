@@ -6,7 +6,7 @@ import {
   getRecordingsOfCalVideoByRoomName,
   getAllTranscriptsAccessLinkFromRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/conferencing";
 
 @Injectable()
 export class CalVideoService {

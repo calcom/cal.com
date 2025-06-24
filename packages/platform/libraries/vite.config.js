@@ -24,6 +24,7 @@ export default defineConfig({
         "app-store": resolve(__dirname, "./app-store.ts"),
         workflows: resolve(__dirname, "./workflows.ts"),
         slots: resolve(__dirname, "./slots.ts"),
+        conferencing: resolve(__dirname, "./conferencing.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",
