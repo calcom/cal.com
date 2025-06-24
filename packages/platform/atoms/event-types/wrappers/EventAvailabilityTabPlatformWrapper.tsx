@@ -59,7 +59,7 @@ const EventAvailabilityTabPlatformWrapper = ({
         readOnly: atomSchedule.readOnly,
         id: atomSchedule.id,
         timeZone: atomSchedule.timeZone,
-        schedule: atomSchedule.schedule.map((avail: ScheduleQueryData["schedule"][number]) => ({
+        schedule: (atomSchedule.schedule || []).map((avail: ScheduleQueryData["schedule"][number]) => ({
           id: avail.id ?? null,
           startTime: new Date(avail.startTime),
           endTime: new Date(avail.endTime),
