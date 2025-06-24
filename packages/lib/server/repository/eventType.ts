@@ -125,6 +125,9 @@ export class EventTypeRepository {
   static async create(data: IEventType) {
     return await prisma.eventType.create({
       data: this.generateCreateEventTypeData(data),
+      include: {
+        calVideoSettings: true,
+      },
     });
   }
 
@@ -527,6 +530,8 @@ export class EventTypeRepository {
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
+      maxActiveBookingsPerBooker: true,
+      maxActiveBookingPerBookerOfferReschedule: true,
       assignAllTeamMembers: true,
       allowReschedulingPastBookings: true,
       hideOrganizerEmail: true,
@@ -587,6 +592,8 @@ export class EventTypeRepository {
           },
         },
       },
+      restrictionScheduleId: true,
+      useBookerTimezone: true,
       users: {
         select: userSelect,
       },
@@ -598,6 +605,12 @@ export class EventTypeRepository {
         },
       },
       instantMeetingSchedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      restrictionSchedule: {
         select: {
           id: true,
           name: true,
@@ -693,6 +706,8 @@ export class EventTypeRepository {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
           enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
         },
       },
@@ -835,6 +850,8 @@ export class EventTypeRepository {
         maxLeadThreshold: true,
         includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,
+        restrictionScheduleId: true,
+        useBookerTimezone: true,
         team: {
           select: {
             id: true,
