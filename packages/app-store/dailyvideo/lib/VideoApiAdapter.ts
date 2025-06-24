@@ -58,6 +58,19 @@ const REGION_CODES = [
 
 type RoomGeo = (typeof REGION_CODES)[number];
 
+function getDailyVideoRegionFromEnv(): RoomGeo | undefined {
+  if (!process?.env?.DAILY_VIDEO_REGION) return;
+  const isRoomGeo = (value: string): value is RoomGeo => REGION_CODES.includes(value as RoomGeo);
+  function assertIsDailyVideoRegion(value: string): asserts value is RoomGeo {
+    if (!isRoomGeo(value)) {
+      throw new Error(`Invalid region code: ${value}. Must be one of: ${REGION_CODES.join(", ")}`);
+    }
+  }
+  const region = process.env.DAILY_VIDEO_REGION;
+  assertIsDailyVideoRegion(region);
+  return region;
+}
+
 const isS3StorageEnabled =
   process.env.CAL_VIDEO_BUCKET_NAME &&
   process.env.CAL_VIDEO_BUCKET_REGION &&
@@ -369,14 +382,9 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       url: dailyEvent.url,
     });
   }
-
   // Region on which the DailyVideo room is created can be controlled by ENV var
   // undefined region leaves the choice to DailyVideo
-  const region =
-    process?.env?.DAILY_VIDEO_REGION &&
-    REGION_CODES.includes(process?.env?.DAILY_VIDEO_REGION as unknown as RoomGeo)
-      ? (process?.env?.DAILY_VIDEO_REGION as RoomGeo)
-      : undefined;
+  const region = getDailyVideoRegionFromEnv();
   return {
     /** Daily doesn't need to return busy times, so we return empty */
     getAvailability: () => {
