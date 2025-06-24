@@ -109,16 +109,20 @@ const PublicShell = (props: LayoutProps) => {
   );
 };
 
+function ShellWithTheme(props: LayoutProps) {
+  useAppTheme();
+  return <Layout {...props} />;
+}
+
 export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
-  useAppTheme();
 
   return !props.isPublic ? (
     <UserProvider>
       <KBarWrapper withKBar>
-        <Layout {...props} />
+        <ShellWithTheme {...props} />
       </KBarWrapper>
     </UserProvider>
   ) : (
