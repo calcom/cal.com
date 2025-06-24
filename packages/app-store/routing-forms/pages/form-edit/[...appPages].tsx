@@ -1,7 +1,6 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -19,10 +18,10 @@ import {
   MultiOptionInput,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { FieldTypeChangeWarningDialog } from "../../components/FieldTypeChangeWarningDialog";
 import SingleForm from "../../components/SingleForm";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import { FieldTypes } from "../../lib/FieldTypes";
@@ -59,7 +58,6 @@ function Field({
   hasFormResponses: boolean;
 }) {
   const { t } = useLocale();
-  const [showFieldTypeDialog, setShowFieldTypeDialog] = useState(false);
 
   const router = hookForm.getValues(`${hookFieldNamespace}.router`);
   const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
@@ -128,9 +126,27 @@ function Field({
               defaultValue={routerField?.type}
               render={({ field: { value, onChange } }) => {
                 const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
-                const currentValue = (value && FieldTypes.find((f) => f.value === value)) || defaultValue;
-                return (
-                  <>
+                if (hasFormResponses) {
+                  return (
+                    <div className="data-testid-field-type">
+                      <Label htmlFor="field-type-button">{t("type")}</Label>
+                      <Tooltip content={t("field_type_change_suggestion")}>
+                        <Button
+                          type="button"
+                          disabled
+                          color="secondary"
+                          className={classNames(
+                            "h-8 w-full justify-between text-left text-sm",
+                            !!router && "bg-subtle cursor-not-allowed"
+                          )}>
+                          <span className="text-default">{defaultValue?.label || "Select field type"}</span>
+                          <Icon name="chevron-down" className="text-default h-4 w-4" />
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  );
+                } else {
+                  return (
                     <SelectField
                       maxMenuHeight={200}
                       styles={{
@@ -151,21 +167,12 @@ function Field({
                         if (!option) {
                           return;
                         }
-                        if (option.value !== value && hasFormResponses) {
-                          setShowFieldTypeDialog(true);
-                          return;
-                        }
                         onChange(option.value);
                       }}
-                      value={currentValue}
+                      defaultValue={defaultValue}
                     />
-                    <FieldTypeChangeWarningDialog
-                      isOpen={showFieldTypeDialog}
-                      setIsOpen={setShowFieldTypeDialog}
-                      currentFieldType={defaultValue?.label || "Unknown"}
-                    />
-                  </>
-                );
+                  );
+                }
               }}
             />
           </div>
