@@ -7,6 +7,7 @@ import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import * as constants from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
@@ -40,6 +41,8 @@ vi.mock("@calcom/trpc/server/routers/viewer/organizations/createTeams.handler", 
 vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
 }));
+
+vi.mock("@calcom/ee/common/server/LicenseKeyService");
 
 const mockOrganizationOnboarding = {
   name: "Test Org",
@@ -163,16 +166,7 @@ describe("createOrganizationFromOnboarding", () => {
 
   describe("hosted", () => {
     beforeEach(() => {
-      vi.mock("@calcom/lib/constants", async () => {
-        const actualImport = await vi.importActual("@calcom/lib/constants");
-        return {
-          ...actualImport,
-          IS_SELF_HOSTED: false,
-        };
-      });
-      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
-        checkLicense: vi.fn().mockResolvedValue(true),
-      });
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
     });
 
     // Skipped because non-existend user creation support isn't there through onboarding now.
@@ -435,18 +429,12 @@ describe("createOrganizationFromOnboarding", () => {
 
   describe("self-hosted", () => {
     beforeEach(() => {
-      vi.mock("@calcom/lib/constants", async () => {
-        const actualImport = await vi.importActual("@calcom/lib/constants");
-        return {
-          ...actualImport,
-          IS_SELF_HOSTED: true,
-        };
-      });
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
     });
 
     it("should fail if the license is invalid", async () => {
-      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
-        checkLicense: vi.fn().mockResolvedValue(false),
+      vi.mocked(LicenseKeySingleton.getInstance as ReturnType<typeof vi.fn>).mockResolvedValue({
+        checkLicense: vi.fn().mockResolvedValue(true),
       });
       const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
         user: {
