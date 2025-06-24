@@ -775,26 +775,26 @@ describe("Cal", () => {
       expect(result).toBe("noAction");
     });
 
-    it("should return connect-no-slots-fetch when __reuseFully is true and slots are not stale", () => {
+    it("should return connect-no-slots-fetch when backgroundSlotsFetch is true and slots are not stale", () => {
       const result = calInstance.getNextActionForModal({
         ...baseArgs,
         stateData: {
           ...baseArgs.stateData,
           prerenderOptions: {
-            __reuseFully: true,
+            backgroundSlotsFetch: true,
           },
         },
       });
       expect(result).toBe("connect-no-slots-fetch");
     });
 
-    it("should return connect when __reuseFully is true but slots are stale", () => {
+    it("should return connect when backgroundSlotsFetch is true but slots are stale", () => {
       const result = calInstance.getNextActionForModal({
         ...baseArgs,
         stateData: {
           ...baseArgs.stateData,
           prerenderOptions: {
-            __reuseFully: true,
+            backgroundSlotsFetch: true,
           },
           previousEmbedRenderStartTime: Date.now() - EMBED_MODAL_IFRAME_SLOT_STALE_TIME - 1,
           embedRenderStartTime: Date.now(),

@@ -106,5 +106,5 @@ export type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonSty
 export type ModalPrerenderOptions = {
   slotsStaleTimeMs?: number;
   iframeForceReloadThresholdMs?: number;
-  __reuseFully?: boolean;
+  backgroundSlotsFetch?: boolean;
 };

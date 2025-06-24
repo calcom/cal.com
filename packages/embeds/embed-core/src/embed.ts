@@ -18,10 +18,10 @@ import { getMaxHeightForModal } from "./ui-utils";
 import {
   fromEntriesWithDuplicateKeys,
   isRouterPath,
-  submitResponseAndGetRoutingResult,
   generateDataAttributes,
   getConfigProp,
   isSameBookingLink,
+  buildConfigWithPrerenderRelatedFields,
 } from "./utils";
 
 // Exporting for consumption by @calcom/embed-core user
@@ -50,13 +50,6 @@ type CalConfig = {
   calOrigin: string;
   debug?: boolean;
   uiDebug?: boolean;
-};
-
-type ModalPrerenderOptions = {
-  slotsStaleTimeMs?: number;
-  iframeForceReloadThresholdMs?: number;
-  // Default value is true right now but it would change soon
-  backgroundSlotsFetch?: boolean;
 };
 
 type ModalBoxElement = Element & {
@@ -604,6 +597,7 @@ export class Cal {
         return "fullReload";
       }
 
+      console.log({ prerenderOptions });
       if (prerenderOptions?.backgroundSlotsFetch && !areSlotsStale) {
         return "connect-no-slots-fetch";
       }
@@ -692,89 +686,17 @@ export class Cal {
     return new URL(`${urlObject.pathname}${urlObject.search}`, urlObject.origin);
   }
 
-  async submitThroughHeadlessRouterInModal({
-    modal,
-    calLinkUrlObject,
-    stateData,
-  }: {
-    modal: { uid: string; element: Element; calOrigin: string | null };
-    calLinkUrlObject: URL;
-    stateData: ModalStateData;
-  }) {
-    const { uid: modalBoxUid, element: modalEl, calOrigin: _calOrigin } = modal;
-    const { embedConfig } = stateData;
+  recordUpdatedParamsForIframe(params: Record<string, string | string[]>) {
     const lastLoadedUrlInIframeObject = this.getLastLoadedLinkInframe();
-    const lastLoadedPathInIframe = lastLoadedUrlInIframeObject?.pathname ?? null;
-    const calConfig = this.getCalConfig();
-    const calOrigin = _calOrigin ?? calConfig.calOrigin;
-
-    const headlessRouterPageObject = calLinkUrlObject;
-    const result = await submitResponseAndGetRoutingResult({
-      headlessRouterPageUrl: headlessRouterPageObject.toString(),
-    });
-    log("Headless router result", result);
-    if ("redirect" in result) {
-      const routerRedirectUrl = new URL(result.redirect);
-      const paramsFromRedirect = fromEntriesWithDuplicateKeys(routerRedirectUrl.searchParams.entries());
-
-      const newEmbedConfig = (this.embedConfig = {
-        ...embedConfig,
-        ...paramsFromRedirect,
-      });
-      const actionToTake = this.getNextActionForModal({
-        modal: { uid: modalBoxUid },
-        pathWithQueryToLoad: `${routerRedirectUrl.pathname}${routerRedirectUrl.search}`,
-        stateData: {
-          ...stateData,
-          embedConfig: newEmbedConfig,
-        },
-      });
-      if (actionToTake === "fullReload") {
-        if (lastLoadedPathInIframe) {
-          console.error("Preloaded iframe couldn't be used", {
-            preloadedPath: lastLoadedPathInIframe,
-            newPath: routerRedirectUrl.pathname,
-          });
-        }
-        const pathWithoutStartingSlash = routerRedirectUrl.pathname.replace(/^\//, "");
-        this.loadInIframe({
-          calLink: pathWithoutStartingSlash,
-          calOrigin,
-          config: newEmbedConfig,
-          iframe: this.iframe as HTMLIFrameElement,
-        });
-      } else {
-        log("Reusing the same iframe for headless router", {
-          routerRedirectUrl: routerRedirectUrl.toString(),
-          lastLoadedPathInIframe,
-        });
-
-        // Connection Initiated
-        this.doInIframe({
-          method: "connect",
-          arg: {
-            config: newEmbedConfig,
-            params: fromEntriesWithDuplicateKeys(routerRedirectUrl.searchParams.entries()),
-          },
-        });
-      }
-    } else if ("message" in result) {
-      log("Setting message in modal", {
-        message: result.message,
-      });
-      // TODO: We might need to sanitize the error message and error code before setting it
-      modalEl.setAttribute("data-message", result.message);
-      modalEl.setAttribute("state", "has-message");
-    } else if ("error" in result) {
-      log("Setting error in modal", {
-        error: result.error,
-      });
-      // We need to show this message in the modal
-      modalEl.setAttribute("data-error-code", "routerError");
-      // TODO: We might need to sanitize the error message and error code before setting it
-      modalEl.setAttribute("data-message", result.error);
-      modalEl.setAttribute("state", "failed");
+    if (!lastLoadedUrlInIframeObject) {
+      return;
     }
+    // Create a clone of the last loaded url object in iframe
+    const urlObject = new URL(lastLoadedUrlInIframeObject.toString());
+    for (const [key, value] of Object.entries(params)) {
+      urlObject.searchParams.set(key, value as string);
+    }
+    this.iframe.dataset.calLink = `${urlObject.pathname.replace(/^\//, "")}${urlObject.search}`;
   }
 
   canPrerenderLink({
@@ -815,23 +737,26 @@ export class Cal {
     calOrigin,
     previousEmbedRenderStartTime,
     prerenderOptions,
+    isHeadlessRouterPath,
   }: {
     calLink: string;
     calOrigin: string;
     previousEmbedRenderStartTime: number | null;
     prerenderOptions: ModalPrerenderOptions;
+    isHeadlessRouterPath: boolean;
   }) {
-    if (!this.cal.canPrerenderLink({ calLink, calOrigin, previousEmbedRenderStartTime })) {
-      return false;
+    if (!this.canPrerenderLink({ calLink, calOrigin, previousEmbedRenderStartTime })) {
+      return null;
     }
 
-    if (this.cal.modalBox) {
+    if (this.modalBox) {
       log("Destroying previous prerendered modalbox");
       // If we are re-prerendering, we destroy the previous modalbox, allowing user to prerender as many times as they want
-      this.cal.modalBox.remove();
+      this.modalBox.remove();
     }
 
     const DEFAULT_BACKGROUND_SLOTS_FETCH = isHeadlessRouterPath ? true : false;
+
     const backgroundSlotsFetch =
       typeof prerenderOptions.backgroundSlotsFetch === "undefined"
         ? DEFAULT_BACKGROUND_SLOTS_FETCH
@@ -842,17 +767,15 @@ export class Cal {
     this.api.prerenderOptions = enrichedPrerenderOptions;
     this.isPrerendering = true;
 
-    return true;
+    return { enrichedPrerenderOptions };
   }
 
   setModalRenderStartVariables({
     embedConfig,
     embedRenderStartTime,
-    isPrerendering,
   }: {
     embedConfig: PrefillAndIframeAttrsConfig;
     embedRenderStartTime: number;
-    isPrerendering: boolean;
   }) {
     this.embedConfig = embedConfig;
     this.embedRenderStartTime = embedRenderStartTime;
@@ -1071,19 +994,17 @@ class CalApi {
     __prerender?: boolean;
     prerenderOptions?: ModalPrerenderOptions;
   }) {
+    const isPrerendering = !!__prerender;
+    if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
+      throw new Error("iframeAttrs should be an object");
+    }
     const containerEl = document.body;
     const calConfig = this.cal.getCalConfig();
     // Clone so that it doesn't mutate the original config
     config = { ...config };
+
     // calOrigin could have been passed as empty string by the user
     calOrigin = calOrigin || calConfig.calOrigin;
-
-    // `this.modalUid` is set in non-preload case(Temporarily not being-set)
-    // `this.prerenderedModalUid` is set for a modal created through "prerender"
-    const reusableModalUid = this.modalUid || this.prerenderedModalUid;
-    const uid = reusableModalUid || String(Date.now());
-    // Means whether there is already an attempt to use the prerendered modal
-    const isConnectionInitiated = !!(this.modalUid && this.prerenderedModalUid);
 
     const calLinkUrlObject = new URL(calLink, calOrigin);
     const isHeadlessRouterPath = calLinkUrlObject ? isRouterPath(calLinkUrlObject.toString()) : false;
@@ -1091,42 +1012,48 @@ class CalApi {
       this.cal.getPreviousModalRenderStartVariables();
 
     let enrichedConfig;
-    if (__prerender) {
-      const shouldAllowPrerender = this.cal.prepareForPrerender({
+    const configWithGuestKeyAndColorScheme = withColorScheme(
+      Cal.ensureGuestKey({
+        ...config,
+        embedType: "modal",
+      }),
+      containerEl
+    );
+
+    let enrichedPrerenderOptions;
+    if (isPrerendering) {
+      const preparationResult = this.cal.prepareForPrerender({
         calLink,
         calOrigin,
         previousEmbedRenderStartTime,
         prerenderOptions,
+        isHeadlessRouterPath,
       });
 
-      if (!shouldAllowPrerender) {
+      if (!preparationResult) {
         log(`Prevented unnecessary repeat prerender for ${calLink}`);
         return {
           status: "prerender-prevented",
         };
       }
 
+      enrichedPrerenderOptions = preparationResult.enrichedPrerenderOptions;
       enrichedConfig = buildConfigWithPrerenderRelatedFields({
         config: configWithGuestKeyAndColorScheme,
         isHeadlessRouterPath,
-        backgroundSlotsFetch: this.prerenderOptions?.backgroundSlotsFetch,
+        backgroundSlotsFetch: !!this.prerenderOptions?.backgroundSlotsFetch,
       });
     } else {
-      const configWithGuestKeyAndColorScheme = withColorScheme(
-        Cal.ensureGuestKey({
-          ...config,
-          embedType: "modal",
-        }),
-        containerEl
-      );
       enrichedConfig = configWithGuestKeyAndColorScheme;
     }
 
-    this.cal.setModalRenderStartVariables({
-      embedConfig: enrichedConfig,
-      embedRenderStartTime,
-      isPrerendering: !!__prerender,
-    });
+    // `this.modalUid` is set in non-preload case(Temporarily not being-set)
+    // `this.prerenderedModalUid` is set for a modal created through "prerender"
+    const reusableModalUid = this.modalUid || this.prerenderedModalUid;
+    const uid = reusableModalUid || String(Date.now());
+    // Means whether there is already an attempt to use the prerendered modal
+    const isConnectionInitiated = !!(this.modalUid && this.prerenderedModalUid);
+    const embedRenderStartTime = Date.now();
 
     const stateData = {
       embedConfig: enrichedConfig,
@@ -1134,8 +1061,45 @@ class CalApi {
       embedRenderStartTime,
       previousEmbedRenderStartTime,
       isConnectionInitiated,
-      prerenderOptions: this.prerenderOptions ?? null,
+      // If prerenderOptions are available, use them. Otherwise use the prerenderOptions from the previous call to modal for prerender
+      prerenderOptions: enrichedPrerenderOptions ?? this.prerenderOptions ?? null,
     };
+
+    this.cal.setModalRenderStartVariables({
+      embedConfig: enrichedConfig,
+      embedRenderStartTime,
+    });
+
+    return this.__modal({
+      calLink,
+      enrichedConfig,
+      calOrigin,
+      isPrerendering,
+      stateData,
+      uid,
+      containerEl,
+    });
+  }
+
+  async __modal({
+    uid,
+    calLink,
+    enrichedConfig,
+    calOrigin,
+    isPrerendering,
+    stateData,
+    containerEl,
+  }: {
+    uid: string;
+    calLink: string;
+    enrichedConfig: PrefillAndIframeAttrsConfig;
+    calOrigin: string;
+    isPrerendering: boolean;
+    stateData: ModalStateData;
+    containerEl: HTMLElement;
+  }) {
+    const calLinkUrlObject = new URL(calLink, calOrigin);
+    const isHeadlessRouterPath = calLinkUrlObject ? isRouterPath(calLinkUrlObject.toString()) : false;
 
     const existingModalEl = document.querySelector(`cal-modal-box[uid="${uid}"]`);
     // isConnectionPossible
@@ -1156,7 +1120,7 @@ class CalApi {
         });
 
         if (actionToTake === "noAction") {
-          if (__prerender) {
+          if (isPrerendering) {
             // A prerender instruction can never show the modal
             return;
           }
@@ -1179,6 +1143,8 @@ class CalApi {
             config: enrichedConfig,
           });
         } else if (actionToTake === "connect" || actionToTake === "connect-no-slots-fetch") {
+          const paramsToAdd = fromEntriesWithDuplicateKeys(calLinkUrlObject.searchParams.entries());
+          this.cal.recordUpdatedParamsForIframe(paramsToAdd);
           this.cal.doInIframe({
             method: "connect",
             arg: {
@@ -1190,7 +1156,7 @@ class CalApi {
                     }
                   : {}),
               },
-              params: fromEntriesWithDuplicateKeys(calLinkUrlObject.searchParams.entries()),
+              params: paramsToAdd,
             },
           });
         }
@@ -1203,15 +1169,11 @@ class CalApi {
 
     log(`Creating new modal ${uid}`);
 
-    if (__prerender) {
+    if (isPrerendering) {
       this.prerenderedModalUid = uid;
     } else {
       // Intentionally not setting it to avoid the behaviour of reusing the same modal. It was disabled earlier but now can be enabled but we will enable it later.
       // this.modalUid = uid;
-    }
-
-    if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {
-      throw new Error("iframeAttrs should be an object");
     }
 
     let iframe = null;
@@ -1245,7 +1207,7 @@ class CalApi {
     // Set state through setAttribute so that onAttributeChangedCallback is triggered
     this.cal.modalBox.setAttribute("state", "loading");
 
-    if (__prerender) {
+    if (isPrerendering) {
       this.cal.modalBox.setAttribute("state", "prerendering");
     }
     this.handleClose();
