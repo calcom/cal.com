@@ -2,6 +2,7 @@ import { CustomI18nProvider } from "app/CustomI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
+import { unstable_cache } from "next/cache";
 import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -53,9 +54,24 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
+const getCachedBookingData = unstable_cache(
+  async (headers: any, cookies: any, params: any, searchParams: any) => {
+    const legacyCtx = buildLegacyCtx(headers, cookies, params, searchParams);
+    return await getData(legacyCtx);
+  },
+  ["booking-page-data"],
+  {
+    revalidate: 3600,
+    tags: ["booking-page"],
+  }
+);
+
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(legacyCtx);
+  const _headers = await headers();
+  const _cookies = await cookies();
+  const _params = await params;
+  const _searchParams = await searchParams;
+  const props = await getCachedBookingData(_headers, _cookies, _params, _searchParams);
 
   const locale = props.eventData?.interfaceLanguage;
   if (locale) {

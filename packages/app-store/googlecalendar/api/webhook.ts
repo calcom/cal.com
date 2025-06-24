@@ -44,6 +44,53 @@ async function postHandler(req: NextApiRequest) {
   const calendarServiceForCalendarCache = await getCalendar(credentialForCalendarCache);
 
   await calendarServiceForCalendarCache?.fetchAvailabilityAndSetCache?.(selectedCalendars);
+
+  try {
+    if (credential.userId) {
+      const { UserRepository } = await import("@calcom/lib/server/repository/user");
+      const user = await UserRepository.findById({ id: credential.userId });
+
+      if (user?.username) {
+        const { revalidateUserBookingPages } = await import(
+          "../../../../apps/web/app/(booking-page-wrapper)/[user]/[type]/actions"
+        );
+        await revalidateUserBookingPages(user.username);
+        log.debug("Triggered ISR revalidation for user booking pages", {
+          username: user.username,
+          userId: credential.userId,
+        });
+      }
+    }
+  } catch (error) {
+    log.error("Failed to trigger ISR revalidation directly, falling back to task queue", {
+      error,
+      credentialId: credential.id,
+    });
+
+    try {
+      const { TaskerFactory } = await import("@calcom/features/tasker/tasker-factory");
+      const tasker = new TaskerFactory().createTasker();
+
+      if (credential.userId) {
+        const { UserRepository } = await import("@calcom/lib/server/repository/user");
+        const user = await UserRepository.findById({ id: credential.userId });
+
+        if (user?.username) {
+          await tasker.create("revalidateBookingPages", {
+            username: user.username,
+            reason: "google-calendar-webhook",
+          });
+          log.debug("Queued ISR revalidation task for user booking pages", {
+            username: user.username,
+            userId: credential.userId,
+          });
+        }
+      }
+    } catch (taskError) {
+      log.error("Failed to queue ISR revalidation task", { taskError, credentialId: credential.id });
+    }
+  }
+
   return { message: "ok" };
 }
 
