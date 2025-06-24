@@ -1,7 +1,7 @@
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { Injectable, NotFoundException, HttpException, HttpStatus } from "@nestjs/common";
-import { Request, Response } from "express";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { Request } from "express";
 
 import { getRoutedUrl } from "@calcom/platform-libraries";
 import { ById_2024_09_04_type, GetAvailableSlotsInput_2024_09_04 } from "@calcom/platform-types";
@@ -15,11 +15,10 @@ export class RoutingFormsService {
 
   async calculateSlotsBasedOnRoutingFormResponse(
     request: Request,
-    response: Response,
     formId: string,
     slotsQuery: GetAvailableSlotsInput_2024_09_04
   ) {
-    const eventTypeId = await this.getRoutedEventTypeId(request, response, formId);
+    const eventTypeId = await this.getRoutedEventTypeId(request, formId);
 
     if (!eventTypeId) {
       throw new NotFoundException("Event type not found.");
@@ -37,8 +36,8 @@ export class RoutingFormsService {
     };
   }
 
-  private async getRoutedEventTypeId(request: Request, response: Response, formId: string) {
-    const routingUrl = await this.getRoutingUrl(request, response, formId);
+  private async getRoutedEventTypeId(request: Request, formId: string) {
+    const routingUrl = await this.getRoutingUrl(request, formId);
     if (!this.isEventTypeRedirectUrl(routingUrl)) {
       throw new NotFoundException("Routed to a non cal.com event type URL.");
     }
@@ -49,11 +48,10 @@ export class RoutingFormsService {
     return eventType?.id;
   }
 
-  private async getRoutingUrl(request: Request, response: Response, formId: string) {
+  private async getRoutingUrl(request: Request, formId: string) {
     const params = Object.fromEntries(new URLSearchParams(request.body));
     const routedUrlData = await getRoutedUrl({
       req: request,
-      res: response,
       query: { ...params, "cal.isBookingDryRun": "true", form: formId },
     });
 

@@ -16,7 +16,7 @@ export default defaultHandler({
       // getRoutedUrl has more detailed schema validation, we do a basic one here.
       const params = req.body;
       res.setHeader("Access-Control-Allow-Origin", "*");
-      const routedUrlData = await getRoutedUrl({ req, res, query: { ...params } });
+      const routedUrlData = await getRoutedUrl({ req, query: { ...params } });
       if (routedUrlData?.notFound) {
         return res.status(404).json({ status: "error", data: { message: "Form not found" } });
       }

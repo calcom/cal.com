@@ -44,12 +44,12 @@ const getDeterministicHashForResponse = (fieldsResponses: Record<string, unknown
   return hash;
 };
 
-function hasEmbedPath(pathWithQuery: string) {
+export function hasEmbedPath(pathWithQuery: string) {
   const onlyPath = pathWithQuery.split("?")[0];
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req" | "res">) => {
+const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
@@ -74,25 +74,9 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
 
   const responseHash = getDeterministicHashForResponse(fieldsResponses);
 
-  try {
-    await checkRateLimitAndThrowError({
-      identifier: `form:${formId}:hash:${responseHash}`,
-    });
-  } catch (e) {
-    if (e instanceof TRPCError && e.code === "TOO_MANY_REQUESTS") {
-      context.res.statusCode = 429;
-
-      return {
-        props: {
-          ...pageProps,
-          form: null,
-          message: null,
-          errorMessage: e.message,
-        },
-      };
-    }
-    throw e;
-  }
+  await checkRateLimitAndThrowError({
+    identifier: `form:${formId}:hash:${responseHash}`,
+  });
 
   const isBookingDryRun = isBookingDryRunParam === "true";
   const shouldQueueFormResponse = queueFormResponseParam === "true";
