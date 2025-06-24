@@ -128,6 +128,7 @@ function Field({
               defaultValue={routerField?.type}
               render={({ field: { value, onChange } }) => {
                 const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
+                const currentValue = (value && FieldTypes.find((f) => f.value === value)) || defaultValue;
                 return (
                   <>
                     <SelectField
@@ -156,7 +157,7 @@ function Field({
                         }
                         onChange(option.value);
                       }}
-                      defaultValue={defaultValue}
+                      value={currentValue}
                     />
                     <FieldTypeChangeWarningDialog
                       isOpen={showFieldTypeDialog}
