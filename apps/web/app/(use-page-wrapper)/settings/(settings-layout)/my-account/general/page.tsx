@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { TravelScheduleRepository } from "@calcom/lib/server/repository/travelSchedule";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { ViewerService } from "@calcom/lib/server/service/viewer";
 import { unstable_cache } from "@calcom/lib/unstable_cache";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -26,7 +26,7 @@ export const generateMetadata = async () =>
 
 const getCachedUser = unstable_cache(
   async ({ upId, userId }: { upId: string; userId: number }) => {
-    return await UserRepository.getMe({
+    return await ViewerService.getMe({
       userId,
       upId,
     });

@@ -201,7 +201,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
       <EventAvailabilityTab
         eventType={eventType}
         isTeamEvent={!!team}
-        user={user}
+        user={user ?? undefined}
         teamMembers={teamMembers}
       />
     ),

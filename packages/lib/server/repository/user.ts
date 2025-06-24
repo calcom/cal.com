@@ -1,4 +1,4 @@
-import { z } from "zod";
+import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
@@ -16,12 +16,8 @@ import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
 import { WEBAPP_URL } from "../../constants";
 import { buildNonDelegationCredentials } from "../../delegationCredential/clientAndServer";
-import { getUserAvatarUrl } from "../../getAvatarUrl";
 import { withSelectedCalendars } from "../withSelectedCalendars";
-import { AccountRepository } from "./account";
-import { MembershipRepository } from "./membership";
 import { ProfileRepository } from "./profile";
-import { SecondaryEmailRepository } from "./secondaryEmail";
 import { getParsedTeam } from "./teamUtils";
 
 export type { UserWithLegacySelectedCalendars } from "../withSelectedCalendars";
@@ -31,14 +27,6 @@ export type UserAdminTeams = number[];
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
-
-const ZMeOpts = z
-  .object({
-    includePasswordAdded: z.boolean().optional(),
-  })
-  .optional();
-
-type TMeOpts = z.infer<typeof ZMeOpts>;
 
 const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   id: true,
