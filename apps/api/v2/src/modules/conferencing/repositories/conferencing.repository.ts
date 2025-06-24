@@ -9,8 +9,7 @@ import { GOOGLE_MEET_TYPE } from "@calcom/platform-constants";
 export class ConferencingRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  // Define credential select object to exclude key property
-  private readonly credentialSelect = {
+  private readonly credentialSelect = Prisma.validator<Prisma.CredentialSelect>()({
     id: true,
     type: true,
     userId: true,
@@ -21,7 +20,7 @@ export class ConferencingRepository {
     billingCycleStart: true,
     invalid: true,
     delegationCredentialId: true,
-  } satisfies Prisma.CredentialSelect;
+  });
 
   async findConferencingApps(userId: number) {
     return this.dbRead.prisma.credential.findMany({
