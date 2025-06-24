@@ -25,6 +25,7 @@ import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
@@ -323,16 +324,23 @@ const RoundRobinHosts = ({
           "border-subtle mt-5 rounded-t-md border p-6 pb-5",
           customClassNames?.container
         )}>
-        <Label className={classNames("mb-1 text-sm font-semibold", customClassNames?.label)}>
-          {t("round_robin_hosts")}
-        </Label>
-        <p
-          className={classNames(
-            "text-subtle max-w-full break-words text-sm leading-tight",
-            customClassNames?.description
-          )}>
-          {t("round_robin_helper")}
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <Label className={classNames("mb-1 text-sm font-semibold", customClassNames?.label)}>
+              {t("round_robin_hosts")}
+            </Label>
+            <p
+              className={classNames(
+                "text-subtle max-w-full break-words text-sm leading-tight",
+                customClassNames?.description
+              )}>
+              {t("round_robin_helper")}
+            </p>
+          </div>
+          <Button color="secondary" size="sm" StartIcon="plus">
+            {t("add_group")}
+          </Button>
+        </div>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
         <>
