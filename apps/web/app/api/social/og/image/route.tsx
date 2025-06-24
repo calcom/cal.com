@@ -85,10 +85,6 @@ async function handler(req: NextRequest) {
                 error: "Invalid parameters for meeting image",
                 message:
                   "Required parameters: title, meetingProfileName. Optional: names, usernames, meetingImage",
-                details: error.errors.map((err) => ({
-                  field: err.path.join("."),
-                  message: err.message,
-                })),
               }),
               {
                 status: 400,
@@ -116,10 +112,6 @@ async function handler(req: NextRequest) {
               JSON.stringify({
                 error: "Invalid parameters for app image",
                 message: "Required parameters: name, description, slug",
-                details: error.errors.map((err) => ({
-                  field: err.path.join("."),
-                  message: err.message,
-                })),
               }),
               {
                 status: 400,
@@ -148,10 +140,6 @@ async function handler(req: NextRequest) {
               JSON.stringify({
                 error: "Invalid parameters for generic image",
                 message: "Required parameters: title, description",
-                details: error.errors.map((err) => ({
-                  field: err.path.join("."),
-                  message: err.message,
-                })),
               }),
               {
                 status: 400,
