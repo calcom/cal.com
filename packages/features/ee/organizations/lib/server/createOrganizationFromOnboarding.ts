@@ -394,13 +394,14 @@ async function handleOrganizationCreation({
   paymentSubscriptionId?: string;
   paymentSubscriptionItemId?: string;
 }) {
-  const deploymentRepo = new DeploymentRepository(prisma);
-  const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
-  console.log("🚀 ~ licenseKeyService:", licenseKeyService);
-  const hasValidLicense = await licenseKeyService.checkLicense();
+  if (IS_SELF_HOSTED) {
+    const deploymentRepo = new DeploymentRepository(prisma);
+    const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+    const hasValidLicense = await licenseKeyService.checkLicense();
 
-  if (IS_SELF_HOSTED && !hasValidLicense) {
-    throw new Error("Self hosted license not valid");
+    if (!hasValidLicense) {
+      throw new Error("Self hosted license not valid");
+    }
   }
 
   let organization;
@@ -454,7 +455,7 @@ async function handleOrganizationCreation({
   // Connect the organization to the onboarding
   await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
     organizationId: organization.id,
-    isCompleted: true,
+    isComplete: true,
   });
 
   const updatedOrganization = await backwardCompatibilityForSubscriptionDetails({
