@@ -1,6 +1,6 @@
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 
 import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,7 +36,7 @@ interface UserDropdownProps {
   small?: boolean;
 }
 
-export function UserDropdown({ small }: UserDropdownProps) {
+export const UserDropdown = memo(function UserDropdown({ small }: UserDropdownProps) {
   const { isPlatformUser } = useGetUserAttributes();
   const { t } = useLocale();
   const { data: user, isPending } = useMeQuery();
@@ -206,4 +206,4 @@ export function UserDropdown({ small }: UserDropdownProps) {
       </DropdownMenuPortal>
     </Dropdown>
   );
-}
+});
