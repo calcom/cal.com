@@ -8,6 +8,7 @@ import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/featu
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -120,8 +121,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { rescheduleUid, bookingUid } = context.query;
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const org = isValidOrgDomain ? currentOrgDomain : null;
-  if (!org) {
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+  if (!orgSlug) {
     const redirect = await getTemporaryOrgRedirect({
       slugs: usernames,
       redirectType: RedirectType.User,
@@ -154,8 +155,9 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     {
       username: usernames.join("+"),
       eventSlug: slug,
-      org,
+      orgSlug,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+      orgId: session?.user?.org?.id ?? session?.user?.profile?.organizationId ?? undefined,
     },
     session?.user?.id
   );
@@ -240,7 +242,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
-  const org = isValidOrgDomain ? currentOrgDomain : null;
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
@@ -248,7 +250,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     {
       username,
       eventSlug: slug,
-      org,
+      orgSlug,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
     },
     session?.user?.id
@@ -260,7 +262,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
-  const allowSEOIndexing = org
+  const allowSEOIndexing = orgSlug
     ? user?.profile?.organization?.organizationSettings?.allowSEOIndexing
       ? user?.allowSEOIndexing
       : false
@@ -270,7 +272,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     eventData: eventData,
     user: username,
     slug,
-    isBrandingHidden: user?.hideBranding,
+    isBrandingHidden: shouldHideBrandingForUserEvent({
+      eventTypeId: eventData.id,
+      owner: user,
+    }),
     isSEOIndexable: allowSEOIndexing,
     themeBasis: username,
     bookingUid: bookingUid ? `${bookingUid}` : null,

@@ -339,18 +339,63 @@ const Locations: React.FC<LocationsProps> = ({
                 )}
               </div>
 
-              {isCalVideo && (
+              {isCalVideo && !isPlatform && (
                 <div className="bg-muted mt-2 space-y-2 rounded-lg p-4">
                   <div className="w-full">
                     <div className="flex flex-col gap-2">
+                      <Controller
+                        name="calVideoSettings.disableRecordingForGuests"
+                        defaultValue={!!eventType.calVideoSettings?.disableRecordingForGuests}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("disable_recording_for_guests")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+
+                      <Controller
+                        name="calVideoSettings.disableRecordingForOrganizer"
+                        defaultValue={!!eventType.calVideoSettings?.disableRecordingForOrganizer}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("disable_recording_for_organizer")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+
+                      <Controller
+                        name="calVideoSettings.enableAutomaticTranscription"
+                        defaultValue={!!eventType.calVideoSettings?.enableAutomaticTranscription}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("enable_automatic_transcription")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+
                       {!isPlatform && (
                         <Controller
-                          name="calVideoSettings.disableRecordingForGuests"
-                          defaultValue={!!eventType.calVideoSettings?.disableRecordingForGuests}
+                          name="calVideoSettings.disableTranscriptionForGuests"
+                          defaultValue={!!eventType.calVideoSettings?.disableTranscriptionForGuests}
                           render={({ field: { onChange, value } }) => {
                             return (
                               <SettingsToggle
-                                title={t("disable_recording_for_guests")}
+                                title={t("disable_transcription_for_guests")}
                                 labelClassName="text-sm"
                                 checked={value}
                                 onCheckedChange={onChange}
@@ -361,12 +406,12 @@ const Locations: React.FC<LocationsProps> = ({
                       )}
                       {!isPlatform && (
                         <Controller
-                          name="calVideoSettings.disableRecordingForOrganizer"
-                          defaultValue={!!eventType.calVideoSettings?.disableRecordingForOrganizer}
+                          name="calVideoSettings.disableTranscriptionForOrganizer"
+                          defaultValue={!!eventType.calVideoSettings?.disableTranscriptionForOrganizer}
                           render={({ field: { onChange, value } }) => {
                             return (
                               <SettingsToggle
-                                title={t("disable_recording_for_organizer")}
+                                title={t("disable_transcription_for_organizer")}
                                 labelClassName="text-sm"
                                 checked={value}
                                 onCheckedChange={onChange}

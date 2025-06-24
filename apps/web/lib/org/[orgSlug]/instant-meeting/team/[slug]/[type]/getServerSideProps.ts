@@ -5,6 +5,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -28,6 +29,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     select: {
       id: true,
       hideBranding: true,
+      parent: {
+        select: {
+          hideBranding: true,
+        },
+      },
     },
   });
 
@@ -37,8 +43,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  const org = isValidOrgDomain ? currentOrgDomain : null;
-  if (!org) {
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+  if (!orgSlug) {
     return {
       notFound: true,
     } as const;
@@ -49,8 +55,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       username: teamSlug,
       eventSlug: meetingSlug,
       isTeamEvent: true,
-      org,
+      orgSlug,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+      orgId: session?.user?.org?.id ?? session?.user?.profile?.organizationId ?? undefined,
     },
     session?.user?.id
   );
@@ -75,7 +82,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user: teamSlug,
       teamId: team.id,
       slug: meetingSlug,
-      isBrandingHidden: team?.hideBranding,
+      isBrandingHidden: shouldHideBrandingForTeamEvent({
+        eventTypeId: eventData.id,
+        team,
+      }),
       themeBasis: null,
     },
   };
