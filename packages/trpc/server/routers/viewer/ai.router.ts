@@ -31,6 +31,8 @@ export const aiRouter = router({
         },
       });
 
+      console.log("eventType", eventType);
+
       if (!eventType) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }

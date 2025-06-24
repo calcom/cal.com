@@ -2,24 +2,23 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 
+import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
+import PhoneInput from "@calcom/features/components/phone-input";
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/input";
-import { ShellMain, ShellSubHeading } from "@calcom/ui/components/shell";
+import { TextField } from "@calcom/ui/components/form";
+import { Form } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
 
 const setupSchema = z.object({
@@ -33,15 +32,25 @@ const configAndCallSchema = z.object({
   numberToCall: z.string().optional(),
 });
 
+const ErrorMessage = ({ fieldName, message }: { fieldName: string; message: string }) => {
+  const { t } = useLocale();
+  return (
+    <div data-testid={`error-message-${fieldName}`} className="mt-2 flex items-center text-sm text-red-700 ">
+      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+      <p>{t(message || "invalid_input")}</p>
+    </div>
+  );
+};
+
 export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { data: aiConfig, isLoading: isLoadingAiConfig } = trpc.viewer.ai.getConfig.useQuery({
     eventTypeId: eventType.id,
   });
+  const { timezone: preferredTimezone } = useTimePreferences();
 
   const { data: llmDetails, isLoading: isLoadingLlmDetails } = trpc.viewer.ai.getLlm.useQuery(
-    // @ts-expect-error - llmId can be null, query is disabled if so
     { llmId: aiConfig?.llmId },
     { enabled: !!aiConfig?.llmId }
   );
@@ -49,7 +58,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
 
   const setupMutation = trpc.viewer.ai.setup.useMutation({
     onSuccess: () => {
-      utils.viewer.ai.getConfig.invalidate({ eventTypeId: eventType.id });
+      utils.viewer.ai.getConfig.invalidate();
       showToast(t("ai_assistant_setup_successfully"), "success");
     },
     onError: (error) => showToast(error.message, "error"),
@@ -60,7 +69,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
 
   const buyNumberMutation = trpc.viewer.phoneNumbers.buy.useMutation({
     onSuccess: () => {
-      utils.viewer.ai.getConfig.invalidate({ eventTypeId: eventType.id });
+      utils.viewer.ai.getConfig.invalidate();
       utils.viewer.phoneNumbers.list.invalidate();
       showToast(t("phone_number_purchased_successfully"), "success");
     },
@@ -115,49 +124,48 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
 
   if (isLoadingAiConfig) return <ShellMain>{t("loading")}</ShellMain>;
 
+  console.log("preferredTimezone", aiConfig);
+
   if (!aiConfig) {
+    const handleSubmit = (values: z.infer<typeof setupSchema>) => {
+      setupMutation.mutate({ eventTypeId: eventType.id, ...values });
+    };
+
     return (
       <ShellMain
         heading={t("setup_ai_phone_assistant")}
         subtitle={t("provide_api_key_and_timezone_to_setup")}>
-        <Form {...setupForm}>
-          <form
-            onSubmit={setupForm.handleSubmit((values) =>
-              setupMutation.mutate({ eventTypeId: eventType.id, ...values })
+        <Form className="space-y-6" form={setupForm} handleSubmit={handleSubmit}>
+          <TextField
+            required
+            type="text"
+            {...setupForm.register("calApiKey")}
+            label={t("cal_api_key")}
+            placeholder="cal_live_..."
+            data-testid="cal-api-key"
+          />
+
+          <Controller
+            name="timeZone"
+            control={setupForm.control}
+            render={({ field: { value } }) => (
+              <div>
+                <Label className="text-emphasis">
+                  <>{t("agent_timezone")}</>
+                </Label>
+                <TimezoneSelect
+                  id="timezone"
+                  value={value ?? preferredTimezone}
+                  onChange={(event) => {
+                    if (event) setupForm.setValue("timeZone", event.value, { shouldDirty: true });
+                  }}
+                />
+              </div>
             )}
-            className="space-y-6">
-            <FormField
-              control={setupForm.control}
-              name="calApiKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("cal_api_key")}</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="cal_live_..." />
-                  </FormControl>
-                  <FormDescription>{t("cal_api_key_description")}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={setupForm.control}
-              name="timeZone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("agent_timezone")}</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="America/New_York" />
-                  </FormControl>
-                  <FormDescription>{t("agent_timezone_description")}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" loading={setupMutation.isPending}>
-              {t("setup_ai_assistant")}
-            </Button>
-          </form>
+          />
+          <Button onClick={handleSubmit} loading={setupMutation.isPending}>
+            {t("setup_ai_phone_assistant")}
+          </Button>
         </Form>
       </ShellMain>
     );
@@ -185,59 +193,52 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
         </div>
         <div>
           <ShellSubHeading title={t("configure_agent")} subtitle={t("configure_agent_subtitle")} />
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-6">
-              <FormField
-                control={form.control}
-                name="generalPrompt"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("general_prompt")}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormDescription>{t("general_prompt_description")}</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="beginMessage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("begin_message")}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormDescription>{t("begin_message_description")}</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {assignedPhoneNumber && (
-                <FormField
-                  control={form.control}
-                  name="numberToCall"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("phone_number_to_test")}</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="tel" placeholder="+15551234567" />
-                      </FormControl>
-                      <FormDescription>{t("enter_a_number_to_test_your_agent")}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-              <Button
-                type="submit"
-                loading={form.formState.isSubmitting || isLoadingLlmDetails}
-                disabled={!assignedPhoneNumber && !!form.getValues().numberToCall}>
-                {assignedPhoneNumber ? t("save_and_test_call") : t("save_changes")}
-              </Button>
-            </form>
+          <Form form={form} handleSubmit={onSubmit} className="mt-4 space-y-6">
+            <TextField
+              required
+              type="text"
+              {...form.register("generalPrompt")}
+              label={t("general_prompt")}
+              placeholder="Enter your general prompt here"
+              data-testid="general-prompt"
+            />
+            <TextField
+              required
+              type="text"
+              {...form.register("beginMessage")}
+              label={t("begin_message")}
+              placeholder={t("begin_message_description")}
+              data-testid="begin-message"
+            />
+
+            <Label>{t("number_to_call")}</Label>
+            <Controller
+              name="aiPhoneCallConfig.numberToCall"
+              render={({ field: { onChange, value, name }, fieldState: { error } }) => {
+                return (
+                  <div>
+                    <PhoneInput
+                      required
+                      placeholder={t("phone_number")}
+                      id="aiPhoneCallConfig.numberToCall"
+                      name="aiPhoneCallConfig.numberToCall"
+                      value={value}
+                      onChange={(val) => {
+                        onChange(val);
+                      }}
+                    />
+                    {error?.message && <ErrorMessage message={error.message} fieldName={name} />}
+                  </div>
+                );
+              }}
+            />
+
+            <Button
+              type="submit"
+              loading={form.formState.isSubmitting || isLoadingLlmDetails}
+              disabled={!assignedPhoneNumber && !!form.getValues().numberToCall}>
+              {assignedPhoneNumber ? t("save_and_test_call") : t("save_changes")}
+            </Button>
           </Form>
         </div>
       </div>
