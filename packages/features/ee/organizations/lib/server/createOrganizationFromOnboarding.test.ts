@@ -14,6 +14,12 @@ import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/r
 
 import { createOrganizationFromOnboarding } from "./createOrganizationFromOnboarding";
 
+vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
+  LicenseKeySingleton: {
+    getInstance: vi.fn(),
+  },
+}));
+
 // Mock the external functions
 vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
   sendEmailVerification: vi.fn(),
@@ -163,6 +169,9 @@ describe("createOrganizationFromOnboarding", () => {
           ...actualImport,
           IS_SELF_HOSTED: false,
         };
+      });
+      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
+        checkLicense: vi.fn().mockResolvedValue(true),
       });
     });
 
@@ -436,7 +445,7 @@ describe("createOrganizationFromOnboarding", () => {
     });
 
     it("should fail if the license is invalid", async () => {
-      (LicenseKeySingleton.getInstance as ReturnType<typeof vi.fn>).mockResolvedValue({
+      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(false),
       });
       const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
@@ -455,7 +464,7 @@ describe("createOrganizationFromOnboarding", () => {
     });
 
     it("should create an organization with with a valid license", async () => {
-      (LicenseKeySingleton.getInstance as ReturnType<typeof vi.fn>).mockResolvedValue({
+      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
       });
       const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({

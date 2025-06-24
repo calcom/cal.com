@@ -9,7 +9,11 @@ import { TRPCError } from "@trpc/server";
 
 import { intentToCreateOrgHandler } from "./intentToCreateOrg.handler";
 
-vi.mock("@calcom/ee/common/server/LicenseKeyService");
+vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
+  LicenseKeySingleton: {
+    getInstance: vi.fn(),
+  },
+}));
 
 const mockInput = {
   name: "Test Org",
@@ -57,6 +61,9 @@ describe("intentToCreateOrgHandler", () => {
           ...actualImport,
           IS_SELF_HOSTED: false,
         };
+      });
+      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
+        checkLicense: vi.fn().mockResolvedValue(true),
       });
     });
 
@@ -240,7 +247,7 @@ describe("intentToCreateOrgHandler", () => {
     });
 
     it("should throw error when license is not valid", async () => {
-      (LicenseKeySingleton.getInstance as ReturnType<typeof vi.fn>).mockResolvedValue({
+      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(false),
       });
       const adminUser = await createTestUser({
@@ -259,7 +266,7 @@ describe("intentToCreateOrgHandler", () => {
     });
 
     it("should allow admin user to create org for another user", async () => {
-      (LicenseKeySingleton.getInstance as ReturnType<typeof vi.fn>).mockResolvedValue({
+      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
       });
       // Create admin user
