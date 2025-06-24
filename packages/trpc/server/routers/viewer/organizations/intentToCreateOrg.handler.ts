@@ -4,6 +4,7 @@ import {
   assertCanCreateOrg,
   findUserToBeOrgOwner,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
@@ -32,15 +33,17 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     safeStringify({ slug, name, orgOwnerEmail, isPlatform })
   );
 
-  const deploymentRepo = new DeploymentRepository(prisma);
-  const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
-  const hasValidLicense = await licenseKeyService.checkLicense();
+  if (IS_SELF_HOSTED) {
+    const deploymentRepo = new DeploymentRepository(prisma);
+    const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+    const hasValidLicense = await licenseKeyService.checkLicense();
 
-  if (!hasValidLicense) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "license_not_valid",
-    });
+    if (!hasValidLicense) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "license_not_valid",
+      });
+    }
   }
 
   const loggedInUser = ctx.user;

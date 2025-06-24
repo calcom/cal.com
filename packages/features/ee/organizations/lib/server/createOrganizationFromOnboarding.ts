@@ -396,6 +396,7 @@ async function handleOrganizationCreation({
 }) {
   const deploymentRepo = new DeploymentRepository(prisma);
   const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+  console.log("🚀 ~ licenseKeyService:", licenseKeyService);
   const hasValidLicense = await licenseKeyService.checkLicense();
 
   if (IS_SELF_HOSTED && !hasValidLicense) {
