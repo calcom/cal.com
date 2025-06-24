@@ -8,6 +8,7 @@ import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/a
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
+import { DeleteBookingDialog } from "@calcom/features/bookings/components/dialog/DeleteBookingDialog";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { formatTime } from "@calcom/lib/dayjs";
@@ -21,6 +22,7 @@ import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { useMeQuery } from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -119,6 +121,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
+  const [deleteConfirmDialogIsOpen, setDeleteConfirmDialogIsOpen] = useState(false);
   const cardCharged = booking?.payment[0]?.success;
 
   const attendeeList = booking.attendees.map((attendee) => {
@@ -157,6 +160,23 @@ function BookingListItem(booking: BookingItemProps) {
       utils.viewer.bookings.invalidate();
     },
   });
+
+  // Get current user data to check roles
+  const { data: meData } = useMeQuery();
+
+  // Check if user can delete this booking
+  const canDeleteBooking = () => {
+    if (!meData) return false;
+    if (!isBookingInPast) return false;
+
+    // For team bookings, only team admin/owner can delete
+    if (booking.eventType?.team) {
+      return meData.isTeamAdminOrOwner;
+    }
+
+    // For personal bookings, the booking owner can delete their own booking
+    return booking.user !== null && booking.user.id === meData.id;
+  };
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
@@ -327,6 +347,18 @@ function BookingListItem(booking: BookingItemProps) {
       },
       icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : ("eye-off" as const),
     });
+
+    // Add delete action for past bookings if user has permission
+    if (canDeleteBooking()) {
+      editBookingActions.push({
+        id: "delete_booking",
+        label: t("delete"),
+        onClick: () => {
+          setDeleteConfirmDialogIsOpen(true);
+        },
+        icon: "trash" as const,
+      });
+    }
   }
 
   let bookedActions: ActionType[] = [
@@ -561,6 +593,7 @@ function BookingListItem(booking: BookingItemProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       <div
         data-testid="booking-item"
         data-today={String(booking.isToday)}
@@ -748,6 +781,11 @@ function BookingListItem(booking: BookingItemProps) {
           booking={{ ...parsedBooking, eventType: parsedBooking.eventType }}
         />
       )}
+      <DeleteBookingDialog
+        isOpen={deleteConfirmDialogIsOpen}
+        onClose={() => setDeleteConfirmDialogIsOpen(false)}
+        bookingId={booking.id}
+      />
     </>
   );
 }

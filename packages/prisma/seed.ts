@@ -319,14 +319,6 @@ async function createOrganizationAndAddMembersAndTeams({
                 title: "30min",
                 slug: "30min",
                 length: 30,
-                _bookings: [
-                  {
-                    uid: uuid(),
-                    title: "30min",
-                    startTime: dayjs().add(1, "day").toDate(),
-                    endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
-                  },
-                ],
               },
             ],
           });
@@ -580,6 +572,243 @@ async function createOrganizationAndAddMembersAndTeams({
   }
 }
 
+async function addPastBookingsToTeamEvents() {
+  // Find the Marketing team's Collective event type
+  const marketingTeam = await prisma.team.findFirst({
+    where: { slug: "seeded-team-marketing" },
+    include: {
+      eventTypes: {
+        where: { slug: "collective-seeded-team-event" },
+      },
+    },
+  });
+
+  if (marketingTeam?.eventTypes[0]) {
+    const eventType = marketingTeam.eventTypes[0];
+    const teamMembers = await prisma.membership.findMany({
+      where: { teamId: marketingTeam.id },
+      select: { user: true },
+    });
+
+    // Create 5 past bookings for Marketing team
+    const marketingBookings = [
+      {
+        uid: uuid(),
+        title: "Collective Seeded Team Event",
+        startTime: dayjs().subtract(7, "day").toDate(),
+        endTime: dayjs().subtract(7, "day").add(15, "minutes").toDate(),
+        status: BookingStatus.ACCEPTED,
+      },
+      {
+        uid: uuid(),
+        title: "Collective Seeded Team Event",
+        startTime: dayjs().subtract(5, "day").add(2, "hour").toDate(),
+        endTime: dayjs().subtract(5, "day").add(2, "hour").add(15, "minutes").toDate(),
+        status: BookingStatus.ACCEPTED,
+      },
+      {
+        uid: uuid(),
+        title: "Collective Seeded Team Event",
+        startTime: dayjs().subtract(3, "day").add(4, "hour").toDate(),
+        endTime: dayjs().subtract(3, "day").add(4, "hour").add(15, "minutes").toDate(),
+        status: BookingStatus.ACCEPTED,
+      },
+      {
+        uid: uuid(),
+        title: "Collective Seeded Team Event",
+        startTime: dayjs().subtract(2, "day").add(1, "hour").toDate(),
+        endTime: dayjs().subtract(2, "day").add(1, "hour").add(15, "minutes").toDate(),
+        status: BookingStatus.ACCEPTED,
+      },
+      {
+        uid: uuid(),
+        title: "Collective Seeded Team Event",
+        startTime: dayjs().subtract(1, "day").add(3, "hour").toDate(),
+        endTime: dayjs().subtract(1, "day").add(3, "hour").add(15, "minutes").toDate(),
+        status: BookingStatus.ACCEPTED,
+      },
+    ];
+
+    for (const bookingData of marketingBookings) {
+      await prisma.booking.create({
+        data: {
+          ...bookingData,
+          eventType: { connect: { id: eventType.id } },
+          user: { connect: { id: teamMembers[0].user.id } },
+          attendees: {
+            create: {
+              email: teamMembers[0].user.email,
+              name: teamMembers[0].user.name,
+              timeZone: "Europe/London",
+            },
+          },
+          iCalUID: "",
+        },
+      });
+    }
+    console.log(`✅ Added 5 past bookings to Marketing team's Collective event`);
+  }
+
+  // Find the Design team's Collective event type
+  const designTeam = await prisma.team.findFirst({
+    where: { slug: "seeded-team-design" },
+    include: {
+      eventTypes: {
+        where: { slug: "collective-seeded-team-event" },
+      },
+    },
+  });
+
+  if (designTeam?.eventTypes[0]) {
+    const eventType = designTeam.eventTypes[0];
+    const teamMembers = await prisma.membership.findMany({
+      where: { teamId: designTeam.id },
+      select: { user: true },
+    });
+
+    // Create 5 past bookings for Design team
+    const designBookings = [
+      {
+        uid: uuid(),
+        title: "Collective Seeded Team Event",
+        startTime: dayjs().subtract(8, "day").toDate(),
+        endTime: dayjs().subtract(8, "day").add(15, "minutes").toDate(),
+        status: BookingStatus.ACCEPTED,
+      },
+      {
+        uid: uuid(),
+        title: "Collective Seeded Team Event",
+        startTime: dayjs().subtract(6, "day").add(1, "hour").toDate(),
+        endTime: dayjs().subtract(6, "day").add(1, "hour").add(15, "minutes").toDate(),
+        status: BookingStatus.ACCEPTED,
+      },
+      {
+        uid: uuid(),
+        title: "Collective Seeded Team Event",
+        startTime: dayjs().subtract(4, "day").add(3, "hour").toDate(),
+        endTime: dayjs().subtract(4, "day").add(3, "hour").add(15, "minutes").toDate(),
+        status: BookingStatus.ACCEPTED,
+      },
+      {
+        uid: uuid(),
+        title: "Collective Seeded Team Event",
+        startTime: dayjs().subtract(2, "day").add(5, "hour").toDate(),
+        endTime: dayjs().subtract(2, "day").add(5, "hour").add(15, "minutes").toDate(),
+        status: BookingStatus.ACCEPTED,
+      },
+      {
+        uid: uuid(),
+        title: "Collective Seeded Team Event",
+        startTime: dayjs().subtract(1, "day").add(2, "hour").toDate(),
+        endTime: dayjs().subtract(1, "day").add(2, "hour").add(15, "minutes").toDate(),
+        status: BookingStatus.ACCEPTED,
+      },
+    ];
+
+    for (const bookingData of designBookings) {
+      await prisma.booking.create({
+        data: {
+          ...bookingData,
+          eventType: { connect: { id: eventType.id } },
+          user: { connect: { id: teamMembers[0].user.id } },
+          attendees: {
+            create: {
+              email: teamMembers[0].user.email,
+              name: teamMembers[0].user.name,
+              timeZone: "Europe/London",
+            },
+          },
+          iCalUID: "",
+        },
+      });
+    }
+    console.log(`✅ Added 5 past bookings to Design team's Collective event`);
+  }
+
+  // Find the Seeded Team's Collective event type (for teampro2)
+  const seededTeam = await prisma.team.findFirst({
+    where: { slug: "seeded-team" },
+    include: {
+      eventTypes: {
+        where: { slug: "collective-seeded-team-event" },
+      },
+    },
+  });
+
+  if (seededTeam?.eventTypes[0]) {
+    const eventType = seededTeam.eventTypes[0];
+
+    // Find the team owner (proUserTeam) to assign the booking to
+    const teamOwner = await prisma.membership.findFirst({
+      where: {
+        teamId: seededTeam.id,
+        role: "OWNER",
+      },
+      select: { user: true },
+    });
+
+    // Find teampro2 to add as attendee
+    const teampro2User = await prisma.user.findFirst({
+      where: { email: "teampro2@example.com" },
+    });
+
+    if (teamOwner && teampro2User) {
+      // Create 3 past bookings for Seeded Team (assigned to team owner, with teampro2 as attendee)
+      const seededTeamBookings = [
+        {
+          uid: uuid(),
+          title: "Collective Seeded Team Event",
+          startTime: dayjs().subtract(6, "day").add(1, "hour").toDate(),
+          endTime: dayjs().subtract(6, "day").add(1, "hour").add(15, "minutes").toDate(),
+          status: BookingStatus.ACCEPTED,
+        },
+        {
+          uid: uuid(),
+          title: "Collective Seeded Team Event",
+          startTime: dayjs().subtract(3, "day").add(2, "hour").toDate(),
+          endTime: dayjs().subtract(3, "day").add(2, "hour").add(15, "minutes").toDate(),
+          status: BookingStatus.ACCEPTED,
+        },
+        {
+          uid: uuid(),
+          title: "Collective Seeded Team Event",
+          startTime: dayjs().subtract(1, "day").add(4, "hour").toDate(),
+          endTime: dayjs().subtract(1, "day").add(4, "hour").add(15, "minutes").toDate(),
+          status: BookingStatus.ACCEPTED,
+        },
+      ];
+
+      for (const bookingData of seededTeamBookings) {
+        await prisma.booking.create({
+          data: {
+            ...bookingData,
+            eventType: { connect: { id: eventType.id } },
+            user: { connect: { id: teamOwner.user.id } },
+            attendees: {
+              createMany: {
+                data: [
+                  {
+                    email: teamOwner.user.email,
+                    name: teamOwner.user.name,
+                    timeZone: "Europe/London",
+                  },
+                  {
+                    email: teampro2User.email,
+                    name: teampro2User.name,
+                    timeZone: "Europe/London",
+                  },
+                ],
+              },
+            },
+            iCalUID: "",
+          },
+        });
+      }
+      console.log(`✅ Added 3 past bookings to Seeded Team's Collective event (visible to teampro2)`);
+    }
+  }
+}
+
 async function main() {
   await createUserAndEventType({
     user: {
@@ -636,6 +865,27 @@ async function main() {
         slug: "30min",
         length: 30,
         _bookings: [
+          {
+            uid: uuid(),
+            title: "30min",
+            startTime: dayjs().subtract(5, "day").toDate(),
+            endTime: dayjs().subtract(5, "day").add(30, "minutes").toDate(),
+            status: BookingStatus.ACCEPTED,
+          },
+          {
+            uid: uuid(),
+            title: "30min",
+            startTime: dayjs().subtract(3, "day").add(2, "hour").toDate(),
+            endTime: dayjs().subtract(3, "day").add(2, "hour").add(30, "minutes").toDate(),
+            status: BookingStatus.ACCEPTED,
+          },
+          {
+            uid: uuid(),
+            title: "30min",
+            startTime: dayjs().subtract(1, "day").add(4, "hour").toDate(),
+            endTime: dayjs().subtract(1, "day").add(4, "hour").add(30, "minutes").toDate(),
+            status: BookingStatus.ACCEPTED,
+          },
           {
             uid: uuid(),
             title: "30min",
@@ -708,6 +958,30 @@ async function main() {
         length: 30,
         recurringEvent: { freq: 2, count: 12, interval: 1 },
         _bookings: [
+          {
+            uid: uuid(),
+            title: "Yoga class",
+            recurringEventId: Buffer.from("yoga-class").toString("base64"),
+            startTime: dayjs().subtract(4, "day").subtract(2, "week").toDate(),
+            endTime: dayjs().subtract(4, "day").subtract(2, "week").add(30, "minutes").toDate(),
+            status: BookingStatus.CANCELLED,
+          },
+          {
+            uid: uuid(),
+            title: "Yoga class",
+            recurringEventId: Buffer.from("yoga-class").toString("base64"),
+            startTime: dayjs().subtract(4, "day").subtract(1, "week").toDate(),
+            endTime: dayjs().subtract(4, "day").subtract(1, "week").add(30, "minutes").toDate(),
+            status: BookingStatus.ACCEPTED,
+          },
+          {
+            uid: uuid(),
+            title: "Yoga class",
+            recurringEventId: Buffer.from("yoga-class").toString("base64"),
+            startTime: dayjs().subtract(4, "day").toDate(),
+            endTime: dayjs().subtract(4, "day").add(30, "minutes").toDate(),
+            status: BookingStatus.ACCEPTED,
+          },
           {
             uid: uuid(),
             title: "Yoga class",
@@ -790,6 +1064,15 @@ async function main() {
             recurringEventId: Buffer.from("seeded-yoga-class").toString("base64"),
             startTime: dayjs().subtract(4, "day").add(3, "week").toDate(),
             endTime: dayjs().subtract(4, "day").add(3, "week").add(30, "minutes").toDate(),
+            status: BookingStatus.ACCEPTED,
+          },
+          {
+            uid: uuid(),
+            title: "Seeded Yoga class",
+            description: "seeded",
+            recurringEventId: Buffer.from("seeded-yoga-class").toString("base64"),
+            startTime: dayjs().subtract(4, "day").add(4, "week").toDate(),
+            endTime: dayjs().subtract(4, "day").add(4, "week").add(30, "minutes").toDate(),
             status: BookingStatus.ACCEPTED,
           },
         ],
@@ -1170,6 +1453,9 @@ async function main() {
       },
     ]
   );
+
+  // Add past bookings for team event types
+  await addPastBookingsToTeamEvents();
 
   await createOrganizationAndAddMembersAndTeams({
     org: {
