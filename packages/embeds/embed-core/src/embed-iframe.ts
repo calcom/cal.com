@@ -594,6 +594,9 @@ function main() {
     return;
   }
 
+  const willSlotsBeFetched = url.searchParams.get("cal.skipSlotsFetch") !== "true";
+  log(`cal.skipSlotsFetch is ${willSlotsBeFetched ? "false" : "true"} - Slots will be fetched`);
+
   window.addEventListener("message", (e) => {
     const data: Message = e.data;
     if (!data) {
@@ -631,7 +634,7 @@ function main() {
   if (url.searchParams.get("preload") !== "true" && window?.isEmbed?.()) {
     initializeAndSetupEmbed();
   } else {
-    log(`Preloaded scenario - Skipping initialization and setup`);
+    log(`Preloaded scenario - Skipping initialization and setup as only assets need to be loaded`);
   }
 }
 
@@ -679,6 +682,7 @@ function actOnColorScheme(colorScheme: string | null | undefined) {
 
 /**
  * Apply configurations to the preloaded page and then ask parent to show the embed
+ * If there is a need to fetch the slots, then the slots would be fetched and then only this function call would complete
  * url has the config as params
  */
 async function connectPreloadedEmbed({
