@@ -1,7 +1,5 @@
 import type { Team } from "@calcom/prisma/client";
 
-const placeholderAvatarCache = new Map<string, string>();
-
 /**
  * Given an avatar URL and a name, return the appropriate avatar URL. In the
  * event that no avatar URL is provided, return a placeholder avatar URL from
@@ -12,21 +10,11 @@ const placeholderAvatarCache = new Map<string, string>();
  * who have not uploaded an avatar.
  */
 export function getPlaceholderAvatar(avatar: string | null | undefined, name: string | null | undefined) {
-  if (avatar) {
-    return avatar;
-  }
-
-  const cacheKey = `${name || ""}`;
-  if (placeholderAvatarCache.has(cacheKey)) {
-    return placeholderAvatarCache.get(cacheKey)!;
-  }
-
-  const placeholderUrl = `https://eu.ui-avatars.com/api/?background=fff&color=f9f9f9&bold=true&background=000000&name=${encodeURIComponent(
-    name || ""
-  )}`;
-
-  placeholderAvatarCache.set(cacheKey, placeholderUrl);
-  return placeholderUrl;
+  return avatar
+    ? avatar
+    : `https://eu.ui-avatars.com/api/?background=fff&color=f9f9f9&bold=true&background=000000&name=${encodeURIComponent(
+        name || ""
+      )}`;
 }
 
 export function getOrgOrTeamAvatar(
