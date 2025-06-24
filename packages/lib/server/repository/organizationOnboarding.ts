@@ -96,7 +96,7 @@ export class OrganizationOnboardingRepository {
 
   static async update(id: OnboardingId, data: Partial<CreateOrganizationOnboardingInput>) {
     logger.debug("Updating organization onboarding", safeStringify({ id, data }));
-    const { organizationId, ...rest } = data;
+    const { organizationId, createdById, ...rest } = data;
 
     return await prisma.organizationOnboarding.update({
       where: {
@@ -104,6 +104,7 @@ export class OrganizationOnboardingRepository {
       },
       data: {
         ...rest,
+        ...(createdById ? { createdById } : {}),
         ...(organizationId ? { organization: { connect: { id: organizationId } } } : {}),
         updatedAt: new Date(),
       },
