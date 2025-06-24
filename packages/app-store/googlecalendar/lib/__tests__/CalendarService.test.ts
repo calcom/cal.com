@@ -256,10 +256,10 @@ beforeEach(() => {
   setLastCreatedOAuth2Client(null);
   createMockJWTInstance({});
 
-  // Reset all mocks before each test
-  calendarMock.calendar_v3.Calendar().events.get.mockClear();
-  calendarMock.calendar_v3.Calendar().events.patch.mockClear();
-  calendarMock.calendar_v3.Calendar().events.update.mockClear();
+  // Reset all mocks before each test to prevent test bleeding
+  calendarMock.calendar_v3.Calendar().events.get.mockReset();
+  calendarMock.calendar_v3.Calendar().events.patch.mockReset();
+  calendarMock.calendar_v3.Calendar().events.update.mockReset();
 
   // Set up default resolved values for all methods to prevent undefined errors
   calendarMock.calendar_v3.Calendar().events.update.mockResolvedValue({
@@ -903,9 +903,9 @@ describe("getAvailability", () => {
 describe("updateEvent - Duplicate Event Prevention", () => {
   beforeEach(() => {
     setFullMockOAuthManagerRequest();
-    calendarMock.calendar_v3.Calendar().events.get.mockClear();
-    calendarMock.calendar_v3.Calendar().events.patch.mockClear();
-    calendarMock.calendar_v3.Calendar().events.update.mockClear();
+    calendarMock.calendar_v3.Calendar().events.get.mockReset();
+    calendarMock.calendar_v3.Calendar().events.patch.mockReset();
+    calendarMock.calendar_v3.Calendar().events.update.mockReset();
   });
 
   test("should use patch method for attendee-only updates", async () => {
@@ -972,7 +972,7 @@ describe("updateEvent - Duplicate Event Prevention", () => {
       requestBody: expect.objectContaining({
         attendees: expect.arrayContaining([
           expect.objectContaining({
-            email: "primary", // This will be the organizer's calendar ID
+            email: "organizer@example.com",
             organizer: true,
           }),
           expect.objectContaining({
@@ -1211,7 +1211,7 @@ describe("updateEvent - Duplicate Event Prevention", () => {
       requestBody: expect.objectContaining({
         attendees: expect.arrayContaining([
           expect.objectContaining({
-            email: "primary",
+            email: "organizer@example.com",
             organizer: true,
           }),
           expect.objectContaining({

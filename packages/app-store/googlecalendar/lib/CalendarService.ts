@@ -192,7 +192,10 @@ export default class GoogleCalendarService implements Calendar {
         dateTime: calEvent.endTime,
         timeZone: calEvent.organizer.timeZone,
       },
-      attendees: this.getAttendees({ event: calEvent, hostExternalCalendarId: externalCalendarId }),
+      attendees: this.getAttendees({
+        event: calEvent,
+        hostExternalCalendarId: externalCalendarId === "primary" ? undefined : externalCalendarId,
+      }),
       reminders: {
         useDefault: true,
       },
@@ -524,7 +527,10 @@ export default class GoogleCalendarService implements Calendar {
     calendar: calendar_v3.Calendar,
     currentSequence?: number
   ): Promise<NewCalendarEventType> {
-    const newAttendees = this.getAttendees({ event, hostExternalCalendarId: calendarId });
+    const newAttendees = this.getAttendees({
+      event,
+      hostExternalCalendarId: calendarId === "primary" ? undefined : calendarId,
+    });
     const patchPayload: Partial<calendar_v3.Schema$Event> = {
       attendees: newAttendees,
       // Use sequence from the current event and increment it
@@ -572,7 +578,10 @@ export default class GoogleCalendarService implements Calendar {
         dateTime: event.endTime,
         timeZone: event.organizer.timeZone,
       },
-      attendees: this.getAttendees({ event, hostExternalCalendarId: calendarId }),
+      attendees: this.getAttendees({
+        event,
+        hostExternalCalendarId: calendarId === "primary" ? undefined : calendarId,
+      }),
       reminders: {
         useDefault: true,
       },

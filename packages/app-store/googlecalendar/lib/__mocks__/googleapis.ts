@@ -29,8 +29,8 @@ const calendarMockImplementation = {
         sequence: 0,
       },
     }),
-    patch: vi.fn(),
-    update: vi.fn(),
+    patch: vi.fn().mockResolvedValue({}),
+    update: vi.fn().mockResolvedValue({}),
   },
   freebusy: {
     query: freebusyQueryMock,
