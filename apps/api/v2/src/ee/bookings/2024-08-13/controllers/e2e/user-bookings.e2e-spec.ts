@@ -2250,47 +2250,53 @@ describe("Bookings Endpoints 2024-08-13", () => {
         let eventTypeWithAllLocationsId: number;
 
         beforeAll(async () => {
+          const eventTypeBody: CreateEventTypeInput_2024_06_14 = {
+            title: "book using any location",
+            slug: "book-using-any-location",
+            lengthInMinutes: 15,
+            locations: [
+              {
+                type: "integration",
+                integration: "cal-video",
+              },
+              {
+                type: "address",
+                address: "123 Main St",
+                public: true,
+              },
+              {
+                type: "link",
+                link: "https://cal.com/join/123456",
+                public: true,
+              },
+              {
+                type: "phone",
+                phone: "+37121999999",
+                public: true,
+              },
+              {
+                type: "attendeeAddress",
+              },
+              {
+                type: "attendeePhone",
+              },
+              {
+                type: "attendeeDefined",
+              },
+            ],
+          };
+
           const eventTypeResponse = await request(app.getHttpServer())
             .post("/api/v2/event-types")
             .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
-            .send({
-              title: "book using any location",
-              slug: "book-using-any-location",
-              lengthInMinutes: 15,
-              locations: [
-                {
-                  type: "integration",
-                  integration: "cal-video",
-                },
-                {
-                  type: "address",
-                  address,
-                  public: true,
-                },
-                {
-                  type: "link",
-                  link,
-                  public: true,
-                },
-                {
-                  type: "phone",
-                  phone,
-                  public: true,
-                },
-                {
-                  type: "attendeeAddress",
-                },
-                {
-                  type: "attendeePhone",
-                },
-                {
-                  type: "attendeeDefined",
-                },
-              ],
-            })
+            .send(eventTypeBody)
             .expect(201);
           const eventTypeResponseBody: CreateEventTypeOutput_2024_06_14 = eventTypeResponse.body;
           const createdEventType = eventTypeResponseBody.data;
+
+          expect(createdEventType).toHaveProperty("id");
+          expect(createdEventType.locations).toHaveLength(7);
+          expect(createdEventType.locations).toEqual(eventTypeBody.locations);
 
           eventTypeWithAllLocationsId = createdEventType.id;
 
