@@ -17,7 +17,10 @@ export const deleteBookingHandler = async ({ ctx, input }: DeleteBookingOptions)
   const { user } = ctx;
   const { id } = input;
 
-  // First, get the booking with all necessary information
+  // Fetch booking with permission-checking data:
+  // - eventType.team.members: filtered to current user to check their team role
+  // - user: to verify ownership for personal bookings
+  // - Only include accepted team memberships for valid permission checks
   const booking = await prisma.booking.findUnique({
     where: { id },
     include: {
@@ -28,7 +31,7 @@ export const deleteBookingHandler = async ({ ctx, input }: DeleteBookingOptions)
               members: {
                 where: {
                   userId: user.id,
-                  accepted: true,
+                  accepted: true, // Only accepted memberships grant permissions
                 },
                 select: {
                   role: true,
@@ -40,7 +43,7 @@ export const deleteBookingHandler = async ({ ctx, input }: DeleteBookingOptions)
       },
       user: {
         select: {
-          id: true,
+          id: true, // Only need ID for ownership comparison
         },
       },
     },
@@ -62,11 +65,13 @@ export const deleteBookingHandler = async ({ ctx, input }: DeleteBookingOptions)
     });
   }
 
-  // Check user permissions
+  // Determine if current user has permission to delete this booking
   let hasPermission = false;
 
   if (booking.eventType?.team) {
-    // For team bookings, check if user is OWNER or ADMIN of the team
+    // Team booking: Only team OWNER or ADMIN can delete any team booking
+    // Note: members[0] is safe because the query filters by current user.id
+    // If user is not a team member, the array will be empty
     const membership = booking.eventType.team.members[0];
     if (
       membership &&
@@ -75,7 +80,7 @@ export const deleteBookingHandler = async ({ ctx, input }: DeleteBookingOptions)
       hasPermission = true;
     }
   } else {
-    // For personal bookings, the booking owner can delete their own booking
+    // Personal booking: Only the original booking owner can delete their own booking
     if (booking.user && booking.user.id === user.id) {
       hasPermission = true;
     }

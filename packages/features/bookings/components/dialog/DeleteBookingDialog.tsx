@@ -23,11 +23,13 @@ export function DeleteBookingDialog({ isOpen, onClose, bookingId, onSuccess }: D
       onSuccess?.();
     },
     onError: (err) => {
+      // Map TRPC error codes to user-friendly messages
       const errorMessages: Record<string, string> = {
-        NOT_FOUND: t("booking_not_found"),
-        BAD_REQUEST: t("delete_booking_failed"),
-        FORBIDDEN: t("delete_booking_failed"),
+        NOT_FOUND: t("booking_not_found"), // Booking doesn't exist
+        BAD_REQUEST: t("delete_booking_failed"), // Not a past booking
+        FORBIDDEN: t("delete_booking_failed"), // Insufficient permissions
       };
+      // Fallback to generic error message for unexpected error codes
       const message = errorMessages[err.data?.code as string] || t("delete_booking_failed");
       showToast(message, "error");
     },

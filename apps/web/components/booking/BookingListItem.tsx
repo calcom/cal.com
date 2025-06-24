@@ -164,17 +164,21 @@ function BookingListItem(booking: BookingItemProps) {
   // Get current user data to check roles
   const { data: meData } = useMeQuery();
 
-  // Check if user can delete this booking
+  // Determine if current user can delete this specific booking
+  // Rules: 1) Only past bookings can be deleted
+  //        2) Team bookings: only team admin/owner can delete
+  //        3) Personal bookings: only the original booking owner can delete
   const canDeleteBooking = () => {
     if (!meData) return false;
-    if (!isBookingInPast) return false;
+    if (!isBookingInPast) return false; // Safety: never allow deletion of future bookings
 
-    // For team bookings, only team admin/owner can delete
     if (booking.eventType?.team) {
+      // Team booking: requires admin/owner role
+      // Note: isTeamAdminOrOwner is pre-computed based on user's team memberships
       return meData.isTeamAdminOrOwner;
     }
 
-    // For personal bookings, the booking owner can delete their own booking
+    // Personal booking: requires original ownership
     return booking.user !== null && booking.user.id === meData.id;
   };
 
