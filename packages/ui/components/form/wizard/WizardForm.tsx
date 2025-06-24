@@ -5,6 +5,7 @@ import { noop } from "lodash";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import classNames from "@calcom/ui/classNames";
@@ -35,7 +36,9 @@ function WizardForm<T extends DefaultStep>(props: {
   const searchParams = useCompatSearchParams();
   const { href, steps, nextLabel = "Next", finishLabel = "Finish", prevLabel = "Back", stepLabel } = props;
   const router = useRouter();
-  const step = parseInt((searchParams?.get("step") as string) || "1");
+  const stepSchema = z.coerce.number().int().min(1).max(steps.length).default(1);
+  const stepResult = stepSchema.safeParse(searchParams?.get("step"));
+  const step = stepResult.success ? stepResult.data : 1;
   const currentStep = steps[step - 1];
   const setStep = (newStep: number) => {
     router.replace(`${href}?step=${newStep || 1}`);
