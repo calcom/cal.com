@@ -104,7 +104,6 @@ export class OrganizationOnboardingRepository {
       },
       data: {
         ...rest,
-        ...(createdById ? { createdById } : {}),
         ...(organizationId ? { organization: { connect: { id: organizationId } } } : {}),
         updatedAt: new Date(),
       },
