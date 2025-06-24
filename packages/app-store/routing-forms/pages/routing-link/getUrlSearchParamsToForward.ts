@@ -124,7 +124,9 @@ export function getUrlSearchParamsToForward({
     ...(teamMembersMatchingAttributeLogic
       ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
       : null),
-    ...(formResponseId ? { [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: String(formResponseId) } : null),
+    ...(typeof formResponseId === "number"
+      ? { [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: String(formResponseId) }
+      : null),
     ...(queuedFormResponseId ? { ["cal.queuedFormResponseId"]: queuedFormResponseId } : null),
     ...attributeRoutingConfigParams,
     ...(reroutingFormResponses

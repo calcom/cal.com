@@ -26526,7 +26526,7 @@
       },
       "CalendarEventResponseStatus": {
         "type": "string",
-        "description": "Attendee's response to the invitation",
+        "description": "Host's response to the invitation",
         "enum": [
           "accepted",
           "pending",
@@ -26586,6 +26586,11 @@
             "type": "string",
             "nullable": true,
             "description": "Display name of the event host"
+          },
+          "responseStatus": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
           }
         },
         "required": [

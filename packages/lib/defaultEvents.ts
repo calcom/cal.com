@@ -135,6 +135,8 @@ const commons = {
   rrTimestampBasis: null,
   interfaceLanguage: null,
   customReplyToEmail: null,
+  restrictionScheduleId: null,
+  useBookerTimezone: false,
   profileId: null,
   requiresConfirmationWillBlockSlot: false,
   canSendCalVideoTranscriptionEmails: false,
