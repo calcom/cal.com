@@ -133,7 +133,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
               <Alert severity="error" message={serverErrorMessage} />
             </div>
           )}
-          {isBillingEnabled && (
+          {isBillingEnabled && isAdmin && (
             <div className="mb-5">
               <Controller
                 name="billingPeriod"
@@ -251,7 +251,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           />
         </div>
 
-        {isBillingEnabled && (
+        {isBillingEnabled && isAdmin && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
