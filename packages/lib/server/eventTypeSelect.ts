@@ -1,6 +1,6 @@
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
-export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+export const eventTypeSelect = {
   id: true,
   teamId: true,
   schedulingType: true,
@@ -33,6 +33,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  allowReschedulingCancelledBookings: true,
   hideCalendarNotes: true,
   minimumBookingNotice: true,
   beforeEventBuffer: true,
@@ -70,4 +71,29 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   maxLeadThreshold: true,
   useEventLevelSelectedCalendars: true,
   customReplyToEmail: true,
-});
+  restrictionScheduleId: true,
+  useBookerTimezone: true,
+  instantMeetingSchedule: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+} satisfies Prisma.EventTypeSelect;
+
+// Create a separate select for schedule-related fields
+export const eventTypeScheduleSelect = {
+  ...eventTypeSelect,
+  schedule: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  restrictionSchedule: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+} satisfies Prisma.EventTypeSelect;

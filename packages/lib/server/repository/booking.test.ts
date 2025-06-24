@@ -2,7 +2,7 @@ import prismaMock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
 
 import { BookingRepository } from "./booking";
 
@@ -187,6 +187,63 @@ describe("BookingRepository", () => {
 
         expect(bookings).toHaveLength(4);
       });
+    });
+    it("should use start time as timestamp basis for the booking count", async () => {
+      await Promise.all([
+        prismaMock.booking.create({
+          data: {
+            userId: 1,
+            uid: "booking_may",
+            eventTypeId: 1,
+            status: BookingStatus.ACCEPTED,
+            attendees: {
+              create: {
+                email: "test1@example.com",
+                noShow: false,
+                name: "Test 1",
+                timeZone: "America/Toronto",
+              },
+            },
+            startTime: new Date("2025-05-26T00:00:00.000Z"),
+            endTime: new Date("2025-05-26T01:00:00.000Z"),
+            createdAt: new Date("2025-05-03T00:00:00.000Z"),
+            title: "Test Event",
+          },
+        }),
+        prismaMock.booking.create({
+          data: {
+            userId: 1,
+            uid: "booking_june",
+            eventTypeId: 1,
+            status: BookingStatus.ACCEPTED,
+            attendees: {
+              create: {
+                email: "test1@example.com",
+                noShow: true,
+                name: "Test 1",
+                timeZone: "America/Toronto",
+              },
+            },
+            startTime: new Date("2025-06-26T00:00:00.000Z"),
+            endTime: new Date("2025-06-26T01:00:00.000Z"),
+            createdAt: new Date("2025-05-03T00:00:00.000Z"),
+            title: "Test Event",
+          },
+        }),
+      ]);
+
+      const bookings = await BookingRepository.getAllBookingsForRoundRobin({
+        users: [{ id: 1, email: "organizer1@example.com" }],
+        eventTypeId: 1,
+        startDate: new Date("2025-06-01T00:00:00.000Z"),
+        endDate: new Date("2025-06-30T23:59:00.000Z"),
+        includeNoShowInRRCalculation: true,
+        virtualQueuesData: null,
+        rrTimestampBasis: RRTimestampBasis.START_TIME,
+      });
+
+      expect(bookings).toHaveLength(1);
+      expect(bookings[0].startTime.toISOString()).toBe(new Date("2025-06-26T00:00:00.000Z").toISOString());
     });
   });
 });
