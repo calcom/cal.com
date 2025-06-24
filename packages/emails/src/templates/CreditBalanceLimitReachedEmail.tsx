@@ -52,7 +52,7 @@ export const CreditBalanceLimitReachedEmail = (
       <div style={{ textAlign: "center", marginTop: "24px" }}>
         <CallToAction
           label={user.t("buy_credits")}
-          href={`${WEBAPP_URL}/settings/teams/${user.id}/credits`}
+          href={`${WEBAPP_URL}/settings/billing`}
           endIconName="linkIcon"
         />
       </div>

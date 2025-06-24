@@ -163,6 +163,7 @@ export function DataTable<TData>({
                       }}
                       className={classNames(
                         "relative flex shrink-0 items-center",
+                        "bg-muted",
                         column.getIsPinned() && "top-0 z-20 sm:sticky"
                       )}>
                       <TableHeadLabel header={header} />
@@ -287,7 +288,7 @@ function DataTableBody<TData>({
 
   return (
     <TableBody
-      className="border-subtle relative grid overflow-hidden rounded-xl border"
+      className="border-subtle relative grid border-t"
       data-testid={testId}
       style={{ height: tableHeight }}>
       {rowsToRender.map(({ row, virtualItem }) => (
@@ -311,6 +312,7 @@ function DataTableBody<TData>({
             return (
               <TableCell
                 key={cell.id}
+                data-testid={`data-table-td-${cell.column.id}`}
                 style={{
                   ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
                   ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),

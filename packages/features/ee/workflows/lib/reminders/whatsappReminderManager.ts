@@ -10,6 +10,10 @@ import {
 } from "@calcom/prisma/enums";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
+import {
+  getContentSidForTemplate,
+  getContentVariablesForTemplate,
+} from "../reminders/templates/whatsapp/ContentSidMapping";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import { deleteScheduledSMSReminder } from "./smsReminderManager";
@@ -76,7 +80,21 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
   const timeZone =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
+  const locale = evt.organizer.language.locale;
+  const timeFormat = evt.organizer.timeFormat;
 
+  const contentSid = getContentSidForTemplate(template);
+  const contentVariables = getContentVariablesForTemplate({
+    name,
+    attendeeName,
+    eventName: evt.title,
+    eventDate: dayjs(startTime).tz(timeZone).locale(locale).format("YYYY MMM D"),
+    startTime: dayjs(startTime)
+      .tz(timeZone)
+      .locale(locale)
+      .format(timeFormat || "h:mma"),
+    timeZone,
+  });
   let textMessage = message;
 
   switch (template) {
@@ -84,9 +102,9 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappReminderTemplate(
           false,
-          evt.organizer.language.locale,
+          locale,
           action,
-          evt.organizer.timeFormat,
+          timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -98,9 +116,9 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappEventCancelledTemplate(
           false,
-          evt.organizer.language.locale,
+          locale,
           action,
-          evt.organizer.timeFormat,
+          timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -112,9 +130,9 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappEventRescheduledTemplate(
           false,
-          evt.organizer.language.locale,
+          locale,
           action,
-          evt.organizer.timeFormat,
+          timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -126,9 +144,9 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappEventCompletedTemplate(
           false,
-          evt.organizer.language.locale,
+          locale,
           action,
-          evt.organizer.timeFormat,
+          timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -140,9 +158,9 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
       textMessage =
         whatsappReminderTemplate(
           false,
-          evt.organizer.language.locale,
+          locale,
           action,
-          evt.organizer.timeFormat,
+          timeFormat,
           evt.startTime,
           evt.title,
           timeZone,
@@ -170,6 +188,8 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
             userId,
             teamId,
             isWhatsapp: true,
+            contentSid,
+            contentVariables,
           },
           fallbackData: isAttendeeAction(action)
             ? {
@@ -203,6 +223,8 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
               userId,
               teamId,
               isWhatsapp: true,
+              contentSid,
+              contentVariables,
             },
             fallbackData: isAttendeeAction(action)
               ? {

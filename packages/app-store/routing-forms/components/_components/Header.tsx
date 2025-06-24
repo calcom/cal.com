@@ -6,14 +6,12 @@ import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
-import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { enabledIncompleteBookingApps } from "../../lib/enabledIncompleteBookingApps";
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
 
@@ -111,17 +109,15 @@ const Actions = ({
               StartIcon="external-link">
               {t("view_form")}
             </FormAction>
-            {isMobile ? (
-              <FormAction
-                action="incompleteBooking"
-                className="w-full"
-                routingForm={form}
-                color="minimal"
-                type="button"
-                StartIcon="calendar">
-                {t("routing_incomplete_booking_tab")}
-              </FormAction>
-            ) : null}
+            <FormAction
+              action="incompleteBooking"
+              className="w-full"
+              routingForm={form}
+              color="minimal"
+              type="button"
+              StartIcon="calendar">
+              {t("routing_incomplete_booking_tab")}
+            </FormAction>
             <FormAction
               action="copyLink"
               className="w-full"
@@ -222,14 +218,6 @@ export function Header({
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(routingForm.name);
   const form = useFormContext<RoutingFormWithResponseCount>();
-
-  const { data } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
-    formId: routingForm.id,
-  });
-
-  const showIncompleteBookingTab = data?.credentials.some((credential) =>
-    enabledIncompleteBookingApps.includes(credential?.appId ?? "")
-  );
 
   const { getCurrentPage, handleNavigation } = useRoutingFormNavigation(
     routingForm,
@@ -357,15 +345,6 @@ export function Header({
               label: t("routing"),
               iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
             },
-            ...(showIncompleteBookingTab
-              ? [
-                  {
-                    value: "incomplete-booking",
-                    label: t("routing_incomplete_booking_tab"),
-                    iconLeft: <Icon name="calendar" className="h-3 w-3" />,
-                  },
-                ]
-              : []),
           ]}
         />
       </div>

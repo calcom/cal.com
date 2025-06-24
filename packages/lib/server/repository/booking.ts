@@ -4,6 +4,7 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
+import { RRTimestampBasis } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
@@ -47,6 +48,7 @@ const buildWhereClauseForActiveBookings = ({
   users,
   virtualQueuesData,
   includeNoShowInRRCalculation = false,
+  rrTimestampBasis,
 }: {
   eventTypeId: number;
   startDate?: Date;
@@ -60,6 +62,7 @@ const buildWhereClauseForActiveBookings = ({
     };
   } | null;
   includeNoShowInRRCalculation: boolean;
+  rrTimestampBasis: RRTimestampBasis;
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
@@ -86,12 +89,19 @@ const buildWhereClauseForActiveBookings = ({
   status: BookingStatus.ACCEPTED,
   eventTypeId,
   ...(startDate || endDate
-    ? {
-        createdAt: {
-          ...(startDate ? { gte: startDate } : {}),
-          ...(endDate ? { lte: endDate } : {}),
-        },
-      }
+    ? rrTimestampBasis === RRTimestampBasis.CREATED_AT
+      ? {
+          createdAt: {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          },
+        }
+      : {
+          startTime: {
+            ...(startDate ? { gte: startDate } : {}),
+            ...(endDate ? { lte: endDate } : {}),
+          },
+        }
     : {}),
   ...(virtualQueuesData
     ? {
@@ -113,7 +123,7 @@ export class BookingRepository {
 
   /** Determines if the user is the organizer, team admin, or org admin that the booking was created under */
   static async doesUserIdHaveAccessToBooking({ userId, bookingId }: { userId: number; bookingId: number }) {
-    const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findUnique({
       where: {
         id: bookingId,
       },
@@ -155,7 +165,7 @@ export class BookingRepository {
   }
 
   static async findReschedulerByUid({ uid }: { uid: string }) {
-    return await prisma.booking.findFirst({
+    return await prisma.booking.findUnique({
       where: {
         uid,
       },
@@ -290,6 +300,7 @@ export class BookingRepository {
     endDate,
     virtualQueuesData,
     includeNoShowInRRCalculation,
+    rrTimestampBasis,
   }: {
     users: { id: number; email: string }[];
     eventTypeId: number;
@@ -303,6 +314,7 @@ export class BookingRepository {
       };
     } | null;
     includeNoShowInRRCalculation: boolean;
+    rrTimestampBasis: RRTimestampBasis;
   }) {
     const allBookings = await prisma.booking.findMany({
       where: buildWhereClauseForActiveBookings({
@@ -312,6 +324,7 @@ export class BookingRepository {
         users,
         virtualQueuesData,
         includeNoShowInRRCalculation,
+        rrTimestampBasis,
       }),
       select: {
         id: true,
@@ -374,7 +387,18 @@ export class BookingRepository {
         isRecorded: true,
         eventType: {
           select: {
+            id: true,
             hideOrganizerEmail: true,
+            calVideoSettings: {
+              select: {
+                disableRecordingForGuests: true,
+                disableRecordingForOrganizer: true,
+                enableAutomaticTranscription: true,
+                disableTranscriptionForGuests: true,
+                disableTranscriptionForOrganizer: true,
+                redirectUrlOnExit: true,
+              },
+            },
           },
         },
         user: {
@@ -778,5 +802,38 @@ export class BookingRepository {
       ...collectiveRoundRobinBookingsAttendee,
       ...managedBookings,
     ];
+  }
+
+  static async getValidBookingFromEventTypeForAttendee({
+    eventTypeId,
+    bookerEmail,
+    bookerPhoneNumber,
+    startTime,
+    filterForUnconfirmed,
+  }: {
+    eventTypeId: number;
+    bookerEmail?: string;
+    bookerPhoneNumber?: string;
+    startTime: Date;
+    filterForUnconfirmed?: boolean;
+  }) {
+    return await prisma.booking.findFirst({
+      where: {
+        eventTypeId,
+        attendees: {
+          some: {
+            email: bookerEmail,
+            phoneNumber: bookerPhoneNumber,
+          },
+        },
+        startTime,
+        status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
+      },
+      include: {
+        attendees: true,
+        references: true,
+        user: true,
+      },
+    });
   }
 }

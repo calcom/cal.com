@@ -36,7 +36,7 @@ const loadConfig = (): AppConfig => {
     app: {
       baseUrl: getEnv("WEB_APP_URL", "https://app.cal.com"),
     },
-    e2e: getEnv("IS_E2E", false),
+    e2e: getEnv("IS_E2E", "false") === "true" ? true : false,
   };
 };
 

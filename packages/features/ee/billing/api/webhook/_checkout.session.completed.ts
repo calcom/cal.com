@@ -1,5 +1,5 @@
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import prisma from "@calcom/prisma";
+import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
@@ -14,7 +14,7 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   const userId = session.metadata?.userId ? Number(session.metadata.userId) : undefined;
 
   if (!teamId && !userId) {
-    throw new HttpCode(400, "Team id and user id, but at least one is required");
+    throw new HttpCode(400, "Team id and user id are missing, but at least one is required");
   }
 
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
@@ -39,31 +39,29 @@ async function saveToCreditBalance({
   teamId?: number;
   nrOfCredits: number;
 }) {
-  const creditBalance = await prisma.creditBalance.findUnique({
-    where: {
-      teamId,
-      userId: !teamId ? userId : undefined,
-    },
-    select: {
-      id: true,
-    },
-  });
+  const creditBalance = await CreditsRepository.findCreditBalance({ teamId, userId });
+
+  let creditBalanceId = creditBalance?.id;
 
   if (creditBalance) {
-    await prisma.creditBalance.update({
-      where: {
-        id: creditBalance.id,
-      },
+    await CreditsRepository.updateCreditBalance({
+      id: creditBalance.id,
       data: { additionalCredits: { increment: nrOfCredits }, limitReachedAt: null, warningSentAt: null },
     });
-    return;
-  }
-  await prisma.creditBalance.create({
-    data: {
+  } else {
+    const newCreditBalance = await CreditsRepository.createCreditBalance({
       teamId: teamId,
       userId: !teamId ? userId : undefined,
       additionalCredits: nrOfCredits,
-    },
-  });
+    });
+    creditBalanceId = newCreditBalance.id;
+  }
+
+  if (creditBalanceId) {
+    await CreditsRepository.createCreditPurchaseLog({
+      credits: nrOfCredits,
+      creditBalanceId,
+    });
+  }
 }
 export default handler;

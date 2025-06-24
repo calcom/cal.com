@@ -1,8 +1,6 @@
 /**/package.json @calcom/Foundation
 /apps/api/**/* @calcom/Platform @calcom/Foundation
 /apps/ui-playground/**/* @calcom/Consumer @calcom/Foundation
-/apps/web/components/**/* @calcom/Consumer @calcom/Foundation
-/apps/web/modules/**/* @calcom/Consumer @calcom/Foundation
 /apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation
 /apps/web/lib/**/* @calcom/Foundation
 /apps/web/middleware.ts @calcom/Foundation
@@ -19,6 +17,7 @@
 /packages/app-store/larkcalendar/**/* @calcom/Foundation
 /packages/app-store/office365calendar/**/* @calcom/Foundation
 /packages/app-store/zohocalendar/**/* @calcom/Foundation
+/packages/embeds/**/* @calcom/Foundation
 /packages/features/bookings/lib/**/* @calcom/Foundation
 /packages/lib/getAggregatedAvailability.ts @calcom/Foundation
 /packages/lib/getUserAvailability.ts @calcom/Foundation

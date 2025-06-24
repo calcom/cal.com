@@ -91,7 +91,9 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     log.debug("Getting cached availability", safeStringify({ credentialId, userId, args }));
     const key = parseKeyForCache(args);
     let cached;
+    let usedInMemoryDelegationCredential = false;
     if (isInMemoryDelegationCredential({ credentialId })) {
+      usedInMemoryDelegationCredential = true;
       if (!userId) {
         log.warn("userId is not available when querying cache for in-memory delegation credential");
         return null;
@@ -109,6 +111,11 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
           key,
           expiresAt: { gte: new Date(Date.now()) },
         },
+        orderBy: {
+          // In case of multiple entries for same key and userId, we prefer the one with highest expiry, which will be the most updated one
+          // TODO: For better tracking we could also want to use updatedAt directly which doesn't exist yet in CalendarCache table
+          expiresAt: "desc",
+        },
       });
     } else {
       cached = await prisma.calendarCache.findUnique({
@@ -121,7 +128,10 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         },
       });
     }
-    log.info("Got cached availability", safeStringify({ key, cached }));
+    log.info(
+      "Got cached availability",
+      safeStringify({ key, cached, credentialId, usedInMemoryDelegationCredential })
+    );
     return cached;
   }
   async upsertCachedAvailability({

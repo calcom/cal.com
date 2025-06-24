@@ -44,28 +44,22 @@ export function DatePickerWithRange({
         onDatesChange({ startDate, endDate });
       }
     } else {
-      // for Limit Future Booking (no past dates)
-      if (!dates.startDate || !dates.endDate) {
-        onDatesChange({ startDate: date, endDate: date });
-      } else {
-        const startTime = dates.startDate.getTime();
-        const endTime = dates.endDate.getTime();
-        const clickedTime = date.getTime();
-
-        if (clickedTime === startTime || clickedTime === endTime) {
-          onDatesChange({ startDate: date, endDate: date });
-        } else if (clickedTime < startTime) {
-          onDatesChange({ startDate: date, endDate: dates.endDate });
-        } else if (clickedTime > endTime) {
-          onDatesChange({ startDate: dates.startDate, endDate: date });
+      // for Limit Future Booking and other date range selections (no past dates)
+      if (!dates.startDate) {
+        onDatesChange({ startDate: date, endDate: undefined });
+      } else if (!dates.endDate) {
+        if (date < dates.startDate) {
+          onDatesChange({ startDate: date, endDate: dates.startDate });
         } else {
-          const startDiff = clickedTime - startTime;
-          const endDiff = endTime - clickedTime;
-          if (startDiff < endDiff) {
-            onDatesChange({ startDate: date, endDate: dates.endDate });
-          } else {
-            onDatesChange({ startDate: dates.startDate, endDate: date });
-          }
+          onDatesChange({ startDate: dates.startDate, endDate: date });
+        }
+      } else {
+        if (date.getTime() === dates.startDate.getTime() || date.getTime() === dates.endDate.getTime()) {
+          onDatesChange({ startDate: date, endDate: undefined });
+        } else if (date < dates.startDate) {
+          onDatesChange({ startDate: date, endDate: undefined });
+        } else {
+          onDatesChange({ startDate: dates.startDate, endDate: date });
         }
       }
     }

@@ -10,7 +10,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { enrichUserWithDelegationCredentialsWithoutOrgId } from "../delegationCredential/server";
+import { enrichUserWithDelegationCredentials } from "../delegationCredential/server";
 import { getBookerBaseUrl } from "../getBookerUrl/server";
 
 async function getEventType(id: number) {
@@ -91,6 +91,7 @@ export async function getBooking(bookingId: number) {
           name: true,
           locale: true,
           destinationCalendar: true,
+          isPlatformManaged: true,
         },
       },
     },
@@ -109,7 +110,7 @@ export async function getBooking(bookingId: number) {
   const { user: userWithoutDelegationCredentials } = booking;
 
   if (!userWithoutDelegationCredentials) throw new HttpCode({ statusCode: 204, message: "No user found" });
-  const user = await enrichUserWithDelegationCredentialsWithoutOrgId({
+  const user = await enrichUserWithDelegationCredentials({
     user: userWithoutDelegationCredentials,
   });
 

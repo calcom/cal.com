@@ -14,7 +14,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { EventManagerUser } from "@calcom/lib/EventManager";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -88,7 +88,8 @@ export async function handleConfirmation(args: {
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);
   const eventManager = new EventManager(user, apps);
-  const scheduleResult = await eventManager.create(evt);
+  const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
+  const scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
@@ -499,7 +500,7 @@ export async function handleConfirmation(args: {
         orgId,
         oAuthClientId: platformClientParams?.platformClientId,
       });
-      const bookingWithPayment = await prisma.booking.findFirst({
+      const bookingWithPayment = await prisma.booking.findUnique({
         where: {
           id: bookingId,
         },

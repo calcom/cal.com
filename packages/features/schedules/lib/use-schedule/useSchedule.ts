@@ -2,6 +2,7 @@ import { useSearchParams } from "next/navigation";
 
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
@@ -65,6 +66,7 @@ export const useSchedule = ({
   const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
+  const queuedFormResponseId = searchParams?.get("cal.queuedFormResponseId");
   const email = searchParams?.get("email");
   // We allow skipping the schedule fetch as a requirement for prerendering in iframe through embed as when the pre-rendered iframe is connected, then we would fetch the availability, which would be upto-date
   // Also, a reuse through Headless Router could completely change the availability as different team members are selected and thus it is unnecessary to fetch the schedule
@@ -72,7 +74,7 @@ export const useSchedule = ({
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
-  const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "";
+  const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "0";
   const input = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
@@ -93,10 +95,11 @@ export const useSchedule = ({
     routedTeamMemberIds,
     skipContactOwner,
     _shouldServeCache,
-    routingFormResponseId,
+    ...(queuedFormResponseId ? { queuedFormResponseId } : { routingFormResponseId }),
     email,
     // Ensures that connectVersion causes a refresh of the data
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
+    _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
   };
 
   const options = {
@@ -122,7 +125,9 @@ export const useSchedule = ({
   };
 
   const isCallingApiV2Slots = useApiV2 && Boolean(isTeamEvent) && options.enabled;
-  const teamSchedule = useApiV2AvailableSlots({
+
+  // API V2 query for team events
+  const teamScheduleV2 = useApiV2AvailableSlots({
     ...input,
     enabled: isCallingApiV2Slots,
     duration: input.duration ? Number(input.duration) : undefined,
@@ -131,25 +136,30 @@ export const useSchedule = ({
     eventTypeId: eventId ?? undefined,
   });
 
-  if (isCallingApiV2Slots) {
+  const schedule = isTeamEvent
+    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(input, {
+        ...options,
+        // Only enable if we're not using API V2
+        enabled: options.enabled && !isCallingApiV2Slots,
+      })
+    : trpc.viewer.slots.getSchedule.useQuery(input, options);
+
+  if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({
       bookerState,
-      slotsQuery: teamSchedule,
+      slotsQuery: teamScheduleV2,
     });
+
     return {
-      ...teamSchedule,
+      ...teamScheduleV2,
       /**
        * Invalidates the request and resends it regardless of any other configuration including staleTime
        */
       invalidate: () => {
-        return teamSchedule.refetch();
+        return teamScheduleV2.refetch();
       },
     };
   }
-
-  const schedule = isTeamEvent
-    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options)
-    : trpc.viewer.slots.getSchedule.useQuery(input, options);
 
   updateEmbedBookerState({
     bookerState,
