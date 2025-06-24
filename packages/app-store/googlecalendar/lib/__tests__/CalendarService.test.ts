@@ -1095,6 +1095,7 @@ describe("updateEvent - Duplicate Event Prevention", () => {
       end: { dateTime: "2024-01-15T11:00:00Z" },
       hangoutLink: "https://meet.google.com/abc-defg-hij",
       attendees: [{ email: "organizer@example.com", organizer: true }],
+      sequence: 0,
     };
 
     const updatedEvent = {
@@ -1125,20 +1126,15 @@ describe("updateEvent - Duplicate Event Prevention", () => {
       data: meetEvent,
     });
 
-    calendarMock.calendar_v3.Calendar().events.patch.mockResolvedValueOnce({
-      data: {
-        ...meetEvent,
-        id: "patched-meet-event",
-        hangoutLink: "https://meet.google.com/abc-defg-hij",
-      },
-    });
-
-    // Second patch call for hangout link update
-    calendarMock.calendar_v3.Calendar().events.patch.mockResolvedValueOnce({
-      data: {
-        id: "patched-meet-event",
-        hangoutLink: "https://meet.google.com/abc-defg-hij",
-      },
+    // Use mockImplementation for more robust handling of multiple calls
+    calendarMock.calendar_v3.Calendar().events.patch.mockImplementation(() => {
+      return Promise.resolve({
+        data: {
+          ...meetEvent,
+          id: "patched-meet-event",
+          hangoutLink: "https://meet.google.com/abc-defg-hij",
+        },
+      });
     });
 
     const result = await calendarService.updateEvent("meet-event-789", updatedEvent, "primary");
@@ -1150,8 +1146,145 @@ describe("updateEvent - Duplicate Event Prevention", () => {
         additionalInfo: expect.objectContaining({
           hangoutLink: "https://meet.google.com/abc-defg-hij",
         }),
+        type: "google_calendar",
+        iCalUID: expect.any(String),
       })
     );
     expect(calendarMock.calendar_v3.Calendar().events.patch).toHaveBeenCalledTimes(2);
+  });
+
+  test("should handle all-day events properly", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+
+    const allDayEvent = {
+      id: "all-day-event",
+      summary: "All Day Event",
+      description: "",
+      start: { date: "2024-01-15" },
+      end: { date: "2024-01-16" },
+      attendees: [{ email: "organizer@example.com", organizer: true }],
+      sequence: 0,
+    };
+
+    const updatedEvent = {
+      type: "google_calendar",
+      title: "All Day Event",
+      calendarDescription: "", // Keep same as original event (empty)
+      startTime: "2024-01-15T00:00:00Z",
+      endTime: "2024-01-16T00:00:00Z",
+      organizer: {
+        id: 1,
+        email: "organizer@example.com",
+        name: "Organizer",
+        timeZone: "UTC",
+        language: { translate: vi.fn(), locale: "en" },
+      },
+      attendees: [
+        {
+          email: "newguest@example.com",
+          name: "New Guest",
+          timeZone: "UTC",
+          language: { translate: vi.fn(), locale: "en" },
+        },
+      ],
+    };
+
+    calendarMock.calendar_v3.Calendar().events.get.mockResolvedValueOnce({
+      data: allDayEvent,
+    });
+
+    calendarMock.calendar_v3.Calendar().events.patch.mockResolvedValueOnce({
+      data: { ...allDayEvent, id: "patched-all-day-event" },
+    });
+
+    calendarMock.calendar_v3.Calendar().events.update.mockResolvedValueOnce({
+      data: { ...allDayEvent, id: "updated-all-day-event" },
+    });
+
+    await calendarService.updateEvent("all-day-event", updatedEvent, "primary");
+
+    expect(calendarMock.calendar_v3.Calendar().events.patch).toHaveBeenCalledWith({
+      calendarId: "primary",
+      eventId: "all-day-event",
+      sendUpdates: "externalOnly",
+      requestBody: expect.objectContaining({
+        attendees: expect.arrayContaining([
+          expect.objectContaining({
+            email: "primary",
+            organizer: true,
+          }),
+          expect.objectContaining({
+            email: "newguest@example.com",
+            name: "New Guest",
+          }),
+        ]),
+        sequence: 1,
+      }),
+    });
+
+    expect(calendarMock.calendar_v3.Calendar().events.update).not.toHaveBeenCalled();
+  });
+
+  test("should use update method when end time changes but start time stays same", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+
+    const existingEvent = {
+      id: "test-event-duration",
+      summary: "Duration Change Meeting",
+      start: { dateTime: "2024-01-15T10:00:00Z" },
+      end: { dateTime: "2024-01-15T11:00:00Z" },
+      attendees: [{ email: "organizer@example.com", organizer: true }],
+      sequence: 0,
+    };
+
+    const updatedEvent = {
+      type: "google_calendar",
+      title: "Duration Change Meeting",
+      calendarDescription: "Same description",
+      startTime: "2024-01-15T10:00:00Z",
+      endTime: "2024-01-15T12:00:00Z",
+      organizer: {
+        id: 1,
+        email: "organizer@example.com",
+        name: "Organizer",
+        timeZone: "UTC",
+        language: { translate: vi.fn(), locale: "en" },
+      },
+      attendees: [
+        {
+          email: "guest@example.com",
+          name: "Guest",
+          timeZone: "UTC",
+          language: { translate: vi.fn(), locale: "en" },
+        },
+      ],
+    };
+
+    calendarMock.calendar_v3.Calendar().events.get.mockResolvedValueOnce({
+      data: existingEvent,
+    });
+
+    calendarMock.calendar_v3.Calendar().events.update.mockResolvedValueOnce({
+      data: { ...existingEvent, id: "updated-duration-event" },
+    });
+
+    await calendarService.updateEvent("test-event-duration", updatedEvent, "primary");
+
+    expect(calendarMock.calendar_v3.Calendar().events.update).toHaveBeenCalledWith({
+      calendarId: "primary",
+      eventId: "test-event-duration",
+      sendNotifications: true,
+      sendUpdates: "none",
+      requestBody: expect.objectContaining({
+        summary: "Duration Change Meeting",
+        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
+        end: { dateTime: "2024-01-15T12:00:00Z", timeZone: "UTC" },
+      }),
+      conferenceDataVersion: 1,
+    });
+
+    expect(calendarMock.calendar_v3.Calendar().events.patch).not.toHaveBeenCalled();
   });
 });

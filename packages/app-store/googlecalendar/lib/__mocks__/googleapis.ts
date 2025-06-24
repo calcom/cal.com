@@ -20,7 +20,15 @@ const calendarMockImplementation = {
         expiration: "1111111111",
       },
     }),
-    get: vi.fn(),
+    get: vi.fn().mockResolvedValue({
+      data: {
+        id: "default-event-id",
+        summary: "Default Event",
+        start: { dateTime: "2024-01-01T10:00:00Z" },
+        end: { dateTime: "2024-01-01T11:00:00Z" },
+        sequence: 0,
+      },
+    }),
     patch: vi.fn(),
     update: vi.fn(),
   },
