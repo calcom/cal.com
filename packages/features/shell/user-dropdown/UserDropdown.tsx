@@ -4,7 +4,6 @@ import { useEffect, useState, memo } from "react";
 
 import { ROADMAP, DESKTOP_APP_LINK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import {
@@ -21,6 +20,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import FreshChatProvider from "../../ee/support/lib/freshchat/FreshChatProvider";
+import { useUser } from "../context/UserProvider";
 
 declare global {
   interface Window {
@@ -39,7 +39,7 @@ interface UserDropdownProps {
 export const UserDropdown = memo(function UserDropdown({ small }: UserDropdownProps) {
   const { isPlatformUser } = useGetUserAttributes();
   const { t } = useLocale();
-  const { data: user, isPending } = useMeQuery();
+  const { user, isPending } = useUser();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   useEffect(() => {

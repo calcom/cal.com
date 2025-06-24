@@ -21,6 +21,7 @@ import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
+import { UserProvider } from "./context/UserProvider";
 import { MobileNavigationContainer } from "./navigation/Navigation";
 import { useAppTheme } from "./useAppTheme";
 
@@ -115,9 +116,11 @@ export default function Shell(props: LayoutProps) {
   useAppTheme();
 
   return !props.isPublic ? (
-    <KBarWrapper withKBar>
-      <Layout {...props} />
-    </KBarWrapper>
+    <UserProvider>
+      <KBarWrapper withKBar>
+        <Layout {...props} />
+      </KBarWrapper>
+    </UserProvider>
   ) : (
     <PublicShell {...props} />
   );
