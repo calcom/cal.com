@@ -72,14 +72,14 @@ export class InsightsBookingRepository {
     });
   }
 
-  private async getAuthorizationConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
+  async getAuthorizationConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
     if (this.cachedAuthConditions === undefined) {
       this.cachedAuthConditions = await this.buildAuthorizationConditions();
     }
     return this.cachedAuthConditions;
   }
 
-  private async getFilterConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput | null> {
+  async getFilterConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput | null> {
     if (this.cachedFilterConditions === undefined) {
       this.cachedFilterConditions = await this.buildFilterConditions();
     }
@@ -183,7 +183,7 @@ export class InsightsBookingRepository {
           ? [
               {
                 userId: {
-                  in: userIdsFromOrg,
+                  in: [...new Set(userIdsFromOrg)],
                 },
                 isTeamBooking: false,
               },
