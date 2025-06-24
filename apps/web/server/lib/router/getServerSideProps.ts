@@ -11,8 +11,6 @@ export const getServerSideProps = wrapGetServerSidePropsWithSentry(async functio
   try {
     return await getRoutedUrl(context);
   } catch (error) {
-    console.log("error,getRoutedUrl.getRoutedUrl", error);
-
     if (error instanceof TRPCError && error.code === "TOO_MANY_REQUESTS") {
       context.res.statusCode = 429;
       const isEmbed = hasEmbedPath(context.req.url || "");
