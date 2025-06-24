@@ -451,7 +451,7 @@ describe("createOrganizationFromOnboarding", () => {
       ).rejects.toThrow("Self hosted license not valid");
     });
 
-    it("should create an organization with with a valid license", async () => {
+    it("should create an organization with a valid license", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
       });
