@@ -21,10 +21,12 @@ import {
   HttpStatus,
   Logger,
   Delete,
+  BadRequestException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController } from "@nestjs/swagger";
 import { Request } from "express";
+import Stripe from "stripe";
 
 import { ApiResponse } from "@calcom/platform-types";
 
@@ -158,8 +160,12 @@ export class BillingController {
         status: "success",
       };
     } catch (error) {
-      this.logger.error("Webhook signature validation failed", error);
-      throw new Error("Invalid webhook signature");
+      if (error instanceof Stripe.errors.StripeSignatureVerificationError) {
+        this.logger.error("Webhook signature validation failed", error);
+        throw new BadRequestException("Invalid webhook signature");
+      }
+      this.logger.error("Webhook processing failed", error);
+      throw error;
     }
   }
 }
