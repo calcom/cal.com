@@ -1,4 +1,3 @@
-import { calendar_v3 } from "@googleapis/calendar";
 import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -84,11 +83,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       delegatedTo: null,
     });
 
-    const calendar = new calendar_v3.Calendar({
-      auth: oAuth2Client,
-    });
-
-    const primaryCal = await gCalService.getPrimaryCalendar(calendar);
+    const primaryCal = await gCalService.getPrimaryCalendar();
 
     // If we still don't have a primary calendar skip creating the selected calendar.
     // It can be toggled on later.

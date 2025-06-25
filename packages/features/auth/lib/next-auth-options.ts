@@ -1,4 +1,3 @@
-import { calendar_v3 } from "@googleapis/calendar";
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { OAuth2Client } from "googleapis-common";
@@ -670,10 +669,8 @@ export const getOptions = ({
 
           const oAuth2Client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
           oAuth2Client.setCredentials(credentialkey);
-          const calendar = new calendar_v3.Calendar({
-            auth: oAuth2Client,
-          });
-          const primaryCal = await gCalService.getPrimaryCalendar(calendar);
+
+          const primaryCal = await gCalService.getPrimaryCalendar();
           if (primaryCal?.id) {
             await gCalService.createSelectedCalendar({
               externalId: primaryCal.id,
