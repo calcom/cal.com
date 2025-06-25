@@ -53,6 +53,20 @@ const handleSendingSMS = async ({
   }
 };
 
+const getTeamWithOrganizationSettings = async (teamId: number) => {
+  return await prisma.team.findUnique({
+    where: { id: teamId },
+    select: {
+      parent: {
+        select: {
+          isOrganization: true,
+          organizationSettings: true,
+        },
+      },
+    },
+  });
+};
+
 export default abstract class SMSManager {
   calEvent: CalendarEvent;
   isTeamEvent = false;
@@ -75,17 +89,7 @@ export default abstract class SMSManager {
     const teamId = this.teamId;
 
     if (teamId) {
-      const team = await prisma.team.findUnique({
-        where: { id: teamId },
-        select: {
-          parent: {
-            select: {
-              isOrganization: true,
-              organizationSettings: true,
-            },
-          },
-        },
-      });
+      const team = await getTeamWithOrganizationSettings(teamId);
 
       this._isSMSNotificationEnabled = !team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications;
       return this._isSMSNotificationEnabled;
