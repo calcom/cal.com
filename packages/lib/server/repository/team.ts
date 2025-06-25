@@ -12,7 +12,6 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import { WorkflowService } from "../service/workflows";
 import { getParsedTeam } from "./teamUtils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
@@ -187,12 +186,6 @@ export class TeamRepository {
   }
 
   static async deleteById({ id }: { id: number }) {
-    try {
-      await WorkflowService.deleteWorkflowRemindersOfRemovedTeam(id);
-    } catch (e) {
-      console.error(e);
-    }
-
     const deletedTeam = await prisma.$transaction(async (tx) => {
       await tx.eventType.deleteMany({
         where: {
