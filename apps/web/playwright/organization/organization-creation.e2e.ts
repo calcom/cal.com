@@ -12,6 +12,8 @@ import { test } from "../lib/fixtures";
 import { fillStripeTestCheckout } from "../lib/testUtils";
 import { getEmailsReceivedByUser } from "../lib/testUtils";
 
+const IS_SELF_HOSTED = false;
+
 async function expectEmailWithSubject(
   page: Page,
   emails: ReturnType<typeof createEmailsFixture>,
