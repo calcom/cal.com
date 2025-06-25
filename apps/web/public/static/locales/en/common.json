@@ -2890,7 +2890,7 @@
   "reassign_reason": "Reason for reassigning",
   "cannot_change_field_type": "Cannot Change Field Type",
   "cannot_change_field_type_description": "Changing field types can break data integrity",
-  "field_type_change_suggestion": "Changing the field type may cause data loss. We recommend creating a new field instead.",
+  "field_type_change_suggestion": "Changing the field type may cause data loss. Please create a new field instead.",
   "understood": "Understood",
   "reassigned_by": "Reassigned by",
   "row": "row",
