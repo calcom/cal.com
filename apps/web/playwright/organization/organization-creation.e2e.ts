@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import fs from "fs";
 import { JSDOM } from "jsdom";
 import type { Messages } from "mailhog";
 import path from "path";
