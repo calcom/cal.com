@@ -120,12 +120,10 @@ export class BillingController {
   ): Promise<ApiResponse> {
     try {
       if (!stripeSignature) {
-        this.logger.warn("Missing stripe-signature header in webhook request");
         throw new BadRequestException("Missing stripe-signature header");
       }
 
       if (!this.stripeWhSecret) {
-        this.logger.error("Missing STRIPE_WEBHOOK_SECRET configuration");
         throw new BadRequestException("Missing webhook secret configuration");
       }
 
@@ -161,10 +159,8 @@ export class BillingController {
       };
     } catch (error) {
       if (error instanceof Stripe.errors.StripeSignatureVerificationError) {
-        this.logger.error("Webhook signature validation failed", error);
         throw new BadRequestException("Invalid webhook signature");
       }
-      this.logger.error("Webhook processing failed", error);
       throw error;
     }
   }
