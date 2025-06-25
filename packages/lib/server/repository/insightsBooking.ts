@@ -183,7 +183,7 @@ export class InsightsBookingRepository {
           ? [
               {
                 userId: {
-                  in: [...new Set(userIdsFromOrg)],
+                  in: Array.from(new Set(userIdsFromOrg)),
                 },
                 isTeamBooking: false,
               },
@@ -235,10 +235,12 @@ export class InsightsBookingRepository {
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
-    const membershipOrg = await this.prisma.membership.findFirst({
+    const membershipOrg = await this.prisma.membership.findUnique({
       where: {
-        userId,
-        teamId: orgId,
+        userId_teamId: {
+          userId,
+          teamId: orgId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
@@ -248,6 +250,7 @@ export class InsightsBookingRepository {
         id: true,
       },
     });
+
     return Boolean(membershipOrg);
   }
 }
