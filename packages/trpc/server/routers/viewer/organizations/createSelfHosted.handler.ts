@@ -1,9 +1,6 @@
-import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -45,17 +42,6 @@ export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOp
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Organization owner email not found",
-    });
-  }
-
-  const deploymentRepo = new DeploymentRepository(prisma);
-  const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
-  const hasValidLicense = await licenseKeyService.checkLicense();
-
-  if (!hasValidLicense) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "License not valid",
     });
   }
 

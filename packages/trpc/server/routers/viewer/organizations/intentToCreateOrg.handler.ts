@@ -41,7 +41,8 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     if (!hasValidLicense) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "license_not_valid",
+        // TODO: We need to send translation keys from here and frontend should translate it
+        message: "License is not valid",
       });
     }
   }

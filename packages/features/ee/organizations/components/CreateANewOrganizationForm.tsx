@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
+import { MINIMUM_NUMBER_OF_ORG_SEATS, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -55,7 +55,8 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   const router = useRouter();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const defaultOrgOwnerEmail = session.data.user.email ?? "";
+  // Let self-hosters create an organization with their own email. Hosted's Admin already has an organization for their email
+  const defaultOrgOwnerEmail = (!isAdmin || IS_SELF_HOSTED ? session.data.user.email : null) ?? "";
   const { useOnboardingStore, isBillingEnabled } = useOnboarding({ step: "start" });
   const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
     useOnboardingStore();
@@ -71,7 +72,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
     defaultValues: {
       billingPeriod: billingPeriod ?? BillingPeriod.MONTHLY,
       slug: slug ?? (!isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined),
-      orgOwnerEmail: orgOwnerEmail || (!isAdmin ? defaultOrgOwnerEmail : undefined),
+      orgOwnerEmail: orgOwnerEmail || defaultOrgOwnerEmail,
       name: name ?? (!isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined),
       seats: seats ?? null,
       pricePerSeat: pricePerSeat ?? null,

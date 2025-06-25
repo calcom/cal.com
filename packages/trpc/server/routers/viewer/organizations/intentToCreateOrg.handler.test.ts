@@ -262,7 +262,7 @@ describe("intentToCreateOrgHandler", () => {
             user: adminUser,
           },
         })
-      ).rejects.toThrow("license_not_valid");
+      ).rejects.toThrow("License not valid");
     });
 
     it("should allow admin user to create org for another user", async () => {

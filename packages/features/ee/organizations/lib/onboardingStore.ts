@@ -166,8 +166,6 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
         router.push("/settings/organizations/new");
       }
     }
-
-    // Admin must start fresh, so that they can create organization with any email and data doesn't mix from different org creations
   }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, onboardingId, reset, step, router]);
 
   useEffect(() => {
