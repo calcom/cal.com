@@ -7,6 +7,7 @@ import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { loadTranslations } from "@calcom/lib/server/i18n";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 
@@ -14,8 +15,6 @@ import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps
 
 import type { PageProps as LegacyPageProps } from "~/users/views/users-type-public-view";
 import LegacyPage from "~/users/views/users-type-public-view";
-
-import { checkCacheEligibility } from "./cache-eligibility";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
@@ -79,7 +78,7 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   const _params = await params;
   const _searchParams = await searchParams;
 
-  const shouldCache = await checkCacheEligibility({
+  const shouldCache = await EventTypeRepository.checkCacheEligibility({
     user: _params.user,
     type: _params.type,
     org: _searchParams.org || null,
