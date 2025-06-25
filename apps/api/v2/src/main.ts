@@ -26,7 +26,7 @@ const run = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(loggerConfig()),
     bodyParser: false,
-    rawBody: true,
+    rawBody: true, // Enable raw body access for webhook signature validation
   });
 
   const logger = new Logger("App");
