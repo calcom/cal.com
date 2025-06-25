@@ -20,6 +20,14 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Ensure } from "./utils";
 
 export type { VideoCallData } from "./VideoApiAdapter";
+export type CalendarSubscription = {
+  id: string;
+  providerSubscriptionId: string | null;
+  providerSubscriptionKind: string | null;
+  providerResourceId: string | null;
+  providerResourceUri: string | null;
+  providerExpiration: Date | null;
+};
 
 type PaymentInfo = {
   link?: string | null;
@@ -81,6 +89,11 @@ export type NewCalendarEventType = {
   hangoutLink?: string | null;
   conferenceData?: ConferenceData;
   delegatedToId?: string | null;
+  usedExternalCalendarId?: string | null;
+};
+
+export type NewCalendarEventTypeWithSyncSupport = Omit<NewCalendarEventType, "usedExternalCalendarId"> & {
+  usedExternalCalendarId: string | null;
 };
 
 export type CalendarEventType = {
@@ -255,6 +268,13 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
  * null is to refer to user-level SelectedCalendar
  */
 export type SelectedCalendarEventTypeIds = (number | null)[];
+export type CalendarEventsToSync = {
+  id: string;
+  status: string;
+  startTime: Dayjs;
+  endTime: Dayjs;
+  organizerResponseStatus: "needsAction" | "declined" | "tentative" | "accepted";
+}[];
 
 export interface CalendarServiceEvent extends CalendarEvent {
   calendarDescription: string;
@@ -301,10 +321,37 @@ export interface Calendar {
   watchCalendar?(options: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
+    calendarSubscription: CalendarSubscription | null;
   }): Promise<unknown>;
+
+  onWatchedCalendarChange?(options: {
+    calendarId: string;
+    syncActions: ("availability-cache" | "events-sync")[];
+    selectedCalendars: IntegrationCalendar[];
+  }): Promise<{
+    eventsToSync: CalendarEventsToSync;
+  }>;
+
   unwatchCalendar?(options: {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
+    calendarSubscription: CalendarSubscription | null;
+  }): Promise<void>;
+
+  subscribeToCalendar?(options: { calendarId: string }): Promise<{
+    id: string | null;
+    kind: string | null;
+    resourceId: string | null;
+    resourceUri: string | null;
+    /**
+     * Unix timestamp in milliseconds
+     */
+    expiration: number | null;
+  }>;
+
+  unsubscribeFromCalendar?(options: {
+    providerSubscriptionId: string;
+    providerResourceId: string;
   }): Promise<void>;
 }
 

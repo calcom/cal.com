@@ -227,7 +227,9 @@ export type InputEventType = {
     includeManagedEventsInLimits?: boolean;
   };
   requiresConfirmation?: boolean;
-  destinationCalendar?: Prisma.DestinationCalendarCreateInput;
+  destinationCalendar?: Prisma.DestinationCalendarCreateInput & {
+    id?: string;
+  };
   schedule?: InputUser["schedules"][number] | null;
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
@@ -876,6 +878,20 @@ export async function addUsers(users: InputUser[]) {
           }),
         },
       };
+
+      for (const team of addedTeams) {
+        if (team.isOrganization) {
+          console.log(`Created a profile for user ${user.id} in organization ${team.id}`);
+          await prismock.profile.create({
+            data: {
+              uid: uuidv4(),
+              userId: user.id,
+              organizationId: team.id,
+              username: user.username,
+            },
+          });
+        }
+      }
     }
     if (user.selectedCalendars) {
       newUser.selectedCalendars = {
@@ -1711,7 +1727,7 @@ export function mockCalendar(
     };
     update?: {
       id?: string;
-      uid: string;
+      uid?: string;
       iCalUID?: string;
       appSpecificData?: {
         googleCalendar?: {
@@ -1790,6 +1806,7 @@ export function mockCalendar(
                 // Password and URL seems useless for CalendarService, plan to remove them if that's the case
                 password: "MOCK_PASSWORD",
                 url: "https://UNUSED_URL",
+                usedExternalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID_FALLBACK_BY_CALENDAR_SERVICE",
               });
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1816,8 +1833,13 @@ export function mockCalendar(
                 additionalInfo: {},
                 uid: "PROBABLY_UNUSED_UID",
                 iCalUID: normalizedCalendarData.update?.iCalUID,
+                usedExternalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID_FALLBACK_BY_CALENDAR_SERVICE",
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
+                id:
+                  normalizedCalendarData.update?.id ||
+                  // Legacy code, it should have used id only
+                  normalizedCalendarData.update?.uid ||
+                  "FALLBACK_MOCK_ID",
                 // Password and URL seems useless for CalendarService, plan to remove them if that's the case
                 password: "MOCK_PASSWORD",
                 url: "https://UNUSED_URL",

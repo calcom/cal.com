@@ -3252,6 +3252,8 @@
   "meeting_start_time": "Meeting Start Time",
   "members_affected_by_disabling_delegation_credential": "Affected members",
   "no_members_affected_by_disabling_delegation_credential": "No members affected by disabling delegation credential",
+  "event_cancelled_in_calendar": "Event cancelled in calendar",
+  "organizer_declined_in_calendar": "Organizer declined in calendar", 
   "download_expense_log": "Download Expense Log",
   "error_downloading_expense_log": "Error downloading expense log",
   "offer_to_reschedule_last_booking": "Offer to reschedule last active booking to chosen time slot",
