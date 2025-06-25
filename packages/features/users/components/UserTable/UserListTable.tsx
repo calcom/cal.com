@@ -30,6 +30,7 @@ import {
 } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -109,8 +110,18 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 export type UserListTableProps = {
   org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
   teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
-  facetedTeamValues: RouterOutputs["viewer"]["organizations"]["getFacetedValues"];
-  attributes: RouterOutputs["viewer"]["attributes"]["list"];
+  attributes?: RouterOutputs["viewer"]["attributes"]["list"];
+  facetedTeamValues?: {
+    roles: MembershipRole[];
+    teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+    attributes: {
+      id: string;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
 };
 
 export function UserListTable(props: UserListTableProps) {
@@ -266,7 +277,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
-        header: "Members",
+        header: t("members"),
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -297,7 +308,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
       {
         id: "role",
         accessorFn: (data) => data.role,
-        header: "Role",
+        header: t("role"),
         size: 100,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
@@ -319,7 +330,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
       {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
-        header: "Teams",
+        header: t("teams"),
         size: 140,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
@@ -338,7 +349,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
                   }}>
-                  Pending
+                  {t("pending")}
                 </Badge>
               )}
 
