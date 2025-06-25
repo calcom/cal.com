@@ -6,6 +6,7 @@ import type { Mock } from "vitest";
 
 import { EmbedElement } from "./EmbedElement";
 import inlineHTML from "./Inline/inlineHtml";
+import { EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS } from "./constants";
 import { getColorSchemeDarkQuery } from "./ui-utils";
 
 (function defineEmbedTestElement() {
@@ -269,8 +270,8 @@ describe("EmbedElement", () => {
           },
           getSkeletonData: vi.fn(),
         });
-        expect(element.classList.contains("dark")).toBe(true);
-        expect(element.classList.contains("light")).toBe(false);
+        expect(element.classList.contains(EMBED_DARK_THEME_CLASS)).toBe(true);
+        expect(element.classList.contains(EMBED_LIGHT_THEME_CLASS)).toBe(false);
       });
 
       it("should update theme class when system preference changes as long as embed theme is not set", () => {
@@ -279,8 +280,8 @@ describe("EmbedElement", () => {
         });
         getColorSchemeDarkQuery().dispatchEvent(buildMediaQueryListEvent({ type: "change", matches: true }));
 
-        expect(element.classList.contains("dark")).toBe(true);
-        expect(element.classList.contains("light")).toBe(false);
+        expect(element.classList.contains(EMBED_DARK_THEME_CLASS)).toBe(true);
+        expect(element.classList.contains(EMBED_LIGHT_THEME_CLASS)).toBe(false);
       });
 
       it("should not update theme on system color scheme change when embed theme is set", () => {
@@ -291,7 +292,7 @@ describe("EmbedElement", () => {
           getSkeletonData: vi.fn(),
         });
         getColorSchemeDarkQuery().dispatchEvent(buildMediaQueryListEvent({ type: "change", matches: true }));
-        expect(element.classList.contains("light")).toBe(true);
+        expect(element.classList.contains(EMBED_LIGHT_THEME_CLASS)).toBe(true);
       });
     });
 
