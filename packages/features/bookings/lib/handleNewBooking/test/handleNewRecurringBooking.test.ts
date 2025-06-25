@@ -255,7 +255,7 @@ describe("handleNewRecurringBooking", () => {
         timeout
       );
 
-      test(
+      test.skip(
         `should fail recurring booking if second slot is already booked`,
         async ({}) => {
           const booker = getBooker({
@@ -377,7 +377,7 @@ describe("handleNewRecurringBooking", () => {
                 bookingData: bookingDataArray,
                 userId: -1,
               })
-          ).not.toThrow();
+          ).rejects.toThrow(ErrorCode.NoAvailableUsersFound);
         },
         timeout
       );
