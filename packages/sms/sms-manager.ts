@@ -4,8 +4,8 @@ import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/remind
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_ID } from "@calcom/lib/constants";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { TimeFormat } from "@calcom/lib/timeFormat";
+import prisma from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 const handleSendingSMS = async ({
@@ -75,7 +75,17 @@ export default abstract class SMSManager {
     const teamId = this.teamId;
 
     if (teamId) {
-      const team = await TeamRepository.findTeamWithOrganizationSettings(teamId);
+      const team = await prisma.team.findUnique({
+        where: { id: teamId },
+        select: {
+          parent: {
+            select: {
+              isOrganization: true,
+              organizationSettings: true,
+            },
+          },
+        },
+      });
 
       this._isSMSNotificationEnabled = !team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications;
       return this._isSMSNotificationEnabled;
