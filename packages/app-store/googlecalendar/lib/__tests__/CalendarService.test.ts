@@ -885,3 +885,28 @@ describe("getAvailability", () => {
     expect(availabilityWithAllCalendarsAsFallback).toEqual([...mockedBusyTimes1, ...mockedBusyTimes2]);
   });
 });
+
+describe("getPrimaryCalendar", () => {
+  test("should fetch primary calendar using 'primary' keyword", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+    const mockPrimaryCalendar = {
+      id: "user@example.com",
+      summary: "Primary Calendar",
+      primary: true,
+      accessRole: "owner",
+      timeZone: "America/New_York",
+    };
+    const calendarListGetMock = vi.fn().mockResolvedValue({
+      data: mockPrimaryCalendar,
+    });
+    calendarMock.calendar_v3.Calendar().calendarList.get = calendarListGetMock;
+    const result = await calendarService.getPrimaryCalendar();
+    expect(calendarListGetMock).toHaveBeenCalledTimes(1);
+    expect(calendarListGetMock).toHaveBeenCalledWith({
+      calendarId: "primary",
+    });
+    expect(result).toEqual(mockPrimaryCalendar);
+  });
+});

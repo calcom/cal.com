@@ -12,7 +12,7 @@ const getPrimaryCalendarMock = vi.fn();
 vi.mock("@calcom/app-store/googlecalendar/lib/CalendarService", () => {
   return {
     default: vi.fn().mockImplementation(() => ({
-      getPrimaryCalendar: getPrimaryCalendar,
+      getPrimaryCalendar: getPrimaryCalendarMock,
     })),
   };
 });
