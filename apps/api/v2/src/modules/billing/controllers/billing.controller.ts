@@ -116,35 +116,50 @@ export class BillingController {
     @Req() request: Request,
     @Headers("stripe-signature") stripeSignature: string
   ): Promise<ApiResponse> {
-    const event = await this.billingService.stripeService
-      .getStripe()
-      .webhooks.constructEventAsync(request.body, stripeSignature, this.stripeWhSecret);
+    try {
+      if (!stripeSignature) {
+        this.logger.warn("Missing stripe-signature header in webhook request");
+        throw new Error("Missing stripe-signature header");
+      }
 
-    switch (event.type) {
-      case "checkout.session.completed":
-        await this.billingService.handleStripeCheckoutEvents(event);
-        break;
-      case "customer.subscription.updated":
-        await this.billingService.handleStripePaymentPastDue(event);
-        break;
-      case "customer.subscription.deleted":
-        await this.billingService.handleStripeSubscriptionDeleted(event);
-        break;
-      case "invoice.created":
-        await this.billingService.handleStripeSubscriptionForActiveManagedUsers(event);
-        break;
-      case "invoice.payment_failed":
-        await this.billingService.handleStripePaymentFailed(event);
-        break;
-      case "invoice.payment_succeeded":
-        await this.billingService.handleStripePaymentSuccess(event);
-        break;
-      default:
-        break;
+      if (!this.stripeWhSecret) {
+        this.logger.error("Missing STRIPE_WEBHOOK_SECRET configuration");
+        throw new Error("Missing webhook secret configuration");
+      }
+
+      const event = await this.billingService.stripeService
+        .getStripe()
+        .webhooks.constructEventAsync(request.body, stripeSignature, this.stripeWhSecret);
+
+      switch (event.type) {
+        case "checkout.session.completed":
+          await this.billingService.handleStripeCheckoutEvents(event);
+          break;
+        case "customer.subscription.updated":
+          await this.billingService.handleStripePaymentPastDue(event);
+          break;
+        case "customer.subscription.deleted":
+          await this.billingService.handleStripeSubscriptionDeleted(event);
+          break;
+        case "invoice.created":
+          await this.billingService.handleStripeSubscriptionForActiveManagedUsers(event);
+          break;
+        case "invoice.payment_failed":
+          await this.billingService.handleStripePaymentFailed(event);
+          break;
+        case "invoice.payment_succeeded":
+          await this.billingService.handleStripePaymentSuccess(event);
+          break;
+        default:
+          break;
+      }
+
+      return {
+        status: "success",
+      };
+    } catch (error) {
+      this.logger.error("Webhook signature validation failed", error);
+      throw new Error("Invalid webhook signature");
     }
-
-    return {
-      status: "success",
-    };
   }
 }
