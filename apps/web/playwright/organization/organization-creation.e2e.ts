@@ -1,6 +1,5 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import fs from "fs";
 import { JSDOM } from "jsdom";
 import type { Messages } from "mailhog";
 import path from "path";
@@ -110,12 +109,6 @@ test.describe("Organization", () => {
     users,
     emails,
   }) => {
-    const constantsPath = path.join(process.cwd(), "packages/lib/constants.ts");
-    const originalContent = fs.readFileSync(constantsPath, "utf-8");
-    const mockedContent = originalContent.replace(
-      /export const IS_SELF_HOSTED = .*/,
-      "export const IS_SELF_HOSTED = false;"
-    );
     const appLevelAdmin = await users.create({
       role: "ADMIN",
     });
