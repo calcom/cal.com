@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
@@ -17,8 +16,13 @@ import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType, EventTypeAutoTranslatedField, RRTimestampBasis } from "@calcom/prisma/enums";
+import { Prisma } from "@calcom/prisma/client";
+import {
+  WorkflowTriggerEvents,
+  SchedulingType,
+  EventTypeAutoTranslatedField,
+  RRTimestampBasis,
+} from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
@@ -636,10 +640,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  const updatedEventTypeSelect = {
     slug: true,
     schedulingType: true,
-  });
+  } satisfies Prisma.EventTypeSelect;
   let updatedEventType: Prisma.EventTypeGetPayload<{ select: typeof updatedEventTypeSelect }>;
   try {
     updatedEventType = await ctx.prisma.eventType.update({

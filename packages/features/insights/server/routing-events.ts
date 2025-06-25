@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import mapKeys from "lodash/mapKeys";
 // eslint-disable-next-line no-restricted-imports
@@ -18,6 +17,7 @@ import type {
 } from "@calcom/features/insights/server/raw-data.schema";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import { type ResponseValue, ZResponse } from "../lib/types";
 

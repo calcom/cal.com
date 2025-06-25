@@ -8,6 +8,12 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "../../../types";
 import { confirmHandler } from "./confirm.handler";
 
+vi.mock("@calcom/prisma", () => {
+  return {
+    default: vi.fn(),
+  };
+});
+
 describe.skip("confirmHandler", () => {
   beforeEach(() => {
     // Reset all mocks before each test

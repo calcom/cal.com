@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 //import "server-only";
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
@@ -14,6 +12,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
@@ -41,7 +40,7 @@ export const getEventTypeById = async ({
   isTrpcCall = false,
   isUserOrganizationAdmin,
 }: getEventTypeByIdProps) => {
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  const userSelect = {
     name: true,
     avatarUrl: true,
     username: true,
@@ -50,7 +49,7 @@ export const getEventTypeById = async ({
     locale: true,
     defaultScheduleId: true,
     isPlatformManaged: true,
-  });
+  } satisfies Prisma.UserSelect;
 
   const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
 

@@ -17,7 +17,7 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { TOTP as TOTPtoMock } from "@otplib/core";
-import { User } from "@prisma/client";
+import { User } from "@calcom/prisma/client";
 import { totp } from "otplib";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";

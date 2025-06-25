@@ -1,7 +1,6 @@
-import type { Prisma } from "@prisma/client";
-
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema, EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export class EventTypeService {
