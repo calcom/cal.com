@@ -577,38 +577,27 @@ export const EventAdvancedTab = ({
         />
       )}
 
-      <div className="border-subtle bg-muted rounded-lg border p-1">
-        <div className="p-5">
-          <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
-            {t("booking_questions_title")}
-          </div>
-          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
-            {t("booking_questions_description")}
-          </p>
-        </div>
-        <div className="border-subtle bg-default rounded-lg border p-5">
-          <FormBuilder
-            showPhoneAndEmailToggle
-            title={t("confirmation")}
-            description={t("what_booker_should_provide")}
-            addFieldLabel={t("add_a_booking_question")}
-            formProp="bookingFields"
-            {...shouldLockDisableProps("bookingFields")}
-            dataStore={{
-              options: {
-                locations: {
-                  // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
-                  source: { label: "Location" },
-                  value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
-                },
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
+        <FormBuilder
+          title={t("booking_questions_title")}
+          description={t("booking_questions_description")}
+          addFieldLabel={t("add_a_booking_question")}
+          formProp="bookingFields"
+          {...shouldLockDisableProps("bookingFields")}
+          dataStore={{
+            options: {
+              locations: {
+                // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
+                source: { label: "Location" },
+                value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
               },
-            }}
-            shouldConsiderRequired={(field: BookingField) => {
-              // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
-              return field.name === "location" ? true : field.required;
-            }}
-          />
-        </div>
+            },
+          }}
+          shouldConsiderRequired={(field: BookingField) => {
+            // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
+            return field.name === "location" ? true : field.required;
+          }}
+        />
       </div>
       <RequiresConfirmationController
         eventType={eventType}
