@@ -121,12 +121,12 @@ export class BillingController {
     try {
       if (!stripeSignature) {
         this.logger.warn("Missing stripe-signature header in webhook request");
-        throw new Error("Missing stripe-signature header");
+        throw new BadRequestException("Missing stripe-signature header");
       }
 
       if (!this.stripeWhSecret) {
         this.logger.error("Missing STRIPE_WEBHOOK_SECRET configuration");
-        throw new Error("Missing webhook secret configuration");
+        throw new BadRequestException("Missing webhook secret configuration");
       }
 
       const event = await this.billingService.stripeService
