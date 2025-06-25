@@ -118,32 +118,24 @@ export class BillingController {
     @Req() request: Request,
     @Headers("stripe-signature") stripeSignature: string
   ): Promise<ApiResponse> {
-    const isE2E = this.configService.get("e2e", { infer: true });
-
     try {
-      let event;
-
-      if (isE2E) {
-        event = JSON.parse(request.body);
-      } else {
-        if (!stripeSignature) {
-          this.logger.warn("Missing stripe-signature header in webhook request");
-          return {
-            status: "success",
-          };
-        }
-
-        if (!this.stripeWhSecret) {
-          this.logger.error("Missing STRIPE_WEBHOOK_SECRET configuration");
-          return {
-            status: "success",
-          };
-        }
-
-        event = await this.billingService.stripeService
-          .getStripe()
-          .webhooks.constructEventAsync(request.body, stripeSignature, this.stripeWhSecret);
+      if (!stripeSignature) {
+        this.logger.warn("Missing stripe-signature header in webhook request");
+        return {
+          status: "success",
+        };
       }
+
+      if (!this.stripeWhSecret) {
+        this.logger.error("Missing STRIPE_WEBHOOK_SECRET configuration");
+        return {
+          status: "success",
+        };
+      }
+
+      const event = await this.billingService.stripeService
+        .getStripe()
+        .webhooks.constructEventAsync(request.body, stripeSignature, this.stripeWhSecret);
 
       switch (event.type) {
         case "checkout.session.completed":
