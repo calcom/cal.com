@@ -894,17 +894,16 @@ describe("getPrimaryCalendar", () => {
     const mockPrimaryCalendar = {
       id: "user@example.com",
       summary: "Primary Calendar",
-      primary: true,
-      accessRole: "owner",
+      description: "Primary calendar for user@example.com",
       timeZone: "America/New_York",
     };
-    const calendarListGetMock = vi.fn().mockResolvedValue({
+    const calendarsGetMock = vi.fn().mockResolvedValue({
       data: mockPrimaryCalendar,
     });
-    calendarMock.calendar_v3.Calendar().calendarList.get = calendarListGetMock;
+    calendarMock.calendar_v3.Calendar().calendars.get = calendarsGetMock;
     const result = await calendarService.getPrimaryCalendar();
-    expect(calendarListGetMock).toHaveBeenCalledTimes(1);
-    expect(calendarListGetMock).toHaveBeenCalledWith({
+    expect(calendarsGetMock).toHaveBeenCalledTimes(1);
+    expect(calendarsGetMock).toHaveBeenCalledWith({
       calendarId: "primary",
     });
     expect(result).toEqual(mockPrimaryCalendar);
