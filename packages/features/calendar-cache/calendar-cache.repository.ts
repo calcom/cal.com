@@ -4,7 +4,7 @@ import { uniqueBy } from "@calcom/lib/array";
 import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import prisma, { type PrismaTransaction } from "@calcom/prisma";
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
@@ -199,7 +199,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     });
   }
 
-  async invalidateCacheForUsers(userIds: number[], prismaClient?: any) {
+  async invalidateCacheForUsers(userIds: number[], prismaClient?: PrismaTransaction) {
     declareCanWorkWithInMemoryCredential();
     const prismaToUse = prismaClient || prisma;
 
