@@ -1000,9 +1000,9 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async getPrimaryCalendar(): Promise<calendar_v3.Schema$Calendar | null> {
+  async getPrimaryCalendar(_calendar?: calendar_v3.Calendar): Promise<calendar_v3.Schema$Calendar | null> {
     try {
-      const calendar = await this.authedCalendar();
+      const calendar = _calendar ?? (await this.authedCalendar());
       const response = await calendar.calendars.get({
         calendarId: "primary",
       });
