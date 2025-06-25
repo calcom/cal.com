@@ -3207,5 +3207,6 @@
   "available_credits": "Доступные кредиты",
   "members_affected_by_disabling_delegation_credential": "Затронутые участники",
   "no_members_affected_by_disabling_delegation_credential": "Нет участников, затронутых отключением делегированных учетных данных",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Бронь истекла"
 }

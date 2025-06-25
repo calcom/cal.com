@@ -3207,5 +3207,6 @@
   "available_credits": "Διαθέσιμες μονάδες",
   "members_affected_by_disabling_delegation_credential": "Επηρεαζόμενα μέλη",
   "no_members_affected_by_disabling_delegation_credential": "Κανένα μέλος δεν επηρεάζεται από την απενεργοποίηση των διαπιστευτηρίων εκχώρησης",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Η κράτηση έληξε"
 }

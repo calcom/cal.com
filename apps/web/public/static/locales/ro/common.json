@@ -3207,5 +3207,6 @@
   "available_credits": "Credite disponibile",
   "members_affected_by_disabling_delegation_credential": "Membri afectați",
   "no_members_affected_by_disabling_delegation_credential": "Niciun membru afectat de dezactivarea acreditivului de delegare",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Rezervarea expiră"
 }
