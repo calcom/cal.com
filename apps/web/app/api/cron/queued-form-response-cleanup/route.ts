@@ -21,7 +21,7 @@ async function postHandler(request: NextRequest) {
         },
         {
           createdAt: {
-            lte: oneHourAgo,
+            gte: oneHourAgo,
           },
         },
       ],
