@@ -608,9 +608,60 @@ async function handler(
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
-  let routingFormResponse = null;
+  let routingFormResponse: any = null;
+  let effectiveRoutedTeamMemberIds = routedTeamMemberIds;
+  let effectiveRoutingFormResponseId = routingFormResponseId;
 
-  if (routedTeamMemberIds) {
+  // Check if we're rescheduling a booking that was originally routed via routing form
+  if (rescheduleUid && originalRescheduledBooking?.routedFromRoutingFormReponse && !routedTeamMemberIds) {
+    routingFormResponse = originalRescheduledBooking.routedFromRoutingFormReponse;
+    effectiveRoutingFormResponseId = routingFormResponse.id;
+
+    loggerWithEventDetails.debug("Found original routing form response during reschedule", {
+      routingFormResponseId: routingFormResponse.id,
+      chosenRouteId: routingFormResponse.chosenRouteId,
+    });
+
+    // Re-evaluate the routing logic using the original form responses to determine team members
+    if (routingFormResponse.form?.routes && routingFormResponse.chosenRouteId) {
+      const routes = Array.isArray(routingFormResponse.form.routes) ? routingFormResponse.form.routes : [];
+      const chosenRoute = routes.find((route: any) => route.id === routingFormResponse.chosenRouteId);
+
+      if (chosenRoute && chosenRoute.action?.type === "eventTypeRedirect") {
+        try {
+          const { findTeamMembersMatchingAttributeLogic } = await import(
+            "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic"
+          );
+
+          if (chosenRoute.attributeRoutingConfig && eventType.teamId) {
+            const teamMembersResult = await findTeamMembersMatchingAttributeLogic({
+              teamId: eventType.teamId,
+              orgId: eventType.team?.parentId || 0,
+              attributesQueryValue: chosenRoute.attributeRoutingConfig,
+              dynamicFieldValueOperands: routingFormResponse.response,
+              isPreview: false,
+            });
+
+            if (teamMembersResult.teamMembersMatchingAttributeLogic?.length) {
+              // Extract user IDs from the matching results
+              effectiveRoutedTeamMemberIds = teamMembersResult.teamMembersMatchingAttributeLogic
+                .filter((member) => member.result === "MATCH")
+                .map((member) => member.userId);
+
+              loggerWithEventDetails.debug("Applied original routing logic for reschedule", {
+                teamMemberIds: effectiveRoutedTeamMemberIds,
+              });
+            }
+          }
+        } catch (error) {
+          loggerWithEventDetails.warn("Failed to re-evaluate routing logic during reschedule", {
+            error: error instanceof Error ? error.message : "Unknown error",
+            routingFormResponseId: routingFormResponse.id,
+          });
+        }
+      }
+    }
+  } else if (routedTeamMemberIds) {
     //routingFormResponseId could be 0 for dry run. So, we just avoid undefined value
     if (routingFormResponseId === undefined) {
       throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
@@ -640,7 +691,7 @@ async function handler(
     eventTypeId,
     dynamicUserList,
     logger: loggerWithEventDetails,
-    routedTeamMemberIds: routedTeamMemberIds ?? null,
+    routedTeamMemberIds: effectiveRoutedTeamMemberIds ?? null,
     contactOwnerEmail,
     rescheduleUid: reqBody.rescheduleUid || null,
     routingFormResponse,
@@ -1359,7 +1410,7 @@ async function handler(
       booking = await createBooking({
         uid,
         rescheduledBy: reqBody.rescheduledBy,
-        routingFormResponseId: routingFormResponseId,
+        routingFormResponseId: effectiveRoutingFormResponseId,
         reroutingFormResponses: reroutingFormResponses ?? null,
         reqBody: {
           user: reqBody.user,
@@ -1393,18 +1444,23 @@ async function handler(
 
       // If it's a round robin event, record the reason for the host assignment
       if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-        if (reqBody.crmOwnerRecordType && reqBody.crmAppSlug && contactOwnerEmail && routingFormResponseId) {
+        if (
+          reqBody.crmOwnerRecordType &&
+          reqBody.crmAppSlug &&
+          contactOwnerEmail &&
+          effectiveRoutingFormResponseId
+        ) {
           assignmentReason = await AssignmentReasonRecorder.CRMOwnership({
             bookingId: booking.id,
             crmAppSlug: reqBody.crmAppSlug,
             teamMemberEmail: contactOwnerEmail,
             recordType: reqBody.crmOwnerRecordType,
-            routingFormResponseId,
+            routingFormResponseId: effectiveRoutingFormResponseId,
           });
-        } else if (routingFormResponseId && teamId) {
+        } else if (effectiveRoutingFormResponseId && teamId) {
           assignmentReason = await AssignmentReasonRecorder.routingFormRoute({
             bookingId: booking.id,
-            routingFormResponseId,
+            routingFormResponseId: effectiveRoutingFormResponseId,
             organizerId: organizerUser.id,
             teamId,
           });
