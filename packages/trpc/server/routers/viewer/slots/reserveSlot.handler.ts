@@ -7,6 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import type { PrismaClient } from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -48,7 +49,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
         eventTypeId,
         startTime: slotUtcStartDate,
         endTime: slotUtcEndDate,
-        status: "ACCEPTED",
+        status: BookingStatus.ACCEPTED,
       },
       select: { attendees: true },
     });
