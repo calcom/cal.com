@@ -25,19 +25,26 @@ export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOp
     });
   }
 
+  if (!input.onboardingId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "onboardingId is required",
+    });
+  }
+
   const organizationOnboarding = await OrganizationOnboardingRepository.findById(input.onboardingId);
 
   if (!organizationOnboarding) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "organization_onboarding_not_found",
+      message: "Organization onboarding not found",
     });
   }
 
   if (!organizationOnboarding.orgOwnerEmail) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "organization_onboarding_not_found",
+      message: "Organization owner email not found",
     });
   }
 
@@ -48,7 +55,7 @@ export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOp
   if (!hasValidLicense) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "license_not_valid",
+      message: "License not valid",
     });
   }
 
