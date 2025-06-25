@@ -116,6 +116,7 @@ export class BillingController {
     @Req() request: Request,
     @Headers("stripe-signature") stripeSignature: string
   ): Promise<ApiResponse> {
+    console.log(request.body, "BUFFER", Buffer.isBuffer(request.body), "typeof", typeof request.body);
     const event = await this.billingService.stripeService
       .getStripe()
       .webhooks.constructEventAsync(request.body, stripeSignature, this.stripeWhSecret);
