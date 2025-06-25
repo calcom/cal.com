@@ -15,7 +15,6 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { ToggleGroup } from "@calcom/ui/components/form";
 import {
   Switch,
   CheckboxField,
@@ -60,7 +59,6 @@ export const FormBuilder = function FormBuilder({
   LockedIcon,
   dataStore,
   shouldConsiderRequired,
-  showPhoneAndEmailToggle = false,
 }: {
   formProp: string;
   title: string;
@@ -68,7 +66,6 @@ export const FormBuilder = function FormBuilder({
   addFieldLabel: string;
   disabled: boolean;
   LockedIcon: false | JSX.Element;
-  showPhoneAndEmailToggle?: boolean;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -132,68 +129,7 @@ export const FormBuilder = function FormBuilder({
           {title}
           {LockedIcon}
         </div>
-        <div className="flex items-start justify-between">
-          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
-          {showPhoneAndEmailToggle && (
-            <ToggleGroup
-              value={(() => {
-                const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
-                const emailField = fields.find((field) => field.name === "email");
-
-                if (phoneField && !phoneField.hidden && phoneField.required && !emailField?.required) {
-                  return "phone";
-                }
-
-                return "email";
-              })()}
-              options={[
-                {
-                  value: "email",
-                  label: "Email",
-                  iconLeft: <Icon name="mail" className="h-4 w-4" />,
-                },
-                {
-                  value: "phone",
-                  label: "Phone",
-                  iconLeft: <Icon name="phone" className="h-4 w-4" />,
-                },
-              ]}
-              onValueChange={(value) => {
-                const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
-                const emailFieldIndex = fields.findIndex((field) => field.name === "email");
-                if (value === "email") {
-                  update(emailFieldIndex, {
-                    ...fields[emailFieldIndex],
-                    hidden: false,
-                    required: true,
-                  });
-                  update(phoneFieldIndex, {
-                    ...fields[phoneFieldIndex],
-                    hidden: true,
-                    required: false,
-                  });
-                } else if (value === "phone") {
-                  update(emailFieldIndex, {
-                    ...fields[emailFieldIndex],
-                    hidden: true,
-                    required: false,
-                  });
-                  update(phoneFieldIndex, {
-                    ...fields[phoneFieldIndex],
-                    hidden: false,
-                    required: true,
-                  });
-                }
-              }}
-            />
-          )}
-        </div>
-        <p className="text-default mt-5 text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
-          {t("questions")}
-        </p>
-        <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
-          {t("all_info_your_booker_provide")}
-        </p>
+        <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
           {fields.map((field, index) => {
             let options = field.options ?? null;
@@ -544,7 +480,6 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-  const fieldName = fieldForm.getValues("name");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
