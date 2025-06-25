@@ -37,7 +37,7 @@ function Field({
   moveUp,
   moveDown,
   appUrl,
-  hasFormResponses,
+  disableTypeChange,
 }: {
   fieldIndex: number;
   hookForm: HookForm;
@@ -55,7 +55,7 @@ function Field({
     fn: () => void;
   };
   appUrl: string;
-  hasFormResponses: boolean;
+  disableTypeChange: boolean;
 }) {
   const { t } = useLocale();
 
@@ -126,7 +126,7 @@ function Field({
               defaultValue={routerField?.type}
               render={({ field: { value, onChange } }) => {
                 const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
-                if (hasFormResponses) {
+                if (disableTypeChange) {
                   return (
                     <div className="data-testid-field-type">
                       <Label htmlFor="field-type-button">{t("type")}</Label>
@@ -237,6 +237,7 @@ const FormEdit = ({
   } = useFieldArray({
     control: hookForm.control,
     name: fieldsNamespace,
+    keyName: "_id",
   });
 
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
@@ -260,13 +261,15 @@ const FormEdit = ({
     <div className="w-full py-4 lg:py-8">
       <div ref={animationRef} className="flex w-full flex-col rounded-md">
         {hookFormFields.map((field, key) => {
+          const existingField = Boolean((form.fields || []).find((f) => f.id === field.id));
+          const hasFormResponses = (form._count?.responses ?? 0) > 0;
           return (
             <Field
               appUrl={appUrl}
               fieldIndex={key}
               hookForm={hookForm}
               hookFieldNamespace={`${fieldsNamespace}.${key}`}
-              hasFormResponses={(form._count?.responses ?? 0) > 0}
+              disableTypeChange={existingField && hasFormResponses}
               deleteField={{
                 check: () => hookFormFields.length > 1,
                 fn: () => {
