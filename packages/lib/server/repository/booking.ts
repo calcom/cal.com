@@ -695,7 +695,7 @@ export class BookingRepository {
             form: {
               select: {
                 routes: true,
-                fields: true,
+                fields: { select: { id: true } },
               },
             },
             chosenRouteId: true,
