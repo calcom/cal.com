@@ -86,10 +86,16 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(RawBodyMiddleware)
-      .forRoutes({
-        path: "/api/v2/billing/webhook",
-        method: RequestMethod.POST,
-      })
+      .forRoutes(
+        {
+          path: "/api/v2/billing/webhook",
+          method: RequestMethod.POST,
+        },
+        {
+          path: "/v2/billing/webhook",
+          method: RequestMethod.POST,
+        }
+      )
       .apply(JsonBodyMiddleware)
       .forRoutes("*")
       .apply(RequestIdMiddleware)
