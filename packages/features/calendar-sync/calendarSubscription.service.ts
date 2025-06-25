@@ -210,6 +210,16 @@ export class CalendarSubscriptionService {
     });
   }
 
+  static async connectToCalendarSync({ id, calendarSyncId }: { id: string; calendarSyncId: string }) {
+    log.debug("Connecting to calendarSync", safeStringify({ id, calendarSyncId }));
+    return CalendarSubscriptionRepository.update({
+      where: { id },
+      data: {
+        calendarSyncId,
+      },
+    });
+  }
+
   /**
    * Update a CalendarSubscription from PENDING to ACTIVE with provider details
    */
