@@ -189,9 +189,8 @@ export default defineConfig({
       "@calcom/lib": path.resolve(__dirname, "../../lib"),
       "@calcom/trpc": resolve("../../trpc"),
       "lru-cache": resolve("../../../node_modules/lru-cache/dist/cjs/index.js"),
-      "@prisma/client": resolve("../../../node_modules/@prisma/client"),
-      "@calcom/prisma/client": resolve("../../prisma/client"),
       "@calcom/prisma/client/runtime/library": resolve("../../prisma/client/runtime/library.js"),
+      "@calcom/prisma/client": resolve("../../prisma/client/index.js"),
       "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
       "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
       // eslint-disable-next-line prettier/prettier
