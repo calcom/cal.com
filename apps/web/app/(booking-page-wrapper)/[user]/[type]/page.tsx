@@ -5,8 +5,11 @@ import { generateMeetingMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { headers, cookies } from "next/headers";
 
+import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { loadTranslations } from "@calcom/lib/server/i18n";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 
@@ -54,6 +57,35 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
+async function shouldApplyISRCaching(eventData: any): Promise<boolean> {
+  try {
+    const teamId = eventData.teamId || eventData.owner?.profile?.organizationId;
+    const shouldServeCache = await getShouldServeCache(undefined, teamId);
+
+    if (!shouldServeCache) {
+      return false;
+    }
+
+    const owner = eventData.owner;
+    if (!owner) return false;
+
+    const selectedCalendars = eventData.useEventLevelSelectedCalendars
+      ? EventTypeRepository.getSelectedCalendarsFromUser({ user: owner, eventTypeId: eventData.id })
+      : owner.userLevelSelectedCalendars || [];
+
+    if (selectedCalendars.length === 0) return false;
+
+    const allGoogleCalendar = selectedCalendars.every(
+      (calendar: any) => calendar.integration === GOOGLE_CALENDAR_TYPE
+    );
+
+    return allGoogleCalendar;
+  } catch (error) {
+    console.error("Error checking ISR caching eligibility:", error);
+    return false;
+  }
+}
+
 const getCachedBookingData = unstable_cache(
   async (headers: any, cookies: any, params: any, searchParams: any) => {
     const legacyCtx = buildLegacyCtx(headers, cookies, params, searchParams);
@@ -66,12 +98,24 @@ const getCachedBookingData = unstable_cache(
   }
 );
 
+const getUncachedBookingData = async (headers: any, cookies: any, params: any, searchParams: any) => {
+  const legacyCtx = buildLegacyCtx(headers, cookies, params, searchParams);
+  return await getData(legacyCtx);
+};
+
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const _headers = await headers();
   const _cookies = await cookies();
   const _params = await params;
   const _searchParams = await searchParams;
-  const props = await getCachedBookingData(_headers, _cookies, _params, _searchParams);
+
+  const basicProps = await getUncachedBookingData(_headers, _cookies, _params, _searchParams);
+
+  const shouldCache = await shouldApplyISRCaching(basicProps.eventData);
+
+  const props = shouldCache
+    ? await getCachedBookingData(_headers, _cookies, _params, _searchParams)
+    : basicProps;
 
   const locale = props.eventData?.interfaceLanguage;
   if (locale) {
