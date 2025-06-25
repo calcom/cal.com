@@ -13,13 +13,22 @@ import { getSafe } from "./getSafe";
 function getNewSearchParams(args: {
   query: Record<string, string | null | undefined | boolean>;
   searchParams?: URLSearchParams;
+  filterEmbedParams?: boolean;
 }) {
-  const { query, searchParams } = args;
+  const { query, searchParams, filterEmbedParams = false } = args;
   const newSearchParams = new URLSearchParams(searchParams);
+
+  const embedParams = new Set(["embed", "layout", "embedType", "ui.color-scheme"]);
+
   Object.entries(query).forEach(([key, value]) => {
     if (value === null || value === undefined) {
       return;
     }
+
+    if (filterEmbedParams && embedParams.has(key)) {
+      return;
+    }
+
     newSearchParams.append(key, String(value));
   });
   return newSearchParams;
@@ -186,6 +195,7 @@ export const useBookingSuccessRedirect = () => {
           ...bookingExtraParams,
         },
         searchParams: new URLSearchParams(searchParams.toString()),
+        filterEmbedParams: true,
       });
 
       newSearchParams.forEach((value, key) => {
