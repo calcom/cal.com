@@ -110,6 +110,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
           userId,
           key,
           expiresAt: { gte: new Date(Date.now()) },
+          stale: false,
         },
         orderBy: {
           // In case of multiple entries for same key and userId, we prefer the one with highest expiry, which will be the most updated one
@@ -125,6 +126,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
             key,
           },
           expiresAt: { gte: new Date(Date.now()) },
+          stale: false,
         },
       });
     }
@@ -159,6 +161,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         userId,
         value,
         expiresAt: new Date(Date.now() + CACHING_TIME),
+        stale: false,
       },
       create: {
         value,
@@ -166,6 +169,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         userId,
         key,
         expiresAt: new Date(Date.now() + CACHING_TIME),
+        stale: false,
       },
     });
   }

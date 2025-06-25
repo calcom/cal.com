@@ -182,6 +182,22 @@ async function saveBooking(
       await tx.app_RoutingForms_FormResponse.update(reroutingFormResponseUpdateData);
     }
 
+    const organizerCredentials = await tx.credential.findMany({
+      where: { userId: organizerUser.id },
+      select: { id: true },
+    });
+
+    if (organizerCredentials.length > 0) {
+      await tx.calendarCache.updateMany({
+        where: {
+          credentialId: {
+            in: organizerCredentials.map((cred) => cred.id),
+          },
+        },
+        data: { stale: true },
+      });
+    }
+
     return booking;
   });
 }
