@@ -170,7 +170,6 @@ export class BillingController {
           status: "success",
         };
       }
-      this.logger.error("Webhook processing failed", error);
       throw error;
     }
   }
