@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -7,7 +8,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import prisma from "@calcom/prisma";
 
 import { getCalendar } from "../../_utils/getCalendar";
 
@@ -41,13 +41,12 @@ async function postHandler(req: NextApiRequest) {
     return { message: "ok" };
   }
   const { selectedCalendars } = credential;
+
+  const calendarCacheRepository = new CalendarCacheRepository();
+  await calendarCacheRepository.invalidateCacheForCredential(credential.id);
+
   const credentialForCalendarCache = await getCredentialForCalendarCache({ credentialId: credential.id });
   const calendarServiceForCalendarCache = await getCalendar(credentialForCalendarCache);
-
-  await prisma.calendarCache.updateMany({
-    where: { credentialId: credential.id },
-    data: { stale: true },
-  });
 
   await calendarServiceForCalendarCache?.fetchAvailabilityAndSetCache?.(selectedCalendars);
   return { message: "ok" };

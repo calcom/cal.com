@@ -27,4 +27,5 @@ export interface ICalendarCacheRepository {
     userId: number | null;
     args: FreeBusyArgs;
   }): Promise<CalendarCache | null>;
+  invalidateCacheForCredential(credentialId: number): Promise<void>;
 }

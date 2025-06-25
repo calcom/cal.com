@@ -103,6 +103,23 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       // Security/Privacy wise, it is fine to query solely based on userId as userId and key(which has external email Ids in there) together can be used to uniquely identify the cache
       // A user could have multiple third party calendars connected, but they key would still be different for each case in calendar-cache because of the presence of emails in there.
       // Sample key: {"timeMin":"2025-04-01T00:00:00.000Z","timeMax":"2025-08-01T00:00:00.000Z","items":[{"id":"owner@example.com"}]} <- Notice it has emailId in there for which busytimes are fetched, we could assume that these emailIds would be unique across different calendars like Google/Outlook
+
+      const staleRecord = await prisma.calendarCache.findFirst({
+        where: {
+          userId,
+          key,
+          expiresAt: { gte: new Date(Date.now()) },
+          stale: true,
+        },
+      });
+
+      if (staleRecord) {
+        log.warn(
+          "Found stale cache record, not returning as valid cache",
+          safeStringify({ userId, key, credentialId: staleRecord.credentialId })
+        );
+      }
+
       cached = await prisma.calendarCache.findFirst({
         // We have index on userId and key, so this should be fast
         // TODO: Should we consider index on all three - userId, key and expiresAt?
@@ -119,6 +136,22 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         },
       });
     } else {
+      const staleRecord = await prisma.calendarCache.findFirst({
+        where: {
+          credentialId,
+          key,
+          expiresAt: { gte: new Date(Date.now()) },
+          stale: true,
+        },
+      });
+
+      if (staleRecord) {
+        log.warn(
+          "Found stale cache record, not returning as valid cache",
+          safeStringify({ credentialId, key })
+        );
+      }
+
       cached = await prisma.calendarCache.findUnique({
         where: {
           credentialId_key: {
@@ -171,6 +204,15 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         expiresAt: new Date(Date.now() + CACHING_TIME),
         stale: false,
       },
+    });
+  }
+
+  async invalidateCacheForCredential(credentialId: number) {
+    declareCanWorkWithInMemoryCredential();
+    log.debug("Invalidating cache for credential", safeStringify({ credentialId }));
+    await prisma.calendarCache.updateMany({
+      where: { credentialId },
+      data: { stale: true },
     });
   }
 }
