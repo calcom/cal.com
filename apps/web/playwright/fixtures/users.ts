@@ -12,7 +12,7 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import type Prisma from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
-import { Prisma as PrismaType } from "@calcom/prisma/client";
+import type { Prisma as PrismaType } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
@@ -31,12 +31,12 @@ type UserFixture = ReturnType<typeof createUserFixture>;
 
 export type CreateUsersFixture = ReturnType<typeof createUsersFixture>;
 
-const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
+const userIncludes = {
   eventTypes: true,
   workflows: true,
   credentials: true,
   routingForms: true,
-});
+} satisfies PrismaType.UserInclude;
 
 type InstallStripeParamsSkipTrue = {
   eventTypeIds?: number[];
@@ -62,9 +62,9 @@ type InstallStripeParams = InstallStripeParamsUnion & {
   page: Page;
 };
 
-const userWithEventTypes = PrismaType.validator<PrismaType.UserDefaultArgs>()({
+const userWithEventTypes = {
   include: userIncludes,
-});
+} satisfies PrismaType.UserDefaultArgs;
 
 const seededForm = {
   id: "948ae412-d995-4865-875a-48302588de03",
