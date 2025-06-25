@@ -9,6 +9,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import * as constants from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
+import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
@@ -41,8 +42,6 @@ vi.mock("@calcom/trpc/server/routers/viewer/organizations/createTeams.handler", 
 vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
 }));
-
-vi.mock("@calcom/ee/common/server/LicenseKeyService");
 
 const mockOrganizationOnboarding = {
   name: "Test Org",
@@ -155,6 +154,19 @@ async function createTestMembership(data: { userId: number; teamId: number; role
       accepted: true,
     },
   });
+}
+
+async function expectOrganizationOnboardingToHaveDataContaining({
+  onboardingId,
+  expectedData,
+}: {
+  onboardingId: string;
+  expectedData: Partial<OrganizationOnboarding>;
+}) {
+  const updatedOrganizationOnboarding = await prismock.organizationOnboarding.findUnique({
+    where: { id: onboardingId },
+  });
+  expect(updatedOrganizationOnboarding).toEqual(expect.objectContaining(expectedData));
 }
 
 describe("createOrganizationFromOnboarding", () => {
@@ -424,6 +436,21 @@ describe("createOrganizationFromOnboarding", () => {
           paymentSubscriptionItemId: "mock_subscription_item_id",
         })
       ).rejects.toThrow("organization_url_taken");
+    });
+
+    it("should not mark the Onboarding as completed(isComplete=true)", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+      });
+
+      await expectOrganizationOnboardingToHaveDataContaining({
+        onboardingId: organizationOnboarding.id,
+        expectedData: {
+          isComplete: false,
+        },
+      });
     });
   });
 

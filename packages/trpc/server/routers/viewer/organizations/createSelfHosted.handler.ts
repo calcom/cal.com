@@ -65,6 +65,8 @@ export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOp
     },
   });
 
+  await OrganizationOnboardingRepository.markAsComplete(organizationOnboarding.id);
+
   return {
     organization,
   };

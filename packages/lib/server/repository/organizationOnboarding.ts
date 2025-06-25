@@ -96,7 +96,8 @@ export class OrganizationOnboardingRepository {
 
   static async update(id: OnboardingId, data: Partial<CreateOrganizationOnboardingInput>) {
     logger.debug("Updating organization onboarding", safeStringify({ id, data }));
-    const { organizationId, createdById, ...rest } = data;
+    // We don't want to update the createdById field in update
+    const { organizationId, createdById: _, ...rest } = data;
 
     return await prisma.organizationOnboarding.update({
       where: {

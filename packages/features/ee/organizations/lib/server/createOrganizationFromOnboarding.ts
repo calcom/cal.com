@@ -458,7 +458,6 @@ async function handleOrganizationCreation({
   // Connect the organization to the onboarding
   await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
     organizationId: organization.id,
-    isComplete: true,
   });
 
   const updatedOrganization = await backwardCompatibilityForSubscriptionDetails({
@@ -514,6 +513,7 @@ export const createOrganizationFromOnboarding = async ({
   const userFromEmail = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
   const orgOwnerTranslation = await getTranslation(userFromEmail?.locale || "en", "common");
 
+  // TODO: We need to send emails to admin in the case of SELF_HOSTING where NEXT_PUBLIC_SINGLE_ORG_SLUG isn't set
   if (!process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
     await handleDomainSetup({
       organizationOnboarding,
