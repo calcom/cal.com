@@ -104,22 +104,6 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       // A user could have multiple third party calendars connected, but they key would still be different for each case in calendar-cache because of the presence of emails in there.
       // Sample key: {"timeMin":"2025-04-01T00:00:00.000Z","timeMax":"2025-08-01T00:00:00.000Z","items":[{"id":"owner@example.com"}]} <- Notice it has emailId in there for which busytimes are fetched, we could assume that these emailIds would be unique across different calendars like Google/Outlook
 
-      const staleRecord = await prisma.calendarCache.findFirst({
-        where: {
-          userId,
-          key,
-          expiresAt: { gte: new Date(Date.now()) },
-          stale: true,
-        },
-      });
-
-      if (staleRecord) {
-        log.warn(
-          "Found stale cache record, not returning as valid cache",
-          safeStringify({ userId, key, credentialId: staleRecord.credentialId })
-        );
-      }
-
       cached = await prisma.calendarCache.findFirst({
         // We have index on userId and key, so this should be fast
         // TODO: Should we consider index on all three - userId, key and expiresAt?
@@ -127,7 +111,6 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
           userId,
           key,
           expiresAt: { gte: new Date(Date.now()) },
-          stale: false,
         },
         orderBy: {
           // In case of multiple entries for same key and userId, we prefer the one with highest expiry, which will be the most updated one
@@ -136,22 +119,6 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         },
       });
     } else {
-      const staleRecord = await prisma.calendarCache.findFirst({
-        where: {
-          credentialId,
-          key,
-          expiresAt: { gte: new Date(Date.now()) },
-          stale: true,
-        },
-      });
-
-      if (staleRecord) {
-        log.warn(
-          "Found stale cache record, not returning as valid cache",
-          safeStringify({ credentialId, key })
-        );
-      }
-
       cached = await prisma.calendarCache.findUnique({
         where: {
           credentialId_key: {
@@ -159,13 +126,29 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
             key,
           },
           expiresAt: { gte: new Date(Date.now()) },
-          stale: false,
         },
       });
     }
+
+    if (!cached) {
+      log.info(
+        "Skipping availability - no cache hit",
+        safeStringify({ key, credentialId, usedInMemoryDelegationCredential })
+      );
+      return null;
+    }
+
+    if (cached.stale) {
+      log.info(
+        "Serving stale cache - not returning as valid cache",
+        safeStringify({ key, credentialId, usedInMemoryDelegationCredential, cachedId: cached.id })
+      );
+      return null;
+    }
+
     log.info(
-      "Got cached availability",
-      safeStringify({ key, cached, credentialId, usedInMemoryDelegationCredential })
+      "Serving fresh cache hit",
+      safeStringify({ key, credentialId, usedInMemoryDelegationCredential, cachedId: cached.id })
     );
     return cached;
   }
