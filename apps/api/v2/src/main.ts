@@ -26,6 +26,7 @@ const run = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger(loggerConfig()),
     bodyParser: false,
+    rawBody: true,
   });
 
   const logger = new Logger("App");
