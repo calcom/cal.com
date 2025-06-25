@@ -48,6 +48,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
         eventTypeId,
         startTime: slotUtcStartDate,
         endTime: slotUtcEndDate,
+        status: "ACCEPTED",
       },
       select: { attendees: true },
     });
