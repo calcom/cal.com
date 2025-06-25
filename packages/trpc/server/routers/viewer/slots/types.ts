@@ -36,6 +36,15 @@ export const getScheduleSchema = z
     routingFormResponseId: z.number().optional(),
     queuedFormResponseId: z.string().nullish(),
     email: z.string().nullish(),
+    allRecurringDates: z
+      .array(
+        z.object({
+          start: z.string().optional(),
+          end: z.string().optional(),
+        })
+      )
+      .optional(),
+    numSlotsToCheckForAvailability: z.number().optional(),
   })
   .transform((val) => {
     // Need this so we can pass a single username in the query string form public API

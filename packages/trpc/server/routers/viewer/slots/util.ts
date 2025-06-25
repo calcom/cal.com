@@ -487,7 +487,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
-  const timeSlots = getSlots({
+  let timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
@@ -496,6 +496,23 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     frequency: eventType.slotInterval || input.duration || eventType.length,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
+
+  if (input.allRecurringDates && input.numSlotsToCheckForAvailability) {
+    const recurringStartTimes = input.allRecurringDates
+      .slice(0, input.numSlotsToCheckForAvailability)
+      .map((date) => date.start)
+      .filter(Boolean);
+
+    if (recurringStartTimes.length > 0) {
+      timeSlots = timeSlots.filter((slot) => {
+        const slotTimeString = slot.time.toISOString();
+        return recurringStartTimes.some((startTime) => {
+          const recurringTime = dayjs(startTime).toISOString();
+          return slotTimeString === recurringTime;
+        });
+      });
+    }
+  }
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
@@ -575,17 +592,51 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         const slotStart = slot.time;
         const slotEnd = slot.time.add(eventLength, "minute");
 
-        return restrictionRanges.some(
+        const isWithinRestrictionRange = restrictionRanges.some(
           (range) =>
             (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
             (slotEnd.isBefore(range.end) || slotEnd.isSame(range.end))
         );
+
+        if (!isWithinRestrictionRange) {
+          return false;
+        }
+
+        if (input.allRecurringDates && input.numSlotsToCheckForAvailability) {
+          const isValidRecurringSlot = input.allRecurringDates
+            .slice(0, input.numSlotsToCheckForAvailability)
+            .some((recurringDate) => {
+              if (!recurringDate.start) return false;
+              const recurringStart = dayjs(recurringDate.start);
+              return slotStart.isSame(recurringStart);
+            });
+
+          if (!isValidRecurringSlot) {
+            return false;
+          }
+        }
+
+        return true;
       });
     } else {
       availableTimeSlots = timeSlots;
     }
   } else {
-    availableTimeSlots = timeSlots;
+    availableTimeSlots = timeSlots.filter((slot) => {
+      if (input.allRecurringDates && input.numSlotsToCheckForAvailability) {
+        const slotStart = slot.time;
+        const isValidRecurringSlot = input.allRecurringDates
+          .slice(0, input.numSlotsToCheckForAvailability)
+          .some((recurringDate) => {
+            if (!recurringDate.start) return false;
+            const recurringStart = dayjs(recurringDate.start);
+            return slotStart.isSame(recurringStart);
+          });
+
+        return isValidRecurringSlot;
+      }
+      return true;
+    });
   }
 
   const reservedSlots = await _getReservedSlotsAndCleanupExpired({

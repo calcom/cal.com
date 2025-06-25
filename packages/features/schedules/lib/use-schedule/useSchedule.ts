@@ -75,6 +75,14 @@ export const useSchedule = ({
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
   const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "0";
+  const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
+  const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
+  const tentativeSelectedTimeslots = useBookerStore((state) => state.tentativeSelectedTimeslots);
+
+  const allSelectedTimeslots = [...tentativeSelectedTimeslots, selectedTimeslot].filter(
+    (slot): slot is string => slot !== null
+  );
+
   const input = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
@@ -100,6 +108,15 @@ export const useSchedule = ({
     // Ensures that connectVersion causes a refresh of the data
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
+    ...(recurringEventCount && allSelectedTimeslots.length > 0
+      ? {
+          allRecurringDates: allSelectedTimeslots.map((slot) => ({
+            start: slot,
+            end: undefined,
+          })),
+          numSlotsToCheckForAvailability: 2,
+        }
+      : {}),
   };
 
   const options = {
