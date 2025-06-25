@@ -258,4 +258,11 @@ export class CalendarSubscriptionService {
       data: { lastSyncAt: new Date() },
     });
   }
+
+  static async setErrorInWatching({ id, error }: { id: string; error: string }) {
+    return CalendarSubscriptionRepository.update({
+      where: { id },
+      data: { lastError: error, lastErrorAt: new Date() },
+    });
+  }
 }

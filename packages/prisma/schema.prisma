@@ -239,11 +239,11 @@ model Credential {
 
   destinationCalendars   DestinationCalendar[]
   selectedCalendars      SelectedCalendar[]
-  invalid                Boolean?              @default(false)
+  invalid                Boolean?               @default(false)
   CalendarCache          CalendarCache[]
   references             BookingReference[]
   delegationCredentialId String?
-  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  delegationCredential   DelegationCredential?  @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   calendarSyncs          CalendarSync[]
   subscriptions          CalendarSubscription[]
 
@@ -419,9 +419,9 @@ model User {
   filterSegments                 FilterSegment[]
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
-  whitelistWorkflows             Boolean                      @default(false)
+  whitelistWorkflows             Boolean                       @default(false)
   calendarSyncs                  CalendarSync[]
-  
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -677,30 +677,31 @@ model InstantMeetingToken {
 }
 
 model BookingReference {
-  id                         Int      @id @default(autoincrement())
+  id                               Int                   @id @default(autoincrement())
   /// @zod.min(1)
-  type                       String
+  type                             String
   // It is the id of the third party calendar event
   // A Calendar event can be found in multiple BookingReference records because a reschedule would create a new Booking and thus a new BookingReference but same id would be there
   // This is why we can't make it unique.
   /// @zod.min(1)
-  uid                        String
-  meetingId                  String?
-  thirdPartyRecurringEventId String?
-  meetingPassword            String?
-  meetingUrl                 String?
-  booking                    Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId                  Int?
-  externalCalendarId         String?
-  deleted                    Boolean?
-  calendarSync               CalendarSync? @relation(fields: [calendarSyncId], references: [id])
-  calendarSyncId             String?
-  credential                 Credential?   @relation(fields: [credentialId], references: [id], onDelete: SetNull)
-  credentialId               Int?
+  uid                              String
+  meetingId                        String?
+  thirdPartyRecurringEventId       String?
+  meetingPassword                  String?
+  meetingUrl                       String?
+  booking                          Booking?              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId                        Int?
+  externalCalendarId               String?
+  deleted                          Boolean?
+  calendarSync                     CalendarSync?         @relation(fields: [calendarSyncId], references: [id])
+  calendarSyncId                   String?
+  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  credentialId                     Int?
   delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: SetNull)
   delegationCredentialId           String?
   domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: SetNull)
   domainWideDelegationCredentialId String?
+
   // Useful for investigating issues
   // lastChange       Json
   @@index([bookingId])
@@ -2369,7 +2370,7 @@ model WorkflowOptOutContact {
 // ACTIVE -> ERROR could occur if maybe some error in renewing the subscription.
 enum CalendarSubscriptionStatus {
   ACTIVE
-  PENDING  // Waiting to create subscription in provider
+  PENDING // Waiting to create subscription in provider
   // Start using these statuses in followup PR
   INACTIVE // e.g., Third party calendar watch is no longer needed and has been stopped.
   ERROR
@@ -2396,13 +2397,14 @@ model CalendarSubscription {
   // Updated whenever a push notification is received from the provider
   lastSyncAt  DateTime?
   lastError   String? // Last error message caused during attempted subscription
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  lastErrorAt DateTime?
+  createdAt   DateTime                   @default(now())
+  updatedAt   DateTime                   @updatedAt
 
   // When the subscription was activated i.e. when we have successfully created the subscription in the provider
   activatedAt DateTime?
 
-  calendarSync CalendarSync?
+  calendarSync   CalendarSync?
   // Subscription might be in use for freeBusy time watching if calendarSync is not set
   calendarSyncId String?
 
@@ -2429,10 +2431,10 @@ model CalendarSync {
   externalCalendarId String // ID of the calendar in the external provider (e.g., Google Calendar ID would be john@gmail.com)
   integration        String // e.g., "google_calendar"
   userId             Int
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  credential         Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  subscription       CalendarSubscription? @relation(fields: [subscriptionId], references: [id])
-  subscriptionId     String? @unique
+  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credential         Credential             @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  subscription       CalendarSubscription?  @relation(fields: [subscriptionId], references: [id])
+  subscriptionId     String?                @unique
   lastSyncedUpAt     DateTime?
   lastSyncedDownAt   DateTime?
   lastSyncDirection  CalendarSyncDirection?
