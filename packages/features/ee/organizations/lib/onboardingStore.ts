@@ -121,7 +121,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   const router = useRouter();
   const path = usePathname();
   const isAdmin = session.data?.user?.role === UserPermissionRole.ADMIN;
-  const isBillingEnabled = !(IS_SELF_HOSTED && isAdmin);
+  const isBillingEnabled = !(IS_SELF_HOSTED && isAdmin) || process.env.NEXT_PUBLIC_IS_E2E;
   const searchParams = useSearchParams();
   const { data: organizationOnboarding, isPending: isLoadingOrgOnboarding } =
     trpc.viewer.organizations.getOrganizationOnboarding.useQuery();
