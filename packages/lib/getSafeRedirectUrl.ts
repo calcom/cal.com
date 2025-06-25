@@ -70,3 +70,17 @@ export function isExternalUrl(url: string): boolean {
     return true;
   }
 }
+
+const EXTERNAL_REDIRECT_BLACKLISTED_PARAMS = ["embed"];
+
+export function filterQueryParamsForExternalRedirect(searchParams: URLSearchParams): URLSearchParams {
+  const filteredParams = new URLSearchParams();
+
+  searchParams.forEach((value, key) => {
+    if (!EXTERNAL_REDIRECT_BLACKLISTED_PARAMS.includes(key)) {
+      filteredParams.append(key, value);
+    }
+  });
+
+  return filteredParams;
+}

@@ -1,7 +1,7 @@
 import type { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 
 import { WebAppURL } from "@calcom/lib/WebAppURL";
-import { isExternalUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { isExternalUrl, filterQueryParamsForExternalRedirect } from "@calcom/lib/getSafeRedirectUrl";
 
 export type EmbedProps = {
   isEmbed?: boolean;
@@ -28,14 +28,15 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
         urlPrefix = "";
       }
 
-      const destinationQueryStr = destinationUrlObj.searchParams.toString();
-
       const isExternal = destinationUrl.search(/^(http:|https:).*/) !== -1 && isExternalUrl(destinationUrl);
 
       if (isExternal) {
-        const newDestinationUrl = `${urlPrefix}${destinationUrlObj.pathname}?${
-          destinationQueryStr ? `${destinationQueryStr}&` : ""
-        }layout=${layout}`;
+        const filteredParams = filterQueryParamsForExternalRedirect(destinationUrlObj.searchParams);
+        if (layout) filteredParams.set("layout", layout as string);
+
+        const newDestinationUrl = `${urlPrefix}${destinationUrlObj.pathname}${
+          filteredParams.toString() ? `?${filteredParams.toString()}` : ""
+        }`;
         return {
           ...ssrResponse,
           redirect: {
@@ -44,6 +45,7 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
           },
         };
       } else {
+        const destinationQueryStr = destinationUrlObj.searchParams.toString();
         const newDestinationUrl = `${urlPrefix}${destinationUrlObj.pathname}/embed?${
           destinationQueryStr ? `${destinationQueryStr}&` : ""
         }layout=${layout}&embed=${embed}`;
