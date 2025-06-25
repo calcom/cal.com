@@ -138,6 +138,36 @@ describe("useBookingSuccessRedirect", () => {
       const url = new URL(calledUrl);
       expect(url.searchParams.get("cal.rerouting")).toBe("true");
     });
+
+    it("should exclude embed params from searchParams even when forwardParamsSuccessRedirect is true", () => {
+      vi.mocked(useCompatSearchParams).mockReturnValue(
+        new URLSearchParams(
+          "embed=namespace&layout=month_view&embedType=inline&ui.color-scheme=dark&test=value"
+        ) as any
+      );
+
+      const bookingSuccessRedirect = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: "https://example.com/success",
+        forwardParamsSuccessRedirect: true,
+        query: { additional: "param" },
+        booking: mockBooking,
+      });
+
+      const calledUrl = vi.mocked(navigateInTopWindow).mock.calls[0][0];
+      const url = new URL(calledUrl);
+
+      // Embed params should be excluded
+      expect(url.searchParams.get("embed")).toBeNull();
+      expect(url.searchParams.get("layout")).toBeNull();
+      expect(url.searchParams.get("embedType")).toBeNull();
+      expect(url.searchParams.get("ui.color-scheme")).toBeNull();
+
+      // Non-embed params should be included
+      expect(url.searchParams.get("test")).toBe("value");
+      expect(url.searchParams.get("additional")).toBe("param");
+    });
   });
 
   describe("internal redirect to booking page", () => {
@@ -157,9 +187,7 @@ describe("useBookingSuccessRedirect", () => {
 
       const calledUrl = mockPush.mock.calls[0][0];
       expect(calledUrl).not.toContain("/embed");
-
       expect(calledUrl).toContain("test=value");
-      expect(calledUrl).toContain("embed=namespace");
     });
 
     it("should redirect to booking page with embed suffix when in embed", () => {
@@ -177,6 +205,34 @@ describe("useBookingSuccessRedirect", () => {
       expect(mockPush).toHaveBeenCalledWith(expect.stringMatching(/^\/booking\/test-booking-uid\/embed\?/));
     });
 
+    it("should not exclude embed params from booking page", () => {
+      vi.mocked(useIsEmbed).mockReturnValue(false);
+
+      const bookingSuccessRedirect = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: null,
+        forwardParamsSuccessRedirect: false,
+        query: {
+          test: "value",
+          embed: "namespace",
+          layout: "month_view",
+          embedType: "inline",
+          "ui.color-scheme": "dark",
+        },
+        booking: mockBooking,
+      });
+
+      expect(mockPush).toHaveBeenCalledWith(expect.stringMatching(/^\/booking\/test-booking-uid\?/));
+
+      const calledUrl = mockPush.mock.calls[0][0];
+      expect(calledUrl).toContain("test=value");
+      expect(calledUrl).toContain("embed=namespace");
+      expect(calledUrl).toContain("layout=month_view");
+      expect(calledUrl).toContain("embedType=inline");
+      expect(calledUrl).toContain("ui.color-scheme=dark");
+    });
+
     it("should include flag.coep from searchParams in internal redirect", () => {
       vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams("flag.coep=true") as any);
 
@@ -191,6 +247,21 @@ describe("useBookingSuccessRedirect", () => {
 
       const calledUrl = mockPush.mock.calls[0][0];
       expect(calledUrl).toContain("flag.coep=true");
+    });
+
+    it("should include cal.rerouting param from searchParams", () => {
+      vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams("cal.rerouting=true") as any);
+
+      const bookingSuccessRedirect = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: null,
+        forwardParamsSuccessRedirect: true,
+        query: { test: "value" },
+        booking: mockBooking,
+      });
+      const calledUrl = mockPush.mock.calls[0][0];
+      expect(calledUrl).toContain("cal.rerouting=true");
     });
   });
 

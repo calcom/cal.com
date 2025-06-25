@@ -16,21 +16,37 @@ function getNewSearchParams(args: {
   filterEmbedParams?: boolean;
 }) {
   const { query, searchParams, filterEmbedParams = false } = args;
-  const newSearchParams = new URLSearchParams(searchParams);
+  const newSearchParams = new URLSearchParams();
 
   const embedParams = new Set(["embed", "layout", "embedType", "ui.color-scheme"]);
 
+  // Add non-embed params from searchParams if provided
+  if (searchParams) {
+    searchParams.forEach((value, key) => {
+      if (shouldExcludeParam(key)) {
+        return;
+      }
+      newSearchParams.append(key, value);
+    });
+  }
+
+  // Add params from query, filtering embed params if needed
   Object.entries(query).forEach(([key, value]) => {
     if (value === null || value === undefined) {
       return;
     }
 
-    if (filterEmbedParams && embedParams.has(key)) {
+    if (shouldExcludeParam(key)) {
       return;
     }
 
     newSearchParams.append(key, String(value));
   });
+
+  function shouldExcludeParam(key: string) {
+    return filterEmbedParams && embedParams.has(key);
+  }
+
   return newSearchParams;
 }
 
