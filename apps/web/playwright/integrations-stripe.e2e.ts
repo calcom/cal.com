@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 

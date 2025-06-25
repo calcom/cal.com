@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import path from "path";
 
 import { CAL_URL } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/e2e";
 
 import { test } from "../lib/fixtures";
 

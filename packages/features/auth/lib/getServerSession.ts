@@ -10,6 +10,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import { runWithTenants } from "@calcom/prisma/store/prismaStore";
+import { getTenantFromHost } from "@calcom/prisma/store/tenants";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
 /**
@@ -29,7 +31,7 @@ const CACHE = new LRUCache<string, Session>({ max: 1000 });
  * token has expired (30 days). This should be fine as we call `/auth/session`
  * frequently enough on the client-side to keep the session alive.
  */
-export async function getServerSession(options: {
+async function _getServerSession(options: {
   req: NextApiRequest | GetServerSidePropsContext["req"];
   authOptions?: AuthOptions;
 }) {
@@ -131,4 +133,11 @@ export async function getServerSession(options: {
 
   log.debug("Returned session", safeStringify(session));
   return session;
+}
+
+export async function getServerSession(options: {
+  req: NextApiRequest | GetServerSidePropsContext["req"];
+  authOptions?: AuthOptions;
+}) {
+  return runWithTenants(getTenantFromHost(options.req.headers.host || ""), () => _getServerSession(options));
 }
