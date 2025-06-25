@@ -8,6 +8,6 @@ export async function revalidateBookingPage(user: string, type: string) {
 }
 
 export async function revalidateUserBookingPages(user: string) {
-  revalidatePath(`/${user}/[type]`, "page");
+  revalidatePath(`/${user}`, "layout");
   revalidateTag("booking-page");
 }
