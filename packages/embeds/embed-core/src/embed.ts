@@ -55,6 +55,8 @@ type ModalPrerenderOptions = {
   slotsStaleTimeMs?: number;
   iframeForceReloadThresholdMs?: number;
   reuseFully?: boolean;
+  // Default value is true right now but it would change soon
+  backgroundSlotsFetch?: boolean;
 };
 
 type ModalStateData = {
@@ -598,7 +600,7 @@ export class Cal {
         return "fullReload";
       }
 
-      if (prerenderOptions?.reuseFully && !areSlotsStale) {
+      if (prerenderOptions?.backgroundSlotsFetch && !areSlotsStale) {
         return "connect-no-slots-fetch";
       }
 
@@ -986,6 +988,7 @@ class CalApi {
     const isHeadlessRouterPath = calLinkUrlObject ? isRouterPath(calLinkUrlObject.toString()) : false;
 
     if (__prerender && this.cal.modalBox) {
+      log("Destroying previous prerendered modalbox");
       // If we are re-prerendering, we destroy the previous modalbox, allowing user to prerender as many times as they want
       this.cal.modalBox.remove();
     }
@@ -999,9 +1002,18 @@ class CalApi {
     const containerEl = document.body;
     this.cal.isPrerendering = !!__prerender;
     if (__prerender) {
-      // TODO: Make `reuseFully` a configurable param as well later.
-      // If someone's preloading the headless router path, we must reuse the iframe fully as is as Router would redirect to a Booking Page and that should be shown as is
-      this.prerenderOptions = { ...prerenderOptions, reuseFully: isHeadlessRouterPath };
+      // While prerendering headless router path, we by default want to fetch slots in background(for the time being)
+      // For other prerenderings, we don't want to fetch slots in background - Keeping the behaviour same as before
+      const DEFAULT_BACKGROUND_SLOTS_FETCH = isHeadlessRouterPath ? true : false;
+      const backgroundSlotsFetch =
+        typeof prerenderOptions.backgroundSlotsFetch === "undefined"
+          ? DEFAULT_BACKGROUND_SLOTS_FETCH
+          : prerenderOptions.backgroundSlotsFetch;
+
+      this.prerenderOptions = {
+        ...prerenderOptions,
+        backgroundSlotsFetch,
+      };
       // Add prerender query param
       config.prerender = "true";
 
@@ -1010,7 +1022,7 @@ class CalApi {
         config["cal.queueFormResponse"] = "true";
       }
 
-      if (!this.prerenderOptions?.reuseFully) {
+      if (!backgroundSlotsFetch) {
         // When prerendering, we don't want to preload slots as they might be outdated anyway by the time they are used
         // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.com resources
         config["cal.skipSlotsFetch"] = "true";
@@ -1045,9 +1057,11 @@ class CalApi {
         isConnectionInitiated,
         prerenderOptions: this.prerenderOptions ?? null,
       };
+      const lastLoadedUrlObject = this.cal.getLastLoadedLinkInframe();
+      const lastLoadedPathIsRouter = lastLoadedUrlObject?.pathname?.includes("/router");
 
-      // If we want to reuse fully then we shouldn't submit response again
-      if (isHeadlessRouterPath && !this.prerenderOptions?.reuseFully) {
+      // TODO: This branch needs to be removed as we don't want to support this use case anymore.
+      if (isHeadlessRouterPath && !lastLoadedPathIsRouter) {
         // Immediately take it to loading state. Either through connect or through loadInIframe, it would later be updated
         existingModalEl.setAttribute("state", "loading");
 
