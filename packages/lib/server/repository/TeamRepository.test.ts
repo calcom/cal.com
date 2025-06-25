@@ -6,6 +6,7 @@ import { TeamBilling } from "@calcom/features/ee/billing/teams";
 
 import { TRPCError } from "@trpc/server";
 
+import { TeamService } from "../service/team";
 import { TeamRepository } from "./team";
 
 vi.mock("@calcom/features/ee/billing/teams", () => ({
@@ -78,7 +79,8 @@ describe("TeamRepository", () => {
       //   Mock the transaction calls so we can spy on it
       prismaMock.$transaction.mockImplementation((callback) => callback(mockTransaction));
 
-      const result = await TeamRepository.deleteById({ id: 1 });
+      // TODO: Move this to service tests
+      const result = await TeamService.delete({ id: 1 });
 
       expect(mockTransaction.eventType.deleteMany).toHaveBeenCalledWith({
         where: {
@@ -102,10 +104,11 @@ describe("TeamRepository", () => {
     });
   });
 
+  // TODO: Move this to service tests
   describe("inviteMemberByToken", () => {
     it("should throw error if verification token is not found", async () => {
       prismaMock.verificationToken.findFirst.mockResolvedValue(null);
-      await expect(TeamRepository.inviteMemberByToken("invalid-token", 1)).rejects.toThrow(TRPCError);
+      await expect(TeamService.inviteMemberByToken("invalid-token", 1)).rejects.toThrow(TRPCError);
     });
 
     it("should create membership and update billing", async () => {
@@ -115,7 +118,7 @@ describe("TeamRepository", () => {
       const mockTeamBilling = { updateQuantity: vi.fn() };
       TeamBilling.findAndInit.mockResolvedValue(mockTeamBilling);
 
-      const result = await TeamRepository.inviteMemberByToken("valid-token", 1);
+      const result = await TeamService.inviteMemberByToken("valid-token", 1);
 
       expect(prismaMock.membership.create).toHaveBeenCalled();
       expect(mockTeamBilling.updateQuantity).toHaveBeenCalled();
@@ -123,12 +126,13 @@ describe("TeamRepository", () => {
     });
   });
 
+  // TODO: Move this to service tests
   describe("publish", () => {
     it("should call publish on TeamBilling", async () => {
       const mockTeamBilling = { publish: vi.fn() };
       TeamBilling.findAndInit.mockResolvedValue(mockTeamBilling);
 
-      await TeamRepository.publish(1);
+      await TeamService.publish(1);
 
       expect(mockTeamBilling.publish).toHaveBeenCalled();
     });
