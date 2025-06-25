@@ -51,10 +51,10 @@ async function postHandler(req: NextApiRequest) {
       const user = await UserRepository.findById({ id: credential.userId });
 
       if (user?.username) {
-        const { revalidateBookingPage } = await import(
+        const { revalidateUserBookingPage } = await import(
           "../../../../apps/web/app/(booking-page-wrapper)/[user]/[type]/actions"
         );
-        await revalidateBookingPage(user.username, "[type]");
+        await revalidateUserBookingPage(user.username, "[type]");
         log.debug("Triggered ISR revalidation for user booking pages", {
           username: user.username,
           userId: credential.userId,

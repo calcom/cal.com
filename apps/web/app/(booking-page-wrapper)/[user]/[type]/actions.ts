@@ -2,12 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
-export async function revalidateBookingPage(user: string, type: string) {
-  revalidatePath(`/${user}/${type}`);
-  revalidateTag("booking-page");
-}
-
-export async function revalidateUserBookingPages(user: string) {
-  revalidatePath(`/${user}`, "layout");
-  revalidateTag("booking-page");
+export async function revalidateUserBookingPage(userSlug: string, meetingSlug: string) {
+  revalidatePath(`/${userSlug}/${meetingSlug}`);
+  revalidateTag("user-booking-page");
 }

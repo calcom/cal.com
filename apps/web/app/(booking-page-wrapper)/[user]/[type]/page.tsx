@@ -60,10 +60,10 @@ const getCachedBookingData = unstable_cache(
     const legacyCtx = buildLegacyCtx(headers, cookies, params, searchParams);
     return await getData(legacyCtx);
   },
-  ["booking-page-data"],
+  ["user-booking-page"],
   {
     revalidate: 3600,
-    tags: ["booking-page"],
+    tags: ["user-booking-page"],
   }
 );
 
