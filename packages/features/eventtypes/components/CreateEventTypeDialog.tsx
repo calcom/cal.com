@@ -116,7 +116,6 @@ export default function CreateEventTypeDialog({
       name="new"
       clearQueryParamsOnClose={["eventPage", "type", "description", "title", "length", "slug", "locations"]}>
       <DialogContent
-        className="sm:overflow-hidden"
         type="creation"
         enableOverflow
         title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
