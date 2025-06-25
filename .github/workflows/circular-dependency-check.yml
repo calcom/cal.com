@@ -1,0 +1,63 @@
+name: Circular Dependency Check
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  circular-dependency-check:
+    name: Check for circular dependencies
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            js_ts_files:
+              - '**/*.{js,jsx,ts,tsx}'
+              - '!**/node_modules/**'
+              - '!**/.next/**'
+              - '!**/dist/**'
+              - '!**/build/**'
+      - name: Check circular dependencies in changed files
+        if: steps.filter.outputs.js_ts_files == 'true'
+        run: |
+          echo "Checking circular dependencies in changed JS/TS files..."
+          
+          # Get list of changed JS/TS files
+          CHANGED_FILES=$(echo '${{ steps.filter.outputs.js_ts_files_files }}' | jq -r '.[]' | grep -E '\.(js|jsx|ts|tsx)$' || true)
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No JS/TS files changed, skipping circular dependency check"
+            exit 0
+          fi
+          
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Check each changed file for circular dependencies
+          HAS_CIRCULAR=false
+          for file in $CHANGED_FILES; do
+            if [ -f "$file" ]; then
+              echo "Checking $file for circular dependencies..."
+              if npx madge --circular "$file" --extensions ts,tsx,js,jsx --no-spinner --no-color; then
+                echo "✓ No circular dependencies found in $file"
+              else
+                echo "✗ Circular dependencies detected in $file"
+                HAS_CIRCULAR=true
+              fi
+            fi
+          done
+          
+          if [ "$HAS_CIRCULAR" = true ]; then
+            echo "❌ Circular dependencies detected in changed files. Please resolve them before merging."
+            exit 1
+          else
+            echo "✅ No circular dependencies detected in changed files."
+          fi

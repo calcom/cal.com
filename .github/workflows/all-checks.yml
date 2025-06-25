@@ -14,6 +14,11 @@ jobs:
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
+  circular-dependency-check:
+    name: Circular Dependency Check
+    uses: ./.github/workflows/circular-dependency-check.yml
+    secrets: inherit
+
   lint:
     name: Linters
     uses: ./.github/workflows/lint.yml
@@ -75,7 +80,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [lint, type-check, unit-test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [lint, type-check, circular-dependency-check, unit-test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:

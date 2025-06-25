@@ -100,6 +100,7 @@
     "jest-diff": "^29.5.0",
     "jest-summarizing-reporter": "^1.1.4",
     "lint-staged": "^12.5.0",
+    "madge": "^8.0.0",
     "mailhog": "^4.16.0",
     "next-router-mock": "^0.9.12",
     "node-gyp": "^10.2.0",
