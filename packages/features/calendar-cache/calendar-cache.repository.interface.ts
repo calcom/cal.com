@@ -28,4 +28,5 @@ export interface ICalendarCacheRepository {
     args: FreeBusyArgs;
   }): Promise<CalendarCache | null>;
   invalidateCacheForCredential(credentialId: number): Promise<void>;
+  invalidateCacheForUsers(userIds: number[], prismaClient?: any): Promise<void>;
 }

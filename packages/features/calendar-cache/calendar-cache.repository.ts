@@ -198,4 +198,39 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       data: { stale: true },
     });
   }
+
+  async invalidateCacheForUsers(userIds: number[], prismaClient?: any) {
+    declareCanWorkWithInMemoryCredential();
+    const prismaToUse = prismaClient || prisma;
+
+    log.debug("Invalidating cache for users", safeStringify({ userIds }));
+
+    const credentials = await prismaToUse.credential.findMany({
+      where: {
+        OR: [
+          { userId: { in: userIds } },
+          {
+            team: {
+              members: {
+                some: {
+                  userId: { in: userIds },
+                },
+              },
+            },
+          },
+        ],
+      },
+      select: { id: true },
+    });
+
+    const credentialIds = credentials.map((c: { id: number }) => c.id);
+
+    if (credentialIds.length > 0) {
+      await prismaToUse.calendarCache.updateMany({
+        where: { credentialId: { in: credentialIds } },
+        data: { stale: true },
+      });
+      log.debug("Invalidated cache for credentials", safeStringify({ credentialIds }));
+    }
+  }
 }

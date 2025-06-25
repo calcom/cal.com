@@ -4,6 +4,7 @@ import type { z } from "zod";
 
 import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
+import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
@@ -109,7 +110,8 @@ const _createBooking = async ({
     bookingAndAssociatedData,
     originalRescheduledBooking,
     eventType.paymentAppData,
-    eventType.organizerUser
+    eventType.organizerUser,
+    evt
   );
 
   function shouldConnectBookingToFormResponse() {
@@ -136,7 +138,8 @@ async function saveBooking(
   bookingAndAssociatedData: ReturnType<typeof buildNewBookingData>,
   originalRescheduledBooking: OriginalRescheduledBooking,
   paymentAppData: PaymentAppData,
-  organizerUser: CreateBookingParams["eventType"]["organizerUser"]
+  organizerUser: CreateBookingParams["eventType"]["organizerUser"],
+  evt: CalendarEvent
 ) {
   const { newBookingData, reroutingFormResponseUpdateData, originalBookingUpdateDataForCancellation } =
     bookingAndAssociatedData;
@@ -182,21 +185,12 @@ async function saveBooking(
       await tx.app_RoutingForms_FormResponse.update(reroutingFormResponseUpdateData);
     }
 
-    const organizerCredentials = await tx.credential.findMany({
-      where: { userId: organizerUser.id },
-      select: { id: true },
-    });
+    const participatingUserIds = evt.team?.members
+      ?.map((member) => member.id)
+      .filter((id): id is number => typeof id === "number") || [organizerUser.id];
 
-    if (organizerCredentials.length > 0) {
-      await tx.calendarCache.updateMany({
-        where: {
-          credentialId: {
-            in: organizerCredentials.map((cred) => cred.id),
-          },
-        },
-        data: { stale: true },
-      });
-    }
+    const calendarCacheRepository = new CalendarCacheRepository();
+    await calendarCacheRepository.invalidateCacheForUsers(participatingUserIds, tx);
 
     return booking;
   });
