@@ -12,6 +12,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogFooter } from "@calcom/ui/components/dialog";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
+import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
@@ -42,6 +43,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: async (data) => {
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      revalidateEventTypesList();
       onSuccess(data);
     },
 

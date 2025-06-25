@@ -13,7 +13,7 @@ import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -160,7 +160,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (input.completedOnboarding) {
-    const userTeams = await prisma.user.findFirst({
+    const userTeams = await prisma.user.findUnique({
       where: {
         id: user.id,
       },

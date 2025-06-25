@@ -1,6 +1,7 @@
 export * from "@trpc/react-query/shared";
 
 export const ENDPOINTS = [
+  "loggedInViewerRouter",
   "admin",
   "apiKeys",
   "appRoutingForms",
@@ -38,5 +39,6 @@ export const ENDPOINTS = [
   "attributes",
   "delegationCredential",
   "routingForms",
+  "credits",
   "filterSegments",
 ] as const;

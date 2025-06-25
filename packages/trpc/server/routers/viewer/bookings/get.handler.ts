@@ -7,8 +7,9 @@ import dayjs from "@calcom/dayjs";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
-import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
+import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
@@ -122,7 +123,7 @@ export async function getBookings({
     getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
-    getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner, user.orgId),
+    getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
   ]);
 
   const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
@@ -354,7 +355,12 @@ export async function getBookings({
       }
     }
 
-    // 6. Booking Start/End Time Range Filters
+    // 6. Filter by Booking Uid (if provided)
+    if (filters?.bookingUid) {
+      fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
+    }
+
+    // 7. Booking Start/End Time Range Filters
     if (filters?.afterStartDate) {
       fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
     }
@@ -823,34 +829,22 @@ async function getEventTypeIdsWhereUserIsAdminOrOwner(
 }
 
 /**
- * Gets [IDs, Emails] of members where the auth user is admin/owner.
- * Scope depends on `orgId`:
- * - If set (number): Fetches members of that specific organization (`isOrganization: true`).
- * - If unset (null/undefined): Fetches members of all teams (`isOrganization: false`)
- * where the auth user meets the `membershipCondition`.
- *
+ * Gets [IDs, Emails] of members where the auth user is team/org admin/owner.
  * @param prisma The Prisma client.
- * @param membershipCondition Filter defining the auth user's required role (e.g., OWNER/ADMIN)
- * to identify the target orgs/teams.
- * @param orgId Optional ID to target a specific org; absence targets teams.
+ * @param membershipCondition Filter containing the team/org ids where user is ADMIN/OWNER
  * @returns {Promise<[number[], string[]]>} [UserIDs, UserEmails] for members in the determined scope.
  */
 async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
   prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter,
-  orgId?: number | null
+  membershipCondition: PrismaClientType.MembershipListRelationFilter
 ): Promise<[number[], string[]]> {
   const users = await prisma.user.findMany({
     where: {
       teams: {
         some: {
-          team: orgId
-            ? {
-                isOrganization: true,
-                members: membershipCondition,
-                id: orgId,
-              }
-            : { isOrganization: false, members: membershipCondition, parentId: null },
+          team: {
+            members: membershipCondition,
+          },
         },
       },
     },
@@ -859,7 +853,10 @@ async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
       email: true,
     },
   });
-  return [users.map((user) => user.id), users.map((user) => user.email)];
+  const userIds = Array.from(new Set(users.map((user) => user.id)));
+  const userEmails = Array.from(new Set(users.map((user) => user.email)));
+
+  return [userIds, userEmails];
 }
 
 function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {
@@ -936,27 +933,31 @@ function addAdvancedAttendeeWhereClause(
 
   switch (operator) {
     case "endsWith":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `%${operand}`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `%${operand}`);
       break;
 
     case "startsWith":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `${operand}%`);
       break;
 
     case "equals":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "=", `${operand}`);
+      fullQuery = fullQuery.where((eb) =>
+        eb(eb.fn<string>("lower", [`Attendee.${key}`]), "=", `${operand.toLowerCase()}`)
+      );
       break;
 
     case "notEquals":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "!=", `${operand}`);
+      fullQuery = fullQuery.where((eb) =>
+        eb(eb.fn<string>("lower", [`Attendee.${key}`]), "!=", `${operand.toLowerCase()}`)
+      );
       break;
 
     case "contains":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "like", `%${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `%${operand}%`);
       break;
 
     case "notContains":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "not like", `%${operand}%`);
+      fullQuery = fullQuery.where(`Attendee.${key}`, "not ilike", `%${operand}%`);
       break;
 
     case "isEmpty":

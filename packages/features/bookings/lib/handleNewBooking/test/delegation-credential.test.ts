@@ -925,5 +925,140 @@ describe("handleNewBooking", () => {
       },
       timeout
     );
+
+    test(
+      `should use Cal Video as the location if that is the default conferencing app set by the user. It must not use Google Meet coming from Delegation credential.`,
+      async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+        const org = await createOrganization({
+          name: "Test Org",
+          slug: "testorg",
+        });
+
+        const payloadToMakePartOfOrganization = [
+          {
+            membership: {
+              accepted: true,
+              role: MembershipRole.ADMIN,
+            },
+            team: {
+              id: org.id,
+              name: "Test Org",
+              slug: "testorg",
+            },
+          },
+        ];
+
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const groupUser1 = getOrganizer({
+          name: "group-user-1",
+          username: "group-user-1",
+          email: "group-user-1@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          teams: payloadToMakePartOfOrganization,
+          credentials: [],
+          destinationCalendar: TestData.selectedCalendars.google,
+          metadata: {
+            defaultConferencingApp: {
+              appSlug: "daily-video",
+            },
+          },
+        });
+
+        const groupUser2 = getOrganizer({
+          name: "group-user-2",
+          username: "group-user-2",
+          email: "group-user-2@example.com",
+          id: 102,
+          schedules: [TestData.schedules.IstWorkHours],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          teams: payloadToMakePartOfOrganization,
+          credentials: [],
+          destinationCalendar: TestData.selectedCalendars.google,
+          metadata: {
+            defaultConferencingApp: {
+              appSlug: "daily-video",
+            },
+          },
+        });
+
+        await createDelegationCredential(org.id);
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [],
+            users: [groupUser1, groupUser2],
+            apps: [TestData.apps["daily-video"], TestData.apps["google-calendar"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "GOOGLE_CALENDAR_EVENT_ID",
+            uid: "MOCK_ID",
+            appSpecificData: {
+              googleCalendar: {
+                hangoutLink: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
+              },
+            },
+          },
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+        const mockBookingData = getMockRequestDataForDynamicGroupBooking({
+          data: {
+            start: `${plus1DateString}T05:00:00.000Z`,
+            end: `${plus1DateString}T05:30:00.000Z`,
+            eventTypeId: 0,
+            eventTypeSlug: "group-user-1+group-user-2",
+            user: "group-user-1+group-user-2",
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              // location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+
+        await expectBookingToBeInDatabase({
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          uid: createdBooking.uid!,
+          eventTypeId: null,
+          status: BookingStatus.ACCEPTED,
+          location: BookingLocations.CalVideo,
+          references: [
+            {
+              type: appStoreMetadata.dailyvideo.type,
+              // Verify Delegation credential was not used
+              delegationCredentialId: null,
+            },
+          ],
+          iCalUID: createdBooking.iCalUID,
+        });
+      },
+      timeout
+    );
   });
 });

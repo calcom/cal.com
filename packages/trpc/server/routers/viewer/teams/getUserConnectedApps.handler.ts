@@ -63,10 +63,12 @@ const checkCanUserAccessConnectedApps = async (
     throw new Error("Team not found");
   }
 
-  const isMember = await prisma.membership.findFirst({
+  const isMember = await prisma.membership.findUnique({
     where: {
-      userId: user.id,
-      teamId: teamId,
+      userId_teamId: {
+        userId: user.id,
+        teamId: teamId,
+      },
     },
   });
 

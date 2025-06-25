@@ -3,6 +3,7 @@ import {
   getNormalizedHostsWithDelegationCredentials,
 } from "@calcom/lib/bookings/getRoutedUsers";
 import type { EventType } from "@calcom/lib/bookings/getRoutedUsers";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
@@ -46,7 +47,7 @@ const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isF
   return host.isFixed;
 };
 
-export const findQualifiedHostsWithDelegationCredentials = async <
+const _findQualifiedHostsWithDelegationCredentials = async <
   T extends {
     email: string;
     id: number;
@@ -145,7 +146,7 @@ export const findQualifiedHostsWithDelegationCredentials = async <
     };
   }
 
-  //if segement matching doesn't return any hosts we fall back to all round robin hosts
+  //if segment matching doesn't return any hosts we fall back to all round robin hosts
   const officalRRHosts = hostsAfterSegmentMatching.length ? hostsAfterSegmentMatching : roundRobinHosts;
 
   const hostsAfterContactOwnerMatching = applyFilterWithFallback(
@@ -206,3 +207,8 @@ export const findQualifiedHostsWithDelegationCredentials = async <
     fixedHosts,
   };
 };
+
+export const findQualifiedHostsWithDelegationCredentials = withReporting(
+  _findQualifiedHostsWithDelegationCredentials,
+  "findQualifiedHostsWithDelegationCredentials"
+);

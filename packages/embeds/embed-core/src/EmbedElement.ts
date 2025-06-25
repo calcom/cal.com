@@ -1,3 +1,4 @@
+import { EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS } from "./constants";
 import type { EmbedThemeConfig, AllPossibleLayouts, BookerLayouts, EmbedPageType } from "./types";
 import {
   getThemeClassForEmbed,
@@ -157,9 +158,7 @@ export class EmbedElement extends HTMLElement {
     this.isModal = data.isModal;
     this.layout = this.getLayout();
     this.theme = this.dataset.theme as EmbedThemeConfig | null;
-    this.themeClass = getThemeClassForEmbed({ theme: this.theme });
-    this.classList.add(this.themeClass);
-
+    this.setTheme(this.theme);
     this.getSkeletonData = data.getSkeletonData;
     this.boundResizeHandler = this.resizeHandler.bind(this);
     this.boundPrefersDarkThemeChangedHandler = this.prefersDarkThemeChangedHandler.bind(this);
@@ -197,20 +196,26 @@ export class EmbedElement extends HTMLElement {
     skeletonEl.innerHTML = skeletonContent;
   }
 
+  public setTheme(theme: EmbedThemeConfig | null) {
+    const allPossibleThemeClasses = [EMBED_DARK_THEME_CLASS, EMBED_LIGHT_THEME_CLASS];
+
+    const newThemeClass = getThemeClassForEmbed({ theme });
+
+    if (newThemeClass === this.themeClass) {
+      return;
+    }
+    this.themeClass = newThemeClass;
+    this.classList.remove(...allPossibleThemeClasses);
+    this.classList.add(this.themeClass);
+  }
+
   public prefersDarkThemeChangedHandler(e: MediaQueryListEvent) {
     const isDarkPreferred = e.matches;
-    const allPossibleThemeClasses = ["dark", "light"];
     if (isThemePreferenceProvided(this.theme)) {
       // User has provided a theme preference, so we stick to that and don't react to system theme change
       return;
     }
-    const newThemeClass = getThemeClassForEmbed({
-      theme: isDarkPreferred ? "dark" : "light",
-    });
-    if (newThemeClass !== this.themeClass) {
-      this.classList.remove(...allPossibleThemeClasses);
-      this.classList.add(newThemeClass);
-    }
+    this.setTheme(isDarkPreferred ? "dark" : "light");
   }
   connectedCallback() {
     // Make sure to show the loader initially.
