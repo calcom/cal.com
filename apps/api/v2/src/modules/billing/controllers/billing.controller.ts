@@ -118,10 +118,10 @@ export class BillingController {
   ): Promise<ApiResponse> {
     let rawBody: string | Buffer;
 
-    if (typeof request.body === "string" || Buffer.isBuffer(request.body)) {
-      rawBody = request.body;
-    } else {
+    if (typeof request.body === "object" && !Buffer.isBuffer(request.body)) {
       rawBody = JSON.stringify(request.body);
+    } else {
+      rawBody = request.body;
     }
 
     const event = await this.billingService.stripeService
