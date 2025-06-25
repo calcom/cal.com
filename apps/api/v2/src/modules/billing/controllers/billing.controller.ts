@@ -21,7 +21,6 @@ import {
   HttpStatus,
   Logger,
   Delete,
-  RawBodyRequest,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController } from "@nestjs/swagger";
@@ -114,16 +113,12 @@ export class BillingController {
   @Post("/webhook")
   @HttpCode(HttpStatus.OK)
   async stripeWebhook(
-    @Req() request: RawBodyRequest<Request>,
+    @Req() request: Request,
     @Headers("stripe-signature") stripeSignature: string
   ): Promise<ApiResponse> {
-    if (!request.rawBody) {
-      throw new Error("Raw body is required for webhook signature validation");
-    }
-
     const event = await this.billingService.stripeService
       .getStripe()
-      .webhooks.constructEventAsync(request.rawBody, stripeSignature, this.stripeWhSecret);
+      .webhooks.constructEventAsync(request.body, stripeSignature, this.stripeWhSecret);
 
     switch (event.type) {
       case "checkout.session.completed":
