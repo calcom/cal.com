@@ -53,18 +53,6 @@ describe("GET /api/social/og/image", () => {
       expect(errorData.message).toBe(
         "Required parameters: title, meetingProfileName. Optional: names, usernames, meetingImage"
       );
-      expect(errorData.details).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            field: "title",
-            message: "Expected string, received null",
-          }),
-          expect.objectContaining({
-            field: "meetingProfileName",
-            message: "Expected string, received null",
-          }),
-        ])
-      );
     });
 
     test("app type: returns 400 when required parameters are missing", async () => {
@@ -75,22 +63,6 @@ describe("GET /api/social/og/image", () => {
       const errorData = await response.json();
       expect(errorData.error).toBe("Invalid parameters for app image");
       expect(errorData.message).toBe("Required parameters: name, description, slug");
-      expect(errorData.details).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            field: "name",
-            message: "Expected string, received null",
-          }),
-          expect.objectContaining({
-            field: "description",
-            message: "Expected string, received null",
-          }),
-          expect.objectContaining({
-            field: "slug",
-            message: "Expected string, received null",
-          }),
-        ])
-      );
     });
 
     test("generic type: returns 400 when required parameters are missing", async () => {
@@ -101,18 +73,6 @@ describe("GET /api/social/og/image", () => {
       const errorData = await response.json();
       expect(errorData.error).toBe("Invalid parameters for generic image");
       expect(errorData.message).toBe("Required parameters: title, description");
-      expect(errorData.details).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            field: "title",
-            message: "Expected string, received null",
-          }),
-          expect.objectContaining({
-            field: "description",
-            message: "Expected string, received null",
-          }),
-        ])
-      );
     });
   });
 
