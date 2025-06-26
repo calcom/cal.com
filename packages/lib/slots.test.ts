@@ -509,4 +509,48 @@ describe("Tests the slots function performance", () => {
     expect(sparseResult.length).toBeGreaterThan(0);
     expect(denseResult.length).toBeGreaterThan(0);
   });
+
+  it("intensive stress test with 2000 overlapping date ranges", async () => {
+    const startTime = process.hrtime();
+
+    const startDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges: DateRange[] = [];
+
+    for (let i = 0; i < 2000; i++) {
+      const baseHour = 9 + (i % 10); // Spread across 10 hours (9 AM - 6 PM)
+      const minuteOffset = i % 120; // Create overlapping minute offsets within each hour
+      const duration = 30 + (i % 60); // Variable durations from 30-90 minutes
+
+      dateRanges.push({
+        start: startDay.hour(baseHour).minute(minuteOffset),
+        end: startDay.hour(baseHour).minute(minuteOffset + duration),
+      });
+    }
+
+    console.log(
+      `Created ${dateRanges.length} intensive overlapping date ranges for maximum boundary stress test`
+    );
+
+    const result = getSlots({
+      inviteeDate: startDay,
+      frequency: 15,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 30,
+      offsetStart: 0,
+    });
+
+    expect(result.length).toBeGreaterThan(0);
+
+    const endTime = process.hrtime(startTime);
+    const executionTimeInMs = endTime[0] * 1000 + endTime[1] / 1000000;
+
+    expect(executionTimeInMs).toBeLessThan(5000); // Allow up to 5 seconds for intensive test
+
+    console.log(
+      `Intensive stress test completed in ${executionTimeInMs}ms with ${result.length} slots generated from ${dateRanges.length} overlapping date ranges`
+    );
+
+    expect(result.length).toBeGreaterThan(10); // Should generate meaningful slots despite heavy overlap
+  });
 });
