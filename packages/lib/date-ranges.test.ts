@@ -696,22 +696,20 @@ describe("intersect function performance", () => {
   });
 
   it("should handle edge cases correctly", () => {
-    const intersectNew = intersect;
-
-    expect(intersectNew([])).toEqual([]);
-    expect(intersectNew([[]])).toEqual([]);
+    expect(intersect([])).toEqual([]);
+    expect(intersect([[]])).toEqual([]);
 
     const nonOverlapping1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
     const nonOverlapping2 = [{ start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
-    expect(intersectNew([nonOverlapping1, nonOverlapping2])).toEqual([]);
+    expect(intersect([nonOverlapping1, nonOverlapping2])).toEqual([]);
 
     const touching1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
     const touching2 = [{ start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
-    expect(intersectNew([touching1, touching2])).toEqual([]);
+    expect(intersect([touching1, touching2])).toEqual([]);
 
     const overlapping1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
     const overlapping2 = [{ start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
-    const result = intersectNew([overlapping1, overlapping2]);
+    const result = intersect([overlapping1, overlapping2]);
     expect(result).toHaveLength(1);
     expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T10:00:00Z").valueOf());
     expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
