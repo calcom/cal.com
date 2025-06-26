@@ -162,7 +162,7 @@ export class InsightsRoutingService {
       membership &&
         membership.accepted &&
         membership.role &&
-        ([MembershipRole.OWNER, MembershipRole.ADMIN] as const).includes(membership.role)
+        (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
     );
   }
 }
