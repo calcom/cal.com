@@ -144,7 +144,7 @@ export class OAuthClientUsersService {
   }
 
   static getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
-    if (userEmail.includes(`${oAuthClientId}`)) {
+    if (userEmail.includes(`+${oAuthClientId}@`)) {
       return userEmail;
     }
     const [username, emailDomain] = userEmail.split("@");
