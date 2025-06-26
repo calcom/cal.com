@@ -64,7 +64,11 @@ export function transformDateOverridesForAtom(
     return acc;
   }, [] as { ranges: TimeRange[] }[]);
 
-  acc.sort((a, b) => a.ranges[0].start.getTime() - b.ranges[0].start.getTime());
+  acc.sort((a, b) => {
+    const aTime = a.ranges?.[0]?.start?.getTime?.() ?? 0;
+    const bTime = b.ranges?.[0]?.start?.getTime?.() ?? 0;
+    return aTime - bTime;
+  });
   return acc;
 }
 
@@ -99,7 +103,11 @@ export const transformScheduleToAvailabilityForAtom = (schedule: { availability:
   );
 
   result.forEach((daySlots) => {
-    daySlots.sort((a, b) => a.start.getTime() - b.start.getTime());
+    daySlots.sort((a, b) => {
+      const aTime = a?.start?.getTime?.() ?? 0;
+      const bTime = b?.start?.getTime?.() ?? 0;
+      return aTime - bTime;
+    });
   });
 
   return result;
