@@ -21,6 +21,7 @@ const initialData: AppFlags = {
   "cal-video-log-in-overlay": false,
   "use-api-v2-for-team-slots": false,
   "restriction-schedule": false,
+  "optimized-slot-generation": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

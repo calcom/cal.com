@@ -3553,7 +3553,6 @@ describe("getSchedule", () => {
             hosts,
             team: {
               id: 1,
-              name: "Test Team",
             },
           },
         ],
