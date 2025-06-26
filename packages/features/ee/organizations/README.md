@@ -101,6 +101,6 @@ So, if ALLOWED_HOSTNAMES='"cal.com", "cal.dev"' then,
 - acme.cal.com is a valid organization booking domain and WEBAPP_URL can be set to http://app.cal.com
 - dunder.cal.dev is also a valid organization subdomain and WEBAPP_URL can be set to http://app.cal.dev
 
-If ALLOWED_HOSTNAMES='"cal.domain.tld"" then
+If ALLOWED_HOSTNAMES='"cal.domain.tld"' then
 WEBAPP_URL should be app.cal.domain.tld and acme.cal.domain.tld, dunder.cal.domain.tld, xxxx.cal.domain.tld are valid organization domain.
 
