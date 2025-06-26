@@ -53,6 +53,10 @@ export type EventTeamAssignmentTabBaseProps = Pick<
   customClassNames?: EventTeamAssignmentTabCustomClassNames;
   orgId: number | null;
   isSegmentApplicable: boolean;
+  groups: {
+    name: string;
+    members: TeamMember[];
+  }[];
 };
 
 export const mapMemberToChildrenOption = (
@@ -293,11 +297,16 @@ const RoundRobinHosts = ({
   customClassNames,
   teamId,
   isSegmentApplicable,
+  groups = [],
 }: {
   orgId: number | null;
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
+  groups: {
+    name: string;
+    members: TeamMember[];
+  }[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: RoundRobinHostsCustomClassNames;
@@ -334,7 +343,7 @@ const RoundRobinHosts = ({
                 "text-subtle max-w-full break-words text-sm leading-tight",
                 customClassNames?.description
               )}>
-              {t("round_robin_helper")}
+              {t("round_robin_groups_helper")}
             </p>
           </div>
           <Button color="secondary" size="sm" StartIcon="plus">
@@ -376,39 +385,82 @@ const RoundRobinHosts = ({
             )}
           />
         </>
-        <AddMembersWithSwitch
-          placeholder={t("add_a_member")}
-          teamId={teamId}
-          teamMembers={teamMembers}
-          value={value}
-          onChange={onChange}
-          assignAllTeamMembers={assignAllTeamMembers}
-          setAssignAllTeamMembers={setAssignAllTeamMembers}
-          isSegmentApplicable={isSegmentApplicable}
-          automaticAddAllEnabled={true}
-          isRRWeightsEnabled={isRRWeightsEnabled}
-          isFixed={false}
-          containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
-          onActive={() => {
-            const currentHosts = getValues("hosts");
-            setValue(
-              "hosts",
-              teamMembers.map((teamMember) => {
-                const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                return {
-                  isFixed: false,
-                  userId: parseInt(teamMember.value, 10),
-                  priority: host?.priority ?? 2,
-                  weight: host?.weight ?? 100,
-                  // if host was already added, retain scheduleId
-                  scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                };
-              }),
-              { shouldDirty: true }
-            );
-          }}
-          customClassNames={customClassNames?.addMembers}
-        />
+        {!groups.length ? (
+          <AddMembersWithSwitch
+            placeholder={t("add_a_member")}
+            teamId={teamId}
+            teamMembers={teamMembers}
+            value={value}
+            onChange={onChange}
+            assignAllTeamMembers={assignAllTeamMembers}
+            setAssignAllTeamMembers={setAssignAllTeamMembers}
+            isSegmentApplicable={isSegmentApplicable}
+            automaticAddAllEnabled={true}
+            isRRWeightsEnabled={isRRWeightsEnabled}
+            isFixed={false}
+            containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
+            onActive={() => {
+              const currentHosts = getValues("hosts");
+              setValue(
+                "hosts",
+                teamMembers.map((teamMember) => {
+                  const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                  return {
+                    isFixed: false,
+                    userId: parseInt(teamMember.value, 10),
+                    priority: host?.priority ?? 2,
+                    weight: host?.weight ?? 100,
+                    // if host was already added, retain scheduleId
+                    scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                  };
+                }),
+                { shouldDirty: true }
+              );
+            }}
+            customClassNames={customClassNames?.addMembers}
+          />
+        ) : (
+          groups.map((group, index) => (
+            <div key={index} className="border-subtle my-4 rounded-md border p-4 pb-0">
+              <Label className="-mb-1">{group.name}</Label>
+              <AddMembersWithSwitch
+                placeholder={t("add_a_member")}
+                teamId={teamId}
+                teamMembers={group.members}
+                value={value}
+                onChange={onChange}
+                assignAllTeamMembers={assignAllTeamMembers}
+                setAssignAllTeamMembers={setAssignAllTeamMembers}
+                isSegmentApplicable={isSegmentApplicable}
+                automaticAddAllEnabled={true}
+                isRRWeightsEnabled={isRRWeightsEnabled}
+                isFixed={false}
+                containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
+                onActive={() => {
+                  const currentHosts = getValues("hosts");
+                  setValue(
+                    "hosts",
+                    group.members.map((teamMember) => {
+                      const host = currentHosts.find(
+                        (host) => host.userId === parseInt(teamMember.value, 10)
+                      );
+                      return {
+                        isFixed: false,
+                        userId: parseInt(teamMember.value, 10),
+                        priority: host?.priority ?? 2,
+                        weight: host?.weight ?? 100,
+                        // if host was already added, retain scheduleId
+                        scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                      };
+                    }),
+                    { shouldDirty: true }
+                  );
+                }}
+                customClassNames={customClassNames?.addMembers}
+              />
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -477,6 +529,7 @@ const Hosts = ({
   setAssignAllTeamMembers,
   customClassNames,
   isSegmentApplicable,
+  groups = [],
 }: {
   orgId: number | null;
   teamId: number;
@@ -485,6 +538,10 @@ const Hosts = ({
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: HostsCustomClassNames;
   isSegmentApplicable: boolean;
+  groups?: {
+    name: string;
+    members: TeamMember[];
+  }[];
 }) => {
   const {
     control,
@@ -575,6 +632,7 @@ const Hosts = ({
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 customClassNames={customClassNames?.roundRobinHosts}
                 isSegmentApplicable={isSegmentApplicable}
+                groups={groups}
               />
             </>
           ),
@@ -593,6 +651,7 @@ export const EventTeamAssignmentTab = ({
   customClassNames,
   orgId,
   isSegmentApplicable,
+  groups,
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
@@ -780,6 +839,7 @@ export const EventTeamAssignmentTab = ({
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
             customClassNames={customClassNames?.hosts}
+            groups={groups}
           />
         </>
       )}
