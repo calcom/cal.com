@@ -9,12 +9,15 @@ export function useEventTypes() {
   const { data: user } = useSession();
   const { t } = useLocale();
 
-  const eventTypesQuery = trpc.viewer.eventTypes.listWithTeam.useQuery(undefined, {
-    enabled: !!user,
-  });
+  const eventTypesQuery = trpc.viewer.eventTypes.listWithTeam.useQuery(
+    {},
+    {
+      enabled: !!user,
+    }
+  );
 
   return useMemo(() => {
-    const eventTypes = eventTypesQuery.data || [];
+    const eventTypes = eventTypesQuery.data?.eventTypes || [];
 
     // Separate individual and team event types
     const individualEvents = eventTypes.filter((el) => !el.team);

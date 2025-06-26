@@ -9,6 +9,7 @@ import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
+import { ZListWithTeamInputSchema } from "./listWithTeam.schema";
 import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
 import { eventOwnerProcedure } from "./util";
@@ -102,11 +103,12 @@ export const eventTypesRouter = router({
     });
   }),
 
-  listWithTeam: authedProcedure.query(async ({ ctx }) => {
+  listWithTeam: authedProcedure.input(ZListWithTeamInputSchema).query(async ({ ctx, input }) => {
     const { listWithTeamHandler } = await import("./listWithTeam.handler");
 
     return listWithTeamHandler({
       ctx,
+      input,
     });
   }),
 
