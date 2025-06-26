@@ -609,7 +609,11 @@ export default function Success(props: PageProps) {
                                     </span>
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
-                                  {!eventType.hideOrganizerEmail && (
+                                  {!(
+                                    eventType.hideOrganizerEmail &&
+                                    (eventType.schedulingType === "COLLECTIVE" ||
+                                      eventType.schedulingType === "ROUND_ROBIN")
+                                  ) && (
                                     <p className="text-default">
                                       {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
                                     </p>
