@@ -17,30 +17,22 @@ import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
-  scheduleEmailReminder,
-  deleteScheduledEmailReminder,
-} from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { SENDER_NAME } from "@calcom/lib/constants";
-import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/lib/delegationCredential/server";
 import { getEventName } from "@calcom/lib/event";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
+import { handleWorkflowsUpdate } from "./roundRobinManualReassignment";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
@@ -434,144 +426,12 @@ export const roundRobinReassignment = async ({
       });
     }
 
-    const scheduledWorkflowReminders = await prisma.workflowReminder.findMany({
-      where: {
-        bookingUid: booking.uid,
-        method: WorkflowMethods.EMAIL,
-        scheduled: true,
-        OR: [{ cancelled: false }, { cancelled: null }],
-        workflowStep: {
-          workflow: {
-            trigger: {
-              in: [
-                WorkflowTriggerEvents.BEFORE_EVENT,
-                WorkflowTriggerEvents.NEW_EVENT,
-                WorkflowTriggerEvents.AFTER_EVENT,
-              ],
-            },
-          },
-        },
-      },
-      select: {
-        id: true,
-        referenceId: true,
-        workflowStep: {
-          select: {
-            id: true,
-            template: true,
-            workflow: {
-              select: {
-                userId: true,
-                teamId: true,
-                trigger: true,
-                time: true,
-                timeUnit: true,
-              },
-            },
-            emailSubject: true,
-            reminderBody: true,
-            sender: true,
-            includeCalendarEvent: true,
-            verifiedAt: true,
-          },
-        },
-      },
-    });
-
-    const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evtWithAdditionalInfo) };
-
-    const bookerUrl = await getBookerBaseUrl(orgId);
-
-    for (const workflowReminder of scheduledWorkflowReminders) {
-      const workflowStep = workflowReminder?.workflowStep;
-      const workflow = workflowStep?.workflow;
-
-      if (workflowStep && workflow) {
-        await scheduleEmailReminder({
-          evt: {
-            ...evtWithAdditionalInfo,
-            metadata: workflowEventMetadata,
-            eventType,
-            bookerUrl,
-          },
-          action: WorkflowActions.EMAIL_HOST,
-          triggerEvent: workflow.trigger,
-          timeSpan: {
-            time: workflow.time,
-            timeUnit: workflow.timeUnit,
-          },
-          sendTo: [reassignedRRHost.email],
-          template: workflowStep.template,
-          emailSubject: workflowStep.emailSubject || undefined,
-          emailBody: workflowStep.reminderBody || undefined,
-          sender: workflowStep.sender || SENDER_NAME,
-          hideBranding: true,
-          includeCalendarEvent: workflowStep.includeCalendarEvent,
-          workflowStepId: workflowStep.id,
-          verifiedAt: workflowStep.verifiedAt,
-          userId: workflow.userId,
-          teamId: workflow.teamId,
-        });
-      }
-
-      await deleteScheduledEmailReminder(workflowReminder.id);
-    }
-    // Send new event workflows to new organizer
-    const newEventWorkflows = await prisma.workflow.findMany({
-      where: {
-        trigger: WorkflowTriggerEvents.NEW_EVENT,
-        OR: [
-          {
-            isActiveOnAll: true,
-            teamId: eventType?.teamId,
-          },
-          {
-            activeOn: {
-              some: {
-                eventTypeId: eventTypeId,
-              },
-            },
-          },
-          ...(eventType?.teamId
-            ? [
-                {
-                  activeOnTeams: {
-                    some: {
-                      teamId: eventType.teamId,
-                    },
-                  },
-                },
-              ]
-            : []),
-          ...(eventType?.team?.parentId
-            ? [
-                {
-                  isActiveOnAll: true,
-                  teamId: eventType.team.parentId,
-                },
-              ]
-            : []),
-        ],
-      },
-      include: {
-        steps: {
-          where: {
-            action: WorkflowActions.EMAIL_HOST,
-          },
-        },
-      },
-    });
-
-    await scheduleWorkflowReminders({
-      workflows: newEventWorkflows,
-      smsReminderNumber: null,
-      calendarEvent: {
-        ...evtWithAdditionalInfo,
-        metadata: workflowEventMetadata,
-        eventType: { slug: eventType.slug },
-        bookerUrl,
-      },
-      hideBranding: !!eventType?.owner?.hideBranding,
+    await handleWorkflowsUpdate({
+      booking,
+      newUser: reassignedRRHost,
+      evt: evtWithAdditionalInfo,
+      eventType,
+      orgId,
     });
   }
 
