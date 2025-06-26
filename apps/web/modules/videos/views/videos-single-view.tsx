@@ -95,6 +95,9 @@ export default function JoinCall(props: PageProps) {
           },
         }),
       });
+      if (overrideName) {
+        callFrame.setUserName(overrideName);
+      }
     } catch (err) {
       callFrame = DailyIframe.getCallInstance();
     } finally {
@@ -142,7 +145,7 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      {(displayLogInOverlay || !displayLogInOverlay) && (
+      {displayLogInOverlay && (
         <div>
           <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />
         </div>
