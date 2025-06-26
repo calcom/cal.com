@@ -8,14 +8,17 @@ import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomai
 import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
-import { getStaticTeamEventData } from "@lib/team/[slug]/[type]/getStaticData";
 
 import DynamicBookingComponents from "~/team/dynamic-booking-components";
 import StaticTeamEventView from "~/team/static-team-event-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const staticData = await getStaticTeamEventData(legacyCtx);
+  const staticData = await getCachedTeamEvent(
+    legacyCtx.params?.slug ?? null,
+    legacyCtx.params?.type ?? null,
+    legacyCtx.params?.orgSlug ?? null
+  );
 
   if (!staticData) return {};
 
@@ -51,7 +54,11 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const staticData = await getStaticTeamEventData(legacyCtx);
+  const staticData = await getCachedTeamEvent(
+    legacyCtx.params?.slug ?? null,
+    legacyCtx.params?.type ?? null,
+    legacyCtx.params?.orgSlug ?? null
+  );
 
   if (!staticData) {
     return <div>Event not found</div>;
