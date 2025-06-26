@@ -487,7 +487,6 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
-  const slotsGenerationStart = Date.now();
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -497,13 +496,6 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     frequency: eventType.slotInterval || input.duration || eventType.length,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
-  const slotsGenerationTime = Date.now() - slotsGenerationStart;
-
-  if (process.env.NODE_ENV === "development") {
-    loggerWithEventDetails.debug(
-      `Slots generation took ${slotsGenerationTime}ms for ${timeSlots.length} slots`
-    );
-  }
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
@@ -583,10 +575,6 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         const slotStart = slot.time;
         const slotEnd = slot.time.add(eventLength, "minute");
 
-        if (restrictionRanges.length === 0) {
-          return true;
-        }
-
         return restrictionRanges.some(
           (range) =>
             (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
@@ -650,37 +638,34 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
       return r;
     }, []);
 
-    if (busySlotsFromReservedSlots.length === 0) {
-    } else {
-      availableTimeSlots = availableTimeSlots
-        .map((slot) => {
-          if (
-            !checkForConflicts({
-              time: slot.time,
-              busy: busySlotsFromReservedSlots,
-              ...availabilityCheckProps,
-            })
-          ) {
-            return slot;
-          }
-          return undefined;
-        })
-        .filter(
-          (
-            item:
-              | {
-                  time: dayjs.Dayjs;
-                  userIds?: number[] | undefined;
-                }
-              | undefined
-          ): item is {
-            time: dayjs.Dayjs;
-            userIds?: number[] | undefined;
-          } => {
-            return !!item;
-          }
-        );
-    }
+    availableTimeSlots = availableTimeSlots
+      .map((slot) => {
+        if (
+          !checkForConflicts({
+            time: slot.time,
+            busy: busySlotsFromReservedSlots,
+            ...availabilityCheckProps,
+          })
+        ) {
+          return slot;
+        }
+        return undefined;
+      })
+      .filter(
+        (
+          item:
+            | {
+                time: dayjs.Dayjs;
+                userIds?: number[] | undefined;
+              }
+            | undefined
+        ): item is {
+          time: dayjs.Dayjs;
+          userIds?: number[] | undefined;
+        } => {
+          return !!item;
+        }
+      );
   }
 
   // fr-CA uses YYYY-MM-DD
