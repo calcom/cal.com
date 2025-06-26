@@ -398,4 +398,115 @@ describe("Tests the slots function performance", () => {
       `Performance test completed in ${executionTimeInMs}ms with ${result.length} slots generated from ${dateRanges.length} date ranges`
     );
   });
+
+  it("stress tests slot boundary algorithm with overlapping ranges", async () => {
+    const startTime = process.hrtime();
+
+    const startDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges: DateRange[] = [];
+
+    for (let baseHour = 9; baseHour < 17; baseHour++) {
+      for (let member = 0; member < 10; member++) {
+        const memberOffset = member * 3;
+
+        for (let slot = 0; slot < 4; slot++) {
+          const slotOffset = slot * 15;
+
+          dateRanges.push({
+            start: startDay.hour(baseHour).minute(memberOffset + slotOffset),
+            end: startDay.hour(baseHour).minute(memberOffset + slotOffset + 30),
+          });
+        }
+      }
+    }
+
+    for (let longSlot = 0; longSlot < 20; longSlot++) {
+      dateRanges.push({
+        start: startDay.hour(10 + (longSlot % 6)).minute(longSlot * 2),
+        end: startDay.hour(10 + (longSlot % 6)).minute(longSlot * 2 + 60),
+      });
+    }
+
+    console.log(`Created ${dateRanges.length} overlapping date ranges for boundary stress test`);
+
+    const result = getSlots({
+      inviteeDate: startDay,
+      frequency: 15,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 30,
+      offsetStart: 0,
+    });
+
+    expect(result.length).toBeGreaterThan(0);
+
+    const endTime = process.hrtime(startTime);
+    const executionTimeInMs = endTime[0] * 1000 + endTime[1] / 1000000;
+
+    expect(executionTimeInMs).toBeLessThan(2000);
+
+    console.log(
+      `Boundary stress test completed in ${executionTimeInMs}ms with ${result.length} slots generated from ${dateRanges.length} overlapping date ranges`
+    );
+
+    expect(result.length).toBeLessThan(dateRanges.length);
+    expect(result.length).toBeGreaterThan(20);
+  });
+
+  it("compares performance between sparse and dense boundary scenarios", async () => {
+    const startDay = dayjs.utc().add(1, "day").startOf("day");
+
+    const sparseRanges: DateRange[] = [];
+    for (let i = 0; i < 200; i++) {
+      const hour = 9 + (i % 8);
+      const minute = (i % 4) * 15;
+      sparseRanges.push({
+        start: startDay.hour(hour).minute(minute),
+        end: startDay.hour(hour).minute(minute + 60),
+      });
+    }
+
+    const sparseStartTime = process.hrtime();
+    const sparseResult = getSlots({
+      inviteeDate: startDay,
+      frequency: 15,
+      minimumBookingNotice: 0,
+      dateRanges: sparseRanges,
+      eventLength: 15,
+      offsetStart: 0,
+    });
+    const sparseEndTime = process.hrtime(sparseStartTime);
+    const sparseTimeMs = sparseEndTime[0] * 1000 + sparseEndTime[1] / 1000000;
+
+    const denseRanges: DateRange[] = [];
+    for (let i = 0; i < 200; i++) {
+      const baseHour = 9 + (i % 8);
+      const minuteOffset = i % 30;
+      denseRanges.push({
+        start: startDay.hour(baseHour).minute(minuteOffset),
+        end: startDay.hour(baseHour).minute(minuteOffset + 60),
+      });
+    }
+
+    const denseStartTime = process.hrtime();
+    const denseResult = getSlots({
+      inviteeDate: startDay,
+      frequency: 15,
+      minimumBookingNotice: 0,
+      dateRanges: denseRanges,
+      eventLength: 15,
+      offsetStart: 0,
+    });
+    const denseEndTime = process.hrtime(denseStartTime);
+    const denseTimeMs = denseEndTime[0] * 1000 + denseEndTime[1] / 1000000;
+
+    console.log(`Sparse boundaries: ${sparseTimeMs}ms for ${sparseResult.length} slots`);
+    console.log(`Dense boundaries: ${denseTimeMs}ms for ${denseResult.length} slots`);
+
+    expect(denseTimeMs).toBeLessThan(sparseTimeMs * 4);
+    expect(denseTimeMs).toBeLessThan(1500);
+
+    expect(sparseResult.length).toBeGreaterThan(0);
+    expect(denseResult.length).toBeGreaterThan(0);
+  });
 });
