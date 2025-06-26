@@ -6,7 +6,7 @@ import {
   $createLineBreakNode,
   $getSelection,
   $isRangeSelection,
-  COMMAND_PRIORITY_LOW,
+  COMMAND_PRIORITY_HIGH,
   KEY_ENTER_COMMAND,
 } from "lexical";
 import { useEffect } from "react";
@@ -33,7 +33,7 @@ const CustomEnterKeyPlugin = () => {
         }
         return false; // any failure case of not selection
       },
-      COMMAND_PRIORITY_LOW
+      COMMAND_PRIORITY_HIGH
     );
 
     return () => {
