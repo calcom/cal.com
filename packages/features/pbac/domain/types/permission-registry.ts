@@ -17,7 +17,6 @@ export enum CrudAction {
 }
 
 export enum CustomAction {
-  Manage = "manage",
   Invite = "invite",
   Remove = "remove",
   ChangeMemberRole = "changeMemberRole",
@@ -100,12 +99,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_roles",
     },
-    [CustomAction.Manage]: {
-      description: "All actions on roles",
-      category: "role",
-      i18nKey: "pbac_action_manage",
-      descriptionI18nKey: "pbac_desc_manage_roles",
-    },
   },
   [Resource.EventType]: {
     _resource: {
@@ -134,12 +127,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "event",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_event_types",
-    },
-    [CustomAction.Manage]: {
-      description: "All actions on event types",
-      category: "event",
-      i18nKey: "pbac_action_manage",
-      descriptionI18nKey: "pbac_desc_manage_event_types",
     },
   },
   [Resource.Team]: {
@@ -187,12 +174,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_team_member_role",
-    },
-    [CustomAction.Manage]: {
-      description: "All actions on teams",
-      category: "team",
-      i18nKey: "pbac_action_manage",
-      descriptionI18nKey: "pbac_desc_manage_teams",
     },
   },
   [Resource.Organization]: {
@@ -247,12 +228,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_edit_organization_settings",
     },
-    [CustomAction.Manage]: {
-      description: "All actions on organizations",
-      category: "org",
-      i18nKey: "pbac_action_manage",
-      descriptionI18nKey: "pbac_desc_manage_organizations",
-    },
   },
   [Resource.Booking]: {
     _resource: {
@@ -288,12 +263,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_resource_booking",
       descriptionI18nKey: "pbac_desc_update_bookings",
     },
-    [CustomAction.Manage]: {
-      description: "All actions on bookings",
-      category: "booking",
-      i18nKey: "pbac_resource_booking",
-      descriptionI18nKey: "pbac_desc_manage_bookings",
-    },
   },
   [Resource.Insights]: {
     _resource: {
@@ -304,12 +273,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "insights",
       i18nKey: "pbac_resource_insights",
       descriptionI18nKey: "pbac_desc_view_team_insights",
-    },
-    [CustomAction.Manage]: {
-      description: "Manage team insights and analytics",
-      category: "insights",
-      i18nKey: "pbac_resource_insights",
-      descriptionI18nKey: "pbac_desc_manage_team_insights",
     },
   },
 };
