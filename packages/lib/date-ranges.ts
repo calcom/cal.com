@@ -253,15 +253,27 @@ export function intersect(ranges: DateRange[][]): DateRange[] {
       end: Dayjs;
     }[] = [];
 
-    commonAvailability.forEach((commonRange) => {
-      userRanges.forEach((userRange) => {
-        const intersection = getIntersection(commonRange, userRange);
-        if (intersection !== null) {
-          // If the current common range intersects with the user range, add the intersected time range to the new array
-          intersectedRanges.push(intersection);
-        }
-      });
-    });
+    const sortedCommon = [...commonAvailability].sort((a, b) => a.start.valueOf() - b.start.valueOf());
+    const sortedUser = [...userRanges].sort((a, b) => a.start.valueOf() - b.start.valueOf());
+
+    let commonIndex = 0;
+    let userIndex = 0;
+
+    while (commonIndex < sortedCommon.length && userIndex < sortedUser.length) {
+      const commonRange = sortedCommon[commonIndex];
+      const userRange = sortedUser[userIndex];
+
+      const intersection = getIntersection(commonRange, userRange);
+      if (intersection !== null) {
+        intersectedRanges.push(intersection);
+      }
+
+      if (commonRange.end.valueOf() <= userRange.end.valueOf()) {
+        commonIndex++;
+      } else {
+        userIndex++;
+      }
+    }
 
     commonAvailability = intersectedRanges;
   }
