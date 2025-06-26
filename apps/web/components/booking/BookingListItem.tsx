@@ -967,7 +967,11 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
       <DropdownMenuPortal>
         <DropdownMenuContent>
           {!isSmsCalEmail(email) && (
-            <DropdownMenuItem className="focus:outline-none">
+            <DropdownMenuItem
+                align="start"
+        side="right"
+        sideOffset={5}
+        className="text-emphasis shadow-dropdown absolute w-48 rounded-md">
               <DropdownItem
                 StartIcon="mail"
                 href={`mailto:${email}`}
@@ -980,8 +984,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
             </DropdownMenuItem>
           )}
 
-          <DropdownMenuItem className="focus:outline-none">
-            <DropdownItem
+<DropdownMenuItem className="focus:outline-`none">            <DropdownItem
               StartIcon={isCopied ? "clipboard-check" : "clipboard"}
               onClick={(e) => {
                 e.preventDefault();
@@ -1072,7 +1075,11 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
           {t("plus_more", { count: attendees.length - 1 })}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent
+      align="start"
+        side="right"
+        sideOffset={5}
+        className="text-emphasis shadow-dropdown absolute w-48 rounded-md">
         <DropdownMenuLabel className="text-xs font-medium uppercase">
           {t("mark_as_no_show_title")}
         </DropdownMenuLabel>
@@ -1165,7 +1172,7 @@ const NoShowAttendeesDialog = ({
                 attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
               });
             }}>
-            <div className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
+            <div className="bg-default flex items-center justify-between rounded-md px-4 py-2">
               <span className="text-emphasis flex flex-col text-sm">
                 {attendee.name}
                 {attendee.email && <span className="text-muted">({attendee.email})</span>}
@@ -1204,7 +1211,11 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
           {t("plus_more", { count: guests.length - 1 })}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+       <DropdownMenuContent
+        align="start"
+        side="right"
+        sideOffset={5}
+        className="text-emphasis shadow-dropdown absolute w-48 rounded-md">
         <DropdownMenuLabel className="text-xs font-medium uppercase">{t("guests")}</DropdownMenuLabel>
         {guests.slice(1).map((guest) => (
           <DropdownMenuItem key={guest.id}>
