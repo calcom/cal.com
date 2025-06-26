@@ -360,18 +360,4 @@ export class TeamRepository {
         inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
       }));
   }
-
-  static async findTeamWithOrganizationSettings(teamId: number) {
-    return await prisma.team.findUnique({
-      where: { id: teamId },
-      select: {
-        parent: {
-          select: {
-            isOrganization: true,
-            organizationSettings: true,
-          },
-        },
-      },
-    });
-  }
 }
