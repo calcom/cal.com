@@ -1,10 +1,11 @@
 import { useState } from "react";
 
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
-import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
+import { PERMISSION_REGISTRY, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Checkbox, Label } from "@calcom/ui/form";
 
 import { usePermissions } from "./usePermissions";
@@ -47,6 +48,15 @@ export function AdvancedPermissionGroup({
     onChange(toggleResourcePermissionLevel(resource, isAllSelected ? "none" : "all", selectedPermissions));
   };
 
+  // Helper function to check if read permission is auto-enabled
+  const isReadAutoEnabled = (action: string) => {
+    if (action === CrudAction.Read) return false;
+    if (action === CrudAction.Create || action === CrudAction.Update || action === CrudAction.Delete) {
+      return selectedPermissions.includes(`${resource}.${CrudAction.Read}`);
+    }
+    return false;
+  };
+
   return (
     <div className="bg-muted border-subtle mb-2 rounded-xl border">
       <button
@@ -84,11 +94,15 @@ export function AdvancedPermissionGroup({
               return null;
             }
 
+            const isChecked = selectedPermissions.includes(permission);
+            const isReadPermission = action === CrudAction.Read;
+            const isAutoEnabled = isReadAutoEnabled(action);
+
             return (
               <div key={action} className="flex items-center">
                 <Checkbox
                   id={permission}
-                  checked={selectedPermissions.includes(permission)}
+                  checked={isChecked}
                   className="mr-2"
                   onCheckedChange={(checked) => {
                     onChange(toggleSinglePermission(permission, !!checked, selectedPermissions));
@@ -100,7 +114,9 @@ export function AdvancedPermissionGroup({
                   onClick={(e) => e.stopPropagation()} // Stop label clicks from affecting parent
                 >
                   <Label htmlFor={permission} className="mb-0">
-                    <span>{t(actionConfig?.i18nKey || "")}</span>
+                    <span className={classNames(isAutoEnabled && "text-muted-foreground")}>
+                      {t(actionConfig?.i18nKey || "")}
+                    </span>
                   </Label>
                   <span className="text-sm text-gray-500">
                     {t(
@@ -109,6 +125,11 @@ export function AdvancedPermissionGroup({
                         : ""
                     )}
                   </span>
+                  {isAutoEnabled && (
+                    <Tooltip content={t("read_permission_auto_enabled_tooltip")}>
+                      <Icon name="info" className="text-muted-foreground h-3 w-3" />
+                    </Tooltip>
+                  )}
                 </div>
               </div>
             );

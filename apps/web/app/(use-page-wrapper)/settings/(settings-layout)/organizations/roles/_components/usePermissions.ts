@@ -78,9 +78,11 @@ export function usePermissions(): UsePermissionsReturn {
           // No permissions to add, just keep other permissions
           break;
         case "read":
+          // Only add read permission
           newPermissions.push(`${resource}.${CrudAction.Read}`);
           break;
         case "all":
+          // Add all permissions for this resource
           const allResourcePerms = Object.keys(resourceConfig).map((action) => `${resource}.${action}`);
           newPermissions.push(...allResourcePerms);
           break;
@@ -103,11 +105,41 @@ export function usePermissions(): UsePermissionsReturn {
     // First, remove *.* since we're modifying individual permissions
     let newPermissions = currentPermissions.filter((p) => p !== "*.*");
 
-    // Then toggle the permission
+    // Parse the permission to get resource and action
+    const [resource, action] = permission.split(".");
+
     if (enabled) {
+      // Add the requested permission
       newPermissions.push(permission);
+
+      // If enabling create, update, or delete, automatically enable read permission
+      if (action === CrudAction.Create || action === CrudAction.Update || action === CrudAction.Delete) {
+        const readPermission = `${resource}.${CrudAction.Read}`;
+        if (!newPermissions.includes(readPermission)) {
+          newPermissions.push(readPermission);
+        }
+      }
     } else {
-      newPermissions = newPermissions.filter((p) => p !== permission);
+      // When disabling a permission, check if we need to disable related permissions
+      if (action === CrudAction.Read) {
+        // If disabling read, also disable create, update, and delete since they depend on read
+        const dependentActions = [CrudAction.Create, CrudAction.Update, CrudAction.Delete];
+        dependentActions.forEach((dependentAction) => {
+          const dependentPermission = `${resource}.${dependentAction}`;
+          newPermissions = newPermissions.filter((p) => p !== dependentPermission);
+        });
+      } else if (
+        action === CrudAction.Create ||
+        action === CrudAction.Update ||
+        action === CrudAction.Delete
+      ) {
+        // If disabling create, update, or delete, just remove that specific permission
+        // Read permission remains enabled
+        newPermissions = newPermissions.filter((p) => p !== permission);
+      } else {
+        // For other actions (custom actions), just remove the specific permission
+        newPermissions = newPermissions.filter((p) => p !== permission);
+      }
     }
 
     // Only add *.* back if all permissions are now selected
