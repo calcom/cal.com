@@ -397,7 +397,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
       routingFormResponse,
     });
 
-  const allHosts = [...qualifiedRRHosts, ...fixedHosts];
+  const allHostsForFallback = [...qualifiedRRHosts, ...fixedHosts];
 
   const twoWeeksFromNow = dayjs().add(2, "week");
 
@@ -406,7 +406,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
   let { allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities({
     input,
     eventType,
-    hosts: allHosts,
+    hosts: allHostsForFallback,
     loggerWithEventDetails,
     // adjust start time so we can check for available slots in the first two weeks
     startTime:
@@ -487,14 +487,40 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
-  const timeSlots = getSlots({
-    inviteeDate: startTime,
-    eventLength: input.duration || eventType.length,
-    offsetStart: eventType.offsetStart,
-    dateRanges: aggregatedAvailability,
-    minimumBookingNotice: eventType.minimumBookingNotice,
-    frequency: eventType.slotInterval || input.duration || eventType.length,
-    datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+  const allHostsForOptimization = [...qualifiedRRHosts, ...fixedHosts, ...(allFallbackRRHosts || [])];
+  const shouldUseOptimizedAlgorithm = isTeamEvent && allHostsForOptimization.length > 10;
+
+  const algorithmStartTime = Date.now();
+
+  const timeSlots = shouldUseOptimizedAlgorithm
+    ? await getAvailableSlotsOptimized({
+        input,
+        eventType,
+        hosts: allHostsForOptimization,
+        loggerWithEventDetails,
+        startTime,
+        endTime,
+        bypassBusyCalendarTimes,
+        shouldServeCache,
+      })
+    : getSlots({
+        inviteeDate: startTime,
+        eventLength: input.duration || eventType.length,
+        offsetStart: eventType.offsetStart,
+        dateRanges: aggregatedAvailability,
+        minimumBookingNotice: eventType.minimumBookingNotice,
+        frequency: eventType.slotInterval || input.duration || eventType.length,
+        datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+      });
+
+  const algorithmEndTime = Date.now();
+
+  loggerWithEventDetails.info({
+    message: "Slot generation completed",
+    duration: algorithmEndTime - algorithmStartTime,
+    slotsGenerated: timeSlots.length,
+    usersProcessed: allHostsForOptimization.length,
+    algorithm: shouldUseOptimizedAlgorithm ? "optimized" : "standard",
   });
 
   let availableTimeSlots: typeof timeSlots = [];
@@ -821,7 +847,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
               userId: user.id,
             };
           }),
-          hostsAfterSegmentMatching: allHosts.map((host) => ({
+          hostsAfterSegmentMatching: allHostsForOptimization.map((host) => ({
             userId: host.user.id,
           })),
         },
@@ -1289,6 +1315,137 @@ export const getBusyTimesFromTeamLimitsForUsers = withReporting(
   _getBusyTimesFromTeamLimitsForUsers,
   "getBusyTimesFromTeamLimitsForUsers"
 );
+
+const getAvailableSlotsOptimized = async ({
+  input,
+  eventType,
+  hosts,
+  loggerWithEventDetails,
+  startTime,
+  endTime,
+  bypassBusyCalendarTimes,
+  shouldServeCache,
+}: {
+  input: TGetScheduleInputSchema;
+  eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
+  hosts: {
+    isFixed?: boolean;
+    user: GetAvailabilityUserWithDelegationCredentials;
+  }[];
+  loggerWithEventDetails: Logger<unknown>;
+  startTime: ReturnType<typeof getStartTime>;
+  endTime: Dayjs;
+  bypassBusyCalendarTimes: boolean;
+  shouldServeCache?: boolean;
+}) => {
+  const optimizationStartTime = Date.now();
+
+  const idealSlots = getSlots({
+    inviteeDate: startTime,
+    eventLength: input.duration || eventType.length,
+    offsetStart: eventType.offsetStart,
+    dateRanges: buildDateRanges({
+      availability: eventType.availability || [],
+      timeZone: input.timeZone || "UTC",
+      dateFrom: startTime,
+      dateTo: endTime,
+      travelSchedules: [],
+    }).dateRanges,
+    minimumBookingNotice: eventType.minimumBookingNotice,
+    frequency: eventType.slotInterval || input.duration || eventType.length,
+  });
+
+  const confirmedSlots = new Set<string>();
+  const availableSlots: typeof idealSlots = [];
+
+  const BATCH_SIZE = 10;
+  const allHostsInBatch = [...hosts];
+
+  loggerWithEventDetails.debug({
+    message: "Starting optimized slot generation",
+    idealSlotsCount: idealSlots.length,
+    totalHosts: allHostsInBatch.length,
+    batchSize: BATCH_SIZE,
+  });
+
+  for (let i = 0; i < allHostsInBatch.length; i += BATCH_SIZE) {
+    const batch = allHostsInBatch.slice(i, i + BATCH_SIZE);
+
+    loggerWithEventDetails.debug({
+      message: `Processing batch ${Math.floor(i / BATCH_SIZE) + 1}`,
+      batchStart: i,
+      batchSize: batch.length,
+      confirmedSlotsCount: confirmedSlots.size,
+    });
+
+    const { allUsersAvailability } = await calculateHostsAndAvailabilities({
+      input,
+      eventType,
+      hosts: batch,
+      loggerWithEventDetails,
+      startTime,
+      endTime,
+      bypassBusyCalendarTimes,
+      shouldServeCache,
+    });
+
+    for (const slot of idealSlots) {
+      const slotKey = slot.time.toISOString();
+
+      if (confirmedSlots.has(slotKey)) continue;
+
+      const availableUsersCount = allUsersAvailability.filter((userAvail) => {
+        return !checkForConflicts({
+          time: slot.time,
+          busy: userAvail.busy,
+          eventLength: input.duration || eventType.length,
+        });
+      }).length;
+
+      const requiredUsers =
+        eventType.schedulingType === SchedulingType.COLLECTIVE ? batch.filter((h) => h.isFixed).length : 2;
+
+      if (availableUsersCount >= Math.min(requiredUsers, batch.length)) {
+        confirmedSlots.add(slotKey);
+        availableSlots.push({
+          ...slot,
+          userIds: allUsersAvailability
+            .filter(
+              (userAvail) =>
+                !checkForConflicts({
+                  time: slot.time,
+                  busy: userAvail.busy,
+                  eventLength: input.duration || eventType.length,
+                })
+            )
+            .map((userAvail) => userAvail.user.id),
+        });
+      }
+    }
+
+    if (confirmedSlots.size >= idealSlots.length) {
+      loggerWithEventDetails.debug({
+        message: "Short-circuiting: all ideal slots confirmed",
+        batchesProcessed: Math.floor(i / BATCH_SIZE) + 1,
+        totalBatches: Math.ceil(allHostsInBatch.length / BATCH_SIZE),
+      });
+      break;
+    }
+  }
+
+  const optimizationEndTime = Date.now();
+
+  loggerWithEventDetails.info({
+    message: "Optimized slot generation completed",
+    duration: optimizationEndTime - optimizationStartTime,
+    slotsGenerated: availableSlots.length,
+    idealSlotsCount: idealSlots.length,
+    usersProcessed: allHostsInBatch.length,
+    algorithm: "optimized",
+  });
+
+  return availableSlots;
+};
 
 const calculateHostsAndAvailabilities = async ({
   input,
