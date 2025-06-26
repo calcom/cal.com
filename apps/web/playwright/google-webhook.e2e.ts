@@ -1,5 +1,7 @@
 import { expect } from "@playwright/test";
 
+import { randomString } from "@calcom/lib/random";
+
 import { test } from "./lib/fixtures";
 import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
@@ -33,15 +35,16 @@ test.describe("Google Calendar Webhook", () => {
       },
     });
 
+    const channelId = `test-channel-${randomString(10)}`;
     const selectedCalendar = await prisma.selectedCalendar.create({
       data: {
         userId: user.id,
         integration: "google_calendar",
         externalId: "test@example.com",
         credentialId: credential.id,
-        googleChannelId: "test-channel-id",
+        googleChannelId: channelId,
         googleChannelKind: "api#channel",
-        googleChannelResourceId: "test-resource-id",
+        googleChannelResourceId: `test-resource-${randomString(10)}`,
         googleChannelResourceUri: "test-resource-uri",
         googleChannelExpiration: "1234567890",
       },
@@ -66,7 +69,7 @@ test.describe("Google Calendar Webhook", () => {
     const response = await page.request.post("/api/integrations/googlecalendar/webhook", {
       headers: {
         "x-goog-channel-token": process.env.GOOGLE_WEBHOOK_TOKEN || "test-token",
-        "x-goog-channel-id": "test-channel-id",
+        "x-goog-channel-id": channelId,
       },
       data: {},
     });
@@ -83,7 +86,7 @@ test.describe("Google Calendar Webhook", () => {
     const response = await page.request.post("/api/integrations/googlecalendar/webhook", {
       headers: {
         "x-goog-channel-token": "invalid-token",
-        "x-goog-channel-id": "test-channel-id",
+        "x-goog-channel-id": `test-channel-${randomString(10)}`,
       },
       data: {},
     });

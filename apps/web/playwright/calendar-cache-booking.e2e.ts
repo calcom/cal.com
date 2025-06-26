@@ -1,5 +1,7 @@
 import { expect } from "@playwright/test";
 
+import { randomString } from "@calcom/lib/random";
+
 import { test } from "./lib/fixtures";
 import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
@@ -20,7 +22,6 @@ test.describe("Booking with Calendar Cache", () => {
 
     const user = await users.create();
     const [eventType] = user.eventTypes;
-    await user.apiLogin();
 
     const credential = await prisma.credential.create({
       data: {
@@ -85,7 +86,7 @@ test.describe("Booking with Calendar Cache", () => {
     const team = await prisma.team.create({
       data: {
         name: "Test Team",
-        slug: "test-team",
+        slug: `test-team-${Date.now()}-${randomString(5)}`,
       },
     });
 
@@ -99,7 +100,7 @@ test.describe("Booking with Calendar Cache", () => {
     const teamEventType = await prisma.eventType.create({
       data: {
         title: "Team Meeting",
-        slug: "team-meeting",
+        slug: `team-meeting-${Date.now()}-${randomString(5)}`,
         length: 30,
         teamId: team.id,
         schedulingType: "COLLECTIVE",
@@ -145,8 +146,6 @@ test.describe("Booking with Calendar Cache", () => {
         },
       ],
     });
-
-    await user1.apiLogin();
 
     await page.goto(`/team/${team.slug}/${teamEventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
