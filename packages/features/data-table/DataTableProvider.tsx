@@ -1,24 +1,36 @@
 "use client";
 
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import debounce from "lodash/debounce";
 import { usePathname } from "next/navigation";
-import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger } from "nuqs";
-import { createContext, useCallback, useEffect, useRef } from "react";
+import { useQueryState } from "nuqs";
+import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
-import { useSegments } from "./lib/segments";
+import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
+import {
+  activeFiltersParser,
+  sortingParser,
+  columnVisibilityParser,
+  columnSizingParser,
+  segmentIdParser,
+  pageIndexParser,
+  pageSizeParser,
+  searchTermParser,
+  DEFAULT_PAGE_SIZE,
+} from "./lib/parsers";
 import {
   type FilterValue,
-  ZSorting,
-  ZColumnVisibility,
-  ZActiveFilter,
-  ZColumnSizing,
   type FilterSegmentOutput,
   type ActiveFilters,
+  type UseSegments,
 } from "./lib/types";
+import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
 export type DataTableContextType = {
   tableIdentifier: string;
-  ctaContainerRef?: React.RefObject<HTMLDivElement>;
+  ctaContainerRef: React.RefObject<HTMLDivElement>;
+  filterToOpen: React.MutableRefObject<string | undefined>;
 
   activeFilters: ActiveFilters;
   clearAll: (exclude?: string[]) => void;
@@ -48,48 +60,57 @@ export type DataTableContextType = {
   segmentId: number | undefined;
   setSegmentId: (id: number | null) => void;
   canSaveSegment: boolean;
+  isSegmentEnabled: boolean;
+
+  searchTerm: string;
+  setSearchTerm: (searchTerm: string | null) => void;
+
+  timeZone?: string;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
 
-const DEFAULT_ACTIVE_FILTERS: ActiveFilters = [];
-const DEFAULT_SORTING: SortingState = [];
-const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
-const DEFAULT_COLUMN_SIZING: ColumnSizingState = {};
-const DEFAULT_PAGE_SIZE = 10;
-
 interface DataTableProviderProps {
+  useSegments?: UseSegments;
   tableIdentifier?: string;
   children: React.ReactNode;
   ctaContainerClassName?: string;
   defaultPageSize?: number;
+  segments?: FilterSegmentOutput[];
+  timeZone?: string;
+  preferredSegmentId?: number | null;
 }
 
 export function DataTableProvider({
   tableIdentifier: _tableIdentifier,
   children,
+  useSegments = useSegmentsNoop,
   defaultPageSize = DEFAULT_PAGE_SIZE,
-  ctaContainerClassName,
+  ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
+  segments: providedSegments,
+  timeZone,
+  preferredSegmentId,
 }: DataTableProviderProps) {
-  const [activeFilters, setActiveFilters] = useQueryState(
-    "activeFilters",
-    parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
-  );
-  const [sorting, setSorting] = useQueryState(
-    "sorting",
-    parseAsArrayOf(parseAsJson(ZSorting.parse)).withDefault(DEFAULT_SORTING)
-  );
+  const filterToOpen = useRef<string | undefined>(undefined);
+  const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
+  const [sorting, setSorting] = useQueryState("sorting", sortingParser);
   const [columnVisibility, setColumnVisibility] = useQueryState<VisibilityState>(
     "cols",
-    parseAsJson(ZColumnVisibility.parse).withDefault(DEFAULT_COLUMN_VISIBILITY)
+    columnVisibilityParser
   );
-  const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>(
-    "widths",
-    parseAsJson(ZColumnSizing.parse).withDefault(DEFAULT_COLUMN_SIZING)
+  const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>("widths", columnSizingParser);
+  const [segmentId, setSegmentId] = useQueryState(
+    "segment",
+    segmentIdParser.withDefault(preferredSegmentId ?? -1)
   );
-  const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(-1));
-  const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
-  const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
+  const [pageIndex, setPageIndex] = useQueryState("page", pageIndexParser);
+  const [pageSize, setPageSize] = useQueryState("size", pageSizeParser);
+  const [searchTerm, setSearchTerm] = useQueryState("q", searchTermParser);
+
+  const setDebouncedSearchTerm = useMemo(
+    () => debounce((value: string | null) => setSearchTerm(value ? value.trim() : null), 500),
+    [setSearchTerm]
+  );
 
   const pathname = usePathname() as string | null;
   const tableIdentifier = _tableIdentifier ?? pathname ?? undefined;
@@ -106,17 +127,6 @@ export function DataTableProvider({
       }
     },
     [activeFilters, setActiveFilters]
-  );
-
-  const clearAll = useCallback(
-    (exclude?: string[]) => {
-      setPageIndex(null);
-      setActiveFilters((prev) => {
-        const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
-        return remainingFilters.length === 0 ? null : remainingFilters;
-      });
-    },
-    [setActiveFilters, setPageIndex]
   );
 
   const setPageIndexWrapper = useCallback(
@@ -158,29 +168,47 @@ export function DataTableProvider({
 
   const setPageSizeAndGoToFirstPage = useCallback(
     (newPageSize: number | null) => {
-      setPageSize(newPageSize === DEFAULT_PAGE_SIZE ? null : newPageSize);
+      setPageSize(newPageSize === defaultPageSize ? null : newPageSize);
       setPageIndex(null);
     },
-    [setPageSize, setPageIndex]
+    [setPageSize, setPageIndex, defaultPageSize]
   );
 
-  const { segments, selectedSegment, canSaveSegment, setSegmentIdAndSaveToLocalStorage } = useSegments({
-    tableIdentifier,
-    activeFilters,
-    sorting,
-    columnVisibility,
-    columnSizing,
-    pageSize,
-    defaultPageSize,
-    segmentId,
-    setSegmentId,
-    setActiveFilters,
-    setSorting,
-    setColumnVisibility,
-    setColumnSizing,
-    setPageSize,
-    setPageIndex,
-  });
+  const { segments, selectedSegment, canSaveSegment, setAndPersistSegmentId, isSegmentEnabled } = useSegments(
+    {
+      tableIdentifier,
+      activeFilters,
+      sorting,
+      columnVisibility,
+      columnSizing,
+      pageSize,
+      searchTerm,
+      defaultPageSize,
+      segmentId,
+      setSegmentId,
+      setActiveFilters,
+      setSorting,
+      setColumnVisibility,
+      setColumnSizing,
+      setPageSize,
+      setPageIndex,
+      setSearchTerm,
+      segments: providedSegments,
+      preferredSegmentId,
+    }
+  );
+
+  const clearAll = useCallback(
+    (exclude?: string[]) => {
+      setAndPersistSegmentId(null);
+      setPageIndex(null);
+      setActiveFilters((prev) => {
+        const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
+        return remainingFilters.length === 0 ? null : remainingFilters;
+      });
+    },
+    [setActiveFilters, setPageIndex, setAndPersistSegmentId]
+  );
 
   const ctaContainerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -195,6 +223,7 @@ export function DataTableProvider({
       value={{
         tableIdentifier,
         ctaContainerRef,
+        filterToOpen,
         activeFilters,
         addFilter,
         clearAll,
@@ -215,8 +244,12 @@ export function DataTableProvider({
         segments,
         selectedSegment,
         segmentId: segmentId || undefined,
-        setSegmentId: setSegmentIdAndSaveToLocalStorage,
+        setSegmentId: setAndPersistSegmentId,
         canSaveSegment,
+        isSegmentEnabled,
+        searchTerm,
+        setSearchTerm: setDebouncedSearchTerm,
+        timeZone,
       }}>
       {children}
     </DataTableContext.Provider>

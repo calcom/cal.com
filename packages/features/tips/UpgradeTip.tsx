@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc";
 import classNames from "@calcom/ui/classNames";
@@ -28,7 +27,6 @@ export function UpgradeTip({
   plan: "team" | "enterprise";
 }) {
   const { resolvedTheme } = useGetTheme();
-  const { t } = useLocale();
   const { isPending, hasTeamPlan } = useHasTeamPlan();
   const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
   const imageSrc = `${background}${resolvedTheme === "dark" ? "-dark" : ""}.jpg`;
@@ -57,8 +55,8 @@ export function UpgradeTip({
           />
         </picture>
         <div className="relative my-4 px-8 sm:px-14">
-          <h1 className={classNames("font-cal mt-4 text-3xl")}>{t(title)}</h1>
-          <p className={classNames("mb-8 mt-4 max-w-sm")}>{t(description)}</p>
+          <h1 className={classNames("font-cal mt-4 text-3xl")}>{title}</h1>
+          <p className={classNames("mb-8 mt-4 max-w-sm")}>{description}</p>
           {buttons}
         </div>
       </div>

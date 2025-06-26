@@ -8,7 +8,10 @@ import TwoFactorAuthView from "~/settings/security/two-factor-auth-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("two_factor_auth"),
-    (t) => t("add_an_extra_layer_of_security")
+    (t) => t("add_an_extra_layer_of_security"),
+    undefined,
+    undefined,
+    "/settings/security/two-factor-auth"
   );
 const Page = async () => {
   const t = await getTranslate();

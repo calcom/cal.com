@@ -32,6 +32,7 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import {
   SkeletonButton,
@@ -40,10 +41,14 @@ import {
   SkeletonAvatar,
 } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
 const teamProfileFormSchema = z.object({
+  id: z.number(),
   name: z.string(),
   slug: z
     .string()
@@ -119,8 +124,10 @@ const ProfileView = () => {
 
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
+      revalidateTeamsList();
       await utils.viewer.teams.list.invalidate();
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      revalidateEventTypesList();
       await utils.viewer.eventTypes.getByViewer.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
@@ -135,6 +142,7 @@ const ProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },
@@ -162,7 +170,7 @@ const ProfileView = () => {
   return (
     <>
       {isAdmin ? (
-        <TeamProfileForm team={team} />
+        <TeamProfileForm team={team} teamId={teamId} />
       ) : (
         <div className="border-subtle flex rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
           <div className="flex-grow">
@@ -248,9 +256,12 @@ const ProfileView = () => {
   );
 };
 
-export type TeamProfileFormProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
+export type TeamProfileFormProps = {
+  team: RouterOutputs["viewer"]["teams"]["get"];
+  teamId: number;
+};
 
-const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
+const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
   const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
@@ -268,13 +279,16 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
       });
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      revalidateEventTypesList();
       // TODO: Not all changes require list invalidation
       await utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
 
   const defaultValues: FormValues = {
+    id: team?.id,
     name: team?.name || "",
     logo: team?.logo || "",
     bio: team?.bio || "",
@@ -306,6 +320,14 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
     },
   });
 
+  const handleCopy = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      showToast(t("team_id_copied"), "success");
+    } catch (error) {
+      showToast(t("error_copying_to_clipboard"), "error");
+    }
+  };
   return (
     <Form
       form={form}
@@ -399,6 +421,27 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
             </div>
           )}
         />
+
+        <div className="mt-8">
+          <TextField
+            name="id"
+            label={t("team_id")}
+            value={teamId}
+            disabled={true}
+            addOnSuffix={
+              <Tooltip content={t("copy_to_clipboard")}>
+                <Button
+                  color="minimal"
+                  size="sm"
+                  type="button"
+                  aria-label="copy team id"
+                  onClick={() => handleCopy(teamId.toString())}>
+                  <Icon name="copy" className="ml-1 h-4 w-4" />
+                </Button>
+              </Tooltip>
+            }
+          />
+        </div>
         <div className="mt-8">
           <Label>{t("about")}</Label>
           <Editor

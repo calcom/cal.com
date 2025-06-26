@@ -3,7 +3,7 @@
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
@@ -32,8 +32,12 @@ function AddFilterButtonComponent<TData>(
 ) {
   const { t } = useLocale();
   const { activeFilters, addFilter } = useDataTable();
+  const [open, setOpen] = useState(false);
 
   const filterableColumns = useFilterableColumns(table);
+  const availableColumns = filterableColumns.filter(
+    (column) => !activeFilters?.some((filter) => filter.f === column.id)
+  );
 
   if (hideWhenFilterApplied && activeFilters?.length > 0) {
     return null;
@@ -43,9 +47,13 @@ function AddFilterButtonComponent<TData>(
     return null;
   }
 
+  if (variant === "sm" && availableColumns.length === 0) {
+    return null;
+  }
+
   return (
     <div className="flex items-center space-x-2">
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         {variant === "base" && (
           <PopoverTrigger asChild>
             <Button
@@ -73,16 +81,18 @@ function AddFilterButtonComponent<TData>(
             <CommandInput placeholder={t("search")} />
             <CommandList>
               <CommandEmpty>{t("no_columns_found")}</CommandEmpty>
-              {filterableColumns.map((column) => {
+              {availableColumns.map((column) => {
                 const showHiddenIndicator =
                   !table.getColumn(column.id)?.getIsVisible() &&
                   table.initialState.columnVisibility?.[column.id] !== false;
 
-                if (activeFilters?.some((filter) => filter.f === column.id)) return null;
                 return (
                   <CommandItem
                     key={column.id}
-                    onSelect={() => addFilter(column.id)}
+                    onSelect={() => {
+                      addFilter(column.id);
+                      setOpen(false);
+                    }}
                     className="flex items-center justify-between px-4 py-2"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>

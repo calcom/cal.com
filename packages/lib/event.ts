@@ -90,7 +90,11 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
 
       if (typeof bookingFieldValue === "object") {
         if ("value" in bookingFieldValue) {
-          fieldValue = bookingFieldValue.value?.toString();
+          const valueAsString = bookingFieldValue.value?.toString();
+          fieldValue =
+            variable === "location"
+              ? guessEventLocationType(valueAsString)?.label || valueAsString
+              : valueAsString;
         } else if (variable === "name" && "firstName" in bookingFieldValue) {
           const lastName = "lastName" in bookingFieldValue ? bookingFieldValue.lastName : "";
           fieldValue = `${bookingFieldValue.firstName} ${lastName}`.trim();
@@ -104,6 +108,61 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   });
 
   return dynamicEventName;
+}
+
+export function updateHostInEventName(eventName: string, oldHost: string, newHost: string) {
+  const oldParts = oldHost.trim().split(/\s+/);
+  const newParts = newHost.trim().split(/\s+/);
+
+  // Handle cases where names might have different number of parts
+  const oldFirst = oldParts[0];
+  const oldLast = oldParts.slice(1).join(" ");
+  const newFirst = newParts[0];
+  const newLast = newParts.slice(1).join(" ");
+
+  const formats = [
+    // Full name patterns (prioritize these first)
+    ...(oldLast
+      ? [
+          {
+            pattern: `${oldFirst}.${oldLast}`,
+            replacement: newLast ? `${newFirst}.${newLast}` : newFirst,
+          },
+          {
+            pattern: `${oldFirst}-${oldLast}`,
+            replacement: newLast ? `${newFirst}-${newLast}` : newFirst,
+          },
+          {
+            pattern: `${oldFirst}_${oldLast}`,
+            replacement: newLast ? `${newFirst}_${newLast}` : newFirst,
+          },
+          {
+            pattern: `${oldFirst} ${oldLast}`,
+            replacement: newLast ? `${newFirst} ${newLast}` : newFirst,
+          },
+        ]
+      : []),
+    // First name only (last to avoid partial matches)
+    {
+      pattern: oldFirst,
+      replacement: newFirst,
+    },
+  ];
+
+  let updatedEventName = eventName;
+
+  for (const { pattern, replacement } of formats) {
+    // Escape special regex characters in the pattern
+    const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`\\b${escapedPattern}\\b`, "gi");
+
+    if (regex.test(updatedEventName)) {
+      updatedEventName = updatedEventName.replace(regex, replacement);
+      return updatedEventName;
+    }
+  }
+
+  return updatedEventName;
 }
 
 export const validateCustomEventName = (value: string, bookingFields?: Prisma.JsonObject | null) => {

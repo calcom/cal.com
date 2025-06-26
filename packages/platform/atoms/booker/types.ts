@@ -1,7 +1,9 @@
+import type React from "react";
+
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import type { BookerStore } from "@calcom/features/bookings/Booker/store";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
-import type { BookingResponse } from "@calcom/platform-libraries";
+import type { BookingResponse } from "@calcom/features/bookings/types";
 import type {
   ApiSuccessResponse,
   ApiErrorResponse,
@@ -9,6 +11,7 @@ import type {
   RoutingFormSearchParams,
 } from "@calcom/platform-types";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
 
@@ -66,6 +69,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   onBookerStateChange?: (state: BookerStoreValues) => void;
+  handleSlotReservation?: (timeslot: string) => void;
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
@@ -77,6 +81,8 @@ export type BookerPlatformWrapperAtomProps = Omit<
   confirmButtonDisabled?: boolean;
   timeZones?: Timezone[];
   isBookingDryRun?: boolean;
+  eventMetaChildren?: React.ReactNode;
+  onTimeslotsLoaded?: (slots: Record<string, Slot[]>) => void;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;

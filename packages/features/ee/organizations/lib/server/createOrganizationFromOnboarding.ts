@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -10,9 +11,11 @@ import {
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -98,7 +101,7 @@ async function createOrganizationWithExistingUserAsOwner({
   let organization = orgData.id ? await OrganizationRepository.findById({ id: orgData.id }) : null;
 
   if (organization) {
-    log.debug(
+    log.info(
       `Reusing existing organization:`,
       safeStringify({
         slug: orgData.slug,
@@ -122,7 +125,7 @@ async function createOrganizationWithExistingUserAsOwner({
   // In this case we create the organization with slug=null. Let the teams migrate and then the conflict would go away.
   const canSetSlug = slugConflictType === "teamUserIsMemberOfExists" ? false : true;
 
-  log.debug(
+  log.info(
     `Creating organization for owner ${owner.email} with slug ${orgData.slug} and canSetSlug=${canSetSlug}`
   );
 
@@ -191,12 +194,15 @@ async function createOrganizationWithNonExistentUserAsOwner({
     : await OrganizationRepository.findBySlug({ slug: orgData.slug });
 
   if (organization) {
-    log.debug(
+    log.info(
       `createOrganizationWithNonExistentUserAsOwner: Reusing existing organization:`,
       safeStringify({ slug: orgData.slug, id: organization.id })
     );
     const owner = await findUserToBeOrgOwner(email);
     if (!owner) {
+      // Can happen when the organization was created earlier and the webhook had failed and when the webhook got fired again in next subscription update, then the email was deleted already
+      // The fix would be to change the email in Onboarding record to new owner of the organization
+      // TODO: Identify the owner of the organization from Membership table and use that email instead here.
       throw new Error(`Org exists but owner could not be found for email: ${email}`);
     }
     return { organization, owner };
@@ -259,7 +265,7 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
       shouldMove: true,
     }));
 
-  log.debug(
+  log.info(
     `Creating ${teamsToCreate} teams and moving ${teamsToMove.map(
       (team) => team.newSlug
     )} teams for organization ${organizationId}`
@@ -280,7 +286,7 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
     },
   });
 
-  log.debug(
+  log.info(
     `Created ${teamsToCreate.length} teams and moved ${teamsToMove.length} teams for organization ${organizationId}`
   );
 }
@@ -288,7 +294,7 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
 async function inviteMembers(invitedMembers: InvitedMember[], organization: Team) {
   if (invitedMembers.length === 0) return;
 
-  log.debug(`Inviting ${invitedMembers.length} members to organization ${organization.id}`);
+  log.info(`Inviting ${invitedMembers.length} members to organization ${organization.id}`);
   await inviteMembersWithNoInviterPermissionCheck({
     inviterName: null,
     teamId: organization.id,
@@ -330,9 +336,13 @@ async function backwardCompatibilityForSubscriptionDetails({
     id: number;
     metadata: Prisma.JsonValue;
   };
-  paymentSubscriptionId: string;
-  paymentSubscriptionItemId: string;
+  paymentSubscriptionId?: string;
+  paymentSubscriptionItemId?: string;
 }) {
+  if (!paymentSubscriptionId || !paymentSubscriptionItemId) {
+    return organization;
+  }
+
   const existingMetadata = teamMetadataSchema.parse(organization.metadata);
   const updatedOrganization = await OrganizationRepository.updateStripeSubscriptionDetails({
     id: organization.id,
@@ -384,9 +394,19 @@ async function handleOrganizationCreation({
 }: {
   organizationOnboarding: OrganizationOnboardingArg;
   owner: OrgOwner;
-  paymentSubscriptionId: string;
-  paymentSubscriptionItemId: string;
+  paymentSubscriptionId?: string;
+  paymentSubscriptionItemId?: string;
 }) {
+  if (IS_SELF_HOSTED) {
+    const deploymentRepo = new DeploymentRepository(prisma);
+    const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+    const hasValidLicense = await licenseKeyService.checkLicense();
+
+    if (!hasValidLicense) {
+      throw new Error("Self hosted license not valid");
+    }
+  }
+
   let organization;
   const orgData = {
     id: organizationOnboarding.organizationId,
@@ -407,7 +427,10 @@ async function handleOrganizationCreation({
     bio: organizationOnboarding.bio,
   };
 
-  log.debug("handleOrganizationCreation", safeStringify({ orgData }));
+  log.info(
+    "handleOrganizationCreation",
+    safeStringify({ orgId: organizationOnboarding.organizationId, orgSlug: organizationOnboarding.slug })
+  );
   if (!owner) {
     const result = await createOrganizationWithNonExistentUserAsOwner({
       email: organizationOnboarding.orgOwnerEmail,
@@ -462,9 +485,21 @@ export const createOrganizationFromOnboarding = async ({
   paymentSubscriptionItemId,
 }: {
   organizationOnboarding: OrganizationOnboardingArg;
-  paymentSubscriptionId: string;
-  paymentSubscriptionItemId: string;
+  paymentSubscriptionId?: string;
+  paymentSubscriptionItemId?: string;
 }) => {
+  log.info(
+    "createOrganizationFromOnboarding",
+    safeStringify({
+      orgId: organizationOnboarding.organizationId,
+      orgSlug: organizationOnboarding.slug,
+    })
+  );
+
+  if (!IS_SELF_HOSTED && (!paymentSubscriptionId || !paymentSubscriptionItemId)) {
+    throw new Error("payment_subscription_id_and_payment_subscription_item_id_are_required");
+  }
+
   if (
     await hasConflictingOrganization({
       slug: organizationOnboarding.slug,
@@ -478,10 +513,13 @@ export const createOrganizationFromOnboarding = async ({
   const userFromEmail = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
   const orgOwnerTranslation = await getTranslation(userFromEmail?.locale || "en", "common");
 
-  await handleDomainSetup({
-    organizationOnboarding,
-    orgOwnerTranslation,
-  });
+  // TODO: We need to send emails to admin in the case of SELF_HOSTING where NEXT_PUBLIC_SINGLE_ORG_SLUG isn't set
+  if (!process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
+    await handleDomainSetup({
+      organizationOnboarding,
+      orgOwnerTranslation,
+    });
+  }
 
   const { organization, owner } = await handleOrganizationCreation({
     organizationOnboarding,
@@ -501,11 +539,18 @@ export const createOrganizationFromOnboarding = async ({
   // If the organization was created with slug=null, then set the slug now, assuming that the team having the same slug is migrated now
   // If the team wasn't owned by the orgOwner, then org creation would have failed and we wouldn't be here
   if (!organization.slug) {
-    const { slug } = await OrganizationRepository.setSlug({
-      id: organization.id,
-      slug: organizationOnboarding.slug,
-    });
-    organization.slug = slug;
+    try {
+      const { slug } = await OrganizationRepository.setSlug({
+        id: organization.id,
+        slug: organizationOnboarding.slug,
+      });
+      organization.slug = slug;
+    } catch (error) {
+      // Almost always the reason would be that the organization's slug conflicts with a team's slug
+      // The owner might not have chosen the conflicting team for migration - Can be confirmed by checking `teams` column in the database.
+      log.error("RecoverableError: Error while setting slug for organization", safeStringify(error));
+      throw new Error("Unable to set slug for organization");
+    }
   }
 
   return { organization, owner };

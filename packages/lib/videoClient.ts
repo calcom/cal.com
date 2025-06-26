@@ -10,7 +10,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
-import type { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
+import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -92,7 +92,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
   };
   try {
     // Check to see if video app is enabled
-    const enabledApp = await prisma.app.findFirst({
+    const enabledApp = await prisma.app.findUnique({
       where: {
         slug: credential.appId,
       },
@@ -203,6 +203,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegationCredentialId: null,
     },
   ]);
   return videoAdapter?.createMeeting(calEvent);
@@ -225,6 +226,7 @@ export const createInstantMeetingWithCalVideo = async (endTime: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegationCredentialId: null,
     },
   ]);
   return videoAdapter?.createInstantCalVideoRoom?.(endTime);
@@ -250,12 +252,15 @@ const getRecordingsOfCalVideoByRoomName = async (
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegationCredentialId: null,
     },
   ]);
   return videoAdapter?.getRecordings?.(roomName);
 };
 
-const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
+const getDownloadLinkOfCalVideoByRecordingId = async (
+  recordingId: string
+): Promise<GetAccessLinkResponseSchema | undefined> => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
@@ -273,6 +278,7 @@ const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegationCredentialId: null,
     },
   ]);
   return videoAdapter?.getRecordingDownloadLink?.(recordingId);
@@ -296,6 +302,7 @@ const getAllTranscriptsAccessLinkFromRoomName = async (roomName: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegationCredentialId: null,
     },
   ]);
   return videoAdapter?.getAllTranscriptsAccessLinkFromRoomName?.(roomName);
@@ -319,6 +326,7 @@ const getAllTranscriptsAccessLinkFromMeetingId = async (meetingId: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegationCredentialId: null,
     },
   ]);
   return videoAdapter?.getAllTranscriptsAccessLinkFromMeetingId?.(meetingId);
@@ -342,6 +350,7 @@ const submitBatchProcessorTranscriptionJob = async (recordingId: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegationCredentialId: null,
     },
   ]);
 
@@ -377,6 +386,7 @@ const getTranscriptsAccessLinkFromRecordingId = async (recordingId: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegationCredentialId: null,
     },
   ]);
 
@@ -401,6 +411,7 @@ const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: 
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
+      delegationCredentialId: null,
     },
   ]);
 

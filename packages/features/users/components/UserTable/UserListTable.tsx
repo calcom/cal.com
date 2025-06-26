@@ -7,20 +7,20 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import {
   DataTableProvider,
   DataTableWrapper,
   DataTableToolbar,
   DataTableSelectionBar,
   DataTableFilters,
+  DataTableSegment,
   useColumnFilters,
   ColumnFilterType,
   convertFacetedValuesToMap,
-  SaveFilterSegmentButton,
-  FilterSegmentSelect,
   useDataTable,
-  CTA_CONTAINER_CLASS_NAME,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
@@ -30,7 +30,9 @@ import {
 } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -74,6 +76,8 @@ const initalColumnVisibility = {
   member: true,
   role: true,
   teams: true,
+  createdAt: false,
+  updatedAt: false,
   actions: true,
 };
 
@@ -103,15 +107,32 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
   }
 }
 
-export function UserListTable() {
+export type UserListTableProps = {
+  org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
+  teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+  attributes?: RouterOutputs["viewer"]["attributes"]["list"];
+  facetedTeamValues?: {
+    roles: MembershipRole[];
+    teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+    attributes: {
+      id: string;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
+};
+
+export function UserListTable(props: UserListTableProps) {
   return (
-    <DataTableProvider defaultPageSize={25} ctaContainerClassName={CTA_CONTAINER_CLASS_NAME}>
-      <UserListTableContent />
+    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+      <UserListTableContent {...props} />
     </DataTableProvider>
   );
 }
 
-function UserListTableContent() {
+function UserListTableContent({ org, attributes, teams, facetedTeamValues }: UserListTableProps) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -119,36 +140,19 @@ function UserListTableContent() {
 
   const { data: session } = useSession();
   const { isPlatformUser } = useGetUserAttributes();
-  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-  const { data: attributes, isSuccess: isSuccessAttributes } = trpc.viewer.attributes.list.useQuery(
-    undefined,
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
-  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-  const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
 
   const columnFilters = useColumnFilters();
 
-  const { limit, offset, ctaContainerRef } = useDataTable();
+  const { limit, offset, searchTerm, ctaContainerRef } = useDataTable();
 
   const { data, isPending } = trpc.viewer.organizations.listMembers.useQuery(
     {
       limit,
       offset,
-      searchTerm: debouncedSearchTerm,
+      searchTerm,
       expand: ["attributes"],
       filters: columnFilters,
     },
@@ -159,7 +163,7 @@ function UserListTableContent() {
 
   // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
-  const adminOrOwner = org?.user.role === "ADMIN" || org?.user.role === "OWNER";
+  const adminOrOwner = checkAdminOrOwner(org?.user?.role);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo<UserTableUser[]>(() => data?.rows ?? [], [data]);
@@ -256,7 +260,6 @@ function UserListTableContent() {
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
-            className="translate-y-[2px]"
           />
         ),
         cell: ({ row }) => (
@@ -274,7 +277,7 @@ function UserListTableContent() {
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
-        header: "Members",
+        header: t("members"),
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -305,7 +308,7 @@ function UserListTableContent() {
       {
         id: "role",
         accessorFn: (data) => data.role,
-        header: "Role",
+        header: t("role"),
         size: 100,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
@@ -327,7 +330,7 @@ function UserListTableContent() {
       {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
-        header: "Teams",
+        header: t("teams"),
         size: 140,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
@@ -346,7 +349,7 @@ function UserListTableContent() {
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
                   }}>
-                  Pending
+                  {t("pending")}
                 </Badge>
               )}
 
@@ -367,8 +370,51 @@ function UserListTableContent() {
       ...generateAttributeColumns(),
       {
         id: "lastActiveAt",
-        header: "Last Active",
+        accessorKey: "lastActiveAt",
+        header: t("last_active"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
+        },
         cell: ({ row }) => <div>{row.original.lastActiveAt}</div>,
+      },
+      {
+        id: "createdAt",
+        accessorKey: "createdAt",
+        header: t("member_since"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
+        },
+        cell: ({ row }) => <div>{row.original.createdAt || ""}</div>,
+      },
+      {
+        id: "updatedAt",
+        accessorKey: "updatedAt",
+        header: t("last_updated"),
+        enableSorting: false,
+        enableColumnFilter: true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              endOfDay: true,
+            },
+          },
+        },
+        cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
       },
       {
         id: "actions",
@@ -485,7 +531,7 @@ function UserListTableContent() {
         const result = await utils.viewer.organizations.listMembers.fetch({
           limit,
           offset,
-          searchTerm: debouncedSearchTerm,
+          searchTerm,
           expand: ["attributes"],
           filters: columnFilters,
         });
@@ -518,11 +564,6 @@ function UserListTableContent() {
     }
   };
 
-  if (!isPlatformUser && !isSuccessAttributes) {
-    // do not render the table until the attributes are fetched
-    return null;
-  }
-
   return (
     <>
       <DataTableWrapper<UserTableUser>
@@ -533,18 +574,16 @@ function UserListTableContent() {
         paginationMode="standard"
         ToolbarLeft={
           <>
-            <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
+            <DataTableToolbar.SearchBar />
             <DataTableFilters.ColumnVisibilityButton table={table} />
-            <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-            <DataTableFilters.ActiveFilters table={table} />
-            <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+            <DataTableFilters.FilterBar table={table} />
           </>
         }
         ToolbarRight={
           <>
             <DataTableFilters.ClearFiltersButton />
-            <SaveFilterSegmentButton />
-            <FilterSegmentSelect />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
           </>
         }>
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
@@ -559,7 +598,7 @@ function UserListTableContent() {
             </p>
             {!isPlatformUser ? (
               <>
-                <TeamListBulkAction table={table} />
+                {adminOrOwner && <TeamListBulkAction table={table} />}
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
                     color="secondary"
@@ -568,14 +607,16 @@ function UserListTableContent() {
                     {t("group_meeting")}
                   </DataTableSelectionBar.Button>
                 )}
-                <MassAssignAttributesBulkAction table={table} filters={columnFilters} />
-                <EventTypesList table={table} orgTeams={teams} />
+                {adminOrOwner && <MassAssignAttributesBulkAction table={table} filters={columnFilters} />}
+                {adminOrOwner && <EventTypesList table={table} orgTeams={teams} />}
               </>
             ) : null}
-            <DeleteBulkUsers
-              users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
-              onRemove={() => table.toggleAllPageRowsSelected(false)}
-            />
+            {adminOrOwner && (
+              <DeleteBulkUsers
+                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+                onRemove={() => table.toggleAllPageRowsSelected(false)}
+              />
+            )}
           </DataTableSelectionBar.Root>
         )}
       </DataTableWrapper>
@@ -586,7 +627,7 @@ function UserListTableContent() {
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}
       {state.editSheet.showModal && <EditUserSheet dispatch={dispatch} state={state} />}
 
-      {ctaContainerRef?.current &&
+      {ctaContainerRef.current &&
         createPortal(
           <div className="flex items-center gap-2">
             <DataTableToolbar.CTA

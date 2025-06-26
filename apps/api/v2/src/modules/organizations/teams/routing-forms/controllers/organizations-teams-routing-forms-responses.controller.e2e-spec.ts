@@ -35,7 +35,7 @@ describe("Organizations Teams Routing Forms Responses", () => {
 
   let org: Team;
   let orgTeam: Team;
-
+  let routingFormResponseId: number;
   const authEmail = `organizations-teams-routing-forms-responses-user-${randomString()}@api.com`;
   let user: User;
   let apiKeyString: string;
@@ -43,8 +43,7 @@ describe("Organizations Teams Routing Forms Responses", () => {
   let routingFormId: string;
   const routingFormResponses = [
     {
-      id: 1,
-      formFillerId: "cm78tvkvd0001kh8jq0tu5iq9",
+      formFillerId: `${randomString()}`,
       response: {
         "participant-field": {
           label: "participant",
@@ -173,7 +172,9 @@ describe("Organizations Teams Routing Forms Responses", () => {
 
   it("should get routing form responses", async () => {
     return request(app.getHttpServer())
-      .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/routing-forms/${routingFormId}/responses`)
+      .get(
+        `/v2/organizations/${org.id}/teams/${orgTeam.id}/routing-forms/${routingFormId}/responses?skip=0&take=1`
+      )
       .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
       .expect(200)
       .then((response) => {
@@ -182,14 +183,71 @@ describe("Organizations Teams Routing Forms Responses", () => {
         const responseData = responseBody.data;
         expect(responseData).toBeDefined();
         expect(responseData.length).toEqual(1);
-        expect(responseData[0].id).toEqual(routingFormResponses[0].id);
         expect(responseData[0].response).toEqual(routingFormResponses[0].response);
         expect(responseData[0].formFillerId).toEqual(routingFormResponses[0].formFillerId);
         expect(responseData[0].createdAt).toEqual(routingFormResponses[0].createdAt.toISOString());
+        routingFormResponseId = responseData[0].id;
       });
   });
 
+  describe(`PATCH /v2/organizations/:orgId/routing-forms/:routingFormId/responses/:responseId`, () => {
+    it("should not update routing form response for non existing org", async () => {
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/99999/routing-forms/${routingFormId}/responses/${routingFormResponseId}`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({ response: JSON.stringify({ question1: "updated_answer1" }) })
+        .expect(403);
+    });
+
+    it("should not update routing form response for non existing form", async () => {
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/routing-forms/non-existent-id/responses/${routingFormResponseId}`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({ response: JSON.stringify({ question1: "updated_answer1" }) })
+        .expect(404);
+    });
+
+    it("should not update routing form response for non existing response", async () => {
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/routing-forms/${routingFormId}/responses/99999`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({ response: JSON.stringify({ question1: "updated_answer1" }) })
+        .expect(404);
+    });
+
+    it("should not update routing form response without authentication", async () => {
+      return request(app.getHttpServer())
+        .patch(
+          `/v2/organizations/${org.id}/routing-forms/${routingFormId}/responses/${routingFormResponseId}`
+        )
+        .send({ response: JSON.stringify({ question1: "updated_answer1" }) })
+        .expect(401);
+    });
+
+    it("should update routing form response", async () => {
+      const updatedResponse = { question1: "updated_answer1", question2: "updated_answer2" };
+      return request(app.getHttpServer())
+        .patch(
+          `/v2/organizations/${org.id}/routing-forms/${routingFormId}/responses/${routingFormResponseId}`
+        )
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({ response: updatedResponse })
+        .expect(200)
+        .then((response) => {
+          const responseBody = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const data = responseBody.data;
+          expect(data).toBeDefined();
+          expect(data.id).toEqual(routingFormResponseId);
+          expect(data.formId).toEqual(routingFormId);
+          expect(data.response).toEqual(updatedResponse);
+        });
+    });
+  });
+
   afterAll(async () => {
+    await routingFormsRepositoryFixture.deleteResponse(routingFormResponseId);
+    await routingFormsRepositoryFixture.delete(routingFormId);
     await userRepositoryFixture.deleteByEmail(user.email);
     await organizationsRepositoryFixture.delete(org.id);
     await app.close();

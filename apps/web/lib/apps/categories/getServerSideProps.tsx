@@ -25,7 +25,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
-      trpcState: undefined,
     },
   };
 };

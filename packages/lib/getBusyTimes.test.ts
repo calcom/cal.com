@@ -71,14 +71,14 @@ describe("getBusyTimes", () => {
     });
     expect(busyTimes).toEqual([
       expect.objectContaining({
-        start: new Date(`${tomorrowDate}T10:00:00.000Z`),
-        end: new Date(`${tomorrowDate}T11:00:00.000Z`),
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 10).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 11).toDate(),
         source: "eventType-1-booking-1",
         title: "Booking Between X and Y",
       }),
       expect.objectContaining({
-        start: new Date(`${tomorrowDate}T14:00:00.000Z`),
-        end: new Date(`${tomorrowDate}T15:00:00.000Z`),
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 14).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 15).toDate(),
         source: "eventType-1-booking-2",
         title: "Booking Between X and Y",
       }),
@@ -98,8 +98,8 @@ describe("getBusyTimes", () => {
     });
     expect(busyTimes).toEqual([
       expect.objectContaining({
-        start: new Date(`${tomorrowDate}T09:50:00.000Z`),
-        end: new Date(`${tomorrowDate}T11:00:00.000Z`),
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 9).set("minute", 50).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 11).toDate(),
         source: "eventType-1-booking-1",
         title: "Booking Between X and Y",
       }),
@@ -120,8 +120,8 @@ describe("getBusyTimes", () => {
     });
     expect(busyTimes).toEqual([
       expect.objectContaining({
-        start: new Date(`${tomorrowDate}T09:50:00.000Z`),
-        end: new Date(`${tomorrowDate}T10:00:00.000Z`),
+        start: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 9).set("minute", 50).toDate(),
+        end: dayjs(`${tomorrowDate}`).startOf("day").set("hour", 10).toDate(),
       }),
     ]);
   });
