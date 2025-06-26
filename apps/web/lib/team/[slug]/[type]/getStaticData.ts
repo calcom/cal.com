@@ -1,4 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -17,10 +16,13 @@ const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),
 });
 
-export const getStaticTeamEventData = async (context: GetServerSidePropsContext) => {
-  const { req, params, query } = context;
-  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
+export const getStaticTeamEventData = async (
+  _teamSlug: string,
+  _meetingSlug: string,
+  _orgSlug: string | null
+) => {
+  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse({ type: _teamSlug, slug: _meetingSlug });
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, _orgSlug);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
   if (!isOrgContext) {
