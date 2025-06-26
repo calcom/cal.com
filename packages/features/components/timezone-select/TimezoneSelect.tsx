@@ -131,7 +131,7 @@ export function TimezoneSelectComponent({
         if (!props.onChange) return;
 
         // Fix inconsistent timezone naming formats
-        const corrections = {
+        const corrections: Record<string, string> = {
           "America/Port_Of_Spain": "America/Port_of_Spain",
           "Africa/Porto-novo": "Africa/Porto-Novo",
           "Africa/Dar_Es_Salaam": "Africa/Dar_es_Salaam",
