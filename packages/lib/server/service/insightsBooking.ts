@@ -2,8 +2,8 @@ import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import type { readonlyPrisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-import { InsightsBookingRepository } from "../repository/insightsBooking";
 import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
 
@@ -38,7 +38,7 @@ const NOTHING = {
 } as const;
 
 export class InsightsBookingService {
-  private repository: InsightsBookingRepository;
+  private prisma: typeof readonlyPrisma;
   private options: InsightsBookingServiceOptions | null;
   private filters?: InsightsBookingServiceFilterOptions;
   private cachedAuthConditions?: Prisma.BookingTimeStatusDenormalizedWhereInput;
@@ -53,8 +53,7 @@ export class InsightsBookingService {
     options: InsightsBookingServiceOptions;
     filters?: InsightsBookingServiceFilterOptions;
   }) {
-    this.repository = new InsightsBookingRepository(prisma);
-
+    this.prisma = prisma;
     const validation = insightsBookingServiceOptionsSchema.safeParse(options);
     this.options = validation.success ? validation.data : null;
 
@@ -65,7 +64,7 @@ export class InsightsBookingService {
     const authConditions = await this.getAuthorizationConditions();
     const filterConditions = await this.getFilterConditions();
 
-    return this.repository.findMany({
+    return this.prisma.bookingTimeStatusDenormalized.findMany({
       ...findManyArgs,
       where: {
         ...findManyArgs.where,
@@ -214,7 +213,10 @@ export class InsightsBookingService {
     // Check if the user is an owner or admin of the organization
     const membership = await MembershipRepository.findFirstByUserIdAndTeamId({ userId, teamId: orgId });
     return Boolean(
-      membership && membership.accepted && membership.role && ["OWNER", "ADMIN"].includes(membership.role)
+      membership &&
+        membership.accepted &&
+        membership.role &&
+        [MembershipRole.OWNER, MembershipRole.ADMIN].includes(membership.role)
     );
   }
 }
