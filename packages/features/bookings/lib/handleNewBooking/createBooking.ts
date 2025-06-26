@@ -185,9 +185,11 @@ async function saveBooking(
       await tx.app_RoutingForms_FormResponse.update(reroutingFormResponseUpdateData);
     }
 
-    const participatingUserIds = evt.team?.members
-      ?.map((member) => member.id)
-      .filter((id): id is number => typeof id === "number") || [organizerUser.id];
+    const teamMemberIds =
+      evt.team?.members?.map((member) => member.id).filter((id): id is number => typeof id === "number") ||
+      [];
+
+    const participatingUserIds = [organizerUser.id, ...teamMemberIds];
 
     const calendarCacheRepository = new CalendarCacheRepository();
     await calendarCacheRepository.invalidateCacheForUsers(participatingUserIds, tx);

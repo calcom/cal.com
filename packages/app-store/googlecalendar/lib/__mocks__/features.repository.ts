@@ -2,7 +2,12 @@ import { vi } from "vitest";
 
 const featuresRepositoryModuleMock = {
   FeaturesRepository: vi.fn().mockImplementation(() => ({
-    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockImplementation((feature: string) => {
+      if (feature === "calendar-cache") {
+        return Promise.resolve(true);
+      }
+      return Promise.resolve(false);
+    }),
   })),
 };
 
