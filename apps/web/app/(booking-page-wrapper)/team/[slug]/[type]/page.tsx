@@ -1,6 +1,7 @@
 import { CustomI18nProvider } from "app/CustomI18nProvider";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
+import { getCachedTeamEvent } from "app/cache/event-type";
 import { cookies, headers } from "next/headers";
 import { Suspense } from "react";
 
