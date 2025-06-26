@@ -277,9 +277,21 @@ export default class EventManager {
         thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
       }
 
+      const uid = createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "";
+
+      if (!uid || uid.trim() === "") {
+        log.warn("Calendar event created without valid ID in create method", {
+          type: result.type,
+          success: result.success,
+          credentialId: result.credentialId,
+          hasCreatedEvent: !!result.createdEvent,
+          hasCreatedEventObj: !!createdEventObj,
+        });
+      }
+
       return {
         type: result.type,
-        uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+        uid,
         thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
@@ -329,9 +341,21 @@ export default class EventManager {
     }
 
     const referencesToCreate = results.map((result) => {
+      const uid = result.createdEvent?.id?.toString() ?? "";
+
+      if (!uid || uid.trim() === "") {
+        log.warn("Calendar event created without valid ID", {
+          type: result.type,
+          success: result.success,
+          credentialId: result.credentialId,
+          hasCreatedEvent: !!result.createdEvent,
+          createdEventKeys: result.createdEvent ? Object.keys(result.createdEvent) : [],
+        });
+      }
+
       return {
         type: result.type,
-        uid: result.createdEvent?.id?.toString() ?? "",
+        uid,
         meetingId: result.createdEvent?.id?.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,

@@ -90,6 +90,19 @@ export default class GoogleCalendarService implements Calendar {
       ...rest,
       responseStatus: "accepted",
     }));
+    const organizerEmail =
+      hostExternalCalendarId || selectedHostDestinationCalendar?.externalId || event.organizer.email;
+
+    if (!organizerEmail || organizerEmail.trim() === "") {
+      this.log.error("Organizer email is missing or empty", {
+        hostExternalCalendarId,
+        selectedHostDestinationCalendar: selectedHostDestinationCalendar?.externalId,
+        organizerEmail: event.organizer.email,
+        credentialId: this.credential.id,
+      });
+      throw new Error("Organizer email is required for Google Calendar event creation");
+    }
+
     const attendees: calendar_v3.Schema$EventAttendee[] = [
       {
         ...event.organizer,
@@ -98,8 +111,7 @@ export default class GoogleCalendarService implements Calendar {
         organizer: true,
         // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
         displayName: event.organizer.name,
-        // We use || instead of ?? here to handle empty strings
-        email: hostExternalCalendarId || selectedHostDestinationCalendar?.externalId || event.organizer.email,
+        email: organizerEmail,
       },
       ...eventAttendees,
     ];
@@ -272,7 +284,17 @@ export default class GoogleCalendarService implements Calendar {
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
             recurringEventId = event.id;
+            const originalEventId = event.id;
             event = await this.getFirstEventInRecurrence(recurringEventId, selectedCalendar, calendar);
+            if (!event.id && originalEventId) {
+              event.id = originalEventId;
+              this.log.info("Preserved original event ID for recurring event instance", {
+                originalEventId,
+                recurringEventId,
+                selectedCalendar,
+                credentialId: this.credential.id,
+              });
+            }
           }
         }
       }
@@ -419,6 +441,16 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
+    if (!uid || uid.trim() === "") {
+      this.log.error("Event UID is missing or empty for deletion", {
+        uid,
+        eventTitle: event.title,
+        externalCalendarId,
+        credentialId: this.credential.id,
+      });
+      throw new Error("Event UID is required for Google Calendar event deletion");
+    }
+
     const calendar = await this.authedCalendar();
 
     const selectedCalendar = externalCalendarId || "primary";

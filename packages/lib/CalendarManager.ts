@@ -26,6 +26,7 @@ import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
 import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
+import { SelectedCalendarRepository } from "./server/repository/selectedCalendar";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
@@ -46,6 +47,41 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
 
 export const getCalendarCredentialsWithoutDelegation = (credentials: CredentialPayload[]) => {
   return getCalendarCredentials(buildNonDelegationCredentials(credentials));
+};
+
+const cleanupOrphanedSelectedCalendars = async (
+  credentialId: number,
+  existingCalendars: IntegrationCalendar[],
+  delegationCredentialId?: string | null
+) => {
+  try {
+    const existingExternalIds = existingCalendars.map((cal) => cal.externalId);
+
+    const allSelectedCalendars = await SelectedCalendarRepository.findMany({
+      where: {
+        credentialId,
+        ...(delegationCredentialId && { delegationCredentialId }),
+      },
+    });
+
+    const orphanedCalendars = allSelectedCalendars.filter(
+      (calendar) => !existingExternalIds.includes(calendar.externalId)
+    );
+
+    if (orphanedCalendars.length > 0) {
+      log.info(
+        `Cleaning up ${orphanedCalendars.length} orphaned SelectedCalendar records for credential ${credentialId}`
+      );
+
+      await Promise.all(
+        orphanedCalendars.map((calendar) => SelectedCalendarRepository.deleteById({ id: calendar.id }))
+      );
+
+      log.info(`Successfully cleaned up ${orphanedCalendars.length} orphaned SelectedCalendar records`);
+    }
+  } catch (error) {
+    log.error("Failed to cleanup orphaned SelectedCalendar records", safeStringify({ error, credentialId }));
+  }
 };
 
 export const getConnectedCalendars = async (
@@ -71,6 +107,9 @@ export const getConnectedCalendars = async (
           };
         }
         const cals = await calendar.listCalendars();
+
+        await cleanupOrphanedSelectedCalendars(credentialId, cals, delegationCredentialId);
+
         const calendars = sortBy(
           cals.map((cal: IntegrationCalendar) => {
             if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
