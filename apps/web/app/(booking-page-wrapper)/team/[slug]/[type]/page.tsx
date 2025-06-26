@@ -15,11 +15,11 @@ import StaticTeamEventView from "~/team/static-team-event-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const staticData = await getCachedTeamEvent(
-    legacyCtx.params?.slug ?? null,
-    legacyCtx.params?.type ?? null,
-    legacyCtx.params?.orgSlug ?? null
-  );
+  const staticData = await getCachedTeamEvent({
+    teamSlug: legacyCtx.params?.slug ?? null,
+    meetingSlug: legacyCtx.params?.type ?? null,
+    orgSlug: legacyCtx.params?.orgSlug ?? null,
+  });
 
   if (!staticData) return {};
 
@@ -55,11 +55,11 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const staticData = await getCachedTeamEvent(
-    legacyCtx.params?.slug ?? null,
-    legacyCtx.params?.type ?? null,
-    legacyCtx.params?.orgSlug ?? null
-  );
+  const staticData = await getCachedTeamEvent({
+    teamSlug: legacyCtx.params?.slug ?? null,
+    meetingSlug: legacyCtx.params?.type ?? null,
+    orgSlug: legacyCtx.params?.orgSlug ?? null,
+  });
 
   if (!staticData) {
     return <div>Event not found</div>;
