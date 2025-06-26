@@ -57,7 +57,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
     }
   }
 
-  const { profile } = await UserRepository.enrichUserWithItsProfile({
+  const { profile } = await UserRepository.enrichUserWithItsProfileSkipPlatformCheck({
     user: user,
   });
 
