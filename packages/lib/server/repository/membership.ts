@@ -399,7 +399,7 @@ export class MembershipRepository {
     });
   }
 
-  static async findMembershipsByTeamIds({
+  static async findAllByTeamIds({
     teamIds,
     select = { userId: true },
   }: {

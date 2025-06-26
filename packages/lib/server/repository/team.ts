@@ -186,7 +186,7 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
-  static async findManyByParentId({
+  static async findAllByParentId({
     parentId,
     select = teamSelect,
   }: {

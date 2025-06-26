@@ -144,7 +144,7 @@ export class InsightsBookingService {
     options: Extract<InsightsBookingServiceOptions, { scope: "org" }>
   ): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
     // Get all teams from the organization
-    const teamsFromOrg = await TeamRepository.findManyByParentId({
+    const teamsFromOrg = await TeamRepository.findAllByParentId({
       parentId: options.orgId,
       select: { id: true },
     });
@@ -153,7 +153,7 @@ export class InsightsBookingService {
     // Get all users from the organization
     const userIdsFromOrg =
       teamsFromOrg.length > 0
-        ? (await MembershipRepository.findMembershipsByTeamIds({ teamIds })).map((m) => m.userId)
+        ? (await MembershipRepository.findAllByTeamIds({ teamIds })).map((m) => m.userId)
         : [];
 
     return {
@@ -190,7 +190,7 @@ export class InsightsBookingService {
       return NOTHING;
     }
 
-    const usersFromTeam = await MembershipRepository.findMembershipsByTeamIds({ teamIds: [options.teamId] });
+    const usersFromTeam = await MembershipRepository.findAllByTeamIds({ teamIds: [options.teamId] });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
     return {
