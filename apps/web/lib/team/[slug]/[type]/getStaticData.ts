@@ -7,6 +7,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -43,6 +44,11 @@ export const getStaticTeamEventData = async (context: GetServerSidePropsContext)
 
   const eventData = team.eventTypes[0];
   const eventTypeId = eventData.id;
+  const eventHostsUserData = await getUsersData(
+    team.isPrivate,
+    eventTypeId,
+    eventData.hosts.map((h) => h.user)
+  );
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const name = team.parent?.name ?? team.name ?? null;
 
@@ -69,7 +75,7 @@ export const getStaticTeamEventData = async (context: GetServerSidePropsContext)
         username: orgSlug ?? null,
       },
       title: eventData.title,
-      users: [],
+      subsetOfUsers: eventHostsUserData,
       hidden: eventData.hidden,
       interfaceLanguage: eventData.interfaceLanguage,
       slug: eventData.slug,
@@ -165,4 +171,44 @@ const getTeamWithEventsData = async (
       },
     },
   });
+};
+
+const getUsersData = async (
+  isPrivateTeam: boolean,
+  eventTypeId: number,
+  users: Pick<User, "username" | "name">[]
+) => {
+  if (!isPrivateTeam && users.length > 0) {
+    return users
+      .filter((user) => user.username)
+      .map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      }));
+  }
+  if (!isPrivateTeam && users.length === 0) {
+    const { users: data } = await prisma.eventType.findUniqueOrThrow({
+      where: { id: eventTypeId },
+      select: {
+        users: {
+          take: 1,
+          select: {
+            username: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return data.length > 0
+      ? [
+          {
+            username: data[0].username ?? "",
+            name: data[0].name ?? "",
+          },
+        ]
+      : [];
+  }
+
+  return [];
 };
