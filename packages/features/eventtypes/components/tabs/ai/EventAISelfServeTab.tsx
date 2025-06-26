@@ -127,15 +127,21 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
   console.log("preferredTimezone", aiConfig);
 
   if (!aiConfig) {
-    const handleSubmit = (values: z.infer<typeof setupSchema>) => {
-      setupMutation.mutate({ eventTypeId: eventType.id, ...values });
+    const handleSubmit = () => {
+      try {
+        const values = setupForm.getValues();
+        console.log("values", values);
+        setupMutation.mutate({ eventTypeId: eventType.id, ...values });
+      } catch (e) {
+        console.log("e", e);
+      }
     };
 
     return (
       <ShellMain
         heading={t("setup_ai_phone_assistant")}
         subtitle={t("provide_api_key_and_timezone_to_setup")}>
-        <Form className="space-y-6" form={setupForm} handleSubmit={handleSubmit}>
+        <Form className="space-y-6" form={setupForm}>
           <TextField
             required
             type="text"
@@ -213,15 +219,15 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
 
             <Label>{t("number_to_call")}</Label>
             <Controller
-              name="aiPhoneCallConfig.numberToCall"
+              name="numberToCall"
               render={({ field: { onChange, value, name }, fieldState: { error } }) => {
                 return (
                   <div>
                     <PhoneInput
                       required
                       placeholder={t("phone_number")}
-                      id="aiPhoneCallConfig.numberToCall"
-                      name="aiPhoneCallConfig.numberToCall"
+                      id="numberToCall"
+                      name="numberToCall"
                       value={value}
                       onChange={(val) => {
                         onChange(val);
