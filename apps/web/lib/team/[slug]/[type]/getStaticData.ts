@@ -90,13 +90,11 @@ const getTeamWithEventsData = async (
   isValidOrgDomain: boolean,
   currentOrgDomain: string | null
 ) => {
-  const whereClause = {
-    ...getSlugOrRequestedSlug(teamSlug),
-    parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
-  };
-
   return await prisma.team.findFirst({
-    where: whereClause,
+    where: {
+      ...getSlugOrRequestedSlug(teamSlug),
+      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+    },
     orderBy: {
       slug: { sort: "asc", nulls: "last" },
     },
