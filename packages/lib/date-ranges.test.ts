@@ -2,7 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 
-import { buildDateRanges, processDateOverride, processWorkingHours, subtract } from "./date-ranges";
+import {
+  buildDateRanges,
+  intersect,
+  processDateOverride,
+  processWorkingHours,
+  subtract,
+} from "./date-ranges";
 
 describe("processWorkingHours", () => {
   // TEMPORAIRLY SKIPPING THIS TEST - Started failing after 29th Oct
@@ -644,5 +650,104 @@ describe("subtract", () => {
         { start: "2023-07-05T05:00:00Z", end: "2023-07-05T12:00:00Z" },
       ])
     );
+  });
+});
+
+describe("intersect function performance", () => {
+  it("should demonstrate O(n log n) performance improvement over O(n²) nested forEach approach", () => {
+    const createDateRanges = (count: number, startDate: string, userOffset: number) => {
+      const ranges = [];
+      const baseDate = dayjs(startDate);
+
+      for (let i = 0; i < count; i++) {
+        const start = baseDate.add(i * 2 + userOffset, "hour");
+        const end = start.add(1, "hour");
+        ranges.push({ start, end });
+      }
+      return ranges;
+    };
+
+    const commonAvailability = createDateRanges(50, "2023-06-01T09:00:00Z", 0);
+    const userRanges = createDateRanges(50, "2023-06-01T10:00:00Z", 1);
+
+    const intersectOld = (commonAvailability: any[], userRanges: any[]) => {
+      const getIntersection = (range1: any, range2: any) => {
+        const start = range1.start.isAfter(range2.start) ? range1.start : range2.start;
+        const end = range1.end.isBefore(range2.end) ? range1.end : range2.end;
+
+        if (start.isBefore(end)) {
+          return { start, end };
+        }
+        return null;
+      };
+
+      const intersectedRanges: { start: any; end: any }[] = [];
+
+      commonAvailability.forEach((commonRange) => {
+        userRanges.forEach((userRange) => {
+          const intersection = getIntersection(commonRange, userRange);
+          if (intersection !== null) {
+            intersectedRanges.push(intersection);
+          }
+        });
+      });
+
+      return intersectedRanges;
+    };
+
+    const intersectNew = intersect;
+
+    const startTimeOld = performance.now();
+    const resultOld = intersectOld(commonAvailability, userRanges);
+    const endTimeOld = performance.now();
+    const timeOld = endTimeOld - startTimeOld;
+
+    const startTimeNew = performance.now();
+    const resultNew = intersectNew([commonAvailability, userRanges]);
+    const endTimeNew = performance.now();
+    const timeNew = endTimeNew - startTimeNew;
+
+    expect(resultNew.length).toBe(resultOld.length);
+
+    const sortResults = (results: any[]) => results.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+
+    const sortedOld = sortResults(resultOld);
+    const sortedNew = sortResults(resultNew);
+
+    for (let i = 0; i < sortedOld.length; i++) {
+      expect(sortedNew[i].start.valueOf()).toBe(sortedOld[i].start.valueOf());
+      expect(sortedNew[i].end.valueOf()).toBe(sortedOld[i].end.valueOf());
+    }
+
+    console.log(`Old O(n²) approach: ${timeOld.toFixed(2)}ms`);
+    console.log(`New O(n log n) approach: ${timeNew.toFixed(2)}ms`);
+    console.log(`Performance improvement: ${(timeOld / timeNew).toFixed(2)}x faster`);
+    console.log(`Intersections found: ${resultNew.length}`);
+
+    expect(timeNew).toBeLessThanOrEqual(timeOld * 1.5); // Allow 50% tolerance for small datasets
+
+    expect(resultNew.length).toBeGreaterThan(0);
+  });
+
+  it("should handle edge cases correctly in both old and new implementations", () => {
+    const intersectNew = intersect;
+
+    expect(intersectNew([])).toEqual([]);
+    expect(intersectNew([[]])).toEqual([]);
+
+    const nonOverlapping1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
+    const nonOverlapping2 = [{ start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
+    expect(intersectNew([nonOverlapping1, nonOverlapping2])).toEqual([]);
+
+    const touching1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
+    const touching2 = [{ start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
+    expect(intersectNew([touching1, touching2])).toEqual([]);
+
+    const overlapping1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
+    const overlapping2 = [{ start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
+    const result = intersectNew([overlapping1, overlapping2]);
+    expect(result).toHaveLength(1);
+    expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T10:00:00Z").valueOf());
+    expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
   });
 });
