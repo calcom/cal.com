@@ -54,6 +54,7 @@ test.describe("Booking with Calendar Cache", () => {
       },
     });
 
+    await user.apiLogin();
     await page.goto(`/${user.username}/${eventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
@@ -147,6 +148,7 @@ test.describe("Booking with Calendar Cache", () => {
       ],
     });
 
+    await user1.apiLogin();
     await page.goto(`/team/${team.slug}/${teamEventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
