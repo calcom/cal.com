@@ -1290,6 +1290,82 @@ export const getBusyTimesFromTeamLimitsForUsers = withReporting(
   "getBusyTimesFromTeamLimitsForUsers"
 );
 
+const getUsersAvailabilityWithBatching = async ({
+  users,
+  query,
+  initialData,
+  loggerWithEventDetails,
+}: {
+  users: Parameters<typeof getUsersAvailability>[0]["users"];
+  query: Parameters<typeof getUsersAvailability>[0]["query"];
+  initialData: Parameters<typeof getUsersAvailability>[0]["initialData"];
+  loggerWithEventDetails: Logger<unknown>;
+}) => {
+  const BATCH_SIZE = 8; // Process 8 users concurrently to balance performance vs resource usage
+  const BATCH_DELAY_MS = 100; // Small delay between batches to prevent overwhelming external APIs
+
+  loggerWithEventDetails.debug(`Processing ${users.length} users in batches of ${BATCH_SIZE}`);
+
+  const userBatches: (typeof users)[] = [];
+  for (let i = 0; i < users.length; i += BATCH_SIZE) {
+    userBatches.push(users.slice(i, i + BATCH_SIZE));
+  }
+
+  const allResults: Awaited<ReturnType<typeof getUsersAvailability>> = [];
+
+  for (let batchIndex = 0; batchIndex < userBatches.length; batchIndex++) {
+    const batch = userBatches[batchIndex];
+
+    loggerWithEventDetails.debug(
+      `Processing batch ${batchIndex + 1}/${userBatches.length} with ${batch.length} users`
+    );
+
+    try {
+      const batchStartTime = performance.now();
+
+      const batchResults = await getUsersAvailability({
+        users: batch,
+        query,
+        initialData,
+      });
+
+      const batchEndTime = performance.now();
+      loggerWithEventDetails.debug(
+        `Batch ${batchIndex + 1} completed in ${Math.round(batchEndTime - batchStartTime)}ms`
+      );
+
+      allResults.push(...batchResults);
+
+      if (batchIndex < userBatches.length - 1 && BATCH_DELAY_MS > 0) {
+        await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS));
+      }
+    } catch (error) {
+      loggerWithEventDetails.error(`Error processing batch ${batchIndex + 1}:`, error);
+
+      loggerWithEventDetails.debug(`Falling back to individual processing for batch ${batchIndex + 1}`);
+
+      for (const user of batch) {
+        try {
+          const individualResult = await getUsersAvailability({
+            users: [user],
+            query,
+            initialData,
+          });
+          allResults.push(...individualResult);
+        } catch (individualError) {
+          loggerWithEventDetails.error(`Failed to process user ${user.id} (${user.email}):`, individualError);
+        }
+      }
+    }
+  }
+
+  loggerWithEventDetails.debug(
+    `Completed processing all ${users.length} users, got ${allResults.length} results`
+  );
+
+  return allResults;
+};
+
 const calculateHostsAndAvailabilities = async ({
   input,
   eventType,
@@ -1417,7 +1493,7 @@ const calculateHostsAndAvailabilities = async ({
   const enrichUsersWithData = withReporting(_enrichUsersWithData, "enrichUsersWithData");
   const users = enrichUsersWithData();
 
-  const premappedUsersAvailability = await getUsersAvailability({
+  const premappedUsersAvailability = await getUsersAvailabilityWithBatching({
     users,
     query: {
       dateFrom: startTime.format(),
@@ -1440,6 +1516,7 @@ const calculateHostsAndAvailabilities = async ({
       teamBookingLimits: teamBookingLimitsMap,
       teamForBookingLimits: teamForBookingLimits,
     },
+    loggerWithEventDetails,
   });
   /* We get all users working hours and busy slots */
   const allUsersAvailability = premappedUsersAvailability.map(
