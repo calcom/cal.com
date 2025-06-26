@@ -49,23 +49,38 @@ enum CreationSource {
 }
 
 model Host {
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int
-  eventType        EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventType        EventType  @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId      Int
-  isFixed          Boolean   @default(false)
+  isFixed          Boolean    @default(false)
   priority         Int?
   weight           Int?
   // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.
   weightAdjustment Int?
-  schedule         Schedule? @relation(fields: [scheduleId], references: [id])
+  schedule         Schedule?  @relation(fields: [scheduleId], references: [id])
   scheduleId       Int?
-  createdAt        DateTime  @default(now())
+  createdAt        DateTime   @default(now())
+  hostGroup        HostGroup? @relation(fields: [hostGroupId], references: [id])
+  hostGroupId      Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
   @@index([eventTypeId])
   @@index([scheduleId])
+}
+
+model HostGroup {
+  id          Int        @id @default(autoincrement())
+  name        String
+  hosts       Host[]
+  eventType   EventType? @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([name])
+  @@index([eventTypeId])
 }
 
 model CalVideoSettings {
@@ -99,9 +114,10 @@ model EventType {
   offsetStart       Int     @default(0)
   hidden            Boolean @default(false)
   hosts             Host[]
-  users             User[]  @relation("user_eventtype")
-  owner             User?   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
-  userId            Int?
+
+  users  User[] @relation("user_eventtype")
+  owner  User?  @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?
 
   profileId Int?
   profile   Profile? @relation(fields: [profileId], references: [id])
@@ -203,9 +219,10 @@ model EventType {
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
-  useBookerTimezone     Boolean   @default(false)
+  useBookerTimezone     Boolean     @default(false)
   restrictionScheduleId Int?
-  restrictionSchedule   Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+  restrictionSchedule   Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+  hostGroups            HostGroup[]
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
