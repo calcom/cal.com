@@ -398,4 +398,24 @@ export class MembershipRepository {
       },
     });
   }
+
+  static async findMembershipsByTeamIds({
+    teamIds,
+    select = { userId: true },
+  }: {
+    teamIds: number[];
+    select?: Prisma.MembershipSelect;
+  }) {
+    return prisma.membership.findMany({
+      where: {
+        team: {
+          id: {
+            in: teamIds,
+          },
+        },
+        accepted: true,
+      },
+      select,
+    });
+  }
 }
