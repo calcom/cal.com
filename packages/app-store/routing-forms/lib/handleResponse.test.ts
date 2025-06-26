@@ -139,6 +139,7 @@ describe("handleResponse", () => {
   it("should record form response when not in preview and not queued", async () => {
     const dbFormResponse = {
       id: 1,
+      uuid: "d8b4b7d2-3f45-4f67-9aa1-98c4b49cf283",
       formId: mockForm.id,
       response: mockResponse,
       chosenRouteId: null,
