@@ -774,16 +774,6 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         break; // Instead of continuing the loop, we can break since all future dates will be skipped
       }
 
-      const totalSlotsFound = Object.values(withinBoundsSlotsMappedToDate).reduce(
-        (total, dateSlots) => total + dateSlots.length,
-        0
-      );
-
-      const MAX_SLOTS_TO_PROCESS = 1000;
-      if (totalSlotsFound >= MAX_SLOTS_TO_PROCESS) {
-        break;
-      }
-
       const filteredSlots = slots.filter((slot) => {
         const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
           time: slot.time,
