@@ -307,7 +307,7 @@ const NewRoutingManager = ({
     booking,
     currentResponse,
     searchParams: new URLSearchParams({
-      // rescheduleReason
+      rescheduledBy: session?.data?.user?.email ?? "",
     }),
   });
 
