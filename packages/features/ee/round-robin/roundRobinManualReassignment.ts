@@ -379,7 +379,7 @@ export const roundRobinManualReassignment = async ({
   return booking;
 };
 
-async function handleWorkflowsUpdate({
+export async function handleWorkflowsUpdate({
   booking,
   newUser,
   evt,
@@ -403,6 +403,7 @@ async function handleWorkflowsUpdate({
       scheduled: true,
       OR: [{ cancelled: false }, { cancelled: null }],
       workflowStep: {
+        action: WorkflowActions.EMAIL_HOST,
         workflow: {
           trigger: {
             in: [
