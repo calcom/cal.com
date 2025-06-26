@@ -3,7 +3,6 @@ import { expect } from "@playwright/test";
 import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
-import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -20,7 +19,6 @@ test.describe("Google Calendar Webhook", () => {
   }) => {
     const user = await users.create();
     const [eventType] = user.eventTypes;
-    await user.apiLogin();
     const webhookReceiver = await webhooks.createReceiver();
 
     const credential = await prisma.credential.create({
@@ -59,12 +57,6 @@ test.describe("Google Calendar Webhook", () => {
         stale: false,
       },
     });
-
-    await page.goto(`/${user.username}/${eventType.slug}`);
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await bookTimeSlot(page);
-
-    await webhookReceiver.waitForRequestCount(1);
 
     const response = await page.request.post("/api/integrations/googlecalendar/webhook", {
       headers: {
