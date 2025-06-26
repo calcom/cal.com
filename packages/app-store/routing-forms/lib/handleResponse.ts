@@ -14,7 +14,23 @@ import { TRPCError } from "@trpc/server";
 import isRouter from "../lib/isRouter";
 import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
 import { onSubmissionOfFormResponse, type TargetRoutingFormForResponse } from "./formSubmissionUtils";
-
+export interface HandleResponseResult {
+  isPreview: boolean;
+  formResponse: {
+    id: number;
+    formId: string;
+    response: Record<string, any>;
+    chosenRouteId: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  teamMembersMatchingAttributeLogic: number[] | null;
+  crmContactOwnerEmail: string | null;
+  crmContactOwnerRecordType: string | null;
+  crmAppSlug: string | null;
+  attributeRoutingConfig: any | null;
+  timeTaken: Record<string, number | null>;
+}
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
 
 const _handleResponse = async ({
@@ -32,7 +48,7 @@ const _handleResponse = async ({
   chosenRouteId: string | null;
   isPreview: boolean;
   queueFormResponse?: boolean;
-}) => {
+}) : Promise<HandleResponseResult>=> {
   try {
     if (!form.fields) {
       // There is no point in submitting a form that doesn't have fields defined
