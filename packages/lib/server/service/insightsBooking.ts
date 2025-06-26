@@ -153,7 +153,9 @@ export class InsightsBookingService {
     // Get all users from the organization
     const userIdsFromOrg =
       teamsFromOrg.length > 0
-        ? (await MembershipRepository.findAllByTeamIds({ teamIds })).map((m) => m.userId)
+        ? (await MembershipRepository.findAllByTeamIds({ teamIds, select: { userId: true } })).map(
+            (m) => m.userId
+          )
         : [];
 
     return {
@@ -190,7 +192,10 @@ export class InsightsBookingService {
       return NOTHING;
     }
 
-    const usersFromTeam = await MembershipRepository.findAllByTeamIds({ teamIds: [options.teamId] });
+    const usersFromTeam = await MembershipRepository.findAllByTeamIds({
+      teamIds: [options.teamId],
+      select: { userId: true },
+    });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
     return {
@@ -211,12 +216,12 @@ export class InsightsBookingService {
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
-    const membership = await MembershipRepository.findFirstByUserIdAndTeamId({ userId, teamId: orgId });
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
     return Boolean(
       membership &&
         membership.accepted &&
         membership.role &&
-        [MembershipRole.OWNER, MembershipRole.ADMIN].includes(membership.role)
+        ([MembershipRole.OWNER, MembershipRole.ADMIN] as const).includes(membership.role)
     );
   }
 }
