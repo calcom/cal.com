@@ -26,10 +26,7 @@ export class RouterController {
     @Body() body?: Record<string, string>
   ): Promise<void | (ApiResponse<unknown> & { redirect: boolean })> {
     const params = Object.fromEntries(new URLSearchParams(body ?? {}));
-    const routedUrlData = await getRoutedUrl({
-      req: request,
-      query: { ...params, form: formId },
-    });
+    const routedUrlData = await getRoutedUrl({ req: request, query: { ...params, form: formId } });
 
     if (routedUrlData?.notFound) {
       throw new NotFoundException("Route not found. Please check the provided form parameter.");
