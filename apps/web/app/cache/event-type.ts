@@ -33,14 +33,16 @@ export const getCachedTeamEvent = unstable_cache(
     }
     return await getStaticTeamEventData(teamSlug, meetingSlug, orgSlug);
   },
-  undefined,
+  ["team-event"],
   {
     revalidate: NEXTJS_CACHE_TTL,
-    tags: ({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) =>
-      teamSlug && meetingSlug ? [getTeamEventCacheTag({ teamSlug, meetingSlug, orgSlug })] : [],
+    tags: ["team-events"],
   }
 );
 
 export async function revalidateTeamEvent({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) {
-  revalidateTag(getTeamEventCacheTag({ teamSlug, meetingSlug, orgSlug }));
+  const tag = getTeamEventCacheTag({ teamSlug, meetingSlug, orgSlug });
+  if (tag) {
+    revalidateTag(tag);
+  }
 }

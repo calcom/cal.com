@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
@@ -8,8 +8,6 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -21,22 +19,9 @@ export const getStaticTeamEventData = async (
   _meetingSlug: string,
   _orgSlug: string | null
 ) => {
-  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse({ type: _teamSlug, slug: _meetingSlug });
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, _orgSlug);
-  const isOrgContext = currentOrgDomain && isValidOrgDomain;
-
-  if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: teamSlug,
-      redirectType: "Team" as any,
-      eventTypeSlug: meetingSlug,
-      currentQuery: context.query,
-    });
-
-    if (redirect) {
-      return null;
-    }
-  }
+  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse({ type: _meetingSlug, slug: _teamSlug });
+  const currentOrgDomain = _orgSlug;
+  const isValidOrgDomain = !!currentOrgDomain;
 
   const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
 

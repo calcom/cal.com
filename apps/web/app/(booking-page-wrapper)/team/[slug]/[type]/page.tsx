@@ -3,22 +3,53 @@ import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { getCachedTeamEvent } from "app/cache/event-type";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig, getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
+import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import DynamicBookingComponents from "~/team/dynamic-booking-components";
 import StaticTeamEventView from "~/team/static-team-event-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const teamSlug = Array.isArray(legacyCtx.params?.slug)
+    ? legacyCtx.params.slug[0]
+    : legacyCtx.params?.slug ?? null;
+  const meetingSlug = Array.isArray(legacyCtx.params?.type)
+    ? legacyCtx.params.type[0]
+    : legacyCtx.params?.type ?? null;
+  const orgSlug = Array.isArray(legacyCtx.params?.orgSlug)
+    ? legacyCtx.params.orgSlug[0]
+    : legacyCtx.params?.orgSlug ?? null;
+
+  const hostname = legacyCtx.req?.headers?.host || "";
+  const { currentOrgDomain, isValidOrgDomain } = getOrgDomainConfig({
+    hostname,
+    fallback: orgSlug ?? undefined,
+  });
+
+  if (!isValidOrgDomain && teamSlug && meetingSlug) {
+    const redirectResult = await getTemporaryOrgRedirect({
+      slugs: teamSlug,
+      redirectType: "Team" as any,
+      eventTypeSlug: meetingSlug,
+      currentQuery: legacyCtx.query,
+    });
+
+    if (redirectResult) {
+      redirect(redirectResult.redirect.destination);
+    }
+  }
+
   const staticData = await getCachedTeamEvent({
-    teamSlug: legacyCtx.params?.slug ?? null,
-    meetingSlug: legacyCtx.params?.type ?? null,
-    orgSlug: legacyCtx.params?.orgSlug ?? null,
+    teamSlug,
+    meetingSlug,
+    orgSlug: currentOrgDomain,
   });
 
   if (!staticData) return {};
@@ -55,10 +86,39 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const teamSlug = Array.isArray(legacyCtx.params?.slug)
+    ? legacyCtx.params.slug[0]
+    : legacyCtx.params?.slug ?? null;
+  const meetingSlug = Array.isArray(legacyCtx.params?.type)
+    ? legacyCtx.params.type[0]
+    : legacyCtx.params?.type ?? null;
+  const orgSlug = Array.isArray(legacyCtx.params?.orgSlug)
+    ? legacyCtx.params.orgSlug[0]
+    : legacyCtx.params?.orgSlug ?? null;
+
+  const hostname = legacyCtx.req?.headers?.host || "";
+  const { currentOrgDomain, isValidOrgDomain } = getOrgDomainConfig({
+    hostname,
+    fallback: orgSlug ?? undefined,
+  });
+
+  if (!isValidOrgDomain && teamSlug && meetingSlug) {
+    const redirectResult = await getTemporaryOrgRedirect({
+      slugs: teamSlug,
+      redirectType: "Team" as any,
+      eventTypeSlug: meetingSlug,
+      currentQuery: legacyCtx.query,
+    });
+
+    if (redirectResult) {
+      redirect(redirectResult.redirect.destination);
+    }
+  }
+
   const staticData = await getCachedTeamEvent({
-    teamSlug: legacyCtx.params?.slug ?? null,
-    meetingSlug: legacyCtx.params?.type ?? null,
-    orgSlug: legacyCtx.params?.orgSlug ?? null,
+    teamSlug,
+    meetingSlug,
+    orgSlug: currentOrgDomain,
   });
 
   if (!staticData) {
