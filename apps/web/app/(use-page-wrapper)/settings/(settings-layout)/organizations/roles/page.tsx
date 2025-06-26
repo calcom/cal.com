@@ -8,7 +8,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { AppFlags } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
-import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -85,7 +85,6 @@ const Page = async ({ searchParams }: { searchParams: Record<string, string | st
   const canRead = roleActions[CrudAction.Read] ?? false;
   const canUpdate = roleActions[CrudAction.Update] ?? false;
   const canDelete = roleActions[CrudAction.Delete] ?? false;
-  const canManage = roleActions[CustomAction.Manage] ?? false;
 
   if (!canRead) {
     return notFound();
@@ -101,16 +100,16 @@ const Page = async ({ searchParams }: { searchParams: Record<string, string | st
       title={t("roles_and_permissions")}
       description={t("roles_and_permissions_description")}
       borderInShellHeader={false}
-      CTA={canCreate || canManage ? <CreateRoleCTA /> : null}>
+      CTA={canCreate ? <CreateRoleCTA /> : null}>
       <Suspense fallback={<SkeletonLoader />}>
         <RolesList
           teamId={session.user.org.id}
           roles={roles}
           permissions={{
-            canCreate: canCreate || canManage,
-            canRead: canRead || canManage,
-            canUpdate: canUpdate || canManage,
-            canDelete: canDelete || canManage,
+            canCreate: canCreate,
+            canRead: canRead,
+            canUpdate: canUpdate,
+            canDelete: canDelete,
           }}
           initialSelectedRole={selectedRole}
           initialSheetOpen={isSheetOpen}
