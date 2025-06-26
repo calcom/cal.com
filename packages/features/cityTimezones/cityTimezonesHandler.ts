@@ -23,9 +23,6 @@ export const cityTimezonesHandler = async () => {
   uniqueCities.forEach((city) => {
     if (city.city === "London") city.timezone = "Europe/London";
     if (city.city === "Londonderry") city.city = "London";
-    if (city.timezone === "America/Port_Of_Spain") city.timezone = "America/Port_of_Spain";
-    if (city.timezone === "Africa/Porto-novo") city.timezone = "Africa/Porto-Novo";
-    if (city.timezone === "Africa/Dar_Es_Salaam") city.timezone = "Africa/Dar_es_Salaam";
   });
 
   return uniqueCities;

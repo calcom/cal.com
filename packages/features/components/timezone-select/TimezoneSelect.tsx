@@ -127,6 +127,22 @@ export function TimezoneSelectComponent({
       }}
       onInputChange={handleInputChange}
       {...props}
+      onChange={(selectedOption) => {
+        if (!props.onChange) return;
+
+        // Fix inconsistent timezone naming formats
+        const corrections = {
+          "America/Port_Of_Spain": "America/Port_of_Spain",
+          "Africa/Porto-novo": "Africa/Porto-Novo",
+          "Africa/Dar_Es_Salaam": "Africa/Dar_es_Salaam",
+        };
+
+        if (corrections[selectedOption.value]) {
+          selectedOption.value = corrections[selectedOption.value];
+        }
+
+        props.onChange(selectedOption);
+      }}
       formatOptionLabel={(option) => (
         <p className="truncate">{(option as ITimezoneOption).value.replace(/_/g, " ")}</p>
       )}
