@@ -265,6 +265,7 @@ export function intersect(ranges: DateRange[][]): DateRange[] {
 
       const intersection = getIntersection(commonRange, userRange);
       if (intersection !== null) {
+        // If the current common range intersects with the user range, add the intersected time range to the new array
         intersectedRanges.push(intersection);
       }
 
