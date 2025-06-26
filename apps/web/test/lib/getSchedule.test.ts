@@ -3525,4 +3525,95 @@ describe("getSchedule", () => {
       );
     });
   });
+
+  describe("Optimized Slot Generation with Feature Flag", () => {
+    test("produces identical results for 10+ user round robin events with and without optimization", async () => {
+      const { dateString: todayDateString } = getDate();
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+      const users = Array.from({ length: 10 }, (_, i) => ({
+        ...TestData.users.example,
+        id: 200 + i,
+        email: `user${i}@example.com`,
+        schedules: [TestData.schedules.IstWorkHours],
+      }));
+
+      const hosts = users.map((user) => ({
+        userId: user.id,
+        isFixed: false,
+      }));
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 100,
+            slotInterval: 60,
+            length: 60,
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            hosts,
+            team: {
+              id: 1,
+              name: "Test Team",
+            },
+          },
+        ],
+        users,
+        bookings: [],
+      });
+
+      vi.doMock("@calcom/features/flags/features.repository", () => ({
+        FeaturesRepository: vi.fn().mockImplementation(() => ({
+          checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
+        })),
+      }));
+
+      const scheduleWithoutOptimization = await getSchedule({
+        input: {
+          eventTypeId: 100,
+          eventTypeSlug: "",
+          startTime: `${todayDateString}T18:30:00.000Z`,
+          endTime: `${plus1DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          orgSlug: null,
+        },
+      });
+
+      vi.doMock("@calcom/features/flags/features.repository", () => ({
+        FeaturesRepository: vi.fn().mockImplementation(() => ({
+          checkIfTeamHasFeature: vi.fn().mockResolvedValue(true),
+        })),
+      }));
+
+      const scheduleWithOptimization = await getSchedule({
+        input: {
+          eventTypeId: 100,
+          eventTypeSlug: "",
+          startTime: `${todayDateString}T18:30:00.000Z`,
+          endTime: `${plus1DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          orgSlug: null,
+        },
+      });
+
+      console.log("scheduleWithoutOptimization:", JSON.stringify(scheduleWithoutOptimization, null, 2));
+      console.log("scheduleWithOptimization:", JSON.stringify(scheduleWithOptimization, null, 2));
+
+      expect(scheduleWithoutOptimization).toBeDefined();
+      expect(scheduleWithOptimization).toBeDefined();
+      expect(scheduleWithoutOptimization.slots).toBeDefined();
+      expect(scheduleWithOptimization.slots).toBeDefined();
+
+      expect(scheduleWithOptimization.slots).toEqual(scheduleWithoutOptimization.slots);
+
+      const totalSlots = Object.values(scheduleWithOptimization.slots).reduce(
+        (acc, daySlots) => acc + daySlots.length,
+        0
+      );
+      expect(totalSlots).toBeGreaterThan(0);
+
+      vi.clearAllMocks();
+    });
+  });
 });

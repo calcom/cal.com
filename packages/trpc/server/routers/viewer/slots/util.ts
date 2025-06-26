@@ -8,6 +8,7 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organization
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -488,7 +489,12 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     allUsersAvailability.length > 1;
 
   const allHostsForOptimization = [...qualifiedRRHosts, ...fixedHosts, ...(allFallbackRRHosts || [])];
-  const shouldUseOptimizedAlgorithm = isTeamEvent && allHostsForOptimization.length > 10;
+  const featuresRepository = new FeaturesRepository();
+  const isOptimizedAlgorithmEnabled = eventType.team?.id
+    ? await featuresRepository.checkIfTeamHasFeature(eventType.team.id, "optimized-slot-generation")
+    : false;
+  const shouldUseOptimizedAlgorithm =
+    isTeamEvent && allHostsForOptimization.length > 10 && isOptimizedAlgorithmEnabled;
 
   const algorithmStartTime = Date.now();
 
@@ -521,6 +527,8 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     slotsGenerated: timeSlots.length,
     usersProcessed: allHostsForOptimization.length,
     algorithm: shouldUseOptimizedAlgorithm ? "optimized" : "standard",
+    optimizationEnabled: isOptimizedAlgorithmEnabled,
+    teamId: eventType.team?.id,
   });
 
   let availableTimeSlots: typeof timeSlots = [];
