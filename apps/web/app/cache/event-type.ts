@@ -10,17 +10,37 @@ const CACHE_TAGS = {
   TEAM_EVENT: "TEAM_EVENT",
 } as const;
 
+type TeamEventParams = {
+  teamSlug: string | null;
+  meetingSlug: string | null;
+  orgSlug: string | null;
+};
+
+function getTeamEventCacheTag({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) {
+  if (!teamSlug || !meetingSlug) {
+    return;
+  }
+
+  return orgSlug
+    ? `${CACHE_TAGS.TEAM_EVENT}:${orgSlug}:${teamSlug}:${meetingSlug}`
+    : `${CACHE_TAGS.TEAM_EVENT}:${teamSlug}:${meetingSlug}`;
+}
+
 export const getCachedTeamEvent = unstable_cache(
-  async (teamSlug: string | null, meetingSlug: string | null, orgSlug: string | null) => {
+  async ({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) => {
     if (!teamSlug || !meetingSlug) {
       return null;
     }
-    return await getStaticTeamEventData(teamSlug, eventTypeSlug, orgSlug);
+    return await getStaticTeamEventData(teamSlug, meetingSlug, orgSlug);
   },
   undefined,
-  { revalidate: NEXTJS_CACHE_TTL, tags: [CACHE_TAGS.TEAM_EVENT] }
+  {
+    revalidate: NEXTJS_CACHE_TTL,
+    tags: ({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) =>
+      teamSlug && meetingSlug ? [getTeamEventCacheTag({ teamSlug, meetingSlug, orgSlug })] : [],
+  }
 );
 
-export async function revalidateTeamEvent() {
-  revalidateTag(CACHE_TAGS.TEAM_EVENT);
+export async function revalidateTeamEvent({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) {
+  revalidateTag(getTeamEventCacheTag({ teamSlug, meetingSlug, orgSlug }));
 }
