@@ -6,7 +6,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { getOrgDomainConfig, getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig, getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
@@ -27,11 +27,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     ? legacyCtx.params.orgSlug[0]
     : legacyCtx.params?.orgSlug ?? null;
 
-  const hostname = legacyCtx.req?.headers?.host || "";
-  const { currentOrgDomain, isValidOrgDomain } = getOrgDomainConfig({
-    hostname,
-    fallback: orgSlug ?? undefined,
-  });
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, orgSlug ?? undefined);
 
   if (!isValidOrgDomain && teamSlug && meetingSlug) {
     const redirectResult = await getTemporaryOrgRedirect({
@@ -96,11 +92,7 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     ? legacyCtx.params.orgSlug[0]
     : legacyCtx.params?.orgSlug ?? null;
 
-  const hostname = legacyCtx.req?.headers?.host || "";
-  const { currentOrgDomain, isValidOrgDomain } = getOrgDomainConfig({
-    hostname,
-    fallback: orgSlug ?? undefined,
-  });
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, orgSlug ?? undefined);
 
   if (!isValidOrgDomain && teamSlug && meetingSlug) {
     const redirectResult = await getTemporaryOrgRedirect({
