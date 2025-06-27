@@ -487,11 +487,18 @@ class EventsInsights {
           .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
           .filter(Boolean);
 
+        const maxAttendees = 20;
+        const attendeeFields: Record<string, string | null> = {};
+
+        for (let i = 1; i <= maxAttendees; i++) {
+          attendeeFields[`attendee${i}`] = formattedAttendees[i - 1] || null;
+        }
+
         return [
           booking.uid,
           {
             noShowGuest: attendeeList[0]?.noShow || false,
-            attendees: formattedAttendees.join("; "),
+            ...attendeeFields,
           },
         ];
       })
@@ -500,27 +507,37 @@ class EventsInsights {
     const data = csvData.map((bookingTimeStatus) => {
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= 20; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
         return {
           ...bookingTimeStatus,
           noShowGuest: false,
-          attendees: null,
+          ...nullAttendeeFields,
         };
       }
 
       const attendeeData = bookingMap.get(bookingTimeStatus.uid);
 
       if (!attendeeData) {
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= 20; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
         return {
           ...bookingTimeStatus,
           noShowGuest: false,
-          attendees: null,
+          ...nullAttendeeFields,
         };
       }
 
       return {
         ...bookingTimeStatus,
         noShowGuest: attendeeData.noShowGuest,
-        attendees: attendeeData.attendees,
+        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
       };
     });
 
