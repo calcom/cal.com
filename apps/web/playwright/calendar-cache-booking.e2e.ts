@@ -18,9 +18,11 @@ test.describe("Booking with Calendar Cache", () => {
     features,
     prisma,
   }) => {
+    const user = await users.create();
+    await user.apiLogin();
+
     await features.set("calendar-cache", true);
 
-    const user = await users.create();
     const [eventType] = user.eventTypes;
 
     const credential = await prisma.credential.create({
@@ -54,7 +56,6 @@ test.describe("Booking with Calendar Cache", () => {
       },
     });
 
-    await user.apiLogin();
     await page.goto(`/${user.username}/${eventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
@@ -79,10 +80,11 @@ test.describe("Booking with Calendar Cache", () => {
     features,
     prisma,
   }) => {
-    await features.set("calendar-cache", true);
-
     const user1 = await users.create({ name: "User 1" });
     const user2 = await users.create({ name: "User 2" });
+    await user1.apiLogin();
+
+    await features.set("calendar-cache", true);
 
     const team = await prisma.team.create({
       data: {
@@ -148,7 +150,6 @@ test.describe("Booking with Calendar Cache", () => {
       ],
     });
 
-    await user1.apiLogin();
     await page.goto(`/team/${team.slug}/${teamEventType.slug}`);
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
