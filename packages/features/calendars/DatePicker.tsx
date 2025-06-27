@@ -320,7 +320,8 @@ const DatePicker = ({
     };
     scrollToTimeSlots?: () => void;
   }) => {
-  const minDate = getTodaysDateInTimeZone(selectedTimeZone);
+  const minDate = passThroughProps.minDate;
+  const todaysDate = getTodaysDateInTimeZone(selectedTimeZone);
   const rawBrowsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
   const browsingDate =
     minDate && rawBrowsingDate.valueOf() < minDate.valueOf() ? dayjs(minDate) : rawBrowsingDate;
@@ -403,7 +404,7 @@ const DatePicker = ({
       </div>
       <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
-          minDate={minDate}
+          minDate={todaysDate}
           customClassName={{
             datePickerDate: customClassNames?.datePickersDates,
             datePickerDateActive: customClassNames?.datePickerDatesActive,
