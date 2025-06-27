@@ -1,8 +1,8 @@
-import type { Prisma } from "@prisma/client";
+import type { Kysely, ExpressionBuilder } from "kysely";
 import { z } from "zod";
 
-import type { readonlyPrisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import type { DB } from "@calcom/kysely";
+import { MembershipRole } from "@calcom/kysely/types";
 
 import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
@@ -36,133 +36,163 @@ const NOTHING = {
   id: -1,
 } as const;
 
+type WhereCondition = (
+  eb: ExpressionBuilder<DB, "RoutingFormResponseDenormalized">
+) => ReturnType<ExpressionBuilder<DB, "RoutingFormResponseDenormalized">["and"]>;
+
 export class InsightsRoutingService {
-  private prisma: typeof readonlyPrisma;
+  private kysely: Kysely<DB>;
   private options: InsightsRoutingServiceOptions | null;
   private filters?: InsightsRoutingServiceFilterOptions;
-  private cachedAuthConditions?: Prisma.RoutingFormResponseDenormalizedWhereInput;
-  private cachedFilterConditions?: Prisma.RoutingFormResponseDenormalizedWhereInput | null;
+  private cachedAuthConditions?: WhereCondition;
+  private cachedFilterConditions?: WhereCondition | null;
 
   constructor({
-    prisma,
+    kysely,
     options,
     filters,
   }: {
-    prisma: typeof readonlyPrisma;
+    kysely: Kysely<DB>;
     options: InsightsRoutingServiceOptions;
     filters?: InsightsRoutingServiceFilterOptions;
   }) {
-    this.prisma = prisma;
-
+    this.kysely = kysely;
     const validation = insightsRoutingServiceOptionsSchema.safeParse(options);
     this.options = validation.success ? validation.data : null;
 
     this.filters = filters;
   }
 
-  async findMany(findManyArgs: Prisma.RoutingFormResponseDenormalizedFindManyArgs) {
+  async findMany(findManyArgs: {
+    select?: (keyof DB["RoutingFormResponseDenormalized"])[];
+    where?: WhereCondition;
+    orderBy?: Array<{ column: keyof DB["RoutingFormResponseDenormalized"]; direction: "asc" | "desc" }>;
+    limit?: number;
+    offset?: number;
+  }) {
     const authConditions = await this.getAuthorizationConditions();
     const filterConditions = await this.getFilterConditions();
 
-    return this.prisma.routingFormResponseDenormalized.findMany({
-      ...findManyArgs,
-      where: {
-        ...findManyArgs.where,
-        AND: [authConditions, filterConditions].filter(
-          (c): c is Prisma.RoutingFormResponseDenormalizedWhereInput => c !== null && c !== undefined
-        ),
-      },
-    });
+    let query = this.kysely.selectFrom("RoutingFormResponseDenormalized");
+
+    // Apply select
+    if (findManyArgs.select) {
+      query = query.select(findManyArgs.select);
+    } else {
+      query = query.selectAll();
+    }
+
+    // Apply where conditions
+    const whereConditions = [authConditions, filterConditions, findManyArgs.where].filter(
+      (c): c is NonNullable<typeof c> => c !== null && c !== undefined
+    );
+
+    if (whereConditions.length > 0) {
+      query = query.where((eb) => {
+        if (whereConditions.length === 1) {
+          return whereConditions[0](eb);
+        }
+        return eb.and(whereConditions.map((condition) => condition(eb)));
+      });
+    }
+
+    // Apply orderBy
+    if (findManyArgs.orderBy) {
+      for (const order of findManyArgs.orderBy) {
+        query = query.orderBy(order.column, order.direction);
+      }
+    }
+
+    // Apply limit
+    if (findManyArgs.limit) {
+      query = query.limit(findManyArgs.limit);
+    }
+
+    // Apply offset
+    if (findManyArgs.offset) {
+      query = query.offset(findManyArgs.offset);
+    }
+
+    return query.execute();
   }
 
-  async getAuthorizationConditions(): Promise<Prisma.RoutingFormResponseDenormalizedWhereInput> {
+  async getAuthorizationConditions(): Promise<WhereCondition> {
     if (this.cachedAuthConditions === undefined) {
       this.cachedAuthConditions = await this.buildAuthorizationConditions();
     }
     return this.cachedAuthConditions;
   }
 
-  async getFilterConditions(): Promise<Prisma.RoutingFormResponseDenormalizedWhereInput | null> {
+  async getFilterConditions(): Promise<WhereCondition | null> {
     if (this.cachedFilterConditions === undefined) {
       this.cachedFilterConditions = await this.buildFilterConditions();
     }
     return this.cachedFilterConditions;
   }
 
-  async buildFilterConditions(): Promise<Prisma.RoutingFormResponseDenormalizedWhereInput | null> {
+  async buildFilterConditions(): Promise<WhereCondition | null> {
     // Empty for now
     return null;
   }
 
-  async buildAuthorizationConditions(): Promise<Prisma.RoutingFormResponseDenormalizedWhereInput> {
+  async buildAuthorizationConditions(): Promise<WhereCondition> {
     if (!this.options) {
-      return NOTHING;
+      return (eb) => eb("id", "=", NOTHING.id);
     }
-    const isOwnerOrAdmin = await this.isOrgOwnerOrAdmin(this.options.userId, this.options.orgId);
+    const options = this.options; // Create a local reference to avoid undefined checks
+    const isOwnerOrAdmin = await this.isOrgOwnerOrAdmin(options.userId, options.orgId);
     if (!isOwnerOrAdmin) {
-      return NOTHING;
+      return (eb) => eb("id", "=", NOTHING.id);
     }
 
-    const conditions: Prisma.RoutingFormResponseDenormalizedWhereInput[] = [];
+    const conditions: WhereCondition[] = [];
 
-    if (this.options.scope === "user") {
-      conditions.push({
-        formUserId: this.options.userId,
-      });
-    } else if (this.options.scope === "org") {
-      conditions.push(await this.buildOrgAuthorizationCondition(this.options));
-    } else if (this.options.scope === "team") {
-      conditions.push(await this.buildTeamAuthorizationCondition(this.options));
+    if (options.scope === "user") {
+      conditions.push((eb) => eb("formUserId", "=", options.userId));
+    } else if (options.scope === "org") {
+      conditions.push(await this.buildOrgAuthorizationCondition(options));
+    } else if (options.scope === "team") {
+      conditions.push(await this.buildTeamAuthorizationCondition(options));
     } else {
-      return NOTHING;
+      return (eb) => eb("id", "=", NOTHING.id);
     }
 
-    return {
-      AND: conditions,
-    };
+    return (eb) => eb.and(conditions.map((condition) => condition(eb)));
   }
 
   private async buildOrgAuthorizationCondition(
     options: Extract<InsightsRoutingServiceOptions, { scope: "org" }>
-  ): Promise<Prisma.RoutingFormResponseDenormalizedWhereInput> {
+  ): Promise<WhereCondition> {
     // Get all teams from the organization
     const teamsFromOrg = await TeamRepository.findAllByParentId({
       parentId: options.orgId,
       select: { id: true },
     });
 
-    return {
-      formTeamId: {
-        in: [options.orgId, ...teamsFromOrg.map((t) => t.id)],
-      },
-    };
+    return (eb) => eb("formTeamId", "in", [options.orgId, ...teamsFromOrg.map((t) => t.id)]);
   }
 
   private async buildTeamAuthorizationCondition(
     options: Extract<InsightsRoutingServiceOptions, { scope: "team" }>
-  ): Promise<Prisma.RoutingFormResponseDenormalizedWhereInput> {
+  ): Promise<WhereCondition> {
     const childTeamOfOrg = await TeamRepository.findByIdAndParentId({
       id: options.teamId,
       parentId: options.orgId,
       select: { id: true },
     });
     if (!childTeamOfOrg) {
-      return NOTHING;
+      return (eb) => eb("id", "=", NOTHING.id);
     }
 
-    return {
-      formTeamId: options.teamId,
-    };
+    return (eb) => eb("formTeamId", "=", options.teamId);
   }
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
     const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
+    const allowedRoles: MembershipRole[] = [MembershipRole.OWNER, MembershipRole.ADMIN];
     return Boolean(
-      membership &&
-        membership.accepted &&
-        membership.role &&
-        (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
+      membership && membership.accepted && membership.role && allowedRoles.includes(membership.role)
     );
   }
 }
