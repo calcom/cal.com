@@ -61,8 +61,8 @@ model Host {
   schedule         Schedule?  @relation(fields: [scheduleId], references: [id])
   scheduleId       Int?
   createdAt        DateTime   @default(now())
-  hostGroup        HostGroup? @relation(fields: [hostGroupId], references: [id])
-  hostGroupId      Int?
+  group            HostGroup? @relation(fields: [groupId], references: [id])
+  groupId          Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
