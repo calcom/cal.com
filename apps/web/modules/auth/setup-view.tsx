@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -29,15 +29,18 @@ function useSetStep(defaultStep = 1) {
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export function Setup(props: PageProps) {
-  let step = 1;
-  if (props.userCount > 0) {
-    step = 2;
-    if (props.hasValidLicense) {
-      step = 2;
-    } else {
-      step = 3;
+  const [hasPickedAGPLv3, setHasPickedAGPLv3] = useState(false);
+
+  const step = useMemo(() => {
+    if (props.userCount > 0) {
+      if (!props.hasValidLicense && !hasPickedAGPLv3) {
+        return 2;
+      } else {
+        return 3;
+      }
     }
-  }
+    return 1;
+  }, [props.userCount, props.hasValidLicense, hasPickedAGPLv3]);
 
   const { t } = useLocale();
   const router = useRouter();
@@ -56,8 +59,8 @@ export function Setup(props: PageProps) {
             setIsPending(true);
           }}
           onSuccess={() => {
-            // If there's already a valid license, skip to apps step
-            if (props.hasValidLicense) {
+            // If there's already a valid license or user picked AGPLv3, skip to apps step
+            if (props.hasValidLicense || hasPickedAGPLv3) {
               setStep(3);
             } else {
               setStep(2);
@@ -72,8 +75,8 @@ export function Setup(props: PageProps) {
     },
   ];
 
-  // Only show license selection step if there's no valid license already
-  if (!props.hasValidLicense) {
+  // Only show license selection step if there's no valid license already and AGPLv3 wasn't picked
+  if (!props.hasValidLicense && !hasPickedAGPLv3) {
     steps.push({
       title: t("choose_a_license"),
       description: t("choose_license_description"),
@@ -88,6 +91,7 @@ export function Setup(props: PageProps) {
             onSubmit={(values) => {
               setIsPending(true);
               if (licenseOption === "FREE") {
+                setHasPickedAGPLv3(true);
                 nav.onNext();
               } else if (licenseOption === "EXISTING" && values.licenseKey) {
                 nav.onNext();

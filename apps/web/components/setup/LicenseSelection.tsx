@@ -219,16 +219,22 @@ const LicenseSelection = (
         <Button type="button" color="secondary" onClick={onPrevStep}>
           {t("prev_step")}
         </Button>
-        <Button
-          type="submit"
-          color="primary"
-          loading={checkLicenseLoading || mutation.isPending}
-          disabled={
-            value === "EXISTING" &&
-            (!formMethods.formState.isValid || checkLicenseLoading || mutation.isPending)
-          }>
-          {t("save_license_key")}
-        </Button>
+        {value === "EXISTING" ? (
+          <Button
+            type="submit"
+            color="primary"
+            loading={checkLicenseLoading || mutation.isPending}
+            disabled={
+              value === "EXISTING" &&
+              (!formMethods.formState.isValid || checkLicenseLoading || mutation.isPending)
+            }>
+            {t("save_license_key")}
+          </Button>
+        ) : (
+          <Button type="submit" color="primary">
+            {t("next_step")}
+          </Button>
+        )}
       </div>
     </form>
   );
