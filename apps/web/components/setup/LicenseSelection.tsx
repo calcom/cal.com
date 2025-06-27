@@ -30,9 +30,18 @@ const LicenseSelection = (
       variables: RouterInputs["viewer"]["deploymentSetup"]["update"]
     ) => void;
     onPrevStep: () => void;
+    onNextStep: () => void;
   } & Omit<JSX.IntrinsicElements["form"], "onSubmit" | "onChange">
 ) => {
-  const { value: initialValue = "EXISTING", onChange, onSubmit, onSuccess, onPrevStep, ...rest } = props;
+  const {
+    value: initialValue = "EXISTING",
+    onChange,
+    onSubmit,
+    onSuccess,
+    onPrevStep,
+    onNextStep,
+    ...rest
+  } = props;
   const [value, setValue] = useState<LicenseOption>(initialValue);
   const { t } = useLocale();
   const mutation = trpc.viewer.deploymentSetup.update.useMutation({
@@ -231,7 +240,7 @@ const LicenseSelection = (
             {t("save_license_key")}
           </Button>
         ) : (
-          <Button type="submit" color="primary">
+          <Button color="primary" onClick={onNextStep} type="button">
             {t("next_step")}
           </Button>
         )}

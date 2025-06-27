@@ -98,6 +98,7 @@ export function Setup(props: PageProps) {
               }
             }}
             onPrevStep={nav.onPrev}
+            onNextStep={nav.onNext}
           />
         );
       },
