@@ -506,8 +506,8 @@ export default class GoogleCalendarService implements Calendar {
       i.busy?.forEach((busyTime) => {
         c.push({
           id,
-          start: busyTime.start,
-          end: busyTime.end,
+          start: busyTime.start || "",
+          end: busyTime.end || "",
         });
       });
       return c;
