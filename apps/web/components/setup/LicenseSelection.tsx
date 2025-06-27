@@ -29,9 +29,10 @@ const LicenseSelection = (
       data: RouterOutputs["viewer"]["deploymentSetup"]["update"],
       variables: RouterInputs["viewer"]["deploymentSetup"]["update"]
     ) => void;
+    onPrevStep: () => void;
   } & Omit<JSX.IntrinsicElements["form"], "onSubmit" | "onChange">
 ) => {
-  const { value: initialValue = "EXISTING", onChange, onSubmit, onSuccess, ...rest } = props;
+  const { value: initialValue = "EXISTING", onChange, onSubmit, onSuccess, onPrevStep, ...rest } = props;
   const [value, setValue] = useState<LicenseOption>(initialValue);
   const [checkLicenseLoading, setCheckLicenseLoading] = useState(false);
   const { t } = useLocale();
@@ -228,13 +229,19 @@ const LicenseSelection = (
         </FormProvider>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button type="button" color="secondary" onClick={onPrevStep}>
+          {t("prev_step")}
+        </Button>
         <Button
           type="submit"
           color="primary"
-          disabled={value === "EXISTING" && (!formMethods.formState.isValid || checkLicenseLoading)}>
-          {value === "FREE" && t("continue_with_free")}
-          {value === "EXISTING" && t("save_license")}
+          loading={checkLicenseLoading || mutation.isLoading}
+          disabled={
+            value === "EXISTING" &&
+            (!formMethods.formState.isValid || checkLicenseLoading || mutation.isLoading)
+          }>
+          {t("next_step")}
         </Button>
       </div>
     </form>

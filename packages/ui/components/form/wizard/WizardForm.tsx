@@ -18,9 +18,15 @@ type DefaultStep = {
   containerClassname?: string;
   contentClassname?: string;
   description: string;
-  content?: ((setIsPending: Dispatch<SetStateAction<boolean>>) => JSX.Element) | JSX.Element;
+  content?:
+    | ((
+        setIsPending: Dispatch<SetStateAction<boolean>>,
+        nav: { onNext: () => void; onPrev: () => void; step: number; maxSteps: number }
+      ) => JSX.Element)
+    | JSX.Element;
   isEnabled?: boolean;
   isPending?: boolean;
+  customActions?: boolean;
 };
 
 function WizardForm<T extends DefaultStep>(props: {
@@ -49,6 +55,14 @@ function WizardForm<T extends DefaultStep>(props: {
     setCurrentStepisPending(false);
   }, [currentStep]);
 
+  // Navigation callbacks for custom actions
+  const onNext = () => {
+    if (step < steps.length) setStep(step + 1);
+  };
+  const onPrev = () => {
+    if (step > 1) setStep(step - 1);
+  };
+
   return (
     <div className="mx-auto mt-4 print:w-full" data-testid="wizard-form">
       <div className={classNames("overflow-hidden  md:mb-2 md:w-[700px]", props.containerClassname)}>
@@ -64,7 +78,7 @@ function WizardForm<T extends DefaultStep>(props: {
               maxSteps={steps.length}
               currentStep={step}
               nextStep={noop}
-              stepLabel={stepLabel}
+              stepLabel={props.stepLabel}
               data-testid="wizard-step-component"
             />
           )}
@@ -73,18 +87,14 @@ function WizardForm<T extends DefaultStep>(props: {
       <div className={classNames("mb-8 overflow-hidden md:w-[700px]", props.containerClassname)}>
         <div className={classNames("print:p-none max-w-3xl px-8 py-5 sm:p-6", currentStep.contentClassname)}>
           {typeof currentStep.content === "function"
-            ? currentStep.content(setCurrentStepisPending)
+            ? currentStep.content(setCurrentStepisPending, { onNext, onPrev, step, maxSteps: steps.length })
             : currentStep.content}
         </div>
-        {!props.disableNavigation && (
+        {!props.disableNavigation && !currentStep.customActions && (
           <div className="flex justify-end px-4 py-4 print:hidden sm:px-6">
             {step > 1 && (
-              <Button
-                color="secondary"
-                onClick={() => {
-                  setStep(step - 1);
-                }}>
-                {prevLabel}
+              <Button color="secondary" onClick={onPrev}>
+                {props.prevLabel}
               </Button>
             )}
 
@@ -96,7 +106,7 @@ function WizardForm<T extends DefaultStep>(props: {
               form={`wizard-step-${step}`}
               disabled={currentStep.isEnabled === false}
               className="relative ml-2">
-              {step < steps.length ? nextLabel : finishLabel}
+              {step < steps.length ? props.nextLabel : props.finishLabel}
             </Button>
           </div>
         )}

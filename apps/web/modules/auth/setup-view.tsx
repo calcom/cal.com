@@ -67,7 +67,8 @@ export function Setup(props: PageProps) {
     steps.push({
       title: t("choose_a_license"),
       description: t("choose_license_description"),
-      content: (setIsPending) => {
+      customActions: true,
+      content: (setIsPending, nav) => {
         return (
           <LicenseSelection
             id="wizard-step-2"
@@ -77,11 +78,12 @@ export function Setup(props: PageProps) {
             onSubmit={(values) => {
               setIsPending(true);
               if (licenseOption === "FREE") {
-                setStep(3);
+                nav.onNext();
               } else if (licenseOption === "EXISTING" && values.licenseKey) {
-                setStep(3);
+                nav.onNext();
               }
             }}
+            onPrevStep={nav.onPrev}
           />
         );
       },
