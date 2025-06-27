@@ -124,7 +124,7 @@ export const AdminUser = (props: {
                 <TextField
                   addOnLeading={
                     !longWebsiteUrl && (
-                      <span className="text-subtle inline-flex items-center rounded-none px-3 text-sm">
+                      <span className="text-subtle inline-flex items-center rounded-none text-sm">
                         {process.env.NEXT_PUBLIC_WEBSITE_URL}/
                       </span>
                     )
