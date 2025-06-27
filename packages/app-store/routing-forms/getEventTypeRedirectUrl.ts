@@ -88,7 +88,11 @@ export function getAbsoluteEventTypeRedirectUrl({
     }
   }
 
-  const origin = teamSlugInRedirectUrl ? form.teamOrigin : form.userOrigin;
+  const origin = process.env.NEXT_PUBLIC_IS_E2E
+    ? WEBAPP_URL
+    : teamSlugInRedirectUrl
+    ? form.teamOrigin
+    : form.userOrigin;
 
   return `${origin}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
 }
