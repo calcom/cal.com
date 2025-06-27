@@ -7,3 +7,11 @@ export async function getDeploymentKey(deploymentRepo: IDeploymentRepository): P
   const licenseKey = await deploymentRepo.getLicenseKeyWithId(1);
   return licenseKey || "";
 }
+
+export async function getDeploymentSignatureToken(deploymentRepo: IDeploymentRepository): Promise<string> {
+  if (process.env.CAL_SIGNATURE_TOKEN) {
+    return process.env.CAL_SIGNATURE_TOKEN;
+  }
+  const signatureToken = await deploymentRepo.getSignatureToken(1);
+  return signatureToken || "";
+}
