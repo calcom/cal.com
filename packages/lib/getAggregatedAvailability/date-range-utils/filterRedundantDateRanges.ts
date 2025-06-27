@@ -15,23 +15,33 @@ export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] 
       return true;
     }
 
+    const rangeStart = range.start.valueOf();
+    const rangeEnd = range.end.valueOf();
+
     for (let i = 0; i < sortedRanges.length; i++) {
       if (i === index) continue; // Skip comparing with itself
 
       const otherRange = sortedRanges[i];
+      const otherStart = otherRange.start.valueOf();
+      const otherEnd = otherRange.end.valueOf();
 
-      if (otherRange.end.valueOf() < otherRange.start.valueOf()) {
+      if (otherEnd < otherStart) {
         continue;
       }
 
-      if (
-        otherRange.start.valueOf() <= range.start.valueOf() &&
-        otherRange.end.valueOf() >= range.end.valueOf()
-      ) {
-        return false; // This range is redundant, filter it out
+      if (i > index && otherStart > rangeEnd) {
+        break;
+      }
+
+      if (otherStart <= rangeStart && otherEnd >= rangeEnd) {
+        if (otherStart === rangeStart && otherEnd === rangeEnd && i < index) {
+          return false;
+        } else if (otherStart < rangeStart || otherEnd > rangeEnd) {
+          return false;
+        }
       }
     }
 
-    return true; // Keep this range
+    return true;
   });
 }
