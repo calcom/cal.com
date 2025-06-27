@@ -94,17 +94,8 @@ export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] 
 
     const containingIntervals = intervalTree.findContainingIntervals(range, index);
 
-    for (const containingNode of containingIntervals) {
-      const otherRange = containingNode.range;
-      const otherIndex = containingNode.index;
-
-      if (
-        otherRange.start.valueOf() === range.start.valueOf() &&
-        otherRange.end.valueOf() === range.end.valueOf()
-      ) {
-        return otherIndex > index; // Keep current range only if other range has higher index
-      }
-
+    // If any containing interval is found, filter out this range
+    if (containingIntervals.length > 0) {
       return false;
     }
 
