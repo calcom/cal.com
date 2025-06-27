@@ -10,3 +10,8 @@ if (EMBED_MODAL_IFRAME_SLOT_STALE_TIME > EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHO
     "EMBED_MODAL_IFRAME_SLOT_STALE_TIME must be less than EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS"
   );
 }
+
+// These classes are applied to Embed Elements and thus are in the same scope as the embedding webpage.
+// So, these classes need to be unique to us, to avoid accidental override
+export const EMBED_LIGHT_THEME_CLASS = "cal-element-embed-light";
+export const EMBED_DARK_THEME_CLASS = "cal-element-embed-dark";
