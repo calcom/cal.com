@@ -26,8 +26,8 @@ export function checkForConflicts({
   if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
     return false;
   }
-  const slotStart = time.utc().valueOf();
-  const slotEnd = time.add(eventLength, "minutes").utc().valueOf();
+  const slotStart = time.valueOf();
+  const slotEnd = slotStart + eventLength * 60 * 1000;
 
   const sortedBusyTimes = busy
     .map((busyTime) => ({
