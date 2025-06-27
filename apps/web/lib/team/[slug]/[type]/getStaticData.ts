@@ -19,69 +19,78 @@ export const getStaticTeamEventData = async (
   _meetingSlug: string,
   _orgSlug: string | null
 ) => {
-  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse({ type: _meetingSlug, slug: _teamSlug });
-  const currentOrgDomain = _orgSlug;
-  const isValidOrgDomain = !!currentOrgDomain;
+  try {
+    const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse({ type: _meetingSlug, slug: _teamSlug });
+    const currentOrgDomain = _orgSlug;
+    const isValidOrgDomain = !!currentOrgDomain;
 
-  const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
+    const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
 
-  if (!team || !team.eventTypes?.[0]) {
+    if (!team || !team.eventTypes?.[0]) {
+      return null;
+    }
+
+    const eventData = team.eventTypes[0];
+    const eventTypeId = eventData.id;
+    const eventHostsUserData = await getUsersData(
+      team.isPrivate,
+      eventTypeId,
+      eventData.hosts.map((h) => h.user)
+    );
+    const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+    const name = team.parent?.name ?? team.name ?? null;
+
+    const organizationSettings = getOrganizationSEOSettings(team);
+    const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
+    return {
+      eventData: {
+        eventTypeId,
+        entity: {
+          fromRedirectOfNonOrgLink: false,
+          considerUnpublished: false,
+          orgSlug,
+          teamSlug: team.slug ?? null,
+          name,
+        },
+        length: eventData.length,
+        metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
+        profile: {
+          image: team.parent
+            ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+            : getPlaceholderAvatar(team.logoUrl, team.name),
+          name,
+          username: orgSlug ?? null,
+        },
+        title: eventData.title,
+        subsetOfUsers: eventHostsUserData,
+        hidden: eventData.hidden,
+        interfaceLanguage: eventData.interfaceLanguage,
+        slug: eventData.slug,
+        team: {
+          id: team.id,
+          name: team.name,
+          slug: team.slug,
+        },
+      },
+      user: teamSlug,
+      teamId: team.id,
+      slug: meetingSlug,
+      isBrandingHidden: shouldHideBrandingForTeamEvent({
+        eventTypeId: eventData.id,
+        team,
+      }),
+      orgBannerUrl: team.parent?.bannerUrl ?? "",
+      isSEOIndexable: allowSEOIndexing,
+    };
+  } catch (error) {
+    console.error("Error in getStaticTeamEventData:", error, {
+      teamSlug: _teamSlug,
+      meetingSlug: _meetingSlug,
+      orgSlug: _orgSlug,
+    });
     return null;
   }
-
-  const eventData = team.eventTypes[0];
-  const eventTypeId = eventData.id;
-  const eventHostsUserData = await getUsersData(
-    team.isPrivate,
-    eventTypeId,
-    eventData.hosts.map((h) => h.user)
-  );
-  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-  const name = team.parent?.name ?? team.name ?? null;
-
-  const organizationSettings = getOrganizationSEOSettings(team);
-  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
-
-  return {
-    eventData: {
-      eventTypeId,
-      entity: {
-        fromRedirectOfNonOrgLink: false,
-        considerUnpublished: false,
-        orgSlug,
-        teamSlug: team.slug ?? null,
-        name,
-      },
-      length: eventData.length,
-      metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
-      profile: {
-        image: team.parent
-          ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-          : getPlaceholderAvatar(team.logoUrl, team.name),
-        name,
-        username: orgSlug ?? null,
-      },
-      title: eventData.title,
-      subsetOfUsers: eventHostsUserData,
-      hidden: eventData.hidden,
-      interfaceLanguage: eventData.interfaceLanguage,
-      slug: eventData.slug,
-      team: {
-        id: team.id,
-        name: team.name,
-        slug: team.slug,
-      },
-    },
-    user: teamSlug,
-    teamId: team.id,
-    slug: meetingSlug,
-    isBrandingHidden: shouldHideBrandingForTeamEvent({
-      eventTypeId: eventData.id,
-      team,
-    }),
-    orgBannerUrl: team.parent?.bannerUrl ?? "",
-    isSEOIndexable: allowSEOIndexing,
-  };
 };
 
 const getTeamWithEventsData = async (
@@ -90,7 +99,7 @@ const getTeamWithEventsData = async (
   isValidOrgDomain: boolean,
   currentOrgDomain: string | null
 ) => {
-  return await prisma.team.findFirst({
+  const team = await prisma.team.findFirst({
     where: {
       ...getSlugOrRequestedSlug(teamSlug),
       parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
@@ -121,7 +130,7 @@ const getTeamWithEventsData = async (
       slug: true,
       eventTypes: {
         where: {
-          slug: meetingSlug,
+          OR: [{ slug: meetingSlug }, { slug: { startsWith: `${meetingSlug}-team-id-` } }],
         },
         select: {
           id: true,
@@ -158,6 +167,8 @@ const getTeamWithEventsData = async (
       },
     },
   });
+
+  return team;
 };
 
 const getUsersData = async (

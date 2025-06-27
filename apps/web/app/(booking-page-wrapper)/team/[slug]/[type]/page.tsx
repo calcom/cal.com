@@ -43,12 +43,20 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   }
 
   const staticData = await getCachedTeamEvent({
-    teamSlug,
-    meetingSlug,
+    teamSlug: teamSlug!,
+    meetingSlug: meetingSlug!,
     orgSlug: currentOrgDomain,
   });
 
-  if (!staticData) return {};
+  if (!staticData) {
+    console.error("Team event not found in generateMetadata:", {
+      teamSlug,
+      meetingSlug,
+      orgSlug: currentOrgDomain,
+      isValidOrgDomain,
+    });
+    return {};
+  }
 
   const { eventData, isBrandingHidden } = staticData;
   const profileName = eventData?.profile?.name ?? "";
@@ -108,12 +116,18 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   }
 
   const staticData = await getCachedTeamEvent({
-    teamSlug,
-    meetingSlug,
+    teamSlug: teamSlug!,
+    meetingSlug: meetingSlug!,
     orgSlug: currentOrgDomain,
   });
 
   if (!staticData) {
+    console.error("Team event not found:", {
+      teamSlug,
+      meetingSlug,
+      orgSlug: currentOrgDomain,
+      isValidOrgDomain,
+    });
     return <div>Event not found</div>;
   }
 

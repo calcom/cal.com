@@ -31,7 +31,17 @@ export const getCachedTeamEvent = unstable_cache(
     if (!teamSlug || !meetingSlug) {
       return null;
     }
-    return await getStaticTeamEventData(teamSlug, meetingSlug, orgSlug);
+    try {
+      const result = await getStaticTeamEventData(teamSlug, meetingSlug, orgSlug);
+      return result;
+    } catch (error) {
+      console.error("Error in getCachedTeamEvent:", error, {
+        teamSlug,
+        meetingSlug,
+        orgSlug,
+      });
+      return null;
+    }
   },
   ["team-event"],
   {
