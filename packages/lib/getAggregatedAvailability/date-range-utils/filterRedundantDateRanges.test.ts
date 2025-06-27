@@ -51,7 +51,9 @@ describe("filterRedundantDateRanges", () => {
     ];
 
     const result = filterRedundantDateRanges(dateRanges);
-    expect(result.length).toBe(0);
+    expect(result.length).toBe(1);
+    expect(result[0].start.format()).toEqual(dayjs("2025-01-23T11:00:00.000Z").format());
+    expect(result[0].end.format()).toEqual(dayjs("2025-01-23T12:00:00.000Z").format());
   });
 
   it("should handle nested containment scenario", () => {

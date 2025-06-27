@@ -32,6 +32,12 @@ export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] 
         otherRange.start.valueOf() <= range.start.valueOf() &&
         otherRange.end.valueOf() >= range.end.valueOf()
       ) {
+        if (
+          otherRange.start.valueOf() === range.start.valueOf() &&
+          otherRange.end.valueOf() === range.end.valueOf()
+        ) {
+          return i > index; // Keep current range only if other range has higher index
+        }
         return false; // This range is redundant, filter it out
       }
     }
