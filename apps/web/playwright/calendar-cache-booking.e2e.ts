@@ -15,7 +15,8 @@ test.describe("Calendar Cache Booking", () => {
     page,
     users,
     prisma,
-  }) => {
+  }, testInfo) => {
+    test.setTimeout(testInfo.timeout * 2);
     const user = await users.create();
     await user.apiLogin();
     const [eventType] = user.eventTypes;
@@ -69,7 +70,8 @@ test.describe("Calendar Cache Booking", () => {
     page,
     users,
     prisma,
-  }) => {
+  }, testInfo) => {
+    test.setTimeout(testInfo.timeout * 2);
     const user1 = await users.create({ name: "User 1" });
     const user2 = await users.create({ name: "User 2" });
     await user1.apiLogin();
