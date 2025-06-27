@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import { InsightsBookingRepository } from "../insightsBooking";
+import { InsightsBookingService } from "../../service/insightsBooking";
 
 // Helper function to create unique test data
 async function createTestData({
@@ -195,15 +195,15 @@ async function createTestData({
   };
 }
 
-describe("InsightsBookingRepository Integration Tests", () => {
+describe("InsightsBookingService Integration Tests", () => {
   describe("Authorization Conditions", () => {
     it("should return NOTHING for invalid options", async () => {
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: null as any,
       });
 
-      const conditions = await repository.getAuthorizationConditions();
+      const conditions = await service.getAuthorizationConditions();
       expect(conditions).toEqual({ id: -1 });
     });
 
@@ -229,7 +229,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "org",
@@ -238,7 +238,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const conditions = await repository.getAuthorizationConditions();
+      const conditions = await service.getAuthorizationConditions();
       expect(conditions).toEqual({ id: -1 });
 
       // Clean up
@@ -257,7 +257,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         orgRole: MembershipRole.OWNER,
       });
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "user",
@@ -266,7 +266,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const conditions = await repository.getAuthorizationConditions();
+      const conditions = await service.getAuthorizationConditions();
       expect(conditions).toEqual({
         AND: [
           {
@@ -285,7 +285,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         orgRole: MembershipRole.OWNER,
       });
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "team",
@@ -295,7 +295,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const conditions = await repository.getAuthorizationConditions();
+      const conditions = await service.getAuthorizationConditions();
       expect(conditions).toEqual({
         AND: [
           {
@@ -335,7 +335,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
       const team2 = testData.additionalTeams[0]; // First additional team
       const team3 = testData.additionalTeams[1]; // Second additional team
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "org",
@@ -344,7 +344,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const conditions = await repository.getAuthorizationConditions();
+      const conditions = await service.getAuthorizationConditions();
 
       expect(conditions).toEqual({
         AND: [
@@ -375,7 +375,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
     it("should return null when no filters are provided", async () => {
       const testData = await createTestData();
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "user",
@@ -384,7 +384,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const conditions = await repository.getFilterConditions();
+      const conditions = await service.getFilterConditions();
       expect(conditions).toBeNull();
 
       await testData.cleanup();
@@ -393,7 +393,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
     it("should build eventTypeId filter conditions", async () => {
       const testData = await createTestData();
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "user",
@@ -405,7 +405,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const conditions = await repository.getFilterConditions();
+      const conditions = await service.getFilterConditions();
       expect(conditions).toEqual({
         AND: [
           {
@@ -420,7 +420,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
     it("should build memberUserId filter conditions", async () => {
       const testData = await createTestData();
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "user",
@@ -432,7 +432,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const conditions = await repository.getFilterConditions();
+      const conditions = await service.getFilterConditions();
       expect(conditions).toEqual({
         AND: [
           {
@@ -447,7 +447,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
     it("should combine multiple filter conditions", async () => {
       const testData = await createTestData();
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "user",
@@ -460,7 +460,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const conditions = await repository.getFilterConditions();
+      const conditions = await service.getFilterConditions();
       expect(conditions).toEqual({
         AND: [
           {
@@ -483,7 +483,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         orgRole: MembershipRole.OWNER,
       });
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "user",
@@ -493,7 +493,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
       });
 
       // First call should build conditions
-      const conditions1 = await repository.getAuthorizationConditions();
+      const conditions1 = await service.getAuthorizationConditions();
       expect(conditions1).toEqual({
         AND: [
           {
@@ -504,7 +504,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
       });
 
       // Second call should use cached conditions
-      const conditions2 = await repository.getAuthorizationConditions();
+      const conditions2 = await service.getAuthorizationConditions();
       expect(conditions2).toEqual(conditions1);
 
       // Clean up
@@ -514,7 +514,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
     it("should cache filter conditions", async () => {
       const testData = await createTestData();
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "user",
@@ -527,7 +527,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
       });
 
       // First call should build conditions
-      const conditions1 = await repository.getFilterConditions();
+      const conditions1 = await service.getFilterConditions();
       expect(conditions1).toEqual({
         AND: [
           {
@@ -537,7 +537,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
       });
 
       // Second call should use cached conditions
-      const conditions2 = await repository.getFilterConditions();
+      const conditions2 = await service.getFilterConditions();
       expect(conditions2).toEqual(conditions1);
 
       await testData.cleanup();
@@ -575,7 +575,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const repository = new InsightsBookingRepository({
+      const service = new InsightsBookingService({
         prisma,
         options: {
           scope: "user",
@@ -587,7 +587,7 @@ describe("InsightsBookingRepository Integration Tests", () => {
         },
       });
 
-      const results = await repository.findMany({
+      const results = await service.findMany({
         select: {
           id: true,
           title: true,
