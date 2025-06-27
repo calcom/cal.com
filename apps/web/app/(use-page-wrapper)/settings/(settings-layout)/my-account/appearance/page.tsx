@@ -25,13 +25,16 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const userId = session?.user?.id;
-  const redirectUrl = "auth/login?callbackUrl=/settings/my-account/appearance";
+  const redirectUrl = "/auth/login?callbackUrl=/settings/my-account/appearance";
 
   if (!userId) {
     redirect(redirectUrl);
   }
 
-  const [meCaller, hasTeamPlan] = await Promise.all([createRouterCaller(meRouter), getCachedHasTeamPlan()]);
+  const [meCaller, hasTeamPlan] = await Promise.all([
+    createRouterCaller(meRouter),
+    getCachedHasTeamPlan(userId),
+  ]);
 
   const user = await meCaller.get();
 
