@@ -21,6 +21,7 @@ import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
 
@@ -66,6 +67,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     onSuccess: async (res) => {
       await utils.viewer.me.invalidate();
       revalidateSettingsGeneral();
+      revalidateTravelSchedules();
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
       await update(res);
@@ -81,6 +83,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     onSettled: async () => {
       await utils.viewer.me.invalidate();
       revalidateSettingsGeneral();
+      revalidateTravelSchedules();
       setIsUpdateBtnLoading(false);
     },
   });

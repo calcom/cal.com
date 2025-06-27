@@ -1,9 +1,13 @@
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
+import { getTravelSchedule } from "@calcom/web/app/cache/travelSchedule";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import GeneralView from "~/settings/my-account/general-view";
 
@@ -17,13 +21,18 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const [meCaller, travelSchedulesCaller] = await Promise.all([
-    createRouterCaller(meRouter),
-    createRouterCaller(travelSchedulesRouter),
-  ]);
-  const [user, travelSchedules] = await Promise.all([meCaller.get(), travelSchedulesCaller.get()]);
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const userId = session?.user?.id;
+  const redirectUrl = "/auth/login?callbackUrl=/settings/my-account/general";
+
+  if (!userId) {
+    return redirect(redirectUrl);
+  }
+
+  const meCaller = await createRouterCaller(meRouter);
+  const [user, travelSchedules] = await Promise.all([meCaller.get(), getTravelSchedule(userId)]);
   if (!user) {
-    redirect("/auth/login");
+    redirect(redirectUrl);
   }
   return <GeneralView user={user} travelSchedules={travelSchedules ?? []} />;
 };
