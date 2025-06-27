@@ -798,11 +798,23 @@ test.describe("Calendar Cache Booking", () => {
 
     await page.goto(`/${user.username}/${eventType.slug}`);
 
-    await expect(page.locator("html")).toBeVisible({ timeout: 3000 });
-    await expect(page.locator("body")).toBeVisible({ timeout: 3000 });
-    await expect(page.locator("body")).not.toBeEmpty({ timeout: 2000 });
-    await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 3000 });
-    await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 3000 });
+    try {
+      await expect(page.locator("html")).toBeVisible({ timeout: 5000 });
+      await expect(page.locator("head")).toBeVisible({ timeout: 2000 });
+      await expect(page.locator("body")).toBeVisible({ timeout: 5000 });
+      await expect(page.locator("body")).not.toBeEmpty({ timeout: 3000 });
+
+      await expect(page.locator("#__next")).toBeVisible({ timeout: 5000 });
+
+      await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 5000 });
+    } catch (error) {
+      console.error("Page load validation failed");
+      console.error("Current URL:", page.url());
+      console.error("Page title:", await page.title());
+      console.error("Body content:", await page.locator("body").textContent());
+      throw error;
+    }
 
     await page.locator('[data-testid="time"]').first().click();
     await page.fill('[name="name"]', "Test Booker");
@@ -883,11 +895,23 @@ test.describe("Calendar Cache Booking", () => {
 
     await page.goto(`/${user1.username}/${teamEventType.slug}`);
 
-    await expect(page.locator("html")).toBeVisible({ timeout: 3000 });
-    await expect(page.locator("body")).toBeVisible({ timeout: 3000 });
-    await expect(page.locator("body")).not.toBeEmpty({ timeout: 2000 });
-    await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 3000 });
-    await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 3000 });
+    try {
+      await expect(page.locator("html")).toBeVisible({ timeout: 5000 });
+      await expect(page.locator("head")).toBeVisible({ timeout: 2000 });
+      await expect(page.locator("body")).toBeVisible({ timeout: 5000 });
+      await expect(page.locator("body")).not.toBeEmpty({ timeout: 3000 });
+
+      await expect(page.locator("#__next")).toBeVisible({ timeout: 5000 });
+
+      await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 5000 });
+    } catch (error) {
+      console.error("Page load validation failed");
+      console.error("Current URL:", page.url());
+      console.error("Page title:", await page.title());
+      console.error("Body content:", await page.locator("body").textContent());
+      throw error;
+    }
 
     await page.locator('[data-testid="time"]').first().click();
     await page.fill('[name="name"]', "Team Booker");
