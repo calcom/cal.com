@@ -29,7 +29,7 @@ export const listWithTeamHandler = async ({ ctx }: ListWithTeamOptions) => {
 
   return result.map((row) => ({
     id: row.id,
-    team: row.teamId && row.teamName ? { id: row.teamId, name: row.teamName } : null,
+    team: row.teamId ? { id: row.teamId, name: row.teamName || "" } : null,
     title: row.title,
     slug: row.slug,
   }));
