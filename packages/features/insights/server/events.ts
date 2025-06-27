@@ -484,16 +484,14 @@ class EventsInsights {
             : booking.attendees;
 
         const formattedAttendees = attendeeList
-          .slice(0, 3)
-          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null));
+          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+          .filter(Boolean);
 
         return [
           booking.uid,
           {
             noShowGuest: attendeeList[0]?.noShow || false,
-            attendee1: formattedAttendees[0] || null,
-            attendee2: formattedAttendees[1] || null,
-            attendee3: formattedAttendees[2] || null,
+            attendees: formattedAttendees.join("; "),
           },
         ];
       })
@@ -505,9 +503,7 @@ class EventsInsights {
         return {
           ...bookingTimeStatus,
           noShowGuest: false,
-          attendee1: null,
-          attendee2: null,
-          attendee3: null,
+          attendees: null,
         };
       }
 
@@ -517,18 +513,14 @@ class EventsInsights {
         return {
           ...bookingTimeStatus,
           noShowGuest: false,
-          attendee1: null,
-          attendee2: null,
-          attendee3: null,
+          attendees: null,
         };
       }
 
       return {
         ...bookingTimeStatus,
         noShowGuest: attendeeData.noShowGuest,
-        attendee1: attendeeData.attendee1,
-        attendee2: attendeeData.attendee2,
-        attendee3: attendeeData.attendee3,
+        attendees: attendeeData.attendees,
       };
     });
 
