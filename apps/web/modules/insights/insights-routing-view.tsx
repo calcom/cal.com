@@ -8,7 +8,9 @@ import {
   RoutedToPerPeriod,
 } from "@calcom/features/insights/components";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
+import { useInsightsParameters } from "@calcom/features/insights/hooks/useInsightsParameters";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
 
 export default function InsightsRoutingFormResponsesPage() {
   const { t } = useLocale();
@@ -18,6 +20,8 @@ export default function InsightsRoutingFormResponsesPage() {
       <InsightsOrgTeamsProvider>
         <div className="mb-4 space-y-4">
           <RoutingFormResponsesTable />
+
+          <Test />
 
           <RoutedToPerPeriod />
 
@@ -36,4 +40,28 @@ export default function InsightsRoutingFormResponsesPage() {
       </InsightsOrgTeamsProvider>
     </DataTableProvider>
   );
+}
+
+function Test() {
+  const { scope, selectedTeamId, startDate, endDate } = useInsightsParameters();
+  const { data, isSuccess, isPending } = trpc.viewer.insights.getDropOffData.useQuery(
+    {
+      scope,
+      selectedTeamId,
+      startDate,
+      endDate,
+    },
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
+  console.log("💡 hey!", {
+    data,
+    isSuccess,
+    isPending,
+  });
+  return null;
 }

@@ -7,7 +7,10 @@ import {
   rawDataInputSchema,
   routingFormResponsesInputSchema,
   routingFormStatsInputSchema,
+  routingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import kysely from "@calcom/kysely";
+import { InsightsRoutingService } from "@calcom/lib/server/service/insightsRouting";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -1727,6 +1730,42 @@ export const insightsRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
+  getDropOffData: userBelongsToTeamProcedure
+    .input(routingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      try {
+        console.log("💡 TEST args for service", {
+          options: {
+            scope: input.scope,
+            teamId: input.selectedTeamId,
+            userId: ctx.user.id,
+            orgId: ctx.user.organizationId,
+          },
+          filters: {
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        });
+        const insightsRoutingService = new InsightsRoutingService({
+          kysely,
+          options: {
+            scope: input.scope,
+            teamId: input.selectedTeamId,
+            userId: ctx.user.id,
+            orgId: ctx.user.organizationId,
+          },
+          filters: {
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        });
+        const responses = await insightsRoutingService.getDropOffData();
+        console.log("💡 TEST responses", responses);
+        return responses;
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
 });
 
 async function getEventTypeList({

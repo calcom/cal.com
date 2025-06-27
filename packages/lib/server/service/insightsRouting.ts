@@ -29,7 +29,8 @@ export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope",
 export type InsightsRoutingServiceOptions = z.infer<typeof insightsRoutingServiceOptionsSchema>;
 
 export type InsightsRoutingServiceFilterOptions = {
-  // Empty for now
+  startDate: string;
+  endDate: string;
 };
 
 const NOTHING = {
@@ -61,6 +62,10 @@ export class InsightsRoutingService {
     this.options = validation.success ? validation.data : null;
 
     this.filters = filters;
+  }
+
+  async getDropOffData() {
+    return await this.findMany({});
   }
 
   async findMany(findManyArgs: {
@@ -113,6 +118,9 @@ export class InsightsRoutingService {
       query = query.offset(findManyArgs.offset);
     }
 
+    const compiled = query.compile();
+    console.log("💡 compiled", compiled);
+
     return query.execute();
   }
 
@@ -131,8 +139,23 @@ export class InsightsRoutingService {
   }
 
   async buildFilterConditions(): Promise<WhereCondition | null> {
-    // Empty for now
-    return null;
+    const conditions: WhereCondition[] = [];
+
+    if (this.filters?.startDate) {
+      const startDate = this.filters.startDate;
+      conditions.push((eb) => eb("createdAt", ">=", new Date(startDate)));
+    }
+
+    if (this.filters?.endDate) {
+      const endDate = this.filters.endDate;
+      conditions.push((eb) => eb("createdAt", "<=", new Date(endDate)));
+    }
+
+    if (conditions.length === 0) {
+      return null;
+    }
+
+    return (eb) => eb.and(conditions.map((condition) => condition(eb)));
   }
 
   async buildAuthorizationConditions(): Promise<WhereCondition> {
