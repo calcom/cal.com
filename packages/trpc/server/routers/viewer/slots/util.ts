@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
@@ -637,47 +638,34 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
       return r;
     }, []);
 
-    const createOptimizedConflictChecker = (busySlots: EventBusyDate[]) => {
-      if (!Array.isArray(busySlots) || busySlots.length < 1) {
-        return () => false;
-      }
-
-      const sortedBusySlots = busySlots
-        .map((slot) => ({
-          start: dayjs.utc(slot.start).valueOf(),
-          end: dayjs.utc(slot.end).valueOf(),
-        }))
-        .sort((a, b) => a.start - b.start);
-
-      return function checkConflictOptimized(slotTime: dayjs.Dayjs, eventLength: number): boolean {
-        const slotStart = slotTime.utc().valueOf();
-        const slotEnd = slotTime.add(eventLength, "minutes").utc().valueOf();
-
-        for (const busySlot of sortedBusySlots) {
-          if (busySlot.start >= slotEnd) break;
-          if (busySlot.end <= slotStart) continue;
-
-          if (!(busySlot.end <= slotStart || busySlot.start >= slotEnd)) {
-            return true;
-          }
+    availableTimeSlots = availableTimeSlots
+      .map((slot) => {
+        if (
+          !checkForConflicts({
+            time: slot.time,
+            busy: busySlotsFromReservedSlots,
+            ...availabilityCheckProps,
+          })
+        ) {
+          return slot;
         }
-        return false;
-      };
-    };
-
-    const conflictChecker = createOptimizedConflictChecker(busySlotsFromReservedSlots);
-
-    availableTimeSlots = availableTimeSlots.filter((slot) => {
-      if (
-        availabilityCheckProps.currentSeats?.some(
-          (booking) => booking.startTime.toISOString() === slot.time.toISOString()
-        )
-      ) {
-        return true;
-      }
-
-      return !conflictChecker(slot.time, availabilityCheckProps.eventLength);
-    });
+        return undefined;
+      })
+      .filter(
+        (
+          item:
+            | {
+                time: dayjs.Dayjs;
+                userIds?: number[] | undefined;
+              }
+            | undefined
+        ): item is {
+          time: dayjs.Dayjs;
+          userIds?: number[] | undefined;
+        } => {
+          return !!item;
+        }
+      );
   }
 
   // fr-CA uses YYYY-MM-DD
