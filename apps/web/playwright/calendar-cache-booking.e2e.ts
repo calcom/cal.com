@@ -18,8 +18,6 @@ test.describe("Booking with Calendar Cache", () => {
     prisma,
   }) => {
     const user = await users.create();
-    await user.apiLogin();
-
     const [eventType] = user.eventTypes;
 
     const credential = await prisma.credential.create({
@@ -74,7 +72,6 @@ test.describe("Booking with Calendar Cache", () => {
   test("should invalidate cache for team event with multiple users", async ({ page, users, prisma }) => {
     const user1 = await users.create({ name: "User 1" });
     const user2 = await users.create({ name: "User 2" });
-    await user1.apiLogin();
 
     const team = await prisma.team.create({
       data: {
