@@ -15,13 +15,10 @@ test.describe("Booking with Calendar Cache", () => {
   test("should create booking and mark calendar cache as stale when calendar cache is enabled", async ({
     page,
     users,
-    features,
     prisma,
   }) => {
     const user = await users.create();
     await user.apiLogin();
-
-    await features.set("calendar-cache", true);
 
     const [eventType] = user.eventTypes;
 
@@ -74,17 +71,10 @@ test.describe("Booking with Calendar Cache", () => {
     expect(booking?.status).toBe("ACCEPTED");
   });
 
-  test("should invalidate cache for team event with multiple users", async ({
-    page,
-    users,
-    features,
-    prisma,
-  }) => {
+  test("should invalidate cache for team event with multiple users", async ({ page, users, prisma }) => {
     const user1 = await users.create({ name: "User 1" });
     const user2 = await users.create({ name: "User 2" });
     await user1.apiLogin();
-
-    await features.set("calendar-cache", true);
 
     const team = await prisma.team.create({
       data: {
