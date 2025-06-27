@@ -240,60 +240,67 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
 }
 
 export function intersect(ranges: DateRange[][]): DateRange[] {
-  if (!ranges.length) return [];
-  // Get the ranges of the first user
-  let commonAvailability = ranges[0];
+  if (!ranges.length) {
+    return [];
+  }
 
-  // For each of the remaining users, find the intersection of their ranges with the current common availability
-  for (let i = 1; i < ranges.length; i++) {
-    const userRanges = ranges[i];
+  type ProcessedDateRange = DateRange & { startValue: number; endValue: number };
 
-    const intersectedRanges: {
-      start: Dayjs;
-      end: Dayjs;
-    }[] = [];
+  // Pre-sort all user ranges and cache timestamp values.
+  const sortedRanges: ProcessedDateRange[][] = ranges.map((userRanges) =>
+    userRanges
+      .map((r) => ({
+        ...r,
+        startValue: r.start.valueOf(),
+        endValue: r.end.valueOf(),
+      }))
+      .sort((a, b) => a.startValue - b.startValue)
+  );
 
-    const sortedCommon = [...commonAvailability].sort((a, b) => a.start.valueOf() - b.start.valueOf());
-    const sortedUser = [...userRanges].sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  let commonAvailability: ProcessedDateRange[] = sortedRanges[0];
+
+  for (let i = 1; i < sortedRanges.length; i++) {
+    // Early exit if no common availability is left.
+    if (commonAvailability.length === 0) {
+      return [];
+    }
+
+    const userRanges = sortedRanges[i];
+    const intersectedRanges: ProcessedDateRange[] = [];
 
     let commonIndex = 0;
     let userIndex = 0;
 
-    while (commonIndex < sortedCommon.length && userIndex < sortedUser.length) {
-      const commonRange = sortedCommon[commonIndex];
-      const userRange = sortedUser[userIndex];
+    while (commonIndex < commonAvailability.length && userIndex < userRanges.length) {
+      const commonRange = commonAvailability[commonIndex];
+      const userRange = userRanges[userIndex];
 
-      const intersection = getIntersection(commonRange, userRange);
-      if (intersection !== null) {
-        // If the current common range intersects with the user range, add the intersected time range to the new array
-        intersectedRanges.push(intersection);
+      const intersectStartValue = Math.max(commonRange.startValue, userRange.startValue);
+      const intersectEndValue = Math.min(commonRange.endValue, userRange.endValue);
+
+      if (intersectStartValue < intersectEndValue) {
+        const intersectStart =
+          commonRange.startValue > userRange.startValue ? commonRange.start : userRange.start;
+        const intersectEnd = commonRange.endValue < userRange.endValue ? commonRange.end : userRange.end;
+        intersectedRanges.push({
+          start: intersectStart,
+          end: intersectEnd,
+          startValue: intersectStartValue,
+          endValue: intersectEndValue,
+        });
       }
 
-      if (commonRange.end.valueOf() <= userRange.end.valueOf()) {
+      if (commonRange.endValue <= userRange.endValue) {
         commonIndex++;
       } else {
         userIndex++;
       }
     }
-
     commonAvailability = intersectedRanges;
   }
 
-  // If the common availability is empty, there is no time when all users are available
-  if (commonAvailability.length === 0) {
-    return [];
-  }
-
-  return commonAvailability;
-}
-
-function getIntersection(range1: DateRange, range2: DateRange) {
-  const start = range1.start.utc().isAfter(range2.start) ? range1.start : range2.start;
-  const end = range1.end.utc().isBefore(range2.end) ? range1.end : range2.end;
-  if (start.utc().isBefore(end)) {
-    return { start, end };
-  }
-  return null;
+  // Strip the cached values before returning to match the expected DateRange[] type.
+  return commonAvailability.map(({ start, end }) => ({ start, end }));
 }
 
 export function subtract(
