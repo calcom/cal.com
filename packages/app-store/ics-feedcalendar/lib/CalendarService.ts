@@ -244,10 +244,11 @@ export default class ICSFeedCalendarService implements Calendar {
             }
             currentStart = dayjs(currentEvent.startDate.toJSDate());
 
+            // TODO: Needs optimisation
             if (currentStart.isBetween(start, end) === true) {
               events.push({
-                start: currentStart.toISOString(),
-                end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
+                start: currentEvent.startDate.toJSDate(),
+                end: currentEvent.endDate.toJSDate(),
               });
             }
           }
@@ -264,8 +265,8 @@ export default class ICSFeedCalendarService implements Calendar {
         }
 
         return events.push({
-          start: dayjs(event.startDate.toJSDate()).toISOString(),
-          end: dayjs(event.endDate.toJSDate()).toISOString(),
+          start: event.startDate.toJSDate(),
+          end: event.endDate.toJSDate(),
         });
       });
     });

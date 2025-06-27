@@ -54,8 +54,8 @@ export type TeamMember = {
 };
 
 export type EventBusyDate = {
-  start: Date | string;
-  end: Date | string;
+  start: Date | Dayjs;
+  end: Date | Dayjs;
   source?: string | null;
 };
 

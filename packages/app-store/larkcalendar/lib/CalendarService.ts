@@ -307,8 +307,8 @@ export default class LarkCalendarService implements Calendar {
       const busyData =
         data.data.freebusy_list?.reduce<BufferedBusyTime[]>((acc, cur) => {
           acc.push({
-            start: cur.start_time,
-            end: cur.end_time,
+            start: new Date(cur.start_time),
+            end: new Date(cur.end_time),
           });
           return acc;
         }, []) || [];
