@@ -263,7 +263,7 @@ export class MembershipRepository {
     });
   }
 
-  static async findFirstByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
+  static async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
     return await prisma.membership.findUnique({
       where: {
         userId_teamId: {
@@ -396,6 +396,26 @@ export class MembershipRepository {
           },
         },
       },
+    });
+  }
+
+  static async findAllByTeamIds({
+    teamIds,
+    select = { userId: true },
+  }: {
+    teamIds: number[];
+    select?: Prisma.MembershipSelect;
+  }) {
+    return prisma.membership.findMany({
+      where: {
+        team: {
+          id: {
+            in: teamIds,
+          },
+        },
+        accepted: true,
+      },
+      select,
     });
   }
 }
