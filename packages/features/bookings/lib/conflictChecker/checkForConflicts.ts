@@ -43,9 +43,7 @@ export function checkForConflicts({
     if (busyTime.end <= slotStart) {
       continue;
     }
-    if (!(busyTime.end <= slotStart || busyTime.start >= slotEnd)) {
-      return true;
-    }
+    return true;
   }
 
   return false;
