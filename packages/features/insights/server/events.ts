@@ -487,17 +487,30 @@ class EventsInsights {
           .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
           .filter(Boolean);
 
-        const maxAttendees = 20;
+        return [
+          booking.uid,
+          { attendeeList: formattedAttendees, noShowGuest: attendeeList[0]?.noShow || false },
+        ];
+      })
+    );
+
+    const maxAttendees = Math.max(
+      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
+      0
+    );
+
+    const finalBookingMap = new Map(
+      Array.from(bookingMap.entries()).map(([uid, data]) => {
         const attendeeFields: Record<string, string | null> = {};
 
         for (let i = 1; i <= maxAttendees; i++) {
-          attendeeFields[`attendee${i}`] = formattedAttendees[i - 1] || null;
+          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
         }
 
         return [
-          booking.uid,
+          uid,
           {
-            noShowGuest: attendeeList[0]?.noShow || false,
+            noShowGuest: data.noShowGuest,
             ...attendeeFields,
           },
         ];
@@ -508,7 +521,7 @@ class EventsInsights {
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
         const nullAttendeeFields: Record<string, null> = {};
-        for (let i = 1; i <= 20; i++) {
+        for (let i = 1; i <= maxAttendees; i++) {
           nullAttendeeFields[`attendee${i}`] = null;
         }
 
@@ -519,11 +532,11 @@ class EventsInsights {
         };
       }
 
-      const attendeeData = bookingMap.get(bookingTimeStatus.uid);
+      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
 
       if (!attendeeData) {
         const nullAttendeeFields: Record<string, null> = {};
-        for (let i = 1; i <= 20; i++) {
+        for (let i = 1; i <= maxAttendees; i++) {
           nullAttendeeFields[`attendee${i}`] = null;
         }
 
