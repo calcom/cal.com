@@ -11,8 +11,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { WizardForm } from "@calcom/ui/components/form";
 
 import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";
-import ChooseLicense from "@components/setup/ChooseLicense";
-import EnterpriseLicense from "@components/setup/EnterpriseLicense";
+import LicenseSelection from "@components/setup/LicenseSelection";
 
 import type { getServerSideProps } from "@server/lib/setup/getServerSideProps";
 
@@ -32,9 +31,9 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export function Setup(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const [value, setValue] = useState(props.isFreeLicense ? "FREE" : "EE");
-  const isFreeLicense = value === "FREE";
-  const [isEnabledEE, setIsEnabledEE] = useState(!props.isFreeLicense);
+  const [licenseOption, setLicenseOption] = useState<"FREE" | "EXISTING">(
+    props.hasValidLicense ? "EXISTING" : "EXISTING"
+  );
   const setStep = useSetStep();
 
   const steps: React.ComponentProps<typeof WizardForm>["steps"] = [
@@ -47,7 +46,12 @@ export function Setup(props: PageProps) {
             setIsPending(true);
           }}
           onSuccess={() => {
-            setStep(2);
+            // If there's already a valid license, skip to apps step
+            if (props.hasValidLicense) {
+              setStep(3);
+            } else {
+              setStep(2);
+            }
           }}
           onError={() => {
             setIsPending(false);
@@ -56,49 +60,31 @@ export function Setup(props: PageProps) {
         />
       ),
     },
-    {
+  ];
+
+  // Only show license selection step if there's no valid license already
+  if (!props.hasValidLicense) {
+    steps.push({
       title: t("choose_a_license"),
       description: t("choose_license_description"),
       content: (setIsPending) => {
         return (
-          <ChooseLicense
+          <LicenseSelection
             id="wizard-step-2"
             name="wizard-step-2"
-            value={value}
-            onChange={setValue}
-            onSubmit={() => {
+            value={licenseOption}
+            onChange={setLicenseOption}
+            onSubmit={(values) => {
               setIsPending(true);
-              setStep(3);
+              if (licenseOption === "FREE") {
+                setStep(3);
+              } else if (licenseOption === "EXISTING" && values.licenseKey) {
+                setStep(3);
+              }
             }}
           />
         );
       },
-    },
-  ];
-
-  if (!isFreeLicense) {
-    steps.push({
-      title: t("step_enterprise_license"),
-      description: t("step_enterprise_license_description"),
-      content: (setIsPending) => {
-        const currentStep = 3;
-        return (
-          <EnterpriseLicense
-            id={`wizard-step-${currentStep}`}
-            name={`wizard-step-${currentStep}`}
-            onSubmit={() => {
-              setIsPending(true);
-            }}
-            onSuccess={() => {
-              setStep(currentStep + 1);
-            }}
-            onSuccessValidate={() => {
-              setIsEnabledEE(true);
-            }}
-          />
-        );
-      },
-      isEnabled: isEnabledEE,
     });
   }
 
@@ -107,7 +93,9 @@ export function Setup(props: PageProps) {
     description: t("enable_apps_description", { appName: APP_NAME }),
     contentClassname: "!pb-0 mb-[-1px]",
     content: (setIsPending) => {
-      const currentStep = isFreeLicense ? 3 : 4;
+      // Calculate the correct step number based on whether license steps are skipped
+      const currentStep = props.hasValidLicense ? 2 : 3;
+
       return (
         <AdminAppsList
           id={`wizard-step-${currentStep}`}
