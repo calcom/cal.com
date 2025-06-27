@@ -46,6 +46,12 @@ export const validateLicenseHandler = async ({ input }: ValidateLicenseOptions) 
       const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
       const isValid = await licenseKeyService.checkLicense();
 
+      console.log({
+        isValid,
+        licenseKey,
+        currentDeployment,
+      });
+
       return {
         valid: isValid,
         message: isValid ? "License key is valid" : "License key is invalid",

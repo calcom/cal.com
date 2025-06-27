@@ -34,20 +34,24 @@ const LicenseSelection = (
 ) => {
   const { value: initialValue = "EXISTING", onChange, onSubmit, onSuccess, onPrevStep, ...rest } = props;
   const [value, setValue] = useState<LicenseOption>(initialValue);
-  const [checkLicenseLoading, setCheckLicenseLoading] = useState(false);
   const { t } = useLocale();
   const mutation = trpc.viewer.deploymentSetup.update.useMutation({
     onSuccess,
   });
 
-  const validateLicenseMutation = trpc.viewer.deploymentSetup.validateLicense.useMutation({
-    onSuccess: () => {
-      setCheckLicenseLoading(false);
-    },
-    onError: () => {
-      setCheckLicenseLoading(false);
-    },
-  });
+  const [licenseKeyInput, setLicenseKeyInput] = useState("");
+  const [licenseTouched, setLicenseTouched] = useState(false);
+
+  // Use TRPC query for validation
+  const { data: licenseValidation, isLoading: checkLicenseLoading } =
+    trpc.viewer.deploymentSetup.validateLicense.useQuery(
+      { licenseKey: licenseKeyInput },
+      {
+        enabled: licenseTouched && licenseKeyInput.trim().length > 0,
+        // Don't cache results as license status could change
+        cacheTime: 0,
+      }
+    );
 
   const schemaLicenseKey = useCallback(
     () =>
@@ -55,29 +59,12 @@ const LicenseSelection = (
         licenseKey: z
           .string()
           .min(1, "License key is required")
-          .superRefine(async (data, ctx) => {
-            if (data.trim()) {
-              setCheckLicenseLoading(true);
-              try {
-                const result = await validateLicenseMutation.mutateAsync({ licenseKey: data });
-
-                if (!result.valid) {
-                  ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: result.message || "License key is invalid",
-                  });
-                }
-              } catch (error) {
-                ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  message: "Failed to validate license key",
-                });
-              }
-            }
+          .refine(() => !licenseTouched || (licenseValidation ? licenseValidation.valid : true), {
+            message: licenseValidation?.message || "License key is invalid",
           }),
         signatureToken: z.string().optional(),
       }),
-    [validateLicenseMutation]
+    [licenseValidation, licenseTouched]
   );
 
   const formMethods = useForm<LicenseSelectionFormValues>({
@@ -90,7 +77,6 @@ const LicenseSelection = (
 
   const handleSubmit = formMethods.handleSubmit((values) => {
     onSubmit(values);
-    setCheckLicenseLoading(false);
     if (value === "EXISTING" && values.licenseKey) {
       mutation.mutate(values);
     }
@@ -177,7 +163,7 @@ const LicenseSelection = (
                         (checkLicenseLoading || (errors.licenseKey === undefined && isDirty)) && "border-r-0"
                       )}
                       placeholder="cal_live_XXXXXXXXXXX"
-                      value={value}
+                      value={licenseKeyInput}
                       addOnClassname={classNames(
                         "hover:border-default",
                         errors.licenseKey === undefined && isDirty && "group-hover:border-emphasis"
@@ -185,16 +171,18 @@ const LicenseSelection = (
                       addOnSuffix={
                         checkLicenseLoading ? (
                           <Icon name="loader" className="h-5 w-5 animate-spin" />
-                        ) : errors.licenseKey === undefined && isDirty ? (
+                        ) : licenseValidation?.valid && licenseTouched ? (
                           <Icon name="check" className="h-5 w-5 text-green-700" />
                         ) : undefined
                       }
                       color={errors.licenseKey ? "warn" : ""}
-                      onBlur={onBlur}
-                      onChange={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                      onBlur={(e) => {
+                        setLicenseTouched(true);
+                        onBlur();
+                      }}
+                      onChange={(e) => {
+                        setLicenseKeyInput(e.target.value);
                         onChange(e.target.value);
-                        formMethods.setValue("licenseKey", e.target.value);
-                        await formMethods.trigger("licenseKey");
                       }}
                     />
                   )}
