@@ -38,10 +38,12 @@ class LicenseKeyService implements ILicenseKeyService {
   private async fetcher({
     url,
     body,
+    licenseKey,
     options = {},
   }: {
     url: string;
     body?: Record<string, unknown>;
+    licenseKey: string;
     options?: RequestInit;
   }): Promise<Response> {
     const nonce = generateNonce();
@@ -50,7 +52,7 @@ class LicenseKeyService implements ILicenseKeyService {
       ...options.headers,
       "Content-Type": "application/json",
       nonce: nonce,
-      "x-cal-license-key": this.licenseKey,
+      "x-cal-license-key": licenseKey,
     } as Record<string, string>;
 
     const signatureToken = process.env.CAL_SIGNATURE_TOKEN;
@@ -70,10 +72,21 @@ class LicenseKeyService implements ILicenseKeyService {
     });
   }
 
+  // Static method to validate a license key directly
+  public static async validateLicenseKey(licenseKey: string): Promise<boolean> {
+    /** We skip for E2E testing */
+    if (process.env.NEXT_PUBLIC_IS_E2E === "1") return true;
+
+    // Create a temporary instance to use instance methods
+    const service = new LicenseKeyService(licenseKey);
+    return service.checkLicense();
+  }
+
   async incrementUsage(usageEvent?: UsageEvent) {
     try {
       const response = await this.fetcher({
         url: `${this.baseUrl}/v1/license/usage/increment?event=${usageEvent ?? UsageEvent.BOOKING}`,
+        licenseKey: this.licenseKey,
         options: {
           method: "POST",
           mode: "cors",
@@ -94,7 +107,7 @@ class LicenseKeyService implements ILicenseKeyService {
     const cachedResponse = cache.get(url);
     if (cachedResponse) return cachedResponse;
     try {
-      const response = await this.fetcher({ url, options: { mode: "cors" } });
+      const response = await this.fetcher({ url, licenseKey: this.licenseKey, options: { mode: "cors" } });
       const data = await response.json();
       cache.put(url, data.status, this.CACHING_TIME);
       return data.status;

@@ -1,6 +1,4 @@
-import { LicenseKeySingleton } from "@calcom/features/ee/common/server/LicenseKeyService";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { prisma } from "@calcom/prisma";
+import LicenseKeyService from "@calcom/features/ee/common/server/LicenseKeyService";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TValidateLicenseInputSchema } from "./validateLicense.schema";
@@ -24,57 +22,12 @@ export const validateLicenseHandler = async ({ input }: ValidateLicenseOptions) 
   }
 
   try {
-    // Temporarily set the license key for validation
-    const deploymentRepo = new DeploymentRepository(prisma);
+    const isValid = await LicenseKeyService.validateLicenseKey(licenseKey);
 
-    // Store the current license key to restore it later
-    const currentDeployment = await deploymentRepo.getLicenseKeyWithId(1);
-
-    // Temporarily set the new license key
-    await prisma.deployment.upsert({
-      where: { id: 1 },
-      update: {
-        licenseKey: licenseKey,
-      },
-      create: {
-        licenseKey: licenseKey,
-      },
-    });
-
-    try {
-      // Use LicenseKeyService to validate the license
-      const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
-      const isValid = await licenseKeyService.checkLicense();
-
-      console.log({
-        isValid,
-        licenseKey,
-        currentDeployment,
-      });
-
-      return {
-        valid: isValid,
-        message: isValid ? "License key is valid" : "License key is invalid",
-      };
-    } finally {
-      // Restore the original license key if it existed
-      if (currentDeployment) {
-        await prisma.deployment.update({
-          where: { id: 1 },
-          data: {
-            licenseKey: currentDeployment,
-          },
-        });
-      } else {
-        // If there was no original license key, remove the temporary one
-        await prisma.deployment.update({
-          where: { id: 1 },
-          data: {
-            licenseKey: null,
-          },
-        });
-      }
-    }
+    return {
+      valid: isValid,
+      message: isValid ? "License key is valid" : "License key is invalid",
+    };
   } catch (error) {
     console.error("License validation failed:", error);
     return {
