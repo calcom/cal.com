@@ -1,6 +1,7 @@
 "use client";
 
 import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/appearance/actions";
+import { revalidateHasTeamPlan } from "app/cache/membership";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -9,6 +10,7 @@ import type { z } from "zod";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
@@ -130,6 +132,7 @@ const AppearanceView = ({
     onSuccess: async (data) => {
       await utils.viewer.me.invalidate();
       revalidateSettingsAppearance();
+      revalidateHasTeamPlan();
       showToast(t("settings_updated_successfully"), "success");
       resetBrandColorsThemeReset({ brandColor: data.brandColor, darkBrandColor: data.darkBrandColor });
       resetBookerLayoutThemeReset({ metadata: data.metadata });
@@ -146,11 +149,12 @@ const AppearanceView = ({
     onSettled: async () => {
       await utils.viewer.me.invalidate();
       revalidateSettingsAppearance();
+      revalidateHasTeamPlan();
     },
   });
 
   return (
-    <div>
+    <SettingsHeader title={t("appearance")} description={t("appearance_description")}>
       <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
         <div>
           <p className="text-default text-base font-semibold">{t("app_theme")}</p>
@@ -398,7 +402,7 @@ const AppearanceView = ({
           />
         </>
       )}
-    </div>
+    </SettingsHeader>
   );
 };
 

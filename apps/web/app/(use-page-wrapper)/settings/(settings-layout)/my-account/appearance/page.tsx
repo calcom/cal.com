@@ -1,11 +1,15 @@
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
+import { getCachedHasTeamPlan } from "@calcom/web/app/cache/membership";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import AppearancePage from "~/settings/my-account/appearance-view";
 
@@ -19,21 +23,24 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const [meCaller, teamsCaller] = await Promise.all([
-    createRouterCaller(meRouter),
-    createRouterCaller(viewerTeamsRouter),
-  ]);
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const userId = session?.user?.id;
+  const redirectUrl = "auth/login?callbackUrl=/settings/my-account/appearance";
+
+  if (!userId) {
+    redirect(redirectUrl);
+  }
+
+  const [meCaller, hasTeamPlan] = await Promise.all([createRouterCaller(meRouter), getCachedHasTeamPlan()]);
 
   const user = await meCaller.get();
 
   if (!user) {
-    redirect("/auth/login");
+    redirect(redirectUrl);
   }
   const isCurrentUsernamePremium =
     user && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
-  const hasPaidPlan = IS_SELF_HOSTED
-    ? true
-    : (await teamsCaller.hasTeamPlan())?.hasTeamPlan || isCurrentUsernamePremium;
+  const hasPaidPlan = IS_SELF_HOSTED ? true : hasTeamPlan?.hasTeamPlan || isCurrentUsernamePremium;
 
   return <AppearancePage user={user} hasPaidPlan={hasPaidPlan} />;
 };

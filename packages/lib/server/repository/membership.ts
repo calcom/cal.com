@@ -110,6 +110,20 @@ export class MembershipRepository {
     });
   }
 
+  static async findFirstAcceptedMembershipByUserId(userId: number) {
+    return await prisma.membership.findFirst({
+      where: {
+        accepted: true,
+        userId,
+        team: {
+          slug: {
+            not: null,
+          },
+        },
+      },
+    });
+  }
+
   static async createMany(data: IMembership[]) {
     return await prisma.membership.createMany({
       data: data.map((item) => ({
