@@ -32,11 +32,11 @@ export function Setup(props: PageProps) {
   let step = 1;
   if (props.userCount > 0) {
     step = 2;
-  }
-  if (props.hasValidLicense) {
-    step = 2;
-  } else {
-    step = 3;
+    if (props.hasValidLicense) {
+      step = 2;
+    } else {
+      step = 3;
+    }
   }
 
   const { t } = useLocale();
