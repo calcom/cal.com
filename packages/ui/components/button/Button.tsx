@@ -6,9 +6,9 @@ import React, { forwardRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
-import { Icon } from "../icon";
-import type { IconName } from "../icon";
-import { Tooltip } from "../tooltip";
+import { Icon } from "../icon/Icon";
+import type { IconName } from "../icon/Icon";
+import { Tooltip } from "../tooltip/Tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
 
@@ -53,6 +53,8 @@ export const buttonClasses = cva(
           // Base colors
           "bg-brand-default",
           "text-brand",
+          // Hover state
+          "enabled:hover:bg-brand-emphasis",
           // Focus state
           "focus-visible:outline-none",
           "focus-visible:ring-0",
@@ -78,7 +80,6 @@ export const buttonClasses = cva(
           "border-default",
           // Hover state
           "enabled:hover:bg-muted",
-          "enabled:hover:border-emphasis",
           "enabled:hover:text-emphasis",
           // Disabled
           "disabled:opacity-30",
@@ -125,7 +126,7 @@ export const buttonClasses = cva(
           "text-error",
           // Hover state
           "dark:hover:text-red-100",
-          "hover:border-semantic-danager-subtle",
+          "hover:border-semantic-error",
           "hover:bg-error",
           // Focus state
           "focus-visible:text-red-700",
@@ -280,14 +281,15 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
             )}
           </>
         ))}
-      {props.children &&
-        (variant === "fab" ? (
-          <span className={`hidden md:inline ${loading ? "invisible" : "visible "}`}>{props.children}</span>
-        ) : (
-          <span className={loading ? "invisible" : "visible group-active:translate-y-[0.5px]"}>
-            {props.children}
-          </span>
-        ))}
+      <div
+        className={classNames(
+          "contents", // This makes the div behave like it doesn't exist in the layout
+          loading ? "invisible" : "visible",
+          variant === "fab" ? "hidden md:contents" : "",
+          "group-active:translate-y-[0.5px]"
+        )}>
+        {props.children}
+      </div>
       {loading && (
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg

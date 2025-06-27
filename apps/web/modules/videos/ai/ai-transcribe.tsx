@@ -61,7 +61,24 @@ const BUTTONS = {
   },
 };
 
-export const CalAiTranscribe = () => {
+export type DailyCustomTrayButtonVisualState = "default" | "sidebar-open" | "active";
+
+export interface DailyCustomTrayButton {
+  iconPath: string;
+  iconPathDarkMode?: string;
+  label: string;
+  tooltip: string;
+  visualState?: DailyCustomTrayButtonVisualState;
+}
+export const CalAiTranscribe = ({
+  showRecordingButton,
+  enableAutomaticTranscription,
+  showTranscriptionButton,
+}: {
+  showRecordingButton: boolean;
+  enableAutomaticTranscription: boolean;
+  showTranscriptionButton: boolean;
+}) => {
   const daily = useDaily();
   const { t } = useLocale();
 
@@ -73,6 +90,27 @@ export const CalAiTranscribe = () => {
   const transcription = useTranscription();
   const recording = useRecording();
 
+  const updateCustomTrayButtons = ({
+    recording,
+    transcription,
+  }: {
+    recording: DailyCustomTrayButton;
+    transcription: DailyCustomTrayButton;
+  }) => {
+    daily?.updateCustomTrayButtons({
+      ...(showRecordingButton
+        ? {
+            recording,
+          }
+        : {}),
+      ...(showTranscriptionButton
+        ? {
+            transcription,
+          }
+        : {}),
+    });
+  };
+
   useDailyEvent(
     "app-message",
     useCallback((ev) => {
@@ -81,29 +119,41 @@ export const CalAiTranscribe = () => {
     }, [])
   );
 
+  useDailyEvent("joined-meeting", (ev) => {
+    if (enableAutomaticTranscription) {
+      daily?.startTranscription();
+      updateCustomTrayButtons({
+        recording: BUTTONS.START_RECORDING,
+        transcription: transcription?.isTranscribing
+          ? BUTTONS.STOP_TRANSCRIPTION
+          : BUTTONS.START_TRANSCRIPTION,
+      });
+    }
+  });
+
   useDailyEvent("transcription-started", (ev) => {
-    daily?.updateCustomTrayButtons({
+    updateCustomTrayButtons({
       recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
       transcription: BUTTONS.STOP_TRANSCRIPTION,
     });
   });
 
   useDailyEvent("recording-started", (ev) => {
-    daily?.updateCustomTrayButtons({
+    updateCustomTrayButtons({
       recording: BUTTONS.STOP_RECORDING,
       transcription: transcription?.isTranscribing ? BUTTONS.STOP_TRANSCRIPTION : BUTTONS.START_TRANSCRIPTION,
     });
   });
 
   useDailyEvent("transcription-stopped", (ev) => {
-    daily?.updateCustomTrayButtons({
+    updateCustomTrayButtons({
       recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
       transcription: BUTTONS.START_TRANSCRIPTION,
     });
   });
 
   useDailyEvent("recording-stopped", (ev) => {
-    daily?.updateCustomTrayButtons({
+    updateCustomTrayButtons({
       recording: BUTTONS.START_RECORDING,
       transcription: transcription?.isTranscribing ? BUTTONS.STOP_TRANSCRIPTION : BUTTONS.START_TRANSCRIPTION,
     });
@@ -111,7 +161,7 @@ export const CalAiTranscribe = () => {
 
   const toggleRecording = async () => {
     if (recording?.isRecording) {
-      daily?.updateCustomTrayButtons({
+      updateCustomTrayButtons({
         recording: BUTTONS.WAIT_FOR_RECORDING_TO_STOP,
         transcription: transcription?.isTranscribing
           ? BUTTONS.STOP_TRANSCRIPTION
@@ -119,7 +169,7 @@ export const CalAiTranscribe = () => {
       });
       await daily?.stopRecording();
     } else {
-      daily?.updateCustomTrayButtons({
+      updateCustomTrayButtons({
         recording: BUTTONS.WAIT_FOR_RECORDING_TO_START,
         transcription: transcription?.isTranscribing
           ? BUTTONS.STOP_TRANSCRIPTION
@@ -135,16 +185,17 @@ export const CalAiTranscribe = () => {
 
   const toggleTranscription = async () => {
     if (transcription?.isTranscribing) {
-      daily?.updateCustomTrayButtons({
+      updateCustomTrayButtons({
         recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
         transcription: BUTTONS.WAIT_FOR_TRANSCRIPTION_TO_STOP,
       });
       daily?.stopTranscription();
     } else {
-      daily?.updateCustomTrayButtons({
+      updateCustomTrayButtons({
         recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
         transcription: BUTTONS.WAIT_FOR_TRANSCRIPTION_TO_START,
       });
+
       daily?.startTranscription();
     }
   };

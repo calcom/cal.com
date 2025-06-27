@@ -2,6 +2,7 @@ import type { Workflow } from "@prisma/client";
 
 import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
@@ -12,7 +13,7 @@ import {
   WorkflowTemplates,
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -66,12 +67,13 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    const renderedEmailTemplate = emailReminderTemplate(
-      true,
-      ctx.user.locale,
-      WorkflowActions.EMAIL_ATTENDEE,
-      getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat)
-    );
+    const renderedEmailTemplate = emailReminderTemplate({
+      isEditingMode: true,
+      locale: ctx.user.locale,
+      t: await getTranslation(ctx.user.locale, "common"),
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
+    });
 
     await ctx.prisma.workflowStep.create({
       data: {
@@ -83,6 +85,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         workflowId: workflow.id,
         sender: SENDER_NAME,
         numberVerificationPending: false,
+        verifiedAt: new Date(),
       },
     });
     return { workflow };

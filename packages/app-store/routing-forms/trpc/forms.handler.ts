@@ -1,13 +1,13 @@
 import type { z } from "zod";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { zodFields, zodRoutes } from "../zod";

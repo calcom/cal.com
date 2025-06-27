@@ -8,7 +8,7 @@
   "variant": "conferencing",
   "categories": ["conferencing"],
   "publisher": "Suyash Srivastava",
-  "email": "suyashsrivastava50532gmail.com",
+  "email": "suyashsrivastava5053@gmail.com",
   "appData": {
     "location": {
       "type": "integrations:{SLUG}_video",

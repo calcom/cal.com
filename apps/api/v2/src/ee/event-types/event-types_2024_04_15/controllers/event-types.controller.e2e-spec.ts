@@ -33,10 +33,10 @@ import {
 } from "@calcom/platform-constants";
 import {
   EventTypesByViewer,
-  EventTypesPublic,
   eventTypeBookingFields,
   eventTypeLocations,
-} from "@calcom/platform-libraries";
+  EventTypesPublic,
+} from "@calcom/platform-libraries/event-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Event types Endpoints", () => {

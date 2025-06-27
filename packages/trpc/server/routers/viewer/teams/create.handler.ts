@@ -8,7 +8,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TCreateInputSchema } from "./create.schema";
 
 type CreateOptions = {
@@ -59,7 +59,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const slugCollisions = await prisma.team.findFirst({
     where: {
       slug: slug,
-      // If this is under an org, check that the team doesn't already exist
       parentId: isOrgChildTeam ? user.profile?.organizationId : null,
     },
   });

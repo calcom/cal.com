@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc";
-import { ToggleGroup } from "@calcom/ui";
+import { ToggleGroup } from "@calcom/ui/components/form";
 import classNames from "@calcom/ui/classNames";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";

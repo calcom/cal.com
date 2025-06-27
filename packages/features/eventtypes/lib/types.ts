@@ -23,7 +23,7 @@ export type AvailabilityOption = {
 };
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type EventTypeApps = RouterOutputs["viewer"]["integrations"];
+export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
 export type Host = {
   isFixed: boolean;
   userId: number;
@@ -72,6 +72,7 @@ export type FormValues = {
   eventTitle: string;
   eventName: string;
   slug: string;
+  interfaceLanguage: string | null;
   isInstantEvent: boolean;
   instantMeetingParameters: string[];
   instantMeetingExpiryTimeOffsetInSeconds: number;
@@ -90,12 +91,14 @@ export type FormValues = {
   hideCalendarNotes: boolean;
   multiplePrivateLinks: string[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
+  customReplyToEmail: string | null;
   locations: EventLocation[];
   aiPhoneCallConfig: PhoneCallConfig;
   customInputs: CustomInputParsed[];
   schedule: number | null;
   useEventLevelSelectedCalendars: boolean;
-
+  disabledCancelling: boolean;
+  disabledRescheduling: boolean;
   periodType: PeriodType;
   /**
    * Number of days(Applicable only for ROLLING period type)
@@ -120,6 +123,7 @@ export type FormValues = {
   scheduleName: string;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
+  maxActiveBookingsPerBooker: number | null;
   beforeEventBuffer: number;
   afterEventBuffer: number;
   slotInterval: number | null;
@@ -148,6 +152,18 @@ export type FormValues = {
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
+  restrictionScheduleId: number | null;
+  useBookerTimezone: boolean;
+  restrictionScheduleName: string | null;
+  calVideoSettings?: {
+    disableRecordingForOrganizer?: boolean;
+    disableRecordingForGuests?: boolean;
+    enableAutomaticTranscription?: boolean;
+    disableTranscriptionForGuests?: boolean;
+    disableTranscriptionForOrganizer?: boolean;
+    redirectUrlOnExit?: string;
+  };
+  maxActiveBookingPerBookerOfferReschedule: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

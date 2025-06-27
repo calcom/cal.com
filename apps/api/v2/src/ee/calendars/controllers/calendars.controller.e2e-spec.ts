@@ -31,7 +31,7 @@ import {
 } from "@calcom/platform-constants";
 import { OFFICE_365_CALENDAR_ID, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { ICS_CALENDAR } from "@calcom/platform-constants/apps";
-import { IcsFeedCalendarService } from "@calcom/platform-libraries";
+import { IcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 
@@ -129,7 +129,7 @@ describe("Platform Calendars Endpoints", () => {
 
   it(`/GET/v2/calendars/${GOOGLE_CALENDAR}/connect: it should redirect to auth-url for google calendar OAuth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
-      .get(`/v2/calendars/${GOOGLE_CALENDAR}/connect`)
+      .get(`/v2/calendars/${GOOGLE_CALENDAR}/connect?redir=https://cal.com&isDryRun=false`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);

@@ -7,6 +7,7 @@ import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controller
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
+import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
 import {
   ManagedOrganizationWithApiKeyOutput,
   ManagedOrganizationOutput,
@@ -46,6 +47,7 @@ import {
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { slugify } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
@@ -142,6 +144,21 @@ describe("Organizations Organizations Endpoints", () => {
     clear();
   });
 
+  it("should not create managed organization with string metadata", async () => {
+    const suffix = randomString();
+
+    const body = {
+      name: `organizations organizations org ${suffix}`,
+      metadata: JSON.stringify({ key: "value" }),
+    };
+
+    return request(app.getHttpServer())
+      .post(`/v2/organizations/${managerOrg.id}/organizations`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .send(body)
+      .expect(400);
+  });
+
   it("should create managed organization", async () => {
     const suffix = randomString();
 
@@ -161,6 +178,7 @@ describe("Organizations Organizations Endpoints", () => {
         managedOrg = responseBody.data;
         expect(managedOrg?.id).toBeDefined();
         expect(managedOrg?.name).toEqual(body.name);
+        expect(managedOrg?.slug).toEqual(slugify(body.name));
         expect(managedOrg?.metadata).toEqual(body.metadata);
         expect(managedOrg?.apiKey).toBeDefined();
 
@@ -193,10 +211,24 @@ describe("Organizations Organizations Endpoints", () => {
         expect(membership?.role ?? "").toEqual("OWNER");
         expect(membership?.accepted).toEqual(true);
         // note(Lauris): test that auth user who made request to create managed organization has profile in it
-        const profile = await profilesRepositoryFixture.findByOrgIdUserId(managedOrg.id, managerOrgAdmin.id);
-        expect(profile).toBeDefined();
-        expect(profile?.id).toBeDefined();
-        expect(profile?.username).toEqual(managerOrgAdmin.username);
+        const managedOrgProfile = await profilesRepositoryFixture.findByOrgIdUserId(
+          managedOrg.id,
+          managerOrgAdmin.id
+        );
+        expect(managedOrgProfile).toBeDefined();
+        expect(managedOrgProfile?.id).toBeDefined();
+        expect(managedOrgProfile?.username).toEqual(managerOrgAdmin.username);
+        // note(Lauris): test that auth user who made request to create managed organization has profile in it
+        const managerOrgProfile = await profilesRepositoryFixture.findByOrgIdUserId(
+          managerOrg.id,
+          managerOrgAdmin.id
+        );
+        expect(managerOrgProfile).toBeDefined();
+        expect(managerOrgProfile?.id).toBeDefined();
+        expect(managerOrgProfile?.username).toEqual(managerOrgAdmin.username);
+        // note(Lauris): test that auth user who made request to create managed organization has movedToProfileId pointing to manager org
+        const user = await userRepositoryFixture.get(managerOrgAdmin.id);
+        expect(user?.movedToProfileId).toEqual(managerOrgProfile?.id);
         // note(Lauris): check that platform billing is setup correctly for manager and managed orgs
         const managerOrgBilling = await platformBillingRepositoryFixture.get(managerOrg.id);
         expect(managerOrgBilling).toBeDefined();
@@ -273,7 +305,7 @@ describe("Organizations Organizations Endpoints", () => {
       .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
       .expect(200)
       .then(async (response) => {
-        const responseBody: ApiSuccessResponse<ManagedOrganizationOutput[]> = response.body;
+        const responseBody: GetManagedOrganizationsOutput = response.body;
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
         const responseManagedOrgs = responseBody.data;
         expect(responseManagedOrgs?.length).toEqual(1);
@@ -281,34 +313,59 @@ describe("Organizations Organizations Endpoints", () => {
         expect(responseManagedOrg?.id).toBeDefined();
         expect(responseManagedOrg?.name).toEqual(managedOrg.name);
         expect(responseManagedOrg?.metadata).toEqual(managedOrg.metadata);
+
+        expect(responseBody.pagination).toBeDefined();
+        expect(responseBody.pagination.totalItems).toEqual(1);
+        expect(responseBody.pagination.remainingItems).toEqual(0);
+        expect(responseBody.pagination.returnedItems).toEqual(1);
+        expect(responseBody.pagination.itemsPerPage).toEqual(250);
+        expect(responseBody.pagination.currentPage).toEqual(1);
+        expect(responseBody.pagination.totalPages).toEqual(1);
       });
   });
 
-  it("should update managed organization ", async () => {
-    const suffix = randomString();
-
-    const newOrgName = `new organizations organizations org ${suffix}`;
+  it("should not update managed organization with string metadata", async () => {
+    const body = {
+      metadata: JSON.stringify({ key: "value" }),
+    };
 
     return request(app.getHttpServer())
       .patch(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg.id}`)
       .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
-      .send({
-        name: newOrgName,
-      } satisfies UpdateOrganizationInput)
+      .send(body)
+      .expect(400);
+  });
+
+  it("should update managed organization ", async () => {
+    const name = `new organizations organizations org ${randomString()}`;
+    const metadata = {
+      updatedKey: "updatedValue",
+    };
+    const body: UpdateOrganizationInput = {
+      name,
+      metadata,
+    };
+
+    return request(app.getHttpServer())
+      .patch(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg.id}`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .send(body)
       .expect(200)
       .then(async (response) => {
         const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
         const responseManagedOrg = responseBody.data;
         expect(responseManagedOrg?.id).toBeDefined();
-        expect(responseManagedOrg?.name).toEqual(newOrgName);
+        expect(responseManagedOrg?.name).toEqual(name);
+        expect(responseManagedOrg?.metadata).toEqual(metadata);
 
         const managedOrgInDb =
           await managedOrganizationsRepositoryFixture.getOrganizationWithManagedOrganizations(managedOrg.id);
         expect(managedOrgInDb).toBeDefined();
-        expect(managedOrgInDb?.name).toEqual(newOrgName);
+        expect(managedOrgInDb?.name).toEqual(name);
+        expect(managedOrgInDb?.metadata).toEqual(metadata);
 
-        managedOrg = { ...managedOrg, name: newOrgName };
+        managedOrg = { ...managedOrg, name, metadata };
       });
   });
 

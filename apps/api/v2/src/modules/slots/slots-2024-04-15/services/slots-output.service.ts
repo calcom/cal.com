@@ -7,7 +7,7 @@ import { SlotFormat } from "@calcom/platform-enums";
 export type TimeSlots = {
   slots: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>;
 };
-type RangeSlots = {
+export type RangeSlots = {
   slots: Record<string, { startTime: string; endTime: string; attendees?: number; bookingUid?: string }[]>;
 };
 
