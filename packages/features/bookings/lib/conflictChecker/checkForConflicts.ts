@@ -2,6 +2,9 @@ import type { Dayjs } from "dayjs";
 
 import dayjs from "@calcom/dayjs";
 import type { CurrentSeats } from "@calcom/lib/getUserAvailability";
+import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
+
+type BufferedBusyTimes = BufferedBusyTime[];
 
 // if true, there are conflicts.
 export function checkForConflicts({
@@ -10,7 +13,7 @@ export function checkForConflicts({
   eventLength,
   currentSeats,
 }: {
-  busy: { start: Dayjs | Date; end: Dayjs | Date }[];
+  busy: BufferedBusyTimes;
   time: Dayjs;
   eventLength: number;
   currentSeats?: CurrentSeats;
@@ -28,8 +31,8 @@ export function checkForConflicts({
 
   const sortedBusyTimes = busy
     .map((busyTime) => ({
-      start: busyTime.start.valueOf(),
-      end: busyTime.end.valueOf(),
+      start: dayjs.utc(busyTime.start).valueOf(),
+      end: dayjs.utc(busyTime.end).valueOf(),
     }))
     .sort((a, b) => a.start - b.start);
 
