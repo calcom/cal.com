@@ -1,6 +1,12 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Bring this test back with the correct setup (no illegal imports)
+import {
+  getDate,
+  createBookingScenario,
+  getOrganizer,
+  getScenarioData,
+  TestData,
+  mockSuccessfulVideoMeetingCreation,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -8,7 +14,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "../../../types";
 import { confirmHandler } from "./confirm.handler";
 
-describe.skip("confirmHandler", () => {
+describe("confirmHandler", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
@@ -94,7 +100,85 @@ describe.skip("confirmHandler", () => {
 
     const res = await confirmHandler({
       ctx,
-      input: { bookingId: 101, confirmed: true, reason: "" },
+      input: { bookingId: 101, confirmed: true, reason: "", emailsEnabled: true },
+    });
+
+    expect(res?.status).toBe(BookingStatus.ACCEPTED);
+  });
+
+  it("should successfully confirm booking with hideCalendarNotes enabled", async () => {
+    const attendeeUser = getOrganizer({
+      email: "test@example.com",
+      name: "test name",
+      id: 102,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const uidOfBooking = "hideNotes123";
+    const iCalUID = `${uidOfBooking}@Cal.com`;
+
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 15,
+            length: 15,
+            locations: [],
+            hideCalendarNotes: true,
+            requiresConfirmation: true,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: 101,
+            uid: uidOfBooking,
+            eventTypeId: 1,
+            status: BookingStatus.PENDING,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:15:00.000Z`,
+            references: [],
+            iCalUID,
+            location: "integrations:daily",
+            attendees: [attendeeUser],
+            responses: { name: attendeeUser.name, email: attendeeUser.email, notes: "Sensitive information" },
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+    });
+
+    const ctx = {
+      user: {
+        id: organizer.id,
+        name: organizer.name,
+        timeZone: organizer.timeZone,
+        username: organizer.username,
+      } as NonNullable<TrpcSessionUser>,
+    };
+
+    const res = await confirmHandler({
+      ctx,
+      input: { bookingId: 101, confirmed: true, reason: "", emailsEnabled: true },
     });
 
     expect(res?.status).toBe(BookingStatus.ACCEPTED);
