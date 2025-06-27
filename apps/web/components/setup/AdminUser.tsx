@@ -199,7 +199,7 @@ export const AdminUser = (props: {
             color="primary"
             loading={formMethods.formState.isSubmitting}
             disabled={!formMethods.formState.isValid || formMethods.formState.isSubmitting}>
-            {t("next_step")}
+            {t("next")}
           </Button>
         </div>
       </form>
