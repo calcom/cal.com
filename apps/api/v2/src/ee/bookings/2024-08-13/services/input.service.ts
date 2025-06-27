@@ -140,9 +140,14 @@ export class InputBookingsService_2024_08_13 {
     this.validateBookingLengthInMinutes(inputBooking, eventType);
 
     const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
-    const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
-      inputBooking.attendee.timeZone
-    );
+    let startTime;
+    if (/([Zz]|[+-]\d{2}:?\d{2})$/.test(inputBooking.start)) {
+      startTime = DateTime.fromISO(inputBooking.start).toUTC();
+    } else {
+      startTime = DateTime.fromISO(inputBooking.start, {
+        zone: inputBooking.attendee?.timeZone || "utc",
+      }).toUTC();
+    }
     const endTime = startTime.plus({ minutes: lengthInMinutes });
 
     const guests =
@@ -410,9 +415,14 @@ export class InputBookingsService_2024_08_13 {
     const events = [];
     const recurringEventId = uuidv4();
 
-    let startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
-      inputBooking.attendee.timeZone
-    );
+    let startTime;
+    if (/([Zz]|[+-]\d{2}:?\d{2})$/.test(inputBooking.start)) {
+      startTime = DateTime.fromISO(inputBooking.start).toUTC();
+    } else {
+      startTime = DateTime.fromISO(inputBooking.start, {
+        zone: inputBooking.attendee?.timeZone || "utc",
+      }).toUTC();
+    }
 
     const guests =
       inputBooking.guests && platformClientId
@@ -557,7 +567,12 @@ export class InputBookingsService_2024_08_13 {
       );
     }
 
-    const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
+    let startTime;
+    if (/([Zz]|[+-]\d{2}:?\d{2})$/.test(inputBooking.start)) {
+      startTime = DateTime.fromISO(inputBooking.start).toUTC();
+    } else {
+      startTime = DateTime.fromISO(inputBooking.start, { zone: attendee?.timeZone || "utc" }).toUTC();
+    }
     const endTime = startTime.plus({ minutes: eventType.length });
 
     return {
@@ -618,7 +633,12 @@ export class InputBookingsService_2024_08_13 {
       bookingResponses.attendeePhoneNumber = attendee.phoneNumber || undefined;
     }
 
-    const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
+    let startTime;
+    if (/([Zz]|[+-]\d{2}:?\d{2})$/.test(inputBooking.start)) {
+      startTime = DateTime.fromISO(inputBooking.start).toUTC();
+    } else {
+      startTime = DateTime.fromISO(inputBooking.start, { zone: attendee?.timeZone || "utc" }).toUTC();
+    }
     const endTime = startTime.plus({ minutes: eventType.length });
 
     return {
