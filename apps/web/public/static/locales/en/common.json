@@ -3272,6 +3272,7 @@
   "enter_existing_license": "Starting at $15/user per month",
   "enter_license_key_description": "Access to all enterprise features",
   "license_key_placeholder": "Enter your license key",
+  "save_license_key": "Save License Key",
   "signature_token_optional": "Signature token (optional)",
   "signature_token_description": "Signature token is used to verify the license key is yours when incrementing usage based billing. You can find it in your purchase confirmation email. If you are on a legacy license, you can leave this blank.",
   "need_a_license": "Need a license?",

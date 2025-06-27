@@ -48,8 +48,6 @@ const LicenseSelection = (
       { licenseKey: licenseKeyInput },
       {
         enabled: licenseTouched && licenseKeyInput.trim().length > 0,
-        // Don't cache results as license status could change
-        cacheTime: 0,
       }
     );
 
@@ -224,12 +222,12 @@ const LicenseSelection = (
         <Button
           type="submit"
           color="primary"
-          loading={checkLicenseLoading || mutation.isLoading}
+          loading={checkLicenseLoading || mutation.isPending}
           disabled={
             value === "EXISTING" &&
-            (!formMethods.formState.isValid || checkLicenseLoading || mutation.isLoading)
+            (!formMethods.formState.isValid || checkLicenseLoading || mutation.isPending)
           }>
-          {t("next_step")}
+          {t("save_license_key")}
         </Button>
       </div>
     </form>
