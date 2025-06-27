@@ -1,6 +1,5 @@
 "use client";
 
-import { revalidateSettingsCalendars } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/calendars/actions";
 import { useEffect, Suspense } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -17,6 +16,7 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateSettingsCalendars } from "@calcom/web/app/cache/path/settings/my-account";
 
 import { QueryCell } from "@lib/QueryCell";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
