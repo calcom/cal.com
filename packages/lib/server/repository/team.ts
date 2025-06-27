@@ -186,6 +186,39 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
+  static async findAllByParentId({
+    parentId,
+    select = teamSelect,
+  }: {
+    parentId: number;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await prisma.team.findMany({
+      where: {
+        parentId,
+      },
+      select,
+    });
+  }
+
+  static async findByIdAndParentId({
+    id,
+    parentId,
+    select = teamSelect,
+  }: {
+    id: number;
+    parentId: number;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await prisma.team.findFirst({
+      where: {
+        id,
+        parentId,
+      },
+      select,
+    });
+  }
+
   static async deleteById({ id }: { id: number }) {
     try {
       await WorkflowService.deleteWorkflowRemindersOfRemovedTeam(id);
@@ -359,5 +392,19 @@ export class TeamRepository {
         /** To prevent breaking we only return non-email attached token here, if we have one */
         inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
       }));
+  }
+
+  static async findTeamWithOrganizationSettings(teamId: number) {
+    return await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        parent: {
+          select: {
+            isOrganization: true,
+            organizationSettings: true,
+          },
+        },
+      },
+    });
   }
 }

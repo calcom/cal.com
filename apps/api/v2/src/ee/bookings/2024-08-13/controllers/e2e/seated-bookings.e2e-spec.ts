@@ -343,6 +343,22 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    it("should not be able to reschedule seated booking if seatUid is not provided", async () => {
+      const body = {
+        start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${createdSeatedBooking.uid}/reschedule`)
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(400);
+
+      expect(response.body.error.message).toEqual(
+        `Booking with uid=${createdSeatedBooking.uid} is a seated booking which means you have to provide seatUid in the request body to specify which seat specifically you want to reschedule. First, fetch the booking using https://cal.com/docs/api-reference/v2/bookings/get-a-booking and then within the attendees array you will find the seatUid of the booking you want to reschedule. Second, provide the seatUid in the request body to specify which seat specifically you want to reschedule using the reschedule endpoint https://cal.com/docs/api-reference/v2/bookings/reschedule-a-booking#option-2`
+      );
+    });
+
     it("should reschedule seated booking", async () => {
       const body: RescheduleSeatedBookingInput_2024_08_13 = {
         start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
