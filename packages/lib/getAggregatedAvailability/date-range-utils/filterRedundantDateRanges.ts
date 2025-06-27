@@ -17,7 +17,7 @@ class IntervalTree {
       index,
       maxEnd: range.end.valueOf(),
     }));
-    this.root = this.buildTree(nodes);
+    this.root = this.buildTree(nodes.sort((a, b) => a.range.start.valueOf() - b.range.start.valueOf()));
   }
 
   private buildTree(nodes: IntervalNode[]): IntervalNode | undefined {
@@ -95,9 +95,19 @@ export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] 
     const containingIntervals = intervalTree.findContainingIntervals(range, index);
 
     for (const containingNode of containingIntervals) {
+      const otherRange = containingNode.range;
+      const otherIndex = containingNode.index;
+
+      if (
+        otherRange.start.valueOf() === range.start.valueOf() &&
+        otherRange.end.valueOf() === range.end.valueOf()
+      ) {
+        return otherIndex > index; // Keep current range only if other range has higher index
+      }
+
       return false;
     }
 
-    return true;
+    return true; // Keep this range
   });
 }
