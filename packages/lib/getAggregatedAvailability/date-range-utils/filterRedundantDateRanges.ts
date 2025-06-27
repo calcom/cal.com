@@ -17,7 +17,7 @@ class IntervalTree {
       index,
       maxEnd: range.end.valueOf(),
     }));
-    this.root = this.buildTree(nodes.sort((a, b) => a.range.start.valueOf() - b.range.start.valueOf()));
+    this.root = this.buildTree(nodes);
   }
 
   private buildTree(nodes: IntervalNode[]): IntervalNode | undefined {
