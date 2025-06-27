@@ -58,7 +58,7 @@ export class StripeBillingService implements BillingService {
       invoice_creation: {
         enabled: true,
       },
-    });
+    } as any);
 
     return {
       checkoutUrl: session.url,
