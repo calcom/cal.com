@@ -1023,4 +1023,19 @@ describe("intersect function comprehensive tests", () => {
       expect(intersection.end.valueOf() <= ranges2[0].end.valueOf()).toBe(true);
     });
   });
+
+  describe("gap scenarios", () => {
+    it("should return an empty array when one user's availability is in the gap of another's", () => {
+      const userA_Availability = [
+        { start: dayjs("2023-07-01T09:00:00Z"), end: dayjs("2023-07-01T12:00:00Z") },
+        { start: dayjs("2023-07-01T14:00:00Z"), end: dayjs("2023-07-01T17:00:00Z") },
+      ];
+      const userB_Availability = [
+        { start: dayjs("2023-07-01T12:00:00Z"), end: dayjs("2023-07-01T14:00:00Z") },
+      ];
+
+      const result = intersect([userA_Availability, userB_Availability]);
+      expect(result).toEqual([]);
+    });
+  });
 });
