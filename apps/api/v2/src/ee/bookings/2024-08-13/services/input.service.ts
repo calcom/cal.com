@@ -100,7 +100,7 @@ export class InputBookingsService_2024_08_13 {
    * Converts a start time string to UTC DateTime, respecting timezone offsets or attendee's timezone.
    */
   private parseToUTC(start: string, timeZone?: string) {
-    if (/([Zz]|[+-]\d{2}:?\d{2})$/.test(start)) {
+    if (/([Zz]|[+-]\d{2}(?::?\d{2})?)$/.test(start)) {
       return DateTime.fromISO(start).toUTC();
     } else {
       return DateTime.fromISO(start, { zone: timeZone || "utc" }).toUTC();
