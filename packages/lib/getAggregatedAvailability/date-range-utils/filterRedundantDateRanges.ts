@@ -84,9 +84,10 @@ class IntervalTree {
 export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] {
   if (dateRanges.length <= 1) return dateRanges;
 
-  const intervalTree = new IntervalTree(dateRanges);
+  const sortedRanges = [...dateRanges].sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  const intervalTree = new IntervalTree(sortedRanges);
 
-  return dateRanges.filter((range, index) => {
+  return sortedRanges.filter((range, index) => {
     if (range.end.valueOf() < range.start.valueOf()) {
       return true;
     }
@@ -101,12 +102,12 @@ export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] 
         otherRange.start.valueOf() === range.start.valueOf() &&
         otherRange.end.valueOf() === range.end.valueOf()
       ) {
-        return otherIndex > index; // Keep current range only if other range has higher index
+        return otherIndex > index;
       }
 
       return false;
     }
 
-    return true; // Keep this range
+    return true;
   });
 }
