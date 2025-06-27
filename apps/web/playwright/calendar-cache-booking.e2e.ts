@@ -15,8 +15,7 @@ test.describe("Calendar Cache Booking", () => {
     page,
     users,
     prisma,
-  }, testInfo) => {
-    test.setTimeout(testInfo.timeout * 2);
+  }) => {
     const user = await users.create();
     await user.apiLogin();
     const [eventType] = user.eventTypes;
@@ -53,6 +52,12 @@ test.describe("Calendar Cache Booking", () => {
     });
 
     await page.goto(`/${user.username}/${eventType.slug}`);
+
+    await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 5000 });
+
+    await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 5000 });
+
     await page.locator('[data-testid="time"]').first().click();
     await page.fill('[name="name"]', "Test Booker");
     await page.fill('[name="email"]', `test-${randomString(10)}@example.com`);
@@ -70,8 +75,7 @@ test.describe("Calendar Cache Booking", () => {
     page,
     users,
     prisma,
-  }, testInfo) => {
-    test.setTimeout(testInfo.timeout * 2);
+  }) => {
     const user1 = await users.create({ name: "User 1" });
     const user2 = await users.create({ name: "User 2" });
     await user1.apiLogin();
@@ -133,6 +137,12 @@ test.describe("Calendar Cache Booking", () => {
     });
 
     await page.goto(`/${user1.username}/${teamEventType.slug}`);
+
+    await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 5000 });
+
+    await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 5000 });
+
     await page.locator('[data-testid="time"]').first().click();
     await page.fill('[name="name"]', "Team Booker");
     await page.fill('[name="email"]', `team-test-${randomString(10)}@example.com`);
