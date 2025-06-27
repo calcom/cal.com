@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
@@ -102,6 +102,10 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
         if (state) {
           set(state);
         } else {
+          // Clear the localStorage entry for this store
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("org-creation-onboarding");
+          }
           set(initialState);
         }
       },
@@ -117,6 +121,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   const router = useRouter();
   const path = usePathname();
   const isAdmin = session.data?.user?.role === UserPermissionRole.ADMIN;
+  const isBillingEnabled = !(IS_SELF_HOSTED && isAdmin) || process.env.NEXT_PUBLIC_IS_E2E;
   const searchParams = useSearchParams();
   const { data: organizationOnboarding, isPending: isLoadingOrgOnboarding } =
     trpc.viewer.organizations.getOrganizationOnboarding.useQuery();
@@ -125,6 +130,10 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   useEffect(() => {
     if (isLoadingOrgOnboarding) {
       return;
+    }
+
+    if (organizationOnboarding?.isComplete) {
+      reset();
     }
 
     if (organizationOnboarding) {
@@ -143,6 +152,9 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
           bio: organizationOnboarding.bio,
           logo: organizationOnboarding.logo,
         });
+        if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data?.user.email) {
+          reset();
+        }
       }
     } else {
       // First step doesn't require onboardingId
@@ -153,11 +165,6 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
         console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
         router.push("/settings/organizations/new");
       }
-    }
-
-    // Admin must start fresh, so that they can create organization with any email and data doesn't mix from different org creations
-    if (isAdmin) {
-      reset();
     }
   }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, onboardingId, reset, step, router]);
 
@@ -170,5 +177,10 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
       router.push(`/auth/login?callbackUrl=${WEBAPP_URL}${path}${searchString ? `?${searchString}` : ""}`);
     }
   }, [session, router, path, searchParams]);
-  return { useOnboardingStore, isLoadingOrgOnboarding, dbOnboarding: organizationOnboarding };
+  return {
+    useOnboardingStore,
+    isLoadingOrgOnboarding,
+    dbOnboarding: organizationOnboarding,
+    isBillingEnabled,
+  };
 };
