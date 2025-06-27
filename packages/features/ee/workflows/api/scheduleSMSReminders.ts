@@ -157,7 +157,7 @@ export async function handler(req: NextRequest) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const smsMessageWithoutOptOut = smsMessage;
+        const smsMessageWithoutOptOut = message;
 
         if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
           message = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
