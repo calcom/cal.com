@@ -1,5 +1,4 @@
 import {
-  getDate,
   createBookingScenario,
   getOrganizer,
   getScenarioData,
@@ -21,6 +20,8 @@ describe("confirmHandler", () => {
   });
 
   it("should successfully confirm booking when event type doesn't have any default location", async () => {
+    vi.setSystemTime("2050-01-07T00:00:00Z");
+
     const attendeeUser = getOrganizer({
       email: "test@example.com",
       name: "test name",
@@ -38,7 +39,7 @@ describe("confirmHandler", () => {
     const uidOfBooking = "n5Wv3eHgconAED2j4gcVhP";
     const iCalUID = `${uidOfBooking}@Cal.com`;
 
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+    const plus1DateString = "2050-01-08";
 
     await createBookingScenario(
       getScenarioData({
@@ -107,6 +108,8 @@ describe("confirmHandler", () => {
   });
 
   it("should successfully confirm booking with hideCalendarNotes enabled", async () => {
+    vi.setSystemTime("2050-01-07T00:00:00Z");
+
     const attendeeUser = getOrganizer({
       email: "test@example.com",
       name: "test name",
@@ -124,7 +127,7 @@ describe("confirmHandler", () => {
     const uidOfBooking = "hideNotes123";
     const iCalUID = `${uidOfBooking}@Cal.com`;
 
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+    const plus1DateString = "2050-01-08";
 
     await createBookingScenario(
       getScenarioData({
