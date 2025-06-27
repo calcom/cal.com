@@ -26,6 +26,133 @@ beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
 });
 
+describe("single user optimization", () => {
+  // Add this test case to the existing test file
+
+  it("should return single user immediately without expensive operations", async () => {
+    const singleUser: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        priority: 2,
+        weight: 100,
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
+
+    // Mock functions should NOT be called for single user scenario
+    const calendarSpy = vi.spyOn(CalendarManagerMock, "getBusyCalendarTimes");
+    const prismaSpy = vi.spyOn(prismaMock.outOfOfficeEntry, "findMany");
+    const userSpy = vi.spyOn(prismaMock.user, "findMany");
+    const hostSpy = vi.spyOn(prismaMock.host, "findMany");
+    const bookingSpy = vi.spyOn(prismaMock.booking, "findMany");
+
+    const result = await getLuckyUser({
+      availableUsers: singleUser,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: true, // Even with weights enabled
+        team: {
+          rrResetInterval: RRResetInterval.MONTH,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+        },
+      },
+      allRRHosts: [
+        {
+          user: {
+            id: singleUser[0].id,
+            email: singleUser[0].email,
+            credentials: [],
+            userLevelSelectedCalendars: [],
+          },
+          weight: singleUser[0].weight,
+          createdAt: new Date(0),
+        },
+      ],
+      routingFormResponse: {
+        response: { someField: { value: "someValue" } },
+        chosenRouteId: "some-route-id",
+        form: {
+          fields: [],
+          routes: [],
+        },
+      },
+    });
+
+    // ✅ Should return the single user immediately
+    expect(result).toStrictEqual(singleUser[0]);
+
+    // ✅ Expensive operations should NOT have been called
+    expect(calendarSpy).not.toHaveBeenCalled();
+    expect(prismaSpy).not.toHaveBeenCalled();
+    expect(userSpy).not.toHaveBeenCalled();
+    expect(hostSpy).not.toHaveBeenCalled();
+    expect(bookingSpy).not.toHaveBeenCalled();
+
+    // Clean up spies
+    calendarSpy.mockRestore();
+    prismaSpy.mockRestore();
+    userSpy.mockRestore();
+    hostSpy.mockRestore();
+    bookingSpy.mockRestore();
+  });
+
+  // Additional test to verify the optimization doesn't break multi-user scenarios
+  it("should still perform expensive operations for multiple users", async () => {
+    const multipleUsers: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+      }),
+    ];
+
+    // Setup mocks for multi-user scenario
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+    prismaMock.user.findMany.mockResolvedValue(multipleUsers);
+    prismaMock.host.findMany.mockResolvedValue([]);
+    prismaMock.booking.findMany.mockResolvedValue([]);
+
+    const calendarSpy = vi.spyOn(CalendarManagerMock, "getBusyCalendarTimes");
+    const prismaSpy = vi.spyOn(prismaMock.outOfOfficeEntry, "findMany");
+
+    await getLuckyUser({
+      availableUsers: multipleUsers,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+        team: {
+          rrResetInterval: RRResetInterval.MONTH,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+        },
+      },
+      allRRHosts: [],
+      routingFormResponse: null,
+    });
+
+    // ✅ Expensive operations SHOULD have been called for multiple users
+    expect(calendarSpy).toHaveBeenCalled();
+    expect(prismaSpy).toHaveBeenCalled();
+
+    calendarSpy.mockRestore();
+    prismaSpy.mockRestore();
+  });
+});
+
 it("can find lucky user with maximize availability", async () => {
   const users: GetLuckyUserAvailableUsersType = [
     buildUser({
@@ -69,7 +196,10 @@ it("can find lucky user with maximize availability", async () => {
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        team: {
+          rrResetInterval: RRResetInterval.MONTH,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+        },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -124,7 +254,10 @@ it("can find lucky user with maximize availability and priority ranking", async 
         isRRWeightsEnabled: false,
         team: {
           rrResetInterval: RRResetInterval.MONTH,
-          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          team: {
+            rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
       },
       allRRHosts: [],
@@ -182,7 +315,10 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        team: {
+          rrResetInterval: RRResetInterval.MONTH,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+        },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -244,7 +380,10 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        team: {
+          rrResetInterval: RRResetInterval.MONTH,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+        },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -318,12 +457,22 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -335,7 +484,10 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          team: {
+            rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -426,12 +578,22 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -443,7 +605,10 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.DAY, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          team: {
+            rrResetInterval: RRResetInterval.DAY,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -534,12 +699,22 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -551,7 +726,10 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.DAY, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          team: {
+            rrResetInterval: RRResetInterval.DAY,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -589,12 +767,22 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -646,7 +834,10 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          team: {
+            rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -695,12 +886,22 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -753,7 +954,10 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          team: {
+            rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -806,12 +1010,22 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: middleOfMonth,
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -848,7 +1062,10 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          team: {
+            rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -873,7 +1090,10 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          team: {
+            rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -909,14 +1129,24 @@ describe("attribute weights and virtual queues", () => {
           label: "company_size",
           value: attributeOneOptionIdFirst,
         },
-        [fieldIdTwo]: { label: "headquarters", value: attributeTwoOptionIdSecond },
+        [fieldIdTwo]: {
+          label: "headquarters",
+          value: attributeTwoOptionIdSecond,
+        },
       },
       form: {
         routes: [
           {
             id: uuid(),
-            action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
-            queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            action: {
+              type: "eventTypeRedirectUrl",
+              value: "team/team1/team1-event-1",
+              eventTypeId: 29,
+            },
+            queryValue: {
+              id: "a98ab8a9-4567-489a-bcde-f1932649bb8b",
+              type: "group",
+            },
             attributesQueryValue: {
               id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
               type: "group",
@@ -940,8 +1170,15 @@ describe("attribute weights and virtual queues", () => {
             //chosen route
             id: routeId,
             attributeIdForWeights: attributeId,
-            action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
-            queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            action: {
+              type: "eventTypeRedirectUrl",
+              value: "team/team1/team1-event-1",
+              eventTypeId: 29,
+            },
+            queryValue: {
+              id: "a98ab8a9-4567-489a-bcde-f1932649bb8b",
+              type: "group",
+            },
             attributesQueryValue: {
               id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
               type: "group",
@@ -1077,8 +1314,15 @@ describe("attribute weights and virtual queues", () => {
         routes: [
           {
             id: uuid(),
-            action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
-            queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            action: {
+              type: "eventTypeRedirectUrl",
+              value: "team/team1/team1-event-1",
+              eventTypeId: 29,
+            },
+            queryValue: {
+              id: "a98ab8a9-4567-489a-bcde-f1932649bb8b",
+              type: "group",
+            },
             attributesQueryValue: {
               id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
               type: "group",
@@ -1102,8 +1346,15 @@ describe("attribute weights and virtual queues", () => {
             //chosen route
             id: routeId,
             attributeIdForWeights: attributeId,
-            action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
-            queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            action: {
+              type: "eventTypeRedirectUrl",
+              value: "team/team1/team1-event-1",
+              eventTypeId: 29,
+            },
+            queryValue: {
+              id: "a98ab8a9-4567-489a-bcde-f1932649bb8b",
+              type: "group",
+            },
             attributesQueryValue: {
               id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
               type: "group",
@@ -1240,8 +1491,15 @@ describe("attribute weights and virtual queues", () => {
         routes: [
           {
             id: routeId,
-            action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
-            queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            action: {
+              type: "eventTypeRedirectUrl",
+              value: "team/team1/team1-event-1",
+              eventTypeId: 29,
+            },
+            queryValue: {
+              id: "a98ab8a9-4567-489a-bcde-f1932649bb8b",
+              type: "group",
+            },
             attributeIdForWeights: attributeId,
             attributesQueryValue: {
               id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
@@ -1374,12 +1632,22 @@ describe("attribute weights and virtual queues", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          selectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
