@@ -80,6 +80,7 @@ test.describe("Calendar Cache Booking", () => {
         slug: `team-event-${randomString(10)}`,
         length: 30,
         schedulingType: "COLLECTIVE",
+        userId: user1.id,
         users: {
           connect: [{ id: user1.id }, { id: user2.id }],
         },
