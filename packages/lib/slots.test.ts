@@ -438,19 +438,29 @@ describe("Tests the slots function performance", () => {
       offsetStart: 0,
     });
 
-    expect(result.length).toBeGreaterThan(0);
-
     const endTime = process.hrtime(startTime);
     const executionTimeInMs = endTime[0] * 1000 + endTime[1] / 1000000;
 
     expect(executionTimeInMs).toBeLessThan(2000);
 
+    expect(result.length).toBe(33); // Based on previous test runs - exact expected count
+    expect(result.length).toBeLessThan(dateRanges.length);
+
+    const earliestExpected = startDay.hour(9).minute(0);
+    const latestExpected = startDay.hour(17).minute(0);
+
+    result.forEach((slot) => {
+      expect(slot.time.valueOf() >= earliestExpected.valueOf()).toBe(true);
+      expect(slot.time.valueOf() < latestExpected.valueOf()).toBe(true);
+    });
+
+    const slotTimes = result.map((slot) => slot.time.valueOf());
+    const uniqueSlotTimes = new Set(slotTimes);
+    expect(uniqueSlotTimes.size).toBe(result.length); // All slots should be unique
+
     console.log(
       `Boundary stress test completed in ${executionTimeInMs}ms with ${result.length} slots generated from ${dateRanges.length} overlapping date ranges`
     );
-
-    expect(result.length).toBeLessThan(dateRanges.length);
-    expect(result.length).toBeGreaterThan(20);
   });
 
   it("compares performance between sparse and dense boundary scenarios", async () => {
@@ -510,6 +520,56 @@ describe("Tests the slots function performance", () => {
     expect(denseResult.length).toBeGreaterThan(0);
   });
 
+  it("validates exact slot values with predictable overlapping ranges", async () => {
+    const startDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges: DateRange[] = [];
+
+    dateRanges.push({
+      start: startDay.hour(9).minute(0),
+      end: startDay.hour(10).minute(30),
+    });
+
+    dateRanges.push({
+      start: startDay.hour(9).minute(15),
+      end: startDay.hour(10).minute(45),
+    });
+
+    dateRanges.push({
+      start: startDay.hour(11).minute(0),
+      end: startDay.hour(12).minute(0),
+    });
+
+    const result = getSlots({
+      inviteeDate: startDay,
+      frequency: 15,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 30,
+      offsetStart: 0,
+    });
+
+    expect(result.length).toBe(9);
+
+    const expectedSlots = [
+      startDay.hour(9).minute(0).toISOString(),
+      startDay.hour(9).minute(15).toISOString(),
+      startDay.hour(9).minute(30).toISOString(),
+      startDay.hour(9).minute(45).toISOString(),
+      startDay.hour(10).minute(0).toISOString(),
+      startDay.hour(10).minute(15).toISOString(),
+      startDay.hour(11).minute(0).toISOString(),
+      startDay.hour(11).minute(15).toISOString(),
+      startDay.hour(11).minute(30).toISOString(),
+    ];
+
+    const actualSlots = result.map((slot) => slot.time.toISOString()).sort();
+    expectedSlots.sort();
+
+    expect(actualSlots).toEqual(expectedSlots);
+
+    console.log(`Exact slot validation passed with ${result.length} slots matching expected values`);
+  });
+
   it("intensive stress test with 2000 overlapping date ranges", async () => {
     const startTime = process.hrtime();
 
@@ -540,17 +600,32 @@ describe("Tests the slots function performance", () => {
       offsetStart: 0,
     });
 
-    expect(result.length).toBeGreaterThan(0);
-
     const endTime = process.hrtime(startTime);
     const executionTimeInMs = endTime[0] * 1000 + endTime[1] / 1000000;
 
     expect(executionTimeInMs).toBeLessThan(5000); // Allow up to 5 seconds for intensive test
 
+    expect(result.length).toBeGreaterThan(10);
+    expect(result.length).toBeLessThan(400); // Should be much less than theoretical maximum
+
+    const earliestExpected = startDay.hour(9).minute(0);
+    const latestExpected = startDay.hour(18).minute(45); // Last possible slot in 18th hour
+
+    result.forEach((slot) => {
+      expect(slot.time.valueOf() >= earliestExpected.valueOf()).toBe(true);
+      expect(slot.time.valueOf() <= latestExpected.valueOf()).toBe(true);
+    });
+
+    const sortedSlots = result.map((slot) => slot.time).sort((a, b) => a.valueOf() - b.valueOf());
+    for (let i = 1; i < sortedSlots.length; i++) {
+      const timeDiff = sortedSlots[i].diff(sortedSlots[i - 1], "minutes");
+      expect(timeDiff).toBeGreaterThanOrEqual(15); // Should be at least 15 minutes apart
+    }
+
     console.log(
       `Intensive stress test completed in ${executionTimeInMs}ms with ${result.length} slots generated from ${dateRanges.length} overlapping date ranges`
     );
 
-    expect(result.length).toBeGreaterThan(10); // Should generate meaningful slots despite heavy overlap
+    expect(result.length).toBe(48); // Based on previous test runs
   });
 });
