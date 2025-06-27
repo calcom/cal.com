@@ -15,11 +15,11 @@ import LicenseSelection from "@components/setup/LicenseSelection";
 
 import type { getServerSideProps } from "@server/lib/setup/getServerSideProps";
 
-function useSetStep() {
+function useSetStep(defaultStep = 1) {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
   const pathname = usePathname();
-  const setStep = (newStep = 1) => {
+  const setStep = (newStep = defaultStep) => {
     const _searchParams = new URLSearchParams(searchParams ?? undefined);
     _searchParams.set("step", newStep.toString());
     router.replace(`${pathname}?${_searchParams.toString()}`);
@@ -29,6 +29,16 @@ function useSetStep() {
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export function Setup(props: PageProps) {
+  let step = 1;
+  if (props.userCount > 0) {
+    step = 2;
+  }
+  if (props.hasValidLicense) {
+    step = 2;
+  } else {
+    step = 3;
+  }
+
   const { t } = useLocale();
   const router = useRouter();
   const [licenseOption, setLicenseOption] = useState<"FREE" | "EXISTING">(
@@ -127,6 +137,7 @@ export function Setup(props: PageProps) {
         finishLabel={t("finish")}
         prevLabel={t("prev_step")}
         stepLabel={(currentStep, maxSteps) => t("current_step_of_total", { currentStep, maxSteps })}
+        currentStep={step}
       />
     </main>
   );

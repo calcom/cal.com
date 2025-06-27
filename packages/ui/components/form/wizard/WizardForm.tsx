@@ -27,6 +27,7 @@ type DefaultStep = {
   isEnabled?: boolean;
   isPending?: boolean;
   customActions?: boolean;
+  currentStep?: number;
 };
 
 function WizardForm<T extends DefaultStep>(props: {
@@ -37,6 +38,7 @@ function WizardForm<T extends DefaultStep>(props: {
   prevLabel?: string;
   nextLabel?: string;
   finishLabel?: string;
+  currentStep?: number;
   stepLabel?: React.ComponentProps<typeof Steps>["stepLabel"];
 }) {
   const searchParams = useCompatSearchParams();
@@ -45,7 +47,7 @@ function WizardForm<T extends DefaultStep>(props: {
   const stepSchema = z.coerce.number().int().min(1).max(steps.length).default(1);
   const stepResult = stepSchema.safeParse(searchParams?.get("step"));
   const step = stepResult.success ? stepResult.data : 1;
-  const currentStep = steps[step - 1];
+  const currentStep = props.currentStep ? steps[props.currentStep - 1] : steps[step - 1];
   const setStep = (newStep: number) => {
     router.replace(`${href}?step=${newStep || 1}`);
   };
