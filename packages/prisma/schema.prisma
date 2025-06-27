@@ -10,6 +10,7 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["views"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 generator zod {
@@ -26,7 +27,7 @@ generator kysely {
 }
 
 generator enums {
-  provider = "ts-node --transpile-only ./enum-generator"
+  provider = "ts-node --transpile-only ./enum-generator.ts"
 }
 
 enum SchedulingType {

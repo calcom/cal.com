@@ -3,7 +3,10 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import path from "path";
 import { defineConfig } from "vite";
+import { copy } from "vite-plugin-copy";
 import dts from "vite-plugin-dts";
+
+// Import the copy plugin
 
 // https://vitejs.dev/guide/build.html#library-mode
 export default defineConfig({
@@ -13,7 +16,7 @@ export default defineConfig({
   },
   build: {
     target: "node18",
-    platform: "node",
+    // platform: "node", // platform is not a direct build option, it's under esbuild
     ssr: true,
     lib: {
       entry: resolve(__dirname, "./index.ts"),
@@ -24,8 +27,10 @@ export default defineConfig({
       dynamicRequireRoot: "../../../apps/web",
       dynamicRequireTargets: ["next-i18next.config.js"],
       ignoreDynamicRequires: true,
+      include: ["../../../node_modules/@prisma/**", "../../../node_modules/.prisma/**"],
     },
     rollupOptions: {
+      // PRISMA-RELATED PACKAGES HAVE BEEN REMOVED FROM 'external'
       external: [
         "react",
         "fs",
@@ -36,7 +41,6 @@ export default defineConfig({
         "http",
         "fs/promises",
         "perf_hooks",
-        "@prisma/client",
         "async",
         "libphonenumber-js",
         "lodash",
@@ -62,7 +66,6 @@ export default defineConfig({
         "@sendgrid/client",
         "@sendgrid/mail",
         "twilio",
-        "@prisma/client/runtime/index-browser.js",
         "lru-cache",
         "next-auth/jwt",
         "memory-cache",
@@ -92,11 +95,11 @@ export default defineConfig({
         "dayjs/plugin/toArray.js",
         "dayjs/plugin/utc.js",
         "tslog",
-        "@prisma/extension-accelerate",
         "@ewsjs/xhr",
         "next-i18next/serverSideTranslations",
       ],
       output: {
+        // CORRESPONDING PRISMA-RELATED ENTRIES REMOVED FROM 'globals'
         globals: {
           react: "React",
           "react-dom": "ReactDOM",
@@ -107,7 +110,6 @@ export default defineConfig({
           http: "http",
           "fs/promises": "fs/promises",
           perf_hooks: "perf_hooks",
-          "@prisma/client": "@prisma/client",
           async: "async",
           "libphonenumber-js": "libphonenumber-js",
           lodash: "lodash",
@@ -133,7 +135,6 @@ export default defineConfig({
           "@sendgrid/client": "@sendgrid/client",
           "@sendgrid/mail": "@sendgrid/mail",
           twilio: "twilio",
-          "@prisma/client/runtime/index-browser.js": "@prisma/client/runtime/index-browser.js",
           "lru-cache": "lru-cache",
           "next-auth/jwt": "next-auth/jwt",
           "memory-cache": "memory-cache",
@@ -163,16 +164,30 @@ export default defineConfig({
           "dayjs/plugin/toArray.js": "dayjs/plugin/toArray.js",
           "dayjs/plugin/utc.js": "dayjs/plugin/utc.js",
           tslog: "tslog",
-          "@prisma/extension-accelerate": "@prisma/extension-accelerate",
           "@ewsjs/xhr": "@ewsjs/xhr",
           "next-i18next/serverSideTranslations": "next-i18next/serverSideTranslations",
-          "@calcom/prisma/client": "@calcom/prisma/client",
         },
       },
     },
   },
-  plugins: [react(), dts()],
+  plugins: [
+    react(),
+    dts(),
+    copy({
+      targets: [
+        {
+          // NOTE: Adjust the source path if your schema.prisma is located elsewhere
+          src: "../../../prisma/schema.prisma",
+          dest: ".", // Copy to the root of the 'dist' folder
+        },
+      ],
+      // This ensures the plugin runs only during the build process
+      hook: "writeBundle",
+    }),
+  ],
   resolve: {
+    conditions: ["node"],
+    // The aliases should remain to help Vite find the correct packages
     alias: {
       "@": path.resolve(__dirname, "./src"),
       "@calcom/lib": path.resolve(__dirname, "../../lib"),
@@ -180,6 +195,12 @@ export default defineConfig({
       "lru-cache": resolve("../../../node_modules/lru-cache/dist/cjs/index.js"),
       "@prisma/client": resolve("../../../node_modules/@prisma/client"),
       "@calcom/prisma/client": resolve("../../../node_modules/.prisma/client"),
+      ".prisma/client/index-browser": resolve(__dirname, "../../../node_modules/.prisma/client/index.js"),
+
+      "@prisma/client/runtime/index-browser.js": resolve(
+        __dirname,
+        "../../../node_modules/@prisma/client/runtime/library.js"
+      ),
     },
   },
 });

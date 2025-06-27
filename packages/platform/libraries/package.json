@@ -1,6 +1,6 @@
 {
   "name": "@calcom/platform-libraries",
-  "version": "0.0.0",
+  "version": "0.0.2-prisma-patched-2",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,13 +10,13 @@
   ],
   "scripts": {
     "build": "yarn vite build",
-    "build:watch": "yarn vite build --watch",
-    "publish": "rm -rf dist && yarn build && npm publish --access public"
+    "build:watch": "yarn vite build --watch"
   },
   "dependencies": {
     "@calcom/core": "*",
     "@calcom/features": "*",
-    "@calcom/lib": "*"
+    "@calcom/lib": "*",
+    "vite-plugin-copy": "^0.1.6"
   },
   "devDependencies": {
     "@types/node": "^20.3.1",
