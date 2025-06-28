@@ -14,6 +14,7 @@ import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
 import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
+import { sanitizeHtmlId } from "./utils";
 
 export const enum EmbedTabName {
   HTML = "embed-code",
@@ -41,6 +42,9 @@ export const tabs = [
       if (ref.current && !(ref.current instanceof HTMLTextAreaElement)) {
         return null;
       }
+
+      const safeNamespace = sanitizeHtmlId(namespace);
+
       return (
         <>
           <div>
@@ -59,7 +63,7 @@ export const tabs = [
               embedType === "inline"
                 ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
                     previewState.inline.height
-                  )};overflow:scroll" id="my-cal-inline-${namespace}"></div>\n`
+                  )};overflow:scroll" id="my-cal-inline-${safeNamespace}"></div>\n`
                 : ""
             }<script type="text/javascript">
   ${embedSnippetString}
