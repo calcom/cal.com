@@ -354,7 +354,14 @@ export default function ToolbarPlugin(props: TextEditorProps) {
             const nodes = $generateNodesFromDOM(editor, dom);
             root.clear();
             root.select();
-            $insertNodes(nodes);
+            try {
+              $insertNodes(nodes);
+            } catch (_e) {
+              // Fallback for cases where top-level insertion is not allowed.
+              const paragraphNode = $createParagraphNode();
+              nodes.forEach((n) => paragraphNode.append(n));
+              root.append(paragraphNode);
+            }
           });
         }
       });
