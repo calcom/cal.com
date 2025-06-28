@@ -39,6 +39,7 @@ export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] 
         return otherIndex > index; // Keep current range only if other range has higher index
       }
 
+      // If we reach here, the other range actually contains this range
       return false;
     }
 

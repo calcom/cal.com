@@ -113,4 +113,16 @@ describe("filterRedundantDateRanges", () => {
     const result = filterRedundantDateRanges(dateRanges);
     expect(result.length).toBe(2);
   });
+
+  it("should handle overlapping but non-containing ranges", () => {
+    const dateRanges = [
+      { start: dayjs("2025-01-23T10:00:00.000Z"), end: dayjs("2025-01-23T12:00:00.000Z") },
+      { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T13:00:00.000Z") },
+    ];
+
+    const result = filterRedundantDateRanges(dateRanges);
+    expect(result.length).toBe(2);
+    expect(result[0].start.format()).toEqual(dayjs("2025-01-23T10:00:00.000Z").format());
+    expect(result[1].start.format()).toEqual(dayjs("2025-01-23T11:00:00.000Z").format());
+  });
 });
