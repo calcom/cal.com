@@ -3,7 +3,6 @@ import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { Suspense } from "react";
 import { z } from "zod";
 
 import { orgDomainConfig, getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -102,16 +101,14 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   const content = (
     <div>
       <StaticTeamEventView {...teamEventData} />
-      <Suspense fallback={<div>Loading calendar and booking options...</div>}>
-        <DynamicBookingComponents
-          eventData={teamEventData.eventData}
-          teamId={teamEventData.teamId}
-          slug={teamEventData.slug}
-          user={teamEventData.user}
-          isBrandingHidden={teamEventData.isBrandingHidden}
-          orgBannerUrl={teamEventData.orgBannerUrl}
-        />
-      </Suspense>
+      <DynamicBookingComponents
+        eventData={teamEventData.eventData}
+        teamId={teamEventData.teamId}
+        slug={teamEventData.slug}
+        user={teamEventData.user}
+        isBrandingHidden={teamEventData.isBrandingHidden}
+        orgBannerUrl={teamEventData.orgBannerUrl}
+      />
     </div>
   );
 
