@@ -1,20 +1,20 @@
 import type { Prisma } from "@prisma/client";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 export async function checkInstalled(slug: string, userId: number) {
-  const alreadyInstalled = await prisma.credential.findFirst({
-    where: {
-      appId: slug,
-      userId: userId,
-    },
-  });
+  const alreadyInstalled = await CredentialRepository.findByAppIdAndUserId({ appId: slug, userId });
   if (alreadyInstalled) {
     throw new HttpError({ statusCode: 422, message: "Already installed" });
   }
+}
+
+export async function isAppInstalled({ appId, userId }: { appId: string; userId: number }) {
+  const alreadyInstalled = await CredentialRepository.findByAppIdAndUserId({ appId, userId });
+  return !!alreadyInstalled;
 }
 
 type InstallationArgs = {
@@ -55,6 +55,5 @@ export async function createDefaultInstallation({
   if (!installation) {
     throw new Error(`Unable to create user credential for type ${appType}`);
   }
-  await BookingReferenceRepository.reconnectWithNewCredential(installation.id);
   return installation;
 }

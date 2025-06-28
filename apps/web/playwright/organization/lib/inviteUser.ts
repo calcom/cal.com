@@ -56,6 +56,6 @@ async function inviteAnEmail(page: Page, invitedUserEmail: string) {
   await page.getByTestId("new-organization-member-button").click();
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
   await submitAndWaitForResponse(page, "/api/trpc/teams/inviteMember?batch=1", {
-    action: () => page.locator('button:text("Send invite")').click(),
+    action: () => page.getByTestId("invite-new-member-button").click(),
   });
 }

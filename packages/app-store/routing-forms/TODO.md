@@ -6,7 +6,7 @@
 - [ ] Test Seated events as routing targets.
 - Improvements
     - [ ] When choosing 'Value of Field' option in RAQB, show a warning somewhere if all options of the Form field aren't present in the attribute option.
-        - So, if Form Field is 'What is Comapny Size' with options Enterprise, Large, Medium, Small and Attribute for which Value of 'What is compnay size' has options Enterprise, Large, Medium. It would show a warning that 'Small' option is not present in the attribute.
+        - So, if Form Field is 'What is Company Size' with options Enterprise, Large, Medium, Small and Attribute for which Value of 'What is compnay size' has options Enterprise, Large, Medium. It would show a warning that 'Small' option is not present in the attribute.
     - [ ] When logic can't be built(Short text maps to an attribute with given set of options but the short text value doesn't match any of the options), the team member matching route throws error but Test Preview still shows the previous value - It show should the error in there.
     - [ ] When routing to a team that doesn't have the team members assigned that are chosen, we are unable to select those users. FIX it by ignoring the assigned members(except the fixed hosts) and just using the attributes matched team members.
 - [ ] Fetch bookings on window focus but not when rerouting dialog is open. As soon as it is closed, we need to refetch again.

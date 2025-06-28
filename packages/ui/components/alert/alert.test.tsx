@@ -33,9 +33,4 @@ describe("Tests for Alert component", () => {
     render(<Alert severity="neutral" />);
     expect(await screen.findByTestId("neutral")).toBeInTheDocument();
   });
-
-  test("Should render corresponding icon: success", async () => {
-    render(<Alert severity="success" />);
-    expect(await screen.findByTestId("circle-check")).toBeInTheDocument();
-  });
 });

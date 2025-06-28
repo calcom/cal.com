@@ -27,22 +27,37 @@ export const useInsightsFacetedUniqueValues = ({
   teamId: number | undefined;
   isAll: boolean;
 }) => {
-  const { data: forms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery({
-    userId,
-    teamId,
-    isAll,
-  });
+  const { data: forms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery(
+    {
+      userId,
+      teamId,
+      isAll,
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 
-  const { data: users } = trpc.viewer.insights.userList.useQuery({
-    teamId,
-    isAll,
-  });
+  const { data: users } = trpc.viewer.insights.userList.useQuery(
+    {
+      teamId,
+      isAll,
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 
-  const { data: eventTypes } = trpc.viewer.insights.eventTypeList.useQuery({
-    teamId,
-    userId,
-    isAll,
-  });
+  const { data: eventTypes } = trpc.viewer.insights.eventTypeList.useQuery(
+    {
+      teamId,
+      userId,
+      isAll,
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 
   return useCallback(
     (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {

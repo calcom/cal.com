@@ -4,9 +4,10 @@ import {
   isMultiSelectFilterValue,
   isTextFilterValue,
   isNumberFilterValue,
+  isDateRangeFilterValue,
 } from "./utils";
 
-type makeWhereClauseProps = {
+type MakeWhereClauseProps = {
   columnName: string;
   filterValue: FilterValue;
   json?: true | { path: string[] };
@@ -20,7 +21,7 @@ export function makeOrderBy(sorting: SortingState) {
   }));
 }
 
-export function makeWhereClause(props: makeWhereClauseProps) {
+export function makeWhereClause(props: MakeWhereClauseProps) {
   const { columnName, filterValue } = props;
   const isJson = props.json === true || (typeof props.json === "object" && props.json.path?.length > 0);
   const jsonPath = isJson && typeof props.json === "object" ? props.json.path : undefined;
@@ -154,6 +155,19 @@ export function makeWhereClause(props: makeWhereClauseProps) {
       default:
         throw new Error(`Invalid operator for number filter: ${operator}`);
     }
+  } else if (isDateRangeFilterValue(filterValue)) {
+    const { startDate, endDate } = filterValue.data;
+    if (!startDate || !endDate) {
+      throw new Error(`Invalid date range filter: ${JSON.stringify({ columnName, startDate, endDate })}`);
+    }
+
+    return {
+      [columnName]: {
+        ...jsonPathObj,
+        gte: startDate,
+        lte: endDate,
+      },
+    };
   }
   throw new Error(`Invalid filter type: ${JSON.stringify({ columnName, filterValue })}`);
 }

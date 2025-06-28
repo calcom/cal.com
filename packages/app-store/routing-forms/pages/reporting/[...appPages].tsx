@@ -10,18 +10,17 @@ import type {
 } from "react-awesome-query-builder";
 import { Builder, Query, Utils as QbUtils } from "react-awesome-query-builder";
 
-import Shell from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { downloadAsCsv, sanitizeValue } from "@calcom/lib/csvUtils";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
 
-import SingleForm, {
-  getServerSidePropsForSingleFormView as getServerSideProps,
-} from "../../components/SingleForm";
+import SingleForm from "../../components/SingleForm";
+import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import {
   withRaqbSettingsAndWidgets,
   ConfigFor,
@@ -31,8 +30,6 @@ import {
   getQueryBuilderConfigForFormFields,
   type FormFieldsQueryBuilderConfigWithRaqbFields,
 } from "../../lib/getQueryBuilderConfig";
-
-export { getServerSideProps };
 
 const Result = ({
   formName,
@@ -291,11 +288,3 @@ export default function ReporterWrapper({
     />
   );
 }
-
-ReporterWrapper.getLayout = (page: React.ReactElement) => {
-  return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
-      {page}
-    </Shell>
-  );
-};

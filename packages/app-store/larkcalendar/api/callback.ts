@@ -3,8 +3,8 @@ import { z } from "zod";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -68,7 +68,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (!currentCredential) {
-      const newCredential = await prisma.credential.create({
+      await prisma.credential.create({
         data: {
           type: "lark_calendar",
           key,
@@ -76,7 +76,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
           appId: "lark-calendar",
         },
       });
-      await BookingReferenceRepository.reconnectWithNewCredential(newCredential.id);
     } else {
       await prisma.credential.update({
         data: {
@@ -114,8 +113,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
             credentialId: currentCredential?.id,
           },
         });
-        currentCredential &&
-          (await BookingReferenceRepository.reconnectWithNewCredential(currentCredential.id));
       }
     }
 

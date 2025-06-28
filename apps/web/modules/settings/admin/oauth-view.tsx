@@ -5,7 +5,14 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Form, Button, Icon, TextField, showToast, Tooltip, ImageUploader, Avatar } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 type FormValues = {
   name: string;
@@ -88,7 +95,7 @@ export default function OAuthView() {
       ) : (
         <div>
           <div className="text-emphasis mb-5 text-xl font-semibold">{oAuthForm.getValues("name")}</div>
-          <div className="mb-2 font-medium">Client Id</div>
+          <div className="mb-2 font-medium">{t("client_id")}</div>
           <div className="flex">
             <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
               {" "}
@@ -98,7 +105,7 @@ export default function OAuthView() {
               <Button
                 onClick={() => {
                   navigator.clipboard.writeText(clientId);
-                  showToast("Client ID copied!", "success");
+                  showToast(t("client_id_copied"), "success");
                 }}
                 type="button"
                 className="rounded-l-none text-base"
@@ -109,7 +116,7 @@ export default function OAuthView() {
           </div>
           {clientSecret ? (
             <>
-              <div className="mb-2 mt-4 font-medium">Client Secret</div>
+              <div className="mb-2 mt-4 font-medium">{t("client_secret")}</div>
               <div className="flex">
                 <code className="bg-subtle text-default w-full truncate rounded-md rounded-r-none py-[6px] pl-2 pr-2 align-middle font-mono">
                   {" "}
@@ -120,7 +127,7 @@ export default function OAuthView() {
                     onClick={() => {
                       navigator.clipboard.writeText(clientSecret);
                       setClientSecret("");
-                      showToast("Client secret copied!", "success");
+                      showToast(t("client_secret_copied"), "success");
                     }}
                     type="button"
                     className="rounded-l-none text-base"

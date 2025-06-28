@@ -1,8 +1,8 @@
+import { BookerPlatformWrapper } from "../booker/BookerPlatformWrapper";
 import type {
   BookerPlatformWrapperAtomPropsForIndividual,
   BookerPlatformWrapperAtomPropsForTeam,
-} from "../booker/BookerPlatformWrapper";
-import { BookerPlatformWrapper } from "../booker/BookerPlatformWrapper";
+} from "../booker/types";
 import { CalProvider } from "../cal-provider/CalProvider";
 import { useGetRoutingFormUrlProps } from "./useGetRoutingFormUrlProps";
 
@@ -25,6 +25,8 @@ export const BookerEmbed = (
         hostsLimit?: BookerPlatformWrapperAtomPropsForTeam["hostsLimit"];
         metadata?: BookerPlatformWrapperAtomPropsForTeam["metadata"];
         handleCreateBooking?: BookerPlatformWrapperAtomPropsForTeam["handleCreateBooking"];
+        handleSlotReservation?: BookerPlatformWrapperAtomPropsForTeam["handleSlotReservation"];
+        preventEventTypeRedirect?: BookerPlatformWrapperAtomPropsForTeam["preventEventTypeRedirect"];
       }
     | (BookerPlatformWrapperAtomPropsForIndividual & {
         organizationId?: undefined;
@@ -41,6 +43,9 @@ export const BookerEmbed = (
       eventTypeSlug,
       username,
       defaultFormValues,
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
       ...routingFormSearchParams
     } = routingFormUrlProps;
     const { onDryRunSuccess, ...rest } = props;
@@ -67,6 +72,9 @@ export const BookerEmbed = (
               })}
           routingFormSearchParams={routingFormSearchParams}
           defaultFormValues={defaultFormValues}
+          teamMemberEmail={teamMemberEmail}
+          crmOwnerRecordType={crmOwnerRecordType}
+          crmAppSlug={crmAppSlug}
           onDryRunSuccess={() => {
             if (onDryRunSuccess) {
               onDryRunSuccess();

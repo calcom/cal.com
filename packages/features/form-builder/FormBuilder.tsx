@@ -5,31 +5,29 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
-import { classNames } from "@calcom/lib";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
+import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
+import { ToggleGroup } from "@calcom/ui/components/form";
 import {
-  Badge,
-  BooleanToggleGroupField,
-  Button,
+  Switch,
   CheckboxField,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
+  SelectField,
   Form,
-  Icon,
   Input,
   InputField,
   Label,
-  SelectField,
-  showToast,
-  Editor,
-  Switch,
-} from "@calcom/ui";
+  BooleanToggleGroupField,
+} from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
@@ -62,6 +60,7 @@ export const FormBuilder = function FormBuilder({
   LockedIcon,
   dataStore,
   shouldConsiderRequired,
+  showPhoneAndEmailToggle = false,
 }: {
   formProp: string;
   title: string;
@@ -69,6 +68,7 @@ export const FormBuilder = function FormBuilder({
   addFieldLabel: string;
   disabled: boolean;
   LockedIcon: false | JSX.Element;
+  showPhoneAndEmailToggle?: boolean;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -132,7 +132,68 @@ export const FormBuilder = function FormBuilder({
           {title}
           {LockedIcon}
         </div>
-        <p className="text-subtle mt-0.5 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
+        <div className="flex items-start justify-between">
+          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
+          {showPhoneAndEmailToggle && (
+            <ToggleGroup
+              value={(() => {
+                const phoneField = fields.find((field) => field.name === "attendeePhoneNumber");
+                const emailField = fields.find((field) => field.name === "email");
+
+                if (phoneField && !phoneField.hidden && phoneField.required && !emailField?.required) {
+                  return "phone";
+                }
+
+                return "email";
+              })()}
+              options={[
+                {
+                  value: "email",
+                  label: "Email",
+                  iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                },
+                {
+                  value: "phone",
+                  label: "Phone",
+                  iconLeft: <Icon name="phone" className="h-4 w-4" />,
+                },
+              ]}
+              onValueChange={(value) => {
+                const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
+                const emailFieldIndex = fields.findIndex((field) => field.name === "email");
+                if (value === "email") {
+                  update(emailFieldIndex, {
+                    ...fields[emailFieldIndex],
+                    hidden: false,
+                    required: true,
+                  });
+                  update(phoneFieldIndex, {
+                    ...fields[phoneFieldIndex],
+                    hidden: true,
+                    required: false,
+                  });
+                } else if (value === "phone") {
+                  update(emailFieldIndex, {
+                    ...fields[emailFieldIndex],
+                    hidden: true,
+                    required: false,
+                  });
+                  update(phoneFieldIndex, {
+                    ...fields[phoneFieldIndex],
+                    hidden: false,
+                    required: true,
+                  });
+                }
+              }}
+            />
+          )}
+        </div>
+        <p className="text-default mt-5 text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
+          {t("questions")}
+        </p>
+        <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+          {t("all_info_your_booker_provide")}
+        </p>
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
           {fields.map((field, index) => {
             let options = field.options ?? null;
@@ -248,7 +309,6 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        classNames={{ container: "p-2 hover:bg-subtle rounded transition" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
@@ -369,7 +429,7 @@ function Options({
     <div className={className}>
       <Label>{label}</Label>
       <div className="bg-muted rounded-md p-4">
-        <ul ref={animationRef}>
+        <ul ref={animationRef} className="flex flex-col gap-1">
           {value?.map((option, index) => (
             <li key={index}>
               <div className="flex items-center">
@@ -484,15 +544,13 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
+  const fieldName = fieldForm.getValues("name");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
-      <DialogContent
-        className="max-h-none p-0"
-        data-testid="edit-field-dialog"
-        forceOverlayWhenNoModal={true}>
+      <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
+          <div className="h-auto max-h-[85vh] overflow-auto">
             <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
@@ -648,7 +706,7 @@ function FieldEditDialog({
             })()}
           </div>
 
-          <DialogFooter className="relative rounded px-8" showDivider>
+          <DialogFooter className="relative">
             <DialogClose color="secondary">{t("cancel")}</DialogClose>
             <Button data-testid="field-add-save" type="submit">
               {isFieldEditMode ? t("save") : t("add")}
@@ -774,7 +832,7 @@ function VariantFields({
   const fieldTypeConfigVariantsConfig = fieldTypesConfigMap[fieldForm.getValues("type")]?.variantsConfig;
 
   if (!fieldTypeConfigVariantsConfig) {
-    throw new Error("Coniguration Issue: FieldType doesn't have `variantsConfig`");
+    throw new Error("Configuration Issue: FieldType doesn't have `variantsConfig`");
   }
 
   const variantToggleLabel = t(fieldTypeConfigVariantsConfig.toggleLabel || "");
@@ -805,7 +863,7 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded transition" }}
+          classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (
@@ -845,7 +903,7 @@ function VariantFields({
               {!isSimpleVariant && (
                 <Label className="flex justify-between">
                   <span>{`Field ${index + 1}`}</span>
-                  <span className="text-muted">{`${fieldForm.getValues("name")}.${f.name}`}</span>
+                  <span className="text-muted">{f.name}</span>
                 </Label>
               )}
               <InputField

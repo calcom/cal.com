@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Millis AI",
+  "slug": "millis-ai",
+  "type": "millis-ai_automation",
+  "logo": "icon.png",
+  "url": "https://docs.millis.ai/tutorials/create-voice-agent-for-appointment-scheduling",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Millis AI",
+  "email": "thach@millis.ai",
+  "description": "Build next-gen voice agents with 500ms latency\r",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

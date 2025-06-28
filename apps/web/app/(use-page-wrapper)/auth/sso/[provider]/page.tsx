@@ -11,7 +11,7 @@ import SSOProviderView from "~/auth/sso/provider-view";
 
 const getData = withAppDirSsr<SSOProviderPageProps>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);
 
   return <SSOProviderView {...props} />;

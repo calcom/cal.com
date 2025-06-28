@@ -295,6 +295,171 @@ test.describe("Bookings", () => {
       await page.goto(`/org/${org.slug}/${teamSlugUpperCase}/${teamEventSlugUpperCase}`);
       await page.waitForSelector("[data-testid=day]");
     });
+
+    test("Round robin event type properly rotates hosts", async ({ page, users, orgs }) => {
+      const org = await orgs.create({
+        name: "TestOrg",
+      });
+      const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }, { name: "teammate-3" }];
+
+      const owner = await users.create(
+        {
+          username: "pro-user",
+          name: "pro-user",
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.MEMBER,
+        },
+        {
+          hasTeam: true,
+          teammates: teamMatesObj,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+        }
+      );
+
+      const { team } = await owner.getFirstTeamMembership();
+      const teamEvent = await owner.getFirstTeamEvent(team.id);
+      const eventHostsObj = [...teamMatesObj, { name: "pro-user" }];
+
+      await doOnOrgDomain(
+        {
+          orgSlug: org.slug,
+          page,
+        },
+        async () => {
+          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj: eventHostsObj });
+          const firstHost = await page.getByTestId("booking-host-name").textContent();
+          expect(firstHost).not.toBeNull();
+
+          // Second booking - should get a different host
+          await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          await bookTimeSlot(page, { email: "attendee1@test.com" });
+          await expect(page.getByTestId("success-page")).toBeVisible();
+          const secondHost = await page.getByTestId("booking-host-name").textContent();
+          expect(secondHost).not.toBeNull();
+          expect(secondHost).not.toBe(firstHost);
+
+          // Third booking - should get a different host
+          await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          await bookTimeSlot(page, { email: "attendee2@test.com" });
+          await expect(page.getByTestId("success-page")).toBeVisible();
+          const thirdHost = await page.getByTestId("booking-host-name").textContent();
+          expect(thirdHost).not.toBeNull();
+          expect(thirdHost).not.toBe(firstHost);
+          expect(thirdHost).not.toBe(secondHost);
+
+          // Fourth booking - should get a different host
+          await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          await bookTimeSlot(page, { email: "attendee3@test.com" });
+          await expect(page.getByTestId("success-page")).toBeVisible();
+          const fourthHost = await page.getByTestId("booking-host-name").textContent();
+          expect(fourthHost).not.toBeNull();
+          expect(fourthHost).not.toBe(firstHost);
+          expect(fourthHost).not.toBe(secondHost);
+          expect(fourthHost).not.toBe(thirdHost);
+
+          // Verify all hosts were used
+          const allHosts = [firstHost, secondHost, thirdHost, fourthHost];
+          const uniqueHosts = new Set(allHosts);
+          expect(uniqueHosts.size).toBe(4);
+        }
+      );
+    });
+
+    test("Round robin event type with confirmation required handles rejection and rebooking correctly with the same details and slot", async ({
+      page,
+      users,
+      orgs,
+      browser,
+    }) => {
+      const org = await orgs.create({
+        name: "TestOrg",
+      });
+      const teamMatesObj = [
+        { name: "teammate-1" },
+        { name: "teammate-2" },
+        { name: "teammate-3" },
+        { name: "teammate-4" },
+      ];
+
+      const owner = await users.create(
+        {
+          username: "pro-user",
+          name: "pro-user",
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.MEMBER,
+        },
+        {
+          hasTeam: true,
+          teammates: teamMatesObj,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+        }
+      );
+
+      const { team } = await owner.getFirstTeamMembership();
+      const teamEvent = await owner.getFirstTeamEvent(team.id);
+      const eventHostsObj = [...teamMatesObj, { name: "pro-user" }];
+
+      // Enable confirmation required for the event
+      await owner.apiLogin();
+      await page.goto(`/event-types/${teamEvent.id}?tabName=advanced`);
+      await page.getByTestId("requires-confirmation").click();
+      await page.getByTestId("update-eventtype").click();
+      await page.waitForResponse((response) => response.url().includes("/api/trpc/eventTypes/update"));
+
+      await doOnOrgDomain(
+        {
+          orgSlug: org.slug,
+          page,
+        },
+        async () => {
+          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj: eventHostsObj });
+          const firstHost = await page.getByTestId("booking-host-name").textContent();
+          expect(firstHost).not.toBeNull();
+
+          const bookingUid = page.url().split("/booking/")[1];
+          expect(bookingUid).not.toBeNull();
+
+          await page.goto("/auth/logout");
+
+          const allUsers = users.get();
+          const hostUser = allUsers.find((mate) => mate.name === firstHost);
+          if (!hostUser) throw new Error("Host not found");
+
+          await hostUser.apiLogin();
+          const [secondContext, secondPage] = await hostUser.apiLoginOnNewBrowser(browser);
+
+          // Reject the booking
+          await secondPage.goto("/bookings/upcoming");
+          await secondPage.click('[data-testid="reject"]');
+          await submitAndWaitForResponse(secondPage, "/api/trpc/bookings/confirm?batch=1", {
+            action: () => secondPage.click('[data-testid="rejection-confirm"]'),
+          });
+
+          // Logout and go back to booking page
+          await secondPage.goto("/auth/logout");
+          await secondPage.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
+
+          // Rebook with the same details
+          await selectFirstAvailableTimeSlotNextMonth(secondPage);
+          await bookTimeSlot(secondPage);
+          await expect(secondPage.getByTestId("success-page")).toBeVisible();
+
+          // Verify a new host is assigned
+          const newHost = await secondPage.getByTestId("booking-host-name").textContent();
+          expect(newHost).not.toBeNull();
+          expect(newHost).toBe(firstHost);
+
+          // Verify the booking was successful by checking the new booking UID
+          const newBookingUid = secondPage.url().split("/booking/")[1];
+          expect(newBookingUid).not.toBeNull();
+          expect(newBookingUid).not.toBe(bookingUid);
+          await secondContext.close();
+        }
+      );
+    });
   });
 
   test.describe("User Event", () => {
@@ -625,6 +790,7 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
 
 const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   await page.goto(`/event-types/${eventId}?tabName=advanced`);
+  await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); // fix the race condition
 
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="edit-field-action"]').click();

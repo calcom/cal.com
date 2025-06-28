@@ -1,11 +1,16 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { CalendarCache } from "../calendar-cache";
+
+const log = logger.getSubLogger({ prefix: ["CalendarCacheCron"] });
 
 const validateRequest = (req: NextApiRequest) => {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -21,7 +26,12 @@ function logRejected(result: PromiseSettledResult<unknown>) {
 }
 
 function getUniqueCalendarsByExternalId<
-  T extends { externalId: string; eventTypeId: number | null; credentialId: number | null; id: string }
+  T extends {
+    externalId: string;
+    eventTypeId: number | null;
+    credentialId: number | null;
+    id: string;
+  }
 >(calendars: T[]) {
   type ExternalId = string;
   return calendars.reduce(
@@ -56,15 +66,42 @@ const handleCalendarsToUnwatch = async () => {
       async ([externalId, { eventTypeIds, credentialId, id }]) => {
         if (!credentialId) {
           // So we don't retry on next cron run
-          await SelectedCalendarRepository.updateById(id, { error: "Missing credentialId" });
-          console.log("no credentialId for SelecedCalendar: ", id);
+
+          // FIXME: There could actually be multiple calendars with the same externalId and thus we need to technically update error for all of them
+          await SelectedCalendarRepository.setErrorInUnwatching({
+            id,
+            error: "Missing credentialId",
+          });
+          log.error("no credentialId for SelectedCalendar: ", id);
           return;
         }
-        const cc = await CalendarCache.initFromCredentialId(credentialId);
-        await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
+
+        try {
+          const cc = await CalendarCache.initFromCredentialId(credentialId);
+          await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
+          await SelectedCalendarRepository.removeUnwatchingError({ id });
+        } catch (error) {
+          let errorMessage = "Unknown error";
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+          log.error(
+            `Error unwatching calendar ${externalId}`,
+            safeStringify({
+              selectedCalendarId: id,
+              error: errorMessage,
+            })
+          );
+          await SelectedCalendarRepository.setErrorInUnwatching({
+            id,
+            error: `${errorMessage}`,
+          });
+        }
       }
     )
   );
+
+  log.info(`Processed ${result.length} calendars for unwatching`);
 
   result.forEach(logRejected);
   return result;
@@ -78,20 +115,41 @@ const handleCalendarsToWatch = async () => {
       async ([externalId, { credentialId, eventTypeIds, id }]) => {
         if (!credentialId) {
           // So we don't retry on next cron run
-          await SelectedCalendarRepository.updateById(id, { error: "Missing credentialId" });
-          console.log("no credentialId for SelecedCalendar: ", id);
+          await SelectedCalendarRepository.setErrorInWatching({ id, error: "Missing credentialId" });
+          log.error("no credentialId for SelectedCalendar: ", id);
           return;
         }
-        const cc = await CalendarCache.initFromCredentialId(credentialId);
-        await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
+
+        try {
+          const cc = await CalendarCache.initFromCredentialId(credentialId);
+          await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
+          await SelectedCalendarRepository.removeWatchingError({ id });
+        } catch (error) {
+          let errorMessage = "Unknown error";
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+          log.error(
+            `Error watching calendar ${externalId}`,
+            safeStringify({
+              selectedCalendarId: id,
+              error: errorMessage,
+            })
+          );
+          await SelectedCalendarRepository.setErrorInWatching({
+            id,
+            error: `${errorMessage}`,
+          });
+        }
       }
     )
   );
+  log.info(`Processed ${result.length} calendars for watching`);
   result.forEach(logRejected);
   return result;
 };
 
-// This cron is used to activate and renew calendar subcriptions
+// This cron is used to activate and renew calendar subscriptions
 const handler = defaultResponder(async (request: NextApiRequest) => {
   validateRequest(request);
   await Promise.allSettled([handleCalendarsToWatch(), handleCalendarsToUnwatch()]);

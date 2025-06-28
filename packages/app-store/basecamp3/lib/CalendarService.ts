@@ -11,6 +11,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { refreshAccessToken as getNewTokens } from "./helpers";
+import type { BasecampToken } from "./types";
 
 function hasFileExtension(url: string): boolean {
   // Get the last portion of the URL (after the last '/')
@@ -27,23 +28,6 @@ function getFileExtension(url: string): string {
   // Extract the file extension
   return fileName.substring(fileName.lastIndexOf(".") + 1);
 }
-
-export type BasecampToken = {
-  projectId: number;
-  expires_at: number;
-  expires_in: number;
-  scheduleId: number;
-  access_token: string;
-  refresh_token: string;
-  account: {
-    id: number;
-    href: string;
-    name: string;
-    hidden: boolean;
-    product: string;
-    app_href: string;
-  };
-};
 
 export default class BasecampCalendarService implements Calendar {
   private credentials: Record<string, string> = {};

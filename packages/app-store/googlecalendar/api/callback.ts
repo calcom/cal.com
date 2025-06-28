@@ -2,19 +2,13 @@ import { calendar_v3 } from "@googleapis/calendar";
 import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
-import {
-  GOOGLE_CALENDAR_SCOPES,
-  SCOPE_USERINFO_PROFILE,
-  WEBAPP_URL,
-  WEBAPP_URL_FOR_OAUTH,
-} from "@calcom/lib/constants";
+import { GOOGLE_CALENDAR_SCOPES, WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -77,11 +71,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       appId: "google-calendar",
       type: "google_calendar",
     });
-    await BookingReferenceRepository.reconnectWithNewCredential(gcalCredential.id);
 
     const gCalService = new GoogleCalendarService({
       ...gcalCredential,
       user: null,
+      delegatedTo: null,
     });
 
     const calendar = new calendar_v3.Calendar({
@@ -101,9 +95,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
-    if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
-      await updateProfilePhotoGoogle(oAuth2Client, req.session.user.id);
-    }
+    // TODO: Use the avatarUrl when setting the profile picture
+    // if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
+    //   await updateProfilePhotoGoogle(oAuth2Client, req.session.user.id);
+    // }
 
     const selectedCalendarWhereUnique = {
       userId: req.session.user.id,
@@ -170,13 +165,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Create a new google meet credential
-  const newGoogleMeetCredential = await CredentialRepository.create({
+  await CredentialRepository.create({
     userId: req.session.user.id,
     type: "google_video",
     key: {},
     appId: "google-meet",
   });
-  await BookingReferenceRepository.reconnectWithNewCredential(newGoogleMeetCredential.id);
   res.redirect(
     getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
       getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })

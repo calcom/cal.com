@@ -1,5 +1,6 @@
 /**
- * This route is used only by "Test Preview" button
+ * This route is used only by "Test Preview" button and Virtual Queues
+ * Also, it is applicable only for sub-teams. Regular teams and user Routing Forms don't hit this endpoint.
  * Live mode uses findTeamMembersMatchingAttributeLogicOfRoute fn directly
  */
 import type { App_RoutingForms_Form } from "@prisma/client";
@@ -8,7 +9,8 @@ import type { NextApiResponse } from "next";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
-import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
@@ -20,8 +22,9 @@ import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableFo
 import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTimingHeader";
 import isRouter from "@calcom/routing-forms/lib/isRouter";
 import { RouteActionType } from "@calcom/routing-forms/zod";
-import { TRPCError } from "@calcom/trpc/server";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TFindTeamMembersMatchingAttributeLogicOfRouteInputSchema } from "./findTeamMembersMatchingAttributeLogicOfRoute.schema";
 
@@ -203,7 +206,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     },
     {
       enablePerf: _enablePerf,
-      // Reuse same flag for enabling troubleshooter. We would normall use them together
+      // Reuse same flag for enabling troubleshooter. We would normally use them together
       enableTroubleshooter: _enablePerf,
       concurrency: _concurrency,
     }
@@ -252,13 +255,15 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   }
 
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
-  const matchingTeamMembers = await UserRepository.findByIds({ ids: matchingTeamMembersIds });
-  const matchingHosts = eventType.hosts.filter((host) => matchingTeamMembersIds.includes(host.user.id));
+  const matchingHosts = await enrichHostsWithDelegationCredentials({
+    orgId: formOrgId,
+    hosts: eventType.hosts.filter((host) => matchingTeamMembersIds.includes(host.user.id)),
+  });
 
-  if (matchingTeamMembers.length !== matchingHosts.length) {
+  if (!matchingHosts.length) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "Looks like not all matching team members are assigned to the event",
+      message: "No matching team members found",
     });
   }
 
@@ -267,7 +272,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     users: orderedLuckyUsers,
     perUserData,
     isUsingAttributeWeights,
-  } = matchingTeamMembers.length
+  } = matchingHosts.length
     ? await getOrderedListOfLuckyUsers({
         // Assuming all are available
         availableUsers: [

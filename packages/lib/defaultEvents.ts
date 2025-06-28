@@ -55,6 +55,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   allowDynamicBooking: true,
   timeFormat: 12,
   travelSchedules: [],
+  locked: false,
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -87,8 +88,11 @@ const commons = {
   seatsPerTimeSlot: null,
   seatsShowAttendees: null,
   seatsShowAvailabilityCount: null,
+  disableCancelling: false,
+  disableRescheduling: false,
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
+  hideOrganizerEmail: false,
   id: 0,
   hideCalendarNotes: false,
   hideCalendarEventDetails: false,
@@ -100,6 +104,8 @@ const commons = {
   requiresConfirmationForFreeEmail: false,
   requiresBookerEmailVerification: false,
   bookingLimits: null,
+  maxActiveBookingsPerBooker: null,
+  maxActiveBookingPerBookerOfferReschedule: false,
   durationLimits: null,
   hidden: false,
   userId: 0,
@@ -123,7 +129,21 @@ const commons = {
   autoTranslateDescriptionEnabled: false,
   fieldTranslations: [],
   maxLeadThreshold: null,
+  includeNoShowInRRCalculation: false,
   useEventLevelSelectedCalendars: false,
+  rrResetInterval: null,
+  rrTimestampBasis: null,
+  interfaceLanguage: null,
+  customReplyToEmail: null,
+  restrictionScheduleId: null,
+  useBookerTimezone: false,
+  profileId: null,
+  requiresConfirmationWillBlockSlot: false,
+  canSendCalVideoTranscriptionEmails: false,
+  instantMeetingExpiryTimeOffsetInSeconds: 0,
+  instantMeetingScheduleId: null,
+  instantMeetingParameters: [],
+  eventTypeColor: null,
 };
 
 export const dynamicEvent = {

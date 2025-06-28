@@ -1,14 +1,12 @@
 "use client";
 
-import Head from "next/head";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,7 +14,10 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, showToast, useCalcomTheme } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/components/toast";
+import { useCalcomTheme } from "@calcom/ui/styles";
 
 import FormInputFields from "../../components/FormInputFields";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
@@ -25,7 +26,7 @@ import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { NonRouterRoute, FormResponse } from "../../types/types";
-import { getServerSideProps } from "./getServerSideProps";
+import type { getServerSideProps } from "./getServerSideProps";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
@@ -97,7 +98,15 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   const responseMutation = trpc.viewer.routingForms.public.response.useMutation({
     onSuccess: async (data) => {
-      const { teamMembersMatchingAttributeLogic, formResponse, attributeRoutingConfig } = data;
+      const {
+        teamMembersMatchingAttributeLogic,
+        formResponse,
+        queuedFormResponse,
+        attributeRoutingConfig,
+        crmContactOwnerEmail,
+        crmContactOwnerRecordType,
+        crmAppSlug,
+      } = data;
       const chosenRouteWithFormResponse = chosenRouteWithFormResponseRef.current;
       if (!chosenRouteWithFormResponse) {
         return;
@@ -108,11 +117,15 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       }
       const allURLSearchParams = getUrlSearchParamsToForward({
         formResponse: chosenRouteWithFormResponse.response,
-        formResponseId: formResponse.id,
+        formResponseId: formResponse?.id ?? null,
+        queuedFormResponseId: queuedFormResponse?.id ?? null,
         fields,
         searchParams: new URLSearchParams(window.location.search),
         teamMembersMatchingAttributeLogic,
         attributeRoutingConfig: attributeRoutingConfig ?? null,
+        crmContactOwnerEmail,
+        crmContactOwnerRecordType,
+        crmAppSlug,
       });
       const chosenRoute = chosenRouteWithFormResponse.route;
       const decidedAction = chosenRoute.action;
@@ -163,9 +176,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       <div>
         {!customPageMessage ? (
           <>
-            <Head>
-              <title>{`${form.name} | Cal.com Forms`}</title>
-            </Head>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
                 <div className="main border-booker md:border-booker-width dark:bg-muted bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 ">
@@ -187,7 +197,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
                         loading={responseMutation.isPending}
                         type="submit"
                         color="primary">
-                        {t("submit")}
+                        {t("continue")}
                       </Button>
                     </div>
                   </form>
@@ -198,7 +208,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         ) : (
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-              <div className="main dark:bg-darkgray-100 sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
+              <div className="main sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
                 <div className="text-emphasis">{customPageMessage}</div>
               </div>
             </div>
@@ -212,10 +222,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm {...props} />;
 }
-
-RoutingLink.isBookingPage = true;
-
-export { getServerSideProps };
 
 const usePrefilledResponse = (form: Props["form"]) => {
   const searchParams = useCompatSearchParams();

@@ -6,7 +6,9 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, PasswordField, Form } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { PasswordField } from "@calcom/ui/components/form";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -73,11 +75,7 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
   };
 
   return (
-    <AuthContainer
-      showLogo
-      title={t("reset_password")}
-      description={t("change_your_password")}
-      heading={!success ? t("reset_password") : undefined}>
+    <AuthContainer showLogo heading={!success ? t("reset_password") : undefined}>
       {isRequestExpired && <Expired />}
       {!isRequestExpired && !success && (
         <>

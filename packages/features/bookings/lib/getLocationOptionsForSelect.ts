@@ -22,7 +22,7 @@ export default function getLocationsOptionsForSelect(
       const translatedLocation = getTranslatedLocation(location, eventLocation, t);
 
       return {
-        // XYZ: is considered a namespace in i18next https://www.i18next.com/principles/namespaces and thus it get's cleaned up.
+        // XYZ: is considered a namespace in i18next https://www.i18next.com/principles/namespaces and thus it gets cleaned up.
         label: translatedLocation || locationString,
         value: type,
         inputPlaceholder: t(eventLocation?.attendeeInputPlaceholder || ""),

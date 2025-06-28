@@ -1,4 +1,7 @@
+import type { IncomingMessage } from "http";
 import { z } from "zod";
+
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 
 export const getScheduleSchema = z
   .object({
@@ -11,7 +14,7 @@ export const getScheduleSchema = z
     // Event type slug
     eventTypeSlug: z.string().optional(),
     // invitee timezone
-    timeZone: z.string().optional(),
+    timeZone: timeZoneSchema.optional(),
     // or list of users (for dynamic events)
     usernameList: z.array(z.string()).min(1).optional(),
     debug: z.boolean().optional(),
@@ -30,6 +33,9 @@ export const getScheduleSchema = z
     _enableTroubleshooter: z.boolean().optional(),
     _bypassCalendarBusyTimes: z.boolean().optional(),
     _shouldServeCache: z.boolean().optional(),
+    routingFormResponseId: z.number().optional(),
+    queuedFormResponseId: z.string().nullish(),
+    email: z.string().nullish(),
   })
   .transform((val) => {
     // Need this so we can pass a single username in the query string form public API
@@ -53,7 +59,7 @@ export const reserveSlotSchema = z
     slotUtcStartDate: z.string(),
     // endTime ISOString
     slotUtcEndDate: z.string(),
-    bookingUid: z.string().optional(),
+    _isDryRun: z.boolean().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,
@@ -71,3 +77,15 @@ export type Slot = {
 export const removeSelectedSlotSchema = z.object({
   uid: z.string().nullable(),
 });
+
+export interface ContextForGetSchedule extends Record<string, unknown> {
+  req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
+}
+
+export type TGetScheduleInputSchema = z.infer<typeof getScheduleSchema>;
+export const ZGetScheduleInputSchema = getScheduleSchema;
+
+export type GetScheduleOptions = {
+  ctx?: ContextForGetSchedule;
+  input: TGetScheduleInputSchema;
+};

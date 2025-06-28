@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -21,7 +21,35 @@ type UseInitialFormValuesProps = {
     guests: string[];
     name: string | null;
   };
-  lastBookingResponse?: Record<string, string>;
+  clientId?: string;
+};
+
+// Add this stable hash function
+function getStableHash(obj: Record<string, string | string[]>) {
+  return Object.entries(obj)
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+    .map(([key, value]) => {
+      if (Array.isArray(value)) {
+        return `${key}:${value.sort().join(",")}`;
+      }
+      return `${key}:${value}`;
+    })
+    .join("|");
+}
+
+const buildKey = ({
+  values,
+  hasSession,
+  stableHashExtraOptions,
+}: {
+  values: Record<string, any>;
+  hasSession: boolean;
+  stableHashExtraOptions: string;
+}) => {
+  // We could think about removing specific items like values.length, hasSession and bookingId and instead use a stableHash maybe .
+  return `${Object.keys(values).length}_${hasSession ? 1 : 0}_${
+    values.bookingId ?? 0
+  }_${stableHashExtraOptions}`;
 };
 
 export function useInitialFormValues({
@@ -34,18 +62,29 @@ export function useInitialFormValues({
   hasSession,
   extraOptions,
   prefillFormParams,
-  lastBookingResponse,
+  clientId,
 }: UseInitialFormValuesProps) {
-  const [initialValues, setDefaultValues] = useState<{
-    responses?: Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>;
-    bookingId?: number;
-  }>({});
+  const stableHashExtraOptions = getStableHash(extraOptions);
+
+  const [initialValuesState, setInitialValuesState] = useState<{
+    values: {
+      responses?: Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>;
+      bookingId?: number;
+    };
+    key: string;
+  }>({
+    values: {},
+    key: "",
+  });
   const bookingData = useBookerStore((state) => state.bookingData);
   const formValues = useBookerStore((state) => state.formValues);
   useEffect(() => {
     (async function () {
       if (Object.keys(formValues).length) {
-        setDefaultValues(formValues);
+        setInitialValuesState({
+          values: formValues,
+          key: buildKey({ values: formValues, hasSession, stableHashExtraOptions }),
+        });
         return;
       }
 
@@ -64,7 +103,6 @@ export function useInitialFormValues({
         // `guests` because the `name` of the corresponding bookingField is `guests`
         guests: prefillFormParams.guests,
       });
-      const parsedLastBookingResponse = z.record(z.any()).nullish().parse(lastBookingResponse);
 
       const defaultUserValues = {
         email:
@@ -72,14 +110,18 @@ export function useInitialFormValues({
             ? bookingData?.attendees[0].email
             : !!parsedQuery["email"]
             ? parsedQuery["email"]
-            : email ?? parsedLastBookingResponse?.email ?? "",
+            : email ?? "",
         name:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].name
             : !!parsedQuery["name"]
             ? parsedQuery["name"]
-            : name ?? username ?? parsedLastBookingResponse?.name ?? "",
+            : name ?? username ?? "",
       };
+
+      if (clientId) {
+        defaultUserValues.email = defaultUserValues.email.replace(`+${clientId}`, "");
+      }
 
       if (!isRescheduling) {
         const defaults = {
@@ -99,7 +141,10 @@ export function useInitialFormValues({
           email: defaultUserValues.email ?? "",
         };
 
-        setDefaultValues(defaults);
+        setInitialValuesState({
+          values: defaults,
+          key: buildKey({ values: defaults, hasSession, stableHashExtraOptions }),
+        });
       }
 
       if (!rescheduleUid && !bookingData) {
@@ -124,9 +169,12 @@ export function useInitialFormValues({
         name: defaultUserValues.name,
         email: defaultUserValues.email ?? "",
       };
-      setDefaultValues(defaults);
+      setInitialValuesState({
+        values: defaults,
+        key: buildKey({ values: defaults, hasSession, stableHashExtraOptions }),
+      });
     })();
-    // do not add extraOptions as a dependency, it will cause infinite loop
+    // TODO: Remove it. It was initially added so that we don't add extraOptions in deps but that is handled using stableHashExtraOptions now.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     eventType?.bookingFields,
@@ -139,11 +187,9 @@ export function useInitialFormValues({
     name,
     username,
     prefillFormParams,
+    // We need to have extraOptions as a dep so that any change in query params can update the form values, but extraOptions itself isn't stable and changes reference on every render
+    stableHashExtraOptions,
   ]);
 
-  // When initialValues is available(after doing async schema parsing) or session is available(so that we can prefill logged-in user email and name), we need to reset the form with the initialValues
-  // We also need the key to change if the bookingId changes, so that the form is reset and rerendered with the new initialValues
-  const key = `${Object.keys(initialValues).length}_${hasSession ? 1 : 0}_${initialValues?.bookingId ?? 0}`;
-
-  return { initialValues, key };
+  return initialValuesState;
 }

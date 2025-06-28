@@ -109,7 +109,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   });
 
   // Let current month dates fully render.
-  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month get's rendered
+  // There is a bug where if we don't let current month fully render and quickly click go to next month, current month gets rendered
   // This doesn't seem to be replicable with the speed of a person, only during automation.
   // It would also allow correct snapshot to be taken for current month.
   await frame.waitForTimeout(1000);

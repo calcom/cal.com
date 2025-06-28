@@ -16,6 +16,10 @@ export class ProfileRepositoryFixture {
     return this.prismaReadClient.profile.findFirst({ where: { id: profileId } });
   }
 
+  async findByOrgIdUserId(orgId: number, userId: number) {
+    return this.prismaReadClient.profile.findFirst({ where: { userId, organizationId: orgId } });
+  }
+
   async create(data: Prisma.ProfileCreateInput) {
     return this.prismaWriteClient.profile.create({ data });
   }

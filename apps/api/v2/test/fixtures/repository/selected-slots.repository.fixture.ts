@@ -12,6 +12,10 @@ export class SelectedSlotsRepositoryFixture {
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
+  async getByUid(uid: string) {
+    return this.prismaReadClient.selectedSlots.findFirst({ where: { uid } });
+  }
+
   async deleteByUId(uid: SelectedSlots["uid"]) {
     return this.prismaWriteClient.selectedSlots.deleteMany({ where: { uid } });
   }

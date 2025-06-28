@@ -3,8 +3,6 @@
   "private": true,
   "sideEffects": false,
   "version": "0.0.0",
-  "main": "./index.ts",
-  "types": "./index.ts",
   "license": "MIT",
   "scripts": {
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
@@ -18,17 +16,16 @@
     "@formbricks/js": "^2.1.0",
     "@sendgrid/client": "^7.7.0",
     "@vercel/og": "^0.6.3",
-    "bcryptjs": "^2.4.3",
     "city-timezones": "^1.2.1",
     "i18next": "^23.2.3",
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
     "jimp": "^0.16.1",
     "next-collect": "^0.2.1",
-    "next-i18next": "^13.2.2",
-    "react-hot-toast": "^2.3.0",
+    "next-i18next": "^15.4.2",
     "rrule": "^2.7.1",
-    "tailwind-merge": "^1.13.2",
+    "sharp": "0.33.5",
+    "sonner": "^1.7.4",
     "tsdav": "2.0.3",
     "tslog": "^4.9.2",
     "uuid": "^8.3.2"
@@ -37,6 +34,6 @@
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
     "@faker-js/faker": "^7.3.0",
-    "typescript": "^4.9.4"
+    "typescript": "^5.7.2"
   }
 }

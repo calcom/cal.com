@@ -8,7 +8,7 @@ import { useEmbedTypes } from "./lib/hooks";
 
 export const RoutingFormEmbedDialog = () => {
   const types = useEmbedTypes();
-  const { data: user } = trpc.viewer.me.useQuery();
+  const { data: user } = trpc.viewer.me.get.useQuery();
   const routingFormTypes = types.filter((type) => type.type !== "email");
   return (
     <EmbedDialog
@@ -16,10 +16,11 @@ export const RoutingFormEmbedDialog = () => {
       tabs={tabs}
       eventTypeHideOptionDisabled={true}
       defaultBrandColor={user ? { brandColor: user.brandColor, darkBrandColor: user.darkBrandColor } : null}
+      noQueryParamMode={true}
     />
   );
 };
 
 export const RoutingFormEmbedButton = (props: ComponentProps<typeof EmbedButton>) => {
-  return <EmbedButton {...props} />;
+  return <EmbedButton {...props} noQueryParamMode={true} />;
 };

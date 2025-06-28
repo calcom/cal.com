@@ -1,8 +1,9 @@
 import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
 import type { ReactNode } from "react";
 
-import { classNames } from "@calcom/lib";
-import { Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+
+import { Tooltip } from "../../tooltip/Tooltip";
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
   options: {
@@ -11,8 +12,10 @@ interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps,
     disabled?: boolean;
     tooltip?: string;
     iconLeft?: ReactNode;
+    dataTestId?: string;
   }[];
   isFullWidth?: boolean;
+  orientation?: "horizontal" | "vertical";
 }
 
 const OptionalTooltipWrapper = ({
@@ -36,6 +39,7 @@ export const ToggleGroup = ({
   options,
   onValueChange,
   isFullWidth,
+  orientation = "horizontal",
   customClassNames,
   ...props
 }: ToggleGroupProps & { customClassNames?: string }) => {
@@ -44,9 +48,17 @@ export const ToggleGroup = ({
       <RadixToggleGroup.Root
         type="single"
         {...props}
+        orientation={orientation}
         onValueChange={onValueChange}
+        style={{
+          // @ts-expect-error --toggle-group-shadow is not a valid CSS property but can be a variable
+          "--toggle-group-shadow":
+            "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
+        }}
         className={classNames(
-          `min-h-9 border-default bg-default relative inline-flex gap-0.5 rounded-md border p-1 rtl:flex-row-reverse`,
+          `bg-subtle border-subtle rounded-[10px] border p-0.5`,
+          orientation === "horizontal" && "inline-flex gap-0.5 rtl:flex-row-reverse",
+          orientation === "vertical" && "flex w-fit flex-col gap-0.5",
           props.className,
           isFullWidth && "w-full",
           customClassNames
@@ -56,16 +68,21 @@ export const ToggleGroup = ({
             <RadixToggleGroup.Item
               disabled={option.disabled}
               value={option.value}
-              data-testid={`toggle-group-item-${option.value}`}
+              data-testid={option.dataTestId ?? `toggle-group-item-${option.value}`}
               className={classNames(
-                "aria-checked:bg-emphasis relative rounded-[4px] px-3 py-1 text-sm leading-tight transition",
+                "aria-checked:bg-default aria-checked:border-subtle rounded-lg border border-transparent p-1.5 text-sm leading-none transition aria-checked:shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]",
                 option.disabled
                   ? "text-gray-400 hover:cursor-not-allowed"
                   : "text-default [&[aria-checked='false']]:hover:text-emphasis",
                 isFullWidth && "w-full"
               )}>
-              <div className="item-center flex justify-center ">
-                {option.iconLeft && <span className="mr-2 flex h-4 w-4 items-center">{option.iconLeft}</span>}
+              <div
+                className={classNames(
+                  "flex items-center gap-1",
+                  orientation === "horizontal" && "justify-center",
+                  orientation === "vertical" && "justify-start"
+                )}>
+                {option.iconLeft && <span className="flex h-4 w-4 items-center">{option.iconLeft}</span>}
                 {option.label}
               </div>
             </RadixToggleGroup.Item>

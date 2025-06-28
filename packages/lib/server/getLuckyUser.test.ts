@@ -6,9 +6,14 @@ import { expect, it, describe, vi, beforeAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
-import { AttributeType } from "@calcom/prisma/enums";
+import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 
-import { getLuckyUser, prepareQueuesAndAttributesData } from "./getLuckyUser";
+import {
+  getLuckyUser,
+  prepareQueuesAndAttributesData,
+  getIntervalStartDate,
+  getIntervalEndDate,
+} from "./getLuckyUser";
 
 type NonEmptyArray<T> = [T, ...T[]];
 type GetLuckyUserAvailableUsersType = NonEmptyArray<ReturnType<typeof buildUser>>;
@@ -16,7 +21,6 @@ type GetLuckyUserAvailableUsersType = NonEmptyArray<ReturnType<typeof buildUser>
 vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
-vi.mock("@calcom/ui", () => ({}));
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
@@ -65,7 +69,7 @@ it("can find lucky user with maximize availability", async () => {
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -118,7 +122,10 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: {
+          rrResetInterval: RRResetInterval.MONTH,
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -175,7 +182,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -237,7 +244,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
-        team: {},
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -328,12 +335,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]);
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, monthly interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-01T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 
   it("can find lucky user if hosts have different weights", async () => {
@@ -426,12 +443,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.DAY, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, daily interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-20T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 
   it("can find lucky user with weights and adjusted weights", async () => {
@@ -524,12 +551,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.DAY, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, daily interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-20T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 
   it("applies calibration when user had OOO entries this month", async () => {
@@ -609,12 +646,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]); // user[1] has one more bookings, but user[0] has calibration 2
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, monthly interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-01T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 
   it("applies calibration when user had full day calendar events this month", async () => {
@@ -686,13 +733,13 @@ describe("maximize availability and weights", () => {
         userId: 1,
         createdAt: dayjs().startOf("month").add(10, "day").toDate(),
       }),
-      // happend during OOO
+      // happened during OOO
       buildBooking({
         id: 2,
         userId: 2,
         createdAt: dayjs().startOf("month").add(5, "hour").toDate(),
       }),
-      // happend during OOO
+      // happened during OOO
       buildBooking({
         id: 3,
         userId: 2,
@@ -706,12 +753,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]); // user[1] has one more booking, but user[0] has calibration 2
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, monthly interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-01T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 
   it("applies calibration to newly added hosts so they are not penalized unfairly compared to their peers", async () => {
@@ -791,7 +848,7 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
@@ -816,12 +873,22 @@ describe("maximize availability and weights", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: {},
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, monthly interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-01T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
   });
 });
 
@@ -950,7 +1017,11 @@ describe("attribute weights and virtual queues", () => {
     });
 
     const queuesAndAttributesData = await prepareQueuesAndAttributesData({
-      eventType: { id: 1, isRRWeightsEnabled: true, team: { parentId: 1 } },
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: true,
+        team: { parentId: 1, rrResetInterval: RRResetInterval.DAY },
+      },
       routingFormResponse,
       allRRHosts: [
         {
@@ -989,6 +1060,136 @@ describe("attribute weights and virtual queues", () => {
         },
       },
     });
+  });
+
+  it("prepareQueuesAndAttributesData returns host weights as fallback when no members are assigned to the attribute", async () => {
+    const attributeOptionIdFirst = uuid();
+    const attributeOptionIdSecond = uuid();
+    const attributeId = uuid();
+    const routeId = uuid();
+    const fieldId = uuid();
+
+    const routingFormResponse = {
+      response: {
+        [fieldId]: { label: "headquarters", value: attributeOptionIdSecond },
+      },
+      form: {
+        routes: [
+          {
+            id: uuid(),
+            action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
+            queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            attributesQueryValue: {
+              id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
+              type: "group",
+              children1: {
+                "a8999bb9-89ab-4cde-b012-31932649cc93": {
+                  type: "rule",
+                  properties: {
+                    field: uuid(), //another attribute
+                    value: [[`{field:${fieldId}}`]],
+                    operator: "multiselect_some_in",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                    valueError: [null],
+                  },
+                },
+              },
+            },
+            attributeRoutingConfig: {},
+          },
+          {
+            //chosen route
+            id: routeId,
+            attributeIdForWeights: attributeId,
+            action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
+            queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            attributesQueryValue: {
+              id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
+              type: "group",
+              children1: {
+                "a8999bb9-89ab-4cde-b012-31932649cc93": {
+                  type: "rule",
+                  properties: {
+                    field: attributeId,
+                    value: [[`{field:${fieldId}}`]],
+                    operator: "multiselect_some_in",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                    valueError: [null],
+                  },
+                },
+              },
+            },
+            attributeRoutingConfig: {},
+          },
+        ],
+        fields: [
+          {
+            id: fieldId,
+            type: "select",
+            label: "headquarters",
+            options: [
+              { id: attributeOptionIdFirst, label: "USA" },
+              { id: attributeOptionIdSecond, label: "Germany" },
+            ],
+            required: true,
+          },
+        ],
+      },
+      chosenRouteId: routeId,
+    };
+
+    prismaMock.attribute.findUnique.mockResolvedValue({
+      name: "Headquaters",
+      id: attributeId,
+      type: AttributeType.SINGLE_SELECT,
+      slug: "headquarters",
+      options: [
+        {
+          id: "12345",
+          value: "Germany",
+          slug: "Germany",
+          assignedUsers: [],
+        },
+      ],
+    });
+
+    const queuesAndAttributesData = await prepareQueuesAndAttributesData({
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: true,
+        team: { parentId: 1, rrResetInterval: RRResetInterval.DAY },
+      },
+      routingFormResponse,
+      allRRHosts: [
+        {
+          user: {
+            id: 1,
+            email: "test1@example.com",
+            credentials: [],
+            selectedCalendars: [],
+          },
+          createdAt: new Date(),
+          weight: 10,
+        },
+        {
+          user: {
+            id: 2,
+            email: "test2@example.com",
+            credentials: [],
+            selectedCalendars: [],
+          },
+          createdAt: new Date(),
+          weight: 150,
+        },
+      ],
+    });
+
+    expect(queuesAndAttributesData.attributeWeights).toEqual([
+      { userId: 1, weight: 10 },
+      { userId: 2, weight: 150 },
+    ]);
   });
 
   it("uses attribute weights and counts only bookings within virtual queue", async () => {
@@ -1190,11 +1391,91 @@ describe("attribute weights and virtual queues", () => {
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
-          team: { parentId: 1 },
+          team: {
+            parentId: 1,
+            rrResetInterval: RRResetInterval.DAY,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+          },
         },
         allRRHosts,
         routingFormResponse,
       })
     ).resolves.toStrictEqual(users[1]);
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Today: 2021-06-20T11:59:59Z, daily interval
+    expect(queryArgs.where?.createdAt).toEqual(
+      expect.objectContaining({
+        gte: new Date("2021-06-20T00:00:00Z"),
+        lte: new Date("2021-06-20T11:59:59.000Z"),
+      })
+    );
+  });
+});
+
+describe("get interval times", () => {
+  it("should get correct interval start time with meeting started timestamp basis and DAY interval", () => {
+    const meetingStartTime = new Date("2024-03-15T14:30:00Z");
+    const result = getIntervalStartDate({
+      interval: RRResetInterval.DAY,
+      rrTimestampBasis: RRTimestampBasis.START_TIME,
+      meetingStartTime,
+    });
+    expect(result).toEqual(new Date("2024-03-15T00:00:00Z"));
+  });
+
+  it("should get correct interval start time with meeting started timestamp basis and MONTH interval", () => {
+    const meetingStartTime = new Date("2024-03-15T14:30:00Z");
+    const result = getIntervalStartDate({
+      interval: RRResetInterval.MONTH,
+      rrTimestampBasis: RRTimestampBasis.START_TIME,
+      meetingStartTime,
+    });
+    expect(result).toEqual(new Date("2024-03-01T00:00:00Z"));
+  });
+
+  it("should get correct interval start time with created at timestamp basis and DAY interval", () => {
+    const result = getIntervalStartDate({
+      interval: RRResetInterval.DAY,
+      rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+    });
+    expect(result).toEqual(new Date("2021-06-20T00:00:00Z")); // Based on the mocked system time
+  });
+
+  it("should get correct interval start time with created at timestamp basis and MONTH interval", () => {
+    const result = getIntervalStartDate({
+      interval: RRResetInterval.MONTH,
+      rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+    });
+    expect(result).toEqual(new Date("2021-06-01T00:00:00Z")); // Based on the mocked system time
+  });
+
+  it("should get correct interval end time with meeting started timestamp basis and DAY interval", () => {
+    const meetingStartTime = new Date("2024-03-15T14:30:00Z");
+    const result = getIntervalEndDate({
+      interval: RRResetInterval.DAY,
+      rrTimestampBasis: RRTimestampBasis.START_TIME,
+      meetingStartTime,
+    });
+    expect(result).toEqual(new Date("2024-03-15T23:59:59.999Z"));
+  });
+
+  it("should get correct interval end time with meeting started timestamp basis and MONTH interval", () => {
+    const meetingStartTime = new Date("2024-03-15T14:30:00Z");
+    const result = getIntervalEndDate({
+      interval: RRResetInterval.MONTH,
+      rrTimestampBasis: RRTimestampBasis.START_TIME,
+      meetingStartTime,
+    });
+    expect(result).toEqual(new Date("2024-03-31T23:59:59.999Z"));
+  });
+
+  it("should get correct interval end time with created at timestamp basis", () => {
+    const result = getIntervalEndDate({
+      interval: RRResetInterval.DAY,
+      rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+    });
+    expect(result).toEqual(new Date("2021-06-20T11:59:59Z")); // Based on the mocked system time
   });
 });

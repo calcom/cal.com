@@ -86,7 +86,7 @@ const createTeamWorkflow = async (user: { id: number }, team: { id: number }) =>
   });
 };
 
-const createTeamEventType = async (
+export const createTeamEventType = async (
   user: { id: number },
   team: { id: number },
   scenario?: {
@@ -227,6 +227,7 @@ const createTeamAndAddUser = async (
   const { role = MembershipRole.OWNER, id: userId } = user;
   await prisma.membership.create({
     data: {
+      createdAt: new Date(),
       teamId: team.id,
       userId,
       role: role,
@@ -268,6 +269,7 @@ export const createUsersFixture = (
       opts?:
         | (CustomUserOpts & {
             organizationId?: number | null;
+            overrideDefaultEventTypes?: boolean;
           })
         | null,
       scenario: {
@@ -300,18 +302,20 @@ export const createUsersFixture = (
         },
       });
 
-      let defaultEventTypes: SupportedTestEventTypes[] = [
-        { title: "30 min", slug: "30-min", length: 30 },
-        { title: "Paid", slug: "paid", length: 30, price: 1000 },
-        { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
-        { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
-        {
-          title: "Multiple duration",
-          slug: "multiple-duration",
-          length: 30,
-          metadata: { multipleDuration: [30, 60, 90] },
-        },
-      ];
+      let defaultEventTypes: SupportedTestEventTypes[] = opts?.overrideDefaultEventTypes
+        ? []
+        : [
+            { title: "30 min", slug: "30-min", length: 30 },
+            { title: "Paid", slug: "paid", length: 30, price: 1000 },
+            { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
+            { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
+            {
+              title: "Multiple duration",
+              slug: "multiple-duration",
+              length: 30,
+              metadata: { multipleDuration: [30, 60, 90] },
+            },
+          ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
       for (const eventTypeData of defaultEventTypes) {
@@ -391,7 +395,7 @@ export const createUsersFixture = (
               },
               {
                 id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: "https://cal.com" },
+                action: { type: "externalRedirectUrl", value: `${WEBAPP_URL}/pro` },
                 queryValue: {
                   id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
                   type: "group",
@@ -563,6 +567,7 @@ export const createUsersFixture = (
               // Add teammates to the team
               await prisma.membership.create({
                 data: {
+                  createdAt: new Date(),
                   teamId: team.id,
                   userId: teamUser.id,
                   role: MembershipRole.MEMBER,
@@ -763,6 +768,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
      * @deprecated use apiLogin instead
      */
     login: async () => login({ ...(await self()), password: user.username }, store.page),
+    loginOnNewBrowser: async (browser: Browser) => {
+      const newContext = await browser.newContext();
+      const newPage = await newContext.newPage();
+      await login({ ...(await self()), password: user.username }, newPage);
+      // Don't forget to: newContext.close();
+      return [newContext, newPage] as const;
+    },
     logout: async () => {
       await page.goto("/auth/logout");
     },
@@ -846,7 +858,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       installStripePersonal({ page: store.page, ...params }),
     installStripeTeam: async (params: InstallStripeParamsUnion & { teamId: number }) =>
       installStripeTeam({ page: store.page, ...params }),
-    // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
+    // this is for development only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
       await prisma.user.update({
         where: { id: store.user.id },
@@ -1040,6 +1052,8 @@ export async function login(
 
   //login
   await page.goto("/");
+  await page.waitForSelector("text=Welcome back");
+
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
@@ -1067,9 +1081,11 @@ export async function apiLogin(
     json: "true",
     csrfToken,
   };
-  return page.context().request.post("/api/auth/callback/credentials", {
+  const response = await page.context().request.post("/api/auth/callback/credentials", {
     data,
   });
+  expect(response.status()).toBe(200);
+  return response;
 }
 
 export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, slug: string, page: Page) {

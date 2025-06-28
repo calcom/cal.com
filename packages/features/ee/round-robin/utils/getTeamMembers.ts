@@ -15,7 +15,7 @@ type Attendee = {
   noShow: boolean | null;
 };
 
-// TODO: We have far too many differnt types here. Theyre all users or hosts at the end of the day.
+// TODO: We have far too many different types here. They're all users or hosts at the end of the day.
 type OrganizerType =
   | getEventTypeResponse["hosts"][number]["user"]
   | IsFixedAwareUser

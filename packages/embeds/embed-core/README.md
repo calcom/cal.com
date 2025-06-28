@@ -10,7 +10,8 @@ You can also see various example usages [here](https://github.com/calcom/cal.com
 
 ## Development
 
-Run the following command and then you can test the embed in the automatically opened page `http://localhost:3100`
+Run the following command and then you can test the embed in the automatically opened page `http://localhost:3100/embed/`
+We have another html page to specifically test prerendering when using headless router in Demo `http://localhost:3100/embed/routing-playground.html`
 
 ```bash
 yarn dev
@@ -101,7 +102,7 @@ Make `dist/embed.umd.js` servable on URL <http://cal.com/embed.js>
 
 - Release Issues
 
-  - Compatibility Issue - When embed-iframe.js is updated in such a way that it is not compatible with embed.js, doing a release might break the embed for some time. e.g. iframeReady event let's say get's changed to something else
+  - Compatibility Issue - When embed-iframe.js is updated in such a way that it is not compatible with embed.js, doing a release might break the embed for some time. e.g. iframeReady event let's say gets changed to something else
     - Best Case scenario - App and Website goes live at the same time. A website using embed loads the same updated and thus compatible versions of embed.js and embed-iframe.js
     - Worst case scenario - App goes live first, website PR isn't merged yet and thus a website using the embed would load updated version of embed-iframe but outdated version of embed.js possibly breaking the embed.
     - Ideal Solution: It would be to keep the libraries versioned and embed.js should instruct app within iframe to load a particular version. But if we push a security fix, it is possible that someone is still enforcing embed to load version with security issue. Need to handle this.

@@ -1,7 +1,12 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
+import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
+import { addFilter, openFilter } from "./filter-helpers";
+import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
 import { setupManagedEvent } from "./lib/testUtils";
@@ -62,6 +67,28 @@ test.describe("Bookings", () => {
         secondUpcomingBooking.locator(`text=${bookingWhereFirstUserIsOrganizer!.title}`)
       ).toBeVisible();
     });
+
+    test("Cannot choose date range presets", async ({ page, users, bookings, webhooks }) => {
+      const firstUser = await users.create();
+      await firstUser.apiLogin();
+      const bookingsGetResponse = page.waitForResponse((response) =>
+        /\/api\/trpc\/bookings\/get.*/.test(response.url())
+      );
+      await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
+      await bookingsGetResponse;
+
+      await addFilter(page, "dateRange");
+      await openFilter(page, "dateRange");
+
+      await expect(page.locator('[data-testid="date-range-options-c"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-w"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-m"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-y"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-t"]')).toBeHidden();
+      await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeHidden();
+
+      await expect(page.locator('[data-testid="date-range-calendar"]')).toBeVisible();
+    });
   });
   test.describe("Past bookings", () => {
     test("Mark first guest as no-show", async ({ page, users, bookings, webhooks }) => {
@@ -90,12 +117,12 @@ test.describe("Bookings", () => {
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
       await firstGuest.click();
-      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeHidden();
-      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeVisible();
-      await titleAndAttendees.locator('[data-testid="mark-no-show"]').click();
+      await expect(page.locator('[data-testid="unmark-no-show"]')).toBeHidden();
+      await expect(page.locator('[data-testid="mark-no-show"]')).toBeVisible();
+      await page.locator('[data-testid="mark-no-show"]').click();
       await firstGuest.click();
-      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeVisible();
-      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeHidden();
+      await expect(page.locator('[data-testid="unmark-no-show"]')).toBeVisible();
+      await expect(page.locator('[data-testid="mark-no-show"]')).toBeHidden();
       await webhookReceiver.waitForRequestCount(1);
       const [request] = webhookReceiver.requestList;
       const body = request.body;
@@ -181,11 +208,11 @@ test.describe("Bookings", () => {
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
       await firstGuest.click();
-      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeVisible();
-      await titleAndAttendees.locator('[data-testid="mark-no-show"]').click();
+      await expect(page.locator('[data-testid="mark-no-show"]')).toBeVisible();
+      await page.locator('[data-testid="mark-no-show"]').click();
       await firstGuest.click();
-      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeVisible();
-      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeHidden();
+      await expect(page.locator('[data-testid="unmark-no-show"]')).toBeVisible();
+      await expect(page.locator('[data-testid="mark-no-show"]')).toBeHidden();
       await webhookReceiver.waitForRequestCount(1);
       const [request] = webhookReceiver.requestList;
       const body = request.body;
@@ -205,6 +232,329 @@ test.describe("Bookings", () => {
 
       // Close webhook receiver
       webhookReceiver.close();
+    });
+
+    test("Can choose date range presets", async ({ page, users, bookings, webhooks }) => {
+      const firstUser = await users.create();
+      await firstUser.apiLogin();
+      const bookingsGetResponse = page.waitForResponse((response) =>
+        /\/api\/trpc\/bookings\/get.*/.test(response.url())
+      );
+      await page.goto(`/bookings/past`);
+      await bookingsGetResponse;
+
+      await addFilter(page, "dateRange");
+      await openFilter(page, "dateRange");
+
+      await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-m"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-y"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-t"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible();
+
+      await expect(page.locator('[data-testid="date-range-calendar"]')).toBeHidden();
+    });
+  });
+
+  test("People filter includes bookings where filtered person is attendee", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const firstUser = await users.create(
+      { name: "First" },
+      {
+        hasTeam: true,
+        teamRole: MembershipRole.ADMIN,
+      }
+    );
+    const teamId = (await firstUser.getFirstTeamMembership()).teamId;
+    const secondUser = await users.create({ name: "Second" });
+    const thirdUser = await users.create({ name: "Third" });
+    // Add teammates to the team
+    await prisma.membership.createMany({
+      data: [
+        {
+          teamId: teamId,
+          userId: secondUser.id,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+        {
+          teamId: teamId,
+          userId: thirdUser.id,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+      ],
+    });
+    const teamEvent = await createTeamEventType(
+      { id: firstUser.id },
+      { id: teamId },
+      { teamEventSlug: "team-event-slug" }
+    );
+
+    //Create a TeamEventType booking where ThirdUser is attendee
+    const thirdUserAttendeeTeamEventBookingFixture = await createBooking({
+      title: "ThirdUser is Attendee for TeamEvent",
+      bookingsFixture: bookings,
+      relativeDate: 6,
+      organizer: firstUser,
+      organizerEventType: teamEvent,
+      attendees: [{ name: "Third", email: thirdUser.email, timeZone: "Europe/Berlin" }],
+    });
+    const thirdUserAttendeeTeamEvent = await thirdUserAttendeeTeamEventBookingFixture.self();
+
+    //Create a IndividualEventType booking where ThirdUser,SecondUser are attendees and FirstUser is organizer
+    const thirdUserAttendeeIndividualBookingFixture = await createBooking({
+      title: "ThirdUser is Attendee and FirstUser is Organizer",
+      bookingsFixture: bookings,
+      relativeDate: 3,
+      organizer: firstUser,
+      organizerEventType: firstUser.eventTypes[0],
+      attendees: [
+        { name: "Third", email: thirdUser.email, timeZone: "Europe/Berlin" },
+        { name: "Second", email: secondUser.email, timeZone: "Europe/Berlin" },
+      ],
+    });
+    const thirdUserAttendeeIndividualBooking = await thirdUserAttendeeIndividualBookingFixture.self();
+
+    //Create a IndividualEventType booking where ThirdUser is organizer and FirstUser,SecondUser are attendees
+    const thirdUserOrganizerBookingFixture = await createBooking({
+      title: "ThirdUser is Organizer and FirstUser is Attendee",
+      bookingsFixture: bookings,
+      organizer: thirdUser,
+      relativeDate: 2,
+      organizerEventType: thirdUser.eventTypes[0],
+      attendees: [
+        { name: "First", email: firstUser.email, timeZone: "Europe/Berlin" },
+        { name: "Second", email: secondUser.email, timeZone: "Europe/Berlin" },
+      ],
+    });
+    const thirdUserOrganizerBooking = await thirdUserOrganizerBookingFixture.self();
+
+    //Create a booking where FirstUser is organizer and SecondUser is attendee
+    await createBooking({
+      title: "FirstUser is Organizer and SecondUser is Attendee",
+      bookingsFixture: bookings,
+      organizer: firstUser,
+      relativeDate: 4,
+      organizerEventType: firstUser.eventTypes[0],
+      attendees: [{ name: "Second", email: secondUser.email, timeZone: "Europe/Berlin" }],
+    });
+
+    //admin login
+    //Select 'ThirdUser' in people filter
+    await firstUser.apiLogin();
+    const bookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
+    await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
+    await bookingsGetResponse;
+
+    await addFilter(page, "userId");
+    await openFilter(page, "userId");
+
+    const bookingsGetResponse2 = page.waitForResponse(
+      (response) => response.url().includes("/api/trpc/bookings/get?batch=1") && response.status() === 200
+    );
+    await page
+      .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${thirdUser.name}")`)
+      .click();
+    await bookingsGetResponse2;
+    await expect(page.locator('text="Cancel event"').nth(0)).toBeVisible();
+
+    //expect only 3 bookings (out of 4 total) to be shown in list.
+    //where ThirdUser is either organizer or attendee
+    const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
+    const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
+    const bookingListCount = await bookingListItems.count();
+
+    expect(bookingListCount).toBe(3);
+
+    //verify with the booking titles
+    const firstUpcomingBooking = bookingListItems.nth(0);
+    await expect(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      firstUpcomingBooking.locator(`text=${thirdUserOrganizerBooking!.title}`)
+    ).toBeVisible();
+
+    const secondUpcomingBooking = bookingListItems.nth(1);
+    await expect(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      secondUpcomingBooking.locator(`text=${thirdUserAttendeeIndividualBooking!.title}`)
+    ).toBeVisible();
+
+    const thirdUpcomingBooking = bookingListItems.nth(2);
+    await expect(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      thirdUpcomingBooking.locator(`text=${thirdUserAttendeeTeamEvent!.title}`)
+    ).toBeVisible();
+  });
+
+  test("Does not show booking from another user from collective event type when a member is filtered", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
+    const owner = await users.create(
+      { username: "pro-user", name: "pro-user" },
+      {
+        hasTeam: true,
+        teammates: teamMatesObj,
+        schedulingType: SchedulingType.COLLECTIVE,
+      }
+    );
+
+    const { team } = await owner.getFirstTeamMembership();
+    const eventType = await owner.getFirstTeamEvent(team.id);
+    const { id: eventTypeId, title: teamEventTitle, slug: teamEventSlug } = eventType;
+
+    // remove myself from host of this event type
+    await prisma.host.delete({
+      where: {
+        userId_eventTypeId: {
+          userId: owner.id,
+          eventTypeId,
+        },
+      },
+    });
+
+    // teammate-1
+    const host = await prisma.membership.findFirstOrThrow({
+      where: {
+        teamId: team.id,
+        userId: {
+          not: owner.id,
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    await createBooking({
+      bookingsFixture: bookings,
+      organizer: host.user,
+      organizerEventType: eventType,
+      attendees: [{ name: "test user", email: "test@example.com", timeZone: "Europe/Paris" }],
+      relativeDate: 0,
+      title: "Booking from test user",
+    });
+
+    // teammate-2
+    const anotherUser = teamMatesObj.find((m) => m.name !== host.user.name)?.name;
+
+    await owner.apiLogin();
+    const bookingsGetResponse1 = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
+    await page.goto("/bookings/upcoming", { waitUntil: "domcontentloaded" });
+    await bookingsGetResponse1;
+
+    await addFilter(page, "userId");
+    await openFilter(page, "userId");
+    await page
+      .locator(`[data-testid="select-filter-options-userId"] [role="option"]:has-text("${anotherUser}")`)
+      .click();
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+
+    await expect(page.locator('[data-testid="booking-item"]')).toHaveCount(0);
+  });
+
+  test.describe("Filter Dropdown Item Search", () => {
+    const filterItemsConfig = [
+      { key: "eventTypeId", name: "Event Type", testId: "add-filter-item-eventTypeId" },
+      { key: "teamId", name: "Team", testId: "add-filter-item-teamId" },
+      { key: "userId", name: "Member", testId: "add-filter-item-userId" },
+      { key: "attendeeName", name: "Attendees Name", testId: "add-filter-item-attendeeName" },
+      { key: "attendeeEmail", name: "Attendee Email", testId: "add-filter-item-attendeeEmail" },
+      { key: "dateRange", name: "Date Range", testId: "add-filter-item-dateRange" },
+    ];
+    const searchInputSelector = "[cmdk-input]";
+
+    const getFilterItemLocator = (page: Page, testId: string) => page.locator(`[data-testid="${testId}"]`);
+
+    test.beforeEach(async ({ page, users }) => {
+      const user = await users.create();
+      await user.apiLogin();
+      const bookingsGetResponse = page.waitForResponse((response) =>
+        /\/api\/trpc\/bookings\/get.*/.test(response.url())
+      );
+      await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
+      await bookingsGetResponse;
+      await page.locator('[data-testid="add-filter-button"]').click();
+      await expect(page.locator(searchInputSelector)).toBeVisible();
+    });
+
+    test("should show all filter items initially and after clearing search", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+
+      // Initial check: all defined filter items should be visible
+      for (const item of filterItemsConfig) {
+        await expect(
+          getFilterItemLocator(page, item.testId),
+          `Item ${item.name} should be visible initially`
+        ).toBeVisible();
+      }
+
+      // Type something and then clear the search
+      await searchInput.fill("Some text");
+      await searchInput.clear();
+
+      // After clearing: all defined filter items should be visible again
+      for (const item of filterItemsConfig) {
+        await expect(
+          getFilterItemLocator(page, item.testId),
+          `Item ${item.name} should be visible after clearing search`
+        ).toBeVisible();
+      }
+    });
+
+    test("search should be case-insensitive", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+
+      // Search for "member" (lowercase)
+      await searchInput.fill("member");
+      await expect(getFilterItemLocator(page, "add-filter-item-userId")).toBeVisible();
+      await expect(getFilterItemLocator(page, "add-filter-item-eventTypeId")).toBeHidden();
+      await expect(getFilterItemLocator(page, "add-filter-item-teamId")).toBeHidden();
+    });
+
+    test("should individually find each filter item by its full name", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+
+      for (const targetItem of filterItemsConfig) {
+        await searchInput.fill(targetItem.name);
+
+        // Check that the target item is visible
+        await expect(
+          getFilterItemLocator(page, targetItem.testId),
+          `Searching for "${targetItem.name}", item "${targetItem.name}" should be visible`
+        ).toBeVisible();
+
+        await searchInput.clear();
+      }
+    });
+
+    test("should show no items for a non-matching search term", async ({ page }) => {
+      const searchInput = page.locator(searchInputSelector);
+      const nonExistentTerm = "NonExistentFilterXYZ123";
+      await searchInput.fill(nonExistentTerm);
+
+      for (const item of filterItemsConfig) {
+        await expect(
+          getFilterItemLocator(page, item.testId),
+          `Item ${item.name} should be hidden for non-matching term '${nonExistentTerm}'`
+        ).toBeHidden();
+      }
     });
   });
 });

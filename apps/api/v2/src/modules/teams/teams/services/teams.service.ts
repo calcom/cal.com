@@ -6,6 +6,8 @@ import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import { slugify } from "@calcom/platform-libraries";
+
 @Injectable()
 export class TeamsService {
   private isTeamBillingEnabled = this.configService.get("stripe.isTeamBillingEnabled");
@@ -19,6 +21,9 @@ export class TeamsService {
 
   async createTeam(input: CreateTeamInput, ownerId: number) {
     const { autoAcceptCreator, ...teamData } = input;
+    if (!teamData.slug) {
+      teamData.slug = slugify(teamData.name);
+    }
 
     const existingTeam = await this.teamsMembershipsRepository.findTeamMembershipsByNameAndUser(
       input.name,

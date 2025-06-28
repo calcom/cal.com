@@ -52,7 +52,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
               <li
                 key={key}
                 data-testid="hint-error"
-                className={error !== undefined ? (submitted ? "text-red-500" : "") : "text-green-600"}>
+                className={error !== undefined ? (submitted ? "text-error" : "") : "text-green-600"}>
                 {error !== undefined ? (
                   submitted ? (
                     <Icon

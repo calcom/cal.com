@@ -2,7 +2,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { Trans } from "react-i18next";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -10,13 +9,21 @@ import SkeletonLoader from "@calcom/features/ee/workflows/components/SkeletonLoa
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 import { getActionIcon } from "@calcom/features/ee/workflows/lib/getActionIcon";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import classNames from "@calcom/lib/classNames";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmptyScreen, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
 
@@ -48,6 +55,7 @@ const WorkflowListItem = (props: ItemProps) => {
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {
       const offOn = isActive ? "off" : "on";
+      revalidateEventTypeEditPage(eventType.id);
       await utils.viewer.workflows.getAllActiveWorkflows.invalidate();
 
       await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
@@ -132,9 +140,8 @@ const WorkflowListItem = (props: ItemProps) => {
         {!workflow.readOnly && (
           <div className="flex-none">
             <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
-              <Button type="button" color="minimal" className="mr-4">
+              <Button type="button" color="minimal" className="mr-4" EndIcon="external-link">
                 <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
-                <Icon name="external-link" className="text-default -mt-[2px] h-4 w-4 stroke-2" />
               </Button>
             </Link>
           </div>
@@ -244,25 +251,22 @@ function EventWorkflowsTab(props: Props) {
         <>
           {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
-              severity={workflowsDisableProps.isLocked ? "neutral" : "green"}
+              severity={workflowsDisableProps.isLocked ? "neutral" : "info"}
               className="mb-2"
               title={
-                <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
-                  {lockedText[0].toUpperCase()}
-                  {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
-                </Trans>
+                <ServerTrans
+                  t={t}
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                />
               }
               actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
               message={
-                <Trans
+                <ServerTrans
+                  t={t}
                   i18nKey={`workflows_${lockedText}_${
                     isManagedEventType ? "for_members" : "by_team_admins"
-                  }_description`}>
-                  {isManagedEventType ? "Members" : "You"}{" "}
-                  {workflowsDisableProps.isLocked
-                    ? "will be able to see the active workflows but will not be able to edit any workflow settings"
-                    : "will be able to see the active workflow and will be able to edit any workflow settings"}
-                </Trans>
+                  }_description`}
+                />
               }
             />
           )}

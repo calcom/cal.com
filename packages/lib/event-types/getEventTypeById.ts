@@ -1,11 +1,15 @@
 import { Prisma } from "@prisma/client";
 
+//import "server-only";
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import type { LocationObject } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { parseBookingLimit, parseDurationLimit, parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
+import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import type { LocationObject } from "@calcom/lib/location";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -45,6 +49,7 @@ export const getEventTypeById = async ({
     email: true,
     locale: true,
     defaultScheduleId: true,
+    isPlatformManaged: true,
   });
 
   const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
@@ -107,6 +112,9 @@ export const getEventTypeById = async ({
       rawEventType.schedule?.id ||
       (!rawEventType.team ? rawEventType.users[0]?.defaultScheduleId : null) ||
       null,
+    restrictionScheduleId: rawEventType.restrictionScheduleId || null,
+    restrictionScheduleName: rawEventType.restrictionSchedule?.name || null,
+    useBookerTimezone: rawEventType.useBookerTimezone || false,
     instantMeetingSchedule: rawEventType.instantMeetingSchedule?.id || null,
     scheduleName: rawEventType.schedule?.name || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
