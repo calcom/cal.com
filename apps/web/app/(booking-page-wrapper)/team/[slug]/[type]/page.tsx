@@ -99,9 +99,6 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const teamEventData = await getTeamEventData({ params, searchParams });
-
-  const eventLocale = teamEventData.eventData?.interfaceLanguage;
-
   const content = (
     <div>
       <StaticTeamEventView {...teamEventData} />
@@ -118,6 +115,7 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     </div>
   );
 
+  const eventLocale = teamEventData.eventData?.interfaceLanguage;
   if (eventLocale) {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);
