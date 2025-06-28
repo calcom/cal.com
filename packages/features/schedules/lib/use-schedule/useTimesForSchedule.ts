@@ -2,7 +2,7 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
 import dayjs from "@calcom/dayjs";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
+import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 
 import type { UseScheduleWithCacheArgs } from "./useSchedule";
 
