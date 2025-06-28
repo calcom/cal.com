@@ -43,7 +43,7 @@ async function validationHandler(req: NextApiRequest, res: NextApiResponse) {
   const validationToken = query.validationToken;
 
   if (validationToken) {
-    log.debug("Responding to Microsoft Graph validation", { validationToken });
+    log.debug("Responding to Microsoft Graph validation");
     
     // We must respond with the validation token as plain text
     res.setHeader("Content-Type", "text/plain");
@@ -110,7 +110,6 @@ async function processNotification(notification: any) {
         credentialId: true,
         externalId: true,
         integration: true,
-        eventTypeId: true,
         supportEventTypeIds: true,
         email: true,
       },
@@ -150,7 +149,7 @@ async function processNotification(notification: any) {
     );
 
     // Update the cache for all calendars from this provider
-    await calendarService?.fetchAvailabilityAndSetCache?.(selectedCalendars.map((cal) => ({
+    await calendarService?.fetchAvailabilityAndSetCache?.(selectedCalendars.map((cal: any) => ({
       externalId: cal.externalId,
       credentialId: cal.credentialId,
       integration: cal.integration,
