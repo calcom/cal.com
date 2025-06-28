@@ -18,6 +18,9 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
+import { CalendarCache } from "@calcom/features/calendar-cache";
+import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
+import type { SelectedCalendarEventTypeIds } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
@@ -49,6 +52,29 @@ interface BodyValue {
   end: { dateTime: string };
   evt: { showAs: string };
   start: { dateTime: string };
+}
+
+// Helper functions for date range expansion to optimize cache hit rates
+export const getTimeMin = (timeMin?: string) => {
+  const date = timeMin ? new Date(timeMin) : new Date();
+  const result = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+  result.setUTCHours(0, 0, 0, 0);
+  return result.toISOString();
+};
+
+export function getTimeMax(timeMax?: string) {
+  const date = timeMax ? new Date(timeMax) : new Date();
+  const month = date.getUTCMonth();
+  // Set to two months ahead, 1st day
+  const result = new Date(Date.UTC(date.getUTCFullYear(), month + 2, 1));
+  result.setUTCHours(0, 0, 0, 0);
+  return result.toISOString();
+}
+
+export interface FreeBusyArgs {
+  timeMin: string;
+  timeMax: string;
+  items: { id: string }[];
 }
 
 export default class Office365CalendarService implements Calendar {
@@ -303,11 +329,8 @@ export default class Office365CalendarService implements Calendar {
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);
 
-    const filter = `?startDateTime=${encodeURIComponent(
-      dateFromParsed.toISOString()
-    )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
-
-    const calendarSelectParams = "$select=showAs,start,end";
+    // Initialize CalendarCache for potential caching
+    const calendarCache = await CalendarCache.init(this);
 
     try {
       const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
@@ -325,6 +348,27 @@ export default class Office365CalendarService implements Calendar {
       const ids = await (selectedCalendarIds.length === 0
         ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
         : Promise.resolve(selectedCalendarIds));
+      
+      // Create args for caching
+      const freeBusyArgs: FreeBusyArgs = {
+        timeMin: getTimeMin(dateFromParsed.toISOString()),
+        timeMax: getTimeMax(dateToParsed.toISOString()),
+        items: ids.map((id) => ({ id })),
+      };
+
+      // Try to get cached availability
+      const cachedAvailability = await this.getCachedAvailability(freeBusyArgs);
+      if (cachedAvailability) {
+        return cachedAvailability;
+      }
+
+      // If no cache available, fetch from Microsoft Graph
+      const filter = `?startDateTime=${encodeURIComponent(
+        dateFromParsed.toISOString()
+      )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
+
+      const calendarSelectParams = "$select=showAs,start,end";
+
       const requestsPromises = ids.map(async (calendarId, id) => ({
         id,
         method: "GET",
@@ -349,10 +393,106 @@ export default class Office365CalendarService implements Calendar {
 
       // Recursively fetch nextLink responses
       alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
+      
+      const busyTimes = this.processBusyTimes(alreadySuccessResponse);
 
-      return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
+      // Cache the results for future use
+      await this.setAvailabilityInCache(freeBusyArgs, busyTimes);
+
+      return busyTimes;
     } catch (err) {
       return Promise.reject([]);
+    }
+  }
+
+  /**
+   * Get cached availability data if available
+   */
+  private async getCachedAvailability(args: FreeBusyArgs): Promise<EventBusyDate[] | null> {
+    try {
+      const calendarCache = await CalendarCache.init(null);
+      const cached = await calendarCache.getCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args: {
+          timeMin: getTimeMin(args.timeMin),
+          timeMax: getTimeMax(args.timeMax),
+          items: args.items,
+        },
+      });
+
+      if (cached) {
+        return cached.value as unknown as EventBusyDate[];
+      }
+
+      return null;
+    } catch (error) {
+      this.log.error("Failed to get cached availability", error);
+      return null;
+    }
+  }
+
+  /**
+   * Store availability data in the cache
+   */
+  private async setAvailabilityInCache(args: FreeBusyArgs, data: EventBusyDate[]): Promise<void> {
+    try {
+      const calendarCache = await CalendarCache.init(null);
+      await calendarCache.upsertCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args,
+        value: JSON.parse(JSON.stringify(data)),
+      });
+    } catch (error) {
+      this.log.error("Failed to set availability in cache", error);
+    }
+  }
+
+  /**
+   * Fetch availability data and update the cache for selected calendars
+   */
+  async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]): Promise<void> {
+    try {
+      // Get current time and time 2 months ahead
+      const now = new Date();
+      const twoMonthsAhead = new Date(now);
+      twoMonthsAhead.setMonth(now.getMonth() + 2);
+
+      // Get availability for the next 2 months and cache it
+      await this.getAvailability(now.toISOString(), twoMonthsAhead.toISOString(), selectedCalendars);
+    } catch (error) {
+      this.log.error("Failed to fetch availability and set cache", error);
+    }
+  }
+
+  /**
+   * Setup webhook for calendar changes
+   */
+  async watchCalendar({ calendarId, eventTypeIds }: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }): Promise<any> {
+    try {
+      // This is implemented in the MicrosoftGraphSubscriptionService
+      // We simply pass through to that implementation
+      const calendarCache = await CalendarCache.init(this);
+      return await calendarCache.watchCalendar({ calendarId, eventTypeIds });
+    } catch (error) {
+      this.log.error("Failed to watch calendar", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Stop watching calendar for changes
+   */
+  async unwatchCalendar({ calendarId, eventTypeIds }: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }): Promise<any> {
+    try {
+      // This is implemented in the MicrosoftGraphSubscriptionService
+      // We simply pass through to that implementation
+      const calendarCache = await CalendarCache.init(this);
+      return await calendarCache.unwatchCalendar({ calendarId, eventTypeIds });
+    } catch (error) {
+      this.log.error("Failed to unwatch calendar", error);
+      throw error;
     }
   }
 

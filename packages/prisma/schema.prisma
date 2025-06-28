@@ -860,6 +860,14 @@ model SelectedCalendar {
   googleChannelResourceId  String?
   googleChannelResourceUri String?
   googleChannelExpiration  String?
+  
+  // Microsoft Graph subscription fields
+  msGraphSubscriptionId    String?
+  msGraphChangeType        String?
+  msGraphResourceUrl       String?
+  msGraphExpirationDateTime String?
+  msGraphClientState       String?
+  msGraphLifecycleNotificationUrl String?
 
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
@@ -881,6 +889,7 @@ model SelectedCalendar {
   // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
+  @@unique([msGraphSubscriptionId])
   @@index([userId])
   @@index([externalId])
   @@index([eventTypeId])
@@ -888,6 +897,7 @@ model SelectedCalendar {
   // Composite indices to optimize calendar-cache queries
   @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
   @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
+  @@index([msGraphSubscriptionId])
 }
 
 enum EventTypeCustomInputType {
