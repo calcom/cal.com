@@ -4,6 +4,7 @@
   "description": "Platform API for Cal.com",
   "author": "Cal.com Inc.",
   "license": "UNLICENSED",
+  "private": true,
   "scripts": {
     "build": "yarn dev:build && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -37,7 +38,7 @@
     "@axiomhq/winston": "^1.2.0",
     "@calcom/platform-constants": "*",
     "@calcom/platform-enums": "*",
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.223",
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.231",
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
