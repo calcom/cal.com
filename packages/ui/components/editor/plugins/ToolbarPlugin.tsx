@@ -352,9 +352,8 @@ export default function ToolbarPlugin(props: TextEditorProps) {
             const dom = parser.parseFromString(props.getText(), "text/html");
 
             const nodes = $generateNodesFromDOM(editor, dom);
-            const paragraph = $createParagraphNode();
-            root.clear().append(paragraph);
-            paragraph.select();
+            root.clear();
+            root.select();
             $insertNodes(nodes);
           });
         }
@@ -372,7 +371,9 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
         const nodes = $generateNodesFromDOM(editor, dom);
 
-        $getRoot().select();
+        const root = $getRoot();
+        root.clear();
+        root.select();
         try {
           $insertNodes(nodes);
         } catch (e: unknown) {
@@ -380,7 +381,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           // @see https://stackoverflow.com/questions/73094258/setting-editor-from-html
           const paragraphNode = $createParagraphNode();
           nodes.forEach((n) => paragraphNode.append(n));
-          $getRoot().append(paragraphNode);
+          root.append(paragraphNode);
         }
 
         editor.registerUpdateListener(({ editorState, prevEditorState }) => {
