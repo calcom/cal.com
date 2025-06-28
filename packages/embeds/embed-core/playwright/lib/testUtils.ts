@@ -115,6 +115,10 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   await frame.waitForTimeout(1000);
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
   // Remove /embed from the end if present.
+  await bookEvent({ frame, page });
+}
+
+export async function bookEvent({ frame, page }: { frame: Frame; page: Page }) {
   const eventSlug = new URL(frame.url()).pathname.replace(/\/embed$/, "");
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   // expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
@@ -157,4 +161,15 @@ export async function assertNoRequestIsBlocked(page: Page) {
       throw new Error(`Request Blocked: ${request.url()}. Error: ${error}`);
     }
   });
+}
+
+export async function expectEmbedIFrameToBeVisible({
+  calNamespace,
+  page,
+}: {
+  calNamespace: string;
+  page: Page;
+}) {
+  const iframe = page.locator(`[name="cal-embed=${calNamespace}"]`);
+  await expect(iframe).toBeVisible();
 }

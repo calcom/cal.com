@@ -238,6 +238,665 @@ const createTeamAndAddUser = async (
   return team;
 };
 
+async function seedAttributes(orgId: number) {
+  console.log(`🎯 Seeding attributes for org ${orgId}`);
+  const mockAttributes = [
+    {
+      name: "Department",
+      type: "SINGLE_SELECT",
+      options: ["Engineering", "Sales", "Marketing", "Product", "Design"],
+    },
+    {
+      name: "Location",
+      type: "SINGLE_SELECT",
+      options: ["New York", "London", "Tokyo", "Berlin", "Remote"],
+    },
+    {
+      name: "Skills",
+      type: "MULTI_SELECT",
+      options: ["JavaScript", "React", "Node.js", "Python", "Design", "Sales"],
+    },
+    {
+      name: "Years of Experience",
+      type: "NUMBER",
+    },
+    {
+      name: "Bio",
+      type: "TEXT",
+    },
+  ];
+  // Check if attributes already exist
+  const existingAttributes = await prisma.attribute.findMany({
+    where: {
+      teamId: orgId,
+      name: {
+        in: mockAttributes.map((attr) => attr.name),
+      },
+    },
+  });
+
+  if (existingAttributes.length > 0) {
+    console.log(`Skipping attributes seed, attributes already exist`);
+    return;
+  }
+
+  const memberships = await prisma.membership.findMany({
+    where: {
+      teamId: orgId,
+    },
+    select: {
+      id: true,
+      userId: true,
+    },
+  });
+
+  console.log(`🎯 Creating attributes for org ${orgId}`);
+
+  const attributes: { id: string; options: { id: string; value: string }[] }[] = [];
+
+  for (const attr of mockAttributes) {
+    const attribute = await prisma.attribute.create({
+      data: {
+        name: attr.name,
+        slug: `org:${orgId}-${attr.name.toLowerCase().replace(/ /g, "-")}`,
+        type: attr.type as "TEXT" | "NUMBER" | "SINGLE_SELECT" | "MULTI_SELECT",
+        teamId: orgId,
+        enabled: true,
+        options: attr.options
+          ? {
+              create: attr.options.map((opt) => ({
+                value: opt,
+                slug: opt.toLowerCase().replace(/ /g, "-"),
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        options: true,
+      },
+    });
+
+    attributes.push({
+      id: attribute.id,
+      name: attribute.name,
+      options: attribute.options.map((opt) => ({
+        id: opt.id,
+        value: opt.value,
+      })),
+    });
+
+    console.log(`\t📝 Created attribute: ${attr.name}`);
+
+    // Assign random values/options to members
+    for (const member of memberships) {
+      if (attr.type === "TEXT") {
+        const mockText = `Sample ${attr.name.toLowerCase()} text for user ${member.userId}`;
+        await prisma.attributeOption.create({
+          data: {
+            value: mockText,
+            slug: mockText.toLowerCase().replace(/ /g, "-"),
+            attribute: {
+              connect: {
+                id: attribute.id,
+              },
+            },
+            assignedUsers: {
+              create: {
+                memberId: member.id,
+              },
+            },
+          },
+        });
+      } else if (attr.type === "NUMBER") {
+        const mockNumber = Math.floor(Math.random() * 10 + 1).toString();
+        await prisma.attributeOption.create({
+          data: {
+            value: mockNumber,
+            slug: mockNumber,
+            attribute: {
+              connect: {
+                id: attribute.id,
+              },
+            },
+            assignedUsers: {
+              create: {
+                memberId: member.id,
+              },
+            },
+          },
+        });
+      } else if (attr.type === "SINGLE_SELECT" && attribute.options.length > 0) {
+        const randomOption = attribute.options[Math.floor(Math.random() * attribute.options.length)];
+        await prisma.attributeToUser.create({
+          data: {
+            memberId: member.id,
+            attributeOptionId: randomOption.id,
+          },
+        });
+      } else if (attr.type === "MULTI_SELECT" && attribute.options.length > 0) {
+        // Assign 1-3 random options
+        const numOptions = Math.floor(Math.random() * 3) + 1;
+        const shuffledOptions = [...attribute.options].sort(() => Math.random() - 0.5);
+        const selectedOptions = shuffledOptions.slice(0, numOptions);
+
+        for (const option of selectedOptions) {
+          await prisma.attributeToUser.create({
+            data: {
+              memberId: member.id,
+              attributeOptionId: option.id,
+            },
+          });
+        }
+      }
+    }
+
+    console.log(`\t✅ Assigned ${attr.name} values to ${memberships.length} members`);
+  }
+  return attributes;
+}
+
+async function createTeamEventTypeWithAllMembersAssignedAsHosts({
+  teamId,
+  eventType,
+}: {
+  teamId: number;
+  eventType: PrismaType.EventTypeCreateInput;
+}) {
+  // First create the event type
+  const createdEventType = await prisma.eventType.create({
+    data: {
+      ...eventType,
+      teamId,
+    },
+  });
+
+  const teamMemberships = await prisma.membership.findMany({
+    where: {
+      teamId,
+    },
+    include: {
+      user: true,
+    },
+  });
+
+  // Add all team members as hosts (excluding the current user who's already added)
+  for (const membership of teamMemberships) {
+    await prisma.host.create({
+      data: {
+        userId: membership.userId,
+        eventTypeId: createdEventType.id,
+        isFixed: false, // ROUND_ROBIN scheduling type
+      },
+    });
+  }
+}
+
+const createRoutingForm = async ({
+  userId,
+  teamId,
+  scenario,
+}: {
+  userId: number;
+  teamId: number;
+  scenario: {
+    seedRoutingForms?: boolean;
+    seedRoutingFormWithAttributeRouting?: boolean;
+  };
+}) => {
+  if (scenario.seedRoutingFormWithAttributeRouting) {
+    const orgMembership = await prisma.membership.findFirstOrThrow({
+      where: {
+        userId,
+        team: {
+          isOrganization: true,
+        },
+      },
+    });
+    if (!orgMembership) {
+      throw new Error("Organization membership not found");
+    }
+    const orgId = orgMembership.teamId;
+    const team = await prisma.team.findUniqueOrThrow({
+      where: {
+        id: teamId,
+      },
+    });
+
+    const salesTeamEvent = await createTeamEventTypeWithAllMembersAssignedAsHosts({
+      teamId,
+      eventType: {
+        title: "Team Sales",
+        slug: "team-sales",
+        teamId,
+        schedulingType: "ROUND_ROBIN",
+        assignAllTeamMembers: true,
+        length: 60,
+        description: "Team Sales",
+      },
+    });
+
+    const javascriptTeamEvent = await createTeamEventTypeWithAllMembersAssignedAsHosts({
+      teamId,
+      eventType: {
+        title: "Team Javascript",
+        slug: "team-javascript",
+        schedulingType: "ROUND_ROBIN",
+        assignAllTeamMembers: true,
+        length: 60,
+        description: "Team Javascript",
+      },
+    });
+
+    // Then seed routing forms
+    const attributes = await seedAttributes(orgId);
+    if (!attributes) {
+      throw new Error("Attributes not found");
+    }
+
+    const skillAttribute = attributes.find((attr) => attr.name === "Skills")!;
+    const locationAttribute = attributes.find((attr) => attr.name === "Location")!;
+
+    console.log("Attributes", JSON.stringify(attributes, null, 2));
+
+    const javascriptEventRoute = {
+      id: "8a898988-89ab-4cde-b012-31823f708642",
+      value: `team/${team.slug}/team-javascript`,
+    };
+
+    const salesEventRoute = {
+      id: "8b2224b2-89ab-4cde-b012-31823f708642",
+      value: `team/${team.slug}/team-sales`,
+    };
+
+    const form = {
+      name: "Form with Attribute Routing",
+      routes: [javascriptEventRoute, salesEventRoute],
+      formFieldLocation: {
+        id: "674c169a-e40a-492c-b4bb-6f5213873bd6",
+      },
+      formFieldSkills: {
+        id: "83316968-45bf-4c9d-b5d4-5368a8d2d2a8",
+      },
+      formFieldEmail: {
+        id: "dd28ffcf-7029-401e-bddb-ce2e7496a1c1",
+      },
+      formFieldManager: {
+        id: "57734f65-8bbb-4065-9e71-fb7f0b7485f8",
+      },
+      formFieldRating: {
+        id: "f4e9fa6c-5c5d-4d8e-b15c-7f37e9d0c729",
+      },
+    };
+
+    const attributeRaw = {
+      location: {
+        id: "location-id",
+        options: [
+          { id: "london-uuid", value: "London" },
+          { id: "new-york-uuid", value: "New York" },
+        ],
+      },
+      skills: {
+        id: "skills-id",
+        options: [
+          { id: "javascript-uuid", value: "JavaScript" },
+          { id: "sales-uuid", value: "Sales" },
+        ],
+      },
+    };
+
+    const formFieldSkillsOptions = attributeRaw.skills.options.map((opt) => ({
+      id: opt.id,
+      label: opt.value,
+    }));
+
+    const formFieldLocationOptions = attributeRaw.location.options.map((opt) => ({
+      id: opt.id,
+      label: opt.value,
+    }));
+
+    const createdForm = await prisma.app_RoutingForms_Form.create({
+      data: {
+        id: uuid(),
+        routes: [
+          {
+            id: javascriptEventRoute.id,
+            action: {
+              type: "eventTypeRedirectUrl",
+              value: javascriptEventRoute.value,
+            },
+            queryValue: {
+              id: "aaba9988-cdef-4012-b456-719300f53ef8",
+              type: "group",
+              children1: {
+                "b98b98a8-0123-4456-b89a-b19300f55277": {
+                  type: "rule",
+                  properties: {
+                    field: form.formFieldSkills.id,
+                    value: [
+                      formFieldSkillsOptions.filter((opt) => opt.label === "JavaScript").map((opt) => opt.id),
+                    ],
+                    operator: "multiselect_equals",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                    valueError: [null],
+                  },
+                },
+              },
+            },
+            attributesQueryValue: {
+              id: "ab99bbb9-89ab-4cde-b012-319300f53ef8",
+              type: "group",
+              children1: {
+                "b98b98a8-0123-4456-b89a-b19300f55277": {
+                  type: "rule",
+                  properties: {
+                    field: skillAttribute.id,
+                    value: [
+                      skillAttribute.options.filter((opt) => opt.value === "JavaScript").map((opt) => opt.id),
+                    ],
+                    operator: "multiselect_some_in",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                    valueError: [null],
+                  },
+                },
+              },
+            },
+          },
+          {
+            id: salesEventRoute.id,
+            action: {
+              type: "eventTypeRedirectUrl",
+              value: salesEventRoute.value,
+            },
+            queryValue: {
+              id: "aaba9948-cdef-4012-b456-719300f53ef8",
+              type: "group",
+              children1: {
+                "c98b98a8-1123-4456-e89a-a19300f55277": {
+                  type: "rule",
+                  properties: {
+                    field: form.formFieldSkills.id,
+                    value: [
+                      formFieldSkillsOptions.filter((opt) => opt.label === "Sales").map((opt) => opt.id),
+                    ],
+                    operator: "multiselect_equals",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                    valueError: [null],
+                  },
+                },
+              },
+            },
+            attributesQueryValue: {
+              id: "ab988888-89ab-4cde-b012-319300f53ef8",
+              type: "group",
+              children1: {
+                "b98b98a12-0123-4456-b89a-b19300f55277": {
+                  type: "rule",
+                  properties: {
+                    field: skillAttribute.id,
+                    value: [
+                      skillAttribute.options.filter((opt) => opt.value === "Sales").map((opt) => opt.id),
+                    ],
+                    operator: "multiselect_some_in",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                    valueError: [null],
+                  },
+                },
+              },
+            },
+            fallbackAttributesQueryValue: {
+              id: "a9888488-4567-489a-bcde-f19300f53ef8",
+              type: "group",
+            },
+          },
+          {
+            id: "148899aa-4567-489a-bcde-f1823f708646",
+            action: { type: "customPageMessage", value: "Fallback Message" },
+            isFallback: true,
+            queryValue: { id: "814899aa-4567-489a-bcde-f1823f708646", type: "group" },
+          },
+        ],
+        fields: [
+          {
+            id: form.formFieldLocation.id,
+            type: "select",
+            label: "Location",
+            options: formFieldLocationOptions,
+            required: true,
+          },
+          {
+            id: form.formFieldSkills.id,
+            type: "multiselect",
+            label: "skills",
+            options: formFieldSkillsOptions,
+            required: true,
+          },
+          {
+            id: form.formFieldEmail.id,
+            type: "email",
+            label: "Email",
+            required: true,
+          },
+          {
+            id: form.formFieldManager.id,
+            type: "text",
+            label: "Manager",
+            required: false,
+          },
+          {
+            id: form.formFieldRating.id,
+            type: "number",
+            label: "Rating",
+            required: false,
+          },
+        ],
+        team: {
+          connect: {
+            id: teamId,
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        name: form.name,
+      },
+    });
+    console.log(`🎯 Created form ${createdForm.id}`, JSON.stringify(createdForm, null, 2));
+  } else {
+    // Default branch: Original routing form logic
+    const multiSelectOption2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
+    const multiSelectOption1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
+    const selectOption1Uuid = "d0292635-9f12-17b1-9153-c3a854649182";
+    const selectOption2Uuid = "d0302635-9f12-17b1-9153-c3a854649182";
+    const multiSelectLegacyFieldUuid = "d4292635-9f12-17b1-9153-c3a854649182";
+    const multiSelectFieldUuid = "d9892635-9f12-17b1-9153-c3a854649182";
+    const selectFieldUuid = "d1302635-9f12-17b1-9153-c3a854649182";
+    const legacySelectFieldUuid = "f0292635-9f12-17b1-9153-c3a854649182";
+    await prisma.app_RoutingForms_Form.create({
+      data: {
+        routes: [
+          {
+            id: "8a898988-89ab-4cde-b012-31823f708642",
+            action: { type: "eventTypeRedirectUrl", value: "pro/30min" },
+            queryValue: {
+              id: "8a898988-89ab-4cde-b012-31823f708642",
+              type: "group",
+              children1: {
+                "8988bbb8-0123-4456-b89a-b1823f70c5ff": {
+                  type: "rule",
+                  properties: {
+                    field: "c4296635-9f12-47b1-8153-c3a854649182",
+                    value: ["event-routing"],
+                    operator: "equal",
+                    valueSrc: ["value"],
+                    valueType: ["text"],
+                  },
+                },
+              },
+            },
+          },
+          {
+            id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
+            action: { type: "customPageMessage", value: "Custom Page Result" },
+            queryValue: {
+              id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
+              type: "group",
+              children1: {
+                "b99b8a89-89ab-4cde-b012-31823f718ff5": {
+                  type: "rule",
+                  properties: {
+                    field: "c4296635-9f12-47b1-8153-c3a854649182",
+                    value: ["custom-page"],
+                    operator: "equal",
+                    valueSrc: ["value"],
+                    valueType: ["text"],
+                  },
+                },
+              },
+            },
+          },
+          {
+            id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
+            action: { type: "externalRedirectUrl", value: `${WEBAPP_URL}/pro` },
+            queryValue: {
+              id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
+              type: "group",
+              children1: {
+                "998b9b9a-0123-4456-b89a-b1823f7232b9": {
+                  type: "rule",
+                  properties: {
+                    field: "c4296635-9f12-47b1-8153-c3a854649182",
+                    value: ["external-redirect"],
+                    operator: "equal",
+                    valueSrc: ["value"],
+                    valueType: ["text"],
+                  },
+                },
+              },
+            },
+          },
+          {
+            id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+            action: { type: "customPageMessage", value: "Multiselect(Legacy) chosen" },
+            queryValue: {
+              id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+              type: "group",
+              children1: {
+                "b98a8abb-cdef-4012-b456-718262343d27": {
+                  type: "rule",
+                  properties: {
+                    field: multiSelectLegacyFieldUuid,
+                    value: [["Option-2"]],
+                    operator: "multiselect_equals",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                  },
+                },
+              },
+            },
+          },
+          {
+            id: "bb9ea8b9-0123-4456-b89a-b182623406d8",
+            action: { type: "customPageMessage", value: "Multiselect chosen" },
+            queryValue: {
+              id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+              type: "group",
+              children1: {
+                "b98a8abb-cdef-4012-b456-718262343d27": {
+                  type: "rule",
+                  properties: {
+                    field: multiSelectFieldUuid,
+                    value: [[multiSelectOption2Uuid]],
+                    operator: "multiselect_equals",
+                    valueSrc: ["value"],
+                    valueType: ["multiselect"],
+                  },
+                },
+              },
+            },
+          },
+          {
+            id: "898899aa-4567-489a-bcde-f1823f708646",
+            action: { type: "customPageMessage", value: "Fallback Message" },
+            isFallback: true,
+            queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
+          },
+        ],
+        fields: [
+          {
+            id: "c4296635-9f12-47b1-8153-c3a854649182",
+            type: "text",
+            label: "Test field",
+            required: true,
+          },
+          {
+            id: multiSelectLegacyFieldUuid,
+            type: "multiselect",
+            label: "Multi Select(with Legacy `selectText`)",
+            identifier: "multi",
+            selectText: "Option-1\nOption-2",
+            required: false,
+          },
+          {
+            id: multiSelectFieldUuid,
+            type: "multiselect",
+            label: "Multi Select",
+            identifier: "multi-new-format",
+            options: [
+              {
+                id: multiSelectOption1Uuid,
+                label: "Option-1",
+              },
+              {
+                id: multiSelectOption2Uuid,
+                label: "Option-2",
+              },
+            ],
+            required: false,
+          },
+          {
+            id: legacySelectFieldUuid,
+            type: "select",
+            label: "Legacy Select",
+            identifier: "test-select",
+            selectText: "Option-1\nOption-2",
+            required: false,
+          },
+          {
+            id: selectFieldUuid,
+            type: "select",
+            label: "Select",
+            identifier: "test-select-new-format",
+            options: [
+              {
+                id: selectOption1Uuid,
+                label: "Option-1",
+              },
+              {
+                id: selectOption2Uuid,
+                label: "Option-2",
+              },
+            ],
+            required: false,
+          },
+        ],
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        name: seededForm.name,
+      },
+    });
+  }
+};
+
 // creates a user fixture instance and stores the collection
 export const createUsersFixture = (
   page: Page,
@@ -274,6 +933,7 @@ export const createUsersFixture = (
         | null,
       scenario: {
         seedRoutingForms?: boolean;
+        seedRoutingFormWithAttributeRouting?: boolean;
         hasTeam?: true;
         numberOfTeams?: number;
         teamRole?: MembershipRole;
@@ -341,192 +1001,6 @@ export const createUsersFixture = (
         });
       }
 
-      if (scenario.seedRoutingForms) {
-        const multiSelectOption2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
-        const multiSelectOption1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
-        const selectOption1Uuid = "d0292635-9f12-17b1-9153-c3a854649182";
-        const selectOption2Uuid = "d0302635-9f12-17b1-9153-c3a854649182";
-        const multiSelectLegacyFieldUuid = "d4292635-9f12-17b1-9153-c3a854649182";
-        const multiSelectFieldUuid = "d9892635-9f12-17b1-9153-c3a854649182";
-        const selectFieldUuid = "d1302635-9f12-17b1-9153-c3a854649182";
-        const legacySelectFieldUuid = "f0292635-9f12-17b1-9153-c3a854649182";
-        await prisma.app_RoutingForms_Form.create({
-          data: {
-            routes: [
-              {
-                id: "8a898988-89ab-4cde-b012-31823f708642",
-                action: { type: "eventTypeRedirectUrl", value: "pro/30min" },
-                queryValue: {
-                  id: "8a898988-89ab-4cde-b012-31823f708642",
-                  type: "group",
-                  children1: {
-                    "8988bbb8-0123-4456-b89a-b1823f70c5ff": {
-                      type: "rule",
-                      properties: {
-                        field: "c4296635-9f12-47b1-8153-c3a854649182",
-                        value: ["event-routing"],
-                        operator: "equal",
-                        valueSrc: ["value"],
-                        valueType: ["text"],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
-                action: { type: "customPageMessage", value: "Custom Page Result" },
-                queryValue: {
-                  id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
-                  type: "group",
-                  children1: {
-                    "b99b8a89-89ab-4cde-b012-31823f718ff5": {
-                      type: "rule",
-                      properties: {
-                        field: "c4296635-9f12-47b1-8153-c3a854649182",
-                        value: ["custom-page"],
-                        operator: "equal",
-                        valueSrc: ["value"],
-                        valueType: ["text"],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: `${WEBAPP_URL}/pro` },
-                queryValue: {
-                  id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                  type: "group",
-                  children1: {
-                    "998b9b9a-0123-4456-b89a-b1823f7232b9": {
-                      type: "rule",
-                      properties: {
-                        field: "c4296635-9f12-47b1-8153-c3a854649182",
-                        value: ["external-redirect"],
-                        operator: "equal",
-                        valueSrc: ["value"],
-                        valueType: ["text"],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
-                action: { type: "customPageMessage", value: "Multiselect(Legacy) chosen" },
-                queryValue: {
-                  id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
-                  type: "group",
-                  children1: {
-                    "b98a8abb-cdef-4012-b456-718262343d27": {
-                      type: "rule",
-                      properties: {
-                        field: multiSelectLegacyFieldUuid,
-                        value: [["Option-2"]],
-                        operator: "multiselect_equals",
-                        valueSrc: ["value"],
-                        valueType: ["multiselect"],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                id: "bb9ea8b9-0123-4456-b89a-b182623406d8",
-                action: { type: "customPageMessage", value: "Multiselect chosen" },
-                queryValue: {
-                  id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
-                  type: "group",
-                  children1: {
-                    "b98a8abb-cdef-4012-b456-718262343d27": {
-                      type: "rule",
-                      properties: {
-                        field: multiSelectFieldUuid,
-                        value: [[multiSelectOption2Uuid]],
-                        operator: "multiselect_equals",
-                        valueSrc: ["value"],
-                        valueType: ["multiselect"],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                id: "898899aa-4567-489a-bcde-f1823f708646",
-                action: { type: "customPageMessage", value: "Fallback Message" },
-                isFallback: true,
-                queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
-              },
-            ],
-            fields: [
-              {
-                id: "c4296635-9f12-47b1-8153-c3a854649182",
-                type: "text",
-                label: "Test field",
-                required: true,
-              },
-              {
-                id: multiSelectLegacyFieldUuid,
-                type: "multiselect",
-                label: "Multi Select(with Legacy `selectText`)",
-                identifier: "multi",
-                selectText: "Option-1\nOption-2",
-                required: false,
-              },
-              {
-                id: multiSelectFieldUuid,
-                type: "multiselect",
-                label: "Multi Select",
-                identifier: "multi-new-format",
-                options: [
-                  {
-                    id: multiSelectOption1Uuid,
-                    label: "Option-1",
-                  },
-                  {
-                    id: multiSelectOption2Uuid,
-                    label: "Option-2",
-                  },
-                ],
-                required: false,
-              },
-              {
-                id: legacySelectFieldUuid,
-                type: "select",
-                label: "Legacy Select",
-                identifier: "test-select",
-                selectText: "Option-1\nOption-2",
-                required: false,
-              },
-              {
-                id: selectFieldUuid,
-                type: "select",
-                label: "Select",
-                identifier: "test-select-new-format",
-                options: [
-                  {
-                    id: selectOption1Uuid,
-                    label: "Option-1",
-                  },
-                  {
-                    id: selectOption2Uuid,
-                    label: "Option-2",
-                  },
-                ],
-                required: false,
-              },
-            ],
-            user: {
-              connect: {
-                id: _user.id,
-              },
-            },
-            name: seededForm.name,
-          },
-        });
-      }
       const user = await prisma.user.findUniqueOrThrow({
         where: { id: _user.id },
         include: userIncludes,
@@ -664,7 +1138,31 @@ export const createUsersFixture = (
           }
         }
       }
-      const userFixture = createUserFixture(user, store.page);
+
+      if (scenario.seedRoutingForms) {
+        const firstTeamMembership = await prisma.membership.findFirstOrThrow({
+          where: {
+            userId: _user.id,
+            team: {
+              isOrganization: false,
+            },
+          },
+        });
+        if (!firstTeamMembership) {
+          throw new Error("No sub-team created");
+        }
+        await createRoutingForm({
+          userId: _user.id,
+          teamId: firstTeamMembership.teamId,
+          scenario,
+        });
+      }
+
+      const finalUser = await prisma.user.findUniqueOrThrow({
+        where: { id: user.id },
+        include: userIncludes,
+      });
+      const userFixture = createUserFixture(finalUser, store.page);
       store.users.push(userFixture);
       return userFixture;
     },

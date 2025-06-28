@@ -1044,6 +1044,7 @@ class CalApi {
         backgroundSlotsFetch: !!this.prerenderOptions?.backgroundSlotsFetch,
       });
     } else {
+      this.cal.isPrerendering = false;
       enrichedConfig = configWithGuestKeyAndColorScheme;
     }
 

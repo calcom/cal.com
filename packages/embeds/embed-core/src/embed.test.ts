@@ -325,6 +325,7 @@ describe("Cal", () => {
           __prerender: true,
         };
         calInstance.api.modal(modalArg);
+        expect(calInstance.isPrerendering).toBe(true);
 
         const modalBox = expectCalModalBoxToBeInDocument({
           state: "prerendering",
@@ -445,6 +446,7 @@ describe("Cal", () => {
           } {
             log("Prerendering the modal");
             calInstance.api.modal({ ...buildModalArg(modalArg), __prerender: true });
+            expect(calInstance.isPrerendering).toBe(true);
             const expectedConfig = {
               ...modalArg.config,
               embedType: "modal",
@@ -537,7 +539,7 @@ describe("Cal", () => {
           (function reopen() {
             log("Reopening the same modal without any changes");
             calInstance.api.modal(modalArgWithPrefilledConfig);
-
+            expect(calInstance.isPrerendering).toBe(false);
             // Connect won't happen again
             expect(calInstance.doInIframe).toHaveBeenCalledWith(
               expect.objectContaining({
