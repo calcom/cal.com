@@ -183,8 +183,6 @@ const nextConfig = {
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     optimizePackageImports: ["@calcom/ui"],
-    // Enable Partial Pre-rendering for better performance
-    ppr: "incremental",
   },
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */

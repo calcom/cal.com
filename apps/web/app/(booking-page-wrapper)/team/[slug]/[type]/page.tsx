@@ -1,54 +1,20 @@
-import { CustomI18nProvider } from "app/CustomI18nProvider";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { z } from "zod";
 
-import { orgDomainConfig, getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { loadTranslations } from "@calcom/lib/server/i18n";
-import slugify from "@calcom/lib/slugify";
-import { RedirectType } from "@calcom/prisma/enums";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { BookingStatus } from "@calcom/prisma/enums";
 
-import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { getDynamicBookingData } from "@lib/team/[slug]/[type]/getDynamicBookingData";
 import { getCachedTeamEvent } from "@lib/team/[slug]/[type]/getStaticData";
 
-import DynamicBookingComponents from "~/team/dynamic-booking-components";
-import StaticTeamEventView from "~/team/static-team-event-view";
+import Type from "~/team/type-view";
 
-const paramsSchema = z.object({
-  slug: z.string().transform((s) => slugify(s)),
-  type: z.string().transform((s) => slugify(s)),
-});
+import { getCachedOrgContext } from "./layout";
 
-async function getTeamEventData({ params, searchParams }: PageProps) {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-
-  const result = paramsSchema.safeParse({
-    slug: legacyCtx.params?.slug,
-    type: legacyCtx.params?.type,
-  });
-
-  if (!result.success) {
-    // Should never happen
-    return notFound();
-  }
-
-  const { slug: teamSlug, type: meetingSlug } = result.data;
-  const orgSlug = legacyCtx.params?.orgSlug ?? null;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, orgSlug ?? undefined);
-  const isOrgContext = currentOrgDomain && isValidOrgDomain;
-
-  if (!isOrgContext) {
-    const redirectResult = await getTemporaryOrgRedirect({
-      slugs: teamSlug,
-      redirectType: RedirectType.Team,
-      eventTypeSlug: meetingSlug,
-      currentQuery: legacyCtx.query,
-    });
-    if (redirectResult) redirect(redirectResult.redirect.destination);
-  }
+export const generateMetadata = async ({ params, searchParams }: PageProps) => {
+  const { currentOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(await params);
 
   const teamEventData = await getCachedTeamEvent({
     teamSlug,
@@ -57,14 +23,8 @@ async function getTeamEventData({ params, searchParams }: PageProps) {
   });
 
   if (!teamEventData) {
-    return notFound();
+    return {};
   }
-
-  return teamEventData;
-}
-
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const teamEventData = await getTeamEventData({ params, searchParams });
 
   const { eventData, isBrandingHidden, isSEOIndexable } = teamEventData;
   const profileName = eventData?.profile?.name ?? "";
@@ -77,14 +37,13 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     users: [],
   };
 
-  const decodedParams = decodeParams(await params);
   const metadata = await generateMeetingMetadata(
     meeting,
     () => `${title} | ${profileName}`,
     () => title,
     isBrandingHidden,
     getOrgFullOrigin(eventData.entity.orgSlug ?? null),
-    `/team/${decodedParams.slug}/${decodedParams.type}`
+    `/team/${teamSlug}/${meetingSlug}`
   );
 
   return {
@@ -97,33 +56,61 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const teamEventData = await getTeamEventData({ params, searchParams });
-  const content = (
-    <div>
-      <StaticTeamEventView {...teamEventData} />
-      <DynamicBookingComponents
-        eventData={teamEventData.eventData}
-        teamId={teamEventData.teamId}
-        slug={teamEventData.slug}
-        user={teamEventData.user}
-        isBrandingHidden={teamEventData.isBrandingHidden}
-        orgBannerUrl={teamEventData.orgBannerUrl}
-      />
-    </div>
-  );
+  const { headers, cookies } = await import("next/headers");
+  const { currentOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(await params);
 
-  const eventLocale = teamEventData.eventData?.interfaceLanguage;
-  if (eventLocale) {
-    const ns = "common";
-    const translations = await loadTranslations(eventLocale, ns);
-    return (
-      <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
-        {content}
-      </CustomI18nProvider>
-    );
+  const teamEventData = await getCachedTeamEvent({
+    teamSlug,
+    meetingSlug,
+    orgSlug: currentOrgDomain,
+  });
+
+  if (!teamEventData) {
+    return notFound();
   }
 
-  return content;
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+
+  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting } = legacyCtx.query;
+  const allowRescheduleForCancelledBooking = legacyCtx.query.allowRescheduleForCancelledBooking === "true";
+
+  if (rescheduleUid && teamEventData.eventData.disableRescheduling) {
+    redirect(`/booking/${rescheduleUid}`);
+  }
+
+  const dynamicData = await getDynamicBookingData({
+    teamId: teamEventData.teamId,
+    rescheduleUid,
+    query: legacyCtx.query,
+    req: legacyCtx.req,
+    eventData: teamEventData.eventData,
+    isInstantMeetingQuery: queryIsInstantMeeting === "true",
+  });
+
+  if (
+    dynamicData.booking?.status === BookingStatus.CANCELLED &&
+    !allowRescheduleForCancelledBooking &&
+    !teamEventData.eventData.allowReschedulingCancelledBookings
+  ) {
+    redirect(`/team/${teamSlug}/${meetingSlug}`);
+  }
+
+  const typeProps = {
+    slug: meetingSlug,
+    user: teamSlug,
+    booking: dynamicData.booking,
+    isBrandingHidden: teamEventData.isBrandingHidden,
+    eventData: teamEventData.eventData,
+    isInstantMeeting: dynamicData.isInstantMeeting,
+    orgBannerUrl: teamEventData.orgBannerUrl,
+    teamMemberEmail: dynamicData.teamMemberEmail,
+    crmOwnerRecordType: dynamicData.crmOwnerRecordType,
+    crmAppSlug: dynamicData.crmAppSlug,
+    isEmbed: false,
+    useApiV2: dynamicData.useApiV2,
+  };
+
+  return <Type {...typeProps} />;
 };
 
 export default ServerPage;

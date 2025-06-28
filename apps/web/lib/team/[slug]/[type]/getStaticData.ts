@@ -56,7 +56,7 @@ const getStaticTeamEventData = async ({ teamSlug, meetingSlug, orgSlug }: TeamEv
         username: orgSlug,
       },
       title: eventData.title,
-      subsetOfUsers: eventHostsUserData,
+      users: eventHostsUserData,
       hidden: eventData.hidden,
       interfaceLanguage: eventData.interfaceLanguage,
       slug: eventData.slug,
