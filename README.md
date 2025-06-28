@@ -487,8 +487,8 @@ Don't code but still want to contribute? Join our [Discussions](https://github.c
 
 - Set CSP_POLICY="non-strict" env variable, which enables [Strict CSP](https://web.dev/strict-csp/) except for unsafe-inline in style-src . If you have some custom changes in your instance, you might have to make some code change to make your instance CSP compatible. Right now it enables strict CSP only on login page and on other SSR pages it is enabled in Report only mode to detect possible issues. On, SSG pages it is still not supported.
 
-## Using the Organizations feature
-Refer to [this](./packages/features/ee/organizations/README.md) for a detailed documentation with screenshots.
+## Single Org Mode
+Refer to docs [here](./docs/self-hosting/guides/organization/single-organization-setup) for a detailed documentation with screenshots.
 
 
 ## Integrations

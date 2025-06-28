@@ -70,37 +70,4 @@ This will generate a public URL that you can use to access your localhost server
 ## DNS setup
 
 When a new organization is created, other than not being verified up until the admin accepts it in settings as explained in step 6, a flag gets created that marks the organization as missing DNS setup. That flag get auto-checked by the system upon organization creation when the Cal instance is deployed in Vercel and the subdomain registration was successful. Logging in as admin and going to Settings > Organizations section, you will see that flag as a badge, designed to give admins a glimpe on what is pending in terms of making an organization work. Alongside the mentioned badge, an email gets sent to admins in order to warn them there is a pending action about setting up DNS for the newly created organization to work.
-
-
-
-## Single Org Mode
-
-For a detailed documentation with screenshots, please refer to [this](https://docs.google.com/document/d/1cXTBlsbd9w_CnkQLKTTh_mP2csMQ431npYk3CjrYXM0/edit?usp=sharing)
-
-If you want to have booker.yourcompany.com to be the domain used for both dashboard(e.g. https://booker.yourcompany.com/event-types) and booking pages(e.g. https://booker.yourcompany.com/john.joe/15min).
-- Set the `NEXT_PUBLIC_SINGLE_ORG_SLUG` environment variable to the slug of the organization you want to use. `NEXT_PUBLIC_SINGLE_ORG_SLUG=booker`
-- Set the `NEXT_PUBLIC_WEBAPP_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXT_PUBLIC_WEBAPP_URL=https://booker.yourcompany.com`.
-- Set the `NEXT_PUBLIC_WEBSITE_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXT_PUBLIC_WEBSITE_URL=https://booker.yourcompany.com`.
-- Set the `NEXTAUTH_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXTAUTH_URL=https://booker.yourcompany.com`.
-
-Note: It causes root to serve the dashboard and not the organization profile page which shows all bookable users in the organization.
-
-
-## Other Env Variables
-
-### RESERVED_SUBDOMAINS
-
-This is a comma-separated list of subdomains that are not allowed to be used as organization slugs.
-So, e.g. if you set `RESERVED_SUBDOMAINS="app","auth","help"` then the domains `app.cal.com`, `auth.cal.com` and `help.cal.com` are reserved for its use by the Cal.com instance. So, you can't create an organization with the slug `app`, `auth` or `help`.
-
-### ALLOWED_HOSTNAMES
-
-It is a comma-separated list of domains, on the subdomains of which the booking pages and dashboard are allowed to work.
-
-So, if ALLOWED_HOSTNAMES='"cal.com", "cal.dev"' then,
-- acme.cal.com is a valid organization booking domain and WEBAPP_URL can be set to http://app.cal.com
-- dunder.cal.dev is also a valid organization subdomain and WEBAPP_URL can be set to http://app.cal.dev
-
-If ALLOWED_HOSTNAMES='"cal.domain.tld"' then
-WEBAPP_URL should be app.cal.domain.tld and acme.cal.domain.tld, dunder.cal.domain.tld, xxxx.cal.domain.tld are valid organization domain.
-
+Read more about the Organization Setup [here](https://cal.com/docs/self-hosting/guides/organization/organization-setup)
