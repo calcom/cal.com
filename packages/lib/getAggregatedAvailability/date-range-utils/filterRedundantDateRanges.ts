@@ -206,9 +206,9 @@ class HybridSweepLineProcessor {
       }
     }
 
-    for (const [key, indices] of rangeGroups) {
+    for (const [key, indices] of Array.from(rangeGroups)) {
       if (indices.length > 1) {
-        indices.sort((a, b) => a - b);
+        indices.sort((a: number, b: number) => a - b);
         for (let i = 1; i < indices.length; i++) {
           this.redundantIndices.add(indices[i]);
         }
@@ -285,9 +285,9 @@ export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] 
     }
 
     const redundantIndices = new Set<number>();
-    for (const [key, indices] of rangeGroups) {
+    for (const [key, indices] of Array.from(rangeGroups)) {
       if (indices.length > 1) {
-        indices.sort((a, b) => a - b);
+        indices.sort((a: number, b: number) => a - b);
         for (let i = 1; i < indices.length; i++) {
           redundantIndices.add(indices[i]);
         }
