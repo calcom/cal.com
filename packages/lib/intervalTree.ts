@@ -1,4 +1,4 @@
-interface IntervalNode<T> {
+export interface IntervalNode<T> {
   item: T;
   index: number;
   start: number;
@@ -39,9 +39,21 @@ export class IntervalTree<T> {
     return node;
   }
 
+  getRoot(): IntervalNode<T> | undefined {
+    return this.root;
+  }
+}
+
+export class ContainmentSearchAlgorithm<T> {
+  private tree: IntervalTree<T>;
+
+  constructor(tree: IntervalTree<T>) {
+    this.tree = tree;
+  }
+
   findContainingIntervals(targetStart: number, targetEnd: number, targetIndex: number): IntervalNode<T>[] {
     const result: IntervalNode<T>[] = [];
-    this.searchContaining(this.root, targetStart, targetEnd, targetIndex, result);
+    this.searchContaining(this.tree.getRoot(), targetStart, targetEnd, targetIndex, result);
     return result;
   }
 
