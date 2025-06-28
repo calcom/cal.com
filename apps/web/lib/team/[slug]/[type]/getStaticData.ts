@@ -1,96 +1,81 @@
-import { z } from "zod";
+"use server";
+
+import { unstable_cache } from "next/cache";
 
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
+import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
-import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-const paramsSchema = z.object({
-  type: z.string().transform((s) => slugify(s)),
-  slug: z.string().transform((s) => slugify(s)),
-});
+type TeamEventParams = {
+  teamSlug: string;
+  meetingSlug: string;
+  orgSlug: string | null;
+};
 
-export const getStaticTeamEventData = async (
-  _teamSlug: string,
-  _meetingSlug: string,
-  _orgSlug: string | null
-) => {
-  try {
-    const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse({ type: _meetingSlug, slug: _teamSlug });
-    const currentOrgDomain = _orgSlug;
-    const isValidOrgDomain = !!currentOrgDomain;
+const getStaticTeamEventData = async ({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) => {
+  const team = await getTeamWithEventsData(teamSlug, meetingSlug, !!orgSlug, orgSlug ?? null);
 
-    const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
-
-    if (!team || !team.eventTypes?.[0]) {
-      return null;
-    }
-
-    const eventData = team.eventTypes[0];
-    const eventTypeId = eventData.id;
-    const eventHostsUserData = await getUsersData(
-      team.isPrivate,
-      eventTypeId,
-      eventData.hosts.map((h) => h.user)
-    );
-    const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-    const name = team.parent?.name ?? team.name ?? null;
-
-    const organizationSettings = getOrganizationSEOSettings(team);
-    const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
-
-    return {
-      eventData: {
-        eventTypeId,
-        entity: {
-          fromRedirectOfNonOrgLink: false,
-          considerUnpublished: false,
-          orgSlug,
-          teamSlug: team.slug ?? null,
-          name,
-        },
-        length: eventData.length,
-        metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
-        profile: {
-          image: team.parent
-            ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-            : getPlaceholderAvatar(team.logoUrl, team.name),
-          name,
-          username: orgSlug ?? null,
-        },
-        title: eventData.title,
-        subsetOfUsers: eventHostsUserData,
-        hidden: eventData.hidden,
-        interfaceLanguage: eventData.interfaceLanguage,
-        slug: eventData.slug,
-        team: {
-          id: team.id,
-          name: team.name,
-          slug: team.slug,
-        },
-      },
-      user: teamSlug,
-      teamId: team.id,
-      slug: meetingSlug,
-      isBrandingHidden: shouldHideBrandingForTeamEvent({
-        eventTypeId: eventData.id,
-        team,
-      }),
-      orgBannerUrl: team.parent?.bannerUrl ?? "",
-      isSEOIndexable: allowSEOIndexing,
-    };
-  } catch (error) {
-    console.error("Error in getStaticTeamEventData:", error, {
-      teamSlug: _teamSlug,
-      meetingSlug: _meetingSlug,
-      orgSlug: _orgSlug,
-    });
+  if (!team || !team.eventTypes?.[0]) {
     return null;
   }
+
+  const eventData = team.eventTypes[0];
+  const eventTypeId = eventData.id;
+  const eventHostsUserData = await getUsersData(
+    team.isPrivate,
+    eventTypeId,
+    eventData.hosts.map((h) => h.user)
+  );
+  const name = team.parent?.name ?? team.name ?? null;
+
+  const organizationSettings = getOrganizationSEOSettings(team);
+  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
+  return {
+    eventData: {
+      eventTypeId,
+      entity: {
+        fromRedirectOfNonOrgLink: false,
+        considerUnpublished: false,
+        orgSlug,
+        teamSlug: team.slug ?? null,
+        name,
+      },
+      length: eventData.length,
+      metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
+      profile: {
+        image: team.parent
+          ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+          : getPlaceholderAvatar(team.logoUrl, team.name),
+        name,
+        username: orgSlug,
+      },
+      title: eventData.title,
+      subsetOfUsers: eventHostsUserData,
+      hidden: eventData.hidden,
+      interfaceLanguage: eventData.interfaceLanguage,
+      slug: eventData.slug,
+      team: {
+        id: team.id,
+        name: team.name,
+        slug: team.slug,
+      },
+    },
+    user: teamSlug,
+    teamId: team.id,
+    slug: meetingSlug,
+    isBrandingHidden: shouldHideBrandingForTeamEvent({
+      eventTypeId: eventData.id,
+      team,
+    }),
+    orgBannerUrl: team.parent?.bannerUrl ?? "",
+    isSEOIndexable: allowSEOIndexing,
+  };
 };
 
 const getTeamWithEventsData = async (
@@ -210,3 +195,13 @@ const getUsersData = async (
 
   return [];
 };
+
+export const getCachedTeamEvent = unstable_cache(
+  async ({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) => {
+    return await getStaticTeamEventData({ teamSlug, meetingSlug, orgSlug });
+  },
+  undefined,
+  {
+    revalidate: NEXTJS_CACHE_TTL,
+  }
+);
