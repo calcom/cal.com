@@ -1,5 +1,5 @@
 import type { DateRange } from "@calcom/lib/date-ranges";
-import { IntervalTree, ContainmentSearchAlgorithm } from "@calcom/lib/intervalTree";
+import { IntervalTree, ContainmentSearchAlgorithm, createIntervalNodes } from "@calcom/lib/intervalTree";
 
 /**
  * Filters out date ranges that are completely covered by other date ranges.
@@ -11,11 +11,12 @@ export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] 
   if (dateRanges.length <= 1) return dateRanges;
 
   const sortedRanges = [...dateRanges].sort((a, b) => a.start.valueOf() - b.start.valueOf());
-  const intervalTree = new IntervalTree(
+  const intervalNodes = createIntervalNodes(
     sortedRanges,
     (range) => range.start.valueOf(),
     (range) => range.end.valueOf()
   );
+  const intervalTree = new IntervalTree(intervalNodes);
   const searchAlgorithm = new ContainmentSearchAlgorithm(intervalTree);
 
   return sortedRanges.filter((range, index) => {

@@ -8,18 +8,25 @@ export interface IntervalNode<T> {
   right?: IntervalNode<T>;
 }
 
+export function createIntervalNodes<T>(
+  items: T[],
+  getStart: (item: T) => number,
+  getEnd: (item: T) => number
+): IntervalNode<T>[] {
+  return items.map((item, index) => ({
+    item,
+    index,
+    start: getStart(item),
+    end: getEnd(item),
+    maxEnd: getEnd(item),
+  }));
+}
+
 export class IntervalTree<T> {
   private root?: IntervalNode<T>;
 
-  constructor(items: T[], getStart: (item: T) => number, getEnd: (item: T) => number) {
-    const nodes = items.map((item, index) => ({
-      item,
-      index,
-      start: getStart(item),
-      end: getEnd(item),
-      maxEnd: getEnd(item),
-    }));
-    this.root = this.buildTree(nodes.sort((a, b) => a.start - b.start));
+  constructor(nodes: IntervalNode<T>[]) {
+    this.root = this.buildTree([...nodes].sort((a, b) => a.start - b.start));
   }
 
   private buildTree(nodes: IntervalNode<T>[]): IntervalNode<T> | undefined {
