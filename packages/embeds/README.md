@@ -108,7 +108,7 @@ if (!this.iframeReady) {
 Embeds the calendar directly within the page flow:
 ```typescript
 Cal.inline({
-  elementOrSelector: "#my-cal-inline",
+  elementOrSelector: "#my-cal-inline-${namespace}", // Includes namespace for uniqueness
   calLink: "organization/event-type"
 });
 ```
