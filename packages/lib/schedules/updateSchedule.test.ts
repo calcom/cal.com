@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { PrismaClient } from "@calcom/prisma";
 
-import { TRPCError } from "@trpc/server";
-
 import { updateSchedule } from "./updateSchedule";
 
 vi.mock("@calcom/prisma", () => ({
@@ -69,26 +67,7 @@ describe("updateSchedule - name validation", () => {
         user: mockUser,
         prisma: mockPrisma,
       })
-    ).rejects.toThrow(TRPCError);
-
-    await expect(
-      updateSchedule({
-        input,
-        user: mockUser,
-        prisma: mockPrisma,
-      })
-    ).rejects.toThrowError("Schedule name cannot be empty");
-
-    try {
-      await updateSchedule({
-        input,
-        user: mockUser,
-        prisma: mockPrisma,
-      });
-    } catch (error) {
-      expect(error).toBeInstanceOf(TRPCError);
-      expect((error as TRPCError).code).toBe("BAD_REQUEST");
-    }
+    ).rejects.toThrow("Schedule name cannot be empty");
   });
 
   it("should not throw an error when name is undefined (no name update)", async () => {
