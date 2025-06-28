@@ -125,4 +125,18 @@ describe("filterRedundantDateRanges", () => {
     expect(result[0].start.format()).toEqual(dayjs("2025-01-23T10:00:00.000Z").format());
     expect(result[1].start.format()).toEqual(dayjs("2025-01-23T11:00:00.000Z").format());
   });
+
+  it("should handle complex overlapping pattern that exposed cubic-dev-ai bug", () => {
+    const dateRanges = [
+      { start: dayjs("2025-01-23T10:00:00.000Z"), end: dayjs("2025-01-23T12:00:00.000Z") },
+      { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T13:00:00.000Z") },
+      { start: dayjs("2025-01-23T09:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
+    ];
+
+    const result = filterRedundantDateRanges(dateRanges);
+    expect(result.length).toBe(3);
+    expect(result[0].start.format()).toEqual(dayjs("2025-01-23T09:00:00.000Z").format());
+    expect(result[1].start.format()).toEqual(dayjs("2025-01-23T10:00:00.000Z").format());
+    expect(result[2].start.format()).toEqual(dayjs("2025-01-23T11:00:00.000Z").format());
+  });
 });
