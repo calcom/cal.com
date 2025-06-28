@@ -52,7 +52,6 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import type { ErrorWithCode } from "@calcom/lib/errors";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -454,22 +453,12 @@ async function handler(
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
   if (!rawBookingData.rescheduleUid) {
-    try {
-      await checkActiveBookingsLimitForBooker({
-        eventTypeId,
-        maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
-        bookerEmail,
-        offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
-      });
-    } catch (err) {
-      const error = err as ErrorWithCode;
-
-      throw new HttpError({
-        statusCode: 400,
-        message: error.message,
-        data: error.data,
-      });
-    }
+    await checkActiveBookingsLimitForBooker({
+      eventTypeId,
+      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
+      bookerEmail,
+      offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
+    });
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
@@ -1396,6 +1385,8 @@ async function handler(
             routingFormResponseId,
             organizerId: organizerUser.id,
             teamId,
+            isRerouting: !!reroutingFormResponses,
+            reroutedByEmail: reqBody.rescheduledBy,
           });
         }
       }
