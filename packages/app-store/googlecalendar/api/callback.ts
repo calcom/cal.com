@@ -114,7 +114,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         eventTypeId: null,
         externalId: selectedCalendarWhereUnique.externalId,
       });
-      await BookingReferenceRepository.reconnectWithNewCredential(gcalCredential.id);
     } catch (error) {
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
