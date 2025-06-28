@@ -6,6 +6,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateWorkflowsList } from "@calcom/web/app/(use-page-wrapper)/workflows/action";
 
 interface IDeleteDialog {
   isOpenDialog: boolean;
@@ -22,6 +23,7 @@ export const DeleteDialog = (props: IDeleteDialog) => {
   const deleteMutation = trpc.viewer.workflows.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.workflows.filteredList.invalidate();
+      revalidateWorkflowsList();
       additionalFunction();
       showToast(t("workflow_deleted_successfully"), "success");
       setIsOpenDialog(false);
