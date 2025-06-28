@@ -8,10 +8,11 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import dayjs from "@calcom/dayjs";
 import PoweredBy from "@calcom/ee/components/PoweredBy";
+import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -38,17 +39,9 @@ import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/us
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
 import { useBookerStore } from "./store";
-import type { BookerProps, WrappedBookerProps, BookerState } from "./types";
+import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
-
-function updateEmbedBookerState({ bookerState }: { bookerState: BookerState }) {
-  // Ensure that only after the bookerState is reflected, we update the embedIsBookerReady
-  if (typeof window !== "undefined") {
-    (window as Window & { _embedBookerState?: "initializing" | "done" })._embedBookerState =
-      bookerState && bookerState !== "loading" ? "done" : "initializing";
-  }
-}
 
 const BookerComponent = ({
   username,
@@ -85,6 +78,7 @@ const BookerComponent = ({
   hashedLink,
   confirmButtonDisabled,
   timeZones,
+  eventMetaChildren,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -186,7 +180,7 @@ const BookerComponent = ({
     (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
   );
 
-  updateEmbedBookerState({ bookerState });
+  updateEmbedBookerState({ bookerState, slotsQuery: schedule });
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
@@ -243,7 +237,6 @@ const BookerComponent = ({
         bookingForm={bookingForm}
         eventQuery={event}
         extraOptions={extraOptions}
-        rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
         confirmButtonDisabled={confirmButtonDisabled}
         classNames={{
@@ -284,7 +277,6 @@ const BookerComponent = ({
     loadingStates,
     onGoBackInstantMeeting,
     renderConfirmNotVerifyEmailButtonCond,
-    rescheduleUid,
     seatedEventData,
     setSeatedEventData,
     setSelectedTimeslot,
@@ -409,8 +401,9 @@ const BookerComponent = ({
                   isPlatform={isPlatform}
                   isPrivateLink={!!hashedLink}
                   locale={userLocale}
-                  timeZones={timeZones}
-                />
+                  timeZones={timeZones}>
+                  {eventMetaChildren}
+                </EventMeta>
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">

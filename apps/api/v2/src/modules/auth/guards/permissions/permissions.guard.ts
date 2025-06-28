@@ -1,14 +1,16 @@
 import { isApiKey } from "@/lib/api-key";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthClientsOutputService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients-output.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { getToken } from "next-auth/jwt";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { hasPermissions } from "@calcom/platform-utils";
+import { PlatformOAuthClient } from "@calcom/prisma/client";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -16,7 +18,8 @@ export class PermissionsGuard implements CanActivate {
     private reflector: Reflector,
     private tokensRepository: TokensRepository,
     private readonly config: ConfigService,
-    private readonly oAuthClientRepository: OAuthClientRepository
+    private readonly oAuthClientRepository: OAuthClientRepository,
+    private readonly oAuthClientsOutputService: OAuthClientsOutputService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -27,42 +30,61 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const authString = request.get("Authorization")?.replace("Bearer ", "");
+    const bearerToken = request.get("Authorization")?.replace("Bearer ", "");
     const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
     const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
     const oAuthClientId = request.params?.clientId || request.get(X_CAL_CLIENT_ID);
+    const apiKey = bearerToken && isApiKey(bearerToken, this.config.get("api.apiKeyPrefix") ?? "cal_");
 
-    if (nextAuthToken) {
+    // only check permissions for accessTokens attached to an oAuth Client or oAuth credentials, not for next token or api key
+    if (nextAuthToken || apiKey) {
       return true;
     }
 
-    if (!authString && !oAuthClientId) {
-      return false;
+    if (!bearerToken && !oAuthClientId) {
+      throw new ForbiddenException(
+        "PermissionsGuard - no authentication provided. Provide either authorization bearer token containing managed user access token or oAuth client id in 'x-cal-client-id' header."
+      );
     }
 
-    // only check permissions for accessTokens attached to an oAuth Client
-    if (isApiKey(authString, this.config.get("api.apiKeyPrefix") ?? "cal_")) {
-      return true;
+    const oAuthClient = bearerToken
+      ? await this.getOAuthClientByAccessToken(bearerToken)
+      : await this.getOAuthClientById(oAuthClientId);
+
+    const hasRequiredPermissions = hasPermissions(oAuthClient.permissions, [...requiredPermissions]);
+
+    if (!hasRequiredPermissions) {
+      throw new ForbiddenException(
+        `PermissionsGuard - oAuth client with id=${
+          oAuthClient.id
+        } does not have the required permissions=${requiredPermissions
+          .map((permission) => this.oAuthClientsOutputService.transformOAuthClientPermission(permission))
+          .join(
+            ", "
+          )}. Go to platform dashboard settings and add the required permissions to the oAuth client.`
+      );
     }
 
-    const oAuthClientPermissions = authString
-      ? await this.getOAuthClientPermissionsByAccessToken(authString)
-      : await this.getOAuthClientPermissionsById(oAuthClientId);
-
-    if (!oAuthClientPermissions) {
-      return false;
-    }
-
-    return hasPermissions(oAuthClientPermissions, [...requiredPermissions]);
+    return true;
   }
 
-  async getOAuthClientPermissionsByAccessToken(accessToken: string) {
+  async getOAuthClientByAccessToken(
+    accessToken: string
+  ): Promise<Pick<PlatformOAuthClient, "id" | "permissions">> {
     const oAuthClient = await this.tokensRepository.getAccessTokenClient(accessToken);
-    return oAuthClient?.permissions;
+    if (!oAuthClient) {
+      throw new ForbiddenException(
+        `PermissionsGuard - no oAuth client found for access token=${accessToken}`
+      );
+    }
+    return oAuthClient;
   }
 
-  async getOAuthClientPermissionsById(id: string) {
+  async getOAuthClientById(id: string): Promise<Pick<PlatformOAuthClient, "id" | "permissions">> {
     const oAuthClient = await this.oAuthClientRepository.getOAuthClient(id);
-    return oAuthClient?.permissions;
+    if (!oAuthClient) {
+      throw new ForbiddenException(`PermissionsGuard - no oAuth client found for client id=${id}`);
+    }
+    return oAuthClient;
   }
 }

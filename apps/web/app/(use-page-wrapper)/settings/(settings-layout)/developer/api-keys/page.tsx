@@ -1,9 +1,15 @@
-import { getTranslate, _generateMetadata } from "app/_utils";
+import { _generateMetadata } from "app/_utils";
+import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
+import { ApiKeyRepository } from "@calcom/lib/server/repository/apiKey";
 
-import ApiKeysView, { NewApiKeyButton } from "~/settings/developer/api-keys-view";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
+import ApiKeysView from "~/settings/developer/api-keys-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -14,18 +20,25 @@ export const generateMetadata = async () =>
     "/settings/developer/api-keys"
   );
 
-const Page = async () => {
-  const t = await getTranslate();
+const getCachedApiKeys = unstable_cache(
+  async (userId: number) => {
+    return await ApiKeyRepository.findApiKeysFromUserId({ userId });
+  },
+  undefined,
+  { revalidate: 3600, tags: ["viewer.apiKeys.list"] } // Cache for 1 hour
+);
 
-  return (
-    <SettingsHeader
-      title={t("api_keys")}
-      description={t("create_first_api_key_description", { appName: APP_NAME })}
-      CTA={<NewApiKeyButton />}
-      borderInShellHeader={true}>
-      <ApiKeysView />
-    </SettingsHeader>
-  );
+const Page = async () => {
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+
+  if (!session) {
+    redirect("/auth/login?callbackUrl=/settings/developer/api-keys");
+  }
+
+  const userId = session.user.id;
+  const apiKeys = await getCachedApiKeys(userId);
+
+  return <ApiKeysView apiKeys={apiKeys} />;
 };
 
 export default Page;

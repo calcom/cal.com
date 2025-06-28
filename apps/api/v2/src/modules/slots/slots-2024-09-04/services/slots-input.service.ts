@@ -46,6 +46,7 @@ export class SlotsInputService_2024_09_04 {
     const usernameList = "usernames" in query ? query.usernames : [];
     const timeZone = query.timeZone;
     const orgSlug = "organizationSlug" in query ? query.organizationSlug : null;
+    const rescheduleUid = query.bookingUidToReschedule || null;
 
     return {
       isTeamEvent,
@@ -57,6 +58,7 @@ export class SlotsInputService_2024_09_04 {
       usernameList,
       timeZone,
       orgSlug,
+      rescheduleUid,
     };
   }
 

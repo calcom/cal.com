@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
 import { APP_NAME } from "@calcom/lib/constants";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useEmbedBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui/components/form";
 
@@ -151,10 +151,6 @@ export const tabs = [
       return (
         <>
           <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
-          <div className="text-default bg-attention mb-3 rounded-md p-3 text-sm">
-            <strong>Note:</strong> The preview shown in the Preview tab is generated using the iframe
-            approach.
-          </div>
           <TextArea
             data-testid={`${EmbedTabName.ATOM_REACT}`}
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
@@ -192,7 +188,7 @@ ${getEmbedTypeSpecificString({
       HTMLIFrameElement | HTMLTextAreaElement | null,
       { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }
     >(function Preview({ calLink, embedType }, ref) {
-      const bookerUrl = useBookerUrl();
+      const bookerUrl = useEmbedBookerUrl();
       const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
       if (ref instanceof Function || !ref) {
         return null;
@@ -333,7 +329,7 @@ const getInstructionString = ({
 };
 
 function useGetEmbedSnippetString(namespace: string | null) {
-  const bookerUrl = useBookerUrl();
+  const bookerUrl = useEmbedBookerUrl();
   // TODO: Import this string from @calcom/embed-snippet
   // Right now the problem is that embed-snippet export is not minified and has comments which makes it unsuitable for giving it to users.
   // If we can minify that during build time and then import the built code here, that could work

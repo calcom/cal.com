@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "Platform API for Cal.com",
   "author": "Cal.com Inc.",
-  "private": true,
   "license": "UNLICENSED",
+  "private": true,
   "scripts": {
     "build": "yarn dev:build && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -38,7 +38,7 @@
     "@axiomhq/winston": "^1.2.0",
     "@calcom/platform-constants": "*",
     "@calcom/platform-enums": "*",
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.174",
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.231",
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
@@ -109,7 +109,7 @@
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.7.2"
   },
   "prisma": {
     "schema": "../../../packages/prisma/schema.prisma"
