@@ -1,13 +1,13 @@
 ---
 title: Configuring your team
-description: Learn about how to setup teams via API v2
+description: Learn how to set up teams via the API v2
 ---
 
-This page guides you through the steps to setup teams via API v2. An organization is just a team that can have children teams.
+This page guides you through the steps to set up teams via the API v2. An organization is just a team that can have children teams.
 
 ## Prerequisites
 
-1. You need to have an oauth client setup, since we'll need the client id and client secret from the oauth client to be included in the api requests. Here is the link for the [oauth client setup guide](https://cal.com/docs/platform/quickstart)
+1. You need to have an OAuth client set up, since we'll need the client id and client secret from the OAuth client to be included in the API requests. Here is the link for the [OAuth client setup guide](https://cal.com/docs/platform/quickstart)
 2. You need to have an ESSENTIALS plan or above
 3. In order to create a team and access team info you need to be an organization admin/owner
 4. In order to create and access a team event type you need to be a team admin/owner
@@ -28,7 +28,7 @@ This page guides you through the steps to setup teams via API v2. An organizatio
 }
 ```
 
-The api response returned will look like below.
+The API response returned will look like below.
 ```
 {
   "status": "success",
@@ -57,11 +57,11 @@ The api response returned will look like below.
   }
 }
 ```
-We recommend storing the team id being returned back in the api response. This will be used in the next steps.
+We recommend storing the team id being returned back in the API response. This will be used in the next steps.
 </Step>
 
 <Step>
-The team created in the previous step has no members, hence we need to add managed users (members) to the team . To create a managed user here is the [managed user](https://cal.com/docs/api-reference/v2/platform-managed-users/create-a-managed-user) endpoint . After we're done creating a managed user, we need to create membership for the team which can be done by sending a POST request to the [add a member](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership) endpoint. The api response returned will look like below.
+The team created in the previous step has no members, hence we need to add managed users (members) to the team . To create a managed user here is the [managed user](https://cal.com/docs/api-reference/v2/platform-managed-users/create-a-managed-user) endpoint . After we're done creating a managed user, we need to create membership for the team which can be done by sending a POST request to the [add a member](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership) endpoint. The API response returned will look like below.
 ```
 {
   "status": "success",
@@ -84,7 +84,7 @@ The team created in the previous step has no members, hence we need to add manag
 </Step>
 
 <Step>
-Now that we have a team setup and it has members, we can create an event type for the team. To create an event type here is the [create an event type](https://cal.com/docs/api-reference/v2/orgs-event-types/create-an-event-type) endpoint. The request body would looks something like this:
+Now that we have a team set up and it has members, we can create an event type for the team. To create an event type here is the [create an event type](https://cal.com/docs/api-reference/v2/orgs-event-types/create-an-event-type) endpoint. The request body would looks something like this:
 ```
 {
   "lengthInMinutes": 60,
@@ -95,7 +95,7 @@ Now that we have a team setup and it has members, we can create an event type fo
   "hosts": [{"userId": 1399}]
 }
 ```
-The api response returned will look like below.
+The API response returned will look like below.
 ```
 {
   "status": "success",
@@ -213,12 +213,12 @@ The api response returned will look like below.
   }
 }
 ```
-We recommend storing the slug and team id being returned back in the api response. This will be used in the next steps.
+We recommend storing the slug and team id being returned back in the API response. This will be used in the next steps.
 
 </Step>
 
 <Step>
-Now that we have all the backend setup for teams, its time to setup the frontend. If we want to enable a team event type in the booker atom, we need to pass the prop `isTeamEvent` as true and also another additional prop `teamId`. The `teamId` is the id of the team that we created in the previous step. Here is the code snippet for the booker atom.
+Now that we have all the backend setup for teams, it's time to set up the frontend. If we want to enable a team event type in the booker atom, we need to pass the prop `isTeamEvent` as true and also another additional prop `teamId`. The `teamId` is the id of the team that we created in the previous step. Here is the code snippet for the booker atom.
 ```
     <Booker
       isTeamEvent={true}
