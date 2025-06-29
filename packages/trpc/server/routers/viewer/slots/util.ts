@@ -31,11 +31,7 @@ import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits"
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
 import { checkBookingLimit } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
-import {
-  calculatePeriodLimits,
-  isTimeOutOfBounds,
-  isTimeViolatingFutureLimit,
-} from "@calcom/lib/isOutOfBounds";
+import { calculatePeriodLimits, isTimeOutOfBounds } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -747,6 +743,33 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     bookerUtcOffset,
   });
   let foundAFutureLimitViolation = false;
+
+  type PeriodLimits = {
+    endOfRollingPeriodEndDayInBookerTz: dayjs.Dayjs | null;
+    startOfRangeStartDayInEventTz: dayjs.Dayjs | null;
+    endOfRangeEndDayInEventTz: dayjs.Dayjs | null;
+  };
+
+  function createPeriodLimitChecker(periodLimits: PeriodLimits) {
+    const rollingEndTimestamp = periodLimits.endOfRollingPeriodEndDayInBookerTz?.valueOf() ?? null;
+    const rangeStartTimestamp = periodLimits.startOfRangeStartDayInEventTz?.valueOf() ?? null;
+    const rangeEndTimestamp = periodLimits.endOfRangeEndDayInEventTz?.valueOf() ?? null;
+
+    return (time: string | Date | number): boolean => {
+      const timestamp = new Date(time).valueOf();
+
+      if (rollingEndTimestamp !== null && timestamp > rollingEndTimestamp) {
+        return true;
+      }
+
+      if (rangeStartTimestamp !== null && rangeEndTimestamp !== null) {
+        return timestamp < rangeStartTimestamp || timestamp > rangeEndTimestamp;
+      }
+
+      return false;
+    };
+  }
+
   function _mapWithinBoundsSlotsToDate() {
     // This should never happen. Just for type safety, we already check in the upper scope
     if (!eventType) throw new TRPCError({ code: "NOT_FOUND" });
@@ -754,16 +777,15 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     const withinBoundsSlotsMappedToDate = {} as typeof slotsMappedToDate;
     const doesStartFromToday = doesRangeStartFromToday(eventType.periodType);
 
+    const isPeriodLimitViolation = createPeriodLimitChecker(periodLimits);
+
     for (const [date, slots] of Object.entries(slotsMappedToDate)) {
       if (foundAFutureLimitViolation && doesStartFromToday) {
         break; // Instead of continuing the loop, we can break since all future dates will be skipped
       }
 
       const filteredSlots = slots.filter((slot) => {
-        const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
-          time: slot.time,
-          periodLimits,
-        });
+        const isFutureLimitViolationForTheSlot = isPeriodLimitViolation(slot.time);
 
         if (isFutureLimitViolationForTheSlot) {
           foundAFutureLimitViolation = true;
