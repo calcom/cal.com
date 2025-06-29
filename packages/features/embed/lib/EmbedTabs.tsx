@@ -10,7 +10,7 @@ import { TextArea } from "@calcom/ui/components/form";
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
 import { Codes } from "./EmbedCodes";
 import { buildCssVarsPerTheme } from "./buildCssVarsPerTheme";
-import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
+import { EMBED_PREVIEW_HTML_URL, embedLibUrl } from "./constants";
 import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
@@ -59,7 +59,8 @@ export const tabs = [
               embedType === "inline"
                 ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
                     previewState.inline.height
-                  )};overflow:scroll" id="my-cal-inline"></div>\n`
+                    //  )};overflow:scroll" id="my-cal-inline"></div>\n`
+                  )};overflow:scroll" id="my-cal-inline-${namespace}"></div>\n`
                 : ""
             }<script type="text/javascript">
   ${embedSnippetString}

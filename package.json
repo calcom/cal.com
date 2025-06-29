@@ -117,10 +117,13 @@
   "dependencies": {
     "@daily-co/daily-js": "^0.76.0",
     "@next/third-parties": "^14.2.5",
+    "@tremor/react": "^3.18.7",
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "p-limit": "^6.2.0",
+    "react": "18",
+    "react-dom": "18",
     "turbo": "^1.10.1"
   },
   "resolutions": {
