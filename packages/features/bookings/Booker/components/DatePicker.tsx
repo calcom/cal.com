@@ -1,3 +1,4 @@
+import React from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -104,6 +105,15 @@ export const DatePicker = ({
   });
   moveToNextMonthOnNoAvailability();
 
+  // Create an extended list that includes selectedDate even if it has no availability
+  const includedDatesWithSelected = React.useMemo(() => {
+    const dates = new Set(nonEmptyScheduleDays);
+    if (selectedDate) {
+      dates.add(selectedDate);
+    }
+    return Array.from(dates);
+  }, [nonEmptyScheduleDays, selectedDate]);
+
   const periodData: PeriodData = {
     ...{
       periodType: "UNLIMITED",
@@ -120,6 +130,7 @@ export const DatePicker = ({
       periodCountCalendarDays: event.data.periodCountCalendarDays,
     }),
   };
+
   return (
     <DatePickerComponent
       customClassNames={{
@@ -135,7 +146,7 @@ export const DatePicker = ({
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), omitUpdatingParams);
       }}
       onMonthChange={onMonthChange}
-      includedDates={nonEmptyScheduleDays}
+      includedDates={includedDatesWithSelected}
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
