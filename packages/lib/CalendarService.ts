@@ -174,6 +174,11 @@ export default abstract class BaseCalendarService implements Calendar {
         : undefined;
 
       // We create the event directly on iCal
+      // prepare iCal content: inject SCHEDULE-AGENT=CLIENT and remove METHOD lines
+      const patchedICal = iCalString
+        .replace(/^ORGANIZER(;[^:]*)?:/gm, 'ORGANIZER;SCHEDULE-AGENT=CLIENT$1:')
+        .replace(/^ATTENDEE(;[^:]*)?:/gm, 'ATTENDEE;SCHEDULE-AGENT=CLIENT$1:')
+        .replace(/METHOD:[^\r\n]+\r\n/g, '');
       const responses = await Promise.all(
         calendars
           .filter((c) =>
