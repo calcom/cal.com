@@ -1,3 +1,4 @@
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
 
 export async function getDeploymentKey(deploymentRepo: IDeploymentRepository): Promise<string> {
@@ -6,4 +7,18 @@ export async function getDeploymentKey(deploymentRepo: IDeploymentRepository): P
   }
   const licenseKey = await deploymentRepo.getLicenseKeyWithId(1);
   return licenseKey || "";
+}
+
+export async function getDeploymentSignatureToken(deploymentRepo: IDeploymentRepository): Promise<string> {
+  if (process.env.CAL_SIGNATURE_TOKEN) {
+    return process.env.CAL_SIGNATURE_TOKEN;
+  }
+  const signatureTokenEncrypted = await deploymentRepo.getSignatureToken(1);
+
+  const decryptedSignatureToken = symmetricDecrypt(
+    signatureTokenEncrypted || "",
+    process.env.CALENDSO_ENCRYPTION_KEY || ""
+  );
+
+  return decryptedSignatureToken || "";
 }
