@@ -70,6 +70,8 @@ function buildSlotsWithDateRanges({
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
   const slotBoundaries = new Map<string, true>();
+  let sortedBoundariesCache: dayjs.Dayjs[] = [];
+  let boundariesCacheValid = false;
 
   orderedDateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
@@ -86,15 +88,24 @@ function buildSlotsWithDateRanges({
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
 
     // Find the nearest appropriate slot boundary if this time falls within an existing slot
-    const slotBoundariesArray = Array.from(slotBoundaries.keys()).map((t) => dayjs(t));
-    if (slotBoundariesArray.length > 0) {
-      slotBoundariesArray.sort((a, b) => a.valueOf() - b.valueOf());
+    if (slotBoundaries.size > 0) {
+      if (!boundariesCacheValid) {
+        sortedBoundariesCache = Array.from(slotBoundaries.keys()).map((t) => dayjs(t));
+        sortedBoundariesCache.sort((a, b) => a.valueOf() - b.valueOf());
+        boundariesCacheValid = true;
+      }
 
+      let left = 0;
+      let right = sortedBoundariesCache.length - 1;
       let prevBoundary = null;
-      for (let i = slotBoundariesArray.length - 1; i >= 0; i--) {
-        if (slotBoundariesArray[i].isBefore(slotStartTime)) {
-          prevBoundary = slotBoundariesArray[i];
-          break;
+
+      while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        if (sortedBoundariesCache[mid].isBefore(slotStartTime)) {
+          prevBoundary = sortedBoundariesCache[mid];
+          left = mid + 1;
+        } else {
+          right = mid - 1;
         }
       }
 
@@ -119,6 +130,7 @@ function buildSlotsWithDateRanges({
       }
 
       slotBoundaries.set(slotKey, true);
+      boundariesCacheValid = false;
 
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
       let slotData: {
