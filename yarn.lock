@@ -2519,7 +2519,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.223"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.231"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3577,13 +3577,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.223":
-  version: 0.0.223
-  resolution: "@calcom/platform-libraries@npm:0.0.223"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.231":
+  version: 0.0.231
+  resolution: "@calcom/platform-libraries@npm:0.0.231"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: eec88d521be2ab7c999e3435d1fea3b44c1304bb937c82fa9507028f23455e21c4473f6a73d3f2ef52b8e0b48de0c44834ec2c803f11e6c137bfde1989481fc6
+  checksum: 0abd36b041cc2ed2068c56d36aa94286f381f425b88a0d0d7cdb14498263bbece4928162d8cea00bbf4fa01f4fb60a018933f3f8e4573331d7be2b22aab2eeaa
   languageName: node
   linkType: hard
 
@@ -3938,6 +3938,7 @@ __metadata:
     "@calcom/lib": "*"
     "@calcom/tsconfig": "*"
     "@formkit/auto-animate": 1.0.0-beta.5
+    "@radix-ui/react-avatar": ^1.1.3
     "@radix-ui/react-checkbox": ^1.0.4
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-popover": ^1.0.2
@@ -11924,6 +11925,28 @@ __metadata:
     "@types/react-dom":
       optional: true
   checksum: 63b9c3d1637dea4bac74cb8f1b7825cb28921778e5e21365fe2e9569a1e4ee434a43b072789ce4a71af878b067c48bdb549d7eb8c193ed5750b8cf17cfbc418e
+  languageName: node
+  linkType: hard
+
+"@radix-ui/react-avatar@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "@radix-ui/react-avatar@npm:1.1.3"
+  dependencies:
+    "@radix-ui/react-context": 1.1.1
+    "@radix-ui/react-primitive": 2.0.2
+    "@radix-ui/react-use-callback-ref": 1.1.0
+    "@radix-ui/react-use-layout-effect": 1.1.0
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: e2bb1e65c19d1224cccb7554cfd7de73c62256c0b13ce695a71c106f2495356984ad40f0d8ad91a4d23efbf4da3e9e58851346aec767c002859fe64ca1a6d20e
   languageName: node
   linkType: hard
 
