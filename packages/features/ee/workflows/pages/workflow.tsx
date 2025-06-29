@@ -309,7 +309,6 @@ function WorkflowPage({
               readOnly={readOnly}
               isOrg={isOrg}
               allOptions={isOrg ? teamOptions : allEventTypeOptions}
-              actionOptions={actionOptions}
             />
           </ShellMain>
         </Form>
