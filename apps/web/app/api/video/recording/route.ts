@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient";
 import { verifyVideoToken } from "@calcom/lib/videoTokens";
 
@@ -15,6 +16,11 @@ export async function GET(request: Request) {
   if (!verification.valid || !verification.recordingId) {
     return new Response("Invalid or expired token", { status: 401 });
   }
+
+  await checkRateLimitAndThrowError({
+    identifier: `cal-video-recording:${verification.recordingId}`,
+    rateLimitingType: "common",
+  });
 
   try {
     const recordingLink = await getDownloadLinkOfCalVideoByRecordingId(verification.recordingId);

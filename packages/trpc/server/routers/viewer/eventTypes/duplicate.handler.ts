@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
@@ -26,6 +27,12 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       description: newDescription,
       length: newLength,
     } = input;
+
+    await checkRateLimitAndThrowError({
+      identifier: `duplicate-event-type:${originalEventTypeId}`,
+      rateLimitingType: "core",
+    });
+
     const eventType = await prisma.eventType.findUnique({
       where: {
         id: originalEventTypeId,

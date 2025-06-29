@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
 import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
@@ -35,6 +36,14 @@ async function ensureSignupIsEnabled(body: Record<string, string>) {
 
 async function handler(req: NextRequest) {
   const remoteIp = getIP(req);
+
+  if (remoteIp) {
+    await checkRateLimitAndThrowError({
+      identifier: `signup:${remoteIp}`,
+      rateLimitingType: "core",
+    });
+  }
+
   // Use a try catch instead of returning res every time
   try {
     const body = await parseRequestData(req);
