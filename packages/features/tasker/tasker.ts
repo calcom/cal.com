@@ -21,6 +21,10 @@ type TaskPayloads = {
   sendWorkflowEmails: z.infer<typeof import("./tasks/sendWorkflowEmails").ZSendWorkflowEmailsSchema>;
   scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;
   sendAnalyticsEvent: z.infer<typeof import("./tasks/analytics/schema").sendAnalyticsEventSchema>;
+  revalidateBookingPages: {
+    username: string;
+    reason: string;
+  };
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string) => Promise<void>;

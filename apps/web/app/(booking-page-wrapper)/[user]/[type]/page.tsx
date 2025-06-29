@@ -2,10 +2,12 @@ import { CustomI18nProvider } from "app/CustomI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
+import { unstable_cache } from "next/cache";
 import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { loadTranslations } from "@calcom/lib/server/i18n";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 
@@ -53,9 +55,38 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
+const getCachedBookingData = unstable_cache(
+  async (headers: any, cookies: any, params: any, searchParams: any) => {
+    const legacyCtx = buildLegacyCtx(headers, cookies, params, searchParams);
+    return await getData(legacyCtx);
+  },
+  ["user-booking-page"],
+  {
+    revalidate: 3600,
+    tags: ["user-booking-page"],
+  }
+);
+
+const getUncachedBookingData = async (headers: any, cookies: any, params: any, searchParams: any) => {
+  const legacyCtx = buildLegacyCtx(headers, cookies, params, searchParams);
+  return await getData(legacyCtx);
+};
+
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(legacyCtx);
+  const _headers = await headers();
+  const _cookies = await cookies();
+  const _params = await params;
+  const _searchParams = await searchParams;
+
+  const shouldCache = await EventTypeRepository.checkCacheEligibility({
+    user: _params.user,
+    type: _params.type,
+    org: _searchParams.org || null,
+  });
+
+  const props = shouldCache
+    ? await getCachedBookingData(_headers, _cookies, _params, _searchParams)
+    : await getUncachedBookingData(_headers, _cookies, _params, _searchParams);
 
   const locale = props.eventData?.interfaceLanguage;
   if (locale) {
