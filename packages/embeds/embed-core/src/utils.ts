@@ -196,3 +196,32 @@ export function buildSearchParamsFromConfig(config: PrefillAndIframeAttrsConfig)
   }
   return searchParams;
 }
+
+export function buildConfigWithPrerenderRelatedFields({
+  config,
+  isHeadlessRouterPath,
+  backgroundSlotsFetch,
+}: {
+  config: PrefillAndIframeAttrsConfig;
+  isHeadlessRouterPath: boolean;
+  backgroundSlotsFetch: boolean;
+}) {
+  // While prerendering headless router path, we by default want to fetch slots in background(for the time being)
+  // For other prerenderings, we don't want to fetch slots in background - Keeping the behaviour same as before
+
+  // If we are prerendering a headless router path, we don't want to record the response immediately.
+  if (isHeadlessRouterPath) {
+    config["cal.queueFormResponse"] = "true";
+  }
+
+  if (!backgroundSlotsFetch) {
+    // When prerendering, we don't want to preload slots as they might be outdated anyway by the time they are used
+    // Also, when used with Headless Router attributes setup, we might endup fetching slots for a lot of people, which would be a waste and unnecessary load on Cal.com resources
+    config["cal.skipSlotsFetch"] = "true";
+  }
+
+  return {
+    ...config,
+    prerender: "true",
+  };
+}
