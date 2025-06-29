@@ -9,7 +9,7 @@ export function BookedByCell({
   attendees,
   rowId,
 }: {
-  attendees: RoutingFormTableRow["bookingAttendees"] | undefined;
+  attendees: Exclude<RoutingFormTableRow["booking"], null>["attendees"] | undefined;
   rowId: number;
 }) {
   const cellId = useId();
