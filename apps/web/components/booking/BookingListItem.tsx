@@ -229,8 +229,8 @@ function BookingListItem(booking: BookingItemProps) {
         return booking.title;
       }
 
-      return `${booking.eventType.title} ${t("between")} ${booking?.user?.name ?? ""} ${t("and")} ${
-        attendee.name ?? attendee.email ?? ""
+      return `${booking.eventType.title} ${t("between")} ${booking?.user?.name ?? "Nameless"} ${t("and")} ${
+        attendee.name ?? attendee.email ?? "Nameless"
       }`;
     }
 
