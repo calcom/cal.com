@@ -12,7 +12,13 @@ export const schemaSingleScheduleBodyParams = schemaScheduleBaseBodyParams.merge
 );
 
 export const schemaCreateScheduleBodyParams = schemaScheduleBaseBodyParams.merge(
-  z.object({ userId: z.number().optional(), name: z.string(), timeZone })
+  z.object({
+    userId: z.number().optional(),
+    name: z.string().trim().min(1, {
+      message: "Schedule name cannot be empty",
+    }),
+    timeZone,
+  })
 );
 
 export const schemaSchedulePublic = z
