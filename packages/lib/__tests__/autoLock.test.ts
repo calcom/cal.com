@@ -12,10 +12,18 @@ vi.mock("@calcom/features/redis/RedisService");
 vi.mock("@calcom/features/ee/api-keys/lib/apiKeys", () => ({
   hashAPIKey: vi.fn((key) => `hashed_${key}`),
 }));
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi.fn(() => Promise.resolve((key: string) => key)),
+}));
+vi.mock("@calcom/emails/email-manager", () => ({
+  sendAccountLockWarningEmail: vi.fn(),
+}));
 vi.mock("@calcom/prisma", () => ({
   default: {
     user: {
       update: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
     apiKey: {
       findUnique: vi.fn(),
@@ -330,6 +338,65 @@ describe("autoLock", () => {
           username: true,
         },
       });
+    });
+  });
+
+  describe("warning email functionality", () => {
+    it("should send warning email at warning threshold", async () => {
+      const rateLimitResponse: RatelimitResponse = {
+        success: false,
+        remaining: 0,
+        limit: 5,
+        reset: 0,
+      };
+
+      mockRedis.get.mockImplementation((key) => {
+        if (key.includes(".warning.")) return null; // No warning sent yet
+        return "2"; // Current count
+      });
+
+      const mockUser = {
+        id: 123,
+        email: "test@example.com",
+        username: "testuser",
+        locale: "en",
+      };
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+
+      await handleAutoLock({
+        identifier: "test@example.com",
+        identifierType: "email",
+        rateLimitResponse,
+        autolockWarningThreshold: 3,
+      });
+
+      expect(mockRedis.set).toHaveBeenCalledWith("autolock:email:test@example.com.count", "3");
+      expect(mockRedis.set).toHaveBeenCalledWith("autolock:email:test@example.com.warning.3", "1");
+    });
+
+    it("should not send duplicate warning emails", async () => {
+      const rateLimitResponse: RatelimitResponse = {
+        success: false,
+        remaining: 0,
+        limit: 5,
+        reset: 0,
+      };
+
+      mockRedis.get.mockImplementation((key) => {
+        if (key.includes(".warning.")) return "1"; // Warning already sent
+        return "2"; // Current count
+      });
+
+      await handleAutoLock({
+        identifier: "test@example.com",
+        identifierType: "email",
+        rateLimitResponse,
+        autolockWarningThreshold: 3,
+      });
+
+      expect(mockRedis.set).toHaveBeenCalledWith("autolock:email:test@example.com.count", "3");
+      expect(mockRedis.set).not.toHaveBeenCalledWith("autolock:email:test@example.com.warning.3", "1");
     });
   });
 });
