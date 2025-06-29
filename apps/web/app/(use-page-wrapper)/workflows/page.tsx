@@ -1,4 +1,3 @@
-import { createRouterCaller } from "app/_trpc/context";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { getSession } from "next-auth/react";
@@ -7,7 +6,7 @@ import { redirect } from "next/navigation";
 
 import LegacyPage from "@calcom/features/ee/workflows/pages/index";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { workflowsRouter } from "@calcom/trpc/server/routers/viewer/workflows/_router";
+import { getCachedWorkflowsList } from "@calcom/web/app/cache/workflows";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
@@ -32,9 +31,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
   const filters = getTeamsFiltersFromQuery(_searchParams);
 
   const hasValidLicense = session?.hasValidLicense ?? false;
-  const caller = await createRouterCaller(workflowsRouter);
-
-  const initialData = await caller.filteredList({ filters });
+  const initialData = await getCachedWorkflowsList(session.user.id, filters);
 
   return <LegacyPage initialData={initialData} hasValidLicense={hasValidLicense} />;
 };

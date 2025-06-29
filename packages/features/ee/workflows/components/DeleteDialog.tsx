@@ -6,7 +6,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateWorkflowsList } from "@calcom/web/app/(use-page-wrapper)/workflows/action";
+import { revalidateWorkflowsList } from "@calcom/web/app/cache/workflows";
 
 interface IDeleteDialog {
   isOpenDialog: boolean;
