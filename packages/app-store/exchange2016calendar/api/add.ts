@@ -5,6 +5,7 @@ import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -48,9 +49,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       ...data,
     });
     await dav?.listCalendars();
-    await prisma.credential.create({
-      data,
-    });
+    await CredentialRepository.create(data);
   } catch (reason) {
     logger.error("Could not add this exchange account", reason);
     return res.status(500).json({ message: "Could not add this exchange account" });

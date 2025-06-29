@@ -10,13 +10,21 @@ import { BookingReferenceRepository } from "./bookingReference";
 
 const log = logger.getSubLogger({ prefix: ["CredentialRepository"] });
 
-type CredentialCreateInput = {
-  type: string;
-  key: any;
-  userId: number;
-  appId: string;
-  delegationCredentialId?: string | null;
-};
+type CredentialCreateInput =
+  | {
+      type: string;
+      key: any;
+      userId: number;
+      appId: string;
+      delegationCredentialId?: string | null;
+    }
+  | {
+      type: string;
+      key: any;
+      teamId: number;
+      appId: string;
+      delegationCredentialId?: string | null;
+    };
 
 type CredentialUpdateInput = {
   type?: string;

@@ -5,6 +5,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -68,14 +69,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (!currentCredential) {
-      await prisma.credential.create({
-        data: {
+      req.session?.user.id &&
+        (await CredentialRepository.create({
           type: "lark_calendar",
           key,
           userId: req.session?.user.id,
           appId: "lark-calendar",
-        },
-      });
+        }));
     } else {
       await prisma.credential.update({
         data: {
