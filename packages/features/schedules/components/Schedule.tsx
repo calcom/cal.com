@@ -12,6 +12,7 @@ import type {
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { GroupBase, Props } from "react-select";
 
+import type { scheduleClassNames } from "@calcom/atoms/availability/types";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
@@ -19,13 +20,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
-import { Select } from "@calcom/ui/components/form";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
+import cn from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import classNames from "@calcom/ui/classNames";
 import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
+import { Select } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type { TimeRange };
 
@@ -47,7 +48,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   disabled,
   labels,
   userTimeFormat,
-  className,
+  classNames,
 }: {
   name: ArrayPath<TFieldValues>;
   weekday: string;
@@ -56,29 +57,23 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   disabled?: boolean;
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
-  className?: {
-    scheduleDay?: string;
-    dayRanges?: string;
-    timeRangeField?: string;
-    labelAndSwitchContainer?: string;
-    scheduleContainer?: string;
-  };
+  classNames?: scheduleClassNames;
 }) => {
   const { watch, setValue } = useFormContext();
   const watchDayRange = watch(name);
 
   return (
     <div
-      className={classNames(
+      className={cn(
         "flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:gap-6 sm:px-0",
-        className?.scheduleDay
+        classNames?.scheduleDay
       )}
       data-testid={weekday}>
       {/* Label & switch container */}
       <div
-        className={classNames(
+        className={cn(
           "flex h-[36px] items-center justify-between sm:w-32",
-          className?.labelAndSwitchContainer
+          classNames?.labelAndSwitchContainer
         )}>
         <div>
           <label className="text-default flex flex-row items-center space-x-2 rtl:space-x-reverse">
@@ -107,9 +102,9 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
               control={control}
               name={name}
               disabled={disabled}
-              className={{
-                dayRanges: className?.dayRanges,
-                timeRangeField: className?.timeRangeField,
+              classNames={{
+                dayRanges: classNames?.dayRanges,
+                timeRangeField: classNames?.timeRangeField,
               }}
             />
             {!disabled && <div className="block">{CopyButton}</div>}
@@ -137,7 +132,7 @@ const CopyButton = ({
     <Dropdown open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          className={classNames(
+          className={cn(
             "text-default",
             open && "ring-brand-500 !bg-subtle outline-none ring-2 ring-offset-1"
           )}
@@ -191,7 +186,7 @@ export const ScheduleComponent = <
   weekStart = 0,
   labels,
   userTimeFormat,
-  className,
+  classNames,
 }: {
   name: TPath;
   control: Control<TFieldValues>;
@@ -199,30 +194,19 @@ export const ScheduleComponent = <
   disabled?: boolean;
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
-  className?: {
-    schedule?: string;
-    scheduleDay?: string;
-    dayRanges?: string;
-    timeRanges?: string;
-    labelAndSwitchContainer?: string;
-  };
+  classNames?: Omit<scheduleClassNames, "scheduleContainer">;
 }) => {
   const { i18n } = useLocale();
 
   return (
-    <div className={classNames("flex flex-col gap-4 p-2 sm:p-4", className?.schedule)}>
+    <div className={cn("flex flex-col gap-4 p-2 sm:p-4", classNames?.schedule)}>
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
         const dayRangeName = `${name}.${weekdayIndex}` as ArrayPath<TFieldValues>;
         return (
           <ScheduleDay
-            className={{
-              scheduleDay: className?.scheduleDay,
-              dayRanges: className?.dayRanges,
-              timeRangeField: className?.timeRanges,
-              labelAndSwitchContainer: className?.labelAndSwitchContainer,
-            }}
+            classNames={classNames}
             userTimeFormat={userTimeFormat}
             labels={labels}
             disabled={disabled}
@@ -246,17 +230,14 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   control,
   labels,
   userTimeFormat,
-  className,
+  classNames,
 }: {
   name: ArrayPath<TFieldValues>;
   control?: Control<TFieldValues>;
   disabled?: boolean;
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
-  className?: {
-    dayRanges?: string;
-    timeRangeField?: string;
-  };
+  classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRangeField">;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -269,7 +250,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   if (!fields.length) return null;
 
   return (
-    <div className={classNames("flex flex-col gap-2", className?.dayRanges)}>
+    <div className={cn("flex flex-col gap-2", classNames?.dayRanges)}>
       {fields.map((field, index: number) => (
         <Fragment key={field.id}>
           <div className="flex gap-1 last:mb-0 sm:gap-2">
@@ -277,7 +258,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
               name={`${name}.${index}`}
               render={({ field }) => (
                 <TimeRangeField
-                  className={className?.timeRangeField}
+                  className={classNames?.timeRangeField}
                   userTimeFormat={userTimeFormat}
                   {...field}
                 />
@@ -361,7 +342,7 @@ const TimeRangeField = ({
 } & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={classNames("flex flex-row gap-2 sm:gap-3", className)}>
+    <div className={cn("flex flex-row gap-2 sm:gap-3", className)}>
       <LazySelect
         userTimeFormat={userTimeFormat}
         className="block w-[90px] sm:w-[100px]"

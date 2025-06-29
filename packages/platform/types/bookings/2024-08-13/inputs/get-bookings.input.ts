@@ -81,6 +81,16 @@ export class GetBookingsInput_2024_08_13 {
   })
   attendeeName?: string;
 
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings by the booking Uid.",
+    example: "2NtaeaVcKfpmSZ4CthFdfk",
+  })
+  bookingUid?: string;
+
   @IsOptional()
   @Transform(({ value }) => {
     if (typeof value === "string") {
@@ -258,7 +268,7 @@ export class GetBookingsInput_2024_08_13 {
   sortUpdatedAt?: SortOrderType;
 
   // note(Lauris): pagination
-  @ApiProperty({ required: false, description: "The number of items to return", example: 10 })
+  @ApiProperty({ required: false, description: "The number of items to return", example: 10, default: 100 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(1)
@@ -266,7 +276,7 @@ export class GetBookingsInput_2024_08_13 {
   @IsOptional()
   take?: number;
 
-  @ApiProperty({ required: false, description: "The number of items to skip", example: 0 })
+  @ApiProperty({ required: false, description: "The number of items to skip", example: 0, default: 0 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(0)

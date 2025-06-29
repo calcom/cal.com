@@ -54,10 +54,12 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     // Validate user is owner of event type or in the team
     if (eventType.userId !== ctx.user.id) {
       if (eventType.teamId) {
-        const isMember = await prisma.membership.findFirst({
+        const isMember = await prisma.membership.findUnique({
           where: {
-            userId: ctx.user.id,
-            teamId: eventType.teamId,
+            userId_teamId: {
+              userId: ctx.user.id,
+              teamId: eventType.teamId,
+            },
           },
         });
         if (!isMember) {
@@ -76,6 +78,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       bookingLimits,
       durationLimits,
       eventTypeColor,
+      customReplyToEmail,
       metadata,
       workflows,
       hashedLink,
@@ -91,6 +94,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       descriptionAsSafeHTML: _descriptionAsSafeHTML,
       secondaryEmailId,
       instantMeetingScheduleId: _instantMeetingScheduleId,
+      restrictionScheduleId: _restrictionScheduleId,
       ...rest
     } = eventType;
 
@@ -110,11 +114,18 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             },
           }
         : undefined,
-
+      restrictionSchedule: _restrictionScheduleId
+        ? {
+            connect: {
+              id: _restrictionScheduleId,
+            },
+          }
+        : undefined,
       recurringEvent: recurringEvent || undefined,
       bookingLimits: bookingLimits ?? undefined,
       durationLimits: durationLimits ?? undefined,
       eventTypeColor: eventTypeColor ?? undefined,
+      customReplyToEmail: customReplyToEmail ?? undefined,
       metadata: metadata === null ? Prisma.DbNull : metadata,
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       rrSegmentQueryValue:

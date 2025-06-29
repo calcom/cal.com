@@ -29,12 +29,6 @@ Note: `docker compose` without the hyphen is now the primary method of using doc
     cd calcom-docker
     ```
 
-3. Update the calcom submodule
-    
-    ```
-    git submodule update --remote --init
-    ```
-
 4. Rename `.env.example` to `.env` and then update `.env`
 
 5. Build and start Cal.com via docker compose
@@ -66,18 +60,6 @@ These variables must be provided at the time of the docker build, and can be pro
 #### Important Run-time variables
 
 * NEXTAUTH_SECRET
-
-### Git Submodules
-
-This repository uses a git submodule.
-
-To update the calcom submodule, use the following command:
-
-```
-git submodule update --remote --init
-```
-
-For more advanced usage, please refer to the git documentation: [https://git-scm.com/book/en/v2/Git-Tools-Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 
 ### Troubleshooting
 

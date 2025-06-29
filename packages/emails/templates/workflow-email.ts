@@ -14,7 +14,7 @@ export type WorkflowEmailData = {
   to: string;
   subject: string;
   html: string;
-  replyTo: string;
+  replyTo?: string;
   sender?: string | null;
   attachments?: Attachment[];
 };
@@ -31,7 +31,7 @@ export default class WorkflowEmail extends BaseEmail {
     return {
       to: this.mailData.to,
       from: `${this.mailData.sender || SENDER_NAME} <${this.getMailerOptions().from}>`,
-      replyTo: this.mailData.replyTo,
+      ...(this.mailData.replyTo && { replyTo: this.mailData.replyTo }),
       subject: this.mailData.subject,
       html: addHTMLStyles(this.mailData.html),
       attachments: this.mailData.attachments,

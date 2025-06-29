@@ -3,16 +3,20 @@
 import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import { DailyProvider } from "@daily-co/daily-react";
+import { useDailyEvent } from "@daily-co/daily-react";
 import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
@@ -22,7 +26,20 @@ import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function JoinCall(props: PageProps) {
-  const { meetingUrl, meetingPassword, booking, hasTeamPlan, calVideoLogo } = props;
+  const {
+    meetingUrl,
+    meetingPassword,
+    booking,
+    hasTeamPlan,
+    calVideoLogo,
+    displayLogInOverlay,
+    loggedInUserName,
+    overrideName,
+    showRecordingButton,
+    enableAutomaticTranscription,
+    showTranscriptionButton,
+    rediectAttendeeToOnExit,
+  } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
   useEffect(() => {
@@ -50,29 +67,41 @@ export default function JoinCall(props: PageProps) {
           height: "100%",
         },
         url: meetingUrl,
+        userName: overrideName ?? loggedInUserName ?? undefined,
         ...(typeof meetingPassword === "string" && { token: meetingPassword }),
         ...(hasTeamPlan && {
           customTrayButtons: {
-            recording: {
-              label: "Record",
-              tooltip: "Start or stop recording",
-              iconPath: RECORDING_DEFAULT_ICON,
-              iconPathDarkMode: RECORDING_DEFAULT_ICON,
-            },
-            transcription: {
-              label: "Cal.ai",
-              tooltip: "Transcription powered by AI",
-              iconPath: TRANSCRIPTION_STOPPED_ICON,
-              iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
-            },
+            ...(showRecordingButton
+              ? {
+                  recording: {
+                    label: "Record",
+                    tooltip: "Start or stop recording",
+                    iconPath: RECORDING_DEFAULT_ICON,
+                    iconPathDarkMode: RECORDING_DEFAULT_ICON,
+                  },
+                }
+              : {}),
+            ...(showTranscriptionButton
+              ? {
+                  transcription: {
+                    label: "Cal.ai",
+                    tooltip: "Transcription powered by AI",
+                    iconPath: TRANSCRIPTION_STOPPED_ICON,
+                    iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+                  },
+                }
+              : {}),
           },
         }),
       });
+
+      if (overrideName) {
+        callFrame.setUserName(overrideName);
+      }
     } catch (err) {
       callFrame = DailyIframe.getCallInstance();
     } finally {
       setDaily(callFrame ?? null);
-
       callFrame?.join();
     }
 
@@ -87,7 +116,11 @@ export default function JoinCall(props: PageProps) {
       <div
         className="mx-auto hidden sm:block"
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe />
+        <CalAiTranscribe
+          showRecordingButton={showRecordingButton}
+          enableAutomaticTranscription={enableAutomaticTranscription}
+          showTranscriptionButton={showTranscriptionButton}
+        />
       </div>
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
@@ -112,7 +145,9 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      <VideoMeetingInfo booking={booking} />
+      {displayLogInOverlay && <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />}
+
+      <VideoMeetingInfo booking={booking} rediectAttendeeToOnExit={rediectAttendeeToOnExit} />
     </DailyProvider>
   );
 }
@@ -187,17 +222,76 @@ function ProgressBar(props: ProgressBarProps) {
   );
 }
 
+interface LogInOverlayProps {
+  isLoggedIn: boolean;
+  bookingUid: string;
+}
+
+export function LogInOverlay(props: LogInOverlayProps) {
+  const { t } = useLocale();
+  const { isLoggedIn, bookingUid } = props;
+  const [open, setOpen] = useState(!isLoggedIn);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent
+        title={t("join_video_call")}
+        description={t("choose_how_you_d_like_to_join_call")}
+        className="bg-black text-white sm:max-w-[480px]">
+        <div className="pb-8">
+          <div className="space-y-8">
+            <Button color="primary" className="mt-4 w-full justify-center " onClick={() => setOpen(false)}>
+              {t("continue_as_guest")}
+            </Button>
+
+            {/* Divider */}
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-600" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-black px-4 text-sm text-gray-400">{t("or")}</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-lg font-semibold text-white">{t("sign_in_to_cal_com")}</h4>
+              <p className="text-sm text-gray-300">{t("track_your_meetings")}</p>
+              <Button
+                color="primary"
+                className="mt-4 w-full justify-center"
+                onClick={() =>
+                  (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
+                }>
+                <Icon name="external-link" className="mr-2 h-4 w-4" />
+                {t("log_in_to_cal_com")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 interface VideoMeetingInfo {
   booking: PageProps["booking"];
+  rediectAttendeeToOnExit?: string | null;
 }
 
 export function VideoMeetingInfo(props: VideoMeetingInfo) {
   const [open, setOpen] = useState(false);
-  const { booking } = props;
+  const { booking, rediectAttendeeToOnExit } = props;
   const { t } = useLocale();
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
+
+  useDailyEvent("left-meeting", () => {
+    if (rediectAttendeeToOnExit) {
+      window.location.href = rediectAttendeeToOnExit;
+    }
+  });
 
   return (
     <>
@@ -225,8 +319,12 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
           <h3>{t("who")}:</h3>
           <p>
-            {booking?.user?.name} - {t("organizer")}:{" "}
-            <a href={`mailto:${booking?.user?.email}`}>{booking?.user?.email}</a>
+            {booking?.user?.name} - {t("organizer")}
+            {!booking?.eventType?.hideOrganizerEmail && (
+              <>
+                : <a href={`mailto:${booking?.user?.email}`}>{booking?.user?.email}</a>
+              </>
+            )}
           </p>
 
           {booking.attendees.length

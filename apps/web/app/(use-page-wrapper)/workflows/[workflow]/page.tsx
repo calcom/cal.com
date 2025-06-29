@@ -19,6 +19,7 @@ import {
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
+
 const querySchema = z.object({
   workflow: z
     .string()
@@ -58,6 +59,7 @@ const Page = async ({ params }: PageProps) => {
   }
 
   const parsed = querySchema.safeParse(await params);
+      
   if (!parsed.success) {
     notFound();
   }
@@ -71,6 +73,7 @@ const Page = async ({ params }: PageProps) => {
 
   const isOrg = workflowData?.team?.isOrganization ?? false;
   const teamId = workflowData?.teamId ?? undefined;
+
 
   const [verifiedEmails, verifiedNumbers, eventsData, user] = await Promise.all([
     getCachedWorkflowVerifiedEmails(session.user.email, session.user.id, teamId),

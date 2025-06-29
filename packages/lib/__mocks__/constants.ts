@@ -20,6 +20,7 @@ const initialConstants = {
   APP_NAME: "Cal.com",
   BOOKER_NUMBER_OF_DAYS_TO_LOAD: 14,
   PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
+  SINGLE_ORG_SLUG: "",
 } as typeof constants;
 
 export const mockedConstants = { ...initialConstants };
