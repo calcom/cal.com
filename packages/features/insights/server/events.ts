@@ -483,6 +483,13 @@ class EventsInsights {
             ? booking.seatsReferences.map((ref) => ref.attendee)
             : booking.attendees;
 
+        // List all no-show guests (name and email)
+        const noShowGuests = attendeeList
+          .filter((attendee) => attendee?.noShow)
+          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+          .filter(Boolean) // remove null values
+          .join("; ");
+
         const formattedAttendees = attendeeList
           .slice(0, 3)
           .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null));
@@ -490,7 +497,7 @@ class EventsInsights {
         return [
           booking.uid,
           {
-            noShowGuest: attendeeList[0]?.noShow || false,
+            noShowGuests,
             attendee1: formattedAttendees[0] || null,
             attendee2: formattedAttendees[1] || null,
             attendee3: formattedAttendees[2] || null,
@@ -504,7 +511,7 @@ class EventsInsights {
         // should not be reached because we filtered above
         return {
           ...bookingTimeStatus,
-          noShowGuest: false,
+          noShowGuests: null,
           attendee1: null,
           attendee2: null,
           attendee3: null,
@@ -516,7 +523,7 @@ class EventsInsights {
       if (!attendeeData) {
         return {
           ...bookingTimeStatus,
-          noShowGuest: false,
+          noShowGuests: null,
           attendee1: null,
           attendee2: null,
           attendee3: null,
@@ -525,7 +532,7 @@ class EventsInsights {
 
       return {
         ...bookingTimeStatus,
-        noShowGuest: attendeeData.noShowGuest,
+        noShowGuests: attendeeData.noShowGuests,
         attendee1: attendeeData.attendee1,
         attendee2: attendeeData.attendee2,
         attendee3: attendeeData.attendee3,
