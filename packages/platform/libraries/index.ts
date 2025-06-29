@@ -1,8 +1,12 @@
+import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import getBookingDataLocation from "@calcom/features/bookings/lib/getBookingDataLocation";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
+import { getDefaultConferencingAppLocation } from "@calcom/features/bookings/lib/getDefaultConferencingAppLocation";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
+import { getLocationValuesForDb } from "@calcom/features/bookings/lib/handleNewBooking/getLocationValuesForDb";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import {
   verifyPhoneNumber,
@@ -13,6 +17,7 @@ import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -119,3 +124,8 @@ export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/
 export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
+export { getLocationValuesForDb };
+export { getDefaultConferencingAppLocation };
+export { getLocationValueForDB };
+export { getOrgIdFromMemberOrTeamId };
+export { getBookingDataLocation };
