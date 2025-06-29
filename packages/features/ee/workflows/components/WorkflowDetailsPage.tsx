@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
+import WorkFlowFormSkeleton from "@calcom/features/ee/workflows/components/WorkFlowFormSkeleton";
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -24,6 +26,8 @@ import WorkflowStepContainer from "./WorkflowStepContainer";
 type User = RouterOutputs["viewer"]["me"]["get"];
 
 interface Props {
+  verifiedNumbers: RouterOutputs["viewer"]["workflows"]["getVerifiedNumbers"] | undefined;
+  verifiedEmails: RouterOutputs["viewer"]["workflows"]["getVerifiedEmails"] | undefined;
   form: UseFormReturn<FormValues>;
   workflowId: number;
   selectedOptions: Option[];
@@ -36,9 +40,21 @@ interface Props {
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions } = props;
+  const {
+    form,
+    workflowId,
+    verifiedEmails,
+    verifiedNumbers,
+    selectedOptions,
+    setSelectedOptions,
+    teamId,
+    isOrg,
+    allOptions,
+  } = props;
   const { t } = useLocale();
   const router = useRouter();
+
+  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
 
@@ -175,21 +191,26 @@ export default function WorkflowDetailsPage(props: Props) {
 
         {/* Workflow Trigger Event & Steps */}
         <div className="bg-muted border-subtle w-full rounded-md border p-3 py-5 md:ml-3 md:p-8">
-          {form.getValues("trigger") && (
-            <div>
-              <WorkflowStepContainer
-                form={form}
-                user={props.user}
-                teamId={teamId}
-                readOnly={props.readOnly}
-              />
-            </div>
+          {form.getValues("trigger") ? (
+            <WorkflowStepContainer
+              verifiedNumbers={verifiedNumbers}
+              verifiedEmails={verifiedEmails}
+              form={form}
+              user={props.user}
+              teamId={teamId}
+              readOnly={props.readOnly}
+              actionOptions={actionOptions}
+            />
+          ) : (
+            <WorkFlowFormSkeleton />
           )}
           {form.getValues("steps") && (
             <>
               {form.getValues("steps")?.map((step) => {
                 return (
                   <WorkflowStepContainer
+                    verifiedNumbers={verifiedNumbers}
+                    verifiedEmails={verifiedEmails}
                     key={step.id}
                     form={form}
                     user={props.user}
@@ -198,6 +219,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    actionOptions={actionOptions}
                   />
                 );
               })}
