@@ -1,7 +1,7 @@
 "use client";
 
 import type { User } from "@prisma/client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -31,20 +31,24 @@ export const ONBOARDING_NEXT_REDIRECT = {
 
 export function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
+  const pathname = usePathname();
   const { data: user, isLoading } = useMeQuery();
   const flags = useFlagMap();
+
+  const destination = ONBOARDING_NEXT_REDIRECT.redirect.destination;
 
   const needsEmailVerification =
     !user?.emailVerified && user?.identityProvider === "CAL" && flags["email-verification"];
 
   const shouldRedirectToOnboarding = user && shouldShowOnboarding(user);
-  const canRedirect = !isLoading && shouldRedirectToOnboarding && !needsEmailVerification;
+  const canRedirect =
+    !isLoading && shouldRedirectToOnboarding && !needsEmailVerification && pathname !== destination;
 
   useEffect(() => {
     if (canRedirect) {
-      router.replace("/getting-started");
+      router.replace(destination);
     }
-  }, [canRedirect, router]);
+  }, [canRedirect, router, destination]);
 
   return {
     isLoading,
