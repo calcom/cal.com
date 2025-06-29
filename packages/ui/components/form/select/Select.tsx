@@ -98,7 +98,7 @@ export const Select = <
             "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
             innerClassNames?.menu
           ),
-        groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ml-1",
+        groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ltr:ml-1 rtl:mr-1",
         menuList: () =>
           cx(
             "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-[1px]",

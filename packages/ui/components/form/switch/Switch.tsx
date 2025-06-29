@@ -51,7 +51,7 @@ export const Switch = (
           padding && "hover:bg-subtle rounded-md p-1.5",
           classNames?.container
         )}>
-        {LockedIcon && <div className="mr-2">{LockedIcon}</div>}
+        {LockedIcon && <div className="ltr:mr-2 rtl:ml-2">{LockedIcon}</div>}
         <PrimitiveSwitch.Root
           {...primitiveProps}
           id={id}
@@ -65,8 +65,8 @@ export const Switch = (
             className={cx(
               "bg-default data-[state=checked]:bg-brand-accent shadow-switch-thumb pointer-events-none block rounded-full shadow-lg ring-0 transition-transform",
               size === "sm"
-                ? "h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0"
-                : "h-5 w-5 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0",
+                ? "h-3 w-3 data-[state=checked]:ltr:translate-x-3 data-[state=checked]:rtl:-translate-x-3 data-[state=unchecked]:translate-x-0"
+                : "h-5 w-5 data-[state=checked]:ltr:translate-x-5 data-[state=checked]:rtl:-translate-x-5 data-[state=unchecked]:translate-x-0",
               classNames?.thumb
             )}
           />

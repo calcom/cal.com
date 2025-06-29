@@ -44,7 +44,7 @@ export const EventDuration = ({
 }) => {
   const { t } = useLocale();
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const isPlatform = useIsPlatform();
+  const _isPlatform = useIsPlatform();
   const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
     state.selectedDuration,
     state.setSelectedDuration,
@@ -95,7 +95,7 @@ export const EventDuration = ({
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
 
   return selectedDuration ? (
-    <div className="border-default relative mr-5 flex flex-row items-center justify-between rounded-md border">
+    <div className="border-default relative flex flex-row items-center justify-between rounded-md border ltr:mr-5 rtl:ml-5">
       {leftVisible && (
         <button onClick={handleLeft} className="absolute bottom-0 left-0 flex">
           <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
