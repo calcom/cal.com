@@ -418,7 +418,7 @@ export const assignValueToUserInOrgBulk = async ({
   attributeLabelToValueMap: AttributeLabelToValueMap;
   updater: BulkAttributeAssigner;
 }) => {
-  const membership = await MembershipRepository.findFirstByUserIdAndTeamId({ userId, teamId: orgId });
+  const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
   const defaultReturn = { numOfAttributeOptionsSet: 0, numOfAttributeOptionsDeleted: 0 };
   if (!membership) {
     console.error(`User ${userId} not a member of org ${orgId}, not assigning attribute options`);

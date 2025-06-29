@@ -2,4 +2,4 @@
 "@calcom/atoms": patch
 ---
 
-fix saving event type settings
+test log can ignore
