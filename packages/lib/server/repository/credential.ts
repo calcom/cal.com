@@ -6,6 +6,7 @@ import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { buildNonDelegationCredential } from "../../delegationCredential/server";
+import { BookingReferenceRepository } from "./bookingReference";
 
 const log = logger.getSubLogger({ prefix: ["CredentialRepository"] });
 
@@ -29,6 +30,7 @@ type CredentialUpdateInput = {
 export class CredentialRepository {
   static async create(data: CredentialCreateInput) {
     const credential = await prisma.credential.create({ data: { ...data } });
+    await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
     return buildNonDelegationCredential(credential);
   }
   static async findByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
