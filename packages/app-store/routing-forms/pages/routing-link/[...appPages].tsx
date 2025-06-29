@@ -121,7 +121,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         queuedFormResponseId: queuedFormResponse?.id ?? null,
         fields,
         searchParams: new URLSearchParams(window.location.search),
-        teamMembersMatchingAttributeLogic,
+        teamMembersMatchingAttributeLogic ?? null,
         attributeRoutingConfig: attributeRoutingConfig ?? null,
         crmContactOwnerEmail,
         crmContactOwnerRecordType,
