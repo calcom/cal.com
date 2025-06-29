@@ -44,7 +44,7 @@ const getDeterministicHashForResponse = (fieldsResponses: Record<string, unknown
   return hash;
 };
 
-function hasEmbedPath(pathWithQuery: string) {
+export function hasEmbedPath(pathWithQuery: string) {
   const onlyPath = pathWithQuery.split("?")[0];
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
