@@ -9,11 +9,11 @@ const CACHE_TAGS = {
   WORKFLOWS_LIST: "WorkflowRepository.filteredList",
 } as const;
 
-export const getCachedWorkflowsList = unstable_cache(
+export const getCachedWorkflowsFilteredList = unstable_cache(
   async (userId: number, filters: any) => {
     return await WorkflowRepository.getFilteredList({ userId, input: { filters } });
   },
-  ["getCachedWorkflowsList"],
+  ["getCachedWorkflowsFilteredList"],
   {
     revalidate: NEXTJS_CACHE_TTL,
     tags: [CACHE_TAGS.WORKFLOWS_LIST],

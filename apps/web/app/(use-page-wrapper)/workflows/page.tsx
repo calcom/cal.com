@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 import LegacyPage from "@calcom/features/ee/workflows/pages/index";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { getCachedWorkflowsList } from "@calcom/web/app/cache/workflows";
+import { getCachedWorkflowsFilteredList } from "@calcom/web/app/cache/workflows";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
@@ -31,7 +31,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
   const filters = getTeamsFiltersFromQuery(_searchParams);
 
   const hasValidLicense = session?.hasValidLicense ?? false;
-  const initialData = await getCachedWorkflowsList(session.user.id, filters);
+  const initialData = await getCachedWorkflowsFilteredList(session.user.id, filters);
 
   return <LegacyPage initialData={initialData} hasValidLicense={hasValidLicense} />;
 };
