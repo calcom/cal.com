@@ -501,12 +501,21 @@ async function getBookingsOfInterval({
   });
 }
 
+// ✅ OPTIMIZED VERSION - Single user check BEFORE expensive operations
 export async function getLuckyUser<
   T extends PartialUser & {
     priority?: number | null;
     weight?: number | null;
   }
 >(getLuckyUserParams: GetLuckyUserParams<T>) {
+  const { availableUsers } = getLuckyUserParams;
+
+  // ✅ Early return for single user - no expensive operations needed
+  if (availableUsers.length === 1) {
+    return availableUsers[0];
+  }
+
+  // Only perform expensive operations when there are multiple users
   const {
     bookingsOfAvailableUsersOfInterval,
     bookingsOfNotAvailableUsersOfInterval,
