@@ -27,7 +27,7 @@ function WorkflowsPage({ initialData, hasValidLicense }: PageProps) {
   const filteredWorkflows = initialData;
   const router = useRouter();
   const createMutation = trpc.viewer.workflows.create.useMutation({
-    onSuccess: async ({ workflow }) => {
+    onSuccess: ({ workflow }) => {
       router.replace(`/workflows/${workflow.id}`);
     },
     onError: (err) => {
