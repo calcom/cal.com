@@ -1,33 +1,22 @@
 import type { EventType as PrismaEventType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
-import logger from "@calcom/lib/logger";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
-import { TRPCError } from "@trpc/server";
-
-import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { MembershipRepository } from "./membership";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
 
-const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 type NotSupportedProps = "locations";
 type IEventType = Ensure<
   Partial<
-    Omit<Prisma.EventTypeCreateInput, NotSupportedProps> & {
-      userId: PrismaEventType["userId"];
-      profileId: PrismaEventType["profileId"];
-      teamId: PrismaEventType["teamId"];
-      parentId: PrismaEventType["parentId"];
-      scheduleId: PrismaEventType["scheduleId"];
-    }
+    Omit<Prisma.EventTypeCreateInput, NotSupportedProps> &
+      Pick<PrismaEventType, "userId" | "profileId" | "teamId" | "parentId" | "scheduleId">
   >,
   "title" | "slug" | "length"
 >;
@@ -44,12 +33,12 @@ type HostWithLegacySelectedCalendars<
   user: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>;
 };
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   name: true,
   avatarUrl: true,
   username: true,
   id: true,
-});
+} satisfies Prisma.UserSelect;
 
 function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(
   hosts: HostWithLegacySelectedCalendars<TSelectedCalendar, THost, TUser>[]
@@ -170,15 +159,6 @@ export class EventTypeRepository {
       },
     };
 
-    log.debug(
-      "findAllByUpId",
-      safeStringify({
-        upId,
-        orderBy,
-        argumentWhere: where,
-      })
-    );
-
     const cursor = cursorId ? { id: cursorId } : undefined;
     const take = limit ? limit + 1 : undefined; // We take +1 as it'll be used for the next cursor
 
@@ -274,15 +254,6 @@ export class EventTypeRepository {
       hashedLink: true,
     };
 
-    log.debug(
-      "findAllByUpIdWithMinimalData",
-      safeStringify({
-        upId,
-        orderBy,
-        argumentWhere: where,
-      })
-    );
-
     const cursor = cursorId ? { id: cursorId } : undefined;
     const take = limit ? limit + 1 : undefined; // We take +1 as it'll be used for the next cursor
 
@@ -358,28 +329,17 @@ export class EventTypeRepository {
 
   static async findTeamEventTypes({
     teamId,
-    parentId,
-    userId,
     limit,
     cursor,
     orderBy,
     where = {},
   }: {
     teamId: number;
-    parentId?: number | null;
-    userId: number;
     limit?: number | null;
     cursor?: number | null;
     orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
     where?: Prisma.EventTypeWhereInput;
   }) {
-    const userSelect = Prisma.validator<Prisma.UserSelect>()({
-      name: true,
-      avatarUrl: true,
-      username: true,
-      id: true,
-    });
-
     const select = {
       ...eventTypeSelect,
       hashedLink: true,
@@ -395,35 +355,7 @@ export class EventTypeRepository {
         },
         take: 5,
       },
-    };
-
-    const teamMembership = await prisma.membership.findFirst({
-      where: {
-        OR: [
-          {
-            teamId,
-            userId,
-            accepted: true,
-          },
-          {
-            team: {
-              parent: {
-                ...(parentId ? { id: parentId } : {}),
-                members: {
-                  some: {
-                    userId,
-                    accepted: true,
-                    role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-                  },
-                },
-              },
-            },
-          },
-        ],
-      },
-    });
-
-    if (!teamMembership) throw new TRPCError({ code: "UNAUTHORIZED" });
+    } satisfies Prisma.EventTypeSelect;
 
     return await prisma.eventType.findMany({
       where: {
@@ -466,7 +398,7 @@ export class EventTypeRepository {
   }
 
   static async findById({ id, userId }: { id: number; userId: number }) {
-    const userSelect = Prisma.validator<Prisma.UserSelect>()({
+    const userSelect = {
       name: true,
       avatarUrl: true,
       username: true,
@@ -475,9 +407,9 @@ export class EventTypeRepository {
       locale: true,
       defaultScheduleId: true,
       isPlatformManaged: true,
-    });
+    } satisfies Prisma.UserSelect;
 
-    const CompleteEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+    const CompleteEventTypeSelect = {
       id: true,
       title: true,
       slug: true,
@@ -711,7 +643,7 @@ export class EventTypeRepository {
           redirectUrlOnExit: true,
         },
       },
-    });
+    } satisfies Prisma.EventTypeSelect;
 
     // This is more efficient than using a complex join with team.members in the query
     const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });
