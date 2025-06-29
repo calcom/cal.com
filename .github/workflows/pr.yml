@@ -104,6 +104,13 @@ jobs:
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
+  circular-dependency-check:
+    name: Circular Dependency Check
+    needs: [changes, check-label, deps]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/circular-dependency-check.yml
+    secrets: inherit
+
   lint:
     name: Linters
     needs: [changes, check-label, deps]
@@ -120,35 +127,35 @@ jobs:
 
   build-api-v1:
     name: Production builds
-    needs: [changes, check-label, deps]
+    needs: [changes, check-label, deps, circular-dependency-check]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
-    needs: [changes, check-label, deps]
+    needs: [changes, check-label, deps, circular-dependency-check]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
   build-atoms:
     name: Production builds
-    needs: [changes, check-label, deps]
+    needs: [changes, check-label, deps, circular-dependency-check]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
   build-docs:
     name: Production builds
-    needs: [changes, check-label, deps]
+    needs: [changes, check-label, deps, circular-dependency-check]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
 
   build:
     name: Production builds
-    needs: [changes, check-label, deps]
+    needs: [changes, check-label, deps, circular-dependency-check]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
@@ -236,6 +243,7 @@ jobs:
         changes,
         lint,
         type-check,
+        circular-dependency-check,
         unit-test,
         integration-test,
         check-label,
