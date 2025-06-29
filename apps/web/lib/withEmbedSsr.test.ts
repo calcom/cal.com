@@ -206,6 +206,54 @@ describe("withEmbedSsr", () => {
           },
         });
       });
+
+      it("should not forward embed query param from redirect URL to prevent breaking external sites", async () => {
+        const withEmbedGetSsr = withEmbedSsr(
+          getServerSidePropsFnGenerator({
+            redirectUrl: "/reschedule?redirectParam=1&embed=someNamespace&otherParam=value",
+          })
+        );
+
+        const ret = await withEmbedGetSsr(
+          getServerSidePropsContextArg({
+            embedRelatedParams: {
+              layout: "week_view",
+              embed: "namespace1",
+            },
+          })
+        );
+        expect(ret).toEqual({
+          redirect: {
+            destination:
+              "/reschedule/embed?redirectParam=1&otherParam=value&layout=week_view&embed=namespace1",
+            permanent: false,
+          },
+        });
+      });
+
+      it("should not forward embed query param from absolute redirect URL", async () => {
+        const withEmbedGetSsr = withEmbedSsr(
+          getServerSidePropsFnGenerator({
+            redirectUrl: "https://external-site.com/success?embed=someNamespace&booking=123",
+          })
+        );
+
+        const ret = await withEmbedGetSsr(
+          getServerSidePropsContextArg({
+            embedRelatedParams: {
+              layout: "week_view",
+              embed: "namespace1",
+            },
+          })
+        );
+        expect(ret).toEqual({
+          redirect: {
+            destination:
+              "https://external-site.com/success/embed?booking=123&layout=week_view&embed=namespace1",
+            permanent: false,
+          },
+        });
+      });
     });
   });
 
