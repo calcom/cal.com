@@ -5,6 +5,7 @@ import { unstable_cache } from "next/cache";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { TeamService } from "@calcom/lib/server/service/team";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
 import { TRPCError } from "@trpc/server";
@@ -37,7 +38,7 @@ export const ServerTeamsListing = async ({
 
   if (token) {
     try {
-      teamNameFromInvite = await TeamRepository.inviteMemberByToken(token, userId);
+      teamNameFromInvite = await TeamService.inviteMemberByToken(token, userId);
     } catch (e) {
       errorMsgFromInvite = "Error while fetching teams";
       if (e instanceof TRPCError) errorMsgFromInvite = e.message;
