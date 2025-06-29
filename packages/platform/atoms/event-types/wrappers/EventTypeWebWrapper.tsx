@@ -1,5 +1,6 @@
 "use client";
 
+import { revalidateTeamBookingPage } from "app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -138,6 +139,9 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
       revalidateEventTypeEditPage(eventType.id);
+      if (eventType.team?.slug) {
+        revalidateTeamBookingPage(eventType.team.slug, eventType.slug, eventType.team.parent?.slug ?? null);
+      }
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
