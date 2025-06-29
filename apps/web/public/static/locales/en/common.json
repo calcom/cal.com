@@ -933,6 +933,8 @@
   "starting": "Starting",
   "disable_guests": "Disable Guests",
   "disable_guests_description": "Disable adding additional guests while booking.",
+  "optional_guest_team_members": "Add team members as optional guests",
+  "optional_guest_team_members_description": "Adding team members as an optional guest will always send an optional invite, but not check their availability.",
   "private_link": "Generate private link",
   "enable_private_url": "Enable Private URL",
   "private_link_label": "Private link",
