@@ -1435,3 +1435,127 @@ describe("require email/domain validation", () => {
     });
   });
 });
+
+describe("visibleIf conditional visibility", () => {
+  /**
+   * Utility to build the schema under test.
+   */
+  const makeSchema = (bookingFields: z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) =>
+    getBookingResponsesSchema({
+      bookingFields,
+      view: "ALL_VIEWS",
+    });
+
+  /**
+   * Base fields:
+   *  - parentField  (select) : user chooses "show" or anything else
+   *  - childField   (text)   : required **only** when parentField === "show"
+   */
+  const baseFields = [
+    {
+      name: "name",
+      type: "name",
+      required: true,
+    },
+    {
+      name: "email",
+      type: "email",
+      required: true,
+    },
+    {
+      name: "parentField",
+      type: "select",
+      required: true,
+      options: [
+        { label: "Show child", value: "show" },
+        { label: "Hide child", value: "hide" },
+      ],
+    },
+    {
+      name: "childField",
+      type: "text",
+      required: true,
+      // 👇 NEW conditional-visibility rule
+      visibleIf: {
+        parent: "parentField",
+        values: ["show"],
+      },
+    },
+  ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
+
+  test("childField may be omitted when parentField != 'show'", async () => {
+    const schema = makeSchema(baseFields);
+
+    const parsed = await schema.safeParseAsync({
+      name: "John",
+      email: "john@example.com",
+      parentField: "hide",
+      // childField intentionally left out
+    });
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) throw parsed.error;
+    expect(parsed.data).toEqual({
+      name: "John",
+      email: "john@example.com",
+      parentField: "hide",
+    });
+  });
+
+  test("childField is required when parentField == 'show'", async () => {
+    const schema = makeSchema(baseFields);
+
+    const parsed = await schema.safeParseAsync({
+      name: "John",
+      email: "john@example.com",
+      parentField: "show",
+      // childField missing → should fail
+    });
+
+    expect(parsed.success).toBe(false);
+    if (parsed.success) throw new Error("Should not succeed");
+    expect(parsed.error.issues[0]).toEqual(
+      expect.objectContaining({
+        code: "custom",
+        message: `{childField}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`,
+      })
+    );
+  });
+
+  test("schema passes when childField present & parentField == 'show'", async () => {
+    const schema = makeSchema(baseFields);
+
+    const parsed = await schema.safeParseAsync({
+      name: "John",
+      email: "john@example.com",
+      parentField: "show",
+      childField: "Some text",
+    });
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) throw parsed.error;
+    expect(parsed.data).toEqual({
+      name: "John",
+      email: "john@example.com",
+      parentField: "show",
+      childField: "Some text",
+    });
+  });
+
+  test("visibleIf works with array-valued parent responses", async () => {
+    const multiParentFields = [
+      ...baseFields.map((f) => (f.name === "parentField" ? { ...f, type: "checkbox" } : f)),
+    ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">;
+
+    const schema = makeSchema(multiParentFields);
+
+    const parsed = await schema.safeParseAsync({
+      name: "John",
+      email: "john@example.com",
+      parentField: ["foo", "show", "bar"],
+      childField: "Visible because 'show' selected",
+    });
+
+    expect(parsed.success).toBe(true);
+  });
+});
