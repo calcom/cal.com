@@ -474,4 +474,16 @@ export class OrganizationRepository {
 
     return team?.isPrivate ?? false;
   }
+
+  static async getTeams({ organizationId }: { organizationId: number }) {
+    return await prisma.team.findMany({
+      where: {
+        parentId: organizationId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  }
 }

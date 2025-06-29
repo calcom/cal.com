@@ -11,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Card } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { revalidateTeamsList } from "@calcom/web/app/cache/team";
 
 import TeamListItem from "./TeamListItem";
 

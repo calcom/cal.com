@@ -1,7 +1,7 @@
 import { createRouterCaller } from "app/_trpc/context";
 import type { SearchParams } from "app/_types";
+import { getCachedTeams } from "app/cache/team";
 import type { Session } from "next-auth";
-import { unstable_cache } from "next/cache";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
@@ -10,17 +10,6 @@ import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 import { TRPCError } from "@trpc/server";
 
 import { TeamsCTA } from "./CTA";
-
-const getCachedTeams = unstable_cache(
-  async (userId: number) => {
-    return await TeamRepository.findTeamsByUserId({
-      userId,
-      includeOrgs: true,
-    });
-  },
-  undefined,
-  { revalidate: 3600, tags: ["viewer.teams.list"] } // Cache for 1 hour
-);
 
 export const ServerTeamsListing = async ({
   searchParams,
