@@ -86,9 +86,9 @@ export const isTimeSlotAvailable = ({
 
   if (isUnavailableAsPerQuickCheck) return false;
 
-  // If schedule is not loaded or other variables are unavailable consider the slot available
+  // If schedule is not loaded or other variables are unavailable, fail-safe to prevent double bookings
   if (!scheduleData) {
-    return true;
+    return false;
   }
 
   const dateInGMT = isValidISOFormat(slotToCheckInIso) ? slotToCheckInIso.split("T")[0] : null;

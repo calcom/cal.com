@@ -27,7 +27,7 @@ describe("isTimeSlotAvailable", () => {
     expect(result).toBe(false);
   });
 
-  it("should return true when scheduleData is null", () => {
+  it("should return false when scheduleData is null (fail-safe behavior)", () => {
     const slotToCheckInIso = "2024-02-08T10:30:00.000Z";
     const quickAvailabilityChecks: QuickAvailabilityCheck[] = [];
 
@@ -37,7 +37,7 @@ describe("isTimeSlotAvailable", () => {
       quickAvailabilityChecks,
     });
 
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 
   it("should return true when the date doesn't exist in the schedule data", () => {
