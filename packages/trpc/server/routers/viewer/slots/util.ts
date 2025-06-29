@@ -8,6 +8,12 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organization
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { SlotCacheKeyParams } from "@calcom/features/slot-cache/slot-cache-key";
+import { SlotCacheRepository } from "@calcom/features/slot-cache/slot-cache.repository";
+import {
+  aggregateCollectiveSlots,
+  aggregateRoundRobinSlots,
+} from "@calcom/features/slot-cache/team-slot-aggregation";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -58,6 +64,16 @@ import { TRPCError } from "@trpc/server";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
+
+type SlotWithTime = {
+  time: Dayjs;
+  userIds?: number[];
+  away?: boolean;
+  fromUser?: IFromUser;
+  toUser?: IToUser;
+  reason?: string;
+  emoji?: string;
+};
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 type GetAvailabilityUserWithoutDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
@@ -487,15 +503,148 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
-  const timeSlots = getSlots({
-    inviteeDate: startTime,
-    eventLength: input.duration || eventType.length,
-    offsetStart: eventType.offsetStart,
-    dateRanges: aggregatedAvailability,
-    minimumBookingNotice: eventType.minimumBookingNotice,
-    frequency: eventType.slotInterval || input.duration || eventType.length,
-    datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
-  });
+  const slotCacheRepo = new SlotCacheRepository();
+
+  let timeSlots: SlotWithTime[] = [];
+
+  const shouldUseSlotCache = !input.teamMemberEmail;
+
+  if (isTeamEvent && shouldUseSlotCache) {
+    const userIds = allUsersAvailability
+      .map((ua) => ua.user?.id)
+      .filter((id): id is number => typeof id === "number");
+    const baseParams = {
+      eventTypeId: eventType.id,
+      startDate: startTime.toISOString(),
+      endDate: endTime.toISOString(),
+      eventLength: input.duration || eventType.length,
+      frequency: eventType.slotInterval || input.duration || eventType.length,
+      offsetStart: eventType.offsetStart,
+      minimumBookingNotice: eventType.minimumBookingNotice,
+      scheduleId: eventType.schedule?.id,
+      restrictionScheduleId: eventType.restrictionScheduleId ?? undefined,
+      bookingLimits: parseBookingLimit(eventType.bookingLimits),
+      durationLimits: parseDurationLimit(eventType.durationLimits),
+    };
+
+    const cachedUserSlots = await slotCacheRepo.getCachedSlotsForTeamEvent(eventType.id, userIds, baseParams);
+
+    if (cachedUserSlots) {
+      if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
+        const aggregatedSlots = aggregateCollectiveSlots(cachedUserSlots);
+        timeSlots = aggregatedSlots.map((slot) => ({
+          ...slot,
+          time: dayjs(slot.time),
+        }));
+      } else {
+        const aggregatedSlots = aggregateRoundRobinSlots(cachedUserSlots);
+        timeSlots = aggregatedSlots.map((slot) => ({
+          ...slot,
+          time: dayjs(slot.time),
+        }));
+      }
+    } else {
+      timeSlots = getSlots({
+        inviteeDate: startTime,
+        eventLength: input.duration || eventType.length,
+        offsetStart: eventType.offsetStart,
+        dateRanges: aggregatedAvailability,
+        minimumBookingNotice: eventType.minimumBookingNotice,
+        frequency: eventType.slotInterval || input.duration || eventType.length,
+        datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+      });
+
+      for (const userAvailability of allUsersAvailability) {
+        if (userAvailability.user?.id) {
+          const userParams: SlotCacheKeyParams = {
+            ...baseParams,
+            userId: userAvailability.user.id,
+          };
+
+          const userSlots = timeSlots.map((slot) => ({
+            time: slot.time.toISOString(),
+            userIds: slot.userIds,
+            away: slot.away,
+            fromUser: slot.fromUser,
+            toUser: slot.toUser,
+            reason: slot.reason,
+            emoji: slot.emoji,
+          }));
+
+          await slotCacheRepo.setCachedSlotsForUser(userParams, userSlots);
+        }
+      }
+    }
+  } else if (isTeamEvent && !shouldUseSlotCache) {
+    timeSlots = getSlots({
+      inviteeDate: startTime,
+      eventLength: input.duration || eventType.length,
+      offsetStart: eventType.offsetStart,
+      dateRanges: aggregatedAvailability,
+      minimumBookingNotice: eventType.minimumBookingNotice,
+      frequency: eventType.slotInterval || input.duration || eventType.length,
+      datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+    });
+  } else {
+    const userId = allUsersAvailability[0]?.user?.id;
+    if (userId && shouldUseSlotCache) {
+      const userParams: SlotCacheKeyParams = {
+        eventTypeId: eventType.id,
+        userId,
+        startDate: startTime.toISOString(),
+        endDate: endTime.toISOString(),
+        eventLength: input.duration || eventType.length,
+        frequency: eventType.slotInterval || input.duration || eventType.length,
+        offsetStart: eventType.offsetStart,
+        minimumBookingNotice: eventType.minimumBookingNotice,
+        scheduleId: eventType.schedule?.id,
+        restrictionScheduleId: eventType.restrictionScheduleId ?? undefined,
+        bookingLimits: parseBookingLimit(eventType.bookingLimits),
+        durationLimits: parseDurationLimit(eventType.durationLimits),
+      };
+
+      let cachedSlots = await slotCacheRepo.getCachedSlotsForUser(userParams);
+
+      if (!cachedSlots) {
+        const generatedSlots = getSlots({
+          inviteeDate: startTime,
+          eventLength: input.duration || eventType.length,
+          offsetStart: eventType.offsetStart,
+          dateRanges: aggregatedAvailability,
+          minimumBookingNotice: eventType.minimumBookingNotice,
+          frequency: eventType.slotInterval || input.duration || eventType.length,
+          datesOutOfOffice: allUsersAvailability[0]?.datesOutOfOffice,
+        });
+
+        cachedSlots = generatedSlots.map((slot) => ({
+          time: slot.time.toISOString(),
+          userIds: slot.userIds,
+          away: slot.away,
+          fromUser: slot.fromUser,
+          toUser: slot.toUser,
+          reason: slot.reason,
+          emoji: slot.emoji,
+        }));
+
+        await slotCacheRepo.setCachedSlotsForUser(userParams, cachedSlots);
+      }
+
+      timeSlots = cachedSlots.map((slot) => ({
+        ...slot,
+        time: dayjs(slot.time),
+      }));
+    } else {
+      timeSlots = getSlots({
+        inviteeDate: startTime,
+        eventLength: input.duration || eventType.length,
+        offsetStart: eventType.offsetStart,
+        dateRanges: aggregatedAvailability,
+        minimumBookingNotice: eventType.minimumBookingNotice,
+        frequency: eventType.slotInterval || input.duration || eventType.length,
+        datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+      });
+    }
+  }
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
