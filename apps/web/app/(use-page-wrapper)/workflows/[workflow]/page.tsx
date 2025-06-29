@@ -6,6 +6,7 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -17,6 +18,7 @@ import { workflowsRouter } from "@calcom/trpc/server/routers/viewer/workflows/_r
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
+
 const querySchema = z.object({
   workflow: z
     .string()
@@ -26,26 +28,6 @@ const querySchema = z.object({
     .transform((val) => Number(val)),
 });
 
-const getWorkflow = cache((id: number) => WorkflowRepository.getById({ id }));
-
-export const generateMetadata = async ({ params }: PageProps): Promise<Metadata | null> => {
-  const parsed = querySchema.safeParse(await params);
-  if (!parsed.success) {
-    notFound();
-  }
-  const workflow = await getWorkflow(parsed.data.workflow);
-  if (!workflow) {
-    notFound();
-  }
-  return await _generateMetadata(
-    (t) => (workflow && workflow.name ? workflow.name : t("untitled")),
-    () => "",
-    undefined,
-    undefined,
-    `/workflows/${parsed.data.workflow}`
-  );
-};
-
 const Page = async ({ params }: PageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
@@ -54,6 +36,7 @@ const Page = async ({ params }: PageProps) => {
   }
 
   const parsed = querySchema.safeParse(await params);
+      
   if (!parsed.success) {
     notFound();
   }
@@ -71,6 +54,7 @@ const Page = async ({ params }: PageProps) => {
 
   const isOrg = workflowData?.team?.isOrganization ?? false;
   const teamId = workflowData?.teamId ?? undefined;
+
 
   const [verifiedEmails, verifiedNumbers, eventsData, user] = await Promise.all([
     workflowCaller.getVerifiedEmails({ teamId }),

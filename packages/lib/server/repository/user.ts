@@ -161,6 +161,32 @@ export class UserRepository {
     });
   }
 
+  static async findPlatformMembersByUsernames({ usernameList }: { usernameList: string[] }) {
+    return (
+      await prisma.user.findMany({
+        select: userSelect,
+        where: {
+          username: {
+            in: usernameList,
+          },
+          isPlatformManaged: false,
+          profiles: {
+            some: {
+              organization: {
+                isPlatform: true,
+              },
+            },
+          },
+        },
+      })
+    ).map((user) => {
+      return {
+        ...user,
+        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+      };
+    });
+  }
+
   static async _getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,
@@ -610,7 +636,7 @@ export class UserRepository {
     return user;
   }
   static async getUserAdminTeams(userId: number) {
-    return prisma.user.findFirst({
+    return prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -687,10 +713,12 @@ export class UserRepository {
     return !!teams.length;
   }
   static async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
-    const isAdminOrOwnerOfTeam = await prisma.membership.findFirst({
+    const isAdminOrOwnerOfTeam = await prisma.membership.findUnique({
       where: {
-        userId,
-        teamId,
+        userId_teamId: {
+          userId,
+          teamId,
+        },
         role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
         accepted: true,
       },
@@ -850,7 +878,7 @@ export class UserRepository {
   }
 
   static async getUserStats({ userId }: { userId: number }) {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },

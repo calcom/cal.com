@@ -21,7 +21,11 @@ export class TeamsMembershipsRepository {
 
   async createTeamMembership(teamId: number, data: CreateTeamMembershipInput) {
     return this.dbWrite.prisma.membership.create({
-      data: { ...data, teamId: teamId },
+      data: {
+        createdAt: new Date(),
+        ...data,
+        teamId: teamId,
+      },
       include: { user: { select: MembershipUserSelect } },
     });
   }

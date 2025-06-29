@@ -169,11 +169,6 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       options={actionOptions.map((option) => ({
                         ...option,
                       }))}
-                      isOptionDisabled={(option: {
-                        label: string;
-                        value: WorkflowActions;
-                        needsTeamsUpgrade: boolean;
-                      }) => option.needsTeamsUpgrade}
                     />
                   );
                 }}
