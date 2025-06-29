@@ -257,7 +257,7 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            scheduleId: eventType.scheduleId || null,
+            ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
             restrictionScheduleId: null,
             useBookerTimezone: false,
             hashedLink:
