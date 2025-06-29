@@ -9,6 +9,7 @@ import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { EventTypeService } from "@calcom/lib/server/service/eventType";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
@@ -479,6 +480,7 @@ async function getBookingsOfInterval({
   virtualQueuesData,
   interval,
   includeNoShowInRRCalculation,
+  excludeSalesforceBookingsFromRR = false,
   rrTimestampBasis,
   meetingStartTime,
 }: {
@@ -487,6 +489,7 @@ async function getBookingsOfInterval({
   virtualQueuesData: VirtualQueuesDataType | null;
   interval: RRResetInterval;
   includeNoShowInRRCalculation: boolean;
+  excludeSalesforceBookingsFromRR?: boolean;
   rrTimestampBasis: RRTimestampBasis;
   meetingStartTime?: Date;
 }) {
@@ -497,6 +500,7 @@ async function getBookingsOfInterval({
     endDate: getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime }),
     virtualQueuesData,
     includeNoShowInRRCalculation,
+    excludeSalesforceBookingsFromRR,
     rrTimestampBasis,
   });
 }
@@ -629,6 +633,11 @@ async function fetchAllDataNeededForCalculations<
   const startTime = performance.now();
 
   const { availableUsers, allRRHosts, eventType, meetingStartTime } = getLuckyUserParams;
+
+  // Get Salesforce app data to check excludeSalesforceBookingsFromRR setting
+  const salesforceAppData = await EventTypeService.getEventTypeAppDataFromId(eventType.id, "salesforce");
+  const excludeSalesforceBookingsFromRR = salesforceAppData?.excludeSalesforceBookingsFromRR ?? false;
+
   const notAvailableHosts = (function getNotAvailableHosts() {
     const availableUserIds = new Set(availableUsers.map((user) => user.id));
     return allRRHosts.reduce(
@@ -685,6 +694,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      excludeSalesforceBookingsFromRR,
       rrTimestampBasis,
       meetingStartTime,
     }),
@@ -695,6 +705,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      excludeSalesforceBookingsFromRR,
       rrTimestampBasis,
       meetingStartTime,
     }),
@@ -707,6 +718,7 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
       interval,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
+      excludeSalesforceBookingsFromRR,
       rrTimestampBasis,
       meetingStartTime,
     }),
