@@ -58,7 +58,7 @@ export class SlotsController_2024_09_04 {
 
   @Get("/")
   @ApiOperation({
-    summary: "Find out when is an event type ready to be booked.",
+    summary: "Get available time slots for an event type.",
     description: `
       There are 4 ways to get available slots for event type of an individual user:
 
@@ -290,7 +290,7 @@ export class SlotsController_2024_09_04 {
 
   @Patch("/reservations/:uid")
   @ApiOperation({
-    summary: "Updated reserved a slot",
+    summary: "Update a reserved slot",
   })
   @HttpCode(HttpStatus.OK)
   async updateReservedSlot(
