@@ -13,6 +13,6 @@ Currently supports React 18, React 19, Next 14 and Next 15.
 3. Some of the versions are suffixed e.g. `1.0.102-framer` and are intended for isolated use cases, so you most probably
 want to use version without any suffix e.g. `1.0.103`.
 
-### Documentation
+### Documentation 
 Documentation on how to get started with platform solution is [here](https://cal.com/docs/platform/quickstart) and list of atoms can be viewed
 [here](https://cal.com/docs/platform/atoms/cal-provider)
