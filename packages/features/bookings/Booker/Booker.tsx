@@ -13,8 +13,11 @@ import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
-import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
-import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
+import {
+  CLOUDFLARE_SITE_ID,
+  CLOUDFLARE_USE_TURNSTILE_IN_BOOKER,
+  PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM,
+} from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
@@ -198,6 +201,9 @@ const BookerComponent = ({
           scheduleData: schedule?.data ?? null,
           slotToCheckInIso: slot,
           quickAvailabilityChecks: slots.quickAvailabilityChecks,
+          eventType: event?.data
+            ? { onlyShowFirstAvailableSlot: event.data.onlyShowFirstAvailableSlot }
+            : undefined,
         });
       })
     : [];
@@ -262,28 +268,35 @@ const BookerComponent = ({
       <></>
     );
   }, [
-    bookerFormErrorRef,
-    instantVideoMeetingUrl,
     bookerState,
-    bookingForm,
-    errors,
-    event,
-    expiryTime,
-    extraOptions,
+    key,
+    shouldRenderCaptcha,
+    bookerFormErrorRef,
     formErrors,
+    errors,
+    isInstantMeeting,
+    unavailableTimeSlots,
+    selectedTimeslot,
+    loadingStates,
+    renderConfirmNotVerifyEmailButtonCond,
+    bookingForm,
+    event,
+    extraOptions,
+    rescheduleUid,
+    isVerificationCodeSending,
+    confirmButtonDisabled,
+    customClassNames?.confirmStep?.confirmButton,
+    customClassNames?.confirmStep?.backButton,
+    isPlatform,
+    expiryTime,
+    instantVideoMeetingUrl,
+    setSelectedTimeslot,
+    seatedEventData,
+    schedule,
+    setSeatedEventData,
     handleBookEvent,
     handleVerifyEmail,
-    key,
-    loadingStates,
     onGoBackInstantMeeting,
-    renderConfirmNotVerifyEmailButtonCond,
-    seatedEventData,
-    setSeatedEventData,
-    setSelectedTimeslot,
-    isPlatform,
-    shouldRenderCaptcha,
-    isVerificationCodeSending,
-    unavailableTimeSlots,
   ]);
 
   /**
