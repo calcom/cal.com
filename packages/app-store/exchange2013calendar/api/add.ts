@@ -48,7 +48,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       user: { email: user.email },
     });
     await dav?.listCalendars();
-    const newCredential = await prisma.credential.create({
+    await prisma.credential.create({
       data,
     });
   } catch (reason) {

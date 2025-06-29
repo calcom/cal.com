@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -42,10 +41,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user: { email: user.email },
       });
       await dav?.listCalendars();
-      const newCredential = await prisma.credential.create({
+      await prisma.credential.create({
         data,
       });
-      await BookingReferenceRepository.reconnectWithNewCredential(newCredential.id);
     } catch (e) {
       logger.error("Could not add this caldav account", e);
       if (e instanceof Error) {

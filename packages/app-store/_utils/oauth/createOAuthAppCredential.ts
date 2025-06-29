@@ -1,7 +1,6 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../oauth/decodeOAuthState";
@@ -41,7 +40,6 @@ const createOAuthAppCredential = async (
       },
     });
 
-    await BookingReferenceRepository.reconnectWithNewCredential(newCredential.id);
     return newCredential;
   }
 
@@ -54,7 +52,6 @@ const createOAuthAppCredential = async (
     },
   });
 
-  await BookingReferenceRepository.reconnectWithNewCredential(newCredential.id);
   return newCredential;
 };
 

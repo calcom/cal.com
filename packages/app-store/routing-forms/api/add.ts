@@ -1,4 +1,3 @@
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
@@ -11,7 +10,7 @@ const handler: AppDeclarativeHandler = {
   supportsMultipleInstalls: false,
   handlerType: "add",
   createCredential: async ({ user, appType, slug, teamId }) => {
-    const credential = await prisma.credential.create({
+    return await prisma.credential.create({
       data: {
         type: appType,
         key: {},
@@ -19,8 +18,6 @@ const handler: AppDeclarativeHandler = {
         appId: slug,
       },
     });
-    await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
-    return credential;
   },
   redirect: {
     url: "/apps/routing-forms/forms",
