@@ -59,7 +59,6 @@ export const reserveSlotSchema = z
     slotUtcStartDate: z.string(),
     // endTime ISOString
     slotUtcEndDate: z.string(),
-    bookingUid: z.string().optional(),
     _isDryRun: z.boolean().optional(),
   })
   .refine(

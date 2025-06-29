@@ -58,12 +58,14 @@ export class CreditService {
     credits,
     bookingUid,
     smsSid,
+    smsSegments,
   }: {
     userId?: number;
     teamId?: number;
     credits: number | null;
     bookingUid?: string;
     smsSid?: string;
+    smsSegments?: number;
   }) {
     return await prisma
       .$transaction(async (tx) => {
@@ -96,6 +98,7 @@ export class CreditService {
           userId: userIdToCharge,
           credits,
           creditType,
+          smsSegments,
           tx,
         });
 
@@ -127,6 +130,9 @@ export class CreditService {
       });
   }
 
+  /*
+    also returns true if team has no available credits but limitReachedAt is not yet set
+  */
   async hasAvailableCredits({ userId, teamId }: { userId?: number | null; teamId?: number | null }) {
     return await prisma.$transaction(async (tx) => {
       if (!IS_SMS_CREDITS_ENABLED) return true;
@@ -157,12 +163,14 @@ export class CreditService {
           );
           return true;
         }
+        // limtReachedAt is set and still no available credits
+        return false;
       }
 
       if (userId) {
         const teamWithAvailableCredits = await this._getTeamWithAvailableCredits({ userId, tx });
 
-        if (teamWithAvailableCredits && teamWithAvailableCredits?.availableCredits > 0) return true;
+        if (teamWithAvailableCredits && !teamWithAvailableCredits.limitReached) return true;
 
         const userCredits = await this._getAllCredits({ userId, tx });
 
@@ -179,6 +187,9 @@ export class CreditService {
     });
   }
 
+  /*
+    If user has memberships, it always returns a team, even if all have limit reached. In that case, limitReached: true is returned
+  */
   protected async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
     const memberships = await MembershipRepository.findAllAcceptedMemberships(userId, tx);
 
@@ -223,6 +234,7 @@ export class CreditService {
       teamId: memberships[0].teamId,
       availableCredits: 0,
       creditType: CreditType.ADDITIONAL,
+      limitReached: true,
     };
   }
 
@@ -289,9 +301,10 @@ export class CreditService {
     userId?: number;
     credits: number | null;
     creditType: CreditType;
+    smsSegments?: number;
     tx: PrismaTransaction;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId, userId, tx } = props;
+    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, tx } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
       await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
 
@@ -331,6 +344,7 @@ export class CreditService {
           date: new Date(),
           bookingUid,
           smsSid,
+          smsSegments,
         },
         tx
       );
@@ -592,7 +606,10 @@ export class CreditService {
   }
 
   protected async _getAllCreditsForTeam({ teamId, tx }: { teamId: number; tx: PrismaTransaction }) {
-    const creditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs({ teamId }, tx);
+    const creditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs(
+      { teamId, creditType: CreditType.MONTHLY },
+      tx
+    );
 
     const totalMonthlyCredits = await this.getMonthlyCredits(teamId);
     const totalMonthlyCreditsUsed =
