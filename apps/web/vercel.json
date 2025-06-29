@@ -5,6 +5,10 @@
       "schedule": "0 5 * * *"
     },
     {
+      "path": "/api/cron/queued-form-response-cleanup",
+      "schedule": "0 */12 * * *"
+    },
+    {
       "path": "/api/tasks/cron",
       "schedule": "* * * * *"
     },
