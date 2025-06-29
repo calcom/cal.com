@@ -97,6 +97,7 @@ export const createTeamEventType = async (
     seatsPerTimeSlot?: number;
     managedEventUnlockedFields?: Record<string, boolean>;
     assignAllTeamMembers?: boolean;
+    locations?: [{ type?: string; address?: string }];
   }
 ) => {
   return await prisma.eventType.create({
@@ -127,7 +128,10 @@ export const createTeamEventType = async (
       slug: scenario?.teamEventSlug ?? `${teamEventSlug}-team-id-${team.id}`,
       length: scenario?.teamEventLength ?? 30,
       seatsPerTimeSlot: scenario?.seatsPerTimeSlot,
-      locations: [{ type: "integrations:daily" }],
+      locations:
+        scenario?.locations && scenario?.locations.length > 0
+          ? scenario?.locations
+          : [{ type: "integrations:daily" }],
       metadata:
         scenario?.schedulingType === SchedulingType.MANAGED
           ? {
@@ -159,6 +163,7 @@ const createTeamAndAddUser = async (
     orgRequestedSlug,
     schedulingType,
     assignAllTeamMembersForSubTeamEvents,
+    teamEventLength,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
@@ -171,6 +176,7 @@ const createTeamAndAddUser = async (
     orgRequestedSlug?: string;
     schedulingType?: SchedulingType;
     assignAllTeamMembersForSubTeamEvents?: boolean;
+    teamEventLength?: number;
   },
   workerInfo: WorkerInfo
 ) => {
@@ -200,6 +206,7 @@ const createTeamAndAddUser = async (
     await createTeamEventType(user, team, {
       schedulingType: schedulingType,
       assignAllTeamMembers: assignAllTeamMembersForSubTeamEvents,
+      teamEventLength: teamEventLength,
     });
     await createTeamWorkflow(user, team);
     data.children = { connect: [{ id: team.id }] };
@@ -551,6 +558,7 @@ export const createUsersFixture = (
               orgRequestedSlug: scenario.orgRequestedSlug,
               schedulingType: scenario.schedulingType,
               assignAllTeamMembersForSubTeamEvents: scenario.assignAllTeamMembersForSubTeamEvents,
+              teamEventLength: scenario.teamEventLength,
             },
             workerInfo
           );
