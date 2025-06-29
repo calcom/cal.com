@@ -5,6 +5,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
+import { BookingReferenceRepository } from "./bookingReference";
 
 export type UpdateArguments = {
   where: FindManyArgs["where"];
@@ -72,11 +73,17 @@ export class SelectedCalendarRepository {
       );
     }
 
-    return await prisma.selectedCalendar.create({
+    const selectedCalendar = await prisma.selectedCalendar.create({
       data: {
         ...data,
       },
     });
+
+    if (selectedCalendar.credentialId) {
+      await BookingReferenceRepository.reconnectWithNewCredential(selectedCalendar.credentialId);
+    }
+
+    return selectedCalendar;
   }
 
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
