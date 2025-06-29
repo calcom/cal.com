@@ -1,9 +1,9 @@
 Customizable UI components to integrate scheduling into your services.
 
 ### Support
-Currently supports React 18 and Next 14 while Next 15 is experimental.
+Currently supports React 18, React 19, Next 14 and Next 15.
 
-### Changelog
+### Changelog 
 1. Changelog can be viewed [here](https://github.com/calcom/cal.com/blob/main/packages/platform/atoms/CHANGELOG.md).
 2. For upcoming changes in the next release click [here](https://github.com/calcom/cal.com/pulls?q=is%3Apr+is%3Aopen+%22chore%3A+version+packages%22+in%3Atitle) to see a pull request titled `chore: version packages` containing next release changes.
 
