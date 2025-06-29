@@ -21,6 +21,7 @@ import { BillingModule } from "@/modules/billing/billing.module";
 import { BookingSeatModule } from "@/modules/booking-seat/booking-seat.module";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { GoogleApiCacheModule } from "@/modules/googleapis-cache/googleapis-cache.module";
 import { KyselyModule } from "@/modules/kysely/kysely.module";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
@@ -53,6 +54,7 @@ import { Module } from "@nestjs/common";
     StripeModule,
     TeamsModule,
     TeamsEventTypesModule,
+    GoogleApiCacheModule,
   ],
   providers: [
     TokensRepository,

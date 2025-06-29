@@ -8,6 +8,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { getPagination } from "@/lib/pagination/pagination";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { GoogleApiCacheService } from "@/modules/googleapis-cache/googleapis-cache.service";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
@@ -95,7 +96,8 @@ export class BookingsService_2024_08_13 {
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
-    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13
+    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13,
+    private readonly googleApiCacheService: GoogleApiCacheService
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -438,6 +440,7 @@ export class BookingsService_2024_08_13 {
     eventType: EventTypeWithOwnerAndTeam
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
+    const cacheManager = this.googleApiCacheService.getCacheManager();
     const booking = await handleNewBooking({
       bookingData: bookingRequest.body,
       userId: bookingRequest.userId,
@@ -448,6 +451,7 @@ export class BookingsService_2024_08_13 {
       platformBookingUrl: bookingRequest.platformBookingUrl,
       platformBookingLocation: bookingRequest.platformBookingLocation,
       areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+      googleApiCacheManager: cacheManager,
     });
 
     if (!booking.uid) {
@@ -469,6 +473,7 @@ export class BookingsService_2024_08_13 {
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
     try {
+      const cacheManager = this.googleApiCacheService.getCacheManager();
       const booking = await handleNewBooking({
         bookingData: bookingRequest.body,
         userId: bookingRequest.userId,
@@ -479,6 +484,7 @@ export class BookingsService_2024_08_13 {
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        googleApiCacheManager: cacheManager,
       });
 
       if (!booking.uid) {
@@ -657,6 +663,7 @@ export class BookingsService_2024_08_13 {
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        googleApiCacheManager: this.googleApiCacheService.getCacheManager(),
       });
       if (!booking.uid) {
         throw new Error("Booking missing uid");
