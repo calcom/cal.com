@@ -17,6 +17,7 @@ export const ZCreateInputSchema = webhookIdAndEventTypeIdSchema.extend({
   platform: z.boolean().optional(),
   time: z.number().nullable().optional(),
   timeUnit: z.enum(TIME_UNIT).nullable().optional(),
+  delayMinutes: z.number().min(5).max(1440).optional().default(10),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;
