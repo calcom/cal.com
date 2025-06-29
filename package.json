@@ -92,6 +92,7 @@
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^16.0.1",
+    "@types/node": "^22.15.23",
     "@vitest/ui": "^2.1.1",
     "c8": "^7.13.0",
     "checkly": "latest",
@@ -108,6 +109,7 @@
     "prettier": "^2.8.6",
     "prismock": "^1.33.4",
     "resize-observer-polyfill": "^1.5.1",
+    "ts-node": "^10.9.2",
     "tsc-absolute": "^1.0.0",
     "typescript": "^5.7.2",
     "vitest": "^2.1.1",
@@ -117,6 +119,7 @@
   "dependencies": {
     "@daily-co/daily-js": "^0.76.0",
     "@next/third-parties": "^14.2.5",
+    "@prisma/client": "^6.8.2",
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
