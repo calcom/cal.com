@@ -8,6 +8,7 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -42,18 +43,18 @@ async function handler(req: NextRequest) {
 
   const hashedPassword = await hashPassword(parsedQuery.data.password);
 
-  await prisma.user.create({
-    data: {
-      username,
-      email: userEmail,
-      password: { create: { hash: hashedPassword } },
-      role: "ADMIN",
-      name: parsedQuery.data.full_name,
-      emailVerified: new Date(),
-      locale: "en", // TODO: We should revisit this
-      identityProvider: IdentityProvider.CAL,
-      creationSource: CreationSource.WEBAPP,
-    },
+  await UserRepository.create({
+    username: username,
+    email: userEmail,
+    hashedPassword: hashedPassword,
+    role: "ADMIN",
+    name: parsedQuery.data.full_name,
+    emailVerified: new Date(),
+    locale: "en", // TODO: We should revisit this
+    identityProvider: IdentityProvider.CAL,
+    creationSource: CreationSource.WEBAPP,
+    organizationId: null, // No organization for the first admin user
+    locked: false, // No need to lock the first admin user
   });
 
   return NextResponse.json({ message: "First admin user created successfully." });
