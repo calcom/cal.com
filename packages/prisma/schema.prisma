@@ -1711,6 +1711,7 @@ model CalendarCache {
   expiresAt    DateTime
   credentialId Int
   userId       Int?
+  stale        Boolean     @default(false)
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
   @@id([credentialId, key])

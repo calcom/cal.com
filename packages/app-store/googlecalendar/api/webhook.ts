@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -40,6 +41,10 @@ async function postHandler(req: NextApiRequest) {
     return { message: "ok" };
   }
   const { selectedCalendars } = credential;
+
+  const calendarCacheRepository = new CalendarCacheRepository();
+  await calendarCacheRepository.invalidateCacheForCredential(credential.id);
+
   const credentialForCalendarCache = await getCredentialForCalendarCache({ credentialId: credential.id });
   const calendarServiceForCalendarCache = await getCalendar(credentialForCalendarCache);
 
