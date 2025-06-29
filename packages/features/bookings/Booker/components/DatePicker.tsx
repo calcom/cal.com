@@ -2,6 +2,7 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
@@ -94,6 +95,7 @@ export const DatePicker = ({
   };
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
+  const { timezone } = useTimePreferences();
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
   const { moveToNextMonthOnNoAvailability } = useMoveToNextMonthOnNoAvailability({
@@ -143,6 +145,7 @@ export const DatePicker = ({
       slots={slots}
       scrollToTimeSlots={scrollToTimeSlots}
       periodData={periodData}
+      timezone={timezone}
     />
   );
 };
