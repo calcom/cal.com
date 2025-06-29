@@ -5,15 +5,17 @@ import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { redirect } from "next/navigation";
-import { cache } from "react";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
-import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-import { workflowsRouter } from "@calcom/trpc/server/routers/viewer/workflows/_router";
+import {
+  getCachedUser,
+  getCachedWorkflowById,
+  getCachedWorkflowVerifiedNumber,
+  getCachedWorkflowVerifiedEmails,
+} from "@calcom/web/cache/workflows";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -26,14 +28,12 @@ const querySchema = z.object({
     .transform((val) => Number(val)),
 });
 
-const getWorkflow = cache((id: number) => WorkflowRepository.getById({ id }));
-
 export const generateMetadata = async ({ params }: PageProps): Promise<Metadata | null> => {
   const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     notFound();
   }
-  const workflow = await getWorkflow(parsed.data.workflow);
+  const workflow = await getCachedWorkflowById(parsed.data.workflow);
   if (!workflow) {
     notFound();
   }
@@ -53,19 +53,19 @@ const Page = async ({ params }: PageProps) => {
     redirect("/auth/login");
   }
 
+  if (!session?.user?.email) {
+    throw new Error("User email not found");
+  }
+
   const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     notFound();
   }
   const workFlowId = parsed.data.workflow;
 
-  const [workflowCaller, eventCaller, userCaller] = await Promise.all([
-    createRouterCaller(workflowsRouter),
-    createRouterCaller(eventTypesRouter),
-    createRouterCaller(meRouter),
-  ]);
+  const eventCaller = await createRouterCaller(eventTypesRouter);
 
-  const workflowData = await workflowCaller.get({ id: workFlowId });
+  const workflowData = await getCachedWorkflowById(workFlowId);
 
   if (!workflowData) return notFound();
 
@@ -73,10 +73,10 @@ const Page = async ({ params }: PageProps) => {
   const teamId = workflowData?.teamId ?? undefined;
 
   const [verifiedEmails, verifiedNumbers, eventsData, user] = await Promise.all([
-    workflowCaller.getVerifiedEmails({ teamId }),
-    teamId ? workflowCaller.getVerifiedNumbers({ teamId }) : Promise.resolve([]),
+    getCachedWorkflowVerifiedEmails(session.user.email, session.user.id, teamId),
+    teamId ? getCachedWorkflowVerifiedNumber(teamId, session.user.id) : [],
     eventCaller.getTeamAndEventTypeOptions({ teamId, isOrg }),
-    userCaller.get(),
+    getCachedUser(session.user, session.upId),
   ]);
 
   return (

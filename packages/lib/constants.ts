@@ -219,3 +219,5 @@ export const IS_DUB_REFERRALS_ENABLED =
 export const CAL_VIDEO_MEETING_LINK_FOR_TESTING = process.env.CAL_VIDEO_MEETING_LINK_FOR_TESTING;
 
 export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "25", 10);
+
+export const NEXTJS_CACHE_TTL = 3600; // 1 hour

@@ -19,6 +19,7 @@ import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateWorkflowById, revalidateWorkflowVerifiedNumbers } from "@calcom/web/cache/workflows";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
@@ -167,6 +168,8 @@ function WorkflowPage({
       if (workflow) {
         utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
         setFormData(workflow);
+        revalidateWorkflowById();
+        revalidateWorkflowVerifiedNumbers();
         setWorkflowNameOnShell(workflow.name);
         showToast(
           t("workflow_updated_successfully", {
