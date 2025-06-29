@@ -75,6 +75,20 @@ export type OOOEntryPayloadType = {
   };
 };
 
+export type ReservationExpiredPayloadType = {
+  eventType: "RESERVATION_EXPIRED";
+  reservationUid: string;
+  eventTypeId: number;
+  eventTypeTitle?: string;
+  slotStart: string;
+  slotEnd: string;
+  userId: number;
+  userName?: string | null;
+  userEmail?: string;
+  expiredAt: string;
+  createdAt: string;
+};
+
 export type EventPayloadType = CalendarEvent &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
@@ -93,7 +107,11 @@ export type EventPayloadType = CalendarEvent &
     paymentData?: Payment;
   };
 
-export type WebhookPayloadType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
+export type WebhookPayloadType =
+  | EventPayloadType
+  | OOOEntryPayloadType
+  | BookingNoShowUpdatedPayload
+  | ReservationExpiredPayloadType;
 
 type WebhookDataType = WebhookPayloadType & { triggerEvent: string; createdAt: string };
 
@@ -188,8 +206,12 @@ export function isNoShowPayload(data: WebhookPayloadType): data is BookingNoShow
   return "message" in data;
 }
 
+export function isReservationExpiredPayload(data: WebhookPayloadType): data is ReservationExpiredPayloadType {
+  return "eventType" in data && data.eventType === "RESERVATION_EXPIRED";
+}
+
 export function isEventPayload(data: WebhookPayloadType): data is EventPayloadType {
-  return !isNoShowPayload(data) && !isOOOEntryPayload(data);
+  return !isNoShowPayload(data) && !isOOOEntryPayload(data) && !isReservationExpiredPayload(data);
 }
 
 const sendPayload = async (

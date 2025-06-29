@@ -69,6 +69,7 @@ export default function EditOAuthClientWebhooks() {
                   { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
                   { value: WebhookTriggerEvents.MEETING_STARTED, label: "meeting_started" },
                   { value: WebhookTriggerEvents.RECORDING_READY, label: "recording_ready" },
+                  { value: WebhookTriggerEvents.RESERVATION_EXPIRED, label: "reservation_expired" },
                   {
                     value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
                     label: "recording_transcription_generated",
