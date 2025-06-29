@@ -3278,6 +3278,138 @@ describe("handleNewBooking", () => {
         timeout
       );
     });
+
+    describe("Minimum Payment Notice Validation", () => {
+      test("should fail if booking time is less than minimum notice", async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getStripeAppCredential()],
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                metadata: {
+                  apps: {
+                    stripe: {
+                      price: 100,
+                      enabled: true,
+                      currency: "inr",
+                      minPaymentNoticeHours: 2,
+                    },
+                  },
+                },
+                users: [{ id: 101 }],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["stripe-payment"]], // Add Stripe app
+          })
+        );
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            start: new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString(), // 1 hour from now
+            end: new Date(Date.now() + 1 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(), // 1 hour + 30 minutes from now
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+            },
+          },
+        });
+
+        await expect(
+          handleNewBooking({
+            bookingData: mockBookingData,
+          })
+        ).rejects.toThrowError("Bookings with payment require at least 2 hours notice");
+      });
+
+      test("should succeed if booking time meets minimum notice", async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getStripeAppCredential()],
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                metadata: {
+                  apps: {
+                    stripe: {
+                      price: 100,
+                      enabled: true,
+                      currency: "inr",
+                      minPaymentNoticeHours: 2,
+                    },
+                  },
+                },
+                users: [{ id: 101 }],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["stripe-payment"]], // Add Stripe app
+          })
+        );
+
+        mockPaymentApp({
+          metadataLookupKey: "stripe",
+          appStoreLookupKey: "stripepayment",
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            start: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(), // 3 hours from now
+            end: new Date(Date.now() + 3 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(), // 3 hours + 30 minutes from now
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+            },
+          },
+        });
+
+        const createdBooking = await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+
+        expect(createdBooking).toBeDefined();
+        await expectBookingToBeInDatabase({
+          description: "",
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          uid: createdBooking.uid!,
+          eventTypeId: mockBookingData.eventTypeId,
+          status: BookingStatus.PENDING,
+        });
+      });
+    });
   });
 
   describe("Returning original booking", () => {

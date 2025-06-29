@@ -3264,6 +3264,8 @@
   "booker_limit_exceeded_error_reschedule": "You already have a booking for this event on {{date}}. Would you like to reschedule to the new selected time?",
   "duration_min_error": "Duration must be at least {{min}} minute(s)",
   "duration_max_error": "Duration cannot exceed {{max}} minutes (24 hours)",
+  "minimum_payment_notice": "Minimum payment notice",
+  "hours_before_booking": "Hours before booking",
   "booking_not_allowed_by_restriction_schedule_error": "Booking outside restriction schedule availability.",
   "restriction_schedule_not_found_error": "Restriction schedule not found",
   "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
