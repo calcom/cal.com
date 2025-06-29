@@ -7,6 +7,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -103,13 +104,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const primaryCalendar = data.calendars.find((calendar: any) => calendar.isdefault);
 
   if (primaryCalendar.uid) {
-    const credential = await prisma.credential.create({
-      data: {
-        type: config.type,
-        key,
-        userId: req.session.user.id,
-        appId: config.slug,
-      },
+    const credential = await CredentialRepository.create({
+      type: config.type,
+      key,
+      userId: req.session.user.id,
+      appId: config.slug,
     });
     const selectedCalendarWhereUnique = {
       userId: req.session?.user.id,
