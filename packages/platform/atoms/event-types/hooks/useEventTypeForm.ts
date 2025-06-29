@@ -55,6 +55,7 @@ export const useEventTypeForm = ({
       scheduleName: eventType.scheduleName,
       periodDays: eventType.periodDays,
       requiresBookerEmailVerification: eventType.requiresBookerEmailVerification,
+      optionalGuestTeamMembers: eventType.optionalGuestTeamMembers || [],
       seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       seatsShowAttendees: eventType.seatsShowAttendees,
       seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount,

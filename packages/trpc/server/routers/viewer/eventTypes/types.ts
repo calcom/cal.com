@@ -86,6 +86,10 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     rrSegmentQueryValue: rrSegmentQueryValueSchema.optional(),
     useEventLevelSelectedCalendars: z.boolean().optional(),
     seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
+    optionalGuestTeamMembers: z
+      .array(z.object({ id: z.number() }))
+      .nullable()
+      .optional(),
   })
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);

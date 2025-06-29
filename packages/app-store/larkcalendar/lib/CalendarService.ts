@@ -422,6 +422,17 @@ export default class LarkCalendarService implements Calendar {
       }
     });
 
+    if (event.optionalGuestTeamMembers) {
+      const optionalGuestMembers = event.optionalGuestTeamMembers?.map(
+        ({ email }): LarkEventAttendee => ({
+          type: "third_party",
+          is_optional: true,
+          third_party_email: email,
+        })
+      );
+      attendeeArray.push(...optionalGuestMembers);
+    }
+
     return attendeeArray;
   };
 }
