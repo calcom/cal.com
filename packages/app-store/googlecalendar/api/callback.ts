@@ -14,6 +14,7 @@ import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import { updateProfilePhotoGoogle } from "../../_utils/oauth/updateProfilePhotoGoogle";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
