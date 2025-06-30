@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
