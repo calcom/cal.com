@@ -14,36 +14,25 @@ const handleSendingSMS = async ({
   senderID,
   teamId,
   bookingUid,
+  organizerUserId,
 }: {
   reminderPhone: string;
   smsMessage: string;
   senderID: string;
-  teamId: number;
+  teamId?: number;
   bookingUid?: string | null;
+  organizerUserId?: number;
 }) => {
-  const team = await prisma.team.findUnique({
-    where: { id: teamId },
-    select: {
-      parent: {
-        select: {
-          isOrganization: true,
-          organizationSettings: {
-            select: {
-              disablePhoneOnlySMSNotifications: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!team?.parent?.isOrganization || team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications) {
-    return; // resolves implicitly (as undefined)
-  }
-
   try {
+    // If teamId is provided, we check the rate limit for the team.
+    // If organizerUserId is provided, we check the rate limit for the organizer.
+    // If neither is provided(Just in case), we check the rate limit for the reminderPhone.
     await checkSMSRateLimit({
-      identifier: `handleSendingSMS:team:${teamId}`,
+      identifier: teamId
+        ? `handleSendingSMS:team:${teamId}`
+        : organizerUserId
+        ? `handleSendingSMS:user:${organizerUserId}`
+        : `handleSendingSMS:user:${reminderPhone}`,
       rateLimitingType: "sms",
     });
 
@@ -52,7 +41,7 @@ const handleSendingSMS = async ({
         phoneNumber: reminderPhone,
         body: smsMessage,
         sender: senderID,
-        teamId,
+        ...(!!teamId ? { teamId } : { userId: organizerUserId }),
         bookingUid,
       },
     });
@@ -64,15 +53,50 @@ const handleSendingSMS = async ({
   }
 };
 
+const getTeamWithOrganizationSettings = async (teamId: number) => {
+  return await prisma.team.findUnique({
+    where: { id: teamId },
+    select: {
+      parent: {
+        select: {
+          isOrganization: true,
+          organizationSettings: true,
+        },
+      },
+    },
+  });
+};
+
 export default abstract class SMSManager {
   calEvent: CalendarEvent;
   isTeamEvent = false;
   teamId: number | undefined = undefined;
+  organizerUserId: number | undefined = undefined;
+  private _isSMSNotificationEnabled: boolean | null = null;
 
   constructor(calEvent: CalendarEvent) {
     this.calEvent = calEvent;
     this.teamId = this.calEvent?.team?.id;
     this.isTeamEvent = !!this.calEvent?.team?.id;
+    this.organizerUserId = this.calEvent?.organizer?.id;
+  }
+
+  private async isSMSNotificationEnabled(): Promise<boolean> {
+    if (this._isSMSNotificationEnabled !== null) {
+      return this._isSMSNotificationEnabled;
+    }
+
+    const teamId = this.teamId;
+
+    if (teamId) {
+      const team = await getTeamWithOrganizationSettings(teamId);
+
+      this._isSMSNotificationEnabled = !team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications;
+      return this._isSMSNotificationEnabled;
+    }
+
+    this._isSMSNotificationEnabled = true;
+    return true;
   }
 
   getFormattedTime(
@@ -99,16 +123,24 @@ export default abstract class SMSManager {
     const attendeePhoneNumber = attendee.phoneNumber;
     const isPhoneOnlyBooking = attendeePhoneNumber && isSmsCalEmail(attendee.email);
 
-    if (!this.isTeamEvent || !teamId || !attendeePhoneNumber || !isPhoneOnlyBooking) return;
+    if (!attendeePhoneNumber || !isPhoneOnlyBooking || !(await this.isSMSNotificationEnabled())) return;
 
     const smsMessage = this.getMessage(attendee);
     const senderID = getSenderId(attendeePhoneNumber, SENDER_ID);
-    return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId, bookingUid });
+    return handleSendingSMS({
+      reminderPhone: attendeePhoneNumber,
+      smsMessage,
+      senderID,
+      teamId,
+      bookingUid,
+      organizerUserId: this.organizerUserId,
+    });
   }
 
   async sendSMSToAttendees() {
-    if (!this.isTeamEvent) return;
     const smsToSend: Promise<unknown>[] = [];
+
+    if (!(await this.isSMSNotificationEnabled())) return;
 
     for (const attendee of this.calEvent.attendees) {
       smsToSend.push(this.sendSMSToAttendee(attendee, this.calEvent.uid));
