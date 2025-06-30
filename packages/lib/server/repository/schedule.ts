@@ -171,7 +171,7 @@ export class ScheduleRepository {
       throw new Error("Schedules not found");
     }
 
-    const isCurrentUserPartOfTeam = hasReadPermissionsForUserId({ memberId: schedules[0].userId, userId });
+    const isCurrentUserPartOfTeam = await hasReadPermissionsForUserId({ memberId: schedules[0].userId, userId });
 
     const schedulesFormatted = schedules.map((schedule) => {
       const isCurrentUserOwner = schedule?.userId === userId;
