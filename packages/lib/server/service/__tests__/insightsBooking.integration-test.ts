@@ -510,28 +510,7 @@ describe("InsightsBookingService Integration Tests", () => {
       });
       await service.init();
 
-      // Test that the query compiles correctly without executing it
-      const authConditions = await service.buildAuthorizationConditions();
-      const filterConditions = await service.buildFilterConditions();
-
-      // Test that the query compiles without errors
-      let query = db.selectFrom("BookingTimeStatusDenormalized").select(["id", "title"]);
-
-      // Apply where conditions
-      const whereConditions = [authConditions, filterConditions].filter(
-        (c): c is NonNullable<typeof c> => c !== null && c !== undefined
-      );
-
-      if (whereConditions.length > 0) {
-        query = query.where((eb) => {
-          if (whereConditions.length === 1) {
-            return whereConditions[0](eb);
-          }
-          return eb.and(whereConditions.map((condition) => condition(eb)));
-        });
-      }
-
-      // Compile the query to verify it works
+      const query = service.query().select(["id", "title"]);
       const compiled = query.compile();
       expect(compiled.sql).toEqual(
         `select "id", "title" from "BookingTimeStatusDenormalized" where (("userId" = $1 and "teamId" is null) and ("eventTypeId" = $2 or "eventParentId" = $3))`
