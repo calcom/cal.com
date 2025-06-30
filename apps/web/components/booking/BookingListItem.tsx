@@ -9,6 +9,7 @@ import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import MeetingSessionDetailsDialog from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { formatTime } from "@calcom/lib/dayjs";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
@@ -118,6 +119,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
+  const [meetingSessionDetailsDialogIsOpen, setMeetingSessionDetailsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
 
@@ -477,6 +479,27 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  const videoOptionsActions: ActionType[] = [
+    {
+      id: "view_recordings",
+      label: showCheckRecordingButton ? t("check_for_recordings") : t("view_recordings"),
+      onClick: () => {
+        setViewRecordingsDialogIsOpen(true);
+      },
+      color: showCheckRecordingButton ? "secondary" : "primary",
+      disabled: mutation.isPending,
+    },
+    {
+      id: "meeting_session_details",
+      label: t("get_meeting_session_details"),
+      onClick: () => {
+        setMeetingSessionDetailsDialogIsOpen(true);
+      },
+      icon: "users" as const,
+      disabled: mutation.isPending,
+    },
+  ];
+
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
   return (
@@ -521,6 +544,14 @@ function BookingListItem(booking: BookingItemProps) {
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
           setIsOpenDialog={setViewRecordingsDialogIsOpen}
+          timeFormat={userTimeFormat ?? null}
+        />
+      )}
+      {meetingSessionDetailsDialogIsOpen && (
+        <MeetingSessionDetailsDialog
+          booking={booking}
+          isOpenDialog={meetingSessionDetailsDialogIsOpen}
+          setIsOpenDialog={setMeetingSessionDetailsDialogIsOpen}
           timeFormat={userTimeFormat ?? null}
         />
       )}
@@ -715,7 +746,9 @@ function BookingListItem(booking: BookingItemProps) {
             {isBookingInPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
             {isBookingInPast && isConfirmed ? <TableActions actions={bookedActions} /> : null}
             {(showViewRecordingsButton || showCheckRecordingButton) && (
-              <TableActions actions={showRecordingActions} />
+              <TableActions
+                actions={[{ id: "video_options", label: t("video_options"), actions: videoOptionsActions }]}
+              />
             )}
             {isCancelled && booking.rescheduled && (
               <div className="hidden h-full items-center md:flex">

@@ -501,6 +501,15 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error(`Something went wrong! Unable to checkIfRoomNameMatchesInRecording. ${err}`);
       }
     },
+    getMeetingInformation: async (roomName: string) => {
+      try {
+        const res = await fetcher(`/meetings?room=${roomName}`);
+        return res;
+      } catch (err) {
+        console.error("err", err);
+        throw new Error("Something went wrong! Unable to get meeting information");
+      }
+    },
   };
 };
 
