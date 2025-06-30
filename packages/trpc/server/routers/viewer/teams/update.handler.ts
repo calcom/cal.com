@@ -4,6 +4,7 @@ import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
+import { isBase64Image } from "@calcom/lib/isBase64Image";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
@@ -70,12 +71,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     rrTimestampBasis: input.rrTimestampBasis,
   };
 
-  if (
-    input.logo &&
-    (input.logo.startsWith("data:image/png;base64,") ||
-      input.logo.startsWith("data:image/jpeg;base64,") ||
-      input.logo.startsWith("data:image/jpg;base64,"))
-  ) {
+  if (input.logo && isBase64Image(input.logo)) {
     data.logoUrl = await uploadLogo({ teamId: input.id, logo: input.logo });
   } else if (typeof input.logo !== "undefined" && !input.logo) {
     data.logoUrl = null;
