@@ -154,6 +154,16 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       };
     };
 
+    // Zoom agenda field has a 2000 character limit; we set maxLength to 1900 to leave a safety buffer
+    const truncateAgenda = (description: string) => {
+      const maxLength = 1900;
+      const trimmed = description.trim();
+      if (trimmed.length > maxLength) {
+        return `${trimmed.substring(0, maxLength)}...`;
+      }
+      return trimmed;
+    };
+
     const userSettings = await getUserSettings();
     const recurrence = getRecurrence(event);
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
@@ -165,7 +175,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.organizer.timeZone,
       password: userSettings?.schedule_meeting?.default_password_for_scheduled_meetings ?? undefined,
-      agenda: event.description,
+      agenda: truncateAgenda(event.description),
       settings: {
         host_video: true,
         participant_video: true,
