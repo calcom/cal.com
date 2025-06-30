@@ -28,7 +28,7 @@ import {
 const meetingParticipantSchema = z.object({
   user_id: z.string().nullable(),
   participant_id: z.string(),
-  user_name: z.string(),
+  user_name: z.string().nullable(),
   join_time: z.number(),
   duration: z.number(),
 });
