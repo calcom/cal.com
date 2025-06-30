@@ -19,11 +19,11 @@ export async function updateProfilePhotoGoogle(oAuth2Client: OAuth2Client, userI
       avatarUrl.startsWith("data:image/jpeg;base64,") ||
       avatarUrl.startsWith("data:image/jpg;base64,")
     ) {
-      const resizedAvatar = await uploadAvatar({
+      const resizedAvatarUrl = await uploadAvatar({
         avatar: await resizeBase64Image(avatarUrl),
         userId,
       });
-      await UserRepository.updateAvatar({ id: userId, avatarUrl: resizedAvatar });
+      await UserRepository.updateAvatar({ id: userId, avatarUrl: resizedAvatarUrl });
       return;
     }
 
