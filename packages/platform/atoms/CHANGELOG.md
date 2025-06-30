@@ -1,3 +1,8 @@
+## 1.0.114
+
+### Patch Changes
+
+- [#22148](https://github.com/calcom/cal.com/pull/22148) [`d27490e`](https://github.com/calcom/cal.com/commit/d27490e6f2438d353dfcf3e793c8886e723307f3) Thanks [@supalarry](https://github.com/supalarry)! - test release
 
 ## 1.0.63
 
