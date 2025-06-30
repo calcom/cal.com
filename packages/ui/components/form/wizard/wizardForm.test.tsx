@@ -19,6 +19,13 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
+vi.mock("nuqs", () => ({
+  useQueryState: vi.fn(() => [currentStepNavigation, vi.fn()]),
+  createParser: vi.fn(() => ({
+    withDefault: vi.fn(() => ({})),
+  })),
+}));
+
 const steps = [
   {
     title: "Step 1",
