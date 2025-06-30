@@ -288,7 +288,7 @@ interface SettingsSidebarContainerProps {
   className?: string;
   navigationIsOpenedOnMobile?: boolean;
   bannersHeight?: number;
-  teamFeatures?: TeamFeatures;
+  teamFeatures?: Record<number, TeamFeatures>;
 }
 
 const TeamListCollapsible = () => {
