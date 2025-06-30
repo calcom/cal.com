@@ -57,6 +57,8 @@ export function findMatchingRoute({
       data: responseValues,
     });
 
+    console.log("evaluateRaqbLogic Result", { result, route, responseValues });
+
     if (result === RaqbLogicResult.MATCH || result === RaqbLogicResult.LOGIC_NOT_FOUND_SO_MATCHED) {
       chosenRoute = route;
       break;

@@ -173,3 +173,29 @@ export async function expectEmbedIFrameToBeVisible({
   const iframe = page.locator(`[name="cal-embed=${calNamespace}"]`);
   await expect(iframe).toBeVisible();
 }
+
+export async function expectActualFormResponseConnectedToQueuedFormResponse({
+  queuedFormResponse,
+  actualFormResponse,
+  page,
+}: {
+  queuedFormResponse: { id: string };
+  actualFormResponse: Record<string, any>;
+  page: Page;
+}) {
+  const responsePromise = page.waitForResponse("**/queue-response");
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
+
+  const queuedResponse = await prisma.app_RoutingForms_QueuedFormResponse.findFirst({
+    where: {
+      id: queuedFormResponse.id,
+    },
+    include: {
+      actualResponse: true,
+    },
+  });
+
+  expect(queuedResponse?.actualResponse?.id).toBeDefined();
+  expect(queuedResponse?.actualResponse).toEqual(expect.objectContaining(actualFormResponse));
+}
