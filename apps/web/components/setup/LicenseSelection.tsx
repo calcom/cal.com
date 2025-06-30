@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Controller, FormProvider, useForm, useFormState } from "react-hook-form";
 import { z } from "zod";
 
@@ -48,21 +48,15 @@ const LicenseSelection = (
     onSuccess,
   });
 
-  const [licenseKeyInput, setLicenseKeyInput] = useState("");
   const [licenseTouched, setLicenseTouched] = useState(false);
 
-  // Use TRPC query for validation
-  const { data: licenseValidation, isLoading: checkLicenseLoading } =
-    trpc.viewer.deploymentSetup.validateLicense.useQuery(
-      { licenseKey: licenseKeyInput },
-      {
-        enabled: licenseTouched && licenseKeyInput.trim().length > 0,
-      }
-    );
-
-  const schemaLicenseKey = useCallback(
-    () =>
-      z.object({
+  const formMethods = useForm<LicenseSelectionFormValues>({
+    defaultValues: {
+      licenseKey: "",
+      signatureToken: "",
+    },
+    resolver: async (values, context, options) => {
+      const schema = z.object({
         licenseKey: z
           .string()
           .min(1, "License key is required")
@@ -70,17 +64,23 @@ const LicenseSelection = (
             message: licenseValidation?.message || "License key is invalid",
           }),
         signatureToken: z.string().optional(),
-      }),
-    [licenseValidation, licenseTouched]
-  );
+      });
 
-  const formMethods = useForm<LicenseSelectionFormValues>({
-    defaultValues: {
-      licenseKey: "",
-      signatureToken: "",
+      return zodResolver(schema)(values, context, options);
     },
-    resolver: zodResolver(schemaLicenseKey()),
   });
+
+  const { watch } = formMethods;
+  const licenseKey = watch("licenseKey");
+
+  // Use TRPC query for validation
+  const { data: licenseValidation, isLoading: checkLicenseLoading } =
+    trpc.viewer.deploymentSetup.validateLicense.useQuery(
+      { licenseKey },
+      {
+        enabled: licenseTouched && licenseKey.trim().length > 0,
+      }
+    );
 
   const handleSubmit = formMethods.handleSubmit((values) => {
     onSubmit(values);
@@ -145,6 +145,7 @@ const LicenseSelection = (
               <Link
                 href="https://go.cal.com/self-hosted"
                 target="_blank"
+                rel="noreferrer noopener"
                 className="text-blue-600 hover:underline">
                 {t("purchase_license")}
               </Link>
@@ -164,13 +165,12 @@ const LicenseSelection = (
                   render={({ field: { onBlur, onChange, value } }) => (
                     <TextField
                       label={t("license_key")}
-                      {...formMethods.register("licenseKey")}
                       className={classNames(
                         "group-hover:border-emphasis mb-0",
                         (checkLicenseLoading || (errors.licenseKey === undefined && isDirty)) && "border-r-0"
                       )}
                       placeholder="cal_live_XXXXXXXXXXX"
-                      value={licenseKeyInput}
+                      value={value}
                       addOnClassname={classNames(
                         "hover:border-default",
                         errors.licenseKey === undefined && isDirty && "group-hover:border-emphasis"
@@ -188,7 +188,6 @@ const LicenseSelection = (
                         onBlur();
                       }}
                       onChange={(e) => {
-                        setLicenseKeyInput(e.target.value);
                         onChange(e.target.value);
                       }}
                     />
