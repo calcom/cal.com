@@ -1,4 +1,5 @@
 // !IMPORTANT! changes to this file requires publishing new version of platform libraries in order for the changes to be applied to APIV2
+import { createHash } from "crypto";
 import type { GetServerSidePropsContext } from "next";
 import { stringify } from "querystring";
 import { v4 as uuidv4 } from "uuid";
@@ -6,17 +7,17 @@ import z from "zod";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
-import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
+import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
 import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
 import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
@@ -31,7 +32,19 @@ const querySchema = z
   })
   .catchall(z.string().or(z.array(z.string())));
 
-function hasEmbedPath(pathWithQuery: string) {
+const getDeterministicHashForResponse = (fieldsResponses: Record<string, unknown>) => {
+  const sortedFields = Object.keys(fieldsResponses)
+    .sort()
+    .reduce((obj: Record<string, unknown>, key) => {
+      obj[key] = fieldsResponses[key];
+      return obj;
+    }, {});
+  const paramsString = JSON.stringify(sortedFields);
+  const hash = createHash("sha256").update(paramsString).digest("hex");
+  return hash;
+};
+
+export function hasEmbedPath(pathWithQuery: string) {
   const onlyPath = pathWithQuery.split("?")[0];
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
@@ -52,8 +65,21 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
 
   // TODO: Known params reserved by Cal.com are form, embed, layout and other cal. prefixed params. We should exclude all of them from fieldsResponses.
   // But they must be present in `paramsToBeForwardedAsIs` as they could be needed by Booking Page as well.
-  const { form: formId, "cal.isBookingDryRun": isBookingDryRunParam, ...fieldsResponses } = queryParsed.data;
+  const {
+    form: formId,
+    "cal.isBookingDryRun": isBookingDryRunParam,
+    "cal.queueFormResponse": queueFormResponseParam,
+    ...fieldsResponses
+  } = queryParsed.data;
+
+  const responseHash = getDeterministicHashForResponse(fieldsResponses);
+
+  await checkRateLimitAndThrowError({
+    identifier: `form:${formId}:hash:${responseHash}`,
+  });
+
   const isBookingDryRun = isBookingDryRunParam === "true";
+  const shouldQueueFormResponse = queueFormResponseParam === "true";
   const paramsToBeForwardedAsIs = {
     ...fieldsResponses,
     // Must be forwarded if present to Booking Page. Setting it explicitly here as it is critical to be present in the URL.
@@ -95,21 +121,15 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   });
   timeTaken.getSerializableForm = performance.now() - getSerializableFormStart;
 
-  const response: FormResponse = {};
   if (!serializableForm.fields) {
     throw new Error("Form has no fields");
   }
-  serializableForm.fields.forEach((field) => {
-    const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
-
-    response[field.id] = {
-      label: field.label,
-      value: getFieldResponseForJsonLogic({ field, value: fieldResponse }),
-    };
+  const response: FormResponse = getResponseToStore({
+    formFields: serializableForm.fields,
+    fieldsResponses,
   });
 
   const matchingRoute = findMatchingRoute({ form: serializableForm, response });
-
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
@@ -122,6 +142,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let crmContactOwnerEmail: string | null = null;
   let crmContactOwnerRecordType: string | null = null;
   let crmAppSlug: string | null = null;
+  let queuedFormResponseId;
   try {
     const result = await handleResponse({
       form: serializableForm,
@@ -129,9 +150,11 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       response: response,
       chosenRouteId: matchingRoute.id,
       isPreview: isBookingDryRun,
+      queueFormResponse: shouldQueueFormResponse,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
-    formResponseId = result.formResponse.id;
+    formResponseId = result.formResponse?.id;
+    queuedFormResponseId = result.queuedFormResponse?.id;
     attributeRoutingConfig = result.attributeRoutingConfig;
     timeTaken = {
       ...timeTaken,
@@ -184,8 +207,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
               stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
             ),
             teamMembersMatchingAttributeLogic,
-            // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
-            formResponseId: formResponseId!,
+            formResponseId: formResponseId ?? null,
+            queuedFormResponseId: queuedFormResponseId ?? null,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
