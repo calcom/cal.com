@@ -437,6 +437,26 @@ const RoundRobinHosts = ({
                       isRRWeightsEnabled={isRRWeightsEnabled}
                       isFixed={false}
                       containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
+                      onActive={() => {
+                        const currentHosts = getValues("hosts");
+                        setValue(
+                          "hosts",
+                          teamMembers.map((teamMember) => {
+                            const host = currentHosts.find(
+                              (host) => host.userId === parseInt(teamMember.value, 10)
+                            );
+                            return {
+                              isFixed: false,
+                              userId: parseInt(teamMember.value, 10),
+                              priority: host?.priority ?? 2,
+                              weight: host?.weight ?? 100,
+                              // if host was already added, retain scheduleId
+                              scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                            };
+                          }),
+                          { shouldDirty: true }
+                        );
+                      }}
                       customClassNames={customClassNames?.addMembers}
                     />
                   </div>
@@ -465,6 +485,26 @@ const RoundRobinHosts = ({
                     isRRWeightsEnabled={isRRWeightsEnabled}
                     isFixed={false}
                     containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
+                    onActive={() => {
+                      const currentHosts = getValues("hosts");
+                      setValue(
+                        "hosts",
+                        teamMembers.map((teamMember) => {
+                          const host = currentHosts.find(
+                            (host) => host.userId === parseInt(teamMember.value, 10)
+                          );
+                          return {
+                            isFixed: false,
+                            userId: parseInt(teamMember.value, 10),
+                            priority: host?.priority ?? 2,
+                            weight: host?.weight ?? 100,
+                            // if host was already added, retain scheduleId
+                            scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                          };
+                        }),
+                        { shouldDirty: true }
+                      );
+                    }}
                     customClassNames={customClassNames?.addMembers}
                   />
                 </div>
