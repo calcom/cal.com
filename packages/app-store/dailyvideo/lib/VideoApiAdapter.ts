@@ -525,7 +525,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     getMeetingInformation: async (roomName: string) => {
       try {
-        const res = await fetcher(`/meetings?room=${roomName}`).then(
+        const res = await fetcher(`/meetings?room=${encodeURIComponent(roomName)}`).then(
           getMeetingInformationResponseSchema.parse
         );
         return res;
