@@ -215,8 +215,9 @@ describe("InsightsBookingService Integration Tests", () => {
         kysely: db,
         options: null as any,
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(`"id" = $1`);
       expect(parameters).toEqual([-1]);
@@ -252,8 +253,9 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(`"id" = $1`);
       expect(parameters).toEqual([-1]);
@@ -282,8 +284,9 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(`("userId" = $1 and "teamId" is null)`);
       expect(parameters).toEqual([testData.user.id]);
@@ -306,8 +309,9 @@ describe("InsightsBookingService Integration Tests", () => {
           teamId: testData.team.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(
         `(("teamId" = $1 and "isTeamBooking" = $2) or ("userId" in ($3) and "isTeamBooking" = $4))`
@@ -342,8 +346,9 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(
         `(("teamId" in ($1, $2, $3, $4) and "isTeamBooking" = $5) or ("userId" in ($6, $7, $8) and "isTeamBooking" = $9))`
@@ -376,8 +381,9 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getFilterConditions();
+      const conditions = await service.buildFilterConditions();
       expect(conditions).toBeNull();
 
       await testData.cleanup();
@@ -397,8 +403,9 @@ describe("InsightsBookingService Integration Tests", () => {
           eventTypeId: testData.eventType.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getFilterConditions();
+      const conditions = await service.buildFilterConditions();
       expect(conditions).not.toBeNull();
       const { where, parameters } = compileCondition(conditions!);
       expect(where).toEqual(`("eventTypeId" = $1 or "eventParentId" = $2)`);
@@ -421,8 +428,9 @@ describe("InsightsBookingService Integration Tests", () => {
           memberUserId: testData.user.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getFilterConditions();
+      const conditions = await service.buildFilterConditions();
       expect(conditions).not.toBeNull();
       const { where, parameters } = compileCondition(conditions!);
       expect(where).toEqual(`"userId" = $1`);
@@ -446,65 +454,13 @@ describe("InsightsBookingService Integration Tests", () => {
           memberUserId: testData.user.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getFilterConditions();
+      const conditions = await service.buildFilterConditions();
       expect(conditions).not.toBeNull();
       const { where, parameters } = compileCondition(conditions!);
       expect(where).toEqual(`(("eventTypeId" = $1 or "eventParentId" = $2) and "userId" = $3)`);
       expect(parameters).toEqual([testData.eventType.id, testData.eventType.id, testData.user.id]);
-
-      await testData.cleanup();
-    });
-  });
-
-  describe("Caching", () => {
-    it("should cache authorization conditions", async () => {
-      const testData = await createTestData({
-        teamRole: MembershipRole.OWNER,
-        orgRole: MembershipRole.OWNER,
-      });
-
-      const service = new InsightsBookingService({
-        kysely: db,
-        options: {
-          scope: "user",
-          userId: testData.user.id,
-          orgId: testData.org.id,
-        },
-      });
-
-      // First call should build conditions
-      const conditions1 = await service.getAuthorizationConditions();
-
-      // Second call should use cached conditions
-      const conditions2 = await service.getAuthorizationConditions();
-      expect(conditions2).toBe(conditions1); // Should be the same function reference
-
-      // Clean up
-      await testData.cleanup();
-    });
-
-    it("should cache filter conditions", async () => {
-      const testData = await createTestData();
-
-      const service = new InsightsBookingService({
-        kysely: db,
-        options: {
-          scope: "user",
-          userId: testData.user.id,
-          orgId: testData.org.id,
-        },
-        filters: {
-          eventTypeId: testData.eventType.id,
-        },
-      });
-
-      // First call should build conditions
-      const conditions1 = await service.getFilterConditions();
-
-      // Second call should use cached conditions
-      const conditions2 = await service.getFilterConditions();
-      expect(conditions2).toBe(conditions1); // Should be the same function reference
 
       await testData.cleanup();
     });
@@ -552,10 +508,11 @@ describe("InsightsBookingService Integration Tests", () => {
           eventTypeId: userEventType.id,
         },
       });
+      await service.init();
 
       // Test that the query compiles correctly without executing it
-      const authConditions = await service.getAuthorizationConditions();
-      const filterConditions = await service.getFilterConditions();
+      const authConditions = await service.buildAuthorizationConditions();
+      const filterConditions = await service.buildFilterConditions();
 
       // Test that the query compiles without errors
       let query = db.selectFrom("BookingTimeStatusDenormalized").select(["id", "title"]);

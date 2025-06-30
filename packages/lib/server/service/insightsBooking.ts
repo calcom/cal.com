@@ -45,8 +45,7 @@ export class InsightsBookingService {
   private kysely: Kysely<DB>;
   private options: InsightsBookingServiceOptions | null;
   private filters?: InsightsBookingServiceFilterOptions;
-  private cachedAuthConditions?: WhereCondition;
-  private cachedFilterConditions?: WhereCondition | null;
+  private baseWhereConditions?: WhereCondition[];
 
   constructor({
     kysely,
@@ -64,71 +63,19 @@ export class InsightsBookingService {
     this.filters = filters;
   }
 
-  async findMany(findManyArgs: {
-    select?: (keyof DB["BookingTimeStatusDenormalized"])[];
-    where?: WhereCondition;
-    orderBy?: Array<{ column: keyof DB["BookingTimeStatusDenormalized"]; direction: "asc" | "desc" }>;
-    limit?: number;
-    offset?: number;
-  }) {
-    const authConditions = await this.getAuthorizationConditions();
-    const filterConditions = await this.getFilterConditions();
-
-    let query = this.kysely.selectFrom("BookingTimeStatusDenormalized");
-
-    // Apply select
-    if (findManyArgs.select) {
-      query = query.select(findManyArgs.select);
-    } else {
-      query = query.selectAll();
+  async init() {
+    if (this.baseWhereConditions) {
+      return;
     }
 
-    // Apply where conditions
-    const whereConditions = [authConditions, filterConditions, findManyArgs.where].filter(
+    const [authConditions, filterConditions] = await Promise.all([
+      this.buildAuthorizationConditions(),
+      this.buildFilterConditions(),
+    ]);
+
+    this.baseWhereConditions = [authConditions, filterConditions].filter(
       (c): c is NonNullable<typeof c> => c !== null && c !== undefined
     );
-
-    if (whereConditions.length > 0) {
-      query = query.where((eb) => {
-        if (whereConditions.length === 1) {
-          return whereConditions[0](eb);
-        }
-        return eb.and(whereConditions.map((condition) => condition(eb)));
-      });
-    }
-
-    // Apply orderBy
-    if (findManyArgs.orderBy) {
-      for (const order of findManyArgs.orderBy) {
-        query = query.orderBy(order.column, order.direction);
-      }
-    }
-
-    // Apply limit
-    if (findManyArgs.limit) {
-      query = query.limit(findManyArgs.limit);
-    }
-
-    // Apply offset
-    if (findManyArgs.offset) {
-      query = query.offset(findManyArgs.offset);
-    }
-
-    return query.execute();
-  }
-
-  async getAuthorizationConditions(): Promise<WhereCondition> {
-    if (this.cachedAuthConditions === undefined) {
-      this.cachedAuthConditions = await this.buildAuthorizationConditions();
-    }
-    return this.cachedAuthConditions;
-  }
-
-  async getFilterConditions(): Promise<WhereCondition | null> {
-    if (this.cachedFilterConditions === undefined) {
-      this.cachedFilterConditions = await this.buildFilterConditions();
-    }
-    return this.cachedFilterConditions;
   }
 
   async buildFilterConditions(): Promise<WhereCondition | null> {
@@ -242,5 +189,26 @@ export class InsightsBookingService {
     return Boolean(
       membership && membership.accepted && membership.role && allowedRoles.includes(membership.role)
     );
+  }
+
+  query() {
+    if (!this.baseWhereConditions) {
+      throw new Error("Service must be initialized before building base query. Call init() first.");
+    }
+
+    let baseQuery = this.kysely.selectFrom("BookingTimeStatusDenormalized");
+
+    if (this.baseWhereConditions.length > 0) {
+      const baseWhereConditions = this.baseWhereConditions;
+
+      baseQuery = baseQuery.where((eb) => {
+        if (baseWhereConditions.length === 1) {
+          return baseWhereConditions[0](eb);
+        }
+        return eb.and(baseWhereConditions.map((condition) => condition(eb)));
+      });
+    }
+
+    return baseQuery;
   }
 }

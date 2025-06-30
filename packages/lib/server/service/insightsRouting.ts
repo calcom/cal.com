@@ -29,7 +29,8 @@ export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope",
 export type InsightsRoutingServiceOptions = z.infer<typeof insightsRoutingServiceOptionsSchema>;
 
 export type InsightsRoutingServiceFilterOptions = {
-  // Empty for now
+  startDate: string;
+  endDate: string;
 };
 
 const NOTHING = {
@@ -44,8 +45,7 @@ export class InsightsRoutingService {
   private kysely: Kysely<DB>;
   private options: InsightsRoutingServiceOptions | null;
   private filters?: InsightsRoutingServiceFilterOptions;
-  private cachedAuthConditions?: WhereCondition;
-  private cachedFilterConditions?: WhereCondition | null;
+  private baseWhereConditions?: WhereCondition[];
 
   constructor({
     kysely,
@@ -63,76 +63,89 @@ export class InsightsRoutingService {
     this.filters = filters;
   }
 
-  async findMany(findManyArgs: {
-    select?: (keyof DB["RoutingFormResponseDenormalized"])[];
-    where?: WhereCondition;
-    orderBy?: Array<{ column: keyof DB["RoutingFormResponseDenormalized"]; direction: "asc" | "desc" }>;
-    limit?: number;
-    offset?: number;
-  }) {
-    const authConditions = await this.getAuthorizationConditions();
-    const filterConditions = await this.getFilterConditions();
-
-    let query = this.kysely.selectFrom("RoutingFormResponseDenormalized");
-
-    // Apply select
-    if (findManyArgs.select) {
-      query = query.select(findManyArgs.select);
-    } else {
-      query = query.selectAll();
+  async init() {
+    if (this.baseWhereConditions) {
+      return;
     }
 
-    // Apply where conditions
-    const whereConditions = [authConditions, filterConditions, findManyArgs.where].filter(
+    const [authConditions, filterConditions] = await Promise.all([
+      this.buildAuthorizationConditions(),
+      this.buildFilterConditions(),
+    ]);
+
+    this.baseWhereConditions = [authConditions, filterConditions].filter(
       (c): c is NonNullable<typeof c> => c !== null && c !== undefined
     );
-
-    if (whereConditions.length > 0) {
-      query = query.where((eb) => {
-        if (whereConditions.length === 1) {
-          return whereConditions[0](eb);
-        }
-        return eb.and(whereConditions.map((condition) => condition(eb)));
-      });
-    }
-
-    // Apply orderBy
-    if (findManyArgs.orderBy) {
-      for (const order of findManyArgs.orderBy) {
-        query = query.orderBy(order.column, order.direction);
-      }
-    }
-
-    // Apply limit
-    if (findManyArgs.limit) {
-      query = query.limit(findManyArgs.limit);
-    }
-
-    // Apply offset
-    if (findManyArgs.offset) {
-      query = query.offset(findManyArgs.offset);
-    }
-
-    return query.execute();
   }
 
-  async getAuthorizationConditions(): Promise<WhereCondition> {
-    if (this.cachedAuthConditions === undefined) {
-      this.cachedAuthConditions = await this.buildAuthorizationConditions();
-    }
-    return this.cachedAuthConditions;
-  }
+  async getDropOffData() {
+    const metrics = await this.query()
+      .select((eb) => [
+        eb.fn.count<number>("id").as("totalSubmissions"),
+        eb.fn.count<number>(eb("bookingUid", "is not", null)).as("successfulRoutings"),
+        eb.fn.count<number>(eb("bookingStatus", "=", "accepted")).as("acceptedBookings"),
+        // eb.fn.count<number>(eb("bookingStatus", "=", "pending")).as("pendingBookings"),
+        // eb.fn.count<number>(eb("bookingStatus", "=", "cancelled")).as("cancelledBookings"),
+      ])
+      .executeTakeFirst();
 
-  async getFilterConditions(): Promise<WhereCondition | null> {
-    if (this.cachedFilterConditions === undefined) {
-      this.cachedFilterConditions = await this.buildFilterConditions();
+    if (!metrics) {
+      return null;
     }
-    return this.cachedFilterConditions;
+
+    const total = Number(metrics.totalSubmissions ?? 0);
+    const successfulRoutings = Number(metrics.successfulRoutings ?? 0);
+    const acceptedBookings = Number(metrics.acceptedBookings ?? 0);
+    // const pendingBookings = Number(metrics.pendingBookings ?? 0);
+    // const cancelledBookings = Number(metrics.cancelledBookings ?? 0);
+
+    // Calculate rates (percentages)
+    const routingRate = total > 0 ? (successfulRoutings / total) * 100 : 0;
+    const acceptanceRate = total > 0 ? (acceptedBookings / total) * 100 : 0;
+
+    return [
+      {
+        value: total,
+        name: "Form Submissions",
+        label: `${total} submissions`,
+        rate: 100,
+        fill: "#8884d8",
+      },
+      {
+        value: successfulRoutings,
+        name: "Successful Routing",
+        label: `${successfulRoutings} routed (${routingRate.toFixed(1)}%)`,
+        rate: routingRate,
+        fill: "#83a6ed",
+      },
+      {
+        value: acceptedBookings,
+        name: "Accepted Bookings",
+        label: `${acceptedBookings} accepted (${acceptanceRate.toFixed(1)}%)`,
+        rate: acceptanceRate,
+        fill: "#82ca9d",
+      },
+    ];
   }
 
   async buildFilterConditions(): Promise<WhereCondition | null> {
-    // Empty for now
-    return null;
+    const conditions: WhereCondition[] = [];
+
+    if (this.filters?.startDate) {
+      const startDate = this.filters.startDate;
+      conditions.push((eb) => eb("createdAt", ">=", new Date(startDate)));
+    }
+
+    if (this.filters?.endDate) {
+      const endDate = this.filters.endDate;
+      conditions.push((eb) => eb("createdAt", "<=", new Date(endDate)));
+    }
+
+    if (conditions.length === 0) {
+      return null;
+    }
+
+    return (eb) => eb.and(conditions.map((condition) => condition(eb)));
   }
 
   async buildAuthorizationConditions(): Promise<WhereCondition> {
@@ -194,5 +207,26 @@ export class InsightsRoutingService {
     return Boolean(
       membership && membership.accepted && membership.role && allowedRoles.includes(membership.role)
     );
+  }
+
+  query() {
+    if (!this.baseWhereConditions) {
+      throw new Error("Service must be initialized before building base query. Call init() first.");
+    }
+
+    let baseQuery = this.kysely.selectFrom("RoutingFormResponseDenormalized");
+
+    if (this.baseWhereConditions.length > 0) {
+      const baseWhereConditions = this.baseWhereConditions;
+
+      baseQuery = baseQuery.where((eb) => {
+        if (baseWhereConditions.length === 1) {
+          return baseWhereConditions[0](eb);
+        }
+        return eb.and(baseWhereConditions.map((condition) => condition(eb)));
+      });
+    }
+
+    return baseQuery;
   }
 }
