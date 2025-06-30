@@ -18,7 +18,11 @@ export async function createRoundRobinTeamEventType({
   const createdEventType = await prisma.eventType.create({
     data: {
       ...eventType,
-      teamId,
+      team: {
+        connect: {
+          id: teamId,
+        },
+      },
     },
   });
 

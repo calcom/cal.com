@@ -3,6 +3,39 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 
+export async function getQueuedFormResponse(queuedFormResponseId: string) {
+  return prisma.app_RoutingForms_QueuedFormResponse.findFirst({
+    where: {
+      id: queuedFormResponseId,
+    },
+    include: {
+      actualResponse: true,
+    },
+  });
+}
+
+export async function getAllFormResponses(formId: string) {
+  return prisma.app_RoutingForms_FormResponse.findMany({
+    where: {
+      formId: formId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function getLatestQueuedFormResponse({ formId }: { formId: string }) {
+  return prisma.app_RoutingForms_QueuedFormResponse.findFirst({
+    where: {
+      formId: formId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
 export const deleteAllBookingsByEmail = async (email: string) =>
   await prisma.booking.deleteMany({
     where: {
@@ -176,26 +209,23 @@ export async function expectEmbedIFrameToBeVisible({
 
 export async function expectActualFormResponseConnectedToQueuedFormResponse({
   queuedFormResponse,
-  actualFormResponse,
   page,
+  numberOfExpectedSetFieldValues,
 }: {
   queuedFormResponse: { id: string };
-  actualFormResponse: Record<string, any>;
   page: Page;
 }) {
-  const responsePromise = page.waitForResponse("**/queue-response");
+  const responsePromise = page.waitForResponse("**/queued-response");
   const response = await responsePromise;
   expect(response.status()).toBe(200);
 
-  const queuedResponse = await prisma.app_RoutingForms_QueuedFormResponse.findFirst({
-    where: {
-      id: queuedFormResponse.id,
-    },
-    include: {
-      actualResponse: true,
-    },
-  });
+  const queuedFormResponseFromDb = await getQueuedFormResponse(queuedFormResponse.id);
 
-  expect(queuedResponse?.actualResponse?.id).toBeDefined();
-  expect(queuedResponse?.actualResponse).toEqual(expect.objectContaining(actualFormResponse));
+  expect(queuedFormResponseFromDb?.actualResponse?.id).toBeDefined();
+  const responseFromDb = queuedFormResponseFromDb?.actualResponse?.response;
+  expect(responseFromDb).toBeDefined();
+  const valuesFromResponse = Object.values(responseFromDb).map((item) => item.value);
+  const valuesSetInResponse = valuesFromResponse.filter((value) => !!value);
+  // There are 5 values that are submitted when CTA is clicked.
+  expect(valuesSetInResponse.length).toBe(numberOfExpectedSetFieldValues);
 }

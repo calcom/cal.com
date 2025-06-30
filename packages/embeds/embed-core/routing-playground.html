@@ -116,7 +116,7 @@
         const email = form.querySelector("input[name='email']").value;
         const skills = form.querySelector("select[name='skills']").value;
         if (name && email) {
-          document.getElementById("cal-booking-place-routingFormWithoutPrerender-submit").setAttribute("data-cal-link", `router?form=${seededFormAcmeId}&email=${email}&name=${name}&Location=London&Department=Engineering&Manager=John Doe&Rating=5&skills=${skills}&Email=${email}`);
+          document.getElementById("cal-booking-place-routingFormWithoutPrerender-submit").setAttribute("data-cal-link", `router?form=${seededFormAcmeId}&email=${email}&name=${name}&Location=London&Department=Engineering&Rating=5&skills=${skills}&Email=${email}`);
         }
         requestAnimationFrame(updateSubmitButtonLink);
       });
@@ -145,14 +145,15 @@
           });
           window.routingFormFullPrerender = {
             buildRouterUrl: ({skills, location, name, email, formId}) => {
-              return `router?form=${formId}&skills=${skills}&Location=${location}&name=${name}&Email=${email}&Manager=John Doe&Rating=5`;
+              return `router?form=${formId}&skills=${skills}&Location=${location}&name=${name}&Email=${email}&Rating=5`;
             },
             onFormSubmit: (e) => {
               e.preventDefault();
               const skills = document.getElementById('cal-booking-place-routingFormFullPrerender-select-skills').value;
               const location = document.getElementById('cal-booking-place-routingFormFullPrerender-select-location').value;
               const name = document.getElementById('cal-booking-place-routingFormFullPrerender-input-name').value;
-              const routerUrl = window.routingFormFullPrerender.buildRouterUrl({skills, location, name, formId: window.params.formId});
+              const email = document.getElementById('cal-booking-place-routingFormFullPrerender-input-email').value;
+              const routerUrl = window.routingFormFullPrerender.buildRouterUrl({skills, location, name, email, formId: window.params.formId});
               Cal.ns.routingFormFullPrerender("modal", {
                 calLink: routerUrl,
                 calOrigin: window.calOrigin,

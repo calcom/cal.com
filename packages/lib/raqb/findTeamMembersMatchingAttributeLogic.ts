@@ -3,7 +3,9 @@ import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-que
 import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
+import logger from "@calcom/lib/logger";
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getAttributesAssignmentData } from "@calcom/lib/service/attribute/server/getAttributes";
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 
@@ -164,6 +166,10 @@ async function getLogicResultForAllMembers(
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 
+      logger.info(
+        "getLogicResultForAllMembers",
+        safeStringify({ attributeJsonLogic, attributesData, result })
+      );
       if (result !== RaqbLogicResult.MATCH) {
         return;
       }
@@ -183,6 +189,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     attributesData: { attributesOfTheOrg, teamMembersWithAttributeOptionValuePerAttribute },
     dynamicFieldValueOperands,
   } = data;
+
   const { concurrency, enablePerf, enableTroubleshooter } = options;
   const attributesQueryValue = getAttributesQueryValue({
     attributesQueryValue: _attributesQueryValue ?? null,

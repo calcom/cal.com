@@ -3,29 +3,96 @@ import { uuid } from "short-uuid";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 
-import { seedOrganizationAttributes } from "./organizationHelpers";
+import { createAttributes } from "./organizationHelpers";
 import { createRoundRobinTeamEventType } from "./teamHelpers";
 
 /**
- * Creates a test routing form with either attribute routing or default routing
- * @param userId - User ID who owns the form
- * @param teamId - Team ID the form belongs to
- * @param scenario - Configuration for which type of routing form to create
- * @returns The created routing form
+ * Configuration for form fields
  */
-export async function createTestRoutingForm({
-  userId,
-  teamId,
-  scenario,
-}: {
+interface FieldConfig {
+  id?: string;
+  type: "text" | "email" | "select" | "multiselect" | "number";
+  label: string;
+  identifier?: string;
+  required?: boolean;
+  options?: { id: string; label: string }[];
+  selectText?: string;
+}
+
+/**
+ * Configuration for form routes
+ */
+interface RouteConfig {
+  id?: string;
+  action: {
+    type: "eventTypeRedirectUrl" | "customPageMessage" | "externalRedirectUrl";
+    value: string;
+  };
+  isFallback?: boolean;
+  queryValue?: any;
+  attributesQueryValue?: any;
+  fallbackAttributesQueryValue?: any;
+}
+
+/**
+ * Configuration for team events in attribute routing
+ */
+interface TeamEventConfig {
+  title: string;
+  slug: string;
+  schedulingType?: "ROUND_ROBIN" | "COLLECTIVE";
+  assignAllTeamMembers?: boolean;
+  length?: number;
+  description?: string;
+}
+
+/**
+ * Configuration for creating test routing forms
+ */
+interface CreateRoutingFormConfig {
   userId: number;
   teamId: number;
-  scenario: {
-    seedRoutingForms?: boolean;
-    seedRoutingFormWithAttributeRouting?: boolean;
+  formType: "default" | "attributeRouting";
+
+  // Basic form settings
+  form?: {
+    name?: string;
+    description?: string;
+    fields?: FieldConfig[];
+    routes?: RouteConfig[];
   };
-}) {
-  if (scenario.seedRoutingFormWithAttributeRouting) {
+
+  // For attribute routing (required when formType is "attributeRouting")
+  attributeRouting?: {
+    orgId?: number; // If not provided, will find from userId
+    attributes: {
+      name: string;
+      type: "SINGLE_SELECT" | "MULTI_SELECT" | "TEXT" | "NUMBER";
+      options?: string[];
+    }[];
+    assignments: {
+      memberIndex: number;
+      attributeValues: Record<string, string[]>;
+    }[];
+    teamEvents: TeamEventConfig[];
+  };
+}
+
+/**
+ * Creates a test routing form with configurable options
+ * @param config - Configuration object containing all routing form settings
+ * @returns The created routing form
+ */
+export async function createRoutingForm(config: CreateRoutingFormConfig) {
+  const { userId, teamId, formType } = config;
+
+  if (formType === "attributeRouting") {
+    // Validate required config
+    if (!config.attributeRouting) {
+      throw new Error("attributeRouting config is required when formType is 'attributeRouting'");
+    }
+
+    // Find org membership
     const orgMembership = await prisma.membership.findFirstOrThrow({
       where: {
         userId,
@@ -37,40 +104,34 @@ export async function createTestRoutingForm({
     if (!orgMembership) {
       throw new Error("Organization membership not found");
     }
-    const orgId = orgMembership.teamId;
+
+    const orgId = config.attributeRouting.orgId || orgMembership.teamId;
     const team = await prisma.team.findUniqueOrThrow({
       where: {
         id: teamId,
       },
     });
 
-    const salesTeamEvent = await createRoundRobinTeamEventType({
-      teamId,
-      eventType: {
-        title: "Team Sales",
-        slug: "team-sales",
+    // Use provided team events configuration
+    const teamEventsConfig = config.attributeRouting.teamEvents;
+
+    // Create team events
+    const teamEvents: { [key: string]: any } = {};
+    for (const eventConfig of teamEventsConfig) {
+      const eventType = await createRoundRobinTeamEventType({
         teamId,
-        schedulingType: "ROUND_ROBIN",
-        assignAllTeamMembers: true,
-        length: 60,
-        description: "Team Sales",
-      },
+        eventType: { ...eventConfig, length: eventConfig.length || 60 },
+      });
+      teamEvents[eventConfig.slug] = eventType;
+    }
+
+    // Use provided attributes and assignments configuration
+    const attributes = await createAttributes({
+      orgId,
+      attributes: config.attributeRouting.attributes,
+      assignments: config.attributeRouting.assignments,
     });
 
-    const javascriptTeamEvent = await createRoundRobinTeamEventType({
-      teamId,
-      eventType: {
-        title: "Team Javascript",
-        slug: "team-javascript",
-        schedulingType: "ROUND_ROBIN",
-        assignAllTeamMembers: true,
-        length: 60,
-        description: "Team Javascript",
-      },
-    });
-
-    // Then seed routing forms
-    const attributes = await seedOrganizationAttributes(orgId);
     if (!attributes) {
       throw new Error("Attributes not found");
     }
@@ -91,7 +152,7 @@ export async function createTestRoutingForm({
     };
 
     const form = {
-      name: "Form with Attribute Routing",
+      name: config.form?.name || "Form with Attribute Routing",
       routes: [javascriptEventRoute, salesEventRoute],
       formFieldLocation: {
         id: "674c169a-e40a-492c-b4bb-6f5213873bd6",
@@ -102,7 +163,7 @@ export async function createTestRoutingForm({
       formFieldEmail: {
         id: "dd28ffcf-7029-401e-bddb-ce2e7496a1c1",
       },
-      formFieldManager: {
+      formFieldName: {
         id: "57734f65-8bbb-4065-9e71-fb7f0b7485f8",
       },
       formFieldRating: {
@@ -114,15 +175,15 @@ export async function createTestRoutingForm({
       location: {
         id: "location-id",
         options: [
-          { id: "london-uuid", value: "London" },
-          { id: "new-york-uuid", value: "New York" },
+          { id: "Location-London-uuid", value: "London" },
+          { id: "Location-New-York-uuid", value: "New York" },
         ],
       },
       skills: {
         id: "skills-id",
         options: [
-          { id: "javascript-uuid", value: "JavaScript" },
-          { id: "sales-uuid", value: "Sales" },
+          { id: "Skills-JavaScript-uuid", value: "JavaScript" },
+          { id: "Skills-Sales-uuid", value: "Sales" },
         ],
       },
     };
@@ -242,7 +303,7 @@ export async function createTestRoutingForm({
             queryValue: { id: "814899aa-4567-489a-bcde-f1823f708646", type: "group" },
           },
         ],
-        fields: [
+        fields: config.form?.fields || [
           {
             id: form.formFieldLocation.id,
             type: "select",
@@ -264,9 +325,10 @@ export async function createTestRoutingForm({
             required: true,
           },
           {
-            id: form.formFieldManager.id,
+            id: form.formFieldName.id,
+            identifier: "name",
             type: "text",
-            label: "Manager",
+            label: "Name",
             required: false,
           },
           {
@@ -292,7 +354,7 @@ export async function createTestRoutingForm({
     console.log(`🎯 Created form ${createdForm.id}`, JSON.stringify(createdForm, null, 2));
     return createdForm;
   } else {
-    // Default branch: Original routing form logic
+    // Default routing form
     const multiSelectOption2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
     const multiSelectOption1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
     const selectOption1Uuid = "d0292635-9f12-17b1-9153-c3a854649182";
@@ -301,9 +363,10 @@ export async function createTestRoutingForm({
     const multiSelectFieldUuid = "d9892635-9f12-17b1-9153-c3a854649182";
     const selectFieldUuid = "d1302635-9f12-17b1-9153-c3a854649182";
     const legacySelectFieldUuid = "f0292635-9f12-17b1-9153-c3a854649182";
-    await prisma.app_RoutingForms_Form.create({
+
+    const form = await prisma.app_RoutingForms_Form.create({
       data: {
-        routes: [
+        routes: config.form?.routes || [
           {
             id: "8a898988-89ab-4cde-b012-31823f708642",
             action: { type: "eventTypeRedirectUrl", value: "pro/30min" },
@@ -411,7 +474,7 @@ export async function createTestRoutingForm({
             queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
           },
         ],
-        fields: [
+        fields: config.form?.fields || [
           {
             id: "c4296635-9f12-47b1-8153-c3a854649182",
             type: "text",
@@ -474,8 +537,10 @@ export async function createTestRoutingForm({
             id: userId,
           },
         },
-        name: "Fixture Routing Form",
+        name: config.form?.name || "Fixture Routing Form",
       },
     });
+
+    return form;
   }
 }

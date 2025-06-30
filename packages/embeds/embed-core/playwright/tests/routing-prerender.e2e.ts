@@ -2,17 +2,19 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { doOnOrgDomain } from "@calcom/web/playwright/lib/testUtils";
 
+import { expectHostsToBe } from "../lib/pages/bookingSuccessPage";
 import {
   getEmbedIframe,
   bookEvent,
   expectEmbedIFrameToBeVisible,
+  getAllFormResponses,
   expectActualFormResponseConnectedToQueuedFormResponse,
+  getLatestQueuedFormResponse,
 } from "../lib/testUtils";
 
 // in parallel mode sometimes handleNewBooking endpoint throws "No available users found" error, this never happens in serial mode.
@@ -83,6 +85,7 @@ test.describe.only("Popup Tests", () => {
         email: "embed-user@example.com", // This is the email that will be used to book the event
       });
 
+      const expectedRoutedTeamMembers = [teamMembership.user];
       // Routes to the team booking page with params cal.routingFormResponseId, cal.routedTeamMemberIds
       // Sample URL: http://app.cal.local:3000/team/team-0-1751270109394/team-javascript/embed?cal.teamId=103&cal.orgId=104&Rating=5&embed=routingFormFullPrerender&debug=true&only=ns%3AroutingFormFullPrerender&param.formId=bed2a37b-8bf7-4eb9-9b9e-4adf33bd9470&calOrigin=http%3A%2F%2Fapp.cal.remote%3A3000&cal.embed.logging=1&cal.embed.pageType=team.event.booking.slots&cal.action=eventTypeRedirectUrl&cal.queuedFormResponseId=cmcit0aos0006j5o4qctc2oyy&cal.embed.connectVersion=0&form=bed2a37b-8bf7-4eb9-9b9e-4adf33bd9470&skills=JavaScript&Location=London&name=John+Doe&Email=undefined&Manager=John+Doe&embedType=modal&guest=undefined&cal.routingFormResponseId=14&month=2025-07&date=2025-07-02&slot=2025-07-02T08%3A00%3A00.000Z
       const { prerenderedIframe, queuedFormResponseId } = await expectPrerenderedRoutedTeamBookingPage({
@@ -90,23 +93,24 @@ test.describe.only("Popup Tests", () => {
         calNamespace,
         calLink: `/team/${teamMembership.team.slug}/team-javascript`,
         embeds,
-        routedTeamMemberIds: [teamMembership.userId.toString()],
+        routedTeamMemberIds: expectedRoutedTeamMembers.map((user) => user.id),
         routingForm,
       });
 
       const { name } = await fillRestOfTheFormAndSubmit(page);
-      await expectEmbedIFrameToBeVisible({ calNamespace, page });
-      await expectActualFormResponseConnectedToQueuedFormResponse({
-        queuedFormResponse: { id: queuedFormResponseId },
-        actualFormResponse: {
-          name,
-          skills,
-          Location: location,
-          Email: email,
-        },
-        page,
-      });
+      await Promise.all([
+        expectEmbedIFrameToBeVisible({ calNamespace, page }),
+        expectActualFormResponseConnectedToQueuedFormResponse({
+          queuedFormResponse: { id: queuedFormResponseId },
+          numberOfExpectedSetFieldValues: 5,
+          page,
+        }),
+      ]);
       await bookEvent({ frame: prerenderedIframe, page });
+      await expectHostsToBe({
+        hosts: expectedRoutedTeamMembers.map((user) => ({ email: user.email })),
+        frame: prerenderedIframe,
+      });
     });
   });
 });
@@ -136,25 +140,17 @@ async function expectPrerenderedRoutedTeamBookingPage({
 
   // As Routing Form is unique to the test, we can expect responses to be provided by the test itself.
   // So, the only response should be the one that is provided by the test itself.
-  const queuedResponse = await prisma.app_RoutingForms_QueuedFormResponse.findFirst({
-    where: {
-      formId: routingForm.id,
-    },
-  });
+  const queuedResponse = await getLatestQueuedFormResponse({ formId: routingForm.id });
 
-  const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
-    where: {
-      formId: routingForm.id,
-    },
-  });
+  const routingFormResponses = await getAllFormResponses(routingForm.id);
 
   if (!queuedResponse) {
     throw new Error("Couldn't find the queued response");
   }
 
-  if (routingFormResponse) {
+  if (routingFormResponses.length > 0) {
     throw new Error(
-      `Routing form response shouldn't have been recorded. Found one with id: ${routingFormResponse.id}`
+      `Routing form response shouldn't have been recorded. Found one with id: ${routingFormResponses[0].id}`
     );
   }
 
@@ -170,5 +166,5 @@ async function expectPrerenderedRoutedTeamBookingPage({
     },
     true
   );
-  return prerenderedIframe;
+  return { prerenderedIframe, queuedFormResponseId: queuedResponse.id };
 }

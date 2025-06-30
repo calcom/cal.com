@@ -1,44 +1,71 @@
 import { prisma } from "@calcom/prisma";
 
 /**
- * Seeds mock attributes for an organization with predefined types and values
- * @param orgId - The organization team ID
+ * Example usage:
+ *
+ * // Basic usage with default assignments
+ * await createAttributes({
+ *   orgId: 1,
+ *   attributes: [
+ *     {
+ *       name: "Department",
+ *       type: "SINGLE_SELECT",
+ *       options: ["Engineering", "Sales", "Marketing"]
+ *     }
+ *   ],
+ *   assignments: [
+ *     {
+ *       memberIndex: 0,
+ *       attributeValues: {
+ *         "Department": ["Engineering"]
+ *       }
+ *     }
+ *   ]
+ * });
+ *
+ * // Create attributes without assignments
+ * await createAttributes({
+ *   orgId: 1,
+ *   attributes: [
+ *     { name: "Bio", type: "TEXT" },
+ *     { name: "Years of Experience", type: "NUMBER" }
+ *   ]
+ * });
+ */
+
+interface AttributeConfig {
+  name: string;
+  type: "SINGLE_SELECT" | "MULTI_SELECT" | "TEXT" | "NUMBER";
+  options?: string[];
+}
+
+interface MemberAssignment {
+  memberIndex: number;
+  attributeValues: Record<string, string[]>; // attribute name -> selected values
+}
+
+interface SeedAttributesConfig {
+  orgId: number;
+  attributes: AttributeConfig[];
+  assignments?: MemberAssignment[];
+}
+
+/**
+ * Seeds attributes for an organization with configurable types, values, and assignments
+ * @param config - Configuration object containing orgId, attributes, and optional assignments
  * @returns Array of created attributes with their options
  */
-export async function seedOrganizationAttributes(orgId: number) {
+export async function createAttributes(config: SeedAttributesConfig) {
+  const { orgId, attributes: attributeConfigs, assignments = [] } = config;
+
   console.log(`🎯 Seeding attributes for org ${orgId}`);
-  const mockAttributes = [
-    {
-      name: "Department",
-      type: "SINGLE_SELECT",
-      options: ["Engineering", "Sales", "Marketing", "Product", "Design"],
-    },
-    {
-      name: "Location",
-      type: "SINGLE_SELECT",
-      options: ["New York", "London", "Tokyo", "Berlin", "Remote"],
-    },
-    {
-      name: "Skills",
-      type: "MULTI_SELECT",
-      options: ["JavaScript", "React", "Node.js", "Python", "Design", "Sales"],
-    },
-    {
-      name: "Years of Experience",
-      type: "NUMBER",
-    },
-    {
-      name: "Bio",
-      type: "TEXT",
-    },
-  ];
 
   // Check if attributes already exist
   const existingAttributes = await prisma.attribute.findMany({
     where: {
       teamId: orgId,
       name: {
-        in: mockAttributes.map((attr) => attr.name),
+        in: attributeConfigs.map((attr) => attr.name),
       },
     },
   });
@@ -62,7 +89,7 @@ export async function seedOrganizationAttributes(orgId: number) {
 
   const attributes: { id: string; name: string; options: { id: string; value: string }[] }[] = [];
 
-  for (const attr of mockAttributes) {
+  for (const attr of attributeConfigs) {
     const attribute = await prisma.attribute.create({
       data: {
         name: attr.name,
@@ -95,70 +122,56 @@ export async function seedOrganizationAttributes(orgId: number) {
 
     console.log(`\t📝 Created attribute: ${attr.name}`);
 
-    // Assign random values/options to members
-    for (const member of memberships) {
-      if (attr.type === "TEXT") {
-        const mockText = `Sample ${attr.name.toLowerCase()} text for user ${member.userId}`;
-        await prisma.attributeOption.create({
-          data: {
-            value: mockText,
-            slug: mockText.toLowerCase().replace(/ /g, "-"),
-            attribute: {
-              connect: {
-                id: attribute.id,
-              },
-            },
-            assignedUsers: {
-              create: {
-                memberId: member.id,
-              },
-            },
-          },
-        });
-      } else if (attr.type === "NUMBER") {
-        const mockNumber = Math.floor(Math.random() * 10 + 1).toString();
-        await prisma.attributeOption.create({
-          data: {
-            value: mockNumber,
-            slug: mockNumber,
-            attribute: {
-              connect: {
-                id: attribute.id,
-              },
-            },
-            assignedUsers: {
-              create: {
-                memberId: member.id,
-              },
-            },
-          },
-        });
-      } else if (attr.type === "SINGLE_SELECT" && attribute.options.length > 0) {
-        const randomOption = attribute.options[Math.floor(Math.random() * attribute.options.length)];
+    // Process assignments for this attribute
+    for (const assignment of assignments) {
+      const { memberIndex, attributeValues } = assignment;
+
+      // Check if this assignment has values for the current attribute
+      const valuesForAttribute = attributeValues[attr.name];
+      if (!valuesForAttribute || valuesForAttribute.length === 0) {
+        console.log(
+          `\t\t⏭️ Skipped ${attr.name} assignment for member ${memberIndex + 1} - no values specified`
+        );
+        continue;
+      }
+
+      // Get the member at the specified index
+      const member = memberships[memberIndex];
+      if (!member) {
+        console.log(`\t\t⚠️ Skipped ${attr.name} assignment - member at index ${memberIndex} not found`);
+        continue;
+      }
+
+      // Find the options for the specified values
+      const selectedOptions = attribute.options.filter((opt) => valuesForAttribute.includes(opt.value));
+
+      if (selectedOptions.length === 0) {
+        console.log(
+          `\t\t⚠️ Skipped ${attr.name} assignment for user ${
+            member.userId
+          } - no matching options found for values: ${valuesForAttribute.join(", ")}`
+        );
+        continue;
+      }
+
+      // Create assignments for each selected option
+      for (const option of selectedOptions) {
         await prisma.attributeToUser.create({
           data: {
             memberId: member.id,
-            attributeOptionId: randomOption.id,
+            attributeOptionId: option.id,
           },
         });
-      } else if (attr.type === "MULTI_SELECT" && attribute.options.length > 0) {
-        // Assign 1-3 random options
-        const numOptions = Math.floor(Math.random() * 3) + 1;
-        const shuffledOptions = [...attribute.options].sort(() => Math.random() - 0.5);
-        const selectedOptions = shuffledOptions.slice(0, numOptions);
-
-        for (const option of selectedOptions) {
-          await prisma.attributeToUser.create({
-            data: {
-              memberId: member.id,
-              attributeOptionId: option.id,
-            },
-          });
-        }
       }
-    }
 
-    console.log(`\t✅ Assigned ${attr.name} values to ${memberships.length} members`);
+      const assignedValues = selectedOptions.map((opt) => opt.value);
+      console.log(
+        `\t\t✅ Assigned ${attr.name} [${assignedValues.map((v) => `"${v}"`).join(", ")}] to user ${
+          member.userId
+        } (member ${memberIndex + 1})`
+      );
+    }
   }
+
   return attributes;
 }

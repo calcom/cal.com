@@ -17,7 +17,7 @@ import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from 
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 
-import { createTestRoutingForm } from "../lib/routingFormHelpers";
+import { createRoutingForm } from "../lib/routingFormHelpers";
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import type { createEmailsFixture } from "./emails";
 import { TimeZoneEnum } from "./types";
@@ -493,10 +493,73 @@ export const createUsersFixture = (
         if (!firstTeamMembership) {
           throw new Error("No sub-team created");
         }
-        await createTestRoutingForm({
+        await createRoutingForm({
           userId: _user.id,
           teamId: firstTeamMembership.teamId,
-          scenario,
+          formType: scenario.seedRoutingFormWithAttributeRouting ? "attributeRouting" : "default",
+          ...(scenario.seedRoutingFormWithAttributeRouting && {
+            attributeRouting: {
+              attributes: [
+                {
+                  name: "Department",
+                  type: "SINGLE_SELECT" as const,
+                  options: ["Engineering", "Sales", "Marketing", "Product", "Design"],
+                },
+                {
+                  name: "Location",
+                  type: "SINGLE_SELECT" as const,
+                  options: ["New York", "London", "Tokyo", "Berlin", "Remote"],
+                },
+                {
+                  name: "Skills",
+                  type: "MULTI_SELECT" as const,
+                  options: ["JavaScript", "React", "Node.js", "Python", "Design", "Sales"],
+                },
+                {
+                  name: "Years of Experience",
+                  type: "NUMBER" as const,
+                },
+                {
+                  name: "Bio",
+                  type: "TEXT" as const,
+                },
+              ],
+              assignments: [
+                {
+                  memberIndex: 0,
+                  attributeValues: {
+                    Location: ["New York"],
+                    Skills: ["JavaScript"],
+                  },
+                },
+                {
+                  memberIndex: 1,
+                  attributeValues: {
+                    Location: ["London"],
+                    Skills: ["React", "JavaScript"],
+                  },
+                },
+              ],
+              teamEvents: [
+                {
+                  title: "Team Sales",
+                  slug: "team-sales",
+                  schedulingType: "ROUND_ROBIN",
+                  assignAllTeamMembers: true,
+                  length: 60,
+                  description: "Team Sales",
+                },
+                {
+                  title: "Team Javascript",
+                  slug: "team-javascript",
+                  schedulingType: "ROUND_ROBIN",
+                  assignAllTeamMembers: true,
+                  length: 60,
+                  description: "Team Javascript",
+                },
+              ],
+            },
+          }),
         });
       }
 
@@ -621,7 +684,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({
         where: { userId: user.id },
-        include: { team: true },
+        include: { team: true, user: true },
       });
 
       const membership = memberships

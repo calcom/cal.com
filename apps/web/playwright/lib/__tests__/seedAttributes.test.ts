@@ -2,16 +2,63 @@ import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
 
-import { seedOrganizationAttributes } from "../organizationHelpers";
+import { createAttributes } from "../organizationHelpers";
 
 // Mock console.log to avoid noise in tests
-const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {
+  // Intentionally empty to suppress console output in tests
+});
 
-describe("seedOrganizationAttributes", () => {
+// Default mock attributes matching the original hardcoded values
+const mockAttributes = [
+  {
+    name: "Department",
+    type: "SINGLE_SELECT" as const,
+    options: ["Engineering", "Sales", "Marketing", "Product", "Design"],
+  },
+  {
+    name: "Location",
+    type: "SINGLE_SELECT" as const,
+    options: ["New York", "London", "Tokyo", "Berlin", "Remote"],
+  },
+  {
+    name: "Skills",
+    type: "MULTI_SELECT" as const,
+    options: ["JavaScript", "React", "Node.js", "Python", "Design", "Sales"],
+  },
+  {
+    name: "Years of Experience",
+    type: "NUMBER" as const,
+  },
+  {
+    name: "Bio",
+    type: "TEXT" as const,
+  },
+];
+
+// Default assignments matching the original hardcoded behavior
+const mockAssignments = [
+  {
+    memberIndex: 0,
+    attributeValues: {
+      Location: ["New York"],
+      Skills: ["JavaScript"],
+    },
+  },
+  {
+    memberIndex: 1,
+    attributeValues: {
+      Location: ["London"],
+      Skills: ["React", "JavaScript"],
+    },
+  },
+];
+
+describe("createAttributes", () => {
   beforeEach(async () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    await prismock.reset();
+    // Reset prismock state between tests
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (prismock as any).reset();
     consoleSpy.mockClear();
   });
 
@@ -33,7 +80,11 @@ describe("seedOrganizationAttributes", () => {
       },
     });
 
-    const result = await seedOrganizationAttributes(orgId);
+    const result = await createAttributes({
+      orgId,
+      attributes: mockAttributes,
+      assignments: mockAssignments,
+    });
 
     // Verify all attributes were created
     const attributes = await prismock.attribute.findMany({
@@ -65,11 +116,11 @@ describe("seedOrganizationAttributes", () => {
 
     expect(experienceAttr).toBeDefined();
     expect(experienceAttr?.type).toBe("NUMBER");
-    expect(experienceAttr?.options).toHaveLength(1); // Custom option created for the member
+    expect(experienceAttr?.options).toHaveLength(0); // No options created for NUMBER type
 
     expect(bioAttr).toBeDefined();
     expect(bioAttr?.type).toBe("TEXT");
-    expect(bioAttr?.options).toHaveLength(1); // Custom option created for the member
+    expect(bioAttr?.options).toHaveLength(0); // No options created for TEXT type
   });
 
   it("should assign attribute values to all organization members", async () => {
@@ -84,7 +135,11 @@ describe("seedOrganizationAttributes", () => {
       ],
     });
 
-    await seedOrganizationAttributes(orgId);
+    await createAttributes({
+      orgId,
+      attributes: mockAttributes,
+      assignments: mockAssignments,
+    });
 
     // Check that attribute assignments were created
     const attributeAssignments = await prismock.attributeToUser.findMany();
@@ -92,12 +147,17 @@ describe("seedOrganizationAttributes", () => {
       include: { assignedUsers: true },
     });
 
-    // Should have assignments for single/multi select attributes (3 members x 2 select attributes minimum)
-    expect(attributeAssignments.length).toBeGreaterThanOrEqual(6);
+    // Should have assignments only for specific first two members
+    // Member 1: Location (New York) + Skills (JavaScript) = 2 assignments
+    // Member 2: Location (London) + Skills (React + JavaScript) = 3 assignments
+    // Total = 5 assignments (no random assignments for other members/attributes)
+    expect(attributeAssignments.length).toBe(5);
 
-    // Should have custom options created for TEXT and NUMBER types (3 members x 2 types)
+    // Should have 4 options with assigned users:
+    // Location: New York (assigned to user 1) + London (assigned to user 2) = 2 options
+    // Skills: JavaScript (assigned to user 1) + React & JavaScript (assigned to user 2) = 2 unique options
     const customOptions = attributeOptions.filter((opt) => opt.assignedUsers.length > 0);
-    expect(customOptions.length).toBeGreaterThanOrEqual(6);
+    expect(customOptions.length).toBe(4);
   });
 
   it("should skip seeding if attributes already exist", async () => {
@@ -126,7 +186,11 @@ describe("seedOrganizationAttributes", () => {
       },
     });
 
-    const result = await seedOrganizationAttributes(orgId);
+    const result = await createAttributes({
+      orgId,
+      attributes: mockAttributes,
+      assignments: mockAssignments,
+    });
 
     // Should return early and not create more attributes
     expect(result).toBeUndefined();
@@ -144,7 +208,11 @@ describe("seedOrganizationAttributes", () => {
 
     // Don't create any memberships
 
-    const result = await seedOrganizationAttributes(orgId);
+    const result = await createAttributes({
+      orgId,
+      attributes: mockAttributes,
+      assignments: mockAssignments,
+    });
 
     // Should still create attributes
     const attributes = await prismock.attribute.findMany({
@@ -157,6 +225,73 @@ describe("seedOrganizationAttributes", () => {
     // But no attribute assignments should be created
     const attributeAssignments = await prismock.attributeToUser.findMany();
     expect(attributeAssignments).toHaveLength(0);
+  });
+
+  it("should assign specific skills and locations to first two members", async () => {
+    const orgId = 1;
+
+    // Create exactly two memberships to test specific assignments
+    await prismock.membership.createMany({
+      data: [
+        { id: 1, userId: 1, teamId: orgId, role: "OWNER", accepted: true },
+        { id: 2, userId: 2, teamId: orgId, role: "MEMBER", accepted: true },
+      ],
+    });
+
+    await createAttributes({
+      orgId,
+      attributes: mockAttributes,
+      assignments: mockAssignments,
+    });
+
+    // Get the attributes and their options
+    const skillsAttr = await prismock.attribute.findFirst({
+      where: { teamId: orgId, name: "Skills" },
+      include: { options: true },
+    });
+
+    const locationAttr = await prismock.attribute.findFirst({
+      where: { teamId: orgId, name: "Location" },
+      include: { options: true },
+    });
+
+    expect(skillsAttr).toBeDefined();
+    expect(locationAttr).toBeDefined();
+
+    // Check assignments for first member (should have JavaScript skill and New York location)
+    const firstMemberAssignments = await prismock.attributeToUser.findMany({
+      where: { memberId: 1 },
+      include: { attributeOption: true },
+    });
+
+    const firstMemberSkills = firstMemberAssignments
+      .filter((a) => a.attributeOption.attributeId === skillsAttr!.id)
+      .map((a) => a.attributeOption.value);
+
+    const firstMemberLocation = firstMemberAssignments
+      .filter((a) => a.attributeOption.attributeId === locationAttr!.id)
+      .map((a) => a.attributeOption.value);
+
+    expect(firstMemberSkills).toContain("JavaScript");
+    expect(firstMemberLocation).toContain("New York");
+
+    // Check assignments for second member (should have React and JavaScript skills, London location)
+    const secondMemberAssignments = await prismock.attributeToUser.findMany({
+      where: { memberId: 2 },
+      include: { attributeOption: true },
+    });
+
+    const secondMemberSkills = secondMemberAssignments
+      .filter((a) => a.attributeOption.attributeId === skillsAttr!.id)
+      .map((a) => a.attributeOption.value);
+
+    const secondMemberLocation = secondMemberAssignments
+      .filter((a) => a.attributeOption.attributeId === locationAttr!.id)
+      .map((a) => a.attributeOption.value);
+
+    expect(secondMemberSkills).toContain("JavaScript");
+    expect(secondMemberSkills).toContain("React");
+    expect(secondMemberLocation).toContain("London");
   });
 
   it("should generate correct slugs and enable all attributes", async () => {
@@ -173,7 +308,11 @@ describe("seedOrganizationAttributes", () => {
       },
     });
 
-    await seedOrganizationAttributes(orgId);
+    await createAttributes({
+      orgId,
+      attributes: mockAttributes,
+      assignments: mockAssignments,
+    });
 
     const attributes = await prismock.attribute.findMany({
       where: { teamId: orgId },
