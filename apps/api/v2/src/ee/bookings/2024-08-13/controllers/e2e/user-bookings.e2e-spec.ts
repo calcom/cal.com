@@ -2593,7 +2593,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           cancellationReason: "Going on a vacation",
         };
 
-        const response = request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
           .post(`/v2/bookings/${originalRescheduledBooking.uid}/cancel`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
@@ -2644,7 +2644,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           cancellationReason: "Going on a vacation",
         };
 
-        const response = request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
           .post(`/v2/bookings/${cancelledBooking.uid}/cancel`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
