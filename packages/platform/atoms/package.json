@@ -37,11 +37,9 @@
     "dist",
     "globals.min.css"
   ],
-  "main": "./dist/cal-atoms.umd.cjs",
   "module": "./dist/cal-atoms.js",
   "exports": {
     ".": {
-      "require": "./dist/cal-atoms.umd.cjs",
       "import": "./dist/cal-atoms.js",
       "types": "./dist/index.d.ts"
     },
