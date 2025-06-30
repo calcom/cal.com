@@ -300,8 +300,8 @@ const RoundRobinHosts = ({
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
   hostGroups: {
+    id: string;
     name: string;
-    members: TeamMember[];
   }[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
@@ -416,46 +416,55 @@ const RoundRobinHosts = ({
             customClassNames={customClassNames?.addMembers}
           />
         ) : (
-          hostGroups.map((group, index) => (
-            <div key={index} className="border-subtle my-4 rounded-md border p-4 pb-0">
-              <Label className="-mb-1">{group.name}</Label>
-              <AddMembersWithSwitch
-                placeholder={t("add_a_member")}
-                teamId={teamId}
-                teamMembers={teamMembers}
-                value={value.filter((host) => host.groupId === group.id)}
-                onChange={onChange}
-                assignAllTeamMembers={assignAllTeamMembers}
-                setAssignAllTeamMembers={setAssignAllTeamMembers}
-                isSegmentApplicable={isSegmentApplicable}
-                automaticAddAllEnabled={true}
-                isRRWeightsEnabled={isRRWeightsEnabled}
-                isFixed={false}
-                containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
-                onActive={() => {
-                  const currentHosts = getValues("hosts");
-                  setValue(
-                    "hosts",
-                    group.members.map((teamMember) => {
-                      const host = currentHosts.find(
-                        (host) => host.userId === parseInt(teamMember.value, 10)
-                      );
-                      return {
-                        isFixed: false,
-                        userId: parseInt(teamMember.value, 10),
-                        priority: host?.priority ?? 2,
-                        weight: host?.weight ?? 100,
-                        // if host was already added, retain scheduleId
-                        scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                      };
-                    }),
-                    { shouldDirty: true }
-                  );
-                }}
-                customClassNames={customClassNames?.addMembers}
-              />
-            </div>
-          ))
+          <>
+            {/* show all hosts first that have no group */}
+            {(() => {
+              const hostsWithoutGroup = value.filter((host) => !host.groupId);
+              if (hostsWithoutGroup.length > 0) {
+                return (
+                  <div className="border-subtle my-4 rounded-md border p-4 pb-0">
+                    <Label className="-mb-1">Group 1</Label>
+                    <AddMembersWithSwitch
+                      placeholder={t("add_a_member")}
+                      teamId={teamId}
+                      teamMembers={teamMembers}
+                      value={hostsWithoutGroup}
+                      onChange={onChange}
+                      assignAllTeamMembers={assignAllTeamMembers}
+                      setAssignAllTeamMembers={setAssignAllTeamMembers}
+                      isSegmentApplicable={isSegmentApplicable}
+                      automaticAddAllEnabled={true}
+                      isRRWeightsEnabled={isRRWeightsEnabled}
+                      isFixed={false}
+                      containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
+                      customClassNames={customClassNames?.addMembers}
+                    />
+                  </div>
+                );
+              }
+              return null;
+            })()}
+            {hostGroups.map((group, index) => (
+              <div key={index} className="border-subtle my-4 rounded-md border p-4 pb-0">
+                <Label className="-mb-1">{group.name}</Label>
+                <AddMembersWithSwitch
+                  placeholder={t("add_a_member")}
+                  teamId={teamId}
+                  teamMembers={teamMembers}
+                  value={value.filter((host) => host.groupId === group.id)}
+                  onChange={onChange}
+                  assignAllTeamMembers={assignAllTeamMembers}
+                  setAssignAllTeamMembers={setAssignAllTeamMembers}
+                  isSegmentApplicable={isSegmentApplicable}
+                  automaticAddAllEnabled={true}
+                  isRRWeightsEnabled={isRRWeightsEnabled}
+                  isFixed={false}
+                  containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
+                  customClassNames={customClassNames?.addMembers}
+                />
+              </div>
+            ))}
+          </>
         )}
       </div>
     </div>
