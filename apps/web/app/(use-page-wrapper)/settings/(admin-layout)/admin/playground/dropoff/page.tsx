@@ -26,48 +26,20 @@ import { InsightsRoutingService } from "@calcom/lib/server/service/insightsRouti
 export default async function Dropoff() {
   const insightsRoutingService = new InsightsRoutingService({
     kysely,
-    options: { scope: "org", teamId: undefined, userId: 16, orgId: 5 },
+    options: { scope: "org", userId: 16, orgId: 5 },
     filters: {
       startDate: "2025-06-20T22:00:00.000Z",
       endDate: "2025-06-27T21:59:59.999Z",
     },
   });
-  const responses = await insightsRoutingService.getDropOffData();
-  console.log("💡 TEST responses", responses);
+  await insightsRoutingService.init();
+  const dropOffData = await insightsRoutingService.getDropOffData();
+  console.log("💡 TEST dropOffData", dropOffData);
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold">Drop Off</h1>
-
-      <DropOffFunnel
-        data={[
-          {
-            value: 100,
-            name: "Impressions",
-            fill: "#8884d8",
-          },
-          {
-            value: 80,
-            name: "Clicks",
-            fill: "#83a6ed",
-          },
-          {
-            value: 50,
-            name: "Visits",
-            fill: "#8dd1e1",
-          },
-          {
-            value: 40,
-            name: "Inquiries",
-            fill: "#82ca9d",
-          },
-          {
-            value: 26,
-            name: "Orders",
-            fill: "#a4de6c",
-          },
-        ]}
-      />
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Routing Form Drop-Off Analysis</h1>
+      <DropOffFunnel data={dropOffData} showMetrics={true} />
     </div>
   );
 }

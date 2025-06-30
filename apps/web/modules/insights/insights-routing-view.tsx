@@ -7,6 +7,7 @@ import {
   FailedBookingsByField,
   RoutedToPerPeriod,
 } from "@calcom/features/insights/components";
+import { DropOffFunnel } from "@calcom/features/insights/components/DropOffFunnel";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { useInsightsParameters } from "@calcom/features/insights/hooks/useInsightsParameters";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,7 +22,7 @@ export default function InsightsRoutingFormResponsesPage() {
         <div className="mb-4 space-y-4">
           <RoutingFormResponsesTable />
 
-          <Test />
+          <RoutingDropOffFunnel />
 
           <RoutedToPerPeriod />
 
@@ -42,7 +43,7 @@ export default function InsightsRoutingFormResponsesPage() {
   );
 }
 
-function Test() {
+function RoutingDropOffFunnel() {
   const { scope, selectedTeamId, startDate, endDate } = useInsightsParameters();
   const { data, isSuccess, isPending } = trpc.viewer.insights.getDropOffData.useQuery(
     {
@@ -58,10 +59,25 @@ function Test() {
       },
     }
   );
-  console.log("💡 hey!", {
-    data,
-    isSuccess,
-    isPending,
-  });
-  return null;
+
+  if (isPending) {
+    return (
+      <div className="rounded-lg bg-white p-6 shadow">
+        <div className="animate-pulse">
+          <div className="mb-4 h-4 w-1/4 rounded bg-gray-200" />
+          <div className="h-64 rounded bg-gray-200" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isSuccess || !data) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-lg bg-white p-6 shadow">
+      <DropOffFunnel data={data} showMetrics={true} />
+    </div>
+  );
 }

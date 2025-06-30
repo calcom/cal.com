@@ -1734,18 +1734,6 @@ export const insightsRouter = router({
     .input(routingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       try {
-        console.log("💡 TEST args for service", {
-          options: {
-            scope: input.scope,
-            teamId: input.selectedTeamId,
-            userId: ctx.user.id,
-            orgId: ctx.user.organizationId,
-          },
-          filters: {
-            startDate: input.startDate,
-            endDate: input.endDate,
-          },
-        });
         const insightsRoutingService = new InsightsRoutingService({
           kysely,
           options: {
@@ -1759,9 +1747,8 @@ export const insightsRouter = router({
             endDate: input.endDate,
           },
         });
-        const responses = await insightsRoutingService.getDropOffData();
-        console.log("💡 TEST responses", responses);
-        return responses;
+        await insightsRoutingService.init();
+        return await insightsRoutingService.getDropOffData();
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }

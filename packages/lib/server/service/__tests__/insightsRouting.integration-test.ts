@@ -254,8 +254,9 @@ describe("InsightsRoutingService Integration Tests", () => {
         kysely: db,
         options: null as any,
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(`"id" = $1`);
       expect(parameters).toEqual([-1]);
@@ -291,8 +292,9 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(`"id" = $1`);
       expect(parameters).toEqual([-1]);
@@ -321,8 +323,9 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(`"formUserId" = $1`);
       expect(parameters).toEqual([testData.user.id]);
@@ -346,7 +349,7 @@ describe("InsightsRoutingService Integration Tests", () => {
         },
       });
 
-      const conditions = await service.getAuthorizationConditions();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(`"formTeamId" = $1`);
       expect(parameters).toEqual([testData.team.id]);
@@ -377,8 +380,9 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(`"formTeamId" in ($1, $2, $3, $4)`);
       expect(parameters).toEqual([testData.org.id, testData.team.id, team2.id, team3.id]);
@@ -411,8 +415,8 @@ describe("InsightsRoutingService Integration Tests", () => {
           teamId: unrelatedTeam.id,
         },
       });
-
-      const conditions = await service.getAuthorizationConditions();
+      await service.init();
+      const conditions = await service.buildAuthorizationConditions();
       const { where, parameters } = compileCondition(conditions);
       expect(where).toEqual(`"id" = $1`);
       expect(parameters).toEqual([-1]);
@@ -437,66 +441,16 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getFilterConditions();
+      const conditions = await service.buildFilterConditions();
       expect(conditions).toBeNull();
 
       await testData.cleanup();
     });
   });
 
-  describe("Caching", () => {
-    it("should cache authorization conditions", async () => {
-      const testData = await createTestData({
-        teamRole: MembershipRole.OWNER,
-        orgRole: MembershipRole.OWNER,
-      });
-
-      const service = new InsightsRoutingService({
-        kysely: db,
-        options: {
-          scope: "user",
-          userId: testData.user.id,
-          orgId: testData.org.id,
-        },
-      });
-
-      // First call should build conditions
-      const conditions1 = await service.getAuthorizationConditions();
-
-      // Second call should use cached conditions
-      const conditions2 = await service.getAuthorizationConditions();
-      expect(conditions2).toBe(conditions1); // Should be the same function reference
-
-      // Clean up
-      await testData.cleanup();
-    });
-
-    it("should cache filter conditions", async () => {
-      const testData = await createTestData();
-
-      const service = new InsightsRoutingService({
-        kysely: db,
-        options: {
-          scope: "user",
-          userId: testData.user.id,
-          orgId: testData.org.id,
-        },
-      });
-
-      // First call should build conditions
-      const conditions1 = await service.getFilterConditions();
-      expect(conditions1).toBeNull();
-
-      // Second call should use cached conditions
-      const conditions2 = await service.getFilterConditions();
-      expect(conditions2).toEqual(conditions1);
-
-      await testData.cleanup();
-    });
-  });
-
-  describe("findMany", () => {
+  describe("query", () => {
     it("should combine authorization and filter conditions", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
@@ -511,30 +465,12 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
-
-      // Test that the query compiles correctly without executing it
-      const authConditions = await service.getAuthorizationConditions();
-      const filterConditions = await service.getFilterConditions();
+      await service.init();
 
       // Verify both conditions are functions
-      expect(filterConditions).toBeNull();
+      expect(await service.buildFilterConditions()).toBeNull();
 
-      // Test that the query compiles without errors
-      let query = db.selectFrom("RoutingFormResponseDenormalized").selectAll();
-
-      // Apply where conditions
-      const whereConditions = [authConditions, filterConditions].filter(
-        (c): c is NonNullable<typeof c> => c !== null && c !== undefined
-      );
-
-      if (whereConditions.length > 0) {
-        query = query.where((eb) => {
-          if (whereConditions.length === 1) {
-            return whereConditions[0](eb);
-          }
-          return eb.and(whereConditions.map((condition) => condition(eb)));
-        });
-      }
+      const query = service.query().selectAll();
 
       // Compile the query to verify it works
       const compiled = query.compile();
@@ -596,30 +532,11 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      // Test that the query compiles correctly without executing it
-      const authConditions = await service.getAuthorizationConditions();
-      const filterConditions = await service.getFilterConditions();
+      expect(await service.buildFilterConditions()).toBeNull();
 
-      // Verify conditions
-      expect(filterConditions).toBeNull();
-
-      // Test that the query compiles without errors
-      let query = db.selectFrom("RoutingFormResponseDenormalized").selectAll();
-
-      // Apply where conditions
-      const whereConditions = [authConditions, filterConditions].filter(
-        (c): c is NonNullable<typeof c> => c !== null && c !== undefined
-      );
-
-      if (whereConditions.length > 0) {
-        query = query.where((eb) => {
-          if (whereConditions.length === 1) {
-            return whereConditions[0](eb);
-          }
-          return eb.and(whereConditions.map((condition) => condition(eb)));
-        });
-      }
+      const query = service.query().selectAll();
 
       // Compile the query to verify it works
       const compiled = query.compile();
@@ -703,30 +620,11 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      // Test that the query compiles correctly without executing it
-      const authConditions = await service.getAuthorizationConditions();
-      const filterConditions = await service.getFilterConditions();
+      expect(await service.buildFilterConditions()).toBeNull();
 
-      // Verify conditions
-      expect(filterConditions).toBeNull();
-
-      // Test that the query compiles without errors
-      let query = db.selectFrom("RoutingFormResponseDenormalized").select(["id", "formName"]);
-
-      // Apply where conditions
-      const whereConditions = [authConditions, filterConditions].filter(
-        (c): c is NonNullable<typeof c> => c !== null && c !== undefined
-      );
-
-      if (whereConditions.length > 0) {
-        query = query.where((eb) => {
-          if (whereConditions.length === 1) {
-            return whereConditions[0](eb);
-          }
-          return eb.and(whereConditions.map((condition) => condition(eb)));
-        });
-      }
+      const query = service.query().select(["id", "formName"]);
 
       // Compile the query to verify it works
       const compiled = query.compile();
