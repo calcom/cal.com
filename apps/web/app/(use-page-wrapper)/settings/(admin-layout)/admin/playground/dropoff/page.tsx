@@ -1,4 +1,4 @@
-import { DropOffFunnel } from "@calcom/features/insights/components/DropOffFunnel";
+import { DropOffFunnelContent } from "@calcom/features/insights/components/DropOffFunnel";
 import kysely from "@calcom/kysely";
 import { InsightsRoutingService } from "@calcom/lib/server/service/insightsRouting";
 
@@ -39,7 +39,7 @@ export default async function Dropoff() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Routing Form Drop-Off Analysis</h1>
-      <DropOffFunnel data={dropOffData} showMetrics={true} />
+      <DropOffFunnelContent data={dropOffData} />
     </div>
   );
 }
