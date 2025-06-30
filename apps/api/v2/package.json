@@ -4,6 +4,7 @@
   "description": "Platform API for Cal.com",
   "author": "Cal.com Inc.",
   "license": "UNLICENSED",
+  "private": true,
   "scripts": {
     "build": "yarn dev:build && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
