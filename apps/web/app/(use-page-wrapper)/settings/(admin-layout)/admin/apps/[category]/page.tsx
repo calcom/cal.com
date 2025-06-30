@@ -24,6 +24,12 @@ const Page = async () => {
           classNames={{
             appCategoryNavigationRoot: "overflow-x-scroll",
           }}
+          nav={{
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            onNext: () => {},
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            onPrev: () => {},
+          }}
         />
       </div>
     </SettingsHeader>
