@@ -1752,6 +1752,14 @@ describe("Event types Endpoints", () => {
               hidden: false,
             },
             {
+              disableOnPrefill: false,
+              hidden: true,
+              isDefault: true,
+              required: false,
+              slug: "attendeePhoneNumber",
+              type: "phone",
+            },
+            {
               isDefault: true,
               type: "radioInput",
               slug: "location",
