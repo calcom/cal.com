@@ -95,10 +95,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
-    // TODO: Use the avatarUrl when setting the profile picture
-    // if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
-    //   await updateProfilePhotoGoogle(oAuth2Client, req.session.user.id);
-    // }
+    if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
+      await updateProfilePhotoGoogle(oAuth2Client, req.session.user.id);
+    }
 
     const selectedCalendarWhereUnique = {
       userId: req.session.user.id,
