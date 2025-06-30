@@ -3,7 +3,7 @@ import "../../../../../tests/libs/__mocks__/prisma";
 import * as cache from "memory-cache";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
-import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
+import { getDeploymentKey, getDeploymentSignatureToken } from "../../deployment/lib/getDeploymentKey";
 import { createSignature, generateNonce } from "./private-api-utils";
 
 const baseUrl = "http://test-api.com";
@@ -39,6 +39,7 @@ vi.mock("memory-cache", () => ({
 
 vi.mock("../../deployment/lib/getDeploymentKey", () => ({
   getDeploymentKey: vi.fn(),
+  getDeploymentSignatureToken: vi.fn(),
 }));
 
 vi.mock("./private-api-utils", () => ({
@@ -53,6 +54,7 @@ const BASE_HEADERS = {
 describe("LicenseKeyService", () => {
   beforeEach(async () => {
     vi.mocked(getDeploymentKey).mockResolvedValue(licenseKey);
+    vi.mocked(getDeploymentSignatureToken).mockResolvedValue("mockSignatureToken");
   });
 
   afterEach(() => {
