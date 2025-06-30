@@ -82,7 +82,7 @@ export class SchedulesService_2024_04_15 {
       throw new NotFoundException(`Schedule with ID=${scheduleId} does not exist.`);
     }
 
-    this.checkUserOwnsSchedule(userId, { id: scheduleId, userId });
+    this.checkUserOwnsSchedule(userId, existingSchedule);
 
     return existingSchedule;
   }
