@@ -1,4 +1,3 @@
-// Import mocked modules AFTER mocks
 import { oauth2_v2 } from "@googleapis/oauth2";
 import type { OAuth2Client } from "googleapis-common";
 import { describe, it, expect, vi, beforeEach } from "vitest";
