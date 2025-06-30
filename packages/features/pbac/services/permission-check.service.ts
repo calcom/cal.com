@@ -82,7 +82,7 @@ export class PermissionCheckService {
         return false;
       }
 
-      const membership = await MembershipRepository.findFirstByUserIdAndTeamId({
+      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
@@ -131,7 +131,7 @@ export class PermissionCheckService {
         return false;
       }
 
-      const membership = await MembershipRepository.findFirstByUserIdAndTeamId({
+      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
