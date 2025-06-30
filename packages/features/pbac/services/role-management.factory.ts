@@ -81,7 +81,12 @@ class LegacyRoleManager implements IRoleManager {
     }
   }
 
-  async assignRole(userId: number, organizationId: number, role: MembershipRole | string): Promise<void> {
+  async assignRole(
+    userId: number,
+    organizationId: number,
+    role: MembershipRole | string,
+    _membershipId: number
+  ): Promise<void> {
     await prisma.membership.update({
       where: {
         userId_teamId: {
@@ -95,7 +100,7 @@ class LegacyRoleManager implements IRoleManager {
     });
   }
 
-  async getAllRoles(): Promise<{ id: string; name: string }[]> {
+  async getAllRoles(_organizationId: number): Promise<{ id: string; name: string }[]> {
     return [
       { id: MembershipRole.OWNER, name: "Owner" },
       { id: MembershipRole.ADMIN, name: "Admin" },
