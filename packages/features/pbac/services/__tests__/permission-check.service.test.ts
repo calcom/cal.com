@@ -51,7 +51,7 @@ describe("PermissionCheckService", () => {
     );
 
     // Mock MembershipRepository static method
-    (MembershipRepository.findFirstByUserIdAndTeamId as Mock) = vi.fn();
+    (MembershipRepository.findUniqueByUserIdAndTeamId as Mock) = vi.fn();
   });
 
   describe("checkPermission", () => {
@@ -68,7 +68,7 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findFirstByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
         id: membership.id,
@@ -87,7 +87,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findFirstByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -109,7 +109,7 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findFirstByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
 
       const result = await service.checkPermission({
@@ -120,7 +120,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findFirstByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -129,7 +129,7 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return false if membership not found", async () => {
-      (MembershipRepository.findFirstByUserIdAndTeamId as Mock).mockResolvedValueOnce(null);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(null);
 
       const result = await service.checkPermission({
         userId: 1,
@@ -154,7 +154,7 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findFirstByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
 
       const result = await service.checkPermission({
@@ -182,7 +182,7 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findFirstByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
         id: membership.id,
@@ -201,7 +201,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findFirstByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -226,7 +226,7 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findFirstByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
 
       const result = await service.checkPermissions({
@@ -237,7 +237,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findFirstByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
