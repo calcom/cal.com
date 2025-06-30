@@ -421,7 +421,8 @@ export class MembershipRepository {
         teamId: { in: teamIds },
         accepted: true,
       },
-      select,
+      // this is explicit, and typed in TSelect default typings
+      select: select ?? { userId: true },
     })) as unknown as Promise<MembershipDTOFromSelect<TSelect>[]>;
   }
 }
