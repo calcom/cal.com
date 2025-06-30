@@ -813,11 +813,11 @@ async function handler(
         }
       }
 
-      const luckyUserPool: IsFixedAwareUser[] = [];
+      const luckyUserPools: IsFixedAwareUser[][] = [[]];
       const fixedUserPool: IsFixedAwareUser[] = [];
 
       availableUsers.forEach((user) => {
-        user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
+        user.isFixed ? fixedUserPool.push(user) : luckyUserPools[0].push(user);
       });
 
       const notAvailableLuckyUsers: typeof users = [];
@@ -826,7 +826,7 @@ async function handler(
         "Computed available users",
         safeStringify({
           availableUsers: availableUsers.map((user) => user.id),
-          luckyUserPool: luckyUserPool.map((user) => user.id),
+          luckyUserPool: luckyUserPools[0].map((user) => user.id),
         })
       );
 
@@ -834,8 +834,8 @@ async function handler(
 
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
-      while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
-        const freeUsers = luckyUserPool.filter(
+      while (luckyUserPools[0].length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+        const freeUsers = luckyUserPools[0].filter(
           (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
         );
         // no more freeUsers after subtracting notAvailableLuckyUsers from luckyUsers :(
@@ -914,7 +914,7 @@ async function handler(
         ...troubleshooterData,
         luckyUsers: luckyUsers.map((u) => u.id),
         fixedUsers: fixedUserPool.map((u) => u.id),
-        luckyUserPool: luckyUserPool.map((u) => u.id),
+        luckyUserPool: luckyUserPools[0].map((u) => u.id),
       };
     } else if (
       input.bookingData.allRecurringDates &&
