@@ -25,6 +25,28 @@ import {
   ZGetMeetingTokenResponseSchema,
 } from "./types";
 
+const meetingParticipantSchema = z.object({
+  user_id: z.string().nullable(),
+  participant_id: z.string(),
+  user_name: z.string(),
+  join_time: z.number(),
+  duration: z.number(),
+});
+
+const meetingSessionSchema = z.object({
+  id: z.string(),
+  room: z.string(),
+  start_time: z.number(),
+  duration: z.number(),
+  ongoing: z.boolean(),
+  max_participants: z.number(),
+  participants: z.array(meetingParticipantSchema),
+});
+
+const getMeetingInformationResponseSchema = z.object({
+  data: z.array(meetingSessionSchema),
+});
+
 export interface DailyEventResult {
   id: string;
   name: string;
@@ -503,7 +525,9 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     getMeetingInformation: async (roomName: string) => {
       try {
-        const res = await fetcher(`/meetings?room=${roomName}`);
+        const res = await fetcher(`/meetings?room=${roomName}`).then(
+          getMeetingInformationResponseSchema.parse
+        );
         return res;
       } catch (err) {
         console.error("err", err);

@@ -9,7 +9,7 @@ import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import MeetingSessionDetailsDialog from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
+import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { formatTime } from "@calcom/lib/dayjs";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
@@ -467,17 +467,8 @@ function BookingListItem(booking: BookingItemProps) {
     !booking.isRecorded &&
     (!booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "");
 
-  const showRecordingActions: ActionType[] = [
-    {
-      id: "view_recordings",
-      label: showCheckRecordingButton ? t("check_for_recordings") : t("view_recordings"),
-      onClick: () => {
-        setViewRecordingsDialogIsOpen(true);
-      },
-      color: showCheckRecordingButton ? "secondary" : "primary",
-      disabled: mutation.isPending,
-    },
-  ];
+  const isCalVideoLocation =
+    !booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "";
 
   const videoOptionsActions: ActionType[] = [
     {
@@ -495,7 +486,6 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setMeetingSessionDetailsDialogIsOpen(true);
       },
-      icon: "users" as const,
       disabled: mutation.isPending,
     },
   ];
@@ -539,7 +529,7 @@ function BookingListItem(booking: BookingItemProps) {
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {(showViewRecordingsButton || showCheckRecordingButton) && (
+      {isCalVideoLocation && (
         <ViewRecordingsDialog
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
@@ -547,7 +537,7 @@ function BookingListItem(booking: BookingItemProps) {
           timeFormat={userTimeFormat ?? null}
         />
       )}
-      {meetingSessionDetailsDialogIsOpen && (
+      {isCalVideoLocation && meetingSessionDetailsDialogIsOpen && (
         <MeetingSessionDetailsDialog
           booking={booking}
           isOpenDialog={meetingSessionDetailsDialogIsOpen}
@@ -745,7 +735,7 @@ function BookingListItem(booking: BookingItemProps) {
             ) : null}
             {isBookingInPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
             {isBookingInPast && isConfirmed ? <TableActions actions={bookedActions} /> : null}
-            {(showViewRecordingsButton || showCheckRecordingButton) && (
+            {isCalVideoLocation && (
               <TableActions
                 actions={[{ id: "video_options", label: t("video_options"), actions: videoOptionsActions }]}
               />

@@ -9,9 +9,11 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
-import { Skeleton } from "@calcom/ui/components/skeleton";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
+type Session = RouterOutputs["viewer"]["calVideo"]["getMeetingInformation"]["data"][number];
+type Participant = Session["participants"][number];
 
 interface IMeetingSessionDetailsDialog {
   booking?: BookingItem;
@@ -19,6 +21,43 @@ interface IMeetingSessionDetailsDialog {
   setIsOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
   timeFormat: number | null;
 }
+
+const MeetingSessionDetailsSkeleton = () => {
+  return (
+    <div className="flex flex-col gap-4">
+      {[...Array(2)].map((_, index) => (
+        <div key={index} className="border-subtle flex w-full flex-col rounded-md border p-4">
+          <div className="mb-3">
+            <SkeletonText className="h-5 w-24" />
+            <SkeletonText className="mt-1 h-4 w-32" />
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            {[...Array(4)].map((_, i) => (
+              <div key={i}>
+                <SkeletonText className="h-4 w-16" />
+                <SkeletonText className="mt-1 h-4 w-24" />
+              </div>
+            ))}
+          </div>
+          <div className="mt-4">
+            <SkeletonText className="mb-2 h-5 w-20" />
+            <div className="space-y-2">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="border-subtle rounded border p-2 text-sm">
+                  <div className="flex justify-between">
+                    <SkeletonText className="h-4 w-24" />
+                    <SkeletonText className="h-4 w-16" />
+                  </div>
+                  <SkeletonText className="mt-1 h-3 w-32" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const MeetingSessionDetailsList = ({ roomName }: { roomName: string }) => {
   const { t } = useLocale();
@@ -31,16 +70,33 @@ const MeetingSessionDetailsList = ({ roomName }: { roomName: string }) => {
   );
 
   if (isLoading) {
-    return <Skeleton className="h-32 w-full" />;
+    return <MeetingSessionDetailsSkeleton />;
   }
 
   if (!meetingInfo || !meetingInfo.data || meetingInfo.data.length === 0) {
     return <p className="font-semibold">{t("no_meeting_sessions_found")}</p>;
   }
 
+  const formatDuration = (totalSeconds: number) => {
+    if (!totalSeconds) {
+      return t("ongoing");
+    }
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    const parts = [];
+    if (minutes > 0) {
+      parts.push(`${minutes} ${t("minutes")}`);
+    }
+    if (seconds > 0) {
+      parts.push(`${seconds} ${t("seconds")}`);
+    }
+    return parts.join(" ");
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      {meetingInfo.data.map((session: any, index: number) => (
+      {meetingInfo.data.map((session: Session, index: number) => (
         <div key={session.id} className="border-subtle flex w-full flex-col rounded-md border p-4">
           <div className="mb-3">
             <h3 className="text-sm font-semibold">
@@ -56,7 +112,7 @@ const MeetingSessionDetailsList = ({ roomName }: { roomName: string }) => {
               <span className="font-medium">{t("start_time")}:</span>
               <p className="text-subtle">
                 {session.start_time
-                  ? dayjs(session.start_time).format("MMM D, YYYY h:mm A")
+                  ? dayjs(session.start_time * 1000).format("MMM D, YYYY h:mm A")
                   : t("not_available")}
               </p>
             </div>
@@ -64,7 +120,7 @@ const MeetingSessionDetailsList = ({ roomName }: { roomName: string }) => {
             <div>
               <span className="font-medium">{t("duration")}:</span>
               <p className="text-subtle">
-                {session.duration ? `${Math.round(session.duration / 60)} ${t("minutes")}` : t("ongoing")}
+                {session.duration ? formatDuration(session.duration) : t("ongoing")}
               </p>
             </div>
 
@@ -79,23 +135,27 @@ const MeetingSessionDetailsList = ({ roomName }: { roomName: string }) => {
             </div>
           </div>
 
-          {session.participants && Object.keys(session.participants).length > 0 && (
+          {session.participants && session.participants.length > 0 && (
             <div className="mt-4">
               <h4 className="mb-2 text-sm font-medium">{t("participants")}:</h4>
               <div className="space-y-2">
-                {Object.entries(session.participants).map(([participantId, participant]: [string, any]) => (
-                  <div key={participantId} className="border-subtle rounded border p-2 text-sm">
+                {session.participants.map((participant: Participant) => (
+                  <div key={participant.participant_id} className="border-subtle rounded border p-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="font-medium">
-                        {participant.user_name || participant.user_id || t("anonymous_user")}
-                      </span>
+                      <span className="font-medium">{participant.user_name || t("anonymous_user")}</span>
                       <span className="text-subtle">
-                        {participant.join_time ? dayjs(participant.join_time).format("h:mm A") : ""}
+                        {participant.join_time ? dayjs(participant.join_time * 1000).format("h:mm A") : ""}
                       </span>
                     </div>
+                    <p className="text-subtle text-xs">
+                      {t("user_id")}: {participant.user_id || t("not_available")}
+                    </p>
+                    <p className="text-subtle text-xs">
+                      {t("participant_id")}: {participant.participant_id}
+                    </p>
                     {participant.duration && (
                       <p className="text-subtle text-xs">
-                        {t("session_duration")}: {Math.round(participant.duration / 60)} {t("minutes")}
+                        {t("session_duration")}: {formatDuration(participant.duration)}
                       </p>
                     )}
                   </div>
@@ -126,7 +186,7 @@ export const MeetingSessionDetailsDialog = (props: IMeetingSessionDetailsDialog)
       <DialogContent enableOverflow>
         <DialogHeader title={t("meeting_session_details")} subtitle={subtitle} />
         {roomName ? (
-          <Suspense fallback={<Skeleton className="h-32 w-full" />}>
+          <Suspense fallback={<MeetingSessionDetailsSkeleton />}>
             <MeetingSessionDetailsList roomName={roomName} />
           </Suspense>
         ) : (
@@ -139,5 +199,3 @@ export const MeetingSessionDetailsDialog = (props: IMeetingSessionDetailsDialog)
     </Dialog>
   );
 };
-
-export default MeetingSessionDetailsDialog;
