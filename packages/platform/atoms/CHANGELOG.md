@@ -1,5 +1,11 @@
 ## 1.0.108
 
+## 1.0.112
+
+### Patch Changes
+
+- [#22134](https://github.com/calcom/cal.com/pull/22134) [`3437c43`](https://github.com/calcom/cal.com/commit/3437c4331da892bd77afaea84be2db196543a207) Thanks [@supalarry](https://github.com/supalarry)! - ignore this test log
+
 ## 1.0.110
 
 ### Patch Changes
