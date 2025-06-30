@@ -2,7 +2,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
-import WizardForm from "./WizardForm";
+import { WizardForm } from "./WizardForm";
 
 vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => ({
   useCompatSearchParams() {

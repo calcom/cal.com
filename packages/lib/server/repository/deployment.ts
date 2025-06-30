@@ -19,8 +19,8 @@ export class DeploymentRepository implements IDeploymentRepository {
   async getSignatureToken(id: number): Promise<string | null> {
     const deployment = await (this.prisma as PrismaClientWithoutExtensions).deployment.findUnique({
       where: { id },
-      select: { signatureToken: true },
+      select: { signatureTokenEncrypted: true },
     });
-    return deployment?.signatureToken || null;
+    return deployment?.signatureTokenEncrypted || null;
   }
 }

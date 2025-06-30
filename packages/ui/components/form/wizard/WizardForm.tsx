@@ -71,6 +71,7 @@ export function WizardForm({
             <Steps
               maxSteps={maxSteps}
               currentStep={currentStep}
+              nextStep={nextStep}
               stepLabel={stepLabel}
               data-testid="wizard-step-component"
               disableNavigation={disableNavigation}
