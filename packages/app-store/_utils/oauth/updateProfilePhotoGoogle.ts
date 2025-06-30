@@ -26,11 +26,7 @@ export async function updateProfilePhotoGoogle(oAuth2Client: OAuth2Client, userI
       return;
     }
 
-    // Handle valid URLs
-    if (avatarUrl.startsWith("http://") || avatarUrl.startsWith("https://")) {
-      await UserRepository.updateAvatar({ id: userId, avatarUrl });
-      return;
-    }
+    await UserRepository.updateAvatar({ id: userId, avatarUrl });
   } catch (error) {
     logger.error("Error updating avatarUrl from google calendar connect", error);
   }
