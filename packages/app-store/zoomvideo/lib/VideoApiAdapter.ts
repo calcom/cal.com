@@ -155,11 +155,13 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     };
 
     // Zoom agenda field has a 2000 character limit; we set maxLength to 1900 to leave a safety buffer
-    const truncateAgenda = (description: string) => {
+    const truncateAgenda = (description?: string | null) => {
+      if (!description) return description;
+
       const maxLength = 1900;
-      const trimmed = description.trim();
+      const trimmed = description.trimEnd();
       if (trimmed.length > maxLength) {
-        return `${trimmed.substring(0, maxLength)}...`;
+        return `${trimmed.substring(0, maxLength).trimEnd()}...`;
       }
       return trimmed;
     };
