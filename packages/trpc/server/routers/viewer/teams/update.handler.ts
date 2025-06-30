@@ -61,6 +61,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isPrivate: input.isPrivate,
     hideBookATeamMember: input.hideBookATeamMember,
     hideTeamProfileLink: input.hideTeamProfileLink,
+    lockDefaultAvailability: input.lockDefaultAvailability,
     brandColor: input.brandColor,
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
@@ -166,6 +167,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
     rrResetInterval: updatedTeam.rrResetInterval,
     rrTimestampBasis: updatedTeam.rrTimestampBasis,
+    lockDefaultAvailability: updatedTeam.lockDefaultAvailability,
   };
 };
 

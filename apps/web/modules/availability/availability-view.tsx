@@ -48,6 +48,8 @@ export function AvailabilityList({ availabilities, me }: AvailabilityListProps) 
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+      } else {
+        showToast(err.message, "error");
       }
     },
     onSettled: () => {
@@ -75,6 +77,8 @@ export function AvailabilityList({ availabilities, me }: AvailabilityListProps) 
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+      } else {
+        showToast(err.message, "error");
       }
     },
   });
@@ -96,6 +100,9 @@ export function AvailabilityList({ availabilities, me }: AvailabilityListProps) 
           revalidateAvailabilityList();
           showToast(t("success"), "success");
           callback();
+        },
+        onError: (err) => {
+          showToast(err.message, "error");
         },
       }
     );
