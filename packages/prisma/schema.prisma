@@ -464,70 +464,71 @@ model Profile {
 }
 
 model Team {
-  id                     Int                     @id @default(autoincrement())
+  id                      Int                     @id @default(autoincrement())
   /// @zod.min(1)
-  name                   String
+  name                    String
   // It is unique across teams and organizations. We don't have a strong reason for organization and team slug to be conflicting, could be fixed.
   // Sub-teams could have same slug across different organizations but not within the same organization.
   /// @zod.min(1)
-  slug                   String?
-  logoUrl                String?
-  calVideoLogo           String?
-  appLogo                String?
-  appIconLogo            String?
-  bio                    String?
-  hideBranding           Boolean                 @default(false)
-  hideTeamProfileLink    Boolean                 @default(false)
-  isPrivate              Boolean                 @default(false)
-  hideBookATeamMember    Boolean                 @default(false)
-  members                Membership[]
-  eventTypes             EventType[]
-  workflows              Workflow[]
-  createdAt              DateTime                @default(now())
+  slug                    String?
+  logoUrl                 String?
+  calVideoLogo            String?
+  appLogo                 String?
+  appIconLogo             String?
+  bio                     String?
+  hideBranding            Boolean                 @default(false)
+  hideTeamProfileLink     Boolean                 @default(false)
+  isPrivate               Boolean                 @default(false)
+  hideBookATeamMember     Boolean                 @default(false)
+  lockDefaultAvailability Boolean                 @default(false)
+  members                 Membership[]
+  eventTypes              EventType[]
+  workflows               Workflow[]
+  createdAt               DateTime                @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
-  metadata               Json?
-  theme                  String?
-  rrResetInterval        RRResetInterval?        @default(MONTH)
-  rrTimestampBasis       RRTimestampBasis        @default(CREATED_AT)
-  brandColor             String?
-  darkBrandColor         String?
-  verifiedNumbers        VerifiedNumber[]
-  verifiedEmails         VerifiedEmail[]
-  bannerUrl              String?
-  parentId               Int?
-  parent                 Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
-  children               Team[]                  @relation("organization")
-  orgUsers               User[]                  @relation("scope")
-  inviteTokens           VerificationToken[]
-  webhooks               Webhook[]
-  timeFormat             Int?
-  timeZone               String                  @default("Europe/London")
-  weekStart              String                  @default("Sunday")
-  routingForms           App_RoutingForms_Form[]
-  apiKeys                ApiKey[]
-  credentials            Credential[]
-  accessCodes            AccessCode[]
-  isOrganization         Boolean                 @default(false)
-  organizationSettings   OrganizationSettings?
-  instantMeetingTokens   InstantMeetingToken[]
-  orgProfiles            Profile[]
-  pendingPayment         Boolean                 @default(false)
-  dsyncTeamGroupMapping  DSyncTeamGroupMapping[]
-  isPlatform             Boolean                 @default(false)
+  metadata                Json?
+  theme                   String?
+  rrResetInterval         RRResetInterval?        @default(MONTH)
+  rrTimestampBasis        RRTimestampBasis        @default(CREATED_AT)
+  brandColor              String?
+  darkBrandColor          String?
+  verifiedNumbers         VerifiedNumber[]
+  verifiedEmails          VerifiedEmail[]
+  bannerUrl               String?
+  parentId                Int?
+  parent                  Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
+  children                Team[]                  @relation("organization")
+  orgUsers                User[]                  @relation("scope")
+  inviteTokens            VerificationToken[]
+  webhooks                Webhook[]
+  timeFormat              Int?
+  timeZone                String                  @default("Europe/London")
+  weekStart               String                  @default("Sunday")
+  routingForms            App_RoutingForms_Form[]
+  apiKeys                 ApiKey[]
+  credentials             Credential[]
+  accessCodes             AccessCode[]
+  isOrganization          Boolean                 @default(false)
+  organizationSettings    OrganizationSettings?
+  instantMeetingTokens    InstantMeetingToken[]
+  orgProfiles             Profile[]
+  pendingPayment          Boolean                 @default(false)
+  dsyncTeamGroupMapping   DSyncTeamGroupMapping[]
+  isPlatform              Boolean                 @default(false)
   // Organization's OAuth clients. Organization has them but a team does not.
-  platformOAuthClient    PlatformOAuthClient[]
+  platformOAuthClient     PlatformOAuthClient[]
   // OAuth client used to create team of an organization. Team has it but organization does not.
-  createdByOAuthClient   PlatformOAuthClient?    @relation("CreatedByOAuthClient", fields: [createdByOAuthClientId], references: [id], onDelete: Cascade)
-  createdByOAuthClientId String?
-  smsLockState           SMSLockState            @default(UNLOCKED)
-  platformBilling        PlatformBilling?
-  activeOrgWorkflows     WorkflowsOnTeams[]
-  attributes             Attribute[]
-  smsLockReviewedByAdmin Boolean                 @default(false)
+  createdByOAuthClient    PlatformOAuthClient?    @relation("CreatedByOAuthClient", fields: [createdByOAuthClientId], references: [id], onDelete: Cascade)
+  createdByOAuthClientId  String?
+  smsLockState            SMSLockState            @default(UNLOCKED)
+  platformBilling         PlatformBilling?
+  activeOrgWorkflows      WorkflowsOnTeams[]
+  attributes              Attribute[]
+  smsLockReviewedByAdmin  Boolean                 @default(false)
   // Available for Organization only
-  delegationCredentials  DelegationCredential[]
-  domainWideDelegations  DomainWideDelegation[]
-  roles                  Role[] // Added for Role relation
+  delegationCredentials   DelegationCredential[]
+  domainWideDelegations   DomainWideDelegation[]
+  roles                   Role[] // Added for Role relation
 
   features TeamFeatures[]
 

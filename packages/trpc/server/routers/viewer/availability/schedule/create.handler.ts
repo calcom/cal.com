@@ -1,5 +1,6 @@
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
@@ -61,6 +62,35 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   });
 
   if (!user.defaultScheduleId) {
+    // Check if user is a member of any team with locked default availability
+    const userTeams = await prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        accepted: true,
+      },
+      select: {
+        team: {
+          select: {
+            id: true,
+            lockDefaultAvailability: true,
+          },
+        },
+        role: true,
+      },
+    });
+
+    // Check if user is a member (not admin/owner) of any team with locked default availability
+    const hasLockedTeamMembership = userTeams.some(
+      (membership) => membership.team.lockDefaultAvailability && membership.role === MembershipRole.MEMBER
+    );
+
+    if (hasLockedTeamMembership) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Cannot edit default availability when team has locked default availability setting enabled",
+      });
+    }
+
     await prisma.user.update({
       where: {
         id: user.id,

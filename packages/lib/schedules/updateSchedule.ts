@@ -2,6 +2,7 @@ import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 import type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 import { setupDefaultSchedule } from "@calcom/trpc/server/routers/viewer/availability/util";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -55,6 +56,41 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
     if (!hasEditPermission) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
+      });
+    }
+  }
+
+  // Check if this is the user's default schedule and if they are a member of any team with locked default availability
+  const isDefaultSchedule = user.defaultScheduleId === input.scheduleId;
+  const isSettingAsDefault = input.isDefault;
+
+  if (isDefaultSchedule || isSettingAsDefault) {
+    // Check if user is a member of any team with locked default availability
+    const userTeams = await prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        accepted: true,
+      },
+      select: {
+        team: {
+          select: {
+            id: true,
+            lockDefaultAvailability: true,
+          },
+        },
+        role: true,
+      },
+    });
+
+    // Check if user is a member (not admin/owner) of any team with locked default availability
+    const hasLockedTeamMembership = userTeams.some(
+      (membership) => membership.team.lockDefaultAvailability && membership.role === MembershipRole.MEMBER
+    );
+
+    if (hasLockedTeamMembership) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Cannot edit default availability when team has locked default availability setting enabled",
       });
     }
   }
