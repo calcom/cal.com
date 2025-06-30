@@ -15,7 +15,7 @@ jobs:
       contents: write # to create release by changesets/action below
       pull-requests: write # to create pull request by changesets/action below
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
