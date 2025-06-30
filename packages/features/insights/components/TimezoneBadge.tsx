@@ -16,13 +16,7 @@ const TimezoneBadgeContent = () => {
     // Use Cal's standard CURRENT_TIMEZONE constant
     const browserTimezone = CURRENT_TIMEZONE;
 
-    if (!browserTimezone || !userTimezone) {
-      return null;
-    }
-
-    if (browserTimezone === userTimezone) {
-      return null;
-    }
+    if (!browserTimezone || !userTimezone || browserTimezone === userTimezone) return null;
 
     const rawTooltipContent = t("timezone_mismatch_tooltip", {
       browserTimezone,
