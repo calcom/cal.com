@@ -1,4 +1,14 @@
-## 1.0.63
+## 1.0.108
+
+## 1.0.110
+
+### Patch Changes
+
+- [#22107](https://github.com/calcom/cal.com/pull/22107) [`88a2bd3`](https://github.com/calcom/cal.com/commit/88a2bd3317a2cfaf6b367524e2736445544dbd63) Thanks [@supalarry](https://github.com/supalarry)! - test log can ignore
+
+### Patch Changes
+
+- [#22103](https://github.com/calcom/cal.com/pull/22103) [`61274bc`](https://github.com/calcom/cal.com/commit/61274bc7efc67b162d46b59cd75bd376ad515c51) Thanks [@supalarry](https://github.com/supalarry)! - testing changesets - can ignore this
 
 ## 1.0.107
 
@@ -7,6 +17,8 @@
 - [#22095](https://github.com/calcom/cal.com/pull/22095) [`3c43ce4`](https://github.com/calcom/cal.com/commit/3c43ce4165bce1da29b203d5f2eb62090c5fddd2) Thanks [@supalarry](https://github.com/supalarry)! - test by updating changelog
 
 - [#21864](https://github.com/calcom/cal.com/pull/21864) [`540bf86`](https://github.com/calcom/cal.com/commit/540bf868b5b60a98d9d3aeb565e2089f15c3dfd3) Thanks [@supalarry](https://github.com/supalarry)! - fix saving event type settings
+
+## 1.0.63
 
 1. 💥 BREAKING - `useGetBooking` hook has been renamed to `useBooking` hook and `useGetBookings` hook to `useBookings` and the data returned has different
    structure. Here is example response from `useBooking`:

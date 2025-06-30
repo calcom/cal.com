@@ -8,6 +8,7 @@ import {
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { Frequency } from "@calcom/prisma/zod-utils";
@@ -65,12 +66,12 @@ export type ZoomUserSettings = z.infer<typeof zoomUserSettingsSchema>;
 export const zoomUserSettingsSchema = z.object({
   recording: z
     .object({
-      auto_recording: z.string(),
+      auto_recording: z.string().nullish(),
     })
     .nullish(),
   schedule_meeting: z
     .object({
-      default_password_for_scheduled_meetings: z.string(),
+      default_password_for_scheduled_meetings: z.string().nullish(),
     })
     .nullish(),
 });
@@ -197,6 +198,32 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     };
   };
 
+  /**
+   * Zoom is known to return xml response in some cases.
+   * e.g. Wrong request or some special case of invalid token
+   */
+  const handleZoomResponseJsonParseError = async ({
+    error,
+    clonedResponse,
+  }: {
+    error: unknown;
+    clonedResponse: Response;
+  }) => {
+    // In some cases, Zoom responds with xml response, so we log the response for debugging
+    // We need to see why that error occurs exactly and then later we decide if mark the access token and token object unusable or not
+    log.error(
+      "Error in JSON parsing Zoom API response",
+      safeStringify({
+        error: safeStringify(error),
+        // Log Raw response body here.
+        responseBody: await clonedResponse.text(),
+        status: clonedResponse.status,
+      })
+    );
+
+    return null;
+  };
+
   const fetchZoomApi = async (endpoint: string, options?: RequestInit) => {
     const auth = new OAuthManager({
       credentialSyncVariables: {
@@ -232,9 +259,18 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       },
       isTokenObjectUnusable: async function (response) {
         const myLog = logger.getSubLogger({ prefix: ["zoomvideo:isTokenObjectUnusable"] });
-        myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
-        if (!response.ok || (response.status < 200 && response.status >= 300)) {
-          const responseBody = await response.json();
+        myLog.info(safeStringify({ status: response.status, ok: response.ok }));
+        if (!response.ok) {
+          let responseBody;
+          const responseToUseInCaseOfError = response.clone();
+          try {
+            responseBody = await response.json();
+          } catch (e) {
+            return await handleZoomResponseJsonParseError({
+              error: e,
+              clonedResponse: responseToUseInCaseOfError,
+            });
+          }
           myLog.debug(safeStringify({ responseBody }));
 
           if (responseBody.error === "invalid_grant") {
@@ -245,11 +281,20 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       },
       isAccessTokenUnusable: async function (response) {
         const myLog = logger.getSubLogger({ prefix: ["zoomvideo:isAccessTokenUnusable"] });
-        myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
-        if (!response.ok || (response.status < 200 && response.status >= 300)) {
-          const responseBody = await response.json();
+        myLog.info(safeStringify({ status: response.status, ok: response.ok }));
+        if (!response.ok) {
+          let responseBody;
+          const responseToUseInCaseOfError = response.clone();
+          try {
+            responseBody = await response.json();
+          } catch (e) {
+            return await handleZoomResponseJsonParseError({
+              error: e,
+              clonedResponse: responseToUseInCaseOfError,
+            });
+          }
           myLog.debug(safeStringify({ responseBody }));
-
+          // 124 is the error code for invalid access token from Zoom API
           if (responseBody.code === 124) {
             return { reason: responseBody.message ?? "" };
           }
@@ -296,7 +341,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           end: new Date(new Date(meeting.start_time).getTime() + meeting.duration * 60000).toISOString(),
         }));
       } catch (err) {
-        console.error(err);
+        log.error("Failed to get availability", safeStringify(err));
         /* Prevents booking failure when Zoom Token is expired */
         return [];
       }
@@ -323,8 +368,10 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         }
         throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
       } catch (err) {
-        console.error(err);
-        log.error("Zoom meeting creation failed", safeStringify({ error: err, event }));
+        log.error(
+          "Zoom meeting creation failed",
+          safeStringify({ error: safeStringify(err), event: getPiiFreeCalendarEvent(event) })
+        );
         /* Prevents meeting creation failure when Zoom Token is expired */
         throw new Error("Unexpected error");
       }
@@ -359,7 +406,10 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           url: result.join_url,
         };
       } catch (err) {
-        log.error("Failed to update meeting", safeStringify(err));
+        log.error(
+          "Failed to update meeting",
+          safeStringify({ error: err, event: getPiiFreeCalendarEvent(event) })
+        );
         return Promise.reject(new Error("Failed to update meeting"));
       }
     },
