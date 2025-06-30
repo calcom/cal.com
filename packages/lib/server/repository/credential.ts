@@ -15,6 +15,9 @@ type BaseCredentialCreateInput = {
   key: any;
   appId: string;
   delegationCredentialId?: string | null;
+  subscriptionId?: string | null;
+  paymentStatus?: string | null;
+  billingCycleStart?: number | null;
 };
 
 type CredentialCreateInput =

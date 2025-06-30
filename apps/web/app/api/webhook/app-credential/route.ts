@@ -7,6 +7,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { CREDENTIAL_SYNC_SECRET, CREDENTIAL_SYNC_SECRET_HEADER_NAME } from "@calcom/lib/constants";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 const appCredentialWebhookRequestBodySchema = z.object({
@@ -87,13 +88,11 @@ async function postHandler(request: NextRequest) {
       });
       return NextResponse.json({ message: `Credentials updated for userId: ${reqBody.userId}` });
     } else {
-      await prisma.credential.create({
-        data: {
-          key: keys,
-          userId: reqBody.userId,
-          appId: appMetadata.slug,
-          type: appMetadata.type,
-        },
+      await CredentialRepository.create({
+        key: keys,
+        userId: reqBody.userId,
+        appId: appMetadata.slug,
+        type: appMetadata.type,
       });
       return NextResponse.json({ message: `Credentials created for userId: ${reqBody.userId}` });
     }
