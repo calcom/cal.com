@@ -21,7 +21,7 @@ export function Setup(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
   const [licenseOption, setLicenseOption] = useState<"FREE" | "EXISTING">(
-    props.hasValidLicense ? "EXISTING" : "EXISTING"
+    props.hasValidLicense ? "EXISTING" : "FREE"
   );
 
   const defaultStep = useMemo(() => {
