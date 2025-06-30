@@ -207,7 +207,6 @@ const LicenseSelection = (
                   render={({ field: { onBlur, onChange, value } }) => (
                     <TextField
                       label={t("signature_token_optional")}
-                      {...formMethods.register("signatureToken")}
                       placeholder="cal_sk_XXXXXXXXXXX"
                       value={value || ""}
                       onBlur={onBlur}
