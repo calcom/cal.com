@@ -20,9 +20,9 @@ export function extractUserContext(request: Request): UserContext {
     context.userEmail = user.email;
   }
 
-  const organizationId = (request as any).organizationId as number | undefined;
-  if (organizationId) {
-    context.organizationId = organizationId;
+  const organization = (request as any).organization as { id: number } | undefined;
+  if (organization) {
+    context.organizationId = organization.id;
   }
 
   const team = (request as any).team as Team | undefined;
