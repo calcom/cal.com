@@ -10,6 +10,7 @@ import { RetryableError } from "@calcom/lib/crmManager/errors";
 import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { AssignmentReasonRepository } from "@calcom/lib/server/repository/assignmentReason";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -1180,6 +1181,10 @@ export default class SalesforceCRMService implements CRM {
 
     const customFieldInputsEnabled =
       appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectMap;
+    console.log(
+      "🚀 ~ generateWriteToEventBody ~ onBookingWriteToEventObjectMap:",
+      appOptions?.onBookingWriteToEventObjectMap
+    );
 
     if (!customFieldInputsEnabled) return {};
 
@@ -1244,6 +1249,12 @@ export default class SalesforceCRMService implements CRM {
         return;
       }
       valueToWrite = await this.getTextValueFromBookingTracking(fieldValue, bookingUid);
+    } else if (fieldValue === "{assignmentReason}") {
+      valueToWrite = await this.getAssignmentReason(bookingUid);
+      if (!valueToWrite) {
+        log.error(`No assignment reason found for bookingUid ${bookingUid}`);
+        return;
+      }
     } else {
       // Get the value from the booking response
       if (!calEventResponses) {
@@ -1334,6 +1345,11 @@ export default class SalesforceCRMService implements CRM {
     // Remove the {utm: and trailing } from the field value
     const utmParam = fieldValue.split(":")[1].slice(0, -1);
     return tracking[`utm_${utmParam}` as keyof typeof tracking]?.toString() ?? "";
+  }
+
+  private async getAssignmentReason(bookingId: number) {
+    const assignmentReason = await AssignmentReasonRepository.findLatestReasonFromBookingUid(bookingId);
+    return assignmentReason?.reasonString ?? "";
   }
 
   private getTextValueFromBookingResponse(fieldValue: string, calEventResponses: CalEventResponses) {
