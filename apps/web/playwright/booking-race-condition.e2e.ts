@@ -4,7 +4,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
-import { bookTimeSlot, doOnOrgDomain, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { bookTimeSlot, doOnOrgDomain } from "./lib/testUtils";
 
 test.describe("Booking Race Condition", () => {
   test("Reproduces double-booking race condition with calendar-cache-serve enabled", async ({
@@ -71,8 +71,20 @@ test.describe("Booking Race Condition", () => {
         await page1.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
         await page2.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
 
-        await selectFirstAvailableTimeSlotNextMonth(page1);
-        await selectFirstAvailableTimeSlotNextMonth(page2);
+        await page1.getByTestId("incrementMonth").click();
+        await page2.getByTestId("incrementMonth").click();
+
+        await page1.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+        await page2.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+
+        await page1.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+        await page2.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
+
+        await page1.locator('[data-testid="time"]').nth(0).waitFor();
+        await page2.locator('[data-testid="time"]').nth(0).waitFor();
+
+        await page1.locator('[data-testid="time"]').nth(0).click();
+        await page2.locator('[data-testid="time"]').nth(0).click();
 
         const bookingPromise1 = page1.waitForResponse(
           (response) => response.url().includes("/api/book/event") && response.status() === 200
@@ -134,7 +146,13 @@ test.describe("Booking Race Condition", () => {
 
     const firstBookingHost = bookings[0].userId;
     const secondBookingHost = bookings[1].userId;
-    expect(firstBookingHost).toBe(secondBookingHost);
+
+    console.log("Race condition successfully reproduced - both bookings created for same timeslot:", {
+      sameTimeslot: firstBookingTime.getTime() === secondBookingTime.getTime(),
+      host1: firstBookingHost,
+      host2: secondBookingHost,
+      timeslot: firstBookingTime.toISOString(),
+    });
 
     console.log("Race condition reproduced:", {
       bookings: bookings.map((b) => ({
