@@ -557,6 +557,12 @@ export class EventTypeRepository {
         },
       },
       teamId: true,
+      hostGroups: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       team: {
         select: {
           id: true,
@@ -623,6 +629,7 @@ export class EventTypeRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          groupId: true,
         },
       },
       userId: true,

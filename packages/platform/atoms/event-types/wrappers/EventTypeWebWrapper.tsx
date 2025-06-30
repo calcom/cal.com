@@ -107,7 +107,16 @@ export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWe
   return <EventTypeWeb {...eventTypeQueryData} id={id} />;
 };
 
-const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
+const EventTypeWeb = ({
+  id,
+  ...rest
+}: EventTypeSetupProps & {
+  id: number;
+  hostGroups: {
+    id: string;
+    name: string;
+  }[];
+}) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const pathname = usePathname();
@@ -118,7 +127,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
   const telemetry = useTelemetry();
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
-  const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
+  const { eventType, locationOptions, team, teamMembers, destinationCalendar, hostGroups } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: eventTypeApps } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
@@ -211,6 +220,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
         teamMembers={teamMembers}
         team={team}
         eventType={eventType}
+        hostGroups={hostGroups}
       />
     ),
     limits: <EventLimitsTab eventType={eventType} />,

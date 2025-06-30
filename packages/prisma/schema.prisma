@@ -62,7 +62,7 @@ model Host {
   scheduleId       Int?
   createdAt        DateTime   @default(now())
   group            HostGroup? @relation(fields: [groupId], references: [id])
-  groupId          Int?
+  groupId          String?
 
   @@id([userId, eventTypeId])
   @@index([userId])
@@ -71,7 +71,7 @@ model Host {
 }
 
 model HostGroup {
-  id          Int        @id @default(autoincrement())
+  id          String     @id @default(uuid())
   name        String
   hosts       Host[]
   eventType   EventType? @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)

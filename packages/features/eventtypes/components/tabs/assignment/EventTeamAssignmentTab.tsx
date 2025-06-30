@@ -53,10 +53,6 @@ export type EventTeamAssignmentTabBaseProps = Pick<
   customClassNames?: EventTeamAssignmentTabCustomClassNames;
   orgId: number | null;
   isSegmentApplicable: boolean;
-  hostGroups: {
-    name: string;
-    members: TeamMember[];
-  }[];
 };
 
 export const mapMemberToChildrenOption = (
@@ -385,7 +381,7 @@ const RoundRobinHosts = ({
             )}
           />
         </>
-        {!groups.length ? (
+        {!hostGroups.length ? (
           <AddMembersWithSwitch
             placeholder={t("add_a_member")}
             teamId={teamId}
@@ -426,8 +422,8 @@ const RoundRobinHosts = ({
               <AddMembersWithSwitch
                 placeholder={t("add_a_member")}
                 teamId={teamId}
-                teamMembers={group.members}
-                value={value}
+                teamMembers={teamMembers}
+                value={value.filter((host) => host.groupId === group.id)}
                 onChange={onChange}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
@@ -539,8 +535,8 @@ const Hosts = ({
   customClassNames?: HostsCustomClassNames;
   isSegmentApplicable: boolean;
   hostGroups?: {
+    id: string;
     name: string;
-    members: TeamMember[];
   }[];
 }) => {
   const {
@@ -651,7 +647,6 @@ export const EventTeamAssignmentTab = ({
   customClassNames,
   orgId,
   isSegmentApplicable,
-  hostGroups,
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
@@ -839,7 +834,7 @@ export const EventTeamAssignmentTab = ({
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
             customClassNames={customClassNames?.hosts}
-            hostGroups={hostGroups}
+            hostGroups={eventType.hostGroups}
           />
         </>
       )}
