@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";

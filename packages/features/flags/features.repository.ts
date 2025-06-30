@@ -3,7 +3,7 @@ import { captureException } from "@sentry/nextjs";
 
 import db from "@calcom/prisma";
 
-import type { AppFlags } from "./config";
+import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 interface CacheOptions {
@@ -80,9 +80,9 @@ export class FeaturesRepository implements IFeaturesRepository {
 
     if (!result.length) return null;
 
-    const features: Record<keyof AppFlags, boolean> = Object.fromEntries(
+    const features: TeamFeatures = Object.fromEntries(
       result.map((teamFeature) => [teamFeature.feature.slug, true])
-    ) as Record<keyof AppFlags, boolean>;
+    ) as TeamFeatures;
 
     return features;
   }

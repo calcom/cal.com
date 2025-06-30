@@ -24,3 +24,5 @@ export type AppFlags = {
   pbac: boolean;
   "restriction-schedule": boolean;
 };
+
+export type TeamFeatures = Record<keyof AppFlags, boolean>;

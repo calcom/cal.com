@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import type { AppFlags } from "../config";
 
-type TeamFeatures = Record<number, Record<keyof AppFlags, boolean>> | null;
+export type TeamFeatures = Record<number, Record<keyof AppFlags, boolean>>;
 
 export const useIsFeatureEnabledForTeam = ({
   teamFeatures,

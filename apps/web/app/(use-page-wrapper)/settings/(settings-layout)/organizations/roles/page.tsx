@@ -2,7 +2,6 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { AppFlags } from "@calcom/features/flags/config";
@@ -17,7 +16,6 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { CreateRoleCTA } from "./_components/CreateRoleCta";
 import { RolesList } from "./_components/RolesList";
-import { SkeletonLoader } from "./_components/RolesSkeletonLoader";
 import { roleSearchParamsCache } from "./_components/searchParams";
 
 const getCachedTeamRoles = unstable_cache(
@@ -101,20 +99,18 @@ const Page = async ({ searchParams }: { searchParams: Record<string, string | st
       description={t("roles_and_permissions_description")}
       borderInShellHeader={false}
       CTA={canCreate ? <CreateRoleCTA /> : null}>
-      <Suspense fallback={<SkeletonLoader />}>
-        <RolesList
-          teamId={session.user.org.id}
-          roles={roles}
-          permissions={{
-            canCreate: canCreate,
-            canRead: canRead,
-            canUpdate: canUpdate,
-            canDelete: canDelete,
-          }}
-          initialSelectedRole={selectedRole}
-          initialSheetOpen={isSheetOpen}
-        />
-      </Suspense>
+      <RolesList
+        teamId={session.user.org.id}
+        roles={roles}
+        permissions={{
+          canCreate: canCreate,
+          canRead: canRead,
+          canUpdate: canUpdate,
+          canDelete: canDelete,
+        }}
+        initialSelectedRole={selectedRole}
+        initialSheetOpen={isSheetOpen}
+      />
     </SettingsHeader>
   );
 };

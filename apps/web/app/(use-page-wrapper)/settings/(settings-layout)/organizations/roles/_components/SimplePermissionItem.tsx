@@ -1,3 +1,5 @@
+"use client";
+
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

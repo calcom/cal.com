@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import type { AppFlags } from "@calcom/features/flags/config";
+import type { TeamFeatures } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -30,14 +30,14 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
     return redirect("/auth/login");
   }
 
-  let teamFeatures: Record<number, Record<keyof AppFlags, boolean>> | null = null;
-
+  let teamFeatures: Record<number, TeamFeatures> | null = null;
+  const orgId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
   // For now we only grab organization features but it would be nice to fetch these on the server side for specific team feature flags
-  if (session?.user.org) {
-    const features = await getTeamFeatures(session.user.org.id);
+  if (orgId) {
+    const features = await getTeamFeatures(orgId);
     if (features) {
       teamFeatures = {
-        [session.user.org.id]: features,
+        [orgId]: features,
       };
     }
   }
