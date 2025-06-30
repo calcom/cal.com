@@ -116,7 +116,6 @@ const LocationInput = (props: {
 }) => {
   const { t } = useLocale();
   const { eventLocationType, index, customClassNames, disableLocationProp, ...remainingProps } = props;
-  console.log("hey", disableLocationProp);
   if (eventLocationType?.organizerInputType === "text") {
     const { defaultValue, ...rest } = remainingProps;
 
