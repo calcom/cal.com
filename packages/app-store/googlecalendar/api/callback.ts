@@ -4,7 +4,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
-import { GOOGLE_CALENDAR_SCOPES, WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
+import {
+  GOOGLE_CALENDAR_SCOPES,
+  SCOPE_USERINFO_PROFILE,
+  WEBAPP_URL,
+  WEBAPP_URL_FOR_OAUTH,
+} from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
