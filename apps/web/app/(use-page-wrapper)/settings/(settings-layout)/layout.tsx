@@ -44,7 +44,7 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
 
   return (
     <>
-      <SettingsLayoutAppDirClient {...props} teamFeatures={teamFeatures} />
+      <SettingsLayoutAppDirClient {...props} teamFeatures={teamFeatures ?? {}} />
     </>
   );
 }

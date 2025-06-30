@@ -758,7 +758,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 export type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
-  teamFeatures?: TeamFeatures | null;
+  teamFeatures?: Record<number, TeamFeatures>;
 } & ComponentProps<typeof Shell>;
 
 export default function SettingsLayoutAppDirClient({ children, teamFeatures, ...rest }: SettingsLayoutProps) {
