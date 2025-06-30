@@ -89,6 +89,13 @@ async function handler(input: CancelBookingInput) {
     arePlatformEmailsEnabled,
   } = input;
 
+  if (bookingToDelete.status === BookingStatus.CANCELLED) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "This booking has already been cancelled.",
+    });
+  }
+
   if (!bookingToDelete.userId || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }

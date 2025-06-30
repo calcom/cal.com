@@ -712,6 +712,47 @@ export class BookingsService_2024_08_13 {
   }
 
   async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
+    try {
+      await this.canCancelBooking(bookingUid, body);
+      const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
+      const res = await handleCancelBooking({
+        bookingData: bookingRequest.body,
+        userId: bookingRequest.userId,
+        arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
+        platformClientId: bookingRequest.platformClientId,
+        platformCancelUrl: bookingRequest.platformCancelUrl,
+        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+        platformBookingUrl: bookingRequest.platformBookingUrl,
+      });
+
+      if (!res.onlyRemovedAttendee) {
+        await this.billingService.cancelUsageByBookingUid(res.bookingUid);
+      }
+
+      if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
+        return this.getAllRecurringBookingsByIndividualUid(bookingUid);
+      }
+      return this.getBooking(bookingUid);
+    } catch (error) {
+      this.errorsBookingsService.handleBookingError(error, false);
+    }
+  }
+
+  async canCancelBooking(bookingUid: string, body: CancelBookingInput) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+    if (booking.status === "CANCELLED" && booking.rescheduled) {
+      throw new BadRequestException(
+        `Can't cancel booking with uid=${bookingUid} because it has been cancelled and rescheduled already. Please provide uid of a booking that is not cancelled.`
+      );
+    }
+    if (booking.status === "CANCELLED") {
+      throw new BadRequestException(
+        `Can't cancel booking with uid=${bookingUid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
+      );
+    }
     if (this.inputService.isCancelSeatedBody(body)) {
       const seat = await this.bookingSeatRepository.getByReferenceUid(body.seatUid);
 
@@ -726,26 +767,7 @@ export class BookingsService_2024_08_13 {
       }
     }
 
-    const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
-    const res = await handleCancelBooking({
-      bookingData: bookingRequest.body,
-      userId: bookingRequest.userId,
-      arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
-      platformClientId: bookingRequest.platformClientId,
-      platformCancelUrl: bookingRequest.platformCancelUrl,
-      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-      platformBookingUrl: bookingRequest.platformBookingUrl,
-    });
-
-    if (!res.onlyRemovedAttendee) {
-      await this.billingService.cancelUsageByBookingUid(res.bookingUid);
-    }
-
-    if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
-      return this.getAllRecurringBookingsByIndividualUid(bookingUid);
-    }
-
-    return this.getBooking(bookingUid);
+    return booking;
   }
 
   private async getAllRecurringBookingsByIndividualUid(bookingUid: string) {
