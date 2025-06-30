@@ -109,7 +109,7 @@ export function Setup(props: PageProps) {
             appCategoryNavigationContainer: "max-h-[400px] overflow-y-auto md:p-4",
             verticalTabsItem: "!w-48 md:p-4",
           }}
-          baseURL="/auth/setup?step=3"
+          baseURL={`/auth/setup?step=${steps.length}`}
           useQueryParam={true}
           onSubmit={() => {
             setIsPending(true);

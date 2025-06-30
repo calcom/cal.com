@@ -25,14 +25,14 @@ export function useWizardState(defaultStep = 1, maxSteps: number) {
 
   const goToStep = useCallback(
     (newStep: number) => {
-      setStep(newStep);
+      setStep(Math.min(Math.max(newStep, 1), maxSteps));
     },
     [setStep]
   );
 
   const nextStep = useCallback(() => {
     if (step < maxSteps) {
-      setStep(step + 1);
+      setStep(prev => prev + 1);
     }
   }, [step, maxSteps, setStep]);
 
