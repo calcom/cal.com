@@ -444,26 +444,32 @@ const RoundRobinHosts = ({
               }
               return null;
             })()}
-            {hostGroups.map((group, index) => (
-              <div key={index} className="border-subtle my-4 rounded-md border p-4 pb-0">
-                <Label className="-mb-1">{group.name}</Label>
-                <AddMembersWithSwitch
-                  placeholder={t("add_a_member")}
-                  teamId={teamId}
-                  teamMembers={teamMembers}
-                  value={value.filter((host) => host.groupId === group.id)}
-                  onChange={onChange}
-                  assignAllTeamMembers={assignAllTeamMembers}
-                  setAssignAllTeamMembers={setAssignAllTeamMembers}
-                  isSegmentApplicable={isSegmentApplicable}
-                  automaticAddAllEnabled={true}
-                  isRRWeightsEnabled={isRRWeightsEnabled}
-                  isFixed={false}
-                  containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
-                  customClassNames={customClassNames?.addMembers}
-                />
-              </div>
-            ))}
+            {hostGroups.map((group, index) => {
+              const hasHostsWithoutGroup = value.some((host) => !host.groupId);
+              const groupNumber = hasHostsWithoutGroup ? index + 2 : index + 1;
+              const groupName = group.name || `Group ${groupNumber}`;
+
+              return (
+                <div key={index} className="border-subtle my-4 rounded-md border p-4 pb-0">
+                  <Label className="-mb-1">{groupName}</Label>
+                  <AddMembersWithSwitch
+                    placeholder={t("add_a_member")}
+                    teamId={teamId}
+                    teamMembers={teamMembers}
+                    value={value.filter((host) => host.groupId === group.id)}
+                    onChange={onChange}
+                    assignAllTeamMembers={assignAllTeamMembers}
+                    setAssignAllTeamMembers={setAssignAllTeamMembers}
+                    isSegmentApplicable={isSegmentApplicable}
+                    automaticAddAllEnabled={true}
+                    isRRWeightsEnabled={isRRWeightsEnabled}
+                    isFixed={false}
+                    containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
+                    customClassNames={customClassNames?.addMembers}
+                  />
+                </div>
+              );
+            })}
           </>
         )}
       </div>
