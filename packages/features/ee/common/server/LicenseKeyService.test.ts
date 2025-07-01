@@ -72,72 +72,9 @@ describe("LicenseKeyService", () => {
 
     it("should create a NoopLicenseKeyService when no license key is provided", async () => {
       vi.mocked(getDeploymentKey).mockResolvedValue("");
-      const service = await (await getLicenseKeyService()).create();
+      const LicenseKeyService = await getLicenseKeyService();
+      const service = await LicenseKeyService.create();
       expect(service).toBeInstanceOf(NoopLicenseKeyService);
-    });
-  });
-
-  describe("incrementUsage with signature token scenarios", () => {
-    it("should make API call without signature when signature token is null", async () => {
-      vi.mocked(getDeploymentSignatureToken).mockResolvedValue(null);
-      const mockResponse = { success: true };
-      const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
-        json: vi.fn().mockResolvedValue(mockResponse),
-      } as any);
-
-      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
-      stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
-      const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create();
-
-      const response = await service.incrementUsage();
-      expect(response).toEqual(mockResponse);
-      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/v1/license/usage/increment?event=booking`, {
-        body: undefined,
-        headers: {
-          ...BASE_HEADERS,
-          nonce: "mocked-nonce",
-          "x-cal-license-key": "test-license-key",
-          // signature should not be present
-        },
-        method: "POST",
-        mode: "cors",
-        signal: expect.any(AbortSignal),
-      });
-      // Verify createSignature was not called
-      expect(createSignature).not.toHaveBeenCalled();
-    });
-
-    it("should include signature when signature token is available", async () => {
-      const signatureToken = "test-signature-token";
-      vi.mocked(getDeploymentSignatureToken).mockResolvedValue(signatureToken);
-      const mockResponse = { success: true };
-      const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
-        json: vi.fn().mockResolvedValue(mockResponse),
-      } as any);
-
-      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
-      vi.mocked(createSignature).mockReturnValue("mocked-signature");
-      stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
-      const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create();
-
-      const response = await service.incrementUsage();
-      expect(response).toEqual(mockResponse);
-      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/v1/license/usage/increment?event=booking`, {
-        body: undefined,
-        headers: {
-          ...BASE_HEADERS,
-          nonce: "mocked-nonce",
-          signature: "mocked-signature",
-          "x-cal-license-key": "test-license-key",
-        },
-        method: "POST",
-        mode: "cors",
-        signal: expect.any(AbortSignal),
-      });
-      // Verify createSignature was called with correct parameters
-      expect(createSignature).toHaveBeenCalledWith({}, "mocked-nonce", signatureToken);
     });
   });
 

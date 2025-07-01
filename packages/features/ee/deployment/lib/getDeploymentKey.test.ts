@@ -79,5 +79,22 @@ describe("getDeploymentKey", () => {
       expect(result).toBeNull();
       expect(mockDeploymentRepo.getSignatureToken).toHaveBeenCalledWith(1);
     });
+
+    it("should return null when decryption fails due to missing encryption key", async () => {
+      process.env.CALENDSO_ENCRYPTION_KEY = "";
+      const encryptedToken = "encrypted:test-token";
+      mockDeploymentRepo.getSignatureToken.mockResolvedValue(encryptedToken);
+
+      const result = await getDeploymentSignatureToken(mockDeploymentRepo);
+      expect(result).toBeNull();
+    });
+
+    it("should attempt to decrypt any token format", async () => {
+      const token = "invalid-token";
+      mockDeploymentRepo.getSignatureToken.mockResolvedValue(token);
+
+      const result = await getDeploymentSignatureToken(mockDeploymentRepo);
+      expect(result).toBe("invalid-token"); // The mock decrypt just returns the input if key exists
+    });
   });
 });
