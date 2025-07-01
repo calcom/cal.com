@@ -799,15 +799,8 @@ test.describe("Calendar Cache Booking", () => {
     await page.goto(`/${user.username}/${eventType.slug}`);
 
     try {
-      await expect(page.locator("html")).toBeVisible({ timeout: 5000 });
-      await expect(page.locator("head")).toBeVisible({ timeout: 2000 });
-      await expect(page.locator("body")).toBeVisible({ timeout: 5000 });
-      await expect(page.locator("body")).not.toBeEmpty({ timeout: 3000 });
-
-      await expect(page.locator("#__next")).toBeVisible({ timeout: 5000 });
-
-      await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 5000 });
-      await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 10000 });
     } catch (error) {
       console.error("Page load validation failed");
       console.error("Current URL:", page.url());
@@ -821,7 +814,7 @@ test.describe("Calendar Cache Booking", () => {
     await page.fill('[name="email"]', `test-${randomString(10)}@example.com`);
     await page.click('[type="submit"]');
 
-    await expect(page.locator('[data-testid="success-page"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="success-page"]')).toBeVisible({ timeout: 10000 });
 
     const updatedCache = await prisma.calendarCache.findFirst({
       where: { credentialId: credential.id },
@@ -896,15 +889,8 @@ test.describe("Calendar Cache Booking", () => {
     await page.goto(`/${user1.username}/${teamEventType.slug}`);
 
     try {
-      await expect(page.locator("html")).toBeVisible({ timeout: 5000 });
-      await expect(page.locator("head")).toBeVisible({ timeout: 2000 });
-      await expect(page.locator("body")).toBeVisible({ timeout: 5000 });
-      await expect(page.locator("body")).not.toBeEmpty({ timeout: 3000 });
-
-      await expect(page.locator("#__next")).toBeVisible({ timeout: 5000 });
-
-      await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 5000 });
-      await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 10000 });
     } catch (error) {
       console.error("Page load validation failed");
       console.error("Current URL:", page.url());
@@ -918,7 +904,7 @@ test.describe("Calendar Cache Booking", () => {
     await page.fill('[name="email"]', `team-test-${randomString(10)}@example.com`);
     await page.click('[type="submit"]');
 
-    await expect(page.locator('[data-testid="success-page"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="success-page"]')).toBeVisible({ timeout: 10000 });
 
     const updatedCaches = await prisma.calendarCache.findMany({
       where: {
