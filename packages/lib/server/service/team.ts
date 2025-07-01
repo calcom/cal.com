@@ -1,8 +1,5 @@
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 export interface TeamWithEventTypes {
   id: number;
@@ -46,13 +43,6 @@ export interface TeamWithEventTypes {
   organizationSettings: {
     allowSEOIndexing: boolean;
   } | null;
-}
-
-export interface TeamEventData {
-  teamId: number;
-  orgBannerUrl: string;
-  isBrandingHidden: boolean;
-  isSEOIndexable: boolean;
 }
 
 export class TeamService {
@@ -131,32 +121,5 @@ export class TeamService {
     });
 
     return team;
-  }
-
-  static processTeamDataForBooking(team: TeamWithEventTypes): TeamEventData {
-    const organizationSettings = getOrganizationSEOSettings(team);
-    const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
-
-    return {
-      teamId: team.id,
-      orgBannerUrl: team.parent?.bannerUrl ?? "",
-      isBrandingHidden: shouldHideBrandingForTeamEvent({
-        eventTypeId: team.eventTypes[0]?.id,
-        team,
-      }),
-      isSEOIndexable: allowSEOIndexing,
-    };
-  }
-
-  static getTeamProfileData(team: TeamWithEventTypes, orgSlug: string | null) {
-    const name = team.parent?.name ?? team.name ?? null;
-
-    return {
-      image: team.parent
-        ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-        : getPlaceholderAvatar(team.logoUrl, team.name),
-      name,
-      username: orgSlug ?? null,
-    };
   }
 }

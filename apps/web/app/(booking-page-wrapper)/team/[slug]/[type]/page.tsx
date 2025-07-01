@@ -6,10 +6,13 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { BookingService } from "@calcom/lib/server/service/booking";
 import { EventTypeService } from "@calcom/lib/server/service/eventType";
-import { TeamService } from "@calcom/lib/server/service/team";
+import { type TeamWithEventTypes } from "@calcom/lib/server/service/team";
 import slugify from "@calcom/lib/slugify";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { RedirectType } from "@calcom/prisma/enums";
@@ -26,6 +29,32 @@ const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
 });
 
+const processTeamDataForBooking = (team: TeamWithEventTypes) => {
+  const organizationSettings = getOrganizationSEOSettings(team);
+  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
+  return {
+    teamId: team.id,
+    orgBannerUrl: team.parent?.bannerUrl ?? "",
+    isBrandingHidden: shouldHideBrandingForTeamEvent({
+      eventTypeId: team.eventTypes[0]?.id,
+      team,
+    }),
+    isSEOIndexable: allowSEOIndexing,
+  };
+};
+
+const getTeamProfileData = (team: TeamWithEventTypes, orgSlug: string | null) => {
+  const name = team.parent?.name ?? team.name ?? null;
+
+  return {
+    image: team.parent
+      ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+      : getPlaceholderAvatar(team.logoUrl, team.name),
+    name,
+    username: orgSlug ?? null,
+  };
+};
 export async function getCachedOrgContext(_params: PageProps["params"]) {
   const params = await _params;
   const result = paramsSchema.safeParse({
@@ -59,13 +88,13 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   if (!team || !team.eventTypes?.[0]) return {}; // should never happen
 
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-  const profileData = TeamService.getTeamProfileData(team, orgSlug);
+  const profileData = getTeamProfileData(team, orgSlug);
   const searchParamsObj = await searchParams;
   const fromRedirectOfNonOrgLink = searchParamsObj.orgRedirection === "true";
   const eventData = await getCachedProcessedEventData(team, orgSlug, profileData, fromRedirectOfNonOrgLink);
   if (!eventData) return {}; // should never happen
 
-  const teamData = TeamService.processTeamDataForBooking(team);
+  const teamData = processTeamDataForBooking(team);
   const title = eventData.title;
   const profileName = eventData.profile.name ?? "";
   const profileImage = eventData.profile.image;
@@ -121,7 +150,7 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   }
 
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-  const profileData = TeamService.getTeamProfileData(team, orgSlug);
+  const profileData = getTeamProfileData(team, orgSlug);
   const fromRedirectOfNonOrgLink = legacyCtx.query.orgRedirection === "true";
 
   const eventData = await getCachedProcessedEventData(team, orgSlug, profileData, fromRedirectOfNonOrgLink);
@@ -143,7 +172,7 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     length: eventData.length,
   };
 
-  const teamData = TeamService.processTeamDataForBooking(team);
+  const teamData = processTeamDataForBooking(team);
   const dynamicData = await BookingService.getDynamicBookingData(
     teamData.teamId,
     rescheduleUid,
