@@ -393,6 +393,7 @@ export const BookerPlatformWrapper = (
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
     routingFormSearchParams,
+    isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
   });
 
   const onOverlaySwitchStateChange = useCallback(

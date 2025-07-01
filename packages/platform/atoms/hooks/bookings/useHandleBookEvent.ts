@@ -30,6 +30,7 @@ type UseHandleBookingProps = {
   handleRecBooking: (input: BookingCreateBody[], callbacks?: Callbacks) => void;
   locationUrl?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
+  isBookingDryRun?: boolean;
 };
 
 export const useHandleBookEvent = ({
@@ -42,6 +43,7 @@ export const useHandleBookEvent = ({
   handleRecBooking,
   locationUrl,
   routingFormSearchParams,
+  isBookingDryRun,
 }: UseHandleBookingProps) => {
   const isPlatform = useIsPlatform();
   const setFormValues = useBookerStore((state) => state.setFormValues);
@@ -113,14 +115,29 @@ export const useHandleBookEvent = ({
       const tracking = getUtmTrackingParameters(searchParams);
 
       if (isInstantMeeting) {
-        handleInstantBooking(mapBookingToMutationInput(bookingInput), callbacks);
+        const mutationInput = mapBookingToMutationInput(bookingInput);
+        if (isBookingDryRun !== undefined) {
+          mutationInput._isDryRun = isBookingDryRun;
+        }
+        handleInstantBooking(mutationInput, callbacks);
       } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
-        handleRecBooking(
-          mapRecurringBookingToMutationInput(bookingInput, recurringEventCount, tracking),
-          callbacks
+        const recurringInputs = mapRecurringBookingToMutationInput(
+          bookingInput,
+          recurringEventCount,
+          tracking
         );
+        if (isBookingDryRun !== undefined) {
+          recurringInputs.forEach((input) => {
+            input._isDryRun = isBookingDryRun;
+          });
+        }
+        handleRecBooking(recurringInputs, callbacks);
       } else {
-        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl, tracking }, callbacks);
+        const mutationInput = { ...mapBookingToMutationInput(bookingInput), locationUrl, tracking };
+        if (isBookingDryRun !== undefined) {
+          mutationInput._isDryRun = isBookingDryRun;
+        }
+        handleBooking(mutationInput, callbacks);
       }
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});
