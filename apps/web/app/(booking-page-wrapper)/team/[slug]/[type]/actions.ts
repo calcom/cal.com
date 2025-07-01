@@ -20,58 +20,21 @@ export async function revalidateTeamBookingPage(
   }
 }
 
-/**
- * Cached team data - changes infrequently (team settings, org structure)
- * Cache TTL: Default (longer caching)
- */
-export const getCachedTeamWithEventTypes = unstable_cache(
-  TeamService.getTeamWithEventTypes,
-  ["team-with-event-types"],
-  {
-    revalidate: NEXTJS_CACHE_TTL,
-  }
-);
+export const getCachedTeamWithEventTypes = unstable_cache(TeamService.getTeamWithEventTypes, undefined, {
+  revalidate: NEXTJS_CACHE_TTL,
+});
 
-/**
- * Creates a cached version of processEventDataForBooking with fromRedirectOfNonOrgLink parameter
- * Cache TTL: Default (longer caching)
- */
-const _cachedProcessEventDataForBooking = unstable_cache(
+export const getCachedProcessedEventData = unstable_cache(
   EventTypeService.processEventDataForBooking,
-  ["processed-event-data"],
+  undefined,
   {
     revalidate: NEXTJS_CACHE_TTL,
   }
 );
 
-/**
- * Cached event data processing - changes infrequently (event type settings)
- * Cache TTL: Default (longer caching)
- */
-export async function getCachedProcessedEventData(
-  team: any,
-  orgSlug: string | null,
-  profileData: { image: string; name: string | null; username: string | null },
-  fromRedirectOfNonOrgLink: boolean
-) {
-  return await _cachedProcessEventDataForBooking(team, orgSlug, profileData, fromRedirectOfNonOrgLink);
-}
-
-/**
- * Cached feature flags - changes infrequently (team feature configuration)
- * Cache TTL: Default (longer caching)
- */
-export const getCachedTeamFeatureFlags = unstable_cache(
-  BookingService.getTeamFeatureFlags,
-  ["team-feature-flags"],
-  {
-    revalidate: NEXTJS_CACHE_TTL,
-  }
-);
-
-// Non-cached synchronous data transformations (no DB calls):
-export const processTeamDataForBooking = TeamService.processTeamDataForBooking;
-export const getTeamProfileData = TeamService.getTeamProfileData;
+export const getCachedTeamFeatureFlags = unstable_cache(BookingService.getTeamFeatureFlags, undefined, {
+  revalidate: NEXTJS_CACHE_TTL,
+});
 
 // Note: These methods are NOT cached as they depend on user/request context:
 // - BookingService.getBookingSessionData (user session, reschedule UID)

@@ -9,6 +9,7 @@ import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizat
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { BookingService } from "@calcom/lib/server/service/booking";
 import { EventTypeService } from "@calcom/lib/server/service/eventType";
+import { TeamService } from "@calcom/lib/server/service/team";
 import slugify from "@calcom/lib/slugify";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { RedirectType } from "@calcom/prisma/enums";
@@ -18,12 +19,7 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import Type from "~/team/type-view";
 
-import {
-  getCachedTeamWithEventTypes,
-  getCachedProcessedEventData,
-  processTeamDataForBooking,
-  getTeamProfileData,
-} from "./actions";
+import { getCachedTeamWithEventTypes, getCachedProcessedEventData } from "./actions";
 
 const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),
@@ -68,7 +64,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
 
   // Get team profile data (not cached - simple transformation)
-  const profileData = getTeamProfileData(team, orgSlug);
+  const profileData = TeamService.getTeamProfileData(team, orgSlug);
 
   // Check for fromRedirectOfNonOrgLink
   const searchParamsObj = await searchParams;
@@ -81,7 +77,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   }
 
   // Get team booking data (not cached - simple transformation)
-  const teamData = processTeamDataForBooking(team);
+  const teamData = TeamService.processTeamDataForBooking(team);
 
   const title = eventData.title;
   const profileName = eventData.profile.name ?? "";
@@ -138,7 +134,7 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
 
   // Get team profile data (not cached - simple transformation)
-  const profileData = getTeamProfileData(team, orgSlug);
+  const profileData = TeamService.getTeamProfileData(team, orgSlug);
 
   // Check for fromRedirectOfNonOrgLink - CRITICAL for org redirection logic
   const searchParamsObj = await searchParams;
@@ -151,7 +147,7 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   }
 
   // Get team booking data (not cached - simple transformation)
-  const teamData = processTeamDataForBooking(team);
+  const teamData = TeamService.processTeamDataForBooking(team);
 
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
