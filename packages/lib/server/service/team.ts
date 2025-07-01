@@ -51,7 +51,7 @@ export class TeamService {
     meetingSlug: string,
     orgSlug: string | null
   ): Promise<TeamWithEventTypes | null> {
-    const team = await prisma.team.findFirst({
+    return await prisma.team.findFirst({
       where: {
         ...getSlugOrRequestedSlug(teamSlug),
         parent: orgSlug ? getSlugOrRequestedSlug(orgSlug) : null,
@@ -119,7 +119,5 @@ export class TeamService {
         },
       },
     });
-
-    return team;
   }
 }
