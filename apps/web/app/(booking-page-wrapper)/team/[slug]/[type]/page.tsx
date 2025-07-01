@@ -127,28 +127,23 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
       eventTypeSlug: meetingSlug,
       currentQuery: legacyCtx.query,
     });
-    if (redirectResult) redirect(redirectResult.redirect.destination);
+    if (redirectResult) return redirect(redirectResult.redirect.destination);
   }
 
   const team = await getCachedTeamWithEventTypes(teamSlug, meetingSlug, currentOrgDomain);
   if (!team) {
     return notFound();
   }
-
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const fromRedirectOfNonOrgLink = legacyCtx.query.orgRedirection === "true";
-
   const eventData = await getCachedProcessedEventData(team, orgSlug, fromRedirectOfNonOrgLink);
   if (!eventData) {
     return notFound();
   }
-  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting } = legacyCtx.query;
-  const allowRescheduleForCancelledBooking = legacyCtx.query.allowRescheduleForCancelledBooking === "true";
-
+  const { rescheduleUid } = legacyCtx.query;
   if (!EventTypeService.canReschedule(eventData, rescheduleUid)) {
-    redirect(`/booking/${rescheduleUid}`);
+    return redirect(`/booking/${rescheduleUid}`);
   }
-
   const teamData = processTeamDataForBooking(team);
   const [sessionData, crmData, useApiV2] = await Promise.all([
     BookingService.getBookingSessionData(legacyCtx.req, rescheduleUid),
@@ -161,22 +156,21 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     }),
     BookingService.shouldUseApiV2ForTeamSlots(teamData.teamId),
   ]);
-  const isInstantMeeting = queryIsInstantMeeting === "true";
   const dynamicData = {
     ...sessionData,
     ...crmData,
     useApiV2,
-    isInstantMeeting,
+    isInstantMeeting: legacyCtx.query.isInstantMeeting === "true",
   };
 
   if (
     !BookingService.canRescheduleCancelledBooking(
       dynamicData.booking,
-      allowRescheduleForCancelledBooking,
+      legacyCtx.query.allowRescheduleForCancelledBooking === "true",
       eventData
     )
   ) {
-    redirect(`/team/${teamSlug}/${meetingSlug}`);
+    return redirect(`/team/${teamSlug}/${meetingSlug}`);
   }
 
   const props = {
