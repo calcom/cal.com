@@ -14,7 +14,7 @@ import slugify from "@calcom/lib/slugify";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { RedirectType } from "@calcom/prisma/enums";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { buildLegacyCtx, buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import Type from "~/team/type-view";
@@ -26,11 +26,11 @@ const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
 });
 
-export async function getCachedOrgContext(params: any) {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), params, {});
+export async function getCachedOrgContext(_params: PageProps["params"]) {
+  const params = await _params;
   const result = paramsSchema.safeParse({
-    slug: legacyCtx.params?.slug,
-    type: legacyCtx.params?.type,
+    slug: params?.slug,
+    type: params?.type,
   });
 
   if (!result.success) {
@@ -38,8 +38,11 @@ export async function getCachedOrgContext(params: any) {
   }
 
   const { slug: teamSlug, type: meetingSlug } = result.data;
-  const orgSlug = legacyCtx.params?.orgSlug ?? null;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, orgSlug ?? undefined);
+  const orgSlug = params?.orgSlug ?? null;
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
+    buildLegacyRequest(await headers(), await cookies()),
+    orgSlug ?? undefined
+  );
 
   return {
     currentOrgDomain,
@@ -50,9 +53,7 @@ export async function getCachedOrgContext(params: any) {
 }
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(
-    await params
-  );
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(params);
 
   // Get team data (cached)
   const team = await getCachedTeamWithEventTypes(teamSlug, meetingSlug, currentOrgDomain);
@@ -108,10 +109,9 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(
-    await params
-  );
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(params);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
   // Handle temporary org redirects for non-org contexts
   if (!isOrgContext) {
@@ -119,47 +119,31 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
       slugs: teamSlug,
       redirectType: RedirectType.Team,
       eventTypeSlug: meetingSlug,
-      currentQuery: await searchParams,
+      currentQuery: legacyCtx.query,
     });
     if (redirectResult) redirect(redirectResult.redirect.destination);
   }
 
-  // Get team data (cached)
   const team = await getCachedTeamWithEventTypes(teamSlug, meetingSlug, currentOrgDomain);
-  if (!team || !team.eventTypes?.[0]) {
+  if (!team) {
     return notFound();
   }
 
-  // Calculate orgSlug exactly like the original code
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-
-  // Get team profile data (not cached - simple transformation)
   const profileData = TeamService.getTeamProfileData(team, orgSlug);
+  const fromRedirectOfNonOrgLink = legacyCtx.query.orgRedirection === "true";
 
-  // Check for fromRedirectOfNonOrgLink - CRITICAL for org redirection logic
-  const searchParamsObj = await searchParams;
-  const fromRedirectOfNonOrgLink = searchParamsObj.orgRedirection === "true";
-
-  // Get processed event data (cached)
   const eventData = await getCachedProcessedEventData(team, orgSlug, profileData, fromRedirectOfNonOrgLink);
   if (!eventData) {
     return notFound();
   }
-
-  // Get team booking data (not cached - simple transformation)
-  const teamData = TeamService.processTeamDataForBooking(team);
-
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting } = legacyCtx.query;
   const allowRescheduleForCancelledBooking = legacyCtx.query.allowRescheduleForCancelledBooking === "true";
 
-  // Validate rescheduling restrictions
   if (!EventTypeService.canReschedule(eventData, rescheduleUid)) {
     redirect(`/booking/${rescheduleUid}`);
   }
 
-  // Get dynamic booking data (not cached - user/request specific)
   const rawEventData = {
     id: eventData.eventTypeId,
     isInstantEvent: team.eventTypes[0].isInstantEvent,
@@ -168,6 +152,7 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     length: eventData.length,
   };
 
+  const teamData = TeamService.processTeamDataForBooking(team);
   const dynamicData = await BookingService.getDynamicBookingData(
     teamData.teamId,
     rescheduleUid,
@@ -178,7 +163,6 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     queryIsInstantMeeting === "true"
   );
 
-  // Validate cancelled booking rescheduling
   if (
     !BookingService.canRescheduleCancelledBooking(
       dynamicData.booking,
