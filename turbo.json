@@ -68,6 +68,9 @@
       "cache": false,
       "dependsOn": []
     },
+    "@calcom/atoms#build": {
+      "outputs": ["dist/**", "globals.min.css"]
+    },
     "@calcom/api-v2#build": {
       "dependsOn": ["^build"],
       "env": [
