@@ -4,6 +4,7 @@ import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
 import type { ExtendedCalendarEvent } from "./reminderScheduler";
@@ -20,6 +21,7 @@ async function _scheduleMandatoryReminder({
   seatReferenceUid,
   isPlatformNoEmail = false,
   isDryRun = false,
+  traceContext,
 }: {
   evt: ExtendedCalendarEvent;
   workflows: Workflow[];
@@ -28,9 +30,22 @@ async function _scheduleMandatoryReminder({
   seatReferenceUid: string | undefined;
   isPlatformNoEmail?: boolean;
   isDryRun?: boolean;
+  traceContext?: TraceContext;
 }) {
   if (isDryRun) return;
   if (isPlatformNoEmail) return;
+
+  const spanContext = traceContext
+    ? DistributedTracing.createSpan(traceContext, "schedule_mandatory_reminder")
+    : undefined;
+  const tracingLogger = spanContext ? DistributedTracing.getTracingLogger(spanContext) : log;
+
+  tracingLogger.info("Scheduling mandatory reminder", {
+    eventTitle: evt.title,
+    attendeeCount: evt.attendees.length,
+    originalTraceId: traceContext?.traceId,
+  });
+
   try {
     const hasExistingWorkflow = workflows.some((workflow) => {
       return (

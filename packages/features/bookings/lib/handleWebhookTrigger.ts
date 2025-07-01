@@ -5,15 +5,28 @@ import { isEventPayload, type WebhookPayloadType } from "@calcom/features/webhoo
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
 
 async function _handleWebhookTrigger(args: {
   subscriberOptions: GetSubscriberOptions;
   eventTrigger: string;
   webhookData: WebhookPayloadType;
   isDryRun?: boolean;
+  traceContext?: TraceContext;
 }) {
   try {
     if (args.isDryRun) return;
+
+    const spanContext = args.traceContext
+      ? DistributedTracing.createSpan(args.traceContext, "webhook_trigger")
+      : undefined;
+    const tracingLogger = spanContext ? DistributedTracing.getTracingLogger(spanContext) : logger;
+
+    tracingLogger.info("Handling webhook trigger", {
+      eventTrigger: args.eventTrigger,
+      originalTraceId: args.traceContext?.traceId,
+    });
+
     const subscribers = await getWebhooks(args.subscriberOptions);
 
     const promises = subscribers.map((sub) =>

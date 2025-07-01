@@ -37,6 +37,7 @@ import type {
 import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
 import CrmManager from "./crmManager/crmManager";
 import { isDelegationCredential } from "./delegationCredential/clientAndServer";
+import { DistributedTracing, type TraceContext } from "./tracing";
 import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
@@ -135,12 +136,17 @@ export default class EventManager {
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
   appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
+  private traceContext?: TraceContext;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
    * @param user
    */
-  constructor(user: EventManagerUser, eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>) {
+  constructor(
+    user: EventManagerUser,
+    eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>,
+    traceContext?: TraceContext
+  ) {
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
@@ -170,6 +176,7 @@ export default class EventManager {
     );
 
     this.appOptions = eventTypeAppMetadata;
+    this.traceContext = traceContext;
   }
 
   /**
@@ -180,6 +187,17 @@ export default class EventManager {
    * @param event
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
+    const spanContext = this.traceContext
+      ? DistributedTracing.createSpan(this.traceContext, "calendar_event_creation")
+      : undefined;
+    const tracingLogger = spanContext ? DistributedTracing.getTracingLogger(spanContext) : log;
+
+    tracingLogger.info("EventManager.create started", {
+      eventTitle: event.title,
+      attendeeCount: event.attendees.length,
+      integrationCount: this.calendarCredentials.length,
+    });
+
     // TODO this method shouldn't be modifying the event object that's passed in
     const evt = processLocation(event);
 

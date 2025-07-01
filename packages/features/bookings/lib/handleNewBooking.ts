@@ -69,6 +69,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import { DistributedTracing } from "@calcom/lib/tracing";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -401,6 +402,19 @@ async function handler(
     forcedSlug,
     areCalendarEventsEnabled = true,
   } = input;
+
+  const traceContext = DistributedTracing.createTrace("booking_creation", {
+    eventTypeId: rawBookingData.eventTypeId,
+    userId: userId,
+  });
+  const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
+
+  tracingLogger.info("Booking creation started", {
+    eventTypeId: rawBookingData.eventTypeId,
+    userId: userId,
+    rescheduleUid: rawBookingData.rescheduleUid,
+    isPlatformBooking: !!platformClientId,
+  });
 
   const isPlatformBooking = !!platformClientId;
 
@@ -1478,7 +1492,7 @@ async function handler(
   const credentials = await refreshCredentials(allCredentials);
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = !isDryRun
-    ? new EventManager({ ...organizerUser, credentials }, apps)
+    ? new EventManager({ ...organizerUser, credentials }, apps, traceContext)
     : buildDryRunEventManager();
 
   let videoCallUrl;
@@ -2001,6 +2015,7 @@ async function handler(
         paymentId: payment?.id,
       },
       isDryRun,
+      traceContext,
     });
 
     // TODO: Refactor better so this booking object is not passed
@@ -2059,6 +2074,7 @@ async function handler(
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
             isDryRun,
+            traceContext,
           })
         );
       }
@@ -2071,6 +2087,7 @@ async function handler(
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
             isDryRun,
+            traceContext,
           })
         );
       }
@@ -2089,6 +2106,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
@@ -2100,6 +2118,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   }
 
@@ -2155,6 +2174,7 @@ async function handler(
       seatReferenceUid: evt.attendeeSeatId,
       isPlatformNoEmail: noEmail && Boolean(platformClientId),
       isDryRun,
+      traceContext,
     });
   }
 
@@ -2171,6 +2191,7 @@ async function handler(
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
       isDryRun,
+      traceContext,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
