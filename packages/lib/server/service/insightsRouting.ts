@@ -26,6 +26,13 @@ export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope",
   }),
 ]);
 
+export type InsightsRoutingServicePublicOptions = {
+  scope: "user" | "org" | "team";
+  userId: number;
+  orgId: number;
+  teamId: number | undefined;
+};
+
 export type InsightsRoutingServiceOptions = z.infer<typeof insightsRoutingServiceOptionsSchema>;
 
 export type InsightsRoutingServiceFilterOptions = {
@@ -49,7 +56,7 @@ export class InsightsRoutingService {
     filters,
   }: {
     prisma: typeof readonlyPrisma;
-    options: InsightsRoutingServiceOptions;
+    options: InsightsRoutingServicePublicOptions;
     filters?: InsightsRoutingServiceFilterOptions;
   }) {
     this.prisma = prisma;

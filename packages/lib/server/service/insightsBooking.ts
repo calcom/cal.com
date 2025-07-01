@@ -26,6 +26,13 @@ export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope",
   }),
 ]);
 
+export type InsightsBookingServicePublicOptions = {
+  scope: "user" | "org" | "team";
+  userId: number;
+  orgId: number;
+  teamId?: number;
+};
+
 export type InsightsBookingServiceOptions = z.infer<typeof insightsBookingServiceOptionsSchema>;
 
 export type InsightsBookingServiceFilterOptions = {
@@ -50,7 +57,7 @@ export class InsightsBookingService {
     filters,
   }: {
     prisma: typeof readonlyPrisma;
-    options: InsightsBookingServiceOptions;
+    options: InsightsBookingServicePublicOptions;
     filters?: InsightsBookingServiceFilterOptions;
   }) {
     this.prisma = prisma;

@@ -1741,7 +1741,7 @@ export const insightsRouter = router({
           prisma: ctx.insightsDb,
           options: {
             scope: input.scope,
-            ...(input.selectedTeamId ? { teamId: input.selectedTeamId } : {}),
+            teamId: input.selectedTeamId,
             userId: ctx.user.id,
             orgId: ctx.user.organizationId,
           },
