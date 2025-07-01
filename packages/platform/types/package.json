@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.js",
+  "private": true,
   "scripts": {
     "build": "yarn clean && tsc --build --force tsconfig.json",
     "clean": "rm -rf ./dist",
