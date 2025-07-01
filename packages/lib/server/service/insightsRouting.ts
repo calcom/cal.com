@@ -60,19 +60,13 @@ export class InsightsRoutingService {
     this.filters = filters;
   }
 
-  async findMany(findManyArgs: Prisma.RoutingFormResponseDenormalizedFindManyArgs) {
+  async getBaseConditions() {
     const authConditions = await this.getAuthorizationConditions();
     const filterConditions = await this.getFilterConditions();
 
-    return this.prisma.routingFormResponseDenormalized.findMany({
-      ...findManyArgs,
-      where: {
-        ...findManyArgs.where,
-        AND: [authConditions, filterConditions].filter(
-          (c): c is Prisma.RoutingFormResponseDenormalizedWhereInput => c !== null && c !== undefined
-        ),
-      },
-    });
+    return [authConditions, filterConditions].filter(
+      (c): c is Prisma.RoutingFormResponseDenormalizedWhereInput => c !== null && c !== undefined
+    );
   }
 
   async getAuthorizationConditions(): Promise<Prisma.RoutingFormResponseDenormalizedWhereInput> {

@@ -60,19 +60,13 @@ export class InsightsBookingService {
     this.filters = filters;
   }
 
-  async findMany(findManyArgs: Prisma.BookingTimeStatusDenormalizedFindManyArgs) {
+  async getBaseConditions() {
     const authConditions = await this.getAuthorizationConditions();
     const filterConditions = await this.getFilterConditions();
 
-    return this.prisma.bookingTimeStatusDenormalized.findMany({
-      ...findManyArgs,
-      where: {
-        ...findManyArgs.where,
-        AND: [authConditions, filterConditions].filter(
-          (c): c is Prisma.BookingTimeStatusDenormalizedWhereInput => c !== null
-        ),
-      },
-    });
+    return [authConditions, filterConditions].filter(
+      (c): c is Prisma.BookingTimeStatusDenormalizedWhereInput => c !== null
+    );
   }
 
   async getAuthorizationConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {

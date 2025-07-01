@@ -499,7 +499,7 @@ describe("InsightsRoutingService Integration Tests", () => {
     });
   });
 
-  describe("findMany", () => {
+  describe("getBaseConditions", () => {
     it("should combine authorization and filter conditions", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
@@ -515,16 +515,16 @@ describe("InsightsRoutingService Integration Tests", () => {
         },
       });
 
-      const results = await service.findMany({
-        select: {
-          id: true,
-          formName: true,
+      const results = await service.getBaseConditions();
+      expect(results).toEqual([
+        {
+          AND: [
+            {
+              formUserId: testData.user.id,
+            },
+          ],
         },
-      });
-
-      // Should return the user form response since it matches the authorization conditions
-      expect(results).toHaveLength(1);
-      expect(results[0]?.id).toBe(testData.formResponse.id);
+      ]);
 
       await testData.cleanup();
     });
@@ -582,10 +582,13 @@ describe("InsightsRoutingService Integration Tests", () => {
         },
       });
 
-      const results = await service.findMany({
+      const baseConditions = await service.getBaseConditions();
+      const results = await prisma.routingFormResponseDenormalized.findMany({
         select: {
           id: true,
-          formName: true,
+        },
+        where: {
+          AND: baseConditions,
         },
       });
 
@@ -672,10 +675,10 @@ describe("InsightsRoutingService Integration Tests", () => {
         },
       });
 
-      const results = await service.findMany({
-        select: {
-          id: true,
-          formName: true,
+      const baseConditions = await service.getBaseConditions();
+      const results = await prisma.routingFormResponseDenormalized.findMany({
+        where: {
+          AND: baseConditions,
         },
       });
 
