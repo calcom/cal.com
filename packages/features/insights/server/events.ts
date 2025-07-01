@@ -462,28 +462,95 @@ class EventsInsights {
             noShow: true,
           },
         },
+        seatsReferences: {
+          select: {
+            attendee: {
+              select: {
+                name: true,
+                email: true,
+                noShow: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees[0] || null]));
+    const bookingMap = new Map(
+      bookings.map((booking) => {
+        const attendeeList =
+          booking.seatsReferences.length > 0
+            ? booking.seatsReferences.map((ref) => ref.attendee)
+            : booking.attendees;
+
+        const formattedAttendees = attendeeList
+          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+          .filter(Boolean);
+
+        return [
+          booking.uid,
+          { attendeeList: formattedAttendees, noShowGuest: attendeeList[0]?.noShow || false },
+        ];
+      })
+    );
+
+    const maxAttendees = Math.max(
+      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
+      0
+    );
+
+    const finalBookingMap = new Map(
+      Array.from(bookingMap.entries()).map(([uid, data]) => {
+        const attendeeFields: Record<string, string | null> = {};
+
+        for (let i = 1; i <= maxAttendees; i++) {
+          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
+        }
+
+        return [
+          uid,
+          {
+            noShowGuest: data.noShowGuest,
+            ...attendeeFields,
+          },
+        ];
+      })
+    );
 
     const data = csvData.map((bookingTimeStatus) => {
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
-        return bookingTimeStatus;
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
+        return {
+          ...bookingTimeStatus,
+          noShowGuest: false,
+          ...nullAttendeeFields,
+        };
       }
 
-      const booker = bookingMap.get(bookingTimeStatus.uid);
+      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
 
-      if (!booker) {
-        return bookingTimeStatus;
+      if (!attendeeData) {
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
+        return {
+          ...bookingTimeStatus,
+          noShowGuest: false,
+          ...nullAttendeeFields,
+        };
       }
 
       return {
         ...bookingTimeStatus,
-        noShowGuest: booker.noShow,
-        bookerEmail: booker.email,
-        bookerName: booker.name,
+        noShowGuest: attendeeData.noShowGuest,
+        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
       };
     });
 
@@ -625,10 +692,12 @@ class EventsInsights {
     sessionUserId: number;
     teamId: number;
   }) => {
-    const isOwnerAdminOfTeam = await prisma.membership.findFirst({
+    const isOwnerAdminOfTeam = await prisma.membership.findUnique({
       where: {
-        userId: sessionUserId,
-        teamId,
+        userId_teamId: {
+          userId: sessionUserId,
+          teamId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
@@ -659,10 +728,12 @@ class EventsInsights {
       return false;
     }
 
-    const isOwnerAdminOfParentTeam = await prisma.membership.findFirst({
+    const isOwnerAdminOfParentTeam = await prisma.membership.findUnique({
       where: {
-        userId: sessionUserId,
-        teamId: team.parentId,
+        userId_teamId: {
+          userId: sessionUserId,
+          teamId: team.parentId,
+        },
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
