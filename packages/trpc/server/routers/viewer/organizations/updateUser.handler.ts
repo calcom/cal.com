@@ -119,7 +119,12 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     timeZone: input.timeZone,
   };
 
-  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
+  if (
+    input.avatar &&
+    (input.avatar.startsWith("data:image/png;base64,") ||
+      input.avatar.startsWith("data:image/jpeg;base64,") ||
+      input.avatar.startsWith("data:image/jpg;base64,"))
+  ) {
     const avatar = await resizeBase64Image(input.avatar);
     data.avatarUrl = await uploadAvatar({
       avatar,
