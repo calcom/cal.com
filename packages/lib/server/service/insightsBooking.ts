@@ -1,8 +1,8 @@
-import type { Kysely, ExpressionBuilder } from "kysely";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import type { DB } from "@calcom/kysely";
-import { MembershipRole } from "@calcom/kysely/types";
+import type { readonlyPrisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
@@ -37,97 +37,112 @@ const NOTHING = {
   id: -1,
 } as const;
 
-type WhereCondition = (
-  eb: ExpressionBuilder<DB, "BookingTimeStatusDenormalized">
-) => ReturnType<ExpressionBuilder<DB, "BookingTimeStatusDenormalized">["and"]>;
-
 export class InsightsBookingService {
-  private kysely: Kysely<DB>;
+  private prisma: typeof readonlyPrisma;
   private options: InsightsBookingServiceOptions | null;
   private filters?: InsightsBookingServiceFilterOptions;
-  private baseWhereConditions?: WhereCondition[];
+  private cachedAuthConditions?: Prisma.BookingTimeStatusDenormalizedWhereInput;
+  private cachedFilterConditions?: Prisma.BookingTimeStatusDenormalizedWhereInput | null;
 
   constructor({
-    kysely,
+    prisma,
     options,
     filters,
   }: {
-    kysely: Kysely<DB>;
+    prisma: typeof readonlyPrisma;
     options: InsightsBookingServiceOptions;
     filters?: InsightsBookingServiceFilterOptions;
   }) {
-    this.kysely = kysely;
+    this.prisma = prisma;
     const validation = insightsBookingServiceOptionsSchema.safeParse(options);
     this.options = validation.success ? validation.data : null;
 
     this.filters = filters;
   }
 
-  async init() {
-    if (this.baseWhereConditions) {
-      return;
-    }
+  async findMany(findManyArgs: Prisma.BookingTimeStatusDenormalizedFindManyArgs) {
+    const authConditions = await this.getAuthorizationConditions();
+    const filterConditions = await this.getFilterConditions();
 
-    const [authConditions, filterConditions] = await Promise.all([
-      this.buildAuthorizationConditions(),
-      this.buildFilterConditions(),
-    ]);
-
-    this.baseWhereConditions = [authConditions, filterConditions].filter(
-      (c): c is NonNullable<typeof c> => c !== null && c !== undefined
-    );
+    return this.prisma.bookingTimeStatusDenormalized.findMany({
+      ...findManyArgs,
+      where: {
+        ...findManyArgs.where,
+        AND: [authConditions, filterConditions].filter(
+          (c): c is Prisma.BookingTimeStatusDenormalizedWhereInput => c !== null
+        ),
+      },
+    });
   }
 
-  async buildFilterConditions(): Promise<WhereCondition | null> {
+  async getAuthorizationConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
+    if (this.cachedAuthConditions === undefined) {
+      this.cachedAuthConditions = await this.buildAuthorizationConditions();
+    }
+    return this.cachedAuthConditions;
+  }
+
+  async getFilterConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput | null> {
+    if (this.cachedFilterConditions === undefined) {
+      this.cachedFilterConditions = await this.buildFilterConditions();
+    }
+    return this.cachedFilterConditions;
+  }
+
+  async buildFilterConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput | null> {
+    const conditions: Prisma.BookingTimeStatusDenormalizedWhereInput[] = [];
+
     if (!this.filters) {
       return null;
     }
 
-    const conditions: WhereCondition[] = [];
-
     if (this.filters.eventTypeId) {
-      const eventTypeId = this.filters.eventTypeId; // Create local reference
-      conditions.push((eb) =>
-        eb.or([eb("eventTypeId", "=", eventTypeId), eb("eventParentId", "=", eventTypeId)])
-      );
+      conditions.push({
+        OR: [{ eventTypeId: this.filters.eventTypeId }, { eventParentId: this.filters.eventTypeId }],
+      });
     }
 
     if (this.filters.memberUserId) {
-      const memberUserId = this.filters.memberUserId; // Create local reference
-      conditions.push((eb) => eb("userId", "=", memberUserId));
+      conditions.push({
+        userId: this.filters.memberUserId,
+      });
     }
 
-    return conditions.length > 0 ? (eb) => eb.and(conditions.map((condition) => condition(eb))) : null;
+    return conditions.length > 0 ? { AND: conditions } : null;
   }
 
-  async buildAuthorizationConditions(): Promise<WhereCondition> {
+  async buildAuthorizationConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
     if (!this.options) {
-      return (eb) => eb("id", "=", NOTHING.id);
+      return NOTHING;
     }
-    const options = this.options; // Create a local reference to avoid undefined checks
-    const isOwnerOrAdmin = await this.isOrgOwnerOrAdmin(options.userId, options.orgId);
+    const isOwnerOrAdmin = await this.isOrgOwnerOrAdmin(this.options.userId, this.options.orgId);
     if (!isOwnerOrAdmin) {
-      return (eb) => eb("id", "=", NOTHING.id);
+      return NOTHING;
     }
 
-    const conditions: WhereCondition[] = [];
+    const conditions: Prisma.BookingTimeStatusDenormalizedWhereInput[] = [];
 
-    if (options.scope === "user") {
-      conditions.push((eb) => eb.and([eb("userId", "=", options.userId), eb("teamId", "is", null)]));
-    } else if (options.scope === "org") {
-      conditions.push(await this.buildOrgAuthorizationCondition(options));
-    } else if (options.scope === "team") {
-      conditions.push(await this.buildTeamAuthorizationCondition(options));
+    if (this.options.scope === "user") {
+      conditions.push({
+        userId: this.options.userId,
+        teamId: null,
+      });
+    } else if (this.options.scope === "org") {
+      conditions.push(await this.buildOrgAuthorizationCondition(this.options));
+    } else if (this.options.scope === "team") {
+      conditions.push(await this.buildTeamAuthorizationCondition(this.options));
     } else {
-      return (eb) => eb("id", "=", NOTHING.id);
+      return NOTHING;
     }
 
-    return (eb) => eb.and(conditions.map((condition) => condition(eb)));
+    return {
+      AND: conditions,
+    };
   }
 
   private async buildOrgAuthorizationCondition(
     options: Extract<InsightsBookingServiceOptions, { scope: "org" }>
-  ): Promise<WhereCondition> {
+  ): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
     // Get all teams from the organization
     const teamsFromOrg = await TeamRepository.findAllByParentId({
       parentId: options.orgId,
@@ -143,30 +158,38 @@ export class InsightsBookingService {
           )
         : [];
 
-    return (eb) =>
-      eb.or([
-        eb.and([eb("teamId", "in", teamIds), eb("isTeamBooking", "=", true)]),
+    return {
+      OR: [
+        {
+          teamId: {
+            in: teamIds,
+          },
+          isTeamBooking: true,
+        },
         ...(userIdsFromOrg.length > 0
           ? [
-              eb.and([
-                eb("userId", "in", Array.from(new Set(userIdsFromOrg))),
-                eb("isTeamBooking", "=", false),
-              ]),
+              {
+                userId: {
+                  in: Array.from(new Set(userIdsFromOrg)),
+                },
+                isTeamBooking: false,
+              },
             ]
           : []),
-      ]);
+      ],
+    };
   }
 
   private async buildTeamAuthorizationCondition(
     options: Extract<InsightsBookingServiceOptions, { scope: "team" }>
-  ): Promise<WhereCondition> {
+  ): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
     const childTeamOfOrg = await TeamRepository.findByIdAndParentId({
       id: options.teamId,
       parentId: options.orgId,
       select: { id: true },
     });
     if (!childTeamOfOrg) {
-      return (eb) => eb("id", "=", NOTHING.id);
+      return NOTHING;
     }
 
     const usersFromTeam = await MembershipRepository.findAllByTeamIds({
@@ -175,40 +198,30 @@ export class InsightsBookingService {
     });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
-    return (eb) =>
-      eb.or([
-        eb.and([eb("teamId", "=", options.teamId), eb("isTeamBooking", "=", true)]),
-        eb.and([eb("userId", "in", userIdsFromTeam), eb("isTeamBooking", "=", false)]),
-      ]);
+    return {
+      OR: [
+        {
+          teamId: options.teamId,
+          isTeamBooking: true,
+        },
+        {
+          userId: {
+            in: userIdsFromTeam,
+          },
+          isTeamBooking: false,
+        },
+      ],
+    };
   }
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
     const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
-    const allowedRoles: MembershipRole[] = [MembershipRole.OWNER, MembershipRole.ADMIN];
     return Boolean(
-      membership && membership.accepted && membership.role && allowedRoles.includes(membership.role)
+      membership &&
+        membership.accepted &&
+        membership.role &&
+        ([MembershipRole.OWNER, MembershipRole.ADMIN] as const).includes(membership.role)
     );
-  }
-
-  query() {
-    if (!this.baseWhereConditions) {
-      throw new Error("Service must be initialized before building base query. Call init() first.");
-    }
-
-    let baseQuery = this.kysely.selectFrom("BookingTimeStatusDenormalized");
-
-    if (this.baseWhereConditions.length > 0) {
-      const baseWhereConditions = this.baseWhereConditions;
-
-      baseQuery = baseQuery.where((eb) => {
-        if (baseWhereConditions.length === 1) {
-          return baseWhereConditions[0](eb);
-        }
-        return eb.and(baseWhereConditions.map((condition) => condition(eb)));
-      });
-    }
-
-    return baseQuery;
   }
 }

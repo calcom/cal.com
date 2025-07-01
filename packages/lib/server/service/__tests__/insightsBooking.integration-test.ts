@@ -1,9 +1,6 @@
 import type { Team, User, Membership } from "@prisma/client";
-import type { ExpressionBuilder } from "kysely";
 import { describe, expect, it } from "vitest";
 
-import db from "@calcom/kysely";
-import type { DB } from "@calcom/kysely";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
@@ -198,29 +195,16 @@ async function createTestData({
   };
 }
 
-function compileCondition(
-  condition: (
-    eb: ExpressionBuilder<DB, "BookingTimeStatusDenormalized">
-  ) => ReturnType<ExpressionBuilder<DB, "BookingTimeStatusDenormalized">["and"]>
-) {
-  const compiled = db.selectFrom("BookingTimeStatusDenormalized").selectAll().where(condition).compile();
-  const where = compiled.sql.replace(/^select \* from "BookingTimeStatusDenormalized" where /, "");
-  return { where, parameters: compiled.parameters };
-}
-
 describe("InsightsBookingService Integration Tests", () => {
   describe("Authorization Conditions", () => {
     it("should return NOTHING for invalid options", async () => {
       const service = new InsightsBookingService({
-        kysely: db,
+        prisma,
         options: null as any,
       });
-      await service.init();
 
-      const conditions = await service.buildAuthorizationConditions();
-      const { where, parameters } = compileCondition(conditions);
-      expect(where).toEqual(`"id" = $1`);
-      expect(parameters).toEqual([-1]);
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual({ id: -1 });
     });
 
     it("should return NOTHING for non-owner/admin user", async () => {
@@ -246,19 +230,16 @@ describe("InsightsBookingService Integration Tests", () => {
       });
 
       const service = new InsightsBookingService({
-        kysely: db,
+        prisma,
         options: {
           scope: "org",
           userId: regularUser.id,
           orgId: testData.org.id,
         },
       });
-      await service.init();
 
-      const conditions = await service.buildAuthorizationConditions();
-      const { where, parameters } = compileCondition(conditions);
-      expect(where).toEqual(`"id" = $1`);
-      expect(parameters).toEqual([-1]);
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual({ id: -1 });
 
       // Clean up
       await prisma.membership.delete({
@@ -277,19 +258,23 @@ describe("InsightsBookingService Integration Tests", () => {
       });
 
       const service = new InsightsBookingService({
-        kysely: db,
+        prisma,
         options: {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
         },
       });
-      await service.init();
 
-      const conditions = await service.buildAuthorizationConditions();
-      const { where, parameters } = compileCondition(conditions);
-      expect(where).toEqual(`("userId" = $1 and "teamId" is null)`);
-      expect(parameters).toEqual([testData.user.id]);
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual({
+        AND: [
+          {
+            userId: testData.user.id,
+            teamId: null,
+          },
+        ],
+      });
 
       await testData.cleanup();
     });
@@ -301,7 +286,7 @@ describe("InsightsBookingService Integration Tests", () => {
       });
 
       const service = new InsightsBookingService({
-        kysely: db,
+        prisma,
         options: {
           scope: "team",
           userId: testData.user.id,
@@ -309,14 +294,26 @@ describe("InsightsBookingService Integration Tests", () => {
           teamId: testData.team.id,
         },
       });
-      await service.init();
 
-      const conditions = await service.buildAuthorizationConditions();
-      const { where, parameters } = compileCondition(conditions);
-      expect(where).toEqual(
-        `(("teamId" = $1 and "isTeamBooking" = $2) or ("userId" in ($3) and "isTeamBooking" = $4))`
-      );
-      expect(parameters).toEqual([testData.team.id, true, testData.user.id, false]);
+      const conditions = await service.getAuthorizationConditions();
+      expect(conditions).toEqual({
+        AND: [
+          {
+            OR: [
+              {
+                teamId: testData.team.id,
+                isTeamBooking: true,
+              },
+              {
+                userId: {
+                  in: [testData.user.id],
+                },
+                isTeamBooking: false,
+              },
+            ],
+          },
+        ],
+      });
 
       // Clean up
       await testData.cleanup();
@@ -339,31 +336,36 @@ describe("InsightsBookingService Integration Tests", () => {
       const team3 = testData.additionalTeams[1]; // Second additional team
 
       const service = new InsightsBookingService({
-        kysely: db,
+        prisma,
         options: {
           scope: "org",
           userId: testData.user.id,
           orgId: testData.org.id,
         },
       });
-      await service.init();
 
-      const conditions = await service.buildAuthorizationConditions();
-      const { where, parameters } = compileCondition(conditions);
-      expect(where).toEqual(
-        `(("teamId" in ($1, $2, $3, $4) and "isTeamBooking" = $5) or ("userId" in ($6, $7, $8) and "isTeamBooking" = $9))`
-      );
-      expect(parameters).toEqual([
-        testData.org.id,
-        testData.team.id,
-        team2.id,
-        team3.id,
-        true,
-        testData.user.id,
-        user2.id,
-        user3.id,
-        false,
-      ]);
+      const conditions = await service.getAuthorizationConditions();
+
+      expect(conditions).toEqual({
+        AND: [
+          {
+            OR: [
+              {
+                teamId: {
+                  in: [testData.org.id, testData.team.id, team2.id, team3.id],
+                },
+                isTeamBooking: true,
+              },
+              {
+                userId: {
+                  in: [testData.user.id, user2.id, user3.id],
+                },
+                isTeamBooking: false,
+              },
+            ],
+          },
+        ],
+      });
 
       await testData.cleanup();
     });
@@ -374,16 +376,15 @@ describe("InsightsBookingService Integration Tests", () => {
       const testData = await createTestData();
 
       const service = new InsightsBookingService({
-        kysely: db,
+        prisma,
         options: {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
         },
       });
-      await service.init();
 
-      const conditions = await service.buildFilterConditions();
+      const conditions = await service.getFilterConditions();
       expect(conditions).toBeNull();
 
       await testData.cleanup();
@@ -393,7 +394,7 @@ describe("InsightsBookingService Integration Tests", () => {
       const testData = await createTestData();
 
       const service = new InsightsBookingService({
-        kysely: db,
+        prisma,
         options: {
           scope: "user",
           userId: testData.user.id,
@@ -403,13 +404,15 @@ describe("InsightsBookingService Integration Tests", () => {
           eventTypeId: testData.eventType.id,
         },
       });
-      await service.init();
 
-      const conditions = await service.buildFilterConditions();
-      expect(conditions).not.toBeNull();
-      const { where, parameters } = compileCondition(conditions!);
-      expect(where).toEqual(`("eventTypeId" = $1 or "eventParentId" = $2)`);
-      expect(parameters).toEqual([testData.eventType.id, testData.eventType.id]);
+      const conditions = await service.getFilterConditions();
+      expect(conditions).toEqual({
+        AND: [
+          {
+            OR: [{ eventTypeId: testData.eventType.id }, { eventParentId: testData.eventType.id }],
+          },
+        ],
+      });
 
       await testData.cleanup();
     });
@@ -418,7 +421,7 @@ describe("InsightsBookingService Integration Tests", () => {
       const testData = await createTestData();
 
       const service = new InsightsBookingService({
-        kysely: db,
+        prisma,
         options: {
           scope: "user",
           userId: testData.user.id,
@@ -428,13 +431,15 @@ describe("InsightsBookingService Integration Tests", () => {
           memberUserId: testData.user.id,
         },
       });
-      await service.init();
 
-      const conditions = await service.buildFilterConditions();
-      expect(conditions).not.toBeNull();
-      const { where, parameters } = compileCondition(conditions!);
-      expect(where).toEqual(`"userId" = $1`);
-      expect(parameters).toEqual([testData.user.id]);
+      const conditions = await service.getFilterConditions();
+      expect(conditions).toEqual({
+        AND: [
+          {
+            userId: testData.user.id,
+          },
+        ],
+      });
 
       await testData.cleanup();
     });
@@ -443,7 +448,7 @@ describe("InsightsBookingService Integration Tests", () => {
       const testData = await createTestData();
 
       const service = new InsightsBookingService({
-        kysely: db,
+        prisma,
         options: {
           scope: "user",
           userId: testData.user.id,
@@ -454,13 +459,86 @@ describe("InsightsBookingService Integration Tests", () => {
           memberUserId: testData.user.id,
         },
       });
-      await service.init();
 
-      const conditions = await service.buildFilterConditions();
-      expect(conditions).not.toBeNull();
-      const { where, parameters } = compileCondition(conditions!);
-      expect(where).toEqual(`(("eventTypeId" = $1 or "eventParentId" = $2) and "userId" = $3)`);
-      expect(parameters).toEqual([testData.eventType.id, testData.eventType.id, testData.user.id]);
+      const conditions = await service.getFilterConditions();
+      expect(conditions).toEqual({
+        AND: [
+          {
+            OR: [{ eventTypeId: testData.eventType.id }, { eventParentId: testData.eventType.id }],
+          },
+          {
+            userId: testData.user.id,
+          },
+        ],
+      });
+
+      await testData.cleanup();
+    });
+  });
+
+  describe("Caching", () => {
+    it("should cache authorization conditions", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsBookingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+        },
+      });
+
+      // First call should build conditions
+      const conditions1 = await service.getAuthorizationConditions();
+      expect(conditions1).toEqual({
+        AND: [
+          {
+            userId: testData.user.id,
+            teamId: null,
+          },
+        ],
+      });
+
+      // Second call should use cached conditions
+      const conditions2 = await service.getAuthorizationConditions();
+      expect(conditions2).toEqual(conditions1);
+
+      // Clean up
+      await testData.cleanup();
+    });
+
+    it("should cache filter conditions", async () => {
+      const testData = await createTestData();
+
+      const service = new InsightsBookingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+        },
+        filters: {
+          eventTypeId: testData.eventType.id,
+        },
+      });
+
+      // First call should build conditions
+      const conditions1 = await service.getFilterConditions();
+      expect(conditions1).toEqual({
+        AND: [
+          {
+            OR: [{ eventTypeId: testData.eventType.id }, { eventParentId: testData.eventType.id }],
+          },
+        ],
+      });
+
+      // Second call should use cached conditions
+      const conditions2 = await service.getFilterConditions();
+      expect(conditions2).toEqual(conditions1);
 
       await testData.cleanup();
     });
@@ -498,7 +576,7 @@ describe("InsightsBookingService Integration Tests", () => {
       });
 
       const service = new InsightsBookingService({
-        kysely: db,
+        prisma,
         options: {
           scope: "user",
           userId: testData.user.id,
@@ -508,35 +586,17 @@ describe("InsightsBookingService Integration Tests", () => {
           eventTypeId: userEventType.id,
         },
       });
-      await service.init();
 
-      // Test that the query compiles correctly without executing it
-      const authConditions = await service.buildAuthorizationConditions();
-      const filterConditions = await service.buildFilterConditions();
+      const results = await service.findMany({
+        select: {
+          id: true,
+          title: true,
+        },
+      });
 
-      // Test that the query compiles without errors
-      let query = db.selectFrom("BookingTimeStatusDenormalized").select(["id", "title"]);
-
-      // Apply where conditions
-      const whereConditions = [authConditions, filterConditions].filter(
-        (c): c is NonNullable<typeof c> => c !== null && c !== undefined
-      );
-
-      if (whereConditions.length > 0) {
-        query = query.where((eb) => {
-          if (whereConditions.length === 1) {
-            return whereConditions[0](eb);
-          }
-          return eb.and(whereConditions.map((condition) => condition(eb)));
-        });
-      }
-
-      // Compile the query to verify it works
-      const compiled = query.compile();
-      expect(compiled.sql).toEqual(
-        `select "id", "title" from "BookingTimeStatusDenormalized" where (("userId" = $1 and "teamId" is null) and ("eventTypeId" = $2 or "eventParentId" = $3))`
-      );
-      expect(compiled.parameters).toEqual([testData.user.id, userEventType.id, userEventType.id]);
+      // Should return the user booking since it matches both conditions
+      expect(results).toHaveLength(1);
+      expect(results[0]?.id).toBe(userBooking.id);
 
       // Clean up
       await prisma.booking.delete({
