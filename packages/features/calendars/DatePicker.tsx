@@ -16,6 +16,7 @@ import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import NoAvailabilityDialog from "./NoAvailabilityDialog";
+import { getTodaysDateInTimeZone } from "./lib/getTodaysDateInTimeZone";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -56,6 +57,8 @@ export type DatePickerProps = {
     }[]
   >;
   periodData?: PeriodData;
+  // Preferred timezone selected on booker page
+  timezone?: string;
 };
 
 const Day = ({
@@ -65,6 +68,7 @@ const Day = ({
   away,
   emoji,
   customClassName,
+  timezone,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
@@ -75,10 +79,15 @@ const Day = ({
     dayContainer?: string;
     dayActive?: string;
   };
+  timezone?: string;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
+  const isToday = () => {
+    const todayInTimeZone = dayjs().tz(timezone).startOf("day");
+    return date.isSame(todayInTimeZone, "date");
+  };
 
   return (
     <button
@@ -102,7 +111,7 @@ const Day = ({
       {...props}>
       {away && <span data-testid="away-emoji">{emoji}</span>}
       {!away && date.date()}
-      {date.isToday() && (
+      {isToday() && (
         <span
           className={classNames(
             "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
@@ -265,6 +274,7 @@ const Days = ({
               active={isActive(day)}
               away={away}
               emoji={emoji}
+              timezone={props.timezone}
             />
           )}
         </div>
@@ -297,6 +307,7 @@ const DatePicker = ({
     periodDays: null,
     periodType: "UNLIMITED",
   },
+  timezone: selectedTimeZone,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -310,6 +321,7 @@ const DatePicker = ({
     scrollToTimeSlots?: () => void;
   }) => {
   const minDate = passThroughProps.minDate;
+  const todaysDate = getTodaysDateInTimeZone(selectedTimeZone);
   const rawBrowsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
   const browsingDate =
     minDate && rawBrowsingDate.valueOf() < minDate.valueOf() ? dayjs(minDate) : rawBrowsingDate;
@@ -356,7 +368,7 @@ const DatePicker = ({
                 customClassNames?.datePickerToggle
               )}
               onClick={() => changeMonth(-1)}
-              disabled={!browsingDate.isAfter(dayjs())}
+              disabled={!browsingDate.isAfter(dayjs(minDate))}
               data-testid="decrementMonth"
               color="minimal"
               variant="icon"
@@ -392,6 +404,7 @@ const DatePicker = ({
       </div>
       <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
+          minDate={todaysDate}
           customClassName={{
             datePickerDate: customClassNames?.datePickersDates,
             datePickerDateActive: customClassNames?.datePickerDatesActive,
@@ -406,6 +419,7 @@ const DatePicker = ({
           includedDates={includedDates}
           isBookingInPast={isBookingInPast}
           periodData={periodData}
+          timezone={selectedTimeZone}
         />
       </div>
     </div>
