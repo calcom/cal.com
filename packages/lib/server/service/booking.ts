@@ -20,12 +20,9 @@ export interface CRMData {
   crmAppSlug?: string;
 }
 
-export interface FeatureFlags {
-  useApiV2: boolean;
-}
-
 export interface DynamicBookingData extends BookingSessionData, CRMData, FeatureFlags {
   isInstantMeeting: boolean;
+  useApiV2: boolean;
 }
 
 export class BookingService {
