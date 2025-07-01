@@ -110,34 +110,20 @@ export const useHandleBookEvent = ({
         crmAppSlug,
         orgSlug: orgSlug ? orgSlug : undefined,
         routingFormSearchParams,
+        isDryRunProp: isBookingDryRun,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);
 
       if (isInstantMeeting) {
-        const mutationInput = mapBookingToMutationInput(bookingInput);
-        if (isBookingDryRun !== undefined) {
-          mutationInput._isDryRun = isBookingDryRun;
-        }
-        handleInstantBooking(mutationInput, callbacks);
+        handleInstantBooking(mapBookingToMutationInput(bookingInput), callbacks);
       } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
-        const recurringInputs = mapRecurringBookingToMutationInput(
-          bookingInput,
-          recurringEventCount,
-          tracking
+        handleRecBooking(
+          mapRecurringBookingToMutationInput(bookingInput, recurringEventCount, tracking),
+          callbacks
         );
-        if (isBookingDryRun !== undefined) {
-          recurringInputs.forEach((input) => {
-            input._isDryRun = isBookingDryRun;
-          });
-        }
-        handleRecBooking(recurringInputs, callbacks);
       } else {
-        const mutationInput = { ...mapBookingToMutationInput(bookingInput), locationUrl, tracking };
-        if (isBookingDryRun !== undefined) {
-          mutationInput._isDryRun = isBookingDryRun;
-        }
-        handleBooking(mutationInput, callbacks);
+        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl, tracking }, callbacks);
       }
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});
