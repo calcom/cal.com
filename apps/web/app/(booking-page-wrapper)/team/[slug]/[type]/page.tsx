@@ -164,24 +164,25 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     redirect(`/booking/${rescheduleUid}`);
   }
 
-  const rawEventData = {
-    id: eventData.eventTypeId,
-    isInstantEvent: team.eventTypes[0].isInstantEvent,
-    schedulingType: team.eventTypes[0].schedulingType as SchedulingType | null,
-    metadata: team.eventTypes[0].metadata,
-    length: eventData.length,
-  };
-
   const teamData = processTeamDataForBooking(team);
-  const dynamicData = await BookingService.getDynamicBookingData(
-    teamData.teamId,
-    rescheduleUid,
-    legacyCtx.query,
-    legacyCtx.req,
-    rawEventData,
-    eventData,
-    queryIsInstantMeeting === "true"
-  );
+  const [sessionData, crmData, useApiV2] = await Promise.all([
+    BookingService.getBookingSessionData(legacyCtx.req, rescheduleUid),
+    BookingService.getCRMData(legacyCtx.query, {
+      id: eventData.eventTypeId,
+      isInstantEvent: team.eventTypes[0].isInstantEvent,
+      schedulingType: team.eventTypes[0].schedulingType as SchedulingType | null,
+      metadata: team.eventTypes[0].metadata,
+      length: eventData.length,
+    }),
+    BookingService.shouldUseApiV2ForTeamSlots(teamData.teamId),
+  ]);
+  const isInstantMeeting = queryIsInstantMeeting === "true";
+  const dynamicData = {
+    ...sessionData,
+    ...crmData,
+    useApiV2,
+    isInstantMeeting,
+  };
 
   if (
     !BookingService.canRescheduleCancelledBooking(
@@ -193,23 +194,14 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     redirect(`/team/${teamSlug}/${meetingSlug}`);
   }
 
-  const typeProps = {
+  const props = {
+    ...teamData,
+    ...dynamicData,
     slug: meetingSlug,
     user: teamSlug,
-    booking: dynamicData.booking,
-    isBrandingHidden: teamData.isBrandingHidden,
-    eventData: eventData,
-    isInstantMeeting: dynamicData.isInstantMeeting,
-    orgBannerUrl: teamData.orgBannerUrl,
-    teamMemberEmail: dynamicData.teamMemberEmail,
-    crmOwnerRecordType: dynamicData.crmOwnerRecordType,
-    crmAppSlug: dynamicData.crmAppSlug,
-    isEmbed: false,
-    useApiV2: dynamicData.useApiV2,
-    teamId: teamData.teamId,
-    themeBasis: null,
-    isSEOIndexable: teamData.isSEOIndexable,
+    eventData,
   };
+  const ClientBooker = <Type {...props} />;
 
   const eventLocale = eventData.interfaceLanguage;
   if (eventLocale) {
@@ -217,12 +209,12 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     const translations = await loadTranslations(eventLocale, ns);
     return (
       <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
-        <Type {...typeProps} />
+        {ClientBooker}
       </CustomI18nProvider>
     );
   }
 
-  return <Type {...typeProps} />;
+  return ClientBooker;
 };
 
 export default ServerPage;

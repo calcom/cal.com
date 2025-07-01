@@ -26,9 +26,6 @@ export interface DynamicBookingData extends BookingSessionData, CRMData {
 }
 
 export class BookingService {
-  /**
-   * Gets user session and booking data - should NOT be cached as it's user/request specific
-   */
   static async getBookingSessionData(
     req: GetServerSidePropsContext["req"],
     rescheduleUid?: string | string[]
@@ -46,12 +43,9 @@ export class BookingService {
     };
   }
 
-  /**
-   * Processes CRM integration data - should NOT be cached as it's request specific
-   */
   static async getCRMData(
     query: GetServerSidePropsContext["query"],
-    rawEventData: {
+    eventData: {
       id: number;
       isInstantEvent: boolean;
       schedulingType: SchedulingType | null;
@@ -81,7 +75,7 @@ export class BookingService {
         crmAppSlug: crmAppSlugQuery,
       } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
         query,
-        eventData: rawEventData,
+        eventData,
       });
 
       teamMemberEmail = email ?? undefined;
@@ -104,16 +98,6 @@ export class BookingService {
     return useApiV2;
   }
 
-  /**
-   * Determines if meeting is instant - not cached as it depends on query params
-   */
-  static isInstantMeeting(eventData: ProcessedEventData, isInstantMeetingQuery?: boolean): boolean {
-    return eventData && isInstantMeetingQuery ? true : false;
-  }
-
-  /**
-   * Validates if cancelled booking can be rescheduled - not cached as it depends on booking state
-   */
   static canRescheduleCancelledBooking(
     booking: GetBookingType | null,
     allowRescheduleForCancelledBooking: boolean,
@@ -127,37 +111,5 @@ export class BookingService {
       return false;
     }
     return true;
-  }
-
-  /**
-   * Combines all dynamic booking data - orchestrates other service calls
-   */
-  static async getDynamicBookingData(
-    teamId: number,
-    rescheduleUid: string | string[] | undefined,
-    query: GetServerSidePropsContext["query"],
-    req: GetServerSidePropsContext["req"],
-    rawEventData: {
-      id: number;
-      isInstantEvent: boolean;
-      schedulingType: SchedulingType | null;
-      metadata: any;
-      length: number;
-    },
-    processedEventData: ProcessedEventData,
-    isInstantMeetingQuery?: boolean
-  ): Promise<DynamicBookingData> {
-    const sessionData = await this.getBookingSessionData(req, rescheduleUid);
-    const crmData = await this.getCRMData(query, rawEventData);
-    const useApiV2 = await this.shouldUseApiV2ForTeamSlots(teamId);
-
-    const isInstantMeeting = this.isInstantMeeting(processedEventData, isInstantMeetingQuery);
-
-    return {
-      ...sessionData,
-      ...crmData,
-      useApiV2,
-      isInstantMeeting,
-    };
   }
 }

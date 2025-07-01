@@ -68,9 +68,6 @@ export class EventTypeService {
     return appMetadata;
   }
 
-  /**
-   * Gets users data for event types - should NOT be cached as it's user context dependent
-   */
   static async getEventTypeUsersData(
     isPrivateTeam: boolean,
     eventTypeId: number,
@@ -112,9 +109,6 @@ export class EventTypeService {
     return [];
   }
 
-  /**
-   * Processes event data for booking page - can be cached as event data changes infrequently
-   */
   static async processEventDataForBooking(
     team: TeamWithEventTypes,
     orgSlug: string | null,
@@ -135,8 +129,6 @@ export class EventTypeService {
     );
 
     const name = team.parent?.name ?? team.name ?? null;
-
-    // Calculate unpublished state - critical for org redirections
     const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
     return {
@@ -166,20 +158,7 @@ export class EventTypeService {
     };
   }
 
-  /**
-   * Validates event type rescheduling restrictions - not cached as it depends on specific booking state
-   */
   static canReschedule(eventData: ProcessedEventData, rescheduleUid?: string | string[]): boolean {
     return !(rescheduleUid && eventData.disableRescheduling);
-  }
-
-  /**
-   * Validates cancelled booking rescheduling - not cached as it depends on booking state
-   */
-  static canRescheduleCancelledBooking(
-    eventData: ProcessedEventData,
-    allowRescheduleForCancelledBooking: boolean
-  ): boolean {
-    return allowRescheduleForCancelledBooking || eventData.allowReschedulingCancelledBookings;
   }
 }

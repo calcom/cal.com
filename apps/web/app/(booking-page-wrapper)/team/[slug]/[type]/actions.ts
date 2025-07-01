@@ -30,12 +30,3 @@ export const getCachedProcessedEventData = unstable_cache(
     revalidate: NEXTJS_CACHE_TTL,
   }
 );
-
-// Note: These methods are NOT cached as they depend on user/request context:
-// - BookingService.getBookingSessionData (user session, reschedule UID)
-// - BookingService.getCRMData (request query parameters)
-// - EventTypeService.getEventTypeUsersData (user context dependent)
-// - BookingService.isInstantMeeting (query parameter dependent)
-// - BookingService.canRescheduleCancelledBooking (booking state dependent)
-// - EventTypeService.canReschedule (reschedule UID dependent)
-// - EventTypeService.canRescheduleCancelledBooking (booking state dependent)
