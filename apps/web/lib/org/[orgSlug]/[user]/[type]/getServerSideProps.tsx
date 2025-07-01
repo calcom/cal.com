@@ -5,7 +5,7 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
-import { getServerSideProps as GSSTeamTypePage } from "@lib/team/[slug]/[type]/getServerSideProps";
+import { getServerSideProps as GSSTeamTypePage } from "@lib/team/[slug]/[type]/getDynamicBookingData";
 
 import { getServerSideProps as GSSUserTypePage } from "@server/lib/[user]/[type]/getServerSideProps";
 

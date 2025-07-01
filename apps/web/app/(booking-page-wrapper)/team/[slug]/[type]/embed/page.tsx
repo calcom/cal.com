@@ -6,7 +6,7 @@ import { cookies, headers } from "next/headers";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
+import { getServerSideProps } from "@lib/team/[slug]/[type]/getDynamicBookingData";
 
 import TypePage, { type PageProps as ClientPageProps } from "~/team/type-view";
 
