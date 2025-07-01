@@ -7,6 +7,7 @@ import {
   createOrganization,
   getOrganizer,
   getScenarioData,
+  getMockBookingAttendee,
   Timezones,
   TestData,
   createCredentials,
@@ -1484,6 +1485,130 @@ describe("getSchedule", () => {
           dateString: plus2DateString,
         }
       );
+    });
+
+    test("test that booking limit counts attendees correctly for seated events", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
+            bookingLimits: {
+              PER_DAY: 3,
+            },
+            users: [
+              {
+                id: 101,
+              },
+            ],
+            seatsPerTimeSlot: 2,
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [
+              {
+                id: 1,
+                name: "All Day available",
+                availability: [
+                  {
+                    userId: null,
+                    eventTypeId: null,
+                    days: [0, 1, 2, 3, 4, 5, 6],
+                    startTime: new Date("1970-01-01T00:00:00.000Z"),
+                    endTime: new Date("1970-01-01T23:59:59.999Z"),
+                    date: null,
+                  },
+                ],
+                timeZone: Timezones["+6:00"],
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            eventTypeId: 1,
+            startTime: `${plus2DateString}T08:00:00.000Z`,
+            endTime: `${plus2DateString}T09:00:00.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+            attendees: [
+              getMockBookingAttendee({
+                id: 10,
+                name: "Seat 1",
+                email: "seat1@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-1",
+                  data: {},
+                },
+              }),
+              getMockBookingAttendee({
+                id: 11,
+                name: "Seat 2",
+                email: "seat2@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-2",
+                  data: {},
+                },
+              }),
+            ],
+          },
+          {
+            userId: 101,
+            eventTypeId: 1,
+            startTime: `${plus2DateString}T10:00:00.000Z`,
+            endTime: `${plus2DateString}T11:00:00.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+            attendees: [
+              getMockBookingAttendee({
+                id: 12,
+                name: "Seat 3",
+                email: "seat3@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-3",
+                  data: {},
+                },
+              }),
+            ],
+          },
+        ],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const thisUserAvailability = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+6:00"],
+          isTeamEvent: false,
+        },
+      });
+
+      const availableSlotsInTz: dayjs.Dayjs[] = [];
+      for (const date in thisUserAvailability.slots) {
+        thisUserAvailability.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
+        });
+      }
+
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(0);
     });
 
     test("Check for Date overrides", async () => {

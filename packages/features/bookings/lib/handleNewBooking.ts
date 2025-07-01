@@ -1295,6 +1295,18 @@ async function handler(
     }
   }
 
+  if (
+    eventType.seatsPerTimeSlot &&
+    (Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
+      Object.prototype.hasOwnProperty.call(eventType, "durationLimits"))
+  ) {
+    await checkBookingAndDurationLimits({
+      eventType,
+      reqBodyStart: reqBody.start,
+      reqBodyRescheduleUid: rescheduleUid,
+    });
+  }
+
   if (reqBody.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)

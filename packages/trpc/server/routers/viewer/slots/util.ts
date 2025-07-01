@@ -1017,7 +1017,8 @@ const _getBusyTimesFromLimitsForUsers = async (
             continue;
           }
 
-          totalBookings++;
+          const countToAdd = booking.attendeesCount || 1;
+          totalBookings += countToAdd;
           if (totalBookings >= limit) {
             globalLimitManager.addBusyTime(periodStart, unit, timeZone);
             break;
@@ -1074,7 +1075,8 @@ const _getBusyTimesFromLimitsForUsers = async (
               continue;
             }
 
-            totalBookings++;
+            const countToAdd = booking.attendeesCount || 1;
+            totalBookings += countToAdd;
             if (totalBookings >= limit) {
               limitManager.addBusyTime(periodStart, unit, timeZone);
               break;

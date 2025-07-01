@@ -140,7 +140,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
         if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone || "UTC")) {
           continue;
         }
-        totalBookings++;
+        const countToAdd = booking.attendeesCount || 1;
+        totalBookings += countToAdd;
         if (totalBookings >= limit) {
           limitManager.addBusyTime(periodStart, unit);
           break;

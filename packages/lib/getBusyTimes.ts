@@ -124,7 +124,7 @@ const _getBusyTimes = async (params: {
     const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
     const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
 
-    if (rest._count?.seatsReferences) {
+    if (eventType?.seatsPerTimeSlot) {
       const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
       bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
       bookingSeatCountMap[bookedAt]++;
@@ -341,15 +341,21 @@ export async function getBusyTimesForLimitChecks(params: {
       },
       title: true,
       userId: true,
+      attendees: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
 
-  busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId }) => ({
+  busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId, attendees }) => ({
     start: dayjs(startTime).toDate(),
     end: dayjs(endTime).toDate(),
     title,
     source: `eventType-${eventType?.id}-booking-${id}`,
     userId,
+    attendeesCount: attendees.length,
   }));
 
   logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
