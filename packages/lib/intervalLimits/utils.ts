@@ -1,8 +1,10 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
-import type { IntervalLimitUnit } from "./intervalLimitSchema";
+import { descendingLimitKeys, intervalLimitKeyToUnit } from "./intervalLimit";
+import type { IntervalLimit, IntervalLimitUnit } from "./intervalLimitSchema";
 
 /**
  * Extracts date parameters from a booking and period
@@ -116,4 +118,46 @@ export function findBookingsInPeriod(
   }
 
   return result;
+}
+
+/**
+ * Categorizes bookings into period counters for all time units simultaneously
+ * @param bookings Array of bookings to categorize
+ * @param bookingLimits The limits configuration
+ * @param dateFrom Start date for period generation
+ * @param dateTo End date for period generation
+ * @param timeZone Timezone for date calculations
+ * @returns Map of period keys to booking counts
+ */
+export function categorizeBookingsIntoPeriods(
+  bookings: EventBusyDetails[],
+  bookingLimits: IntervalLimit,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  timeZone: string
+): Map<string, number> {
+  const periodCounts = new Map<string, number>();
+
+  const allPeriods = new Map<IntervalLimitUnit, Dayjs[]>();
+  for (const key of descendingLimitKeys) {
+    if (bookingLimits[key]) {
+      const unit = intervalLimitKeyToUnit(key);
+      allPeriods.set(unit, getPeriodStartDatesBetween(dateFrom, dateTo, unit));
+    }
+  }
+
+  for (const booking of bookings) {
+    allPeriods.forEach((periods, unit) => {
+      for (const periodStart of periods) {
+        const periodEnd = periodStart.endOf(unit);
+
+        if (isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+          const periodKey = `${unit}-${periodStart.toISOString()}`;
+          periodCounts.set(periodKey, (periodCounts.get(periodKey) || 0) + 1);
+        }
+      }
+    });
+  }
+
+  return periodCounts;
 }

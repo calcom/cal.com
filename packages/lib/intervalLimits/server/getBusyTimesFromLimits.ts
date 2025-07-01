@@ -12,7 +12,7 @@ import type { EventBusyDetails } from "@calcom/types/Calendar";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit } from "../intervalLimitSchema";
 import LimitManager from "../limitManager";
-import { sortBookingsByStartTime, findBookingsInPeriod } from "../utils";
+import { sortBookingsByStartTime, findBookingsInPeriod, categorizeBookingsIntoPeriods } from "../utils";
 import { checkBookingLimit } from "./checkBookingLimits";
 
 const _getBusyTimesFromLimits = async (
@@ -99,10 +99,48 @@ const _getBusyTimesFromBookingLimits = async (params: {
     timeZone,
   } = params;
 
-  const sortedBookings = sortBookingsByStartTime(bookings, timeZone || "UTC");
+  if (bookingLimits.PER_YEAR) {
+    const yearPeriods = getPeriodStartDatesBetween(dateFrom, dateTo, "year");
+    for (const periodStart of yearPeriods) {
+      if (limitManager.isAlreadyBusy(periodStart, "year")) continue;
 
-  for (const key of descendingLimitKeys) {
-    const limit = bookingLimits?.[key];
+      try {
+        await checkBookingLimit({
+          eventStartDate: periodStart.toDate(),
+          limitingNumber: bookingLimits.PER_YEAR,
+          eventId: eventTypeId,
+          key: "PER_YEAR",
+          teamId,
+          user,
+          rescheduleUid,
+          includeManagedEvents,
+          timeZone,
+        });
+      } catch (_) {
+        limitManager.addBusyTime(periodStart, "year");
+        if (yearPeriods.every((start) => limitManager.isAlreadyBusy(start, "year"))) {
+          return;
+        }
+      }
+    }
+  }
+
+  const nonYearlyLimits = {
+    PER_MONTH: bookingLimits.PER_MONTH,
+    PER_WEEK: bookingLimits.PER_WEEK,
+    PER_DAY: bookingLimits.PER_DAY,
+  };
+
+  const periodCounts = categorizeBookingsIntoPeriods(
+    bookings,
+    nonYearlyLimits,
+    dateFrom,
+    dateTo,
+    timeZone || "UTC"
+  );
+
+  for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as const) {
+    const limit = bookingLimits[key];
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
@@ -111,39 +149,10 @@ const _getBusyTimesFromBookingLimits = async (params: {
     for (const periodStart of periodStartDates) {
       if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
 
-      // special handling of yearly limits to improve performance
-      if (unit === "year") {
-        try {
-          await checkBookingLimit({
-            eventStartDate: periodStart.toDate(),
-            limitingNumber: limit,
-            eventId: eventTypeId,
-            key,
-            teamId,
-            user,
-            rescheduleUid,
-            includeManagedEvents,
-            timeZone,
-          });
-        } catch (_) {
-          limitManager.addBusyTime(periodStart, unit);
-          if (periodStartDates.every((start) => limitManager.isAlreadyBusy(start, unit))) {
-            return;
-          }
-        }
-        continue;
-      }
+      const periodKey = `${unit}-${periodStart.toISOString()}`;
+      const bookingCount = periodCounts.get(periodKey) || 0;
 
-      const periodEnd = periodStart.endOf(unit);
-
-      const bookingsInPeriod = findBookingsInPeriod(
-        sortedBookings,
-        periodStart,
-        periodEnd,
-        timeZone || "UTC"
-      );
-
-      if (bookingsInPeriod.length >= limit) {
+      if (bookingCount >= limit) {
         limitManager.addBusyTime(periodStart, unit);
       }
     }
