@@ -9,7 +9,6 @@ import {
   routingFormStatsInputSchema,
   routingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
-import kysely from "@calcom/kysely";
 import { InsightsRoutingService } from "@calcom/lib/server/service/insightsRouting";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -1733,12 +1732,16 @@ export const insightsRouter = router({
   getDropOffData: userBelongsToTeamProcedure
     .input(routingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
+      if (ctx.user.organizationId === null) {
+        return null;
+      }
+
       try {
         const insightsRoutingService = new InsightsRoutingService({
-          kysely,
+          prisma: ctx.insightsDb,
           options: {
             scope: input.scope,
-            teamId: input.selectedTeamId,
+            ...(input.selectedTeamId ? { teamId: input.selectedTeamId } : {}),
             userId: ctx.user.id,
             orgId: ctx.user.organizationId,
           },
@@ -1747,7 +1750,6 @@ export const insightsRouter = router({
             endDate: input.endDate,
           },
         });
-        await insightsRoutingService.init();
         return await insightsRoutingService.getDropOffData();
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
