@@ -5,6 +5,7 @@ import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/lis
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getHumanReadableLocationValue } from "@calcom/lib/location";
 import logger from "@calcom/lib/logger";
+import { ServerPostHogBookingTracker } from "@calcom/lib/posthog/bookingEventTracker";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -279,7 +280,14 @@ export async function scheduleTrigger({
   isDryRun?: boolean;
 }) {
   if (isDryRun) return;
+
+  const serverTracker = new ServerPostHogBookingTracker();
+
   try {
+    await serverTracker.trackWebhookScheduled({
+      bookingId: booking.id,
+      webhookType: triggerEvent,
+    });
     const payload = JSON.stringify({ triggerEvent, ...booking });
 
     await prisma.webhookScheduledTriggers.create({

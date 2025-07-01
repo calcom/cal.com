@@ -19,6 +19,7 @@ import {
   getPiiFreeCredential,
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
+import { ServerPostHogBookingTracker } from "@calcom/lib/posthog/bookingEventTracker";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
@@ -135,6 +136,7 @@ export default class EventManager {
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
   appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
+  private serverTracker = new ServerPostHogBookingTracker();
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
@@ -183,116 +185,137 @@ export default class EventManager {
     // TODO this method shouldn't be modifying the event object that's passed in
     const evt = processLocation(event);
 
-    // Fallback to cal video if no location is set
-    if (!evt.location) {
-      // See if cal video is enabled & has keys
-      const calVideo = await prisma.app.findUnique({
-        where: {
-          slug: "daily-video",
-        },
-        select: {
-          keys: true,
-          enabled: true,
-        },
-      });
+    try {
+      // Fallback to cal video if no location is set
+      if (!evt.location) {
+        // See if cal video is enabled & has keys
+        const calVideo = await prisma.app.findUnique({
+          where: {
+            slug: "daily-video",
+          },
+          select: {
+            keys: true,
+            enabled: true,
+          },
+        });
 
-      const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
+        const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
 
-      if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
-      log.warn("Falling back to cal video as no location is set");
-    }
-
-    const [mainHostDestinationCalendar] =
-      (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
-
-    // Fallback to Cal Video if Google Meet is selected w/o a Google Calendar connection
-    if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
-      const [googleCalendarCredential] = this.calendarCredentials.filter(
-        (cred) => cred.type === "google_calendar"
-      );
-      // Delegation Credential case won't normally have DestinationCalendar set and thus fallback of using Google Calendar credential would be used. Identify that case.
-      // TODO: We could extend this logic to Regular Credentials also. Having a Google Calendar credential would cause fallback to use that credential to create calendar and thus we could have Google Meet link
-      if (!isDelegationCredential({ credentialId: googleCalendarCredential?.id })) {
-        log.warn(
-          "Falling back to Cal Video integration for Regular Credential as Google Calendar is not set as destination calendar"
-        );
-        evt["location"] = "integrations:daily";
-        evt["conferenceCredentialId"] = undefined;
+        if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
+        log.warn("Falling back to cal video as no location is set");
       }
-    }
-    const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
-    const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
+      const [mainHostDestinationCalendar] =
+        (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
 
-    // If and only if event type is a dedicated meeting, create a dedicated video meeting.
-    if (isDedicated) {
-      const result = await this.createVideoEvent(evt);
-
-      if (result?.createdEvent) {
-        evt.videoCallData = result.createdEvent;
-        evt.location = result.originalEvent.location;
-        result.type = result.createdEvent.type;
-        //responses data is later sent to webhook
-        if (evt.location && evt.responses) {
-          evt.responses["location"] = {
-            ...(evt.responses["location"] ?? {}),
-            value: {
-              optionValue: "",
-              value: evt.location,
-            },
-          };
+      // Fallback to Cal Video if Google Meet is selected w/o a Google Calendar connection
+      if (
+        evt.location === MeetLocationType &&
+        mainHostDestinationCalendar?.integration !== "google_calendar"
+      ) {
+        const [googleCalendarCredential] = this.calendarCredentials.filter(
+          (cred) => cred.type === "google_calendar"
+        );
+        // Delegation Credential case won't normally have DestinationCalendar set and thus fallback of using Google Calendar credential would be used. Identify that case.
+        // TODO: We could extend this logic to Regular Credentials also. Having a Google Calendar credential would cause fallback to use that credential to create calendar and thus we could have Google Meet link
+        if (!isDelegationCredential({ credentialId: googleCalendarCredential?.id })) {
+          log.warn(
+            "Falling back to Cal Video integration for Regular Credential as Google Calendar is not set as destination calendar"
+          );
+          evt["location"] = "integrations:daily";
+          evt["conferenceCredentialId"] = undefined;
         }
       }
+      const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
-      results.push(result);
-    }
+      const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
-    // Some calendar libraries may edit the original event so let's clone it
-    const clonedCalEvent = cloneDeep(event);
-    // Create the calendar event with the proper video call data
-    results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
+      // If and only if event type is a dedicated meeting, create a dedicated video meeting.
+      if (isDedicated) {
+        const result = await this.createVideoEvent(evt);
 
-    // Since the result can be a new calendar event or video event, we have to create a type guard
-    // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
-    const isCalendarResult = (
-      result: (typeof results)[number]
-    ): result is EventResult<NewCalendarEventType> => {
-      return result.type.includes("_calendar");
-    };
+        if (result?.createdEvent) {
+          evt.videoCallData = result.createdEvent;
+          evt.location = result.originalEvent.location;
+          result.type = result.createdEvent.type;
+          //responses data is later sent to webhook
+          if (evt.location && evt.responses) {
+            evt.responses["location"] = {
+              ...(evt.responses["location"] ?? {}),
+              value: {
+                optionValue: "",
+                value: evt.location,
+              },
+            };
+          }
+        }
 
-    const createdCRMEvents = await this.createAllCRMEvents(evt);
-
-    results.push(...createdCRMEvents);
-
-    // References can be any type: calendar/video
-    const referencesToCreate = results.map((result) => {
-      let thirdPartyRecurringEventId;
-      let createdEventObj: createdEventSchema | null = null;
-      if (typeof result?.createdEvent === "string") {
-        createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
+        results.push(result);
       }
-      const isCalendarType = isCalendarResult(result);
-      if (isCalendarType) {
-        evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
-        thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
-      }
+
+      // Some calendar libraries may edit the original event so let's clone it
+      const clonedCalEvent = cloneDeep(event);
+      // Create the calendar event with the proper video call data
+      results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
+
+      // Since the result can be a new calendar event or video event, we have to create a type guard
+      // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
+      const isCalendarResult = (
+        result: (typeof results)[number]
+      ): result is EventResult<NewCalendarEventType> => {
+        return result.type.includes("_calendar");
+      };
+
+      const createdCRMEvents = await this.createAllCRMEvents(evt);
+
+      results.push(...createdCRMEvents);
+
+      // References can be any type: calendar/video
+      const referencesToCreate = results.map((result) => {
+        let thirdPartyRecurringEventId;
+        let createdEventObj: createdEventSchema | null = null;
+        if (typeof result?.createdEvent === "string") {
+          createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
+        }
+        const isCalendarType = isCalendarResult(result);
+        if (isCalendarType) {
+          evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
+          thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
+        }
+
+        return {
+          type: result.type,
+          uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+          thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
+          meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
+          meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
+          meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
+          externalCalendarId: isCalendarType ? result.externalId : undefined,
+          ...getCredentialPayload(result),
+        };
+      });
+
+      await this.serverTracker.trackCalendarEventCreated({
+        eventTypeId: event.eventTypeId,
+        userId: event.organizer?.id,
+        calendarIntegrations: this.calendarCredentials.map((c) => c.type),
+      });
 
       return {
-        type: result.type,
-        uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
-        thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
-        meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
-        meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
-        meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
-        externalCalendarId: isCalendarType ? result.externalId : undefined,
-        ...getCredentialPayload(result),
+        results,
+        referencesToCreate,
       };
-    });
+    } catch (error) {
+      await this.serverTracker.trackCalendarEventFailed({
+        eventTypeId: event.eventTypeId,
+        userId: event.organizer?.id,
+        calendarIntegrations: this.calendarCredentials.map((c) => c.type),
+        error: error instanceof Error ? error.message : String(error),
+        errorCode: error instanceof Error && "code" in error ? String(error.code) : undefined,
+      });
 
-    return {
-      results,
-      referencesToCreate,
-    };
+      throw error;
+    }
   }
 
   public async updateLocation(event: CalendarEvent, booking: PartialBooking): Promise<CreateUpdateResult> {

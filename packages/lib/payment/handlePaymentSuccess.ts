@@ -16,9 +16,11 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import logger from "../logger";
+import { ServerPostHogBookingTracker } from "../posthog/bookingEventTracker";
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
 export async function handlePaymentSuccess(paymentId: number, bookingId: number) {
+  const serverTracker = new ServerPostHogBookingTracker();
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
 
@@ -79,6 +81,16 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
   });
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
+
+  await serverTracker.trackPaymentProcessed({
+    bookingId: booking.id,
+    bookingUid: booking.uid,
+    paymentId,
+    eventTypeId: eventType?.id,
+    userId: userWithCredentials.id,
+    paymentRequired: true,
+  });
+
   if (!isConfirmed) {
     if (!requiresConfirmation) {
       await handleConfirmation({
