@@ -1,4 +1,3 @@
-import { decodeHTML } from "entities";
 import { useMemo } from "react";
 
 import { useDataTable } from "@calcom/features/data-table";
@@ -19,17 +18,16 @@ const TimezoneBadgeContent = () => {
 
     if (!browserTimezone || !userTimezone || browserTimezone === userTimezone) return null;
 
-    const rawTooltipContent = t("timezone_mismatch_tooltip", {
+    const tooltipContent = t("timezone_mismatch_tooltip", {
       browserTimezone,
       userTimezone,
+      interpolation: { escapeValue: false },
     });
-
-    const decodedTooltipContent = decodeHTML(rawTooltipContent);
 
     return {
       browser: browserTimezone,
       user: userTimezone,
-      tooltipContent: decodedTooltipContent,
+      tooltipContent,
       badgeContent: userTimezone,
     };
   }, [userTimezone, t]);
