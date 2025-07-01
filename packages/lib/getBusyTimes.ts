@@ -124,7 +124,7 @@ const _getBusyTimes = async (params: {
     const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
     const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
 
-    if (eventType?.seatsPerTimeSlot) {
+    if (rest._count?.seatsReferences) {
       const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
       bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
       bookingSeatCountMap[bookedAt]++;

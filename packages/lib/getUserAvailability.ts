@@ -572,11 +572,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   });
 
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
-    start: dayjs(busy.start).tz(timeZone),
-    end: dayjs(busy.end).tz(timeZone),
+    start: dayjs(busy.start),
+    end: dayjs(busy.end),
   }));
-
-  //INFO  formattedBusyTimes need to be in the same tz as dateRanges to subtract correctly.
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
   const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
