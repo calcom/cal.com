@@ -813,7 +813,7 @@ async function handler(
         }
       }
 
-      const luckyUserPools: IsFixedAwareUser[][] = [[]];
+      const luckyUserPools: IsFixedAwareUser[][] = [];
       const fixedUserPool: IsFixedAwareUser[] = [];
 
       availableUsers.forEach((user) => {
