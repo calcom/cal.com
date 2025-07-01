@@ -597,7 +597,6 @@ export class Cal {
         return "fullReload";
       }
 
-      console.log({ prerenderOptions });
       if (prerenderOptions?.backgroundSlotsFetch && !areSlotsStale) {
         return "connect-no-slots-fetch";
       }
@@ -686,6 +685,8 @@ export class Cal {
     return new URL(`${urlObject.pathname}${urlObject.search}`, urlObject.origin);
   }
 
+  // We record the updated params on dataset.calLink which allows us to determine if something actually changed since the last time we loaded
+  // This is used by getNextActionForModal
   recordUpdatedParamsForIframe(params: Record<string, string | string[]>) {
     const lastLoadedUrlInIframeObject = this.getLastLoadedLinkInframe();
     if (!lastLoadedUrlInIframeObject || !this.iframe) {
@@ -715,7 +716,9 @@ export class Cal {
       const isThresholdCrossed = hasCrossedThreshold();
       if (isThresholdCrossed) {
         log("Threshold crossed, allowing repeat prerender");
+        return true;
       }
+      log("Threshold not crossed, preventing repeat prerender");
       return false;
     }
     return true;
@@ -786,6 +789,24 @@ export class Cal {
       embedConfig: this.embedConfig,
       embedRenderStartTime: this.embedRenderStartTime,
     };
+  }
+
+  connect({
+    config,
+    params,
+  }: {
+    config: PrefillAndIframeAttrsConfig;
+    params: Record<string, string | string[]>;
+  }) {
+    // Update the iframe query params and record the change as well on the iframe for getNextActionForModal to use
+    this.recordUpdatedParamsForIframe(params);
+    this.doInIframe({
+      method: "connect",
+      arg: {
+        config,
+        params,
+      },
+    });
   }
 }
 
@@ -1145,20 +1166,16 @@ class CalApi {
           });
         } else if (actionToTake === "connect" || actionToTake === "connect-no-slots-fetch") {
           const paramsToAdd = fromEntriesWithDuplicateKeys(calLinkUrlObject.searchParams.entries());
-          this.cal.recordUpdatedParamsForIframe(paramsToAdd);
-          this.cal.doInIframe({
-            method: "connect",
-            arg: {
-              config: {
-                ...enrichedConfig,
-                ...(actionToTake === "connect-no-slots-fetch"
-                  ? {
-                      "cal.embed.noSlotsFetchOnConnect": "true",
-                    }
-                  : {}),
-              },
-              params: paramsToAdd,
+          this.cal.connect({
+            config: {
+              ...enrichedConfig,
+              ...(actionToTake === "connect-no-slots-fetch"
+                ? {
+                    "cal.embed.noSlotsFetchOnConnect": "true",
+                  }
+                : {}),
             },
+            params: paramsToAdd,
           });
         }
       }

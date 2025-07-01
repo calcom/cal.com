@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 import {
   EMBED_MODAL_IFRAME_SLOT_STALE_TIME,
   EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS,
+  EMBED_MODAL_PRERENDER_PREVENT_THRESHOLD_MS,
 } from "./constants";
 
 vi.mock("./tailwindCss", () => ({
@@ -412,6 +413,34 @@ describe("Cal", () => {
         expect(calInstance.embedRenderStartTime).toBe(embedRenderStartTime);
       });
 
+      it("should allow repeat prerender after threshold time has passed", async () => {
+        vi.useFakeTimers();
+        const modalArg = {
+          ...baseModalArgs,
+          calLink: "router?form=123&email=john@example.com",
+        };
+
+        // First prerender
+        const { status: status1 } = await calInstance.api.modal({
+          ...modalArg,
+          __prerender: true,
+        });
+        expect(status1).toBe("created");
+
+        // Mock time passage beyond threshold
+        vi.advanceTimersByTime(EMBED_MODAL_PRERENDER_PREVENT_THRESHOLD_MS + 1000);
+
+        // Second prerender after threshold - should be ALLOWED
+        const { status: status2 } = await calInstance.api.modal({
+          ...modalArg,
+          __prerender: true,
+        });
+
+        expect(status2).toBe("created");
+
+        vi.useRealTimers();
+      });
+
       it("Prerender with non-headless router link and then CTA click with headless router is not allowed", async () => {
         const modalArg = {
           ...baseModalArgs,
@@ -424,7 +453,7 @@ describe("Cal", () => {
         });
         expect(status1).toBe("created");
 
-        expect(
+        await expect(
           calInstance.api.modal({
             ...modalArg,
             calLink: "router?form=123&email=john@example.com",
