@@ -11,5 +11,6 @@ export { MostCancelledBookingsTables } from "./MostCancelledBookingsTables";
 export { PopularEventsTable } from "./PopularEventsTable";
 export { RecentFeedbackTable } from "./RecentFeedbackTable";
 export { RoutedToPerPeriod } from "./RoutedToPerPeriod";
+export { RoutingFunnel } from "./RoutingFunnel";
 export { RoutingFormResponsesTable, type RoutingFormTableType } from "./RoutingFormResponsesTable";
 export { RoutingKPICards } from "./RoutingKPICards";

@@ -1,4 +1,5 @@
 import type { Team, User, Membership } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { describe, expect, it } from "vitest";
 
@@ -6,6 +7,16 @@ import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import { InsightsRoutingService } from "../../service/insightsRouting";
+
+// SQL condition constants for testing
+const NOTHING_CONDITION = Prisma.sql`1=0`;
+
+// Helper function to create default filters for testing
+const createDefaultFilters = () => ({
+  startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  endDate: new Date().toISOString(),
+  timeZone: "UTC",
+});
 
 // Helper function to create unique test data
 async function createTestData({
@@ -240,10 +251,11 @@ describe("InsightsRoutingService Integration Tests", () => {
       const service = new InsightsRoutingService({
         prisma,
         options: null as any,
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ id: -1 });
+      expect(conditions).toEqual(NOTHING_CONDITION);
     });
 
     it("should return NOTHING for non-owner/admin user", async () => {
@@ -274,11 +286,13 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "org",
           userId: regularUser.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ id: -1 });
+      expect(conditions).toEqual(NOTHING_CONDITION);
 
       // Clean up
       await prisma.membership.delete({
@@ -302,17 +316,13 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            formUserId: testData.user.id,
-          },
-        ],
-      });
+      expect(conditions).toEqual(Prisma.sql`"formUserId" = ${testData.user.id}`);
 
       await testData.cleanup();
     });
@@ -331,16 +341,11 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
           teamId: testData.team.id,
         },
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            formTeamId: testData.team.id,
-          },
-        ],
-      });
+      expect(conditions).toEqual(Prisma.sql`"formTeamId" = ${testData.team.id}`);
 
       // Clean up
       await testData.cleanup();
@@ -366,20 +371,16 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "org",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
 
-      expect(conditions).toEqual({
-        AND: [
-          {
-            formTeamId: {
-              in: [testData.org.id, testData.team.id, team2.id, team3.id],
-            },
-          },
-        ],
-      });
+      expect(conditions).toEqual(
+        Prisma.sql`"formTeamId" = ANY(${[testData.org.id, testData.team.id, team2.id, team3.id]})`
+      );
 
       await testData.cleanup();
     });
@@ -408,10 +409,11 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
           teamId: unrelatedTeam.id,
         },
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ AND: [{ id: -1 }] });
+      expect(conditions).toEqual(NOTHING_CONDITION);
 
       // Clean up
       await prisma.team.delete({
@@ -422,7 +424,7 @@ describe("InsightsRoutingService Integration Tests", () => {
   });
 
   describe("Filter Conditions", () => {
-    it("should return null when no filters are provided", async () => {
+    it("should build filter conditions when dates are provided", async () => {
       const testData = await createTestData();
 
       const service = new InsightsRoutingService({
@@ -431,11 +433,18 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          startDate: "2024-01-01",
+          endDate: "2024-12-31",
         },
       });
 
       const conditions = await service.getFilterConditions();
-      expect(conditions).toBeNull();
+      expect(conditions).toEqual(
+        Prisma.sql`"createdAt" >= ${"2024-01-01"}::timestamp AND "createdAt" <= ${"2024-12-31"}::timestamp`
+      );
 
       await testData.cleanup();
     });
@@ -454,18 +463,14 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       // First call should build conditions
       const conditions1 = await service.getAuthorizationConditions();
-      expect(conditions1).toEqual({
-        AND: [
-          {
-            formUserId: testData.user.id,
-          },
-        ],
-      });
+      expect(conditions1).toEqual(Prisma.sql`"formUserId" = ${testData.user.id}`);
 
       // Second call should use cached conditions
       const conditions2 = await service.getAuthorizationConditions();
@@ -484,12 +489,14 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       // First call should build conditions
       const conditions1 = await service.getFilterConditions();
-      expect(conditions1).toBeNull();
+      expect(conditions1).toBeDefined();
 
       // Second call should use cached conditions
       const conditions2 = await service.getFilterConditions();
@@ -506,25 +513,22 @@ describe("InsightsRoutingService Integration Tests", () => {
         orgRole: MembershipRole.OWNER,
       });
 
+      const filters = createDefaultFilters();
+      const dateCondition = Prisma.sql`"createdAt" >= ${filters.startDate}::timestamp AND "createdAt" <= ${filters.endDate}::timestamp`;
+
       const service = new InsightsRoutingService({
         prisma,
         options: {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters,
       });
 
       const results = await service.getBaseConditions();
-      expect(results).toEqual([
-        {
-          AND: [
-            {
-              formUserId: testData.user.id,
-            },
-          ],
-        },
-      ]);
+      expect(results).toEqual(Prisma.sql`("formUserId" = ${testData.user.id}) AND (${dateCondition})`);
 
       await testData.cleanup();
     });
@@ -579,18 +583,16 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       const baseConditions = await service.getBaseConditions();
-      const results = await prisma.routingFormResponseDenormalized.findMany({
-        select: {
-          id: true,
-        },
-        where: {
-          AND: baseConditions,
-        },
-      });
+      console.log("💡 baseConditions", baseConditions);
+      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+        SELECT id FROM "RoutingFormResponseDenormalized" WHERE ${baseConditions}
+      `;
 
       // Should only return the authorized user's form response
       expect(results).toHaveLength(1);
@@ -672,15 +674,15 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "org",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       const baseConditions = await service.getBaseConditions();
-      const results = await prisma.routingFormResponseDenormalized.findMany({
-        where: {
-          AND: baseConditions,
-        },
-      });
+      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+        SELECT id FROM "RoutingFormResponseDenormalized" WHERE ${baseConditions}
+      `;
 
       // Should return both form responses (original user's and team member's)
       expect(results).toHaveLength(2);

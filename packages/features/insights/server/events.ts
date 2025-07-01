@@ -72,7 +72,7 @@ export interface GetDateRangesParams {
   endDate: string;
   timeZone: string;
   timeView: "day" | "week" | "month" | "year";
-  weekStart: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
+  weekStart: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | string;
 }
 
 class EventsInsights {

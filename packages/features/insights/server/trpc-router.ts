@@ -1729,31 +1729,35 @@ export const insightsRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
-  getDropOffData: userBelongsToTeamProcedure
+  getRoutingFunnelData: userBelongsToTeamProcedure
     .input(routingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       if (ctx.user.organizationId === null) {
         return null;
       }
 
-      try {
-        const insightsRoutingService = new InsightsRoutingService({
-          prisma: ctx.insightsDb,
-          options: {
-            scope: input.scope,
-            teamId: input.selectedTeamId,
-            userId: ctx.user.id,
-            orgId: ctx.user.organizationId,
-          },
-          filters: {
-            startDate: input.startDate,
-            endDate: input.endDate,
-          },
-        });
-        return await insightsRoutingService.getDropOffData();
-      } catch (e) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      }
+      const timeView = EventsInsights.getTimeView(input.startDate, input.endDate);
+      const dateRanges = EventsInsights.getDateRanges({
+        startDate: input.startDate,
+        endDate: input.endDate,
+        timeZone: ctx.user.timeZone,
+        timeView,
+        weekStart: ctx.user.weekStart,
+      });
+      const insightsRoutingService = new InsightsRoutingService({
+        prisma: ctx.insightsDb,
+        options: {
+          scope: input.scope,
+          teamId: input.selectedTeamId,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId,
+        },
+        filters: {
+          startDate: input.startDate,
+          endDate: input.endDate,
+        },
+      });
+      return await insightsRoutingService.getRoutingFunnelData(dateRanges);
     }),
 });
 

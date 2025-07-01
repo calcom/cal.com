@@ -14,8 +14,8 @@ export default function PlaygroundLayout({ children }: { children: React.ReactNo
     },
     {
       name: "Drop Off",
-      href: "/settings/admin/playground/dropoff",
-      current: pathname === "/settings/admin/playground/dropoff",
+      href: "/settings/admin/playground/routing-funnel",
+      current: pathname === "/settings/admin/playground/routing-funnel",
     },
   ];
 
