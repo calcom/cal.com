@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@calcom/atoms": "*",
+    "@calcom/atoms": "file:../../atoms/cal-atoms-dev.tgz",
     "@prisma/client": "5.4.2",
     "next": "14.0.4",
     "prisma": "^5.7.1",
