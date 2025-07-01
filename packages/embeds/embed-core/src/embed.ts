@@ -688,7 +688,7 @@ export class Cal {
 
   recordUpdatedParamsForIframe(params: Record<string, string | string[]>) {
     const lastLoadedUrlInIframeObject = this.getLastLoadedLinkInframe();
-    if (!lastLoadedUrlInIframeObject) {
+    if (!lastLoadedUrlInIframeObject || !this.iframe) {
       return;
     }
     // Create a clone of the last loaded url object in iframe
@@ -1044,6 +1044,7 @@ class CalApi {
         backgroundSlotsFetch: !!this.prerenderOptions?.backgroundSlotsFetch,
       });
     } else {
+      this.cal.isPrerendering = false;
       enrichedConfig = configWithGuestKeyAndColorScheme;
     }
 
