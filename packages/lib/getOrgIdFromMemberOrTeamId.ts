@@ -1,4 +1,5 @@
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 const getOrgMemberOrTeamWhere = (memberId?: number | null, teamId?: number | null) => {
   const conditions: Prisma.TeamWhereInput[] = [];
