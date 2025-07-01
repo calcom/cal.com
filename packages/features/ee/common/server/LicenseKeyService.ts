@@ -23,11 +23,11 @@ export interface ILicenseKeyService {
 class LicenseKeyService implements ILicenseKeyService {
   private readonly baseUrl = CALCOM_PRIVATE_API_ROUTE;
   private readonly licenseKey: string;
-  private readonly signatureToken: string;
+  private readonly signatureToken: string | null;
   public readonly CACHING_TIME = 86_400_000; // 24 hours in milliseconds
 
   // Private constructor to prevent direct instantiation
-  private constructor(licenseKey: string, signatureToken: string) {
+  private constructor(licenseKey: string, signatureToken: string | null) {
     this.baseUrl = CALCOM_PRIVATE_API_ROUTE;
     this.licenseKey = licenseKey;
     this.signatureToken = signatureToken;
