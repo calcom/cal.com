@@ -209,6 +209,7 @@ expect.extend({
     const u = new URL(iframe.url());
 
     const pathname = u.pathname;
+    console.log("toBeEmbedCalLink", { expectedUrlDetails, iframeUrl: u });
     if (expectedUrlDetails.pathname) {
       const expectedPathname = `${expectedUrlDetails.pathname}/embed`;
       if (pathname !== expectedPathname) {

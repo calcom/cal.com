@@ -3,6 +3,39 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 
+export async function getQueuedFormResponse(queuedFormResponseId: string) {
+  return prisma.app_RoutingForms_QueuedFormResponse.findFirst({
+    where: {
+      id: queuedFormResponseId,
+    },
+    include: {
+      actualResponse: true,
+    },
+  });
+}
+
+export async function getAllFormResponses(formId: string) {
+  return prisma.app_RoutingForms_FormResponse.findMany({
+    where: {
+      formId: formId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function getLatestQueuedFormResponse({ formId }: { formId: string }) {
+  return prisma.app_RoutingForms_QueuedFormResponse.findFirst({
+    where: {
+      formId: formId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
 export const deleteAllBookingsByEmail = async (email: string) =>
   await prisma.booking.deleteMany({
     where: {
@@ -115,6 +148,10 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   await frame.waitForTimeout(1000);
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
   // Remove /embed from the end if present.
+  await bookEvent({ frame, page });
+}
+
+export async function bookEvent({ frame, page }: { frame: Frame; page: Page }) {
   const eventSlug = new URL(frame.url()).pathname.replace(/\/embed$/, "");
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   // expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
@@ -157,4 +194,38 @@ export async function assertNoRequestIsBlocked(page: Page) {
       throw new Error(`Request Blocked: ${request.url()}. Error: ${error}`);
     }
   });
+}
+
+export async function expectEmbedIFrameToBeVisible({
+  calNamespace,
+  page,
+}: {
+  calNamespace: string;
+  page: Page;
+}) {
+  const iframe = page.locator(`[name="cal-embed=${calNamespace}"]`);
+  await expect(iframe).toBeVisible();
+}
+
+export async function expectActualFormResponseConnectedToQueuedFormResponse({
+  queuedFormResponse,
+  page,
+  numberOfExpectedSetFieldValues,
+}: {
+  queuedFormResponse: { id: string };
+  page: Page;
+}) {
+  const responsePromise = page.waitForResponse("**/queued-response");
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
+
+  const queuedFormResponseFromDb = await getQueuedFormResponse(queuedFormResponse.id);
+
+  expect(queuedFormResponseFromDb?.actualResponse?.id).toBeDefined();
+  const responseFromDb = queuedFormResponseFromDb?.actualResponse?.response;
+  expect(responseFromDb).toBeDefined();
+  const valuesFromResponse = Object.values(responseFromDb).map((item) => item.value);
+  const valuesSetInResponse = valuesFromResponse.filter((value) => !!value);
+  // There are 5 values that are submitted when CTA is clicked.
+  expect(valuesSetInResponse.length).toBe(numberOfExpectedSetFieldValues);
 }
