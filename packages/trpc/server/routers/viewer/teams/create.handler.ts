@@ -1,6 +1,5 @@
 import { generateTeamCheckoutSession } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { isBase64Image } from "@calcom/lib/isBase64Image";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -107,7 +106,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     },
   });
   // Upload logo, create doesn't allow logo removal
-  if (input.logo && isBase64Image(input.logo)) {
+  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
     const logoUrl = await uploadLogo({
       logo: await resizeBase64Image(input.logo),
       teamId: createdTeam.id,

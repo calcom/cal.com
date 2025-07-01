@@ -2,7 +2,6 @@ import type { Prisma, PrismaPromise, User, Membership, Profile } from "@prisma/c
 
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { isBase64Image } from "@calcom/lib/isBase64Image";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
@@ -120,7 +119,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     timeZone: input.timeZone,
   };
 
-  if (input.avatar && isBase64Image(input.avatar)) {
+  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
     const avatar = await resizeBase64Image(input.avatar);
     data.avatarUrl = await uploadAvatar({
       avatar,
