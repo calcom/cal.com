@@ -45,7 +45,7 @@ async function performanceTest() {
   const stats = cacheManager.getCacheStats(credentialId);
   console.log(`Cache entries: ${stats.size}`);
 
-  console.log("Performance tests completed!");
+  console.log("Performance tests completed successfully!");
 }
 
 if (require.main === module) {
