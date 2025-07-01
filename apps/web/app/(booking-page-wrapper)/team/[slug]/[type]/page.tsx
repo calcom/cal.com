@@ -55,7 +55,7 @@ const getTeamProfileData = (team: TeamWithEventTypes, orgSlug: string | null) =>
     username: orgSlug ?? null,
   };
 };
-export async function getCachedOrgContext(_params: PageProps["params"]) {
+export async function getOrgContext(_params: PageProps["params"]) {
   const params = await _params;
   const result = paramsSchema.safeParse({
     slug: params?.slug,
@@ -67,10 +67,9 @@ export async function getCachedOrgContext(_params: PageProps["params"]) {
   }
 
   const { slug: teamSlug, type: meetingSlug } = result.data;
-  const orgSlug = params?.orgSlug ?? null;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
     buildLegacyRequest(await headers(), await cookies()),
-    orgSlug ?? undefined
+    params?.orgSlug ?? undefined
   );
 
   return {
@@ -82,7 +81,7 @@ export async function getCachedOrgContext(_params: PageProps["params"]) {
 }
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(params);
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getOrgContext(params);
 
   const team = await getCachedTeamWithEventTypes(teamSlug, meetingSlug, currentOrgDomain);
   if (!team || !team.eventTypes?.[0]) return {}; // should never happen
@@ -129,7 +128,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(params);
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getOrgContext(params);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
