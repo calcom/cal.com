@@ -166,8 +166,8 @@ const LicenseSelection = (
                   control={formMethods.control}
                   render={({ field: { onBlur, onChange, value } }) => (
                     <TextField
+                      name="licenseKey"
                       label={t("license_key")}
-                      {...formMethods.register("licenseKey")}
                       className={classNames(
                         "group-hover:border-emphasis mb-0",
                         (checkLicenseLoading || (errors.licenseKey === undefined && isDirty)) && "border-r-0"
