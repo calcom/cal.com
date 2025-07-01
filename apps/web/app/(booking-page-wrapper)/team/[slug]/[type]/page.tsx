@@ -7,15 +7,23 @@ import { z } from "zod";
 
 import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { loadTranslations } from "@calcom/lib/server/i18n";
+import { BookingService } from "@calcom/lib/server/service/booking";
+import { EventTypeService } from "@calcom/lib/server/service/eventType";
 import slugify from "@calcom/lib/slugify";
-import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
+import type { SchedulingType } from "@calcom/prisma/enums";
+import { RedirectType } from "@calcom/prisma/enums";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-import { getDynamicBookingData } from "@lib/team/[slug]/[type]/getDynamicBookingData";
-import { getCachedTeamEvent } from "@lib/team/[slug]/[type]/getTeamEventData";
 
 import Type from "~/team/type-view";
+
+import {
+  getCachedTeamWithEventTypes,
+  getCachedProcessedEventData,
+  processTeamDataForBooking,
+  getTeamProfileData,
+} from "./actions";
 
 const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),
@@ -46,22 +54,38 @@ export async function getCachedOrgContext(params: any) {
 }
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(await params);
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(
+    await params
+  );
 
-  const teamEventData = await getCachedTeamEvent({
-    teamSlug,
-    meetingSlug,
-    orgSlug: currentOrgDomain,
-  });
-
-  if (!teamEventData) {
+  // Get team data (cached)
+  const team = await getCachedTeamWithEventTypes(teamSlug, meetingSlug, currentOrgDomain);
+  if (!team || !team.eventTypes?.[0]) {
     return {};
   }
 
-  const { eventData, isBrandingHidden, isSEOIndexable } = teamEventData;
-  const profileName = eventData?.profile?.name ?? "";
-  const profileImage = eventData?.profile.image;
-  const title = eventData?.title ?? "";
+  // Calculate orgSlug exactly like the original code
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+
+  // Get team profile data (not cached - simple transformation)
+  const profileData = getTeamProfileData(team, orgSlug);
+
+  // Check for fromRedirectOfNonOrgLink
+  const searchParamsObj = await searchParams;
+  const fromRedirectOfNonOrgLink = searchParamsObj.orgRedirection === "true";
+
+  // Get processed event data (cached)
+  const eventData = await getCachedProcessedEventData(team, orgSlug, profileData, fromRedirectOfNonOrgLink);
+  if (!eventData) {
+    return {};
+  }
+
+  // Get team booking data (not cached - simple transformation)
+  const teamData = processTeamDataForBooking(team);
+
+  const title = eventData.title;
+  const profileName = eventData.profile.name ?? "";
+  const profileImage = eventData.profile.image;
 
   const meeting = {
     title,
@@ -73,7 +97,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     meeting,
     () => `${title} | ${profileName}`,
     () => title,
-    isBrandingHidden,
+    teamData.isBrandingHidden,
     getOrgFullOrigin(eventData.entity.orgSlug ?? null),
     `/team/${teamSlug}/${meetingSlug}`
   );
@@ -81,8 +105,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   return {
     ...metadata,
     robots: {
-      follow: !(eventData?.hidden || !isSEOIndexable),
-      index: !(eventData?.hidden || !isSEOIndexable),
+      follow: !(eventData.hidden || !teamData.isSEOIndexable),
+      index: !(eventData.hidden || !teamData.isSEOIndexable),
     },
   };
 };
@@ -104,38 +128,67 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     if (redirectResult) redirect(redirectResult.redirect.destination);
   }
 
-  const teamEventData = await getCachedTeamEvent({
-    teamSlug,
-    meetingSlug,
-    orgSlug: currentOrgDomain,
-  });
-
-  if (!teamEventData) {
+  // Get team data (cached)
+  const team = await getCachedTeamWithEventTypes(teamSlug, meetingSlug, currentOrgDomain);
+  if (!team || !team.eventTypes?.[0]) {
     return notFound();
   }
+
+  // Calculate orgSlug exactly like the original code
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+
+  // Get team profile data (not cached - simple transformation)
+  const profileData = getTeamProfileData(team, orgSlug);
+
+  // Check for fromRedirectOfNonOrgLink - CRITICAL for org redirection logic
+  const searchParamsObj = await searchParams;
+  const fromRedirectOfNonOrgLink = searchParamsObj.orgRedirection === "true";
+
+  // Get processed event data (cached)
+  const eventData = await getCachedProcessedEventData(team, orgSlug, profileData, fromRedirectOfNonOrgLink);
+  if (!eventData) {
+    return notFound();
+  }
+
+  // Get team booking data (not cached - simple transformation)
+  const teamData = processTeamDataForBooking(team);
 
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting } = legacyCtx.query;
   const allowRescheduleForCancelledBooking = legacyCtx.query.allowRescheduleForCancelledBooking === "true";
 
-  if (rescheduleUid && teamEventData.eventData.disableRescheduling) {
+  // Validate rescheduling restrictions
+  if (!EventTypeService.canReschedule(eventData, rescheduleUid)) {
     redirect(`/booking/${rescheduleUid}`);
   }
 
-  const dynamicData = await getDynamicBookingData({
-    teamId: teamEventData.teamId,
-    rescheduleUid,
-    query: legacyCtx.query,
-    req: legacyCtx.req,
-    eventData: teamEventData.eventData,
-    isInstantMeetingQuery: queryIsInstantMeeting === "true",
-  });
+  // Get dynamic booking data (not cached - user/request specific)
+  const rawEventData = {
+    id: eventData.eventTypeId,
+    isInstantEvent: team.eventTypes[0].isInstantEvent,
+    schedulingType: team.eventTypes[0].schedulingType as SchedulingType | null,
+    metadata: team.eventTypes[0].metadata,
+    length: eventData.length,
+  };
 
+  const dynamicData = await BookingService.getDynamicBookingData(
+    teamData.teamId,
+    rescheduleUid,
+    legacyCtx.query,
+    legacyCtx.req,
+    rawEventData,
+    eventData,
+    queryIsInstantMeeting === "true"
+  );
+
+  // Validate cancelled booking rescheduling
   if (
-    dynamicData.booking?.status === BookingStatus.CANCELLED &&
-    !allowRescheduleForCancelledBooking &&
-    !teamEventData.eventData.allowReschedulingCancelledBookings
+    !BookingService.canRescheduleCancelledBooking(
+      dynamicData.booking,
+      allowRescheduleForCancelledBooking,
+      eventData
+    )
   ) {
     redirect(`/team/${teamSlug}/${meetingSlug}`);
   }
@@ -144,21 +197,21 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     slug: meetingSlug,
     user: teamSlug,
     booking: dynamicData.booking,
-    isBrandingHidden: teamEventData.isBrandingHidden,
-    eventData: teamEventData.eventData,
+    isBrandingHidden: teamData.isBrandingHidden,
+    eventData: eventData,
     isInstantMeeting: dynamicData.isInstantMeeting,
-    orgBannerUrl: teamEventData.orgBannerUrl,
+    orgBannerUrl: teamData.orgBannerUrl,
     teamMemberEmail: dynamicData.teamMemberEmail,
     crmOwnerRecordType: dynamicData.crmOwnerRecordType,
     crmAppSlug: dynamicData.crmAppSlug,
     isEmbed: false,
     useApiV2: dynamicData.useApiV2,
-    teamId: teamEventData.teamId,
+    teamId: teamData.teamId,
     themeBasis: null,
-    isSEOIndexable: teamEventData.isSEOIndexable,
+    isSEOIndexable: teamData.isSEOIndexable,
   };
 
-  const eventLocale = teamEventData.eventData?.interfaceLanguage;
+  const eventLocale = eventData.interfaceLanguage;
   if (eventLocale) {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);
