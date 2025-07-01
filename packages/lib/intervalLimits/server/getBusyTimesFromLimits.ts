@@ -198,15 +198,23 @@ const _getBusyTimesFromDurationLimits = async (
       const periodEnd = periodStart.endOf(unit);
       let totalDuration = selectedDuration;
 
+      const uniqueTimeSlots = new Set<string>();
+
       for (const booking of bookings) {
         // consider booking part of period independent of end date
         if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone || "UTC")) {
           continue;
         }
-        totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
-        if (totalDuration > limit) {
-          limitManager.addBusyTime(periodStart, unit);
-          break;
+
+        const timeSlotKey = `${booking.start}-${booking.end}`;
+        if (!uniqueTimeSlots.has(timeSlotKey)) {
+          uniqueTimeSlots.add(timeSlotKey);
+          const bookingDuration = dayjs(booking.end).diff(dayjs(booking.start), "minute");
+          totalDuration += bookingDuration;
+          if (totalDuration > limit) {
+            limitManager.addBusyTime(periodStart, unit);
+            break;
+          }
         }
       }
     }
