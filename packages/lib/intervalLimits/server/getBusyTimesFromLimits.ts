@@ -12,7 +12,7 @@ import type { EventBusyDetails } from "@calcom/types/Calendar";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit } from "../intervalLimitSchema";
 import LimitManager from "../limitManager";
-import { isBookingWithinPeriod } from "../utils";
+import { sortBookingsByStartTime, findBookingsInPeriod } from "../utils";
 import { checkBookingLimit } from "./checkBookingLimits";
 
 const _getBusyTimesFromLimits = async (
@@ -99,6 +99,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
     timeZone,
   } = params;
 
+  const sortedBookings = sortBookingsByStartTime(bookings, timeZone || "UTC");
+
   for (const key of descendingLimitKeys) {
     const limit = bookingLimits?.[key];
     if (!limit) continue;
@@ -133,18 +135,16 @@ const _getBusyTimesFromBookingLimits = async (params: {
       }
 
       const periodEnd = periodStart.endOf(unit);
-      let totalBookings = 0;
 
-      for (const booking of bookings) {
-        // consider booking part of period independent of end date
-        if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone || "UTC")) {
-          continue;
-        }
-        totalBookings++;
-        if (totalBookings >= limit) {
-          limitManager.addBusyTime(periodStart, unit);
-          break;
-        }
+      const bookingsInPeriod = findBookingsInPeriod(
+        sortedBookings,
+        periodStart,
+        periodEnd,
+        timeZone || "UTC"
+      );
+
+      if (bookingsInPeriod.length >= limit) {
+        limitManager.addBusyTime(periodStart, unit);
       }
     }
   }
@@ -160,6 +160,8 @@ const _getBusyTimesFromDurationLimits = async (
   timeZone: string,
   rescheduleUid?: string
 ) => {
+  const sortedBookings = sortBookingsByStartTime(bookings, timeZone);
+
   for (const key of descendingLimitKeys) {
     const limit = durationLimits?.[key];
     if (!limit) continue;
@@ -197,11 +199,9 @@ const _getBusyTimesFromDurationLimits = async (
       const periodEnd = periodStart.endOf(unit);
       let totalDuration = selectedDuration;
 
-      for (const booking of bookings) {
-        // consider booking part of period independent of end date
-        if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone || "UTC")) {
-          continue;
-        }
+      const bookingsInPeriod = findBookingsInPeriod(sortedBookings, periodStart, periodEnd, timeZone);
+
+      for (const booking of bookingsInPeriod) {
         totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
         if (totalDuration > limit) {
           limitManager.addBusyTime(periodStart, unit);

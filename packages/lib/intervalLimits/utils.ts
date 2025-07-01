@@ -72,3 +72,48 @@ export function getUnitFromBusyTime(start: Dayjs, end: Dayjs): IntervalLimitUnit
     return "day";
   }
 }
+
+/**
+ * Sorts bookings by start time for efficient range queries
+ * @param bookings Array of bookings to sort
+ * @param timeZone Timezone for date comparison
+ * @returns Sorted array of bookings
+ */
+export function sortBookingsByStartTime(bookings: EventBusyDetails[], timeZone: string): EventBusyDetails[] {
+  return [...bookings].sort((a, b) => {
+    const aStart = dayjs(a.start).tz(timeZone);
+    const bStart = dayjs(b.start).tz(timeZone);
+    return aStart.valueOf() - bStart.valueOf();
+  });
+}
+
+/**
+ * Finds bookings that overlap with a given period using optimized iteration
+ * @param sortedBookings Pre-sorted array of bookings by start time
+ * @param periodStart Start of the period
+ * @param periodEnd End of the period
+ * @param timeZone Timezone for date comparison
+ * @returns Array of bookings within the period
+ */
+export function findBookingsInPeriod(
+  sortedBookings: EventBusyDetails[],
+  periodStart: Dayjs,
+  periodEnd: Dayjs,
+  timeZone: string
+): EventBusyDetails[] {
+  const result: EventBusyDetails[] = [];
+
+  for (const booking of sortedBookings) {
+    if (isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+      result.push(booking);
+    }
+    const bookingStart = dayjs(booking.start).tz(timeZone);
+    const periodEndDay = periodEnd.format("YYYY-MM-DD");
+    const bookingDay = bookingStart.format("YYYY-MM-DD");
+    if (bookingDay > periodEndDay) {
+      break;
+    }
+  }
+
+  return result;
+}
