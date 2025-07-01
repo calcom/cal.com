@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
+import { isBase64Image } from "@calcom/lib/isBase64Image";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -161,7 +162,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     metadata: mergeMetadata({ ...input.metadata }),
   };
 
-  if (input.banner && input.banner.startsWith("data:image/png;base64,")) {
+  if (input.banner && isBase64Image(input.banner)) {
     const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
     data.bannerUrl = await uploadLogo({
       logo: banner,
@@ -172,7 +173,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data.bannerUrl = null;
   }
 
-  if (input.logoUrl && input.logoUrl.startsWith("data:image/png;base64,")) {
+  if (input.logoUrl && isBase64Image(input.logoUrl)) {
     data.logoUrl = await uploadLogo({
       logo: await resizeBase64Image(input.logoUrl),
       teamId: currentOrgId,
