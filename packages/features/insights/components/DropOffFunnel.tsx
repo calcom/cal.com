@@ -17,22 +17,13 @@ export type DropOffFunnelProps = {
 
 export function DropOffFunnelContent({ data }: DropOffFunnelProps) {
   if (!data) {
-    return (
-      <div className="py-8 text-center text-gray-500">
-        No routing form data available for the selected period.
-      </div>
-    );
+    return null;
   }
 
   return (
     <ResponsiveContainer width="100%" height={300}>
       <FunnelChart>
-        <Tooltip
-          formatter={(value: number, name: string, props: any) => [
-            `${value} (${props.payload.rate?.toFixed(1)}%)`,
-            props.payload.label || name,
-          ]}
-        />
+        <Tooltip />
         <Funnel dataKey="value" data={data} isAnimationActive>
           <LabelList dataKey="label" position="center" fill="#fff" fontSize={12} fontWeight="bold" />
         </Funnel>

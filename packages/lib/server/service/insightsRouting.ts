@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import type { readonlyPrisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
@@ -58,6 +58,56 @@ export class InsightsRoutingService {
     this.options = validation.success ? validation.data : null;
 
     this.filters = filters;
+  }
+
+  async getDropOffData() {
+    const baseConditions = await this.getBaseConditions();
+
+    const [total, successfulRoutings, acceptedBookings] = await Promise.all([
+      this.prisma.routingFormResponseDenormalized.count({
+        where: {
+          AND: baseConditions,
+        },
+      }),
+      this.prisma.routingFormResponseDenormalized.count({
+        where: {
+          AND: baseConditions,
+          bookingUid: { not: null },
+        },
+      }),
+      this.prisma.routingFormResponseDenormalized.count({
+        where: {
+          AND: baseConditions,
+          bookingStatus: {
+            not: {
+              in: [BookingStatus.CANCELLED, BookingStatus.REJECTED],
+            },
+          },
+        },
+      }),
+    ]);
+
+    // // Calculate rates (percentages)
+    // const routingRate = total > 0 ? (successfulRoutings / total) * 100 : 0;
+    // const acceptanceRate = total > 0 ? (acceptedBookings / total) * 100 : 0;
+
+    return [
+      {
+        value: total,
+        name: "Form Submissions",
+        fill: "#8884d8",
+      },
+      {
+        value: successfulRoutings,
+        name: "Successful Routing",
+        fill: "#83a6ed",
+      },
+      {
+        value: acceptedBookings,
+        name: "Accepted Bookings",
+        fill: "#82ca9d",
+      },
+    ];
   }
 
   async getBaseConditions() {
