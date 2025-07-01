@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import * as crypto from "crypto";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -67,11 +67,11 @@ export class GoogleApiCache {
     const now = Date.now();
     const expiredKeys: string[] = [];
 
-    for (const [key, entry] of Array.from(this.cache.entries())) {
+    this.cache.forEach((entry, key) => {
       if (now - entry.timestamp > this.config.cacheWindowMs) {
         expiredKeys.push(key);
       }
-    }
+    });
 
     for (const key of expiredKeys) {
       this.cache.delete(key);
@@ -92,7 +92,10 @@ export class GoogleApiCache {
   private enforceMaxEntries(): void {
     if (this.cache.size <= this.config.maxCacheEntries) return;
 
-    const entries = Array.from(this.cache.entries());
+    const entries: Array<[string, CacheEntry<any>]> = [];
+    this.cache.forEach((entry, key) => {
+      entries.push([key, entry]);
+    });
     entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
 
     const entriesToRemove = entries.slice(0, this.cache.size - this.config.maxCacheEntries);
