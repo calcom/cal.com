@@ -63,7 +63,7 @@ export async function getOrgContext(_params: PageProps["params"]) {
   });
 
   if (!result.success) {
-    throw new Error("Invalid team slug or event type");
+    return notFound();
   }
 
   const { slug: teamSlug, type: meetingSlug } = result.data;
