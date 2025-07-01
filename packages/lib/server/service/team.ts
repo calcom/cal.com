@@ -1,5 +1,6 @@
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { prisma } from "@calcom/prisma";
+import type { SchedulingType } from "@calcom/prisma/client";
 
 export interface TeamWithEventTypes {
   id: number;
@@ -19,12 +20,12 @@ export interface TeamWithEventTypes {
       allowSEOIndexing: boolean;
     } | null;
   } | null;
-  eventTypes: Array<{
+  eventTypes: {
     id: number;
     title: string;
     slug: string;
     isInstantEvent: boolean;
-    schedulingType: string | null;
+    schedulingType: SchedulingType | null;
     metadata: any;
     length: number;
     hidden: boolean | null;
@@ -32,14 +33,14 @@ export interface TeamWithEventTypes {
     disableRescheduling: boolean | null;
     allowReschedulingCancelledBookings: boolean | null;
     interfaceLanguage: string | null;
-    hosts: Array<{
+    hosts: {
       user: {
         name: string | null;
         username: string | null;
         email: string;
       };
-    }>;
-  }>;
+    }[];
+  }[];
   organizationSettings: {
     allowSEOIndexing: boolean;
   } | null;
