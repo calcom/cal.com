@@ -29,25 +29,6 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  //delete all scheduled sms reminders where scheduled date is past current date
-  await prisma.workflowReminder.deleteMany({
-    where: {
-      OR: [
-        {
-          method: WorkflowMethods.SMS,
-          scheduledDate: {
-            lte: dayjs().toISOString(),
-          },
-        },
-        {
-          retryCount: {
-            gt: 1,
-          },
-        },
-      ],
-    },
-  });
-
   //find all unscheduled SMS reminders
   const unscheduledReminders = (await prisma.workflowReminder.findMany({
     where: {
@@ -176,6 +157,8 @@ export async function handler(req: NextRequest) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
+        const smsMessageWithoutOptOut = message;
+
         if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
           message = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
         }
@@ -186,6 +169,7 @@ export async function handler(req: NextRequest) {
             body: message,
             scheduledDate: reminder.scheduledDate,
             sender: senderID,
+            bodyWithoutOptOut: smsMessageWithoutOptOut,
             bookingUid: reminder.booking.uid,
             userId,
             teamId,
