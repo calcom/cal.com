@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions: {} # remove permissions and set explicitly under "permissions:" below
@@ -35,3 +37,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Enable auto-merge for release PR
+        if: steps.changesets.outputs.hasChangesets == 'true'
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.changesets.outputs.pullRequestNumber }}
+          merge-method: squash
