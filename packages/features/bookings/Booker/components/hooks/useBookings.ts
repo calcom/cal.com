@@ -1,3 +1,5 @@
+"use client";
+
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
@@ -9,15 +11,17 @@ import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
+import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UseBookingFormReturnType } from "./useBookingForm";
 
@@ -283,6 +287,23 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     onError: (err, _, ctx) => {
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+
+      const error = err as Error & {
+        data: { rescheduleUid: string; startTime: string; attendees: string[] };
+      };
+
+      if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
+        useBookerStore.setState({
+          rescheduleUid: error.data?.rescheduleUid,
+        });
+        useBookerStore.setState({
+          bookingData: {
+            uid: error.data?.rescheduleUid,
+            startTime: error.data?.startTime,
+            attendees: error.data?.attendees,
+          } as unknown as GetBookingType,
+        });
+      }
     },
   });
 

@@ -1,16 +1,24 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
+import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
+import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
 import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -33,7 +41,6 @@ import {
   ApiBody,
   ApiExtraModels,
 } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { Request } from "express";
 
 import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -48,6 +55,8 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleBookingInputPipe,
   RescheduleSeatedBookingInput_2024_08_13,
+  GetBookingRecordingsOutput,
+  GetBookingTranscriptsOutput,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -69,14 +78,22 @@ import {
 @DocsTags("Bookings")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to \`2024-08-13\``,
+  description: `Must be set to ${VERSION_2024_08_13}`,
   example: VERSION_2024_08_13,
   required: true,
+  schema: {
+    default: VERSION_2024_08_13,
+  },
 })
 export class BookingsController_2024_08_13 {
   private readonly logger = new Logger("BookingsController_2024_08_13");
 
-  constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
+  constructor(
+    private readonly bookingsService: BookingsService_2024_08_13,
+    private readonly usersService: UsersService,
+    private readonly bookingReferencesService: BookingReferencesService_2024_08_13,
+    private readonly calVideoService: CalVideoService
+  ) {}
 
   @Post("/")
   @ApiOperation({
@@ -92,6 +109,14 @@ export class BookingsController_2024_08_13 {
       For team event types it is possible to create instant meeting. To do that just pass \`"instant": true\` to the request body.
 
       The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.
+
+      Finally, there are 2 ways to book an event type belonging to an individual user:
+      1. Provide \`eventTypeId\` in the request body.
+      2. Provide \`eventTypeSlug\` and \`username\` and optionally \`organizationSlug\` if the user with the username is within an organization.
+
+      And 2 ways to book and event type belonging to a team:
+      1. Provide \`eventTypeId\` in the request body.
+      2. Provide \`eventTypeSlug\` and \`teamSlug\` and optionally \`organizationSlug\` if the team with the teamSlug is within an organization.
       `,
   })
   @ApiBody({
@@ -150,25 +175,57 @@ export class BookingsController_2024_08_13 {
     };
   }
 
+  @Get("/:bookingUid/recordings")
+  @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get all the recordings for the booking",
+    description: `Fetches all the recordings for the booking \`:bookingUid\``,
+  })
+  async getBookingRecordings(@Param("bookingUid") bookingUid: string): Promise<GetBookingRecordingsOutput> {
+    const recordings = await this.calVideoService.getRecordings(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: recordings,
+    };
+  }
+
+  @Get("/:bookingUid/transcripts")
+  @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get all the transcripts download links for the booking",
+    description: `Fetches all the transcripts download links for the booking \`:bookingUid\``,
+  })
+  async getBookingTranscripts(@Param("bookingUid") bookingUid: string): Promise<GetBookingTranscriptsOutput> {
+    const transcripts = await this.calVideoService.getTranscripts(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: transcripts ?? [],
+    };
+  }
+
   @Get("/")
   @UseGuards(ApiAuthGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
-  })
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Permissions([BOOKING_READ])
   @ApiOperation({ summary: "Get all bookings" })
   async getBookings(
     @Query() queryParams: GetBookingsInput_2024_08_13,
-    @GetUser() user: User
+    @GetUser() user: UserWithProfile
   ): Promise<GetBookingsOutput_2024_08_13> {
-    const bookings = await this.bookingsService.getBookings(queryParams, user);
+    const profile = this.usersService.getUserMainProfile(user);
+
+    const { bookings, pagination } = await this.bookingsService.getBookings(queryParams, {
+      email: user.email,
+      id: user.id,
+      orgId: profile?.organizationId,
+    });
 
     return {
       status: SUCCESS_STATUS,
       data: bookings,
+      pagination,
     };
   }
 
@@ -210,7 +267,14 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Cancel a booking",
     description: `:bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.
-    For seated bookings to cancel one individual booking provide :bookingUid and :seatUid in the request body. For recurring seated bookings it is not possible to cancel all of them with 1 call
+    
+    \nCancelling seated bookings:
+    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.
+    \n1. As an attendee - provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and seatUid in the request body \`{"seatUid": "123-123-123"}\` . This will remove this particular attendance from the booking.
+    \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and cancellationReason in the request body \`{"cancellationReason": "Will travel"}\` and \`Authorization: Bearer token\` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.
+    
+    \nCancelling recurring seated bookings:
+    For recurring seated bookings it is not possible to cancel all of them with 1 call
     like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.`,
   })
   @ApiBody({
@@ -242,13 +306,11 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Mark a booking absence",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
-  @ApiOperation({ summary: "Mark a booking absence" })
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
     @Body() body: MarkAbsentBookingInput_2024_08_13,
@@ -266,13 +328,12 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Reassign a booking to auto-selected host",
     description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
-  @ApiOperation({ summary: "Automatically reassign booking to a new host" })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
     @GetUser() user: UserWithProfile
@@ -289,13 +350,12 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Reassign a booking to a specific host",
     description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
-  @ApiOperation({ summary: "Reassign a booking to a specific user" })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
     @Param("userId") userId: number,
@@ -319,13 +379,11 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Confirm a booking",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
-  @ApiOperation({ summary: "Confirm booking that requires a confirmation" })
   async confirmBooking(
     @Param("bookingUid") bookingUid: string,
     @GetUser() user: UserWithProfile
@@ -342,13 +400,11 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Decline a booking",
+    description: "The provided authorization header refers to the owner of the booking.",
   })
-  @ApiOperation({ summary: "Decline booking that requires a confirmation" })
   async declineBooking(
     @Param("bookingUid") bookingUid: string,
     @Body() body: DeclineBookingInput_2024_08_13,
@@ -365,6 +421,7 @@ export class BookingsController_2024_08_13 {
   @Get("/:bookingUid/calendar-links")
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @Permissions([BOOKING_READ])
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get 'Add to Calendar' links for a booking",
     description:
@@ -377,6 +434,32 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: calendarLinks,
+    };
+  }
+
+  @Get("/:bookingUid/references")
+  @PlatformPlan("SCALE")
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @Permissions([BOOKING_READ])
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get 'Booking References' for a booking",
+  })
+  @HttpCode(HttpStatus.OK)
+  async getBookingReferences(
+    @Param("bookingUid") bookingUid: string,
+    @GetUser("id") userId: number,
+    @Query() filter: BookingReferencesFilterInput_2024_08_13
+  ): Promise<BookingReferencesOutput_2024_08_13> {
+    const bookingReferences = await this.bookingReferencesService.getBookingReferences(
+      bookingUid,
+      userId,
+      filter
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: bookingReferences,
     };
   }
 }

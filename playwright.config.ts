@@ -171,6 +171,15 @@ const config: PlaywrightTestConfig = {
       },
       use: { ...devices["Desktop Safari"] },
     },
+    {
+      name: "@calcom/embed-core--isMobile",
+      testDir: "./packages/embeds/embed-core/",
+      testMatch: /.*\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
+      use: { ...devices["iPhone 13"] },
+    },
   ],
 };
 

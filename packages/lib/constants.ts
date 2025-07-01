@@ -5,8 +5,9 @@ const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.REND
 export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
 export const IS_PRODUCTION = CALCOM_ENV === "production";
 export const IS_PRODUCTION_BUILD = process.env.NODE_ENV === "production";
+export const ORGANIZER_EMAIL_EXEMPT_DOMAINS = process.env.ORGANIZER_EMAIL_EXEMPT_DOMAINS || "";
 const IS_DEV = CALCOM_ENV === "development";
-
+export const SINGLE_ORG_SLUG = process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG;
 /** https://app.cal.com */
 export const WEBAPP_URL =
   process.env.NEXT_PUBLIC_WEBAPP_URL ||
@@ -53,11 +54,18 @@ export const CONSOLE_URL =
   process.env.NODE_ENV !== "production"
     ? `https://console.cal.dev`
     : `https://console.cal.com`;
-export const IS_SELF_HOSTED = !(
-  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
-);
+const CAL_DOMAINS = [".cal.com", ".cal.dev", ".cal.eu", ".cal.qa"];
+const WEBAPP_HOSTNAME = new URL(WEBAPP_URL).hostname;
+export const IS_SELF_HOSTED = !CAL_DOMAINS.some((domain) => WEBAPP_HOSTNAME.endsWith(domain));
 export const EMBED_LIB_URL = process.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 export const TRIAL_LIMIT_DAYS = 14;
+export const MAX_SEATS_PER_TIME_SLOT = 1000;
+
+/** Maximum duration allowed for an event in minutes (24 hours) */
+export const MAX_EVENT_DURATION_MINUTES = 1440;
+
+/** Minimum duration allowed for an event in minutes */
+export const MIN_EVENT_DURATION_MINUTES = 1;
 
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
 
@@ -118,11 +126,15 @@ export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SW
 export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
 
-export const ORGANIZATION_SELF_SERVE_MIN_SEATS =
-  process.env.NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS || 30;
-export const ORGANIZATION_SELF_SERVE_PRICE = process.env.NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE || 3700;
+export const ORGANIZATION_SELF_SERVE_MIN_SEATS = parseInt(
+  process.env.NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS || "5"
+);
 
-export const ORGANIZATION_MIN_SEATS = 30;
+export const ORGANIZATION_SELF_SERVE_PRICE = parseFloat(
+  process.env.NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW || "37"
+);
+
+export const ORGANIZATION_MIN_SEATS = 5;
 
 // Needed for emails in E2E
 export const IS_MAILHOG_ENABLED = process.env.E2E_TEST_MAILHOG_ENABLED === "1";
@@ -144,14 +156,6 @@ export const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
 
 export const TOP_BANNER_HEIGHT = 40;
 
-const defaultOnNaN = (testedValue: number, defaultValue: number) =>
-  !Number.isNaN(testedValue) ? testedValue : defaultValue;
-
-export const AB_TEST_BUCKET_PROBABILITY = defaultOnNaN(
-  parseInt(process.env.AB_TEST_BUCKET_PROBABILITY ?? "10", 10),
-  10
-);
-
 export const IS_PREMIUM_USERNAME_ENABLED =
   (IS_CALCOM || (process.env.NEXT_PUBLIC_IS_E2E && IS_STRIPE_ENABLED)) &&
   process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY;
@@ -160,8 +164,6 @@ export const IS_PREMIUM_USERNAME_ENABLED =
 export const MAX_NB_INVITES = 100;
 
 export const URL_PROTOCOL_REGEX = /(^\w+:|^)\/\//;
-export const FUTURE_ROUTES_OVERRIDE_COOKIE_NAME = "x-calcom-future-routes-override";
-export const FUTURE_ROUTES_ENABLED_COOKIE_NAME = "x-calcom-future-routes-enabled";
 
 export const IS_VISUAL_REGRESSION_TESTING = Boolean(globalThis.window?.Meticulous?.isRunningAsTest);
 
@@ -181,7 +183,7 @@ export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || 
 export const WEBSITE_PRIVACY_POLICY_URL =
   process.env.NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL || "https://cal.com/privacy";
 export const WEBSITE_TERMS_URL = process.env.NEXT_PUBLIC_WEBSITE_TERMS_URL || "https://cal.com/terms";
-export const REPLEXICA_API_KEY = process.env.REPLEXICA_API_KEY;
+export const LINGO_DOT_DEV_API_KEY = process.env.LINGO_DOT_DEV_API_KEY;
 
 /**
  * The maximum number of days we should check for if we don't find all required bookable days
@@ -213,3 +215,15 @@ export const GOOGLE_CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
 ];
 export const DIRECTORY_IDS_TO_LOG = process.env.DIRECTORY_IDS_TO_LOG?.split(",") || [];
+export const SCANNING_WORKFLOW_STEPS = !!(!IS_SELF_HOSTED && process.env.IFFY_API_KEY);
+
+export const IS_PLAIN_CHAT_ENABLED =
+  !!process.env.NEXT_PUBLIC_PLAIN_CHAT_ID && process.env.NEXT_PUBLIC_PLAIN_CHAT_ID !== "";
+
+export const IS_DUB_REFERRALS_ENABLED =
+  !!process.env.NEXT_PUBLIC_DUB_PROGRAM_ID && process.env.NEXT_PUBLIC_DUB_PROGRAM_ID !== "";
+
+export const CAL_VIDEO_MEETING_LINK_FOR_TESTING = process.env.CAL_VIDEO_MEETING_LINK_FOR_TESTING;
+
+export const IS_SMS_CREDITS_ENABLED = !!process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID;
+export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "25", 10);

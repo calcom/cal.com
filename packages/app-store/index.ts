@@ -1,11 +1,10 @@
 const appStore = {
   alby: createCachedImport(() => import("./alby")),
   applecalendar: createCachedImport(() => import("./applecalendar")),
-  aroundvideo: createCachedImport(() => import("./around")),
   caldavcalendar: createCachedImport(() => import("./caldavcalendar")),
-  campsiteconferencing: createCachedImport(() => import("./campsite")),
   closecom: createCachedImport(() => import("./closecom")),
   dailyvideo: createCachedImport(() => import("./dailyvideo")),
+  dub: createCachedImport(() => import("./dub")),
   googlecalendar: createCachedImport(() => import("./googlecalendar")),
   googlevideo: createCachedImport(() => import("./googlevideo")),
   hubspot: createCachedImport(() => import("./hubspot")),

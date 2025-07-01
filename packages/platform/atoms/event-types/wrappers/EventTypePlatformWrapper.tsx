@@ -56,6 +56,12 @@ export type EventTypePlatformWrapperProps = {
   allowDelete: boolean;
   customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
+  isDryRun?: boolean;
+  onFormStateChange?: (formState: {
+    isDirty: boolean;
+    dirtyFields: Partial<FormValues>;
+    values: FormValues;
+  }) => void;
 };
 
 const EventType = ({
@@ -68,6 +74,8 @@ const EventType = ({
   allowDelete = true,
   customClassNames,
   disableToasts = false,
+  isDryRun = false,
+  onFormStateChange,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
   const { t } = useLocale();
@@ -141,7 +149,14 @@ const EventType = ({
 
   const { form, handleSubmit } = useEventTypeForm({
     eventType,
-    onSubmit: (data) => updateMutation.mutate(data),
+    onSubmit: (data) => {
+      if (!isDryRun) {
+        updateMutation.mutate(data);
+      } else {
+        toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+      }
+    },
+    onFormStateChange: onFormStateChange,
   });
   const slug = form.watch("slug") ?? eventType.slug;
 
@@ -244,11 +259,15 @@ const EventType = ({
   });
 
   const onDelete = () => {
-    if (allowDelete) {
+    if (allowDelete && !isDryRun) {
       isTeamEventTypeDeleted.current = true;
       team?.id
         ? deleteTeamEventTypeMutation.mutate({ eventTypeId: id, teamId: team.id })
         : deleteMutation.mutate(id);
+    }
+
+    if (isDryRun) {
+      handleDeleteSuccess();
     }
   };
 
@@ -307,6 +326,8 @@ export const EventTypePlatformWrapper = ({
   onDeleteError,
   allowDelete = true,
   customClassNames,
+  isDryRun,
+  onFormStateChange,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
   const queryClient = useQueryClient();
@@ -338,6 +359,8 @@ export const EventTypePlatformWrapper = ({
       onDeleteError={onDeleteError}
       allowDelete={allowDelete}
       customClassNames={customClassNames}
+      isDryRun={isDryRun}
+      onFormStateChange={onFormStateChange}
     />
   );
 };

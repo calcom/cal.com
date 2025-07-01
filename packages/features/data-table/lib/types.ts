@@ -1,6 +1,9 @@
+import type { SortingState, ColumnSort, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 import { z } from "zod";
 
 import type { IconName } from "@calcom/ui/components/icon";
+
+export type { SortingState } from "@tanstack/react-table";
 
 export enum ColumnFilterType {
   SINGLE_SELECT = "ss",
@@ -10,7 +13,7 @@ export enum ColumnFilterType {
   DATE_RANGE = "dr",
 }
 
-const textFilterOperators = [
+export const textFilterOperators = [
   "equals",
   "notEquals",
   "contains",
@@ -110,17 +113,28 @@ export const ZFilterValue = z.union([
 ]);
 
 export type DateRangeFilterOptions = {
-  range: "past" | "custom";
+  range?: "past" | "custom";
+  endOfDay?: boolean;
+};
+
+export type TextFilterOptions = {
+  allowedOperators?: TextFilterOperator[];
+  placeholder?: string;
 };
 
 export type ColumnFilterMeta =
   | {
       type: ColumnFilterType.DATE_RANGE;
       icon?: IconName;
-      dateRangeOptions: DateRangeFilterOptions;
+      dateRangeOptions?: DateRangeFilterOptions;
     }
   | {
-      type?: Exclude<ColumnFilterType, ColumnFilterType.DATE_RANGE>;
+      type: ColumnFilterType.TEXT;
+      icon?: IconName;
+      textOptions?: TextFilterOptions;
+    }
+  | {
+      type?: Exclude<ColumnFilterType, ColumnFilterType.DATE_RANGE | ColumnFilterType.TEXT>;
       icon?: IconName;
     };
 
@@ -139,6 +153,7 @@ export type FilterableColumn = {
     }
   | {
       type: ColumnFilterType.TEXT;
+      textOptions?: TextFilterOptions;
     }
   | {
       type: ColumnFilterType.NUMBER;
@@ -189,16 +204,16 @@ export type TypedColumnFilter<T extends ColumnFilterType> = {
   value: FilterValue<T>;
 };
 
-export type Sorting = {
-  id: string;
-  desc: boolean;
-};
-export type SortingState = Sorting[];
+export type Sorting = ColumnSort;
 
 export const ZSorting = z.object({
   id: z.string(),
   desc: z.boolean(),
 }) satisfies z.ZodType<Sorting>;
+
+export const ZSortingState = z.array(ZSorting);
+
+export const ZColumnSizing = z.record(z.string(), z.number());
 
 export const ZColumnVisibility = z.record(z.string(), z.boolean());
 
@@ -206,4 +221,86 @@ export type FacetedValue = {
   label: string;
   value: string | number;
   section?: string;
+};
+
+export type ActiveFilter = {
+  f: string;
+  v?: FilterValue;
+};
+
+export type ActiveFilters = ActiveFilter[];
+
+export const ZActiveFilter = z.object({
+  f: z.string(),
+  v: ZFilterValue.optional(),
+}) satisfies z.ZodType<ActiveFilter>;
+
+export const ZActiveFilters = ZActiveFilter.array();
+
+export type FilterSegmentOutput = {
+  id: number;
+  name: string;
+  tableIdentifier: string;
+  scope: "USER" | "TEAM";
+  activeFilters: ActiveFilters;
+  sorting: SortingState;
+  columnVisibility: Record<string, boolean>;
+  columnSizing: Record<string, number>;
+  perPage: number;
+  searchTerm: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: number;
+  teamId: number | null;
+  team: { id: number; name: string } | null;
+};
+
+export type FilterSegmentsListResponse = {
+  segments: FilterSegmentOutput[];
+  preferredSegmentId: number | null;
+};
+
+export type SegmentStorage = {
+  [tableIdentifier: string]: {
+    segmentId: number;
+  };
+};
+
+export const ZSegmentStorage = z.record(
+  z.string(),
+  z.object({
+    segmentId: z.number(),
+  })
+) satisfies z.ZodType<SegmentStorage>;
+
+export type UseSegments = (props: UseSegmentsProps) => UseSegmentsReturn;
+
+export type UseSegmentsProps = {
+  tableIdentifier: string;
+  activeFilters: ActiveFilters;
+  sorting: SortingState;
+  columnVisibility: VisibilityState;
+  columnSizing: ColumnSizingState;
+  pageSize: number;
+  searchTerm: string;
+  defaultPageSize: number;
+  segmentId: number;
+  setSegmentId: (segmentId: number | null) => void;
+  setActiveFilters: (activeFilters: ActiveFilters) => void;
+  setSorting: (sorting: SortingState) => void;
+  setColumnVisibility: (columnVisibility: VisibilityState) => void;
+  setColumnSizing: (columnSizing: ColumnSizingState) => void;
+  setPageSize: (pageSize: number) => void;
+  setPageIndex: (pageIndex: number) => void;
+  setSearchTerm: (searchTerm: string | null) => void;
+  segments?: FilterSegmentOutput[];
+  preferredSegmentId?: number | null;
+};
+
+export type UseSegmentsReturn = {
+  segments: FilterSegmentOutput[];
+  selectedSegment: FilterSegmentOutput | undefined;
+  canSaveSegment: boolean;
+  setAndPersistSegmentId: (segmentId: number | null) => void;
+  isSegmentEnabled: boolean;
 };

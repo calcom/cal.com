@@ -5,7 +5,8 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { sendOrganizerRequestReminderEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus, ReminderType } from "@calcom/prisma/enums";
@@ -55,6 +56,8 @@ async function postHandler(request: NextRequest) {
             locale: true,
             timeZone: true,
             destinationCalendar: true,
+            isPlatformManaged: true,
+            platformOAuthClients: { select: { id: true, areEmailsEnabled: true } },
           },
         },
         eventType: {
@@ -70,11 +73,18 @@ async function postHandler(request: NextRequest) {
       },
     });
 
+    const bookingsToRemind = bookings.filter(
+      (booking) =>
+        !booking.user ||
+        !booking.user.isPlatformManaged ||
+        (booking.user.isPlatformManaged && Boolean(booking.user.platformOAuthClients?.[0]?.areEmailsEnabled))
+    );
+
     const reminders = await prisma.reminderMail.findMany({
       where: {
         reminderType: ReminderType.PENDING_BOOKING_CONFIRMATION,
         referenceId: {
-          in: bookings.map((b) => b.id),
+          in: bookingsToRemind.map((b) => b.id),
         },
         elapsedMinutes: {
           gte: interval,
@@ -82,7 +92,7 @@ async function postHandler(request: NextRequest) {
       },
     });
 
-    for (const booking of bookings.filter((b) => !reminders.some((r) => r.referenceId == b.id))) {
+    for (const booking of bookingsToRemind.filter((b) => !reminders.some((r) => r.referenceId == b.id))) {
       const { user } = booking;
       const name = user?.name || user?.username;
       if (!user || !name || !user.timeZone) {

@@ -1,0 +1,37 @@
+name: Create PR containing updated CHANGELOG.md and release packages to NPM once PR is merged
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+permissions: {} # remove permissions and set explicitly under "permissions:" below
+jobs:
+  release:
+    if: github.repository == 'calcom/cal.com' # prevent this action from running on forks
+    permissions:
+      id-token: write # for NPM provenance - developers can verify where and how it was built
+      contents: write # to create release by changesets/action below
+      pull-requests: write # to create pull request by changesets/action below
+    name: Release
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup node, yarn and install dependencies
+        uses: ./.github/actions/yarn-install
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: yarn changesets-version
+          publish: yarn changesets-release
+          commit: "chore: version packages" # commit message
+          title: "chore: version packages" # PR title
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

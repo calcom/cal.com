@@ -6,7 +6,8 @@ import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calc
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { getEmailsReceivedByUser, localize } from "./lib/testUtils";
+import { localize } from "./lib/localize";
+import { getEmailsReceivedByUser } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -311,7 +312,7 @@ test.describe("Email Signup Flow Test", async () => {
     const teamOwner = await users.create(undefined, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
-    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.goto(`/settings/teams/${team.id}/settings`);
 
     await test.step("Invite User to team", async () => {
       // TODO: This invite logic should live in a fixture - its used in team and orgs invites (Duplicated from team/org invites)

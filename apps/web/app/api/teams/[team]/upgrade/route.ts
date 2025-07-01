@@ -21,11 +21,11 @@ const querySchema = z.object({
   session_id: z.string().min(1),
 });
 
-async function getHandler(req: NextRequest, { params }: { params: Params }) {
+async function getHandler(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const { team: id, session_id } = querySchema.parse({
-      team: params.team,
+      team: (await params).team,
       session_id: searchParams.get("session_id"),
     });
 
@@ -86,7 +86,7 @@ async function getHandler(req: NextRequest, { params }: { params: Params }) {
       }
     }
 
-    const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+    const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
     if (!session) {
       return NextResponse.json({ message: "Team upgraded successfully" });

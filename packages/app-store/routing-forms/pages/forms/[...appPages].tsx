@@ -17,25 +17,19 @@ import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import {
-  ArrowButton,
-  Badge,
-  Button,
-  ButtonGroup,
-  EmptyScreen,
-  Icon,
-  List,
-  ListLinkItem,
-  Tooltip,
-} from "@calcom/ui";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import { ArrowButton } from "@calcom/ui/components/arrow-button";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Icon } from "@calcom/ui/components/icon";
+import { List, ListLinkItem } from "@calcom/ui/components/list";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { SetNewFormDialogState, NewFormDialogState } from "../../components/FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
-import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
-import { getServerSideProps } from "./getServerSideProps";
+import type { RoutingFormWithResponseCount } from "../../types/types";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();
@@ -50,11 +44,7 @@ function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNe
   );
 }
 
-export default function RoutingForms({
-  appUrl,
-}: inferSSRProps<typeof getServerSideProps> & {
-  appUrl: string;
-}) {
+export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
   const routerQuery = useRouterQuery();
@@ -62,7 +52,7 @@ export default function RoutingForms({
   const utils = trpc.useUtils();
   const [parent] = useAutoAnimate<HTMLUListElement>();
 
-  const mutation = trpc.viewer.routingFormOrder.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.routingFormOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       await utils.viewer.appRoutingForms.forms.cancel();
@@ -335,5 +325,3 @@ export default function RoutingForms({
     </LicenseRequired>
   );
 }
-
-export { getServerSideProps };

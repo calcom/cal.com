@@ -42,6 +42,10 @@ export class PlatformBookingsService {
     } else if (eventType?.teamId) {
       oAuthClient = await this.oAuthClientRepository.getByTeamId(eventType.teamId);
     }
+    // Last resort check the hosts of the event-type
+    if (!oAuthClient && eventType?.teamId) {
+      oAuthClient = await this.oAuthClientRepository.getByEventTypeHosts(eventTypeId);
+    }
 
     if (oAuthClient) {
       return {
@@ -50,6 +54,32 @@ export class PlatformBookingsService {
         platformRescheduleUrl: oAuthClient.bookingRescheduleRedirectUri,
         platformBookingUrl: oAuthClient.bookingRedirectUri,
         arePlatformEmailsEnabled: oAuthClient.areEmailsEnabled,
+        areCalendarEventsEnabled: oAuthClient.areCalendarEventsEnabled,
+      };
+    }
+
+    return undefined;
+  }
+
+  async getOAuthClientParamsForEventType(eventType: {
+    userId: number | null | undefined;
+    teamId: number | null | undefined;
+  }) {
+    let oAuthClient: PlatformOAuthClient | null = null;
+    if (eventType.userId) {
+      oAuthClient = await this.oAuthClientRepository.getByUserId(eventType.userId);
+    } else if (eventType.teamId) {
+      oAuthClient = await this.oAuthClientRepository.getByTeamId(eventType.teamId);
+    }
+
+    if (oAuthClient) {
+      return {
+        platformClientId: oAuthClient.id,
+        platformCancelUrl: oAuthClient.bookingCancelRedirectUri,
+        platformRescheduleUrl: oAuthClient.bookingRescheduleRedirectUri,
+        platformBookingUrl: oAuthClient.bookingRedirectUri,
+        arePlatformEmailsEnabled: oAuthClient.areEmailsEnabled,
+        areCalendarEventsEnabled: oAuthClient.areCalendarEventsEnabled,
       };
     }
 

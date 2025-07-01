@@ -1,6 +1,6 @@
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsIn, IsPhoneNumber } from "class-validator";
+import { IsString, IsIn, IsPhoneNumber, MinLength } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
@@ -62,9 +62,7 @@ export const supportedIntegrations = [
   "eightxeight-video",
   "discord-video",
   "demodesk-video",
-  "campsite-conferencing",
   "campfire-video",
-  "around-video",
 ] as const;
 export type Integration_2024_08_13 = (typeof supportedIntegrations)[number];
 
@@ -92,7 +90,7 @@ export class BookingInputOrganizersDefaultAppLocation_2024_08_13 {
   @DocsProperty({
     example: "organizersDefaultApp",
     description:
-      "only allowed value for type is `organizersDefaultApp` - it refers to the default app defined by the organizer.",
+      "only available for team event types and the only allowed value for type is `organizersDefaultApp` - it refers to the default app defined by the organizer.",
   })
   type!: "organizersDefaultApp";
 }
@@ -106,6 +104,7 @@ export class BookingInputAttendeeAddressLocation_2024_08_13 {
   type!: "attendeeAddress";
 
   @IsString()
+  @MinLength(1)
   @DocsProperty({ example: "123 Example St, City, Country" })
   address!: string;
 }
@@ -128,6 +127,7 @@ export class BookingInputAttendeeDefinedLocation_2024_08_13 {
   type!: "attendeeDefined";
 
   @IsString()
+  @MinLength(1)
   @DocsProperty({ example: "321 Example St, City, Country" })
   location!: string;
 }

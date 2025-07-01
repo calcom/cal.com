@@ -3,22 +3,14 @@
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
-import { forwardRef, useCallback } from "react";
+import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Button,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  Command,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandItem,
-  Icon,
-  Tooltip,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@calcom/ui/components/command";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
 
@@ -39,17 +31,12 @@ function AddFilterButtonComponent<TData>(
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const { activeFilters, setActiveFilters } = useDataTable();
+  const { activeFilters, addFilter } = useDataTable();
+  const [open, setOpen] = useState(false);
 
   const filterableColumns = useFilterableColumns(table);
-
-  const handleAddFilter = useCallback(
-    (columnId: string) => {
-      if (!activeFilters?.some((filter) => filter.f === columnId)) {
-        setActiveFilters([...activeFilters, { f: columnId, v: undefined }]);
-      }
-    },
-    [activeFilters, setActiveFilters]
+  const availableColumns = filterableColumns.filter(
+    (column) => !activeFilters?.some((filter) => filter.f === column.id)
   );
 
   if (hideWhenFilterApplied && activeFilters?.length > 0) {
@@ -60,9 +47,13 @@ function AddFilterButtonComponent<TData>(
     return null;
   }
 
+  if (variant === "sm" && availableColumns.length === 0) {
+    return null;
+  }
+
   return (
     <div className="flex items-center space-x-2">
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         {variant === "base" && (
           <PopoverTrigger asChild>
             <Button
@@ -90,16 +81,18 @@ function AddFilterButtonComponent<TData>(
             <CommandInput placeholder={t("search")} />
             <CommandList>
               <CommandEmpty>{t("no_columns_found")}</CommandEmpty>
-              {filterableColumns.map((column) => {
+              {availableColumns.map((column) => {
                 const showHiddenIndicator =
                   !table.getColumn(column.id)?.getIsVisible() &&
                   table.initialState.columnVisibility?.[column.id] !== false;
 
-                if (activeFilters?.some((filter) => filter.f === column.id)) return null;
                 return (
                   <CommandItem
                     key={column.id}
-                    onSelect={() => handleAddFilter(column.id)}
+                    onSelect={() => {
+                      addFilter(column.id);
+                      setOpen(false);
+                    }}
                     className="flex items-center justify-between px-4 py-2"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>

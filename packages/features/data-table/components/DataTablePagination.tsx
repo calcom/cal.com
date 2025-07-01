@@ -2,13 +2,13 @@
 
 import { type Table } from "@tanstack/react-table";
 
-import { Pagination } from "@calcom/ui";
+import { Pagination } from "@calcom/ui/components/pagination";
 
 import { useDataTable } from "../hooks";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
-  totalRowCount: number;
+  totalRowCount?: number;
   paginationMode?: "infinite" | "standard";
 }
 
@@ -18,9 +18,12 @@ export function DataTablePagination<TData>({
   paginationMode = "infinite",
 }: DataTablePaginationProps<TData>) {
   const { pageIndex, pageSize, setPageIndex, setPageSize } = useDataTable();
+  if (!totalRowCount) {
+    return null;
+  }
 
   if (paginationMode === "infinite") {
-    const loadedCount = table.getFilteredRowModel().rows.length;
+    const loadedCount = table.getRowModel().rows.length;
     return (
       <p className="text-subtle text-sm tabular-nums">
         Loaded <span className="text-default font-medium">{loadedCount}</span> of{" "}
@@ -33,10 +36,8 @@ export function DataTablePagination<TData>({
         currentPage={pageIndex + 1}
         pageSize={pageSize}
         totalItems={totalRowCount}
-        onPageChange={(page) => setPageIndex(page - 1)}
         onPageSizeChange={(newSize) => setPageSize(newSize)}
-        onNext={() => setPageIndex(pageIndex + 1)}
-        onPrevious={() => setPageIndex(pageIndex - 1)}
+        onPageChange={(page) => setPageIndex(page - 1)}
       />
     );
   } else {

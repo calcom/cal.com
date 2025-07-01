@@ -168,7 +168,7 @@ async function getHandler(request: NextRequest) {
   const parsedQuery = logoApiSchema.parse(Object.fromEntries(searchParams.entries()));
 
   // Create a legacy request object for compatibility
-  const legacyReq = buildLegacyRequest(headers(), cookies());
+  const legacyReq = buildLegacyRequest(await headers(), await cookies());
   const { isValidOrgDomain } = orgDomainConfig(legacyReq);
 
   const hostname = request.headers.get("host");
@@ -192,11 +192,12 @@ async function getHandler(request: NextRequest) {
   try {
     const response = await fetch(filteredLogo);
     const arrayBuffer = await response.arrayBuffer();
-    let buffer = Buffer.from(arrayBuffer);
+    let buffer: Buffer = Buffer.from(arrayBuffer);
 
     // If we need to resize the team logos (via Next.js' built-in image processing)
     if (teamLogos[logoDefinition.source] && logoDefinition.w) {
       const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
+
       buffer = await optimizeImage({
         buffer,
         contentType: detectContentType(buffer) ?? "image/jpeg",
