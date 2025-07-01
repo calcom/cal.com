@@ -13,7 +13,7 @@ import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import { getDynamicBookingData } from "@lib/team/[slug]/[type]/getDynamicBookingData";
-import { getCachedTeamEvent } from "@lib/team/[slug]/[type]/getStaticData";
+import { getCachedTeamEvent } from "@lib/team/[slug]/[type]/getTeamEventData";
 
 import Type from "~/team/type-view";
 

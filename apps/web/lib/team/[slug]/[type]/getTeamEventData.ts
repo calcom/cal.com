@@ -17,79 +17,11 @@ type TeamEventParams = {
   orgSlug: string | null;
 };
 
-const getStaticTeamEventData = async ({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) => {
-  const team = await getTeamWithEventsData(teamSlug, meetingSlug, !!orgSlug, orgSlug ?? null);
-
-  if (!team || !team.eventTypes?.[0]) {
-    return null;
-  }
-
-  const eventData = team.eventTypes[0];
-  const eventTypeId = eventData.id;
-  const eventHostsUserData = await getUsersData(
-    team.isPrivate,
-    eventTypeId,
-    eventData.hosts.map((h) => h.user)
-  );
-  const name = team.parent?.name ?? team.name ?? null;
-
-  const organizationSettings = getOrganizationSEOSettings(team);
-  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
-
-  return {
-    eventData: {
-      eventTypeId,
-      entity: {
-        fromRedirectOfNonOrgLink: false,
-        considerUnpublished: false,
-        orgSlug,
-        teamSlug: team.slug ?? null,
-        name,
-      },
-      length: eventData.length,
-      metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
-      profile: {
-        image: team.parent
-          ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-          : getPlaceholderAvatar(team.logoUrl, team.name),
-        name,
-        username: orgSlug,
-      },
-      title: eventData.title,
-      users: eventHostsUserData,
-      hidden: eventData.hidden,
-      interfaceLanguage: eventData.interfaceLanguage,
-      slug: eventData.slug,
-      disableRescheduling: eventData.disableRescheduling,
-      allowReschedulingCancelledBookings: eventData.allowReschedulingCancelledBookings,
-      team: {
-        id: team.id,
-        name: team.name,
-        slug: team.slug,
-      },
-    },
-    user: teamSlug,
-    teamId: team.id,
-    slug: meetingSlug,
-    isBrandingHidden: shouldHideBrandingForTeamEvent({
-      eventTypeId: eventData.id,
-      team,
-    }),
-    orgBannerUrl: team.parent?.bannerUrl ?? "",
-    isSEOIndexable: allowSEOIndexing,
-  };
-};
-
-const getTeamWithEventsData = async (
-  teamSlug: string,
-  meetingSlug: string,
-  isValidOrgDomain: boolean,
-  currentOrgDomain: string | null
-) => {
+const getTeamEventData = async ({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) => {
   const team = await prisma.team.findFirst({
     where: {
       ...getSlugOrRequestedSlug(teamSlug),
-      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+      parent: orgSlug ? getSlugOrRequestedSlug(orgSlug) : null,
     },
     orderBy: {
       slug: { sort: "asc", nulls: "last" },
@@ -155,7 +87,64 @@ const getTeamWithEventsData = async (
     },
   });
 
-  return team;
+  if (!team || !team.eventTypes?.[0]) {
+    return null;
+  }
+
+  const eventData = team.eventTypes[0];
+  const eventTypeId = eventData.id;
+  const eventHostsUserData = await getUsersData(
+    team.isPrivate,
+    eventTypeId,
+    eventData.hosts.map((h) => h.user)
+  );
+  const name = team.parent?.name ?? team.name ?? null;
+
+  const organizationSettings = getOrganizationSEOSettings(team);
+  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
+  return {
+    eventData: {
+      eventTypeId,
+      entity: {
+        fromRedirectOfNonOrgLink: false,
+        considerUnpublished: false,
+        orgSlug,
+        teamSlug: team.slug ?? null,
+        name,
+      },
+      length: eventData.length,
+      metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
+      profile: {
+        image: team.parent
+          ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+          : getPlaceholderAvatar(team.logoUrl, team.name),
+        name,
+        username: orgSlug,
+      },
+      title: eventData.title,
+      users: eventHostsUserData,
+      hidden: eventData.hidden,
+      interfaceLanguage: eventData.interfaceLanguage,
+      slug: eventData.slug,
+      disableRescheduling: eventData.disableRescheduling,
+      allowReschedulingCancelledBookings: eventData.allowReschedulingCancelledBookings,
+      team: {
+        id: team.id,
+        name: team.name,
+        slug: team.slug,
+      },
+    },
+    user: teamSlug,
+    teamId: team.id,
+    slug: meetingSlug,
+    isBrandingHidden: shouldHideBrandingForTeamEvent({
+      eventTypeId: eventData.id,
+      team,
+    }),
+    orgBannerUrl: team.parent?.bannerUrl ?? "",
+    isSEOIndexable: allowSEOIndexing,
+  };
 };
 
 const getUsersData = async (
@@ -200,7 +189,7 @@ const getUsersData = async (
 
 export const getCachedTeamEvent = unstable_cache(
   async ({ teamSlug, meetingSlug, orgSlug }: TeamEventParams) => {
-    return await getStaticTeamEventData({ teamSlug, meetingSlug, orgSlug });
+    return await getTeamEventData({ teamSlug, meetingSlug, orgSlug });
   },
   undefined,
   {
