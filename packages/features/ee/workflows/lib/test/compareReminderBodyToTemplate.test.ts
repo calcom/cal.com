@@ -1,11 +1,27 @@
+import { createInstance } from "i18next";
 import { expect, test, describe } from "vitest";
 
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import en from "@calcom/web/public/static/locales/en/common.json";
 
 import { getTemplateBodyForAction } from "../actionHelperFunctions";
 import compareReminderBodyToTemplate from "../compareReminderBodyToTemplate";
 import plainTextReminderTemplates from "../reminders/templates/plainTextTemplates";
+
+const translation = async () => {
+  const _i18n = createInstance();
+  await _i18n.init({
+    lng: "en",
+    resources: {
+      en: {
+        translation: en,
+      },
+    },
+  });
+  return _i18n.getFixedT("en");
+};
 
 describe("compareReminderBodyToTemplate", () => {
   test("should return true if reminderBody and template are the same", () => {
@@ -21,12 +37,13 @@ describe("compareReminderBodyToTemplate", () => {
   });
 
   describe("email templates", () => {
-    test("reminder", () => {
+    test("reminder", async () => {
       const template = getTemplateBodyForAction({
         action: WorkflowActions.EMAIL_HOST,
         template: WorkflowTemplates.REMINDER,
         timeFormat: TimeFormat.TWELVE_HOUR,
         locale: "en",
+        t: await translation(),
       });
 
       if (!template) throw new Error("template not found");
@@ -35,12 +52,13 @@ describe("compareReminderBodyToTemplate", () => {
       expect(compareReminderBodyToTemplate({ reminderBody, template })).toBe(true);
     });
 
-    test("rating", () => {
+    test("rating", async () => {
       const template = getTemplateBodyForAction({
         action: WorkflowActions.EMAIL_HOST,
         template: WorkflowTemplates.RATING,
         timeFormat: TimeFormat.TWELVE_HOUR,
         locale: "en",
+        t: await translation(),
       });
 
       if (!template) throw new Error("template not found");
@@ -51,12 +69,13 @@ describe("compareReminderBodyToTemplate", () => {
   });
 
   describe("sms templates", () => {
-    test("reminder", () => {
+    test("reminder", async () => {
       const template = getTemplateBodyForAction({
         action: WorkflowActions.SMS_ATTENDEE,
         template: WorkflowTemplates.REMINDER,
         timeFormat: TimeFormat.TWELVE_HOUR,
         locale: "en",
+        t: await getTranslation("en", "common"),
       });
 
       if (!template) throw new Error("template not found");
@@ -67,12 +86,13 @@ describe("compareReminderBodyToTemplate", () => {
   });
 
   describe("whatsapp templates", () => {
-    test("reminder", () => {
+    test("reminder", async () => {
       const template = getTemplateBodyForAction({
         action: WorkflowActions.WHATSAPP_ATTENDEE,
         template: WorkflowTemplates.REMINDER,
         timeFormat: TimeFormat.TWELVE_HOUR,
         locale: "en",
+        t: await getTranslation("en", "common"),
       });
 
       if (!template) throw new Error("template not found");
@@ -81,12 +101,13 @@ describe("compareReminderBodyToTemplate", () => {
       expect(compareReminderBodyToTemplate({ reminderBody, template })).toBe(true);
     });
 
-    test("rescheduled", () => {
+    test("rescheduled", async () => {
       const template = getTemplateBodyForAction({
         action: WorkflowActions.WHATSAPP_ATTENDEE,
         template: WorkflowTemplates.RESCHEDULED,
         timeFormat: TimeFormat.TWELVE_HOUR,
         locale: "en",
+        t: await getTranslation("en", "common"),
       });
 
       if (!template) throw new Error("template not found");
@@ -95,12 +116,13 @@ describe("compareReminderBodyToTemplate", () => {
       expect(compareReminderBodyToTemplate({ reminderBody, template })).toBe(true);
     });
 
-    test("completed", () => {
+    test("completed", async () => {
       const template = getTemplateBodyForAction({
         action: WorkflowActions.WHATSAPP_ATTENDEE,
         template: WorkflowTemplates.COMPLETED,
         timeFormat: TimeFormat.TWELVE_HOUR,
         locale: "en",
+        t: await getTranslation("en", "common"),
       });
 
       if (!template) throw new Error("template not found");
@@ -109,12 +131,13 @@ describe("compareReminderBodyToTemplate", () => {
       expect(compareReminderBodyToTemplate({ reminderBody, template })).toBe(true);
     });
 
-    test("canceled", () => {
+    test("canceled", async () => {
       const template = getTemplateBodyForAction({
         action: WorkflowActions.WHATSAPP_ATTENDEE,
         template: WorkflowTemplates.CANCELLED,
         timeFormat: TimeFormat.TWELVE_HOUR,
         locale: "en",
+        t: await getTranslation("en", "common"),
       });
 
       if (!template) throw new Error("template not found");

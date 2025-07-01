@@ -17,11 +17,13 @@ export default class EventCancelledSMS extends SMSManager {
       {
         title: this.calEvent.title,
         date: this.getFormattedDate(attendee.timeZone, attendee.language.locale),
+        interpolation: { escapeValue: false },
       }
     )}`;
 
     const urlText = t("you_can_view_booking_details_with_this_url", {
       url: bookingUrl,
+      interpolation: { escapeValue: false },
     });
 
     return `${messageText}\n\n${urlText}`;

@@ -1,7 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsUrl, IsIn, IsPhoneNumber, IsBoolean } from "class-validator";
+import { IsString, IsUrl, IsIn, IsPhoneNumber, IsBoolean, MinLength } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
@@ -22,6 +22,7 @@ export class InputAddressLocation_2024_06_14 {
   type!: "address";
 
   @IsString()
+  @MinLength(1)
   @DocsProperty({ example: "123 Example St, City, Country" })
   address!: string;
 
@@ -136,6 +137,10 @@ class InputLocationValidator_2024_06_14 implements ValidatorConstraintInterface 
     }
 
     for (const location of locations) {
+      if (!location || typeof location !== "object") {
+        throw new BadRequestException(`Each object in 'locations' must be an object.`);
+      }
+
       const { type } = location;
       if (!type) {
         throw new BadRequestException(`Each object in 'locations' must have a 'type' property.`);
@@ -187,6 +192,10 @@ class InputTeamLocationValidator_2024_06_14 implements ValidatorConstraintInterf
     }
 
     for (const location of locations) {
+      if (!location || typeof location !== "object") {
+        throw new BadRequestException(`Each object in 'locations' must be an object.`);
+      }
+
       const { type } = location;
       if (!type) {
         throw new BadRequestException(`Each object in 'locations' must have a 'type' property.`);

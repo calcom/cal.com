@@ -14,6 +14,8 @@ export {
   FilterSearchField,
 } from "./inputs/Input";
 
+export { MultiOptionInput } from "./inputs/MultiOptionInput";
+
 export { InputFieldWithSelect } from "./inputs/InputFieldWithSelect";
 export type { InputFieldProps, InputProps } from "./inputs/types";
 export { InputField, Input, TextField, inputStyles } from "./inputs/TextField";

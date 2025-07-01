@@ -23,7 +23,9 @@ const mockDailyVideo = {
 
 const appStoreMock = mockDeep<typeof appStore>({
   fallbackMockImplementation: () => {
-    throw new Error("Unimplemented appStoreMock. You seem to have mocked the app that you are trying to use");
+    throw new Error(
+      "Unimplemented appStoreMock. You seem to have not mocked the app that you are trying to use"
+    );
   },
 });
 export default appStoreMock;

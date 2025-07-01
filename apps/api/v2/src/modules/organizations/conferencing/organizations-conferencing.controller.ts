@@ -22,6 +22,7 @@ import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferenci
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -36,10 +37,13 @@ import {
   Headers,
   Req,
   ParseIntPipe,
+  BadRequestException,
+  Redirect,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags, ApiParam } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
+import { stringify } from "querystring";
 
 import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
 
@@ -56,11 +60,12 @@ export type OAuthCallbackState = {
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Organizations/Teams Conferencing")
+@DocsTags("Orgs / Teams / Conferencing")
 export class OrganizationsConferencingController {
   constructor(
     private readonly conferencingService: ConferencingService,
-    private readonly organizationsConferencingService: OrganizationsConferencingService
+    private readonly organizationsConferencingService: OrganizationsConferencingService,
+    private readonly tokensRepository: TokensRepository
   ) {}
 
   @Roles("TEAM_ADMIN")
@@ -220,5 +225,42 @@ export class OrganizationsConferencingController {
     });
 
     return { status: SUCCESS_STATUS };
+  }
+
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Get("/teams/:teamId/conferencing/:app/oauth/callback")
+  @Redirect(undefined, 301)
+  @ApiOperation({ summary: "Save conferencing app OAuth credentials" })
+  async saveTeamOauthCredentials(
+    @Query("state") state: string,
+    @Query("code") code: string,
+    @Query("error") error: string | undefined,
+    @Query("error_description") error_description: string | undefined,
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("app") app: string
+  ): Promise<{ url: string }> {
+    if (!state) {
+      throw new BadRequestException("Missing `state` query param");
+    }
+
+    const decodedCallbackState: OAuthCallbackState = JSON.parse(state);
+    try {
+      return await this.organizationsConferencingService.connectTeamOauthApps({
+        decodedCallbackState,
+        code,
+        app,
+        teamId,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message);
+      }
+      return {
+        url: decodedCallbackState.onErrorReturnTo ?? "",
+      };
+    }
   }
 }

@@ -10,7 +10,12 @@ import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegation
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
-import { buildNonDelegationCredentials, isDelegationCredential } from "./clientAndServer";
+import { UserRepository } from "../server/repository/user";
+import {
+  buildNonDelegationCredential,
+  buildNonDelegationCredentials,
+  isDelegationCredential,
+} from "./clientAndServer";
 
 export { buildNonDelegationCredentials, buildNonDelegationCredential } from "./clientAndServer";
 
@@ -89,6 +94,7 @@ const _buildCommonUserCredential = ({
     invalid: false,
     teamId: null,
     team: null,
+    delegationCredentialId: delegationCredential.id,
     delegatedTo: delegationCredential.serviceAccountKey
       ? {
           serviceAccountKey: delegationCredential.serviceAccountKey,
@@ -104,7 +110,18 @@ const _buildDelegatedCalendarCredential = ({
   delegationCredential: DelegationCredential;
   user: User;
 }) => {
-  log.debug("buildDelegationCredential", safeStringify({ delegationCredential, user }));
+  log.debug(
+    "buildDelegationCredential",
+    safeStringify({
+      delegationCredential: {
+        id: delegationCredential.id,
+      },
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    })
+  );
   // TODO: Build for other platforms as well
   if (!isValidWorkspaceSlug(delegationCredential.workspacePlatform.slug)) {
     log.warn(
@@ -171,7 +188,11 @@ const _buildDelegatedConferencingCredential = ({
 /**
  * Gets calendar as well as conferencing credentials(stored in-memory) for the user from the corresponding enabled DelegationCredential.
  */
-export async function getAllDelegationCredentialsForUser({ user }: { user: { email: string; id: number } }) {
+export async function getAllDelegationCredentialsForUserIncludeServiceAccountKey({
+  user,
+}: {
+  user: { email: string; id: number };
+}) {
   log.debug("called with", safeStringify({ user }));
   // We access the repository without checking for feature flag here.
   // In case we need to disable the effects of DelegationCredential on credential we need to toggle DelegationCredential off from organization settings.
@@ -194,13 +215,32 @@ export async function getAllDelegationCredentialsForUser({ user }: { user: { ema
   return delegationCredentials;
 }
 
+export async function getAllDelegationCredentialsForUser({ user }: { user: { email: string; id: number } }) {
+  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
+    user,
+  });
+  return delegationCredentials.map(({ delegatedTo: _1, ...rest }) => {
+    return {
+      ...rest,
+    };
+  });
+}
+
 export async function getAllDelegatedCalendarCredentialsForUser({
   user,
 }: {
   user: { email: string; id: number };
 }) {
-  const delegationCredentials = await getAllDelegationCredentialsForUser({ user });
-  return delegationCredentials.filter((credential) => credential.type.endsWith("_calendar"));
+  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
+    user,
+  });
+  const delegationCalendarCredentials = delegationCredentials.filter((credential) =>
+    credential.type.endsWith("_calendar")
+  );
+  return buildAllCredentials({
+    delegationCredentials: delegationCalendarCredentials,
+    existingCredentials: [],
+  });
 }
 
 async function _getDelegationCredentialsMapPerUser({
@@ -308,8 +348,14 @@ export async function getAllDelegationCredentialsForUserByAppSlug({
   user: User;
   appSlug: string;
 }) {
-  const delegationCredentials = await getAllDelegationCredentialsForUser({ user });
-  return delegationCredentials.filter((credential) => credential.appId === appSlug);
+  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
+    user,
+  });
+  const appDelegationCredentials = delegationCredentials.filter((credential) => credential.appId === appSlug);
+  return buildAllCredentials({
+    delegationCredentials: appDelegationCredentials,
+    existingCredentials: [],
+  });
 }
 
 type Host<TUser extends { id: number; email: string; credentials: CredentialPayload[] }> = {
@@ -404,18 +450,30 @@ export const enrichHostsWithDelegationCredentials = async <
       },
     };
   });
-  log.debug("enrichHostsWithDelegationCredentials", safeStringify({ enrichedHosts, orgId }));
+  log.debug(
+    "enrichHostsWithDelegationCredentials",
+    safeStringify({
+      enrichedHosts: enrichedHosts.map((host) => {
+        return {
+          userId: host.user.id,
+        };
+      }),
+      orgId,
+    })
+  );
   return enrichedHosts;
 };
 
-export const enrichUserWithDelegationCredentialsWithoutOrgId = async <
+export const enrichUserWithDelegationCredentialsIncludeServiceAccountKey = async <
   TUser extends { id: number; email: string; credentials: CredentialPayload[] }
 >({
   user,
 }: {
   user: TUser;
 }) => {
-  const delegationCredentials = await getAllDelegationCredentialsForUser({ user });
+  const delegationCredentials = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
+    user,
+  });
   const { credentials, ...restUser } = user;
   return {
     ...restUser,
@@ -426,10 +484,28 @@ export const enrichUserWithDelegationCredentialsWithoutOrgId = async <
   };
 };
 
+export const enrichUserWithDelegationCredentials = async <
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+>({
+  user,
+}: {
+  user: TUser;
+}) => {
+  const { credentials, ...restUser } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+    user,
+  });
+  return {
+    ...restUser,
+    credentials: credentials.filter(_isConferencingCredential).map(({ delegatedTo: _1, ...rest }) => rest),
+  };
+};
+
 export async function enrichUserWithDelegationConferencingCredentialsWithoutOrgId<
   TUser extends { id: number; email: string; credentials: CredentialPayload[] }
 >({ user }: { user: TUser }) {
-  const { credentials, ...restUser } = await enrichUserWithDelegationCredentialsWithoutOrgId({ user });
+  const { credentials, ...restUser } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+    user,
+  });
   return {
     ...restUser,
     credentials: credentials.filter(_isConferencingCredential),
@@ -439,7 +515,9 @@ export async function enrichUserWithDelegationConferencingCredentialsWithoutOrgI
 /**
  * Either get Delegation credential from delegationCredentials or find regular credential from Credential table
  */
-export async function getDelegationCredentialOrFindRegularCredential({
+export async function getDelegationCredentialOrFindRegularCredential<
+  TDelegationCredential extends { delegatedToId?: string | null }
+>({
   id,
   delegationCredentials,
 }: {
@@ -447,7 +525,7 @@ export async function getDelegationCredentialOrFindRegularCredential({
     credentialId: number | null | undefined;
     delegationCredentialId: string | null | undefined;
   };
-  delegationCredentials: CredentialForCalendarService[];
+  delegationCredentials: TDelegationCredential[];
 }) {
   return id.delegationCredentialId
     ? delegationCredentials.find((cred) => cred.delegatedToId === id.delegationCredentialId)
@@ -504,4 +582,70 @@ export function getFirstDelegationConferencingCredentialAppLocation({
     return office365VideoMetaData.appData?.location?.type ?? null;
   }
   return null;
+}
+
+export async function findUniqueDelegationCalendarCredential({
+  userId,
+  delegationCredentialId,
+}: {
+  userId: number;
+  delegationCredentialId: string;
+}) {
+  const [delegationCredential, user] = await Promise.all([
+    DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({ id: delegationCredentialId }),
+    UserRepository.findById({ id: userId }),
+  ]);
+
+  if (!delegationCredential) {
+    throw new Error("Delegation Credential not found");
+  }
+
+  if (!delegationCredential.enabled) {
+    return null;
+  }
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const dwdCredential = _buildDelegatedCalendarCredential({
+    delegationCredential,
+    user,
+  });
+  return dwdCredential;
+}
+
+/**
+ * CredentialForCalendarCache is different from CredentialForCalendarService in the sense that CredentialForCalendarCache.id is greater than 0 and CredentialForCalendarService.id is -1
+ * Thus it is a Credential from DB and and also a Delegation User Credential(when CredentialForCalendarCache.delegatedTo is not null)
+ */
+export async function getCredentialForCalendarCache({ credentialId }: { credentialId: number }) {
+  const credential = await CredentialRepository.findByIdIncludeDelegationCredential({
+    id: credentialId,
+  });
+
+  let credentialForCalendarService;
+
+  if (credential?.delegationCredential) {
+    if (!credential.userId) {
+      throw new Error(`Credential ${credentialId} doesn't have a user`);
+    }
+    const delegationCredential = await findUniqueDelegationCalendarCredential({
+      userId: credential.userId,
+      delegationCredentialId: credential.delegationCredential.id,
+    });
+
+    if (!delegationCredential) {
+      credentialForCalendarService = null;
+    } else {
+      // We prepare a credential that is in-db(in contrast with an in-memory credential used elsewhere where we generate CredentialForCalendarService)
+      credentialForCalendarService = {
+        ...delegationCredential,
+        id: credential.id,
+      };
+    }
+  } else {
+    credentialForCalendarService = buildNonDelegationCredential(credential);
+  }
+  return credentialForCalendarService;
 }

@@ -13,11 +13,13 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
+import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { UsersService } from "@/modules/users/services/users.service";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Post,
@@ -36,7 +38,6 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { CreationSource } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
@@ -76,6 +77,7 @@ type OAuthRequestParams = {
   platformBookingUrl: string;
   platformBookingLocation?: string;
   arePlatformEmailsEnabled: boolean;
+  areCalendarEventsEnabled: boolean;
 };
 
 const DEFAULT_PLATFORM_PARAMS = {
@@ -85,6 +87,7 @@ const DEFAULT_PLATFORM_PARAMS = {
   platformBookingUrl: "",
   arePlatformEmailsEnabled: false,
   platformBookingLocation: undefined,
+  areCalendarEventsEnabled: false,
 };
 
 @Controller({
@@ -99,12 +102,14 @@ export class BookingsController_2024_04_15 {
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
     private readonly prismaReadService: PrismaReadService,
+    private readonly kyselyReadService: KyselyReadService,
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly billingService: BillingService,
     private readonly config: ConfigService,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly platformBookingsService: PlatformBookingsService,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: UsersRepository,
+    private readonly usersService: UsersService
   ) {}
 
   @Get("/")
@@ -114,25 +119,31 @@ export class BookingsController_2024_04_15 {
   @ApiQuery({ name: "limit", type: "number", required: false })
   @ApiQuery({ name: "cursor", type: "number", required: false })
   async getBookings(
-    @GetUser() user: User,
+    @GetUser() user: UserWithProfile,
     @Query() queryParams: GetBookingsInput_2024_04_15
   ): Promise<GetBookingsOutput_2024_04_15> {
     const { filters, cursor, limit } = queryParams;
     const bookingListingByStatus = filters?.status ?? Status_2024_04_15["upcoming"];
+    const profile = this.usersService.getUserMainProfile(user);
     const bookings = await getAllUserBookings({
       bookingListingByStatus: [bookingListingByStatus],
       skip: cursor ?? 0,
       take: limit ?? 10,
       filters,
       ctx: {
-        user: { email: user.email, id: user.id },
+        user: { email: user.email, id: user.id, orgId: profile?.organizationId },
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
+        kysely: this.kyselyReadService.kysely,
       },
     });
 
+    let nextCursor = null;
+    if (bookings.totalCount > (cursor ?? 0) + (limit ?? 10)) {
+      nextCursor = (cursor ?? 0) + (limit ?? 10);
+    }
     return {
       status: SUCCESS_STATUS,
-      data: bookings,
+      data: { ...bookings, nextCursor },
     };
   }
 
@@ -186,6 +197,7 @@ export class BookingsController_2024_04_15 {
         platformCancelUrl: bookingRequest.platformCancelUrl,
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
+        areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
       });
       if (booking.userId && booking.uid && booking.startTime) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
@@ -419,7 +431,7 @@ export class BookingsController_2024_04_15 {
 
     if (isEmbed) {
       // embed should ignore oauth client settings and enable emails by default
-      return { ...res, arePlatformEmailsEnabled: true };
+      return { ...res, arePlatformEmailsEnabled: true, areCalendarEventsEnabled: true };
     }
 
     try {
@@ -431,6 +443,7 @@ export class BookingsController_2024_04_15 {
         res.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
         res.platformBookingUrl = client.bookingRedirectUri ?? "";
         res.arePlatformEmailsEnabled = client.areEmailsEnabled ?? false;
+        res.areCalendarEventsEnabled = client.areCalendarEventsEnabled;
       }
       return res;
     } catch (err) {

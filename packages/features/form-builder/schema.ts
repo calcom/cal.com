@@ -403,12 +403,31 @@ export const fieldTypesSchemaMap: Partial<
       const value = response ?? "";
       const urlSchema = z.string().url();
 
-      if (!urlSchema.safeParse(value).success) {
+      // Check for malformed protocols (missing second slash test case)
+      if (value.match(/^https?:\/[^\/]/)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: m("url_validation_error"),
         });
+        return;
       }
+
+      // 1. Try validating the original value
+      if (urlSchema.safeParse(value).success) {
+        return;
+      }
+
+      // 2. If it failed, try prepending https://
+      const valueWithHttps = `https://${value}`;
+      if (urlSchema.safeParse(valueWithHttps).success) {
+        return;
+      }
+
+      // 3. If all attempts fail, throw err
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: m("url_validation_error"),
+      });
     },
   },
 };

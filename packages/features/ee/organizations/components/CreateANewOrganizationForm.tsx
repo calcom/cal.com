@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
+import { MINIMUM_NUMBER_OF_ORG_SEATS, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -28,8 +28,8 @@ import { useOnboarding } from "../lib/onboardingStore";
 function extractDomainFromEmail(email: string) {
   let out = "";
   try {
-    const match = email.match(/^(?:.*?:\/\/)?.*?(?<root>[\w\-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[\/?#:]|$)/);
-    out = (match && match.groups?.root) ?? "";
+    const match = email.match(/^(?:.*?:\/\/)?.*?([\w\-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[\/?#:]|$)/);
+    out = (match && match[1]) ?? "";
   } catch (ignore) {}
   return out.split(".")[0];
 }
@@ -55,8 +55,9 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   const router = useRouter();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const defaultOrgOwnerEmail = session.data.user.email ?? "";
-  const { useOnboardingStore } = useOnboarding({ step: "start" });
+  // Let self-hosters create an organization with their own email. Hosted's Admin already has an organization for their email
+  const defaultOrgOwnerEmail = (!isAdmin || IS_SELF_HOSTED ? session.data.user.email : null) ?? "";
+  const { useOnboardingStore, isBillingEnabled } = useOnboarding({ step: "start" });
   const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
     useOnboardingStore();
 
@@ -71,7 +72,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
     defaultValues: {
       billingPeriod: billingPeriod ?? BillingPeriod.MONTHLY,
       slug: slug ?? (!isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined),
-      orgOwnerEmail: orgOwnerEmail || (!isAdmin ? defaultOrgOwnerEmail : undefined),
+      orgOwnerEmail: orgOwnerEmail || defaultOrgOwnerEmail,
       name: name ?? (!isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined),
       seats: seats ?? null,
       pricePerSeat: pricePerSeat ?? null,
@@ -92,7 +93,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         slug: data.slug,
       });
 
-      if (isAdmin) {
+      if (isAdmin && data.userId !== session.data.user.id) {
         router.push("/settings/organizations/new/handover");
       } else {
         router.push("/settings/organizations/new/about");
@@ -133,7 +134,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
               <Alert severity="error" message={serverErrorMessage} />
             </div>
           )}
-          {isAdmin && (
+          {isBillingEnabled && isAdmin && (
             <div className="mb-5">
               <Controller
                 name="billingPeriod"
@@ -251,7 +252,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           />
         </div>
 
-        {isAdmin && (
+        {isBillingEnabled && isAdmin && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
@@ -305,7 +306,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         )}
 
         {/* This radio group does nothing - its just for visual purposes */}
-        {!isAdmin && (
+        {isBillingEnabled && !isAdmin && (
           <>
             <div className="bg-subtle space-y-5  rounded-lg p-5">
               <h3 className="font-cal text-default text-lg font-semibold leading-4">
@@ -322,7 +323,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                 <RadioArea.Item className={classNames("bg-default w-full text-sm")} value="ORGANIZATION">
                   <strong className="mb-1 block">{t("organization")}</strong>
                   {pricePerSeat && seats ? (
-                    <p>{`$${pricePerSeat} per user per month (${seats} seats minimum) ${
+                    <p>{`$${pricePerSeat} per user per month ${
                       billingPeriod === BillingPeriod.ANNUALLY ? "(billed annually)" : ""
                     }`}</p>
                   ) : (

@@ -22,6 +22,7 @@ import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
 import {
   getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
   getBusyCalendarTimes,
+  type EventBusyDate,
 } from "@calcom/platform-libraries";
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
@@ -45,6 +46,7 @@ export class CalendarsService {
         ...credential,
         delegatedTo: null,
         delegatedToId: null,
+        delegationCredentialId: null,
       }))
       .filter((credential) => !!credential);
   }
@@ -88,18 +90,19 @@ export class CalendarsService {
         dateTo,
         composedSelectedCalendars
       );
-      // @ts-expect-error Element implicitly has any type
-      const calendarBusyTimesConverted = calendarBusyTimes.map((busyTime) => {
-        const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
-        const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);
-        const busyTimeStartDate = busyTimeStart.toJSDate();
-        const busyTimeEndDate = busyTimeEnd.toJSDate();
-        return {
-          ...busyTime,
-          start: busyTimeStartDate,
-          end: busyTimeEndDate,
-        };
-      });
+      const calendarBusyTimesConverted = calendarBusyTimes.map(
+        (busyTime: EventBusyDate & { timeZone?: string }) => {
+          const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
+          const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);
+          const busyTimeStartDate = busyTimeStart.toJSDate();
+          const busyTimeEndDate = busyTimeEnd.toJSDate();
+          return {
+            ...busyTime,
+            start: busyTimeStartDate,
+            end: busyTimeEndDate,
+          };
+        }
+      );
       return calendarBusyTimesConverted;
     } catch (error) {
       throw new InternalServerErrorException(

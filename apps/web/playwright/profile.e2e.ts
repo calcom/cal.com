@@ -62,7 +62,7 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("password").fill(user?.username ?? "Nameless User");
 
-    await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
       action: () => page.getByTestId("profile-update-email-submit-button").click(),
     });
 
