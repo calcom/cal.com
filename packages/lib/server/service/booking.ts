@@ -28,10 +28,6 @@ export interface DynamicBookingData extends BookingSessionData, CRMData, Feature
   isInstantMeeting: boolean;
 }
 
-function hasApiV2RouteInEnv() {
-  return Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
-}
-
 export class BookingService {
   /**
    * Gets user session and booking data - should NOT be cached as it's user/request specific
@@ -103,17 +99,12 @@ export class BookingService {
     };
   }
 
-  /**
-   * Gets feature flags for team - can be cached as feature flags change infrequently per team
-   */
-  static async getTeamFeatureFlags(teamId: number): Promise<FeatureFlags> {
+  static async shouldUseApiV2ForTeamSlots(teamId: number): Promise<boolean> {
     const featureRepo = new FeaturesRepository();
     const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(teamId, "use-api-v2-for-team-slots");
-    const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
+    const useApiV2 = teamHasApiV2Route && Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
 
-    return {
-      useApiV2,
-    };
+    return useApiV2;
   }
 
   /**
@@ -159,22 +150,16 @@ export class BookingService {
     processedEventData: ProcessedEventData,
     isInstantMeetingQuery?: boolean
   ): Promise<DynamicBookingData> {
-    // Get session and booking data (user-specific, not cached)
     const sessionData = await this.getBookingSessionData(req, rescheduleUid);
-
-    // Get CRM data (request-specific, not cached)
     const crmData = await this.getCRMData(query, rawEventData);
+    const useApiV2 = await this.shouldUseApiV2ForTeamSlots(teamId);
 
-    // Get feature flags (team-specific, can be cached)
-    const featureFlags = await this.getTeamFeatureFlags(teamId);
-
-    // Determine if instant meeting (query-specific, not cached)
     const isInstantMeeting = this.isInstantMeeting(processedEventData, isInstantMeetingQuery);
 
     return {
       ...sessionData,
       ...crmData,
-      ...featureFlags,
+      useApiV2,
       isInstantMeeting,
     };
   }
