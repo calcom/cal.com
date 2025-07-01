@@ -15,7 +15,7 @@ export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] 
     sortedRanges,
     (range) => range.start.valueOf(),
     (range) => range.end.valueOf()
-  ).sort((a, b) => a.start - b.start);
+  );
   const intervalTree = new IntervalTree(intervalNodes);
   const searchAlgorithm = new ContainmentSearchAlgorithm(intervalTree);
 
