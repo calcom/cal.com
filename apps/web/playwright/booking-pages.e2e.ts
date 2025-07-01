@@ -800,7 +800,7 @@ test.describe("Calendar Cache Booking", () => {
 
     try {
       await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-testid="time"]').first()).toBeVisible({ timeout: 10000 });
     } catch (error) {
       console.error("Page load validation failed");
       console.error("Current URL:", page.url());
@@ -890,7 +890,7 @@ test.describe("Calendar Cache Booking", () => {
 
     try {
       await expect(page.locator('[data-testid="event-title"]')).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('[data-testid="time"]')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[data-testid="time"]').first()).toBeVisible({ timeout: 10000 });
     } catch (error) {
       console.error("Page load validation failed");
       console.error("Current URL:", page.url());
