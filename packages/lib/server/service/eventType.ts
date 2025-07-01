@@ -5,6 +5,7 @@ import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema, EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getPlaceholderAvatar } from "../../defaultAvatarImage";
 import type { TeamWithEventTypes } from "./team";
 
 export interface ProcessedEventData {
@@ -112,7 +113,6 @@ export class EventTypeService {
   static async processEventDataForBooking(
     team: TeamWithEventTypes,
     orgSlug: string | null,
-    profileData: { image: string; name: string | null; username: string | null },
     fromRedirectOfNonOrgLink: boolean
   ): Promise<ProcessedEventData | null> {
     if (!team.eventTypes?.[0]) {
@@ -142,7 +142,13 @@ export class EventTypeService {
       },
       length: eventData.length,
       metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
-      profile: profileData,
+      profile: {
+        image: team.parent
+          ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+          : getPlaceholderAvatar(team.logoUrl, team.name),
+        name,
+        username: orgSlug ?? null,
+      },
       title: eventData.title,
       users: eventHostsUserData,
       hidden: eventData.hidden ?? false,

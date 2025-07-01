@@ -7,7 +7,6 @@ import { z } from "zod";
 
 import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { BookingService } from "@calcom/lib/server/service/booking";
@@ -44,17 +43,6 @@ const processTeamDataForBooking = (team: TeamWithEventTypes) => {
   };
 };
 
-const getTeamProfileData = (team: TeamWithEventTypes, orgSlug: string | null) => {
-  const name = team.parent?.name ?? team.name ?? null;
-
-  return {
-    image: team.parent
-      ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-      : getPlaceholderAvatar(team.logoUrl, team.name),
-    name,
-    username: orgSlug ?? null,
-  };
-};
 export async function getOrgContext(_params: PageProps["params"]) {
   const params = await _params;
   const result = paramsSchema.safeParse({
@@ -87,10 +75,9 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   if (!team || !team.eventTypes?.[0]) return {}; // should never happen
 
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-  const profileData = getTeamProfileData(team, orgSlug);
   const searchParamsObj = await searchParams;
   const fromRedirectOfNonOrgLink = searchParamsObj.orgRedirection === "true";
-  const eventData = await getCachedProcessedEventData(team, orgSlug, profileData, fromRedirectOfNonOrgLink);
+  const eventData = await getCachedProcessedEventData(team, orgSlug, fromRedirectOfNonOrgLink);
   if (!eventData) return {}; // should never happen
 
   const teamData = processTeamDataForBooking(team);
@@ -149,10 +136,9 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   }
 
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-  const profileData = getTeamProfileData(team, orgSlug);
   const fromRedirectOfNonOrgLink = legacyCtx.query.orgRedirection === "true";
 
-  const eventData = await getCachedProcessedEventData(team, orgSlug, profileData, fromRedirectOfNonOrgLink);
+  const eventData = await getCachedProcessedEventData(team, orgSlug, fromRedirectOfNonOrgLink);
   if (!eventData) {
     return notFound();
   }
@@ -199,6 +185,7 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     slug: meetingSlug,
     user: teamSlug,
     eventData,
+    themeBasis: null,
   };
   const ClientBooker = <Type {...props} />;
 
