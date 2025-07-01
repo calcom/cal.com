@@ -1,38 +1,45 @@
 import prisma from "@calcom/prisma";
 
 const getOrgMemberOrTeamWhere = (memberId?: number | null, teamId?: number | null) => {
+  const conditions: Prisma.TeamWhereInput[] = [];
+
+  if (memberId) {
+    conditions.push({
+      AND: [
+        {
+          members: {
+            some: {
+              userId: memberId,
+              accepted: true,
+            },
+          },
+        },
+        {
+          isOrganization: true,
+        },
+      ],
+    });
+  }
+
+  if (teamId) {
+    conditions.push({
+      AND: [
+        {
+          children: {
+            some: {
+              id: teamId,
+            },
+          },
+        },
+        {
+          isOrganization: true,
+        },
+      ],
+    });
+  }
+
   return {
-    OR: [
-      {
-        AND: [
-          {
-            members: {
-              some: {
-                userId: memberId ?? 0,
-                accepted: true,
-              },
-            },
-          },
-          {
-            isOrganization: true,
-          },
-        ],
-      },
-      {
-        AND: [
-          {
-            children: {
-              some: {
-                id: teamId ?? 0,
-              },
-            },
-          },
-          {
-            isOrganization: true,
-          },
-        ],
-      },
-    ],
+    OR: conditions,
   };
 };
 
