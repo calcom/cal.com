@@ -36,7 +36,6 @@ export const bulkUpdateToDefaultAvailabilityHandler = async ({
     select: {
       team: {
         select: {
-          id: true,
           lockDefaultAvailability: true,
         },
       },

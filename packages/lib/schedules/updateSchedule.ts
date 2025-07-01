@@ -74,7 +74,6 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
       select: {
         team: {
           select: {
-            id: true,
             lockDefaultAvailability: true,
           },
         },

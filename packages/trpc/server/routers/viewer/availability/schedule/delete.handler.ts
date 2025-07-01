@@ -40,7 +40,6 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
       select: {
         team: {
           select: {
-            id: true,
             lockDefaultAvailability: true,
           },
         },

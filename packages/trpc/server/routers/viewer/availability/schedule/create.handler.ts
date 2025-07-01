@@ -71,7 +71,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       select: {
         team: {
           select: {
-            id: true,
             lockDefaultAvailability: true,
           },
         },
