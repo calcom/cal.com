@@ -748,7 +748,7 @@ export class BookingsService_2024_08_13 {
 
       return this.getBooking(bookingUid);
     } catch (error) {
-      throw new Error(error);
+      throw error;
     }
   }
 
