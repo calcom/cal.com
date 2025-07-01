@@ -28,7 +28,7 @@ const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
 });
 
-const processTeamDataForBooking = (team: TeamWithEventTypes) => {
+const processTeamDataForBooking = (team: NonNullable<TeamWithEventTypes>) => {
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
@@ -131,19 +131,18 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
   }
 
   const team = await getCachedTeamWithEventTypes(teamSlug, meetingSlug, currentOrgDomain);
-  if (!team) {
-    return notFound();
-  }
+  if (!team) return notFound();
+
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const fromRedirectOfNonOrgLink = legacyCtx.query.orgRedirection === "true";
   const eventData = await getCachedProcessedEventData(team, orgSlug, fromRedirectOfNonOrgLink);
-  if (!eventData) {
-    return notFound();
-  }
+  if (!eventData) return notFound();
+
   const { rescheduleUid } = legacyCtx.query;
   if (!EventTypeService.canReschedule(eventData, rescheduleUid)) {
     return redirect(`/booking/${rescheduleUid}`);
   }
+
   const teamData = processTeamDataForBooking(team);
   const [sessionData, crmData, useApiV2] = await Promise.all([
     BookingService.getBookingSessionData(legacyCtx.req, rescheduleUid),

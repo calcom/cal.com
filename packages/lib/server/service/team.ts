@@ -1,58 +1,11 @@
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { prisma } from "@calcom/prisma";
-import type { SchedulingType } from "@calcom/prisma/client";
 
-export interface TeamWithEventTypes {
-  id: number;
-  isPrivate: boolean;
-  hideBranding: boolean;
-  logoUrl: string | null;
-  name: string | null;
-  slug: string | null;
-  isOrganization: boolean;
-  parent: {
-    slug: string | null;
-    name: string | null;
-    bannerUrl: string | null;
-    logoUrl: string | null;
-    hideBranding: boolean;
-    organizationSettings: {
-      allowSEOIndexing: boolean;
-    } | null;
-  } | null;
-  eventTypes: {
-    id: number;
-    title: string;
-    slug: string;
-    isInstantEvent: boolean;
-    schedulingType: SchedulingType | null;
-    metadata: any;
-    length: number;
-    hidden: boolean | null;
-    disableCancelling: boolean | null;
-    disableRescheduling: boolean | null;
-    allowReschedulingCancelledBookings: boolean | null;
-    interfaceLanguage: string | null;
-    hosts: {
-      user: {
-        name: string | null;
-        username: string | null;
-        email: string;
-      };
-    }[];
-  }[];
-  organizationSettings: {
-    allowSEOIndexing: boolean;
-  } | null;
-}
+export type TeamWithEventTypes = Awaited<ReturnType<typeof TeamService.getTeamWithEventTypes>>;
 
 export class TeamService {
-  static async getTeamWithEventTypes(
-    teamSlug: string,
-    meetingSlug: string,
-    orgSlug: string | null
-  ): Promise<TeamWithEventTypes | null> {
-    return await prisma.team.findFirst({
+  static async getTeamWithEventTypes(teamSlug: string, meetingSlug: string, orgSlug: string | null) {
+    const team = await prisma.team.findFirst({
       where: {
         ...getSlugOrRequestedSlug(teamSlug),
         parent: orgSlug ? getSlugOrRequestedSlug(orgSlug) : null,
@@ -120,5 +73,7 @@ export class TeamService {
         },
       },
     });
+    if (!team) return null;
+    return team;
   }
 }
