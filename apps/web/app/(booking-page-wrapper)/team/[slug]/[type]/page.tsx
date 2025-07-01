@@ -55,31 +55,17 @@ export async function getCachedOrgContext(_params: PageProps["params"]) {
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getCachedOrgContext(params);
 
-  // Get team data (cached)
   const team = await getCachedTeamWithEventTypes(teamSlug, meetingSlug, currentOrgDomain);
-  if (!team || !team.eventTypes?.[0]) {
-    return {};
-  }
+  if (!team || !team.eventTypes?.[0]) return {}; // should never happen
 
-  // Calculate orgSlug exactly like the original code
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-
-  // Get team profile data (not cached - simple transformation)
   const profileData = TeamService.getTeamProfileData(team, orgSlug);
-
-  // Check for fromRedirectOfNonOrgLink
   const searchParamsObj = await searchParams;
   const fromRedirectOfNonOrgLink = searchParamsObj.orgRedirection === "true";
-
-  // Get processed event data (cached)
   const eventData = await getCachedProcessedEventData(team, orgSlug, profileData, fromRedirectOfNonOrgLink);
-  if (!eventData) {
-    return {};
-  }
+  if (!eventData) return {}; // should never happen
 
-  // Get team booking data (not cached - simple transformation)
   const teamData = TeamService.processTeamDataForBooking(team);
-
   const title = eventData.title;
   const profileName = eventData.profile.name ?? "";
   const profileImage = eventData.profile.image;
@@ -87,7 +73,12 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const meeting = {
     title,
     profile: { name: profileName, image: profileImage },
-    users: [],
+    users: [
+      ...(eventData?.users || []).map((user) => ({
+        name: `${user.name}`,
+        username: `${user.username}`,
+      })),
+    ],
   };
 
   const metadata = await generateMeetingMetadata(
