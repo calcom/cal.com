@@ -11,6 +11,7 @@ import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
@@ -34,13 +35,14 @@ export type ApiAuthGuardRequest = Request & {
   organizationId: number | null;
   user: ApiAuthGuardUser;
   allowedAuthMethods?: AllowedAuthMethod[];
-  // removed requiredThirdPartyScopes: string[];
 };
 export const NO_AUTH_PROVIDED_MESSAGE =
   "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers";
 
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
+  private readonly logger = new Logger("ApiAuthStrategy");
+
   constructor(
     private readonly deploymentsService: DeploymentsService,
     private readonly config: ConfigService,
@@ -94,7 +96,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
               return await this.authenticateThirdPartyAccessToken(bearerToken, request);
             }
           } catch (jwtError) {
-            console.log(
+            this.logger.log(
               "Bearer token is not a valid third-party JWT or does not fit criteria for third_party_access_token. Trying other methods if allowed."
             );
           }
@@ -107,6 +109,8 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
             : AuthMethods["ACCESS_TOKEN"];
           return await this.authenticateBearerToken(bearerToken, request, requestOrigin);
         }
+
+        throw new UnauthorizedException(`ApiAuthStrategy - Invalid Bearer token`);
       }
 
       const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
@@ -323,7 +327,6 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     try {
       decodedToken = jwt.verify(token, encryptionKey) as OAuthTokenPayload;
     } catch (e) {
-      console.error("Third-party access token verification failed:", e);
       throw new UnauthorizedException("ApiAuthStrategy - third-party token - Invalid or malformed token.");
     }
 
