@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "PORT=4321 next dev",
+    "atoms-dev-on": "./atoms-dev-on.sh",
+    "atoms-dev-off": "git checkout -- package.json ../../../../yarn.lock",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@calcom/atoms": "file:../../atoms/cal-atoms-dev.tgz",
+    "@calcom/atoms": "*",
     "@prisma/client": "5.4.2",
     "next": "14.0.4",
     "prisma": "^5.7.1",
