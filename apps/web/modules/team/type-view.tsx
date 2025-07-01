@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
-import type { getServerSideProps } from "@lib/team/[slug]/[type]/getDynamicBookingData";
+import type { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
