@@ -1,7 +1,6 @@
 "use client";
 
 // eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
@@ -49,6 +48,11 @@ function WizardForm<T extends DefaultStep>(props: {
     setCurrentStepisPending(false);
   }, [currentStep]);
 
+  const goToStep = (step: number) => {
+    const newStep = step + 1;
+    router.replace(`${href}?step=${newStep}`);
+  };
+
   return (
     <div className="mx-auto mt-4 print:w-full" data-testid="wizard-form">
       <div className={classNames("overflow-hidden  md:mb-2 md:w-[700px]", props.containerClassname)}>
@@ -63,7 +67,7 @@ function WizardForm<T extends DefaultStep>(props: {
             <Steps
               maxSteps={steps.length}
               currentStep={step}
-              navigateToStep={noop}
+              navigateToStep={goToStep}
               stepLabel={stepLabel}
               data-testid="wizard-step-component"
             />
