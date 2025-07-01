@@ -60,6 +60,8 @@ const getStaticTeamEventData = async ({ teamSlug, meetingSlug, orgSlug }: TeamEv
       hidden: eventData.hidden,
       interfaceLanguage: eventData.interfaceLanguage,
       slug: eventData.slug,
+      disableRescheduling: eventData.disableRescheduling,
+      allowReschedulingCancelledBookings: eventData.allowReschedulingCancelledBookings,
       team: {
         id: team.id,
         name: team.name,
