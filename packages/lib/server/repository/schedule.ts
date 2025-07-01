@@ -138,6 +138,7 @@ export class ScheduleRepository {
       isDefault: !scheduleId || defaultScheduleId === schedule.id,
       isLastSchedule: schedulesCount <= 1,
       readOnly: schedule.userId !== userId && !isManagedEventType,
+      userId: schedule.userId,
     };
   }
 
@@ -171,7 +172,10 @@ export class ScheduleRepository {
       throw new Error("Schedules not found");
     }
 
-    const isCurrentUserPartOfTeam = await hasReadPermissionsForUserId({ memberId: schedules[0].userId, userId });
+    const isCurrentUserPartOfTeam = await hasReadPermissionsForUserId({
+      memberId: schedules[0].userId,
+      userId,
+    });
 
     const schedulesFormatted = schedules.map((schedule) => {
       const isCurrentUserOwner = schedule?.userId === userId;
@@ -194,6 +198,7 @@ export class ScheduleRepository {
         dateOverrides: transformDateOverridesForAtom(schedule, timeZone),
         readOnly: schedule.userId !== userId && !isManagedEventType,
         isLastSchedule: schedules.length <= 1,
+        userId: schedule.userId,
       };
     });
 
