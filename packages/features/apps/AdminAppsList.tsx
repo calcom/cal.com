@@ -164,7 +164,7 @@ const AdminAppsList = ({
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
-        nav.onNext();
+        nav?.onNext();
       }}>
       <AppCategoryNavigation
         baseURL={baseURL}
