@@ -4,6 +4,7 @@ import * as cache from "memory-cache";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
 import { getDeploymentKey, getDeploymentSignatureToken } from "../../deployment/lib/getDeploymentKey";
+import { NoopLicenseKeyService } from "./LicenseKeyService";
 import { createSignature, generateNonce } from "./private-api-utils";
 
 const baseUrl = "http://test-api.com";
@@ -71,9 +72,8 @@ describe("LicenseKeyService", () => {
 
     it("should create a NoopLicenseKeyService when no license key is provided", async () => {
       vi.mocked(getDeploymentKey).mockResolvedValue("");
-      const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create();
-      expect(service).toBeInstanceOf(LicenseKeyService.NoopLicenseKeyService);
+      const service = await (await getLicenseKeyService()).create();
+      expect(service).toBeInstanceOf(NoopLicenseKeyService);
     });
   });
 
