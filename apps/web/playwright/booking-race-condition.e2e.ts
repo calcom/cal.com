@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
+import { getTimeMin, getTimeMax } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
@@ -223,24 +224,14 @@ test.describe("Booking Race Condition", () => {
 
     // Define the time slot for our test (tomorrow at 10 AM)
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    // CRITICAL FIX: Use expanded date ranges that match production cache lookup
+    // The cache lookup expands dates using getTimeMin/getTimeMax functions
     const testTimeSlot = {
-      timeMin: new Date(
-        tomorrow.getFullYear(),
-        tomorrow.getMonth(),
-        tomorrow.getDate(),
-        0,
-        0,
-        0
-      ).toISOString(),
-      timeMax: new Date(
-        tomorrow.getFullYear(),
-        tomorrow.getMonth(),
-        tomorrow.getDate(),
-        23,
-        59,
-        59
-      ).toISOString(),
+      timeMin: getTimeMin(tomorrow.toISOString()), // Expands to start of month
+      timeMax: getTimeMax(tomorrow.toISOString()), // Expands to start of overnext month
     };
+
+    console.log(`🔧 Using expanded cache dates: ${testTimeSlot.timeMin} to ${testTimeSlot.timeMax}`);
 
     // CRITICAL FIX: Both requests must see IDENTICAL stale cache data
     // This ensures both concurrent requests get the same cache hit and select the same host
