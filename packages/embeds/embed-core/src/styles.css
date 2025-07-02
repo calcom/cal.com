@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 @font-face {
   font-family: "Cal Sans";
   src: url("https://cal.com/cal.ttf");

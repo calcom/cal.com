@@ -1,0 +1,228 @@
+@theme {
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  --default-font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --default-font-feature-settings: normal;
+  --default-font-variation-settings: normal;
+  --default-mono-font-family: "Roboto Mono", monospace;
+  --default-mono-font-feature-settings: normal;
+  --default-mono-font-variation-settings: normal;
+
+  /* Cal.com Spacing Variables */
+  --spacing-0: var(--cal-spacing-0);
+  --spacing-px: var(--cal-spacing-px);
+  --spacing-0_5: var(--cal-spacing-0_5);
+  --spacing-1: var(--cal-spacing-1);
+  --spacing-1_5: var(--cal-spacing-1_5);
+  --spacing-2: var(--cal-spacing-2);
+  --spacing-2_5: var(--cal-spacing-2_5);
+  --spacing-3: var(--cal-spacing-3);
+  --spacing-3_5: var(--cal-spacing-3_5);
+  --spacing-4: var(--cal-spacing-4);
+  --spacing-5: var(--cal-spacing-5);
+  --spacing-6: var(--cal-spacing-6);
+  --spacing-7: var(--cal-spacing-7);
+  --spacing-8: var(--cal-spacing-8);
+  --spacing-9: var(--cal-spacing-9);
+  --spacing-10: var(--cal-spacing-10);
+  --spacing-11: var(--cal-spacing-11);
+  --spacing-12: var(--cal-spacing-12);
+  --spacing-14: var(--cal-spacing-14);
+  --spacing-16: var(--cal-spacing-16);
+  --spacing-20: var(--cal-spacing-20);
+  --spacing-24: var(--cal-spacing-24);
+  --spacing-28: var(--cal-spacing-28);
+  --spacing-32: var(--cal-spacing-32);
+  --spacing-36: var(--cal-spacing-36);
+  --spacing-40: var(--cal-spacing-40);
+  --spacing-44: var(--cal-spacing-44);
+  --spacing-48: var(--cal-spacing-48);
+  --spacing-52: var(--cal-spacing-52);
+  --spacing-56: var(--cal-spacing-56);
+  --spacing-60: var(--cal-spacing-60);
+  --spacing-64: var(--cal-spacing-64);
+  --spacing-72: var(--cal-spacing-72);
+  --spacing-80: var(--cal-spacing-80);
+  --spacing-96: var(--cal-spacing-96);
+
+  /* Cal.com Border Radius Variables */
+  --radius-none: var(--cal-radius-none);
+  --radius-sm: var(--cal-radius-sm);
+  --radius: var(--cal-radius);
+  --radius-md: var(--cal-radius-md);
+  --radius-lg: var(--cal-radius-lg);
+  --radius-xl: var(--cal-radius-xl);
+  --radius-2xl: var(--cal-radius-2xl);
+  --radius-3xl: var(--cal-radius-3xl);
+  --radius-full: var(--cal-radius-full);
+
+  /* Standard Background Colors */
+  --color-emphasis: var(--cal-bg-emphasis);
+  --color-default: var(--cal-bg, white);
+  --color-subtle: var(--cal-bg-subtle);
+  --color-muted: var(--cal-bg-muted);
+  --color-inverted: var(--cal-bg-inverted);
+
+  /* Primary Background Colors */
+  --color-primary-default: var(--cal-bg-primary);
+  --color-primary-emphasis: var(--cal-bg-primary-emphasis);
+  --color-primary-muted: var(--cal-bg-primary-muted);
+
+  /* Brand Colors */
+  --color-brand-default: var(--cal-brand, #111827);
+  --color-brand-emphasis: var(--cal-brand-emphasis, #101010);
+  --color-brand-subtle: var(--cal-brand-subtle, #9CA3AF);
+  --color-brand-accent: var(--cal-brand-accent, white);
+
+  /* Semantic Background Colors */
+  --color-semantic-info-subtle: var(--cal-bg-semantic-info-subtle);
+  --color-semantic-info-emphasis: var(--cal-bg-semantic-info-emphasis);
+  --color-semantic-success-subtle: var(--cal-bg-semantic-success-subtle);
+  --color-semantic-success-emphasis: var(--cal-bg-semantic-success-emphasis);
+  --color-semantic-attention-subtle: var(--cal-bg-semantic-attention-subtle);
+  --color-semantic-attention-emphasis: var(--cal-bg-semantic-attention-emphasis);
+  --color-semantic-error-subtle: var(--cal-bg-semantic-error-subtle);
+  --color-semantic-error-emphasis: var(--cal-bg-semantic-error-emphasis);
+
+  /* Visualization Background Colors */
+  --color-visualization-1-subtle: var(--cal-bg-visualization-1-subtle);
+  --color-visualization-1-emphasis: var(--cal-bg-visualization-1-emphasis);
+  --color-visualization-2-subtle: var(--cal-bg-visualization-2-subtle);
+  --color-visualization-2-emphasis: var(--cal-bg-visualization-2-emphasis);
+  --color-visualization-3-subtle: var(--cal-bg-visualization-3-subtle);
+  --color-visualization-3-emphasis: var(--cal-bg-visualization-3-emphasis);
+  --color-visualization-4-subtle: var(--cal-bg-visualization-4-subtle);
+  --color-visualization-4-emphasis: var(--cal-bg-visualization-4-emphasis);
+  --color-visualization-5-subtle: var(--cal-bg-visualization-5-subtle);
+  --color-visualization-5-emphasis: var(--cal-bg-visualization-5-emphasis);
+  --color-visualization-6-subtle: var(--cal-bg-visualization-6-subtle);
+  --color-visualization-6-emphasis: var(--cal-bg-visualization-6-emphasis);
+  --color-visualization-7-subtle: var(--cal-bg-visualization-7-subtle);
+  --color-visualization-7-emphasis: var(--cal-bg-visualization-7-emphasis);
+
+  /* Legacy Colors */
+  --color-info: var(--cal-bg-info);
+  --color-success: var(--cal-bg-success);
+  --color-attention: var(--cal-bg-attention);
+  --color-error: var(--cal-bg-error);
+  --color-darkerror: var(--cal-bg-dark-error);
+
+  /* Base Colors */
+  --color-black: #111111;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  /* Border Colors */
+  --color-border-emphasis: var(--cal-border-emphasis);
+  --color-border-default: var(--cal-border);
+  --color-border-subtle: var(--cal-border-subtle);
+  --color-border-muted: var(--cal-border-muted);
+  --color-border-semantic-error: var(--cal-border-semantic-error);
+  --color-border-semantic-attention-subtle: var(--cal-border-semantic-attention-subtle);
+  --color-border-semantic-error-subtle: var(--cal-border-semantic-error-subtle);
+  --color-border-booker: var(--cal-border-booker, #E5E7EB);
+  --color-border-error: var(--cal-border-error);
+  --color-border-cal-bg: var(--cal-bg);
+  --color-border-cal-bg-muted: var(--cal-bg-muted);
+
+  /* Text Colors */
+  --color-text-emphasis: var(--cal-text-emphasis);
+  --color-text-default: var(--cal-text);
+  --color-text-subtle: var(--cal-text-subtle);
+  --color-text-muted: var(--cal-text-muted);
+  --color-text-inverted: var(--cal-text-inverted);
+  --color-text-semantic-info: var(--cal-text-semantic-info);
+  --color-text-semantic-success: var(--cal-text-semantic-success);
+  --color-text-semantic-attention: var(--cal-text-semantic-attention);
+  --color-text-semantic-error: var(--cal-text-semantic-error);
+  --color-text-semantic-info-emphasis: var(--cal-text-semantic-info-emphasis);
+  --color-text-semantic-success-emphasis: var(--cal-text-semantic-success-emphasis);
+  --color-text-semantic-attention-emphasis: var(--cal-text-semantic-attention-emphasis);
+  --color-text-semantic-error-emphasis: var(--cal-text-semantic-error-emphasis);
+  --color-text-info: var(--cal-text-info);
+  --color-text-success: var(--cal-text-success);
+  --color-text-attention: var(--cal-text-attention);
+  --color-text-error: var(--cal-text-error);
+  --color-text-brand: var(--cal-brand-text);
+
+  /* Fill Colors */
+  --color-fill-emphasis: var(--cal-text-emphasis, #111827);
+  --color-fill-default: var(--cal-text, #374151);
+  --color-fill-subtle: var(--cal-text-subtle, #6B7280);
+  --color-fill-muted: var(--cal-text-muted, #9CA3AF);
+  --color-fill-inverted: var(--cal-text-inverted, white);
+  --color-fill-info: var(--cal-text-info, #253985);
+  --color-fill-success: var(--cal-text-success, #285231);
+  --color-fill-attention: var(--cal-text-attention, #73321B);
+  --color-fill-error: var(--cal-text-error, #752522);
+  --color-fill-brand: var(--cal-brand-text);
+
+  /* Font Families */
+  --font-family-cal: var(--font-cal), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-family-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-family-mono: "Roboto Mono", monospace;
+
+  /* Background Images */
+  --bg-gradient-primary: radial-gradient(162.05% 170% at 109.58% 35%, #667593 0%, #E3E3E3 100%);
+
+  /* Box Shadows */
+  --shadow-dropdown: 0px 5px 20px 0px rgba(0, 0, 0, 0.10), 0px 10px 40px 0px rgba(0, 0, 0, 0.03);
+  --shadow-switch-thumb: 0px 0.8px 0.8px 0px rgba(0, 0, 0, 0.10), 0px 0.8px 3.2px 0px rgba(0, 0, 0, 0.08);
+  --shadow-solid-gray-rested: 0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.16) inset, 0px -1.5px 2px 0px rgba(0, 0, 0, 0.40) inset;
+  --shadow-solid-gray-hover: 0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.16) inset, 0px -2px 2px 0px rgba(0, 0, 0, 0.40) inset;
+  --shadow-solid-gray-active: 0px 2px 3px 0px rgba(0, 0, 0, 0.40) inset, 0px 0px 2px 1px rgba(0, 0, 0, 0.40) inset;
+  --shadow-outline-gray-rested: 0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-outline-gray-hover: 0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-outline-gray-active: 0px 2px 1px 0px rgba(0, 0, 0, 0.05) inset;
+  --shadow-outline-gray-focused: 0px 0px 0px 1px rgba(255, 255, 255, 0.20), 0px 0px 0px 2px rgba(0, 0, 0, 0.10);
+  --shadow-outline-red-rested: 0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-outline-red-hover: 0px 1px 1px 0px rgba(0, 0, 0, 0.06), 0px 2px 3px 0px rgba(0, 0, 0, 0.08);
+  --shadow-outline-red-active: 0px 1px 1px 0px rgba(127, 29, 29, 0.06), 0px 0px 3px 0px rgba(127, 29, 29, 0.08), 0px 2px 2px 1px rgba(127, 29, 29, 0.06) inset;
+  --shadow-elevation-low: 0px 1px 1px 0px rgba(0, 0, 0, 0.07), 0px 1px 2px 0px rgba(0, 0, 0, 0.08), 0px 2px 2px 0px rgba(0, 0, 0, 0.10), 0px 0px 8px 0px rgba(0, 0, 0, 0.05);
+  --shadow-button-solid-brand-default: 0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.12) inset, 0px -3px 2px 0px rgba(0, 0, 0, 0.04) inset;
+  --shadow-button-solid-brand-hover: 0px 1px 1px 0px rgba(0, 0, 0, 0.10), 0px 2px 3px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px -3px 2px 0px rgba(0, 0, 0, 0.10) inset, 0px 2px 0.4px 0px rgba(255, 255, 255, 0.24) inset;
+  --shadow-button-solid-brand-active: 0px 3px 1px 0px rgba(0, 0, 0, 0.10) inset, 0px 0px 2px 0px rgba(0, 0, 0, 0.10) inset;
+  --shadow-button-solid-brand-focused: 0px 0px 0px 1px rgba(255, 255, 255, 0.40), 0px 0px 0px 2px rgba(0, 0, 0, 0.20), 0px 1px 1px 0px rgba(0, 0, 0, 0.10), 0px 2px 3px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px -3px 2px 0px rgba(0, 0, 0, 0.10) inset, 0px 2px 0.4px 0px rgba(255, 255, 255, 0.24) inset;
+  --shadow-button-outline-red-focused: 0px 0px 0px 1px rgba(255, 255, 255, 0.32), 0px 0px 0px 2px rgba(220, 38, 38, 0.15);
+
+  /* Border Widths */
+  --border-width-booker-width: var(--cal-border-booker-width, 1px);
+
+  /* Screens */
+  --breakpoint-pwa: (display-mode: standalone);
+
+  /* Animations */
+  --animate-fade-in-up: fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21,1.02,.73,1) forwards;
+  --animate-fade-in-bottom: fade-in-bottom cubic-bezier(.21,1.02,.73,1) forwards;
+  --animate-spinning: spinning 0.75s linear infinite;
+  --animate-drawerSlideLeftAndFade: drawerSlideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-drawerSlideRightAndFade: drawerSlideRightAndFade 150ms ease-in;
+
+  /* Keyframes */
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes spinning {
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes drawerSlideLeftAndFade {
+    from { opacity: 0; transform: translateX(100%); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes drawerSlideRightAndFade {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(100%); }
+  }
+}
