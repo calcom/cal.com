@@ -81,6 +81,12 @@ export default class ExchangeCalendarService implements Calendar {
         });
       }
 
+      if (event.optionalGuestTeamMembers) {
+        event.optionalGuestTeamMembers.forEach((member: { email: string }) => {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
+        });
+      }
+
       await appointment.Save(SendInvitationsMode.SendToAllAndSaveCopy);
 
       return {
@@ -116,6 +122,12 @@ export default class ExchangeCalendarService implements Calendar {
       if (event.team?.members) {
         event.team.members.forEach((member) => {
           appointment.RequiredAttendees.Add(new Attendee(member.email));
+        });
+      }
+      appointment.OptionalAttendees.Clear();
+      if (event.optionalGuestTeamMembers) {
+        event.optionalGuestTeamMembers.forEach((member: { email: string }) => {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
         });
       }
       appointment.Update(

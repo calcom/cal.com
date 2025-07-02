@@ -91,6 +91,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     seatsPerTimeSlot,
     restrictionScheduleId,
     calVideoSettings,
+    optionalGuestTeamMembers = [],
     ...rest
   } = input;
 
@@ -389,13 +390,26 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
-  if (teamId && hosts) {
+  if (teamId) {
     // check if all hosts can be assigned (memberships that have accepted invite)
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
+    if (optionalGuestTeamMembers && optionalGuestTeamMembers.length > 0) {
+      if (optionalGuestTeamMembers.every((each) => teamMemberIds.includes(each.id))) {
+        data.optionalGuestTeamMembers = {
+          set: [],
+          connect: optionalGuestTeamMembers.map(({ id }) => ({ id })),
+        };
+      } else {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only assign team members as optional guests.",
+        });
+      }
+    }
     // guard against missing IDs, this may mean a member has just been removed
     // or this request was forged.
     // we let this pass through on organization sub-teams
-    if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+    if (hosts && !hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
       throw new TRPCError({
         code: "FORBIDDEN",
       });
@@ -405,43 +419,46 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const isWeightsEnabled =
       isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
 
-    const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
-    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
+    // Only process hosts if they are provided
+    if (hosts && Array.isArray(hosts)) {
+      const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
+      const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
 
-    const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
-    const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
-    const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
+      const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
+      const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
+      const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
 
-    data.hosts = {
-      deleteMany: {
-        OR: removedHosts.map((host) => ({
-          userId: host.userId,
-          eventTypeId: id,
-        })),
-      },
-      create: newHosts.map((host) => {
-        return {
-          ...host,
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-        };
-      }),
-      update: existingHosts.map((host) => ({
-        where: {
-          userId_eventTypeId: {
+      data.hosts = {
+        deleteMany: {
+          OR: removedHosts.map((host) => ({
             userId: host.userId,
             eventTypeId: id,
+          })),
+        },
+        create: newHosts.map((host) => {
+          return {
+            ...host,
+            isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+            priority: host.priority ?? 2,
+            weight: host.weight ?? 100,
+          };
+        }),
+        update: existingHosts.map((host) => ({
+          where: {
+            userId_eventTypeId: {
+              userId: host.userId,
+              eventTypeId: id,
+            },
           },
-        },
-        data: {
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-          scheduleId: host.scheduleId ?? null,
-        },
-      })),
-    };
+          data: {
+            isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+            priority: host.priority ?? 2,
+            weight: host.weight ?? 100,
+            scheduleId: host.scheduleId ?? null,
+          },
+        })),
+      };
+    }
   }
 
   if (input.metadata?.disableStandardEmails?.all) {

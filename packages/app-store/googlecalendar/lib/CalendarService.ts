@@ -121,6 +121,24 @@ export default class GoogleCalendarService implements Calendar {
       attendees.push(...teamAttendeesWithoutCurrentUser);
     }
 
+    if (event.optionalGuestTeamMembers) {
+      const optionalGuestMembers = event.optionalGuestTeamMembers
+        ?.map(({ email, name }) => ({
+          email,
+          displayName: name,
+          optional: true,
+          responseStatus: "needsAction",
+        }))
+        .filter(
+          (guest) =>
+            guest.email &&
+            !attendees.some(
+              (attendee) => attendee.email && attendee.email.toLowerCase() === guest.email.toLowerCase()
+            )
+        );
+      attendees.push(...optionalGuestMembers);
+    }
+
     return attendees;
   };
 
