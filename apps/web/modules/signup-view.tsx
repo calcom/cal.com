@@ -3,7 +3,6 @@
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -23,7 +22,6 @@ import {
   URL_PROTOCOL_REGEX,
   IS_CALCOM,
   WEBAPP_URL,
-  CLOUDFLARE_SITE_ID,
   WEBSITE_PRIVACY_POLICY_URL,
   WEBSITE_TERMS_URL,
   WEBSITE_URL,
@@ -50,10 +48,7 @@ import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesn't get passed to the API
-  cfToken: z.string().optional(),
 });
-
-const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
 type FormValues = z.infer<typeof signupSchema>;
 
@@ -230,8 +225,7 @@ export default function Signup({
 
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
-  const signUp: SubmitHandler<FormValues> = async (_data) => {
-    const { cfToken, ...data } = _data;
+  const signUp: SubmitHandler<FormValues> = async (data) => {
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
@@ -240,7 +234,6 @@ export default function Signup({
       }),
       headers: {
         "Content-Type": "application/json",
-        "cf-access-token": cfToken ?? "invalid-token",
       },
       method: "POST",
     })
@@ -428,15 +421,6 @@ export default function Signup({
                       hintErrors={["caplow", "min", "num"]}
                     />
                   )}
-                  {/* Cloudflare Turnstile Captcha */}
-                  {CLOUDFLARE_SITE_ID ? (
-                    <TurnstileCaptcha
-                      appearance="interaction-only"
-                      onVerify={(token) => {
-                        formMethods.setValue("cfToken", token);
-                      }}
-                    />
-                  ) : null}
 
                   <CheckboxField
                     data-testid="signup-cookie-content-checkbox"
@@ -499,9 +483,6 @@ export default function Signup({
                         !!formMethods.formState.errors.email ||
                         !formMethods.getValues("email") ||
                         !formMethods.getValues("password") ||
-                        (CLOUDFLARE_SITE_ID &&
-                          !process.env.NEXT_PUBLIC_IS_E2E &&
-                          !formMethods.getValues("cfToken")) ||
                         isSubmitting ||
                         usernameTaken
                       }>

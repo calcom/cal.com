@@ -21343,6 +21343,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"botid@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "botid@npm:1.4.1"
+  peerDependencies:
+    next: "*"
+    react: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    next:
+      optional: true
+  checksum: c3bac0f6bb17856061d2b0c7a2c070d78335c8d016326df92112ba4d7475532cef56422e0fbbe20545c16ce9a22ad48db4f546f1228547227f4b2d2989a42c44
+  languageName: node
+  linkType: hard
+
 "bottleneck@npm:^2.19.5":
   version: 2.19.5
   resolution: "bottleneck@npm:2.19.5"
@@ -21844,6 +21857,7 @@ __metadata:
     "@testing-library/react": ^16.0.1
     "@vercel/functions": ^1.4.0
     "@vitest/ui": ^2.1.1
+    botid: ^1.4.1
     c8: ^7.13.0
     checkly: latest
     city-timezones: ^1.2.1

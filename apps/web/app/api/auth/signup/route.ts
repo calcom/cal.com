@@ -9,7 +9,7 @@ import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
+import { checkBotId } from "@calcom/lib/server/checkBotId";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
 async function ensureSignupIsEnabled(body: Record<string, string>) {
@@ -38,10 +38,7 @@ async function handler(req: NextRequest) {
   // Use a try catch instead of returning res every time
   try {
     const body = await parseRequestData(req);
-    await checkCfTurnstileToken({
-      token: req.headers.get("cf-access-token") as string,
-      remoteIp,
-    });
+    await checkBotId();
 
     await ensureSignupIsEnabled(body);
 
