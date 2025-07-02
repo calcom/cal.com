@@ -1,15 +1,23 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+
+// Define proper type for attendees instead of using any[]
+interface BookingAttendee {
+  id: number;
+  email: string;
+  name?: string;
+  noShow: boolean;
+}
 
 interface BookingFormState {
   rejectionReason: string;
   selectedEmail: string;
-  noShowAttendees: any[];
+  noShowAttendees: BookingAttendee[];
 }
 
 interface BookingFormActions {
   setRejectionReason: (reason: string) => void;
   setSelectedEmail: (email: string) => void;
-  setNoShowAttendees: (attendees: any[]) => void;
+  setNoShowAttendees: (attendees: BookingAttendee[]) => void;
   resetFormState: () => void;
 }
 
@@ -30,7 +38,7 @@ export function useBookingFormState(): [BookingFormState, BookingFormActions] {
     setFormState((prev) => ({ ...prev, selectedEmail: email }));
   }, []);
 
-  const setNoShowAttendees = useCallback((attendees: any[]) => {
+  const setNoShowAttendees = useCallback((attendees: BookingAttendee[]) => {
     setFormState((prev) => ({ ...prev, noShowAttendees: attendees }));
   }, []);
 
@@ -38,13 +46,16 @@ export function useBookingFormState(): [BookingFormState, BookingFormActions] {
     setFormState(initialState);
   }, []);
 
-  return [
-    formState,
-    {
+  // Wrap actions object in useMemo to ensure stable reference and prevent unnecessary re-renders
+  const actions = useMemo(
+    () => ({
       setRejectionReason,
       setSelectedEmail,
       setNoShowAttendees,
       resetFormState,
-    },
-  ];
+    }),
+    [setRejectionReason, setSelectedEmail, setNoShowAttendees, resetFormState]
+  );
+
+  return [formState, actions];
 }
