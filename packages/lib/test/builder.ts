@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -88,6 +88,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     title: faker.lorem.sentence(),
     slug: faker.lorem.slug(),
     description: faker.lorem.paragraph(),
+    interfaceLanguage: null,
     position: 1,
     isInstantEvent: false,
     instantMeetingParameters: [],
@@ -123,11 +124,17 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     onlyShowFirstAvailableSlot: false,
     seatsPerTimeSlot: null,
     seatsShowAttendees: null,
+    disableCancelling: false,
+    disableRescheduling: false,
+    allowReschedulingCancelledBookings: false,
     seatsShowAvailabilityCount: null,
     maxLeadThreshold: null,
+    includeNoShowInRRCalculation: false,
     schedulingType: null,
     scheduleId: null,
     bookingLimits: null,
+    maxActiveBookingsPerBooker: null,
+    maxActiveBookingPerBookerOfferReschedule: false,
     durationLimits: null,
     assignAllTeamMembers: false,
     rescheduleWithSameRoundRobinHost: false,
@@ -148,6 +155,10 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     autoTranslateDescriptionEnabled: false,
     useEventLevelSelectedCalendars: false,
     allowReschedulingPastBookings: false,
+    hideOrganizerEmail: false,
+    customReplyToEmail: null,
+    restrictionScheduleId: null,
+    useBookerTimezone: false,
     ...eventType,
   };
 };

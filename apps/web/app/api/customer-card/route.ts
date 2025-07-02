@@ -1,4 +1,4 @@
-import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -443,7 +444,7 @@ const inputSchema = z.object({
     name: z.string().optional(),
     email: z.string().email(),
     username: z.string().optional(),
-    timeZone: z.string().optional(),
+    timeZone: timeZoneSchema.optional(),
     emailVerified: z.boolean().optional(),
     identityProvider: z.string().optional(),
     twoFactorEnabled: z.boolean().optional(),
@@ -457,7 +458,7 @@ const inputSchema = z.object({
 });
 
 async function handler(request: NextRequest) {
-  const headersList = headers();
+  const headersList = await headers();
   const requestBody = await request.json();
 
   // HMAC verification
@@ -540,4 +541,4 @@ async function handler(request: NextRequest) {
   });
 }
 
-export const POST = apiRouteMiddleware(handler);
+export const POST = defaultResponderForAppDir(handler);

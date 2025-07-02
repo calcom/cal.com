@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { RetryableError } from "@calcom/core/crmManager/errors";
+import { RetryableError } from "@calcom/lib/crmManager/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -171,7 +171,7 @@ export async function createCRMEvent(payload: string): Promise<void> {
           continue;
         }
 
-        const CrmManager = (await import("@calcom/core/crmManager/crmManager")).default;
+        const CrmManager = (await import("@calcom/lib/crmManager/crmManager")).default;
 
         const crm = new CrmManager(crmCredential, app);
 

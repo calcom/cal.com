@@ -1,8 +1,9 @@
-import { classNames } from "@calcom/lib";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
+import { Button } from "@calcom/ui/components/button";
+import classNames from "@calcom/ui/classNames";
 
 import useAddAppMutation from "../_utils/useAddAppMutation";
 import { InstallAppButton } from "../components";
@@ -29,9 +30,8 @@ export default function OmniInstallAppButton({
   const mutation = useAddAppMutation(null, {
     returnTo,
     onSuccess: (data) => {
-      //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
-      utils.viewer.appById.invalidate({ appId });
-      utils.viewer.integrations.invalidate({
+      utils.viewer.apps.appById.invalidate({ appId });
+      utils.viewer.apps.integrations.invalidate({
         extendsFeature: "EventType",
         ...(teamId && { teamId }),
       });

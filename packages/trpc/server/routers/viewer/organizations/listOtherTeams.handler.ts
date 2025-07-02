@@ -1,6 +1,6 @@
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 
 type ListOptions = {
   ctx: {

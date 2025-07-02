@@ -1,4 +1,7 @@
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+import { transformTeamLocationsApiToInternal } from "@/ee/event-types/event-types_2024_06_14/transformers/api-to-internal/locations";
+import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
+import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -11,20 +14,31 @@ import {
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/client";
 
+export type TransformedCreateTeamEventTypeInput = Awaited<
+  ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputCreateTeamEventType"]>
+>;
+
+export type TransformedUpdateTeamEventTypeInput = Awaited<
+  ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputUpdateTeamEventType"]>
+>;
 @Injectable()
 export class InputOrganizationsEventTypesService {
   constructor(
     private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
     private readonly teamsRepository: TeamsRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
+    private readonly conferencingService: OrganizationsConferencingService,
+    private readonly conferencingRepository: ConferencingRepository
   ) {}
   async transformAndValidateCreateTeamEventTypeInput(
     userId: number,
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
+    await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
+    await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
 
     const transformedBody = await this.transformInputCreateTeamEventType(teamId, inputEventType);
 
@@ -53,7 +67,11 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
+    await this.validateInputLocations(teamId, inputEventType.locations);
     await this.validateHosts(teamId, inputEventType.hosts);
+    if (inputEventType.slug) {
+      await this.validateTeamEventTypeSlug(teamId, inputEventType.slug);
+    }
 
     const transformedBody = await this.transformInputUpdateTeamEventType(eventTypeId, teamId, inputEventType);
 
@@ -77,13 +95,32 @@ export class InputOrganizationsEventTypesService {
     return transformedBody;
   }
 
+  async validateTeamEventTypeSlug(teamId: number, slug: string) {
+    const teamEventWithSlugExists = await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(
+      teamId,
+      slug
+    );
+
+    if (teamEventWithSlugExists) {
+      throw new BadRequestException("Team event type with this slug already exists");
+    }
+  }
+
   async transformInputCreateTeamEventType(
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
+    const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
+
+    const defaultLocations: CreateTeamEventTypeInput_2024_06_14["locations"] = [
+      {
+        type: "integration",
+        integration: "cal-video",
+      },
+    ];
+
     const children = await this.getChildEventTypesForManagedEventType(null, inputEventType, teamId);
 
     const metadata =
@@ -100,6 +137,7 @@ export class InputOrganizationsEventTypesService {
           : this.transformInputHosts(hosts, inputEventType.schedulingType)
         : undefined,
       assignAllTeamMembers,
+      locations: this.transformInputTeamLocations(locations || defaultLocations),
       metadata,
       children,
     };
@@ -112,7 +150,7 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
+    const { hosts, assignAllTeamMembers, locations, ...rest } = inputEventType;
 
     const eventType = await this.inputEventTypesService.transformInputUpdateEventType(rest, eventTypeId);
     const dbEventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
@@ -132,6 +170,7 @@ export class InputOrganizationsEventTypesService {
         : undefined,
       assignAllTeamMembers,
       children,
+      locations: locations ? this.transformInputTeamLocations(locations) : undefined,
     };
 
     return teamEventType;
@@ -167,7 +206,7 @@ export class InputOrganizationsEventTypesService {
     eventType: { children: { userId: number | null }[] } | null
   ) {
     if (inputEventType.assignAllTeamMembers) {
-      return await this.teamsRepository.getTeamMembersIds(teamId);
+      return await this.getTeamUsersIds(teamId);
     }
 
     // note(Lauris): when API user updates managed event type users
@@ -177,6 +216,21 @@ export class InputOrganizationsEventTypesService {
 
     // note(Lauris): when API user DOES NOT update managed event type users, but we still need existing managed event type users to know which event-types to update
     return eventType?.children.map((child) => child.userId).filter((id) => !!id) as number[];
+  }
+
+  async getTeamUsersIds(teamId: number) {
+    const team = await this.teamsRepository.getById(teamId);
+    const isPlatformTeam = !!team?.createdByOAuthClientId;
+    if (isPlatformTeam) {
+      // note(Lauris): platform team creators have role "OWNER" but we don't want to assign them to team members marked as "assignAllTeamMembers: true"
+      // because they are not a managed user.
+      return await this.teamsRepository.getTeamManagedUsersIds(teamId);
+    }
+    return await this.teamsRepository.getTeamUsersIds(teamId);
+  }
+
+  transformInputTeamLocations(inputLocations: CreateTeamEventTypeInput_2024_06_14["locations"]) {
+    return transformTeamLocationsApiToInternal(inputLocations);
   }
 
   async getOwnersForManagedEventType(userIds: number[]) {
@@ -195,7 +249,7 @@ export class InputOrganizationsEventTypesService {
   }
 
   async getAllTeamMembers(teamId: number, schedulingType: SchedulingType | null) {
-    const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
+    const membersIds = await this.getTeamUsersIds(teamId);
     const isFixed = schedulingType === "COLLECTIVE" ? true : false;
 
     return membersIds.map((id) => ({
@@ -227,12 +281,48 @@ export class InputOrganizationsEventTypesService {
 
   async validateHosts(teamId: number, hosts: CreateTeamEventTypeInput_2024_06_14["hosts"] | undefined) {
     if (hosts && hosts.length) {
-      const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
+      const membersIds = await this.getTeamUsersIds(teamId);
       const invalidHosts = hosts.filter((host) => !membersIds.includes(host.userId));
       if (invalidHosts.length) {
-        throw new NotFoundException(`Invalid hosts: ${invalidHosts.join(", ")}`);
+        throw new NotFoundException(
+          `Invalid hosts: ${invalidHosts
+            .map((host) => host.userId)
+            .join(", ")} are not members of team with id ${teamId}.`
+        );
       }
     }
+  }
+
+  async validateInputLocations(
+    teamId: number,
+    inputLocations?: CreateTeamEventTypeInput_2024_06_14["locations"]
+  ) {
+    await Promise.all(
+      inputLocations?.map(async (location) => {
+        if (location.type === "integration") {
+          // cal-video is global, so we can skip this check
+          if (location.integration !== "cal-video") {
+            await this.conferencingService.checkAppIsValidAndConnected(teamId, location.integration);
+          }
+        }
+      }) ?? []
+    );
+  }
+
+  async checkAppIsValidAndConnected(teamId: number, app: string) {
+    const conferencingApps = ["google-meet", "office365-video", "zoom"];
+    if (!conferencingApps.includes(app)) {
+      throw new BadRequestException("Invalid app, available apps are: ", conferencingApps.join(", "));
+    }
+    if (app === "office365-video") {
+      app = "msteams";
+    }
+    const credential = await this.conferencingRepository.findTeamConferencingApp(teamId, app);
+
+    if (!credential) {
+      throw new BadRequestException(`${app} not connected.`);
+    }
+    return credential;
   }
 }
 

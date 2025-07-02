@@ -8,7 +8,7 @@ import {
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
@@ -110,7 +110,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
       {
         name: "bookings",
         href: "/insights",
-        isCurrent: ({ pathname: path }) => path == "/insights" ?? false,
+        isCurrent: ({ pathname: path }) => path === "/insights",
       },
       {
         name: "routing",
@@ -119,8 +119,8 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
       },
       {
         name: "router_position",
-        href: "/insights/virtual-queues",
-        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/virtual-queues") ?? false,
+        href: "/insights/router-position",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
       },
     ],
   },

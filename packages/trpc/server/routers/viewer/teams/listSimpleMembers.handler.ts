@@ -3,7 +3,8 @@
  * Used for filtering people on /bookings.
  */
 import type { PrismaClient } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import { MembershipRole } from "@calcom/prisma/enums";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type ListSimpleMembersOptions = {
   ctx: {
@@ -21,12 +22,20 @@ export const listSimpleMembers = async ({ ctx }: ListSimpleMembersOptions) => {
     return [];
   }
 
-  // query all teams the user is a member of
+  // query all teams the user is a member of and the team is not private
   const teamsToQuery = (
     await prisma.membership.findMany({
       where: {
         userId: ctx.user.id,
         accepted: true,
+        NOT: [
+          {
+            role: MembershipRole.MEMBER,
+            team: {
+              isPrivate: true,
+            },
+          },
+        ],
       },
       select: { teamId: true },
     })

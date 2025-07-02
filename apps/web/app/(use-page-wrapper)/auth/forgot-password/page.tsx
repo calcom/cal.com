@@ -13,12 +13,15 @@ import ForgotPassword from "~/auth/forgot-password/forgot-password-view";
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("forgot_password"),
-    (t) => t("request_password_reset")
+    (t) => t("request_password_reset"),
+    undefined,
+    undefined,
+    "/auth/forgot-password"
   );
 };
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const session = await getServerSession({ req: context.req });
 
   if (session) {

@@ -24,7 +24,7 @@ test.describe("OAuth Provider", () => {
   test.beforeAll(async () => {
     client = await createTestCLient();
   });
-  test("should create valid access toke & refresh token for user", async ({ page, users }) => {
+  test("should create valid access token & refresh token for user", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" });
     await user.apiLogin();
 
@@ -43,17 +43,17 @@ test.describe("OAuth Provider", () => {
     const code = url.searchParams.get("code");
 
     // request token with authorization code
+    const tokenForm = new URLSearchParams();
+    tokenForm.append("code", code ?? "");
+    tokenForm.append("client_id", client.clientId);
+    tokenForm.append("client_secret", client.orginalSecret);
+    tokenForm.append("grant_type", "authorization_code");
+    tokenForm.append("redirect_uri", client.redirectUri);
     const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
-      body: JSON.stringify({
-        code,
-        client_id: client.clientId,
-        client_secret: client.orginalSecret,
-        grant_type: "authorization_code",
-        redirect_uri: client.redirectUri,
-      }),
+      body: tokenForm.toString(),
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
     });
 
@@ -74,16 +74,16 @@ test.describe("OAuth Provider", () => {
     expect(meData.username.startsWith("test user")).toBe(true);
 
     // request new token with refresh token
+    const refreshTokenForm = new URLSearchParams();
+    refreshTokenForm.append("refresh_token", tokenData.refresh_token);
+    refreshTokenForm.append("client_id", client.clientId);
+    refreshTokenForm.append("client_secret", client.orginalSecret);
+    refreshTokenForm.append("grant_type", "refresh_token");
     const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
-      body: JSON.stringify({
-        refresh_token: tokenData.refresh_token,
-        client_id: client.clientId,
-        client_secret: client.orginalSecret,
-        grant_type: "refresh_token",
-      }),
+      body: refreshTokenForm.toString(),
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
     });
 
@@ -126,17 +126,17 @@ test.describe("OAuth Provider", () => {
     const code = url.searchParams.get("code");
 
     // request token with authorization code
+    const tokenForm = new URLSearchParams();
+    tokenForm.append("code", code ?? "");
+    tokenForm.append("client_id", client.clientId);
+    tokenForm.append("client_secret", client.orginalSecret);
+    tokenForm.append("grant_type", "authorization_code");
+    tokenForm.append("redirect_uri", client.redirectUri);
     const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
-      body: JSON.stringify({
-        code,
-        client_id: client.clientId,
-        client_secret: client.orginalSecret,
-        grant_type: "authorization_code",
-        redirect_uri: client.redirectUri,
-      }),
+      body: tokenForm.toString(),
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
     });
 
@@ -157,16 +157,16 @@ test.describe("OAuth Provider", () => {
     expect(meData.username).toEqual(`user-id-${user.id}'s Team`);
 
     // request new token with refresh token
+    const refreshTokenForm = new URLSearchParams();
+    refreshTokenForm.append("refresh_token", tokenData.refresh_token);
+    refreshTokenForm.append("client_id", client.clientId);
+    refreshTokenForm.append("client_secret", client.orginalSecret);
+    refreshTokenForm.append("grant_type", "refresh_token");
     const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
-      body: JSON.stringify({
-        refresh_token: tokenData.refresh_token,
-        client_id: client.clientId,
-        client_secret: client.orginalSecret,
-        grant_type: "refresh_token",
-      }),
+      body: refreshTokenForm.toString(),
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
     });
 

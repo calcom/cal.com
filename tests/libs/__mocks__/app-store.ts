@@ -11,7 +11,9 @@ beforeEach(() => {
 
 const appStoreMock = mockDeep<typeof appStore>({
   fallbackMockImplementation: () => {
-    throw new Error("Unimplemented");
+    throw new Error(
+      "Unimplemented appStoreMock. You seem to have not mocked the app that you are trying to use"
+    );
   },
 });
 export default appStoreMock;

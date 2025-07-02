@@ -3,23 +3,21 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import { DataTableSelectionBar } from "@calcom/features/data-table";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Button,
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  Icon,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/command";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableUser } from "../types";
 

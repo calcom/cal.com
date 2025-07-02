@@ -1,11 +1,13 @@
 import type { Prisma } from "@prisma/client";
 
-import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
-import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
+import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
+import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getBooking } from "@calcom/lib/payment/getBooking";
 import prisma from "@calcom/prisma";
@@ -27,16 +29,26 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
     status: BookingStatus.ACCEPTED,
   };
 
-  const allCredentials = await getAllCredentials(userWithCredentials, {
-    ...eventType,
-    metadata: eventType?.metadata as EventTypeMetadata,
+  const allCredentials = await getAllCredentialsIncludeServiceAccountKey(userWithCredentials, {
+    ...booking.eventType,
+    metadata: booking.eventType?.metadata as EventTypeMetadata,
   });
 
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
+
+  const platformOAuthClientRepository = new PlatformOAuthClientRepository();
+  const platformOAuthClient = userWithCredentials.isPlatformManaged
+    ? await platformOAuthClientRepository.getByUserId(userWithCredentials.id)
+    : null;
+  const areCalendarEventsEnabled = platformOAuthClient?.areCalendarEventsEnabled ?? true;
+  const areEmailsEnabled = platformOAuthClient?.areEmailsEnabled ?? true;
+
   if (isConfirmed) {
     const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
     const eventManager = new EventManager({ ...userWithCredentials, credentials: allCredentials }, apps);
-    const scheduleResult = await eventManager.create(evt);
+    const scheduleResult = areCalendarEventsEnabled
+      ? await eventManager.create(evt)
+      : placeholderCreatedEvent;
     bookingData.references = { create: scheduleResult.referencesToCreate };
   }
 
@@ -76,6 +88,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
         bookingId: booking.id,
         booking,
         paid: true,
+        platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
       });
     } else {
       await handleBookingRequested({
@@ -84,7 +97,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       });
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
-  } else {
+  } else if (areEmailsEnabled) {
     await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
   }
 

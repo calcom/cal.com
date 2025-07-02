@@ -1,14 +1,9 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-} from "@tanstack/react-table";
+import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import {
   DataTableWrapper,
@@ -16,6 +11,7 @@ import {
   DataTableSkeleton,
   useDataTable,
   DateRangeFilter,
+  DataTableSegment,
   ColumnFilterType,
   convertMapToFacetedValues,
   type FilterableColumn,
@@ -55,34 +51,25 @@ export function RoutingFormResponsesTable() {
 
   const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
 
-  const { sorting, updateFilter } = useDataTable();
+  const { sorting, limit, offset, ctaContainerRef, updateFilter } = useDataTable();
 
-  const { data, fetchNextPage, isFetching, isPending, hasNextPage, isLoading } =
-    trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
-      {
-        teamId,
-        startDate,
-        endDate,
-        userId,
-        memberUserIds,
-        isAll,
-        routingFormId,
-        columnFilters,
-        sorting,
-        limit: 30,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-        trpc: {
-          context: { skipBatch: true },
-        },
-      }
-    );
+  const { data, isPending } = trpc.viewer.insights.routingFormResponses.useQuery({
+    teamId,
+    startDate,
+    endDate,
+    userId,
+    memberUserIds,
+    isAll,
+    routingFormId,
+    columnFilters,
+    sorting,
+    limit,
+    offset,
+  });
 
   const processedData = useMemo(() => {
-    if (!isHeadersSuccess) return [];
-    return (data?.pages?.flatMap((page) => page.data) ?? []) as RoutingFormTableRow[];
+    if (!isHeadersSuccess || !data) return [];
+    return data.data as RoutingFormTableRow[];
   }, [data, isHeadersSuccess]);
 
   const columns = useInsightsColumns({ headers, isHeadersSuccess });
@@ -91,7 +78,6 @@ export function RoutingFormResponsesTable() {
     data: processedData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     defaultColumn: {
       size: 150,
@@ -100,6 +86,11 @@ export function RoutingFormResponsesTable() {
       columnVisibility: {
         formId: false,
         bookingUserId: false,
+        utm_source: false,
+        utm_medium: false,
+        utm_campaign: false,
+        utm_term: false,
+        utm_content: false,
       },
     },
     getFacetedUniqueValues: getInsightsFacetedUniqueValues,
@@ -118,37 +109,46 @@ export function RoutingFormResponsesTable() {
     }
   }, [table, getInsightsFacetedUniqueValues, routingFormId]);
 
-  if ((isHeadersLoading && !headers) || ((isFetching || isLoading) && !data)) {
+  if (isHeadersLoading && !headers) {
     return <DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />;
   }
 
   return (
     <>
       <div className="flex-1">
-        <DataTableWrapper
+        <DataTableWrapper<RoutingFormTableRow>
           table={table}
           isPending={isPending}
-          hasNextPage={hasNextPage}
-          fetchNextPage={fetchNextPage}
-          isFetching={isFetching}
+          rowClassName="min-h-14"
+          paginationMode="standard"
+          totalRowCount={data?.total}
+          LoaderView={<DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />}
           ToolbarLeft={
             <>
+              <DataTableFilters.ColumnVisibilityButton table={table} />
               <OrgTeamsFilter />
-              <DataTableFilters.AddFilterButton table={table} />
-              <DataTableFilters.ActiveFilters table={table} />
-              <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+              <DataTableFilters.FilterBar table={table} />
             </>
           }
           ToolbarRight={
             <>
-              <DateRangeFilter column={createdAtColumn} />
-              <RoutingFormResponsesDownload sorting={sorting} />
-              <DataTableFilters.ColumnVisibilityButton table={table} />
+              <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+              <DataTableSegment.SaveButton />
+              <DataTableSegment.Select />
             </>
           }>
           <RoutingKPICards />
         </DataTableWrapper>
       </div>
+
+      {ctaContainerRef.current &&
+        createPortal(
+          <>
+            <DateRangeFilter column={createdAtColumn} />
+            <RoutingFormResponsesDownload sorting={sorting} />
+          </>,
+          ctaContainerRef.current
+        )}
     </>
   );
 }

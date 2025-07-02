@@ -1,6 +1,7 @@
 import logger from "@calcom/lib/logger";
-import type { SelectedCalendar } from "@calcom/prisma/client";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { RRResetInterval, SelectedCalendar } from "@calcom/prisma/client";
+import { RRTimestampBasis } from "@calcom/prisma/enums";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { RoutingFormResponse } from "../server/getLuckyUser";
 import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
@@ -12,7 +13,7 @@ export const errorCodes = {
 type BaseUser = {
   id: number;
   email: string;
-  credentials: CredentialPayload[];
+  credentials: CredentialForCalendarService[];
   userLevelSelectedCalendars: SelectedCalendar[];
 } & Record<string, unknown>;
 
@@ -96,14 +97,21 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
     isRRWeightsEnabled: boolean;
     team: {
       parentId?: number | null;
+      rrResetInterval: RRResetInterval | null;
+      rrTimestampBasis: RRTimestampBasis;
     } | null;
+    includeNoShowInRRCalculation: boolean;
   };
   routingFormResponse: RoutingFormResponse | null;
 }) => {
   if (maxLeadThreshold === 0) {
     throw new Error(errorCodes.MAX_LEAD_THRESHOLD_FALSY);
   }
-  if (maxLeadThreshold === null || hosts.length < 1) {
+  if (
+    maxLeadThreshold === null ||
+    hosts.length < 1 ||
+    (eventType.team?.rrTimestampBasis && eventType.team.rrTimestampBasis !== RRTimestampBasis.CREATED_AT)
+  ) {
     return hosts; // don't apply filter.
   }
 

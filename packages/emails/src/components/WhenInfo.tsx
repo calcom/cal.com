@@ -1,4 +1,4 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";

@@ -1,10 +1,11 @@
-import { apiRouteMiddleware } from "app/api/apiRouteMiddleware";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -20,7 +21,12 @@ const responseSchema = z.object({
 });
 
 async function handler() {
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  // Early return if Plain Chat is not enabled
+  if (!IS_PLAIN_CHAT_ENABLED) {
+    return NextResponse.json({ error: "Plain Chat is not enabled" }, { status: 404 });
+  }
+
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized - No session email found" }, { status: 401 });
   }
@@ -79,4 +85,4 @@ async function handler() {
   return NextResponse.json(response);
 }
 
-export const POST = apiRouteMiddleware(handler);
+export const POST = defaultResponderForAppDir(handler);

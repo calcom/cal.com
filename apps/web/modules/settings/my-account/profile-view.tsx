@@ -10,6 +10,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
@@ -19,37 +20,35 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
+import { Alert } from "@calcom/ui/components/alert";
+import { UserAvatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
+import { Form } from "@calcom/ui/components/form";
+import { PasswordField } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import {
-  Alert,
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogTrigger,
-  Editor,
-  Form,
-  ImageUploader,
-  Label,
-  PasswordField,
-  showToast,
-  SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
-  TextField,
-  UserAvatar,
-} from "@calcom/ui";
+  SkeletonAvatar,
+} from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
 import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfirmModal";
 import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
+
+import type { TRPCClientErrorLike } from "@trpc/client";
 
 const SkeletonLoader = () => {
   return (
@@ -93,13 +92,13 @@ const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { update } = useSession();
-  const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
 
-  const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
+  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
-      utils.viewer.shouldVerifyEmail.invalidate();
+      utils.viewer.me.shouldVerifyEmail.invalidate();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
         showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
@@ -122,7 +121,7 @@ const ProfileView = () => {
       }
     },
   });
-  const unlinkConnectedAccountMutation = trpc.viewer.unlinkConnectedAccount.useMutation({
+  const unlinkConnectedAccountMutation = trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
     onSuccess: async (res) => {
       showToast(t(res.message), "success");
       utils.viewer.me.invalidate();
@@ -132,7 +131,7 @@ const ProfileView = () => {
     },
   });
 
-  const addSecondaryEmailMutation = trpc.viewer.addSecondaryEmail.useMutation({
+  const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
     onSuccess: (res) => {
       setShowSecondaryEmailModalOpen(false);
       setNewlyAddedSecondaryEmail(res?.data?.email);
@@ -185,14 +184,14 @@ const ProfileView = () => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
   };
-  const deleteMeMutation = trpc.viewer.deleteMe.useMutation({
+  const deleteMeMutation = trpc.viewer.me.deleteMe.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
       await utils.viewer.me.invalidate();
     },
   });
-  const deleteMeWithoutPasswordMutation = trpc.viewer.deleteMeWithoutPassword.useMutation({
+  const deleteMeWithoutPasswordMutation = trpc.viewer.me.deleteMeWithoutPassword.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
@@ -509,8 +508,8 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isPending: boolean;
   isFallbackImg: boolean;
-  user: RouterOutputs["viewer"]["me"];
-  userOrganization: RouterOutputs["viewer"]["me"]["organization"];
+  user: RouterOutputs["viewer"]["me"]["get"];
+  userOrganization: RouterOutputs["viewer"]["me"]["get"]["organization"];
   isCALIdentityProvider: boolean;
 }) => {
   const { t } = useLocale();
@@ -653,6 +652,10 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
+        <p className="text-subtle mt-1 flex gap-1 text-sm">
+          <Icon name="info" className="mt-0.5 flex-shrink-0" />
+          <span className="flex-1">{t("tip_username_plus")}</span>
+        </p>
         <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
@@ -705,7 +708,7 @@ const ProfileForm = ({
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
-            height="80px"
+            height="120px"
           />
         </div>
         {usersAttributes && usersAttributes?.length > 0 && (

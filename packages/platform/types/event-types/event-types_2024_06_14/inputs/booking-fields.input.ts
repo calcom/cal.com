@@ -22,7 +22,7 @@ const inputBookingFieldTypes = [
   "url",
 ] as const;
 
-const inputBookingFieldSlugs = ["name", "email", "title", "notes", "guests"] as const;
+const inputBookingFieldSlugs = ["title", "location", "notes", "guests", "rescheduleReason"] as const;
 
 export class NameDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
@@ -116,8 +116,21 @@ export class EmailDefaultFieldInput_2024_06_14 {
 
   @IsBoolean()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional({
+    description: `Can be set to false only for organization team event types and if you also pass booking field {type: "phone", slug: "attendeePhoneNumber", required: true, hidden: false, label: "whatever label"} of booking field type PhoneFieldInput_2024_06_14 - this is done
+      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.
+      If true show under event type settings but don't show this booking field in the Booker. If false show in both.`,
+  })
   required = true;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: `Can be set to true only for organization team event types and if you also pass booking field {type: "phone", slug: "attendeePhoneNumber", required: true, hidden: false, label: "whatever label"} of booking field type PhoneFieldInput_2024_06_14 - this is done
+      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.
+      If true show under event type settings but don't show this booking field in the Booker. If false show in both.`,
+  })
+  hidden?: boolean;
 
   @IsString()
   @IsOptional()
@@ -174,6 +187,21 @@ export class TitleDefaultFieldInput_2024_06_14 {
       the title field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+}
+
+export class LocationDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({
+    example: "location",
+    description:
+      "only allowed value for type is `location`. This booking field is displayed only when event type has 2 or more locations in order to allow person doing the booking pick the location.",
+  })
+  slug!: "location";
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  label?: string;
 }
 
 export class NotesDefaultFieldInput_2024_06_14 {
@@ -306,8 +334,8 @@ export class PhoneFieldInput_2024_06_14 {
 
   @IsString()
   @DocsProperty({
-    description:
-      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    description: `Unique identifier for the field in format \`some-slug\`. It is used to access response to this booking field during the booking. Special slug is \`attendeePhoneNumber\` - if you create
+      a phone input field with this slug for organization team event type you can create an organization team event type that can be booked using phone without requiring an email by setting {"type": "email", "required": false, "hidden": true} to the email booking field input in the request body.`,
     example: "some-slug",
   })
   slug!: string;
@@ -799,7 +827,7 @@ export class RadioGroupFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,\
-      the 'italian' radio buttom will be selected and the select field will be disabled.",
+      the 'italian' radio button will be selected and the select field will be disabled.",
   })
   disableOnPrefill?: boolean;
 
@@ -852,6 +880,7 @@ type InputDefaultField_2024_06_14 =
   | SplitNameDefaultFieldInput_2024_06_14
   | EmailDefaultFieldInput_2024_06_14
   | TitleDefaultFieldInput_2024_06_14
+  | LocationDefaultFieldInput_2024_06_14
   | NotesDefaultFieldInput_2024_06_14
   | GuestsDefaultFieldInput_2024_06_14
   | RescheduleReasonDefaultFieldInput_2024_06_14;
@@ -878,6 +907,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     splitName: SplitNameDefaultFieldInput_2024_06_14,
     email: EmailDefaultFieldInput_2024_06_14,
     title: TitleDefaultFieldInput_2024_06_14,
+    location: LocationDefaultFieldInput_2024_06_14,
     notes: NotesDefaultFieldInput_2024_06_14,
     guests: GuestsDefaultFieldInput_2024_06_14,
     rescheduleReason: RescheduleReasonDefaultFieldInput_2024_06_14,
@@ -908,18 +938,22 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     for (const field of bookingFields) {
       const { type, slug } = field;
       const fieldNeedsType =
-        slug !== "title" && slug !== "notes" && slug !== "guests" && slug !== "rescheduleReason";
+        slug !== "title" &&
+        slug !== "notes" &&
+        slug !== "guests" &&
+        slug !== "rescheduleReason" &&
+        slug !== "location";
 
       if (fieldNeedsType && !type) {
         throw new BadRequestException(
-          `All booking fields except ones with slug equal to title, notes, guests and rescheduleReason must have a 'type' property.`
+          `All booking fields except ones with slug equal to title, notes, guests, rescheduleReason and location must have a 'type' property.`
         );
       }
 
       const fieldNeedsSlug = type !== "name" && type !== "splitName" && type !== "email";
       if (fieldNeedsSlug && !slug) {
         throw new BadRequestException(
-          `Each booking field except ones with type equal to name and email must have a 'slug' property.`
+          `Each booking field except ones with type equal to name, splitName, email must have a 'slug' property.`
         );
       }
 
@@ -932,10 +966,12 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
         slugs.push(slug);
       }
 
-      const ClassType = type ? this.classMap[type] : this.classMap[slug];
+      const ClassType = fieldNeedsType ? this.classMap[type] : this.classMap[slug];
       if (!ClassType) {
         throw new BadRequestException(
-          type ? `Unsupported booking field type '${type}'.` : `Unsupported booking field slug '${slug}'.`
+          fieldNeedsType
+            ? `Unsupported booking field type '${type}'.`
+            : `Unsupported booking field slug '${slug}'.`
         );
       }
 
@@ -943,7 +979,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
       const errors = await validate(instance);
       if (errors.length > 0) {
         const message = errors.flatMap((error) => Object.values(error.constraints || {})).join(", ");
-        throw new BadRequestException(`Validation failed for ${type} booking field: ${message}`);
+        throw new BadRequestException(`Validation failed for ${type || slug} booking field: ${message}`);
       }
     }
 
@@ -966,52 +1002,4 @@ export function ValidateInputBookingFields_2024_06_14(validationOptions?: Valida
       validator: new InputBookingFieldValidator_2024_06_14(),
     });
   };
-}
-
-function isDefaultField(field: InputBookingField_2024_06_14): field is InputDefaultField_2024_06_14 {
-  if (
-    isDefaultNameField(field) ||
-    isDefaultEmailField(field) ||
-    isDefaultTitleField(field) ||
-    isDefaultNotesField(field) ||
-    isDefaultGuestsField(field) ||
-    isDefaultRescheduleReasonField(field)
-  ) {
-    return true;
-  }
-  return false;
-}
-
-function isDefaultNameField(field: InputBookingField_2024_06_14): field is NameDefaultFieldInput_2024_06_14 {
-  return ("type" in field && field.type === "name") || ("slug" in field && field.slug === "name");
-}
-
-function isDefaultEmailField(
-  field: InputBookingField_2024_06_14
-): field is EmailDefaultFieldInput_2024_06_14 {
-  return ("type" in field && field.type === "email") || ("slug" in field && field.slug === "email");
-}
-
-function isDefaultTitleField(
-  field: InputBookingField_2024_06_14
-): field is TitleDefaultFieldInput_2024_06_14 {
-  return "slug" in field && field.slug === "title";
-}
-
-function isDefaultNotesField(
-  field: InputBookingField_2024_06_14
-): field is NotesDefaultFieldInput_2024_06_14 {
-  return "slug" in field && field.slug === "notes";
-}
-
-function isDefaultGuestsField(
-  field: InputBookingField_2024_06_14
-): field is GuestsDefaultFieldInput_2024_06_14 {
-  return "slug" in field && field.slug === "guests";
-}
-
-function isDefaultRescheduleReasonField(
-  field: InputBookingField_2024_06_14
-): field is RescheduleReasonDefaultFieldInput_2024_06_14 {
-  return "slug" in field && field.slug === "rescheduleReason";
 }

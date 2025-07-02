@@ -1,5 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+import { type TextFilterOperator, textFilterOperators } from "../../lib/types";
 import type { TextFilterOperatorOption, NumberFilterOperatorOption } from "./types";
 
 export const numberFilterOperatorOptions: NumberFilterOperatorOption[] = [
@@ -11,9 +12,12 @@ export const numberFilterOperatorOptions: NumberFilterOperatorOption[] = [
   { value: "lte", label: "≤" },
 ];
 
-export const useTextFilterOperatorOptions = (): TextFilterOperatorOption[] => {
+export const useTextFilterOperatorOptions = (
+  allowedOperators?: TextFilterOperator[]
+): TextFilterOperatorOption[] => {
   const { t } = useLocale();
-  return [
+  const operators = allowedOperators ?? textFilterOperators;
+  const options = [
     { value: "equals", label: t("filter_operator_is"), requiresOperand: true },
     { value: "notEquals", label: t("filter_operator_is_not"), requiresOperand: true },
     { value: "contains", label: t("filter_operator_contains"), requiresOperand: true },
@@ -23,4 +27,7 @@ export const useTextFilterOperatorOptions = (): TextFilterOperatorOption[] => {
     { value: "isEmpty", label: t("filter_operator_is_empty"), requiresOperand: false },
     { value: "isNotEmpty", label: t("filter_operator_not_empty"), requiresOperand: false },
   ];
+  return options.filter((opt): opt is TextFilterOperatorOption =>
+    operators.includes(opt.value as TextFilterOperator)
+  );
 };

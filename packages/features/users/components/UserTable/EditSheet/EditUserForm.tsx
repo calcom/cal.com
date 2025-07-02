@@ -5,29 +5,27 @@ import { useMemo, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { Divider } from "@calcom/ui/components/divider";
 import {
-  Form,
-  TextField,
-  ToggleGroup,
   InputField,
   TextAreaField,
-  TimezoneSelect,
-  Label,
-  showToast,
-  Avatar,
-  ImageUploader,
   SelectField,
-  SheetHeader,
-  SheetBody,
-  SheetFooter,
-  Button,
-  SheetTitle,
-  Divider,
-} from "@calcom/ui";
+  Form,
+  Label,
+  TextField,
+  ToggleGroup,
+} from "@calcom/ui/components/form";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { SheetHeader, SheetBody, SheetFooter, SheetTitle } from "@calcom/ui/components/sheet";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";
@@ -61,7 +59,7 @@ const editSchema = z.object({
   avatar: z.string(),
   bio: z.string(),
   role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]),
-  timeZone: z.string(),
+  timeZone: timeZoneSchema,
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),
   attributes: z.array(attributeSchema).optional(),

@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 
 type ListOptions = {
   ctx: {
@@ -10,7 +10,7 @@ type ListOptions = {
 };
 
 export const listOwnedTeamsHandler = async ({ ctx }: ListOptions) => {
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
     },

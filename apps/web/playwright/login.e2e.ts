@@ -2,13 +2,13 @@ import { expect } from "@playwright/test";
 
 import { login } from "./fixtures/users";
 import { test } from "./lib/fixtures";
-import { localize } from "./lib/testUtils";
+import { localize } from "./lib/localize";
 
 test.describe.configure({ mode: "parallel" });
 
-// a test to logout requires both a succesfull login as logout, to prevent
+// a test to logout requires both a successful login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
-test.describe("user can login & logout succesfully", async () => {
+test.describe("user can login & logout successfully", async () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
