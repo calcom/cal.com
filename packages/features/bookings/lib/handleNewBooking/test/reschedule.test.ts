@@ -851,6 +851,18 @@ describe("handleNewBooking", () => {
               appsStatus: [getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug })],
             },
           });
+
+          // Verify that a new calendar event was created
+          expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
+            calendarId: expect.any(String),
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+            destinationCalendars: [
+              {
+                integration: appStoreMetadata.googlecalendar.slug,
+                externalId: "external-calendar-id",
+              },
+            ],
+          });
         },
         timeout
       );
