@@ -26,11 +26,16 @@ export class DeploymentsService {
 
     if (!licenseKey) {
       /** We try to check on DB only if env is undefined */
-      const deployment = await this.deploymentsRepository.getDeployment();
-      licenseKey = deployment?.licenseKey ?? undefined;
+      try {
+        const deployment = await this.deploymentsRepository.getDeployment();
+        licenseKey = deployment?.licenseKey ?? undefined;
+      } catch (error) {
+        console.warn("Failed to fetch deployment from database:", error);
+      }
     }
 
     if (!licenseKey) {
+      console.warn("No license key found in environment or database");
       return false;
     }
     const licenseKeyUrl = this.configService.get("api.licenseKeyUrl") + `/${licenseKey}`;
@@ -38,10 +43,15 @@ export class DeploymentsService {
     if (cachedData) {
       return (JSON.parse(cachedData) as LicenseCheckResponse)?.status;
     }
-    const response = await fetch(licenseKeyUrl, { mode: "cors" });
-    const data = (await response.json()) as LicenseCheckResponse;
-    const cacheKey = getLicenseCacheKey(licenseKey);
-    this.redisService.redis.set(cacheKey, JSON.stringify(data), "EX", CACHING_TIME);
-    return data.status;
+    try {
+      const response = await fetch(licenseKeyUrl, { mode: "cors" });
+      const data = (await response.json()) as LicenseCheckResponse;
+      const cacheKey = getLicenseCacheKey(licenseKey);
+      this.redisService.redis.set(cacheKey, JSON.stringify(data), "EX", CACHING_TIME);
+      return data.status;
+    } catch (error) {
+      console.error("License validation request failed:", error);
+      return false;
+    }
   }
 }

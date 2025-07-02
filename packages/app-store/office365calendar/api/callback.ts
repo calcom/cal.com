@@ -111,52 +111,71 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (defaultCalendar?.id && req.session?.user?.id) {
-    const credential = await prisma.credential.create({
-      data: {
-        type: "office365_calendar",
-        key: responseBody,
-        userId: req.session?.user.id,
-        appId: "office365-calendar",
-      },
-    });
-    const selectedCalendarWhereUnique = {
-      userId: req.session?.user.id,
-      integration: "office365_calendar",
-      externalId: defaultCalendar.id,
-    };
-    // Wrapping in a try/catch to reduce chance of race conditions-
-    // also this improves performance for most of the happy-paths.
     try {
-      await prisma.selectedCalendar.create({
+      const credential = await prisma.credential.create({
         data: {
-          ...selectedCalendarWhereUnique,
-          credentialId: credential.id,
+          type: "office365_calendar",
+          key: responseBody,
+          userId: req.session?.user.id,
+          appId: "office365-calendar",
         },
       });
-    } catch (error) {
-      let errorMessage = "something_went_wrong";
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        // it is possible a selectedCalendar was orphaned, in this situation-
-        // we want to recover by connecting the existing selectedCalendar to the new Credential.
-        if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
-          res.redirect(
-            getSafeRedirectUrl(state?.returnTo) ??
-              getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
-          );
-          return;
+      const selectedCalendarWhereUnique = {
+        userId: req.session?.user.id,
+        integration: "office365_calendar",
+        externalId: defaultCalendar.id,
+      };
+      // Wrapping in a try/catch to reduce chance of race conditions-
+      // also this improves performance for most of the happy-paths.
+      try {
+        await prisma.selectedCalendar.create({
+          data: {
+            ...selectedCalendarWhereUnique,
+            credentialId: credential.id,
+          },
+        });
+      } catch (error) {
+        let errorMessage = "something_went_wrong";
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+          // it is possible a selectedCalendar was orphaned, in this situation-
+          // we want to recover by connecting the existing selectedCalendar to the new Credential.
+          if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
+            res.redirect(
+              getSafeRedirectUrl(state?.returnTo) ??
+                getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+            );
+            return;
+          }
+          // else
+          errorMessage = "account_already_linked";
         }
-        // else
-        errorMessage = "account_already_linked";
+        await prisma.credential.delete({ where: { id: credential.id } });
+        res.redirect(
+          `${
+            getSafeRedirectUrl(state?.onErrorReturnTo) ??
+            getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+          }?error=${errorMessage}`
+        );
+        return;
       }
-      await prisma.credential.delete({ where: { id: credential.id } });
+    } catch (error) {
       res.redirect(
         `${
           getSafeRedirectUrl(state?.onErrorReturnTo) ??
           getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
-        }?error=${errorMessage}`
+        }?error=credential_creation_failed`
       );
       return;
     }
+  } else {
+    const errorMessage = !req.session?.user?.id ? "user_session_missing" : "default_calendar_not_found";
+    res.redirect(
+      `${
+        getSafeRedirectUrl(state?.onErrorReturnTo) ??
+        getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+      }?error=${errorMessage}`
+    );
+    return;
   }
 
   res.redirect(

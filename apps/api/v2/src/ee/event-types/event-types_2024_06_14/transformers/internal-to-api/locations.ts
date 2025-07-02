@@ -120,6 +120,16 @@ export function transformLocationsInternalToApi(internalLocations: InternalLocat
         break;
       }
       default: {
+        if (location.type === "link" && location.link) {
+          const linkLocation: OutputLinkLocation_2024_06_14 = {
+            type: "link",
+            link: location.link,
+            public: location.displayLocationPublicly || false,
+          };
+          apiLocations.push(linkLocation);
+          break;
+        }
+
         const integrationType = internalToApiIntegrationsMapping[location.type];
         if (!integrationType) {
           const unknown: OutputUnknownLocation_2024_06_14 = {
