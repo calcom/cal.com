@@ -5,8 +5,7 @@ import { getDeploymentKey, getDeploymentSignatureToken } from "./getDeploymentKe
 // Mock the crypto module
 vi.mock("@calcom/lib/crypto", () => ({
   symmetricDecrypt: vi.fn((text: string, key: string) => {
-    // Simple mock implementation that returns the text if key is valid
-    if (!key) throw new Error("Invalid key");
+    if (!key) return null;
     return text.replace("encrypted:", "");
   }),
   symmetricEncrypt: vi.fn((text: string, key: string) => `encrypted:${text}`),
