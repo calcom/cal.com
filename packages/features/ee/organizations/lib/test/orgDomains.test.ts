@@ -34,7 +34,7 @@ describe("orgDomains hostname validation", () => {
   });
 
   it("should handle hostname mismatch scenario from bug report", () => {
-    const result = getOrgSlug("app.cal.com");
-    expect(result).not.toBe(null);
+    const result = getOrgSlug("myorg.cal.com");
+    expect(result).toBe("myorg");
   });
 });

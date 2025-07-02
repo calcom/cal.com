@@ -38,26 +38,34 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
     return null;
   }
   // Find which hostname is being currently used
+  let matchedHostname = null;
   const currentHostname = ALLOWED_HOSTNAMES.find((ahn) => {
-    const url = new URL(WEBAPP_URL);
-    const testHostname = `${url.hostname}${url.port ? `:${url.port}` : ""}`;
     const normalizedAllowedHostname = ahn.replace(/^https?:\/\//, "");
-    return (
-      testHostname === normalizedAllowedHostname || testHostname.endsWith(`.${normalizedAllowedHostname}`)
-    );
+    const exactMatch = hostname === normalizedAllowedHostname;
+    const subdomainMatch = hostname.endsWith(`.${normalizedAllowedHostname}`);
+    if (exactMatch || subdomainMatch) {
+      matchedHostname = normalizedAllowedHostname;
+      return true;
+    }
+    return false;
   });
 
-  if (!currentHostname) {
+  if (!currentHostname || !matchedHostname) {
     log.warn("Match of WEBAPP_URL with ALLOWED_HOSTNAME failed", { WEBAPP_URL, ALLOWED_HOSTNAMES });
     return null;
   }
   // Define which is the current domain/subdomain
-  const slug = hostname.replace(currentHostname ? `.${currentHostname}` : "", "");
+  let slug;
+  if (hostname === matchedHostname) {
+    return null;
+  } else {
+    slug = hostname.replace(`.${matchedHostname}`, "");
+  }
   const hasNoDotInSlug = slug.indexOf(".") === -1;
-  if (hasNoDotInSlug) {
+  if (hasNoDotInSlug && slug !== "") {
     return slug;
   }
-  log.warn("Derived slug ended up having dots, so not considering it an org domain", { slug });
+  log.warn("Derived slug ended up having dots or is empty, so not considering it an org domain", { slug });
   return null;
 }
 
