@@ -1,5 +1,6 @@
-import { isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,7 +15,15 @@ type DeleteOptions = {
 };
 
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
-  if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (
+    !(await checkPermissionWithFallback({
+      userId: ctx.user?.id,
+      teamId: input.teamId,
+      permission: "team.changeMemberRole",
+      fallbackRoles: [MembershipRole.OWNER],
+    }))
+  )
+    throw new TRPCError({ code: "UNAUTHORIZED" });
 
   return await TeamRepository.deleteById({ id: input.teamId });
 };

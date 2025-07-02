@@ -4,15 +4,14 @@ import type { TFunction } from "i18next";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -68,10 +67,26 @@ export async function ensureAtleastAdminPermissions({
 }) {
   // Checks if the team they are inviting to IS the org. Not a child team
   if (isOrg) {
-    if (!(await isOrganisationAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (
+      !(await checkPermissionWithFallback({
+        userId,
+        teamId,
+        permission: "organization.invite",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      }))
+    )
+      throw new TRPCError({ code: "UNAUTHORIZED" });
   } else {
     // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
-    if (!(await isTeamAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (
+      !(await checkPermissionWithFallback({
+        userId,
+        teamId,
+        permission: "team.update",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      }))
+    )
+      throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 }
 

@@ -1,7 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TDeleteInputSchema } from "./delete.schema";
@@ -23,10 +25,19 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
       where.AND.push({ eventTypeId: input.eventTypeId });
     } else if (input.teamId) {
       where.AND.push({ teamId: input.teamId });
-    } else if (ctx.user.role == "ADMIN") {
-      where.AND.push({ OR: [{ platform: true }, { userId: ctx.user.id }] });
     } else {
-      where.AND.push({ userId: ctx.user.id });
+      const hasSystemAdminPermission = await checkPermissionWithFallback({
+        userId: ctx.user.id,
+        teamId: 0, // System-wide check
+        permission: "organization.listMembers",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+
+      if (hasSystemAdminPermission) {
+        where.AND.push({ OR: [{ platform: true }, { userId: ctx.user.id }] });
+      } else {
+        where.AND.push({ userId: ctx.user.id });
+      }
     }
   }
 

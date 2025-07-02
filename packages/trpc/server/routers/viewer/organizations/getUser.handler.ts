@@ -1,5 +1,6 @@
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -19,7 +20,14 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
   if (!currentUser.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
-  if (!(await isOrganisationAdmin(currentUser?.id, currentUser.organizationId)))
+  if (
+    !(await checkPermissionWithFallback({
+      userId: currentUser?.id,
+      teamId: currentUser.organizationId,
+      permission: "organization.listMembers",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }))
+  )
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // get requested user from database and ensure they are in the same organization

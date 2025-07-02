@@ -1,8 +1,10 @@
 import type { NextApiRequest } from "next";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import {
   schemaEventTypeCustomInputBodyParams,
@@ -87,8 +89,19 @@ async function postHandler(req: NextApiRequest) {
     /* We check that the user has access to the event type he's trying to add a custom input to. */
     const eventType = await prisma.eventType.findFirst({
       where: { id: eventTypeId, userId },
+      include: { team: true },
     });
     if (!eventType) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+
+    if (eventType.teamId) {
+      const hasPermission = await checkPermissionWithFallback({
+        userId,
+        teamId: eventType.teamId,
+        permission: "eventType.update",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+      if (!hasPermission) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+    }
   }
 
   const data = await prisma.eventTypeCustomInput.create({

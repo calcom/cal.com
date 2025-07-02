@@ -1,13 +1,13 @@
 import type { Prisma } from "@prisma/client";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { uploadLogo } from "@calcom/lib/server/avatar";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -109,7 +109,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // A user can only have one org so we pass in their currentOrgId here
   const currentOrgId = ctx.user?.organization?.id || input.orgId;
 
-  const isUserOrganizationAdmin = currentOrgId && (await isOrganisationAdmin(ctx.user?.id, currentOrgId));
+  const isUserOrganizationAdmin =
+    currentOrgId &&
+    (await checkPermissionWithFallback({
+      userId: ctx.user?.id,
+      teamId: currentOrgId,
+      permission: "organization.listMembers",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }));
   const isUserRoleAdmin = ctx.user.role === UserPermissionRole.ADMIN;
 
   const isUserAuthorizedToUpdate = !!(isUserOrganizationAdmin || isUserRoleAdmin);

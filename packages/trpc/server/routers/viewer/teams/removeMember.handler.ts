@@ -1,7 +1,8 @@
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -25,11 +26,24 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   const { memberIds, teamIds, isOrg } = input;
 
   const isAdmin = await Promise.all(
-    teamIds.map(async (teamId) => await isTeamAdmin(ctx.user.id, teamId))
+    teamIds.map(
+      async (teamId) =>
+        await checkPermissionWithFallback({
+          userId: ctx.user.id,
+          teamId,
+          permission: "team.remove",
+          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        })
+    )
   ).then((results) => results.every((result) => result));
 
   const isOrgAdmin = ctx.user.profile?.organizationId
-    ? await isTeamAdmin(ctx.user.id, ctx.user.profile?.organizationId)
+    ? await checkPermissionWithFallback({
+        userId: ctx.user.id,
+        teamId: ctx.user.profile?.organizationId,
+        permission: "organization.remove",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      })
     : false;
 
   if (!(isAdmin || isOrgAdmin) && memberIds.every((memberId) => ctx.user.id !== memberId))
@@ -40,7 +54,19 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     memberIds.map(async (memberId) => {
       const isAnyTeamOwnerAndCurrentUserNotOwner = await Promise.all(
         teamIds.map(async (teamId) => {
-          return (await isTeamOwner(memberId, teamId)) && !(await isTeamOwner(ctx.user.id, teamId));
+          const memberIsOwner = await checkPermissionWithFallback({
+            userId: memberId,
+            teamId,
+            permission: "team.changeMemberRole",
+            fallbackRoles: [MembershipRole.OWNER],
+          });
+          const currentUserIsOwner = await checkPermissionWithFallback({
+            userId: ctx.user.id,
+            teamId,
+            permission: "team.changeMemberRole",
+            fallbackRoles: [MembershipRole.OWNER],
+          });
+          return memberIsOwner && !currentUserIsOwner;
         })
       ).then((results) => results.some((result) => result));
 

@@ -1,13 +1,13 @@
 import type { Prisma } from "@prisma/client";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { uploadLogo } from "@calcom/lib/server/avatar";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
-import { RedirectType, RRTimestampBasis } from "@calcom/prisma/enums";
+import { RedirectType, RRTimestampBasis, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -26,7 +26,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const isOrgAdmin = ctx.user?.organization?.isOrgAdmin;
 
   if (!isOrgAdmin) {
-    if (!(await isTeamAdmin(ctx.user?.id, input.id))) {
+    if (
+      !(await checkPermissionWithFallback({
+        userId: ctx.user?.id,
+        teamId: input.id,
+        permission: "team.update",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      }))
+    ) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
   }

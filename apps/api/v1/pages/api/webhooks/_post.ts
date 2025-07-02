@@ -2,9 +2,11 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import { v4 as uuidv4 } from "uuid";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/validations/webhook";
 
@@ -79,9 +81,26 @@ async function postHandler(req: NextApiRequest) {
   if (!eventTypeId) args.data.userId = userId;
 
   if (eventTypeId) {
-    const where: Prisma.EventTypeWhereInput = { id: eventTypeId };
-    if (!isSystemWideAdmin) where.userId = userId;
-    await prisma.eventType.findFirstOrThrow({ where });
+    const eventType = await prisma.eventType.findFirstOrThrow({
+      where: { id: eventTypeId },
+      include: { team: true },
+    });
+
+    if (!isSystemWideAdmin) {
+      if (eventType.team) {
+        const hasPermission = await checkPermissionWithFallback({
+          userId,
+          teamId: eventType.team.id,
+          permission: "eventType.update",
+          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        });
+        if (!hasPermission && eventType.userId !== userId) {
+          throw new HttpError({ statusCode: 403, message: "Unauthorized" });
+        }
+      } else if (eventType.userId !== userId) {
+        throw new HttpError({ statusCode: 403, message: "Unauthorized" });
+      }
+    }
     args.data.eventTypeId = eventTypeId;
   }
 

@@ -1,9 +1,11 @@
 import type { NextApiRequest } from "next";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQuerySlug } from "~/lib/validations/shared/querySlug";
@@ -44,7 +46,7 @@ import getCalLink from "./_utils/getCalLink";
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
-  const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
+  const userIds = req.query.userId ? await extractUserIdsFromQuery(req) : [userId];
   const { slug } = schemaQuerySlug.parse(req.query);
   const shouldUseUserId = !isSystemWideAdmin || !slug || !!req.query.userId;
   // When user is admin and no query params are provided we should return all event types.
@@ -75,10 +77,28 @@ async function getHandler(req: NextApiRequest) {
   };
 }
 // TODO: Extract & reuse.
-function extractUserIdsFromQuery({ isSystemWideAdmin, query }: NextApiRequest) {
+async function extractUserIdsFromQuery({ isSystemWideAdmin, query, userId }: NextApiRequest) {
   /** Guard: Only admins can query other users */
   if (!isSystemWideAdmin) {
-    throw new HttpError({ statusCode: 401, message: "ADMIN required" });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { organization: true },
+    });
+
+    if (user?.organizationId) {
+      const hasOrgPermission = await checkPermissionWithFallback({
+        userId,
+        teamId: user.organizationId,
+        permission: "organization.listMembers",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+
+      if (!hasOrgPermission) {
+        throw new HttpError({ statusCode: 401, message: "ADMIN required" });
+      }
+    } else {
+      throw new HttpError({ statusCode: 401, message: "ADMIN required" });
+    }
   }
   const { userId: userIdOrUserIds } = schemaQuerySingleOrMultipleUserIds.parse(query);
   return Array.isArray(userIdOrUserIds) ? userIdOrUserIds : [userIdOrUserIds];

@@ -222,7 +222,9 @@ async function handler(req: NextApiRequest) {
   };
   if (isSystemWideAdmin) userId = req.body.userId || userId;
 
-  if (isOrganizationOwnerOrAdmin) {
+  const hasOrgAdminPermission = false;
+
+  if (isOrganizationOwnerOrAdmin || hasOrgAdminPermission) {
     const accessibleUsersIds = await getAccessibleUsers({
       adminUserId: userId,
       memberUserIds: [req.body.userId || userId],

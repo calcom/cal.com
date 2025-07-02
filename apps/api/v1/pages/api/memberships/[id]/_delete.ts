@@ -1,8 +1,10 @@
 import type { NextApiRequest } from "next";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { membershipIdSchema } from "~/lib/validations/membership";
 
@@ -47,6 +49,17 @@ async function checkPermissions(req: NextApiRequest) {
   const userId_teamId = membershipIdSchema.parse(query);
   // Admin User can do anything including deletion of Admin Team Member in any team
   if (isSystemWideAdmin) {
+    return;
+  }
+
+  const hasPermission = await checkPermissionWithFallback({
+    userId,
+    teamId: userId_teamId.teamId,
+    permission: "team.remove",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
+
+  if (hasPermission) {
     return;
   }
 

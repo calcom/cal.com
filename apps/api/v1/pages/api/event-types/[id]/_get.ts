@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
@@ -7,7 +8,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
-import { checkPermissions as canAccessTeamEventOrThrow } from "~/pages/api/teams/[teamId]/_auth-middleware";
 
 import getCalLink from "../_utils/getCalLink";
 
@@ -89,12 +89,14 @@ async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
   eventType: (T & Partial<Omit<T, keyof BaseEventTypeCheckPermissions>>) | null
 ) {
   if (req.isSystemWideAdmin) return true;
-  if (eventType?.teamId) {
-    req.query.teamId = String(eventType.teamId);
-    await canAccessTeamEventOrThrow(req, {
-      in: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+  if (eventType?.teamId && req.userId) {
+    const hasPermission = await checkPermissionWithFallback({
+      userId: req.userId,
+      teamId: eventType.teamId,
+      permission: "eventType.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
     });
-    return true;
+    if (hasPermission) return true;
   }
   if (eventType?.userId === req.userId) return true; // is owner.
   throw new HttpError({ statusCode: 403, message: "Forbidden" });

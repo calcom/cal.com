@@ -59,10 +59,11 @@ async function postHandler(req: NextApiRequest) {
     data: { ...body, userId },
   };
 
-  if (!isSystemWideAdmin && bodyUserId)
-    throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
+  const isAdmin = isSystemWideAdmin;
 
-  if (isSystemWideAdmin && bodyUserId) {
+  if (!isAdmin && bodyUserId) throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
+
+  if (isAdmin && bodyUserId) {
     const where: Prisma.UserWhereInput = { id: bodyUserId };
     await prisma.user.findFirstOrThrow({ where });
     args.data.userId = bodyUserId;

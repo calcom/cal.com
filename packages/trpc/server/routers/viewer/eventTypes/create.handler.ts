@@ -2,10 +2,11 @@ import type { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
 
 import { TRPCError } from "@trpc/server";
@@ -85,12 +86,14 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    const isSystemAdmin = ctx.user.role === "ADMIN";
+    const hasPermission = await checkPermissionWithFallback({
+      userId,
+      teamId,
+      permission: "eventType.create",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
 
-    if (
-      !isSystemAdmin &&
-      (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin))
-    ) {
+    if (!hasPermission && !isOrgAdmin) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }

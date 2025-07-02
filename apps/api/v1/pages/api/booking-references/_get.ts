@@ -31,9 +31,10 @@ import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-refe
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
-  const args: Prisma.BookingReferenceFindManyArgs = isSystemWideAdmin
-    ? {}
-    : { where: { booking: { userId } } };
+
+  const hasAdminAccess = isSystemWideAdmin;
+
+  const args: Prisma.BookingReferenceFindManyArgs = hasAdminAccess ? {} : { where: { booking: { userId } } };
   const data = await prisma.bookingReference.findMany(args);
   return { booking_references: data.map((br) => schemaBookingReferenceReadPublic.parse(br)) };
 }

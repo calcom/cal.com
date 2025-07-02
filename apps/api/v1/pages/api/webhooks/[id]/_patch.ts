@@ -69,6 +69,7 @@ import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/vali
  */
 export async function patchHandler(req: NextApiRequest) {
   const { query, userId, isSystemWideAdmin } = req;
+
   const { id } = schemaQueryIdAsString.parse(query);
   const {
     eventTypeId,

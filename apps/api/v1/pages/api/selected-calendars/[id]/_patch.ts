@@ -1,11 +1,13 @@
 import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import type { UpdateArguments } from "@calcom/lib/server/repository/selectedCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import {
   schemaSelectedCalendarPublic,
@@ -55,15 +57,25 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { query, isSystemWideAdmin } = req;
+  const { query, isSystemWideAdmin, userId } = req;
   const userId_integration_externalId = selectedCalendarIdSchema.parse(query);
   const { userId: bodyUserId, ...data } = schemaSelectedCalendarUpdateBodyParams.parse(req.body);
   const args: UpdateArguments = { where: { ...userId_integration_externalId }, data };
 
-  if (!isSystemWideAdmin && bodyUserId)
+  const hasAdminPermission =
+    isSystemWideAdmin ||
+    (bodyUserId &&
+      (await checkPermissionWithFallback({
+        userId: userId,
+        teamId: 0, // System-wide check
+        permission: "organization.listMembers",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      })));
+
+  if (!hasAdminPermission && bodyUserId)
     throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
 
-  if (isSystemWideAdmin && bodyUserId) {
+  if (hasAdminPermission && bodyUserId) {
     const where: Prisma.UserWhereInput = { id: bodyUserId };
     await prisma.user.findFirstOrThrow({ where });
     args.data.userId = bodyUserId;

@@ -1,5 +1,6 @@
 import type { Session } from "next-auth";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -94,17 +95,25 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
         organizationSettings: user?.profile?.organization?.organizationSettings,
       };
 
-  const isTeamAdminOrOwner =
-    (await prisma.membership.findFirst({
-      where: {
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: user.id,
+      accepted: true,
+    },
+    select: {
+      id: true,
+      teamId: true,
+    },
+  });
+
+  const isTeamAdminOrOwner = membership
+    ? await checkPermissionWithFallback({
         userId: user.id,
-        accepted: true,
-        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-      },
-      select: {
-        id: true,
-      },
-    })) !== null;
+        teamId: membership.teamId,
+        permission: "team.update",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      })
+    : false;
 
   return {
     id: user.id,

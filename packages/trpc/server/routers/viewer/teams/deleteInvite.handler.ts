@@ -1,5 +1,6 @@
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -27,7 +28,15 @@ export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) =
   });
 
   if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND" });
-  if (!verificationToken.teamId || !(await isTeamAdmin(ctx.user.id, verificationToken.teamId)))
+  if (
+    !verificationToken.teamId ||
+    !(await checkPermissionWithFallback({
+      userId: ctx.user.id,
+      teamId: verificationToken.teamId,
+      permission: "team.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }))
+  )
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   await prisma.verificationToken.delete({ where: { id: verificationToken.id } });

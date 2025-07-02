@@ -1,4 +1,4 @@
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -15,9 +15,26 @@ type ChangeMemberRoleOptions = {
 };
 
 export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOptions) => {
-  if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (
+    !(await checkPermissionWithFallback({
+      userId: ctx.user?.id,
+      teamId: input.teamId,
+      permission: "team.changeMemberRole",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }))
+  )
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+
   // Only owners can award owner role.
-  if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
+  if (
+    input.role === MembershipRole.OWNER &&
+    !(await checkPermissionWithFallback({
+      userId: ctx.user?.id,
+      teamId: input.teamId,
+      permission: "team.changeMemberRole",
+      fallbackRoles: [MembershipRole.OWNER],
+    }))
+  )
     throw new TRPCError({ code: "UNAUTHORIZED" });
   const memberships = await prisma.membership.findMany({
     where: {

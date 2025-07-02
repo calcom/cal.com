@@ -4,7 +4,6 @@ import { z } from "zod";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
 
 export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope", [
@@ -156,13 +155,15 @@ export class InsightsRoutingService {
   }
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
-    // Check if the user is an owner or admin of the organization
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
-    return Boolean(
-      membership &&
-        membership.accepted &&
-        membership.role &&
-        (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
+    const { checkPermissionWithFallback } = await import(
+      "@calcom/features/pbac/lib/checkPermissionWithFallback"
     );
+
+    return await checkPermissionWithFallback({
+      userId,
+      teamId: orgId,
+      permission: "organization.listMembers",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
   }
 }

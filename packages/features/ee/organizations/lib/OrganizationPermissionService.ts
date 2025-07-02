@@ -3,9 +3,12 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
+
+import { checkPermissionWithFallback } from "../../../pbac/lib/checkPermissionWithFallback";
 
 const log = logger.getSubLogger({ prefix: ["ee", "organizations", "OrganizationPermissionService"] });
 type SeatsPrice = {
@@ -16,7 +19,7 @@ type SeatsPrice = {
 export interface validatePermissionsIOrganizationPermissionService {
   hasPermissionToCreateForEmail(targetEmail: string): Promise<boolean>;
   hasPendingOrganizations(email: string, slug?: string): Promise<boolean>;
-  hasPermissionToModifyDefaultPayment(): boolean;
+  hasPermissionToModifyDefaultPayment(): Promise<boolean>;
   hasPermissionToMigrateTeams(teamIds: number[]): Promise<boolean>;
   hasModifiedDefaultPayment(
     input: {
@@ -29,7 +32,14 @@ export class OrganizationPermissionService {
   constructor(private readonly user: NonNullable<TrpcSessionUser>) {}
 
   async hasPermissionToCreateForEmail(targetEmail: string): Promise<boolean> {
-    return this.user.email === targetEmail || this.user.role === "ADMIN";
+    if (this.user.email === targetEmail) return true;
+
+    return await checkPermissionWithFallback({
+      userId: this.user.id,
+      teamId: 0, // System-wide admin check
+      permission: "organization.create",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
   }
 
   /**
@@ -49,8 +59,13 @@ export class OrganizationPermissionService {
     return !!(orgOnboarding && orgOnboarding.isComplete);
   }
 
-  hasPermissionToModifyDefaultPayment(): boolean {
-    return this.user.role === "ADMIN";
+  async hasPermissionToModifyDefaultPayment(): Promise<boolean> {
+    return await checkPermissionWithFallback({
+      userId: this.user.id,
+      teamId: 0, // System-wide admin check
+      permission: "organization.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
   }
 
   hasModifiedDefaultPayment(data: SeatsPrice & { billingPeriod?: string }): boolean {

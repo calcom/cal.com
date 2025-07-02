@@ -1,11 +1,11 @@
 import type { Prisma } from "@prisma/client";
 
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { Redirect } from "@calcom/lib/redirect";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -55,9 +55,25 @@ const generateCheckoutSession = async ({
 
 async function checkPermissions({ ctx, input }: PublishOptions) {
   const { profile } = ctx.user;
-  if (profile?.organizationId && !isOrganisationAdmin(ctx.user.id, profile.organizationId))
+  if (
+    profile?.organizationId &&
+    !(await checkPermissionWithFallback({
+      userId: ctx.user.id,
+      teamId: profile.organizationId,
+      permission: "organization.invite",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }))
+  )
     throw new TRPCError({ code: "UNAUTHORIZED" });
-  if (!profile?.organizationId && !(await isTeamAdmin(ctx.user.id, input.teamId)))
+  if (
+    !profile?.organizationId &&
+    !(await checkPermissionWithFallback({
+      userId: ctx.user.id,
+      teamId: input.teamId,
+      permission: "team.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }))
+  )
     throw new TRPCError({ code: "UNAUTHORIZED" });
 }
 

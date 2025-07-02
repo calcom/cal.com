@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -12,10 +13,18 @@ async function authMiddleware(req: NextApiRequest) {
   const { teamId } = schemaQueryTeamId.parse(req.query);
   /** Admins can skip the ownership verification */
   if (isSystemWideAdmin) return;
-  /** Non-members will see a 404 error which may or not be the desired behavior. */
-  await prisma.team.findFirstOrThrow({
-    where: { id: teamId, members: { some: { userId } } },
+
+  /** Check if user has team access using PBAC with fallback to membership check */
+  const hasAccess = await checkPermissionWithFallback({
+    userId,
+    teamId,
+    permission: "team.read",
+    fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
   });
+
+  if (!hasAccess) {
+    throw new HttpError({ statusCode: 404, message: "Team not found" });
+  }
 }
 
 export async function checkPermissions(

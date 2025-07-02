@@ -1,11 +1,11 @@
 import { type TFunction } from "i18next";
 
 import { TeamBilling } from "@calcom/ee/billing/teams";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -285,7 +285,12 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   return result;
 
   async function throwIfInviterCantAddOwnerToOrg() {
-    const isInviterOrgOwner = await isOrganisationOwner(inviter.id, input.teamId);
+    const isInviterOrgOwner = await checkPermissionWithFallback({
+      userId: inviter.id,
+      teamId: input.teamId,
+      permission: "organization.changeMemberRole",
+      fallbackRoles: [MembershipRole.OWNER],
+    });
     if (isAddingNewOwner && !isInviterOrgOwner) throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 };

@@ -1,11 +1,11 @@
 import { v4 } from "uuid";
 
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../types";
-import { checkPermissions } from "./_auth-middleware";
 import type { TCreateInputSchema } from "./create.schema";
 
 type CreateHandlerOptions = {
@@ -23,7 +23,17 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
   const userId = ctx.user.id;
 
   /** Only admin or owner can create apiKeys of team (if teamId is passed) */
-  await checkPermissions({ userId, teamId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } });
+  if (teamId) {
+    const hasPermission = await checkPermissionWithFallback({
+      userId,
+      teamId,
+      permission: "team.update",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+    if (!hasPermission) {
+      throw new Error("Unauthorized");
+    }
+  }
 
   await prisma.apiKey.create({
     data: {

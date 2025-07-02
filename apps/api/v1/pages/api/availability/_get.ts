@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -223,9 +224,13 @@ async function handler(req: NextApiRequest) {
   }, {} as MemberRoles);
   // check if the user is a team Admin or Owner, if it is a team request, or a system Admin
   const isUserAdminOrOwner =
-    memberRoles[reqUserId] == MembershipRole.ADMIN ||
-    memberRoles[reqUserId] == MembershipRole.OWNER ||
-    isSystemWideAdmin;
+    isSystemWideAdmin ||
+    (await checkPermissionWithFallback({
+      userId: reqUserId,
+      teamId,
+      permission: "team.read",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }));
   if (!isUserAdminOrOwner) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const availabilities = members.map(async (user) => {
     return {

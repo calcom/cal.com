@@ -2,8 +2,10 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 
@@ -46,9 +48,18 @@ async function getHandler(req: NextApiRequest) {
 
   const { teamId } = querySchema.parse(req.query);
 
+  const hasTeamAccess =
+    isSystemWideAdmin ||
+    (await checkPermissionWithFallback({
+      userId,
+      teamId,
+      permission: "eventType.read",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
+    }));
+
   const args: Prisma.EventTypeFindManyArgs = {
     where: {
-      team: isSystemWideAdmin
+      team: hasTeamAccess
         ? {
             id: teamId,
           }

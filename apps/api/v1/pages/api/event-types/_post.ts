@@ -1,13 +1,13 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
-import { canUserAccessTeamWithRole } from "~/pages/api/teams/[teamId]/_auth-middleware";
 
 import checkParentEventOwnership from "./_utils/checkParentEventOwnership";
 import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission";
@@ -322,8 +322,11 @@ async function checkPermissions(req: NextApiRequest) {
   if (
     body.teamId &&
     !isSystemWideAdmin &&
-    !(await canUserAccessTeamWithRole(req.userId, isSystemWideAdmin, body.teamId, {
-      in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    !(await checkPermissionWithFallback({
+      userId: req.userId,
+      teamId: body.teamId,
+      permission: "eventType.create",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     }))
   )
     throw new HttpError({

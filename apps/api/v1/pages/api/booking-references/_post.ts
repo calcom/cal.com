@@ -64,7 +64,10 @@ import {
 async function postHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   const body = schemaBookingCreateBodyParams.parse(req.body);
-  const args: Prisma.BookingFindFirstOrThrowArgs = isSystemWideAdmin
+
+  const hasBookingAccess = isSystemWideAdmin;
+
+  const args: Prisma.BookingFindFirstOrThrowArgs = hasBookingAccess
     ? /* If admin, we only check that the booking exists */
       { where: { id: body.bookingId } }
     : /* For non-admins we make sure the booking belongs to the user */

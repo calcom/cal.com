@@ -8,6 +8,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -428,16 +429,13 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
 
   // Check if the user is an admin/owner of the team the booking belongs to
   if (teamId) {
-    const membership = await prisma.membership.findFirst({
-      where: {
-        userId: loggedInUserId,
-        teamId: teamId,
-        role: {
-          in: [MembershipRole.OWNER, MembershipRole.ADMIN],
-        },
-      },
+    const hasPermission = await checkPermissionWithFallback({
+      userId: loggedInUserId,
+      teamId: teamId,
+      permission: "team.readTeamBookings",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
-    if (membership) return;
+    if (hasPermission) return;
   }
 
   throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not authorized to confirm this booking" });

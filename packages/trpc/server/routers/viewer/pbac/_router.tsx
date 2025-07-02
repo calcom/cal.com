@@ -34,11 +34,10 @@ const roleInputSchema = z.object({
   teamId: z.number(),
   name: z.string().min(1),
   description: z.string().optional(),
-  color: z.string().optional(),
   permissions: z.array(permissionStringSchema),
 });
 
-export const permissionsRouter = router({
+export const pbacRouter = router({
   getUserPermissions: authedProcedure.query(async ({ ctx }) => {
     if (!ctx.user?.id) return {};
 
@@ -51,6 +50,7 @@ export const permissionsRouter = router({
       z.object({
         teamId: z.number(),
         permission: permissionStringSchema,
+        fallbackRoles: z.array(z.nativeEnum(MembershipRole)).optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -63,7 +63,7 @@ export const permissionsRouter = router({
         userId: ctx.user.id,
         teamId: input.teamId,
         permission: input.permission,
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN], // Default fallback roles for backward compatibility
+        fallbackRoles: input.fallbackRoles || [MembershipRole.OWNER, MembershipRole.ADMIN], // Default fallback roles for backward compatibility
       });
     }),
 
@@ -120,7 +120,6 @@ export const permissionsRouter = router({
         roleId: z.string(),
         name: z.string().optional(),
         permissions: z.array(permissionStringSchema),
-        color: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -147,7 +146,6 @@ export const permissionsRouter = router({
         permissions: input.permissions,
         updates: {
           name: input.name,
-          color: input.color,
         },
       });
     }),

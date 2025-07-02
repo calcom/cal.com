@@ -5,24 +5,28 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 // also returns team
 export async function isOrganisationAdmin(userId: number, orgId: number) {
-  return (
-    (await prisma.membership.findFirst({
-      where: {
-        userId,
-        teamId: orgId,
-        OR: [{ role: MembershipRole.ADMIN }, { role: MembershipRole.OWNER }],
-      },
-    })) || false
+  const { checkPermissionWithFallback } = await import(
+    "@calcom/features/pbac/lib/checkPermissionWithFallback"
   );
+
+  return await checkPermissionWithFallback({
+    userId,
+    teamId: orgId,
+    permission: "organization.listMembers",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
 }
 export async function isOrganisationOwner(userId: number, orgId: number) {
-  return !!(await prisma.membership.findFirst({
-    where: {
-      userId,
-      teamId: orgId,
-      role: MembershipRole.OWNER,
-    },
-  }));
+  const { checkPermissionWithFallback } = await import(
+    "@calcom/features/pbac/lib/checkPermissionWithFallback"
+  );
+
+  return await checkPermissionWithFallback({
+    userId,
+    teamId: orgId,
+    permission: "organization.changeMemberRole",
+    fallbackRoles: [MembershipRole.OWNER],
+  });
 }
 
 export async function isOrganisationMember(userId: number, orgId: number) {

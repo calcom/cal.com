@@ -1,11 +1,13 @@
 import type { NextApiRequest } from "next";
 
+import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import type { UserWithCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
 import { schemaConnectedCalendarsReadPublic } from "~/lib/validations/connected-calendar";
@@ -100,7 +102,18 @@ import { schemaConnectedCalendarsReadPublic } from "~/lib/validations/connected-
 async function getHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
 
-  if (!isSystemWideAdmin && req.query.userId)
+  const hasAdminAccess =
+    isSystemWideAdmin ||
+    (req.query.userId &&
+      userId &&
+      (await checkPermissionWithFallback({
+        userId,
+        teamId: 0, // System-wide check
+        permission: "organization.listMembers",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      })));
+
+  if (!hasAdminAccess && req.query.userId)
     throw new HttpError({ statusCode: 403, message: "ADMIN required" });
 
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];

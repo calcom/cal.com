@@ -99,14 +99,17 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validation
 export async function patchHandler(req: NextApiRequest) {
   const { isSystemWideAdmin } = req;
   const query = schemaQueryUserId.parse(req.query);
+
+  const canEditUsers = isSystemWideAdmin;
+
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
-  if (!isSystemWideAdmin && query.userId !== req.userId)
+  if (!canEditUsers && query.userId !== req.userId)
     throw new HttpError({ statusCode: 403, message: "Forbidden" });
 
   const { avatar, ...body }: { avatar?: string | undefined } & Prisma.UserUpdateInput =
     await schemaUserEditBodyParams.parseAsync(req.body);
   // disable role or branding changes unless admin.
-  if (!isSystemWideAdmin) {
+  if (!canEditUsers) {
     if (body.role) body.role = undefined;
     if (body.hideBranding) body.hideBranding = undefined;
   }
