@@ -10,7 +10,12 @@ import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import {
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
@@ -80,34 +85,27 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       }
 
       if (bearerToken) {
-        const encryptionKey = this.config.get<string>("CALENDSO_ENCRYPTION_KEY");
-
-        // Attempt to authenticate as Third-Party Access Token if allowed
-        if (thirdPartyAccessTokenAllowed && encryptionKey) {
-          try {
-            const decodedToken = jwt.verify(bearerToken, encryptionKey) as OAuthTokenPayload;
-
-            if (
-              decodedToken &&
-              decodedToken.token_type === "Access Token" &&
-              (decodedToken.userId || decodedToken.teamId)
-            ) {
-              request.authMethod = AuthMethods["THIRD_PARTY_ACCESS_TOKEN"];
-              return await this.authenticateThirdPartyAccessToken(bearerToken, request);
-            }
-          } catch (jwtError) {
-            this.logger.log(
-              "Bearer token is not a valid third-party JWT or does not fit criteria for third_party_access_token. Trying other methods if allowed."
-            );
-          }
-        }
-
         if (apiKeyAllowed || accessTokenAllowed) {
-          const requestOrigin = request.get("Origin");
-          request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
-            ? AuthMethods["API_KEY"]
-            : AuthMethods["ACCESS_TOKEN"];
-          return await this.authenticateBearerToken(bearerToken, request, requestOrigin);
+          try {
+            const requestOrigin = request.get("Origin");
+            request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
+              ? AuthMethods["API_KEY"]
+              : AuthMethods["ACCESS_TOKEN"];
+            return await this.authenticateBearerToken(bearerToken, request, requestOrigin);
+          } catch (err) {
+            // failed to validate access token, try to validate third party token
+            if (thirdPartyAccessTokenAllowed && request.authMethod === AuthMethods["ACCESS_TOKEN"]) {
+              request.authMethod = AuthMethods["THIRD_PARTY_ACCESS_TOKEN"];
+              const result = await this.authenticateThirdPartyAccessToken(bearerToken, request);
+              if (result.success) {
+                return this.success(this.getSuccessUser(result.data));
+              }
+            }
+            // token was not third party token, rethrow error from authenticateBearerToken
+            if (err instanceof HttpException) {
+              return this.error(err);
+            }
+          }
         }
 
         throw new UnauthorizedException(`ApiAuthStrategy - Invalid Bearer token`);
@@ -316,7 +314,10 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     return user;
   }
 
-  async authenticateThirdPartyAccessToken(token: string, request: ApiAuthGuardRequest) {
+  async authenticateThirdPartyAccessToken(
+    token: string,
+    request: ApiAuthGuardRequest
+  ): Promise<{ success: true; data: UserWithProfile } | { success: false }> {
     // Removed requiredScopes parameter
     const encryptionKey = this.config.get<string>("CALENDSO_ENCRYPTION_KEY");
     if (!encryptionKey) {
@@ -327,15 +328,11 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     try {
       decodedToken = jwt.verify(token, encryptionKey) as OAuthTokenPayload;
     } catch (e) {
-      throw new UnauthorizedException("ApiAuthStrategy - third-party token - Invalid or malformed token.");
+      return { success: false };
     }
 
-    if (!decodedToken) {
-      throw new UnauthorizedException("ApiAuthStrategy - third-party token - Invalid token payload.");
-    }
-
-    if (decodedToken.token_type !== "Access Token") {
-      throw new UnauthorizedException("ApiAuthStrategy - third-party token - Invalid token type.");
+    if (!decodedToken || decodedToken.token_type !== "Access Token") {
+      return { success: false };
     }
 
     let user: UserWithProfile | null = null;
@@ -365,6 +362,6 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     }
 
     request.organizationId = organizationId;
-    return this.success(this.getSuccessUser(user));
+    return { success: true, data: user };
   }
 }
