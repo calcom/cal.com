@@ -712,44 +712,40 @@ export class BookingsService_2024_08_13 {
   }
 
   async cancelBooking(request: Request, bookingUid: string, body: CancelBookingInput) {
-    try {
-      if (this.inputService.isCancelSeatedBody(body)) {
-        const seat = await this.bookingSeatRepository.getByReferenceUid(body.seatUid);
+    if (this.inputService.isCancelSeatedBody(body)) {
+      const seat = await this.bookingSeatRepository.getByReferenceUid(body.seatUid);
 
-        if (!seat) {
-          throw new BadRequestException(
-            "Invalid seatUid: this seat does not exist or has already been cancelled."
-          );
-        }
-
-        if (seat && bookingUid !== seat.booking.uid) {
-          throw new BadRequestException("Invalid seatUid: this seat does not belong to this booking.");
-        }
+      if (!seat) {
+        throw new BadRequestException(
+          "Invalid seatUid: this seat does not exist or has already been cancelled."
+        );
       }
 
-      const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
-      const res = await handleCancelBooking({
-        bookingData: bookingRequest.body,
-        userId: bookingRequest.userId,
-        arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
-        platformClientId: bookingRequest.platformClientId,
-        platformCancelUrl: bookingRequest.platformCancelUrl,
-        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-        platformBookingUrl: bookingRequest.platformBookingUrl,
-      });
-
-      if (!res.onlyRemovedAttendee) {
-        await this.billingService.cancelUsageByBookingUid(res.bookingUid);
+      if (seat && bookingUid !== seat.booking.uid) {
+        throw new BadRequestException("Invalid seatUid: this seat does not belong to this booking.");
       }
-
-      if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
-        return this.getAllRecurringBookingsByIndividualUid(bookingUid);
-      }
-
-      return this.getBooking(bookingUid);
-    } catch (error) {
-      throw error;
     }
+
+    const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
+    const res = await handleCancelBooking({
+      bookingData: bookingRequest.body,
+      userId: bookingRequest.userId,
+      arePlatformEmailsEnabled: bookingRequest.arePlatformEmailsEnabled,
+      platformClientId: bookingRequest.platformClientId,
+      platformCancelUrl: bookingRequest.platformCancelUrl,
+      platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+      platformBookingUrl: bookingRequest.platformBookingUrl,
+    });
+
+    if (!res.onlyRemovedAttendee) {
+      await this.billingService.cancelUsageByBookingUid(res.bookingUid);
+    }
+
+    if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
+      return this.getAllRecurringBookingsByIndividualUid(bookingUid);
+    }
+
+    return this.getBooking(bookingUid);
   }
 
   private async getAllRecurringBookingsByIndividualUid(bookingUid: string) {
