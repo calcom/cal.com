@@ -68,3 +68,7 @@ The serverless functions can be tested locally using Vercel CLI:
 ```bash
 vercel dev
 ```
+
+## CI/CD Notes
+
+This conversion maintains full compatibility with the existing CI/CD pipeline and all automated checks.
