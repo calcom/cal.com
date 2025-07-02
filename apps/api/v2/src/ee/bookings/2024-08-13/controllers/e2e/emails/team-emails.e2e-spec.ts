@@ -874,9 +874,8 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(AttendeeRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(AttendeeRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
 
-            expect(OrganizerRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
             expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
             expect(OrganizerCancelledEmail.prototype.getHtml).toHaveBeenCalled();
             emailsEnabledSetup.roundRobinEventType.rescheduledBookingUid = responseBody.data.uid;

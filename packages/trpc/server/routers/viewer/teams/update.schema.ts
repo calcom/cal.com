@@ -13,6 +13,7 @@ export type TUpdateInputSchema = {
   slug?: string;
   hideBranding?: boolean;
   hideBookATeamMember?: boolean;
+  hideTeamProfileLink?: boolean;
   isPrivate?: boolean;
   brandColor?: string;
   darkBrandColor?: string;
@@ -20,6 +21,7 @@ export type TUpdateInputSchema = {
   bookingLimits?: IntervalLimit | null;
   includeManagedEventsInLimits?: boolean;
   rrResetInterval?: "DAY" | "MONTH";
+  rrTimestampBasis?: "CREATED_AT" | "START_TIME";
 };
 
 export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
@@ -37,6 +39,7 @@ export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
     .optional(),
   hideBranding: z.boolean().optional(),
   hideBookATeamMember: z.boolean().optional(),
+  hideTeamProfileLink: z.boolean().optional(),
   isPrivate: z.boolean().optional(),
   brandColor: z.string().optional(),
   darkBrandColor: z.string().optional(),
@@ -44,4 +47,5 @@ export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
   bookingLimits: intervalLimitsType.optional(),
   includeManagedEventsInLimits: z.boolean().optional(),
   rrResetInterval: z.enum(["DAY", "MONTH"]).optional(),
+  rrTimestampBasis: z.enum(["CREATED_AT", "START_TIME"]).optional(),
 });

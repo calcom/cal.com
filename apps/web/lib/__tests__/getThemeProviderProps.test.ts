@@ -52,8 +52,8 @@ describe("getThemeProviderProps", () => {
 
       expect(result).toEqual({
         ...appThemeExpectedProps,
-        storageKey: undefined,
-        key: undefined,
+        storageKey: "forcedThemeKey",
+        key: "forcedThemeKey",
         forcedTheme: "light",
         enableSystem: false,
       });
@@ -194,6 +194,11 @@ describe("getUniqueIdentifierForBookingPage", () => {
     ])("should return $expected for $path", ({ path, expected }) => {
       const result = getUniqueIdentifierForBookingPage({ pathname: path });
       expect(result).toBe(expected);
+    });
+
+    it("should return / for root path", () => {
+      const result = getUniqueIdentifierForBookingPage({ pathname: "/" });
+      expect(result).toBe("/");
     });
   });
 

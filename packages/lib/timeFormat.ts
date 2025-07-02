@@ -24,7 +24,7 @@ export const getIs24hClockFromLocalStorage = () => {
   return is24hFromLocalstorage === "true";
 };
 
-export const getTimeFormatStringFromUserTimeFormat = (timeFormat: number | null | undefined) => {
+export const getTimeFormatStringFromUserTimeFormat = (timeFormat: number | null | undefined): TimeFormat => {
   return timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR;
 };
 

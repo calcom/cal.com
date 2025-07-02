@@ -1,3 +1,4 @@
+import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
@@ -16,6 +17,7 @@ export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 const catchAllSchema = bookingResponsesDbSchema;
 
 const ensureValidPhoneNumber = (value: string) => {
+  if (!value) return "";
   // + in URL could be replaced with space, so we need to replace it back
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");
@@ -144,7 +146,6 @@ function preprocess<T extends z.ZodType>({
         const phoneSchema = isPartialSchema
           ? z.string()
           : z.string().refine(async (val) => {
-              const { isValidPhoneNumber } = await import("libphonenumber-js");
               return isValidPhoneNumber(val);
             });
         // Tag the message with the input name so that the message can be shown at appropriate place

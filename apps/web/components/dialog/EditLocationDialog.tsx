@@ -14,12 +14,16 @@ import {
   LocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, Input, Dialog, DialogContent, DialogFooter, Form } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Form, Input } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "../../lib/QueryCell";
 
@@ -88,7 +92,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     teamId,
   } = props;
   const { t } = useLocale();
-  const locationsQuery = trpc.viewer.locationOptions.useQuery({ teamId });
+  const locationsQuery = trpc.viewer.apps.locationOptions.useQuery({ teamId });
 
   useEffect(() => {
     if (selection) {
@@ -220,55 +224,55 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={(open) => setShowLocationModal(open)}>
       <DialogContent>
-        <div className="flex flex-row space-x-3">
-          <div className="bg-subtle mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-            <Icon name="map-pin" className="text-emphasis h-6 w-6" />
-          </div>
-          <div className="w-full">
-            <div className="mt-3 text-center sm:mt-0 sm:text-left">
-              <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
-                {t("edit_location")}
-              </h3>
+        <Form
+          form={locationFormMethods}
+          handleSubmit={async (values) => {
+            const { locationType: newLocationType } = values;
+            let newLocation;
+            // For the locations that require organizer to type-in some values, we need the value
+            if (eventLocationType?.organizerInputType) {
+              newLocation = values[eventLocationType.variable];
+            } else {
+              // locationType itself can be used here e.g. For zoom we use the type itself which is "integrations:zoom". For Organizer's Default Conferencing App, it is OrganizerDefaultConferencingAppType constant
+              newLocation = newLocationType;
+            }
+
+            setIsLocationUpdating(true);
+            try {
+              await saveLocation({
+                newLocation,
+                credentialId: values.credentialId ?? null,
+              });
+              setIsLocationUpdating(false);
+              setShowLocationModal(false);
+              setSelectedLocation?.(undefined);
+              locationFormMethods.unregister([
+                "locationType",
+                "locationLink",
+                "locationAddress",
+                "locationPhoneNumber",
+              ]);
+            } catch (error) {
+              // Let the user retry
+              setIsLocationUpdating(false);
+            }
+          }}>
+          <div className="flex flex-row space-x-3">
+            <div className="bg-subtle mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
+              <Icon name="map-pin" className="text-emphasis h-6 w-6" />
             </div>
-            <div className="mt-3 text-center sm:mt-0 sm:text-left" />
+            <div className="w-full">
+              <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
+                  {t("edit_location")}
+                </h3>
+              </div>
+              <div className="mt-3 text-center sm:mt-0 sm:text-left" />
 
-            <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
-            <p className="text-emphasis mb-2 ml-1 break-all text-sm">
-              {getHumanReadableLocationValue(booking.location, t)}
-            </p>
-            <Form
-              form={locationFormMethods}
-              handleSubmit={async (values) => {
-                const { locationType: newLocationType } = values;
-                let newLocation;
-                // For the locations that require organizer to type-in some values, we need the value
-                if (eventLocationType?.organizerInputType) {
-                  newLocation = values[eventLocationType.variable];
-                } else {
-                  // locationType itself can be used here e.g. For zoom we use the type itself which is "integrations:zoom". For Organizer's Default Conferencing App, it is OrganizerDefaultConferencingAppType constant
-                  newLocation = newLocationType;
-                }
-
-                setIsLocationUpdating(true);
-                try {
-                  await saveLocation({
-                    newLocation,
-                    credentialId: values.credentialId ?? null,
-                  });
-                  setIsLocationUpdating(false);
-                  setShowLocationModal(false);
-                  setSelectedLocation?.(undefined);
-                  locationFormMethods.unregister([
-                    "locationType",
-                    "locationLink",
-                    "locationAddress",
-                    "locationPhoneNumber",
-                  ]);
-                } catch (error) {
-                  // Let the user retry
-                  setIsLocationUpdating(false);
-                }
-              }}>
+              <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
+              <p className="text-emphasis mb-2 ml-1 break-all text-sm">
+                {getHumanReadableLocationValue(booking.location, t)}
+              </p>
               <QueryCell
                 query={locationsQuery}
                 success={({ data }) => {
@@ -325,25 +329,25 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 }}
               />
               {selectedLocation && SelectedLocationInput}
-              <DialogFooter showDivider className="mt-8">
-                <Button
-                  onClick={() => {
-                    setShowLocationModal(false);
-                    setSelectedLocation?.(undefined);
-                    setEditingLocationType?.("");
-                    locationFormMethods.unregister(["locationType", "locationLink"]);
-                  }}
-                  type="button"
-                  color="secondary">
-                  {t("cancel")}
-                </Button>
-                <Button data-testid="update-location" type="submit" disabled={isLocationUpdating}>
-                  {t("update")}
-                </Button>
-              </DialogFooter>
-            </Form>
+            </div>
           </div>
-        </div>
+          <DialogFooter showDivider className="mt-8">
+            <Button
+              onClick={() => {
+                setShowLocationModal(false);
+                setSelectedLocation?.(undefined);
+                setEditingLocationType?.("");
+                locationFormMethods.unregister(["locationType", "locationLink"]);
+              }}
+              type="button"
+              color="secondary">
+              {t("cancel")}
+            </Button>
+            <Button data-testid="update-location" type="submit" disabled={isLocationUpdating}>
+              {t("update")}
+            </Button>
+          </DialogFooter>
+        </Form>
       </DialogContent>
     </Dialog>
   );

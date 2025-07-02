@@ -10,11 +10,12 @@ import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/h
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
-import { APP_NAME } from "@calcom/lib/constants";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
@@ -27,19 +28,11 @@ const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
   const pathname = usePathname();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
-  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
-  const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
 
   useFormbricks();
 
   return (
     <>
-      {!withoutSeo && (
-        <HeadSeo
-          title={pageTitle ?? APP_NAME}
-          description={props.description ?? props.subtitle?.toString() ?? ""}
-        />
-      )}
       <div>
         <Toaster position="bottom-right" />
       </div>
@@ -88,8 +81,6 @@ export type LayoutProps = {
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   withoutMain?: boolean;
-  // Gives you the option to skip HeadSEO and render your own.
-  withoutSeo?: boolean;
   // Gives the ability to include actions to the right of the heading
   actions?: JSX.Element;
   beforeCTAactions?: JSX.Element;
@@ -134,14 +125,14 @@ export default function Shell(props: LayoutProps) {
 
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
-  const { isLocaleReady, t } = useLocale();
+  const { isLocaleReady } = useLocale();
 
   return (
     <>
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "mb-0 flex items-center md:mb-6 md:mt-0",
+            "bg-default sticky top-0 z-10 mb-0 flex items-center py-2 md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8"
           )}>
           {!!props.backPath && (
@@ -213,7 +204,7 @@ function MainContainer({
   ...props
 }: LayoutProps) {
   return (
-    <main className="bg-default relative z-0 flex-1 focus:outline-none">
+    <main className="bg-default relative z-0 flex-1 pb-8 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full p-2 sm:py-4 lg:px-6">

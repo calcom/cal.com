@@ -1,5 +1,10 @@
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -23,7 +28,7 @@ import {
   HttpStatus,
   Query,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -42,7 +47,9 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Orgs / Schedules")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsSchedulesController {
   constructor(
     private schedulesService: SchedulesService_2024_06_11,
@@ -52,6 +59,7 @@ export class OrganizationsSchedulesController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/schedules")
+  @DocsTags("Orgs / Schedules")
   @ApiOperation({ summary: "Get all schedules" })
   async getOrganizationSchedules(
     @Param("orgId", ParseIntPipe) orgId: number,

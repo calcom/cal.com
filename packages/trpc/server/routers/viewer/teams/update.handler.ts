@@ -7,12 +7,12 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
-import { RedirectType } from "@calcom/prisma/enums";
+import { RedirectType, RRTimestampBasis } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
 
 type UpdateOptions = {
@@ -40,7 +40,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (userConflict.some((t) => t.id !== input.id)) return;
   }
 
-  const prevTeam = await prisma.team.findFirst({
+  const prevTeam = await prisma.team.findUnique({
     where: {
       id: input.id,
     },
@@ -60,12 +60,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     hideBranding: input.hideBranding,
     isPrivate: input.isPrivate,
     hideBookATeamMember: input.hideBookATeamMember,
+    hideTeamProfileLink: input.hideTeamProfileLink,
     brandColor: input.brandColor,
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
     bookingLimits: input.bookingLimits ?? undefined,
     includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
     rrResetInterval: input.rrResetInterval,
+    rrTimestampBasis: input.rrTimestampBasis,
   };
 
   if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
@@ -101,6 +103,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id: input.id },
     data,
   });
+
+  if (
+    data.rrTimestampBasis &&
+    data.rrTimestampBasis !== RRTimestampBasis.CREATED_AT &&
+    prevTeam.rrTimestampBasis === RRTimestampBasis.CREATED_AT
+  ) {
+    // disable load balancing for all event types
+    await prisma.eventType.updateMany({
+      where: {
+        teamId: input.id,
+      },
+      data: {
+        maxLeadThreshold: null,
+      },
+    });
+  }
 
   if (updatedTeam.parentId && prevTeam.slug) {
     // No changes made lets skip this logic
@@ -147,6 +165,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     bookingLimits: updatedTeam.bookingLimits as IntervalLimit,
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
     rrResetInterval: updatedTeam.rrResetInterval,
+    rrTimestampBasis: updatedTeam.rrTimestampBasis,
   };
 };
 

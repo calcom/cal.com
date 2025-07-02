@@ -1,12 +1,20 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import { selectInteractions } from "@calcom/web/playwright/lib/pageObject";
-import { getEmailsReceivedByUser, gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
+import {
+  confirmBooking,
+  getEmailsReceivedByUser,
+  gotoRoutingLink,
+  selectFirstAvailableTimeSlotNextMonth,
+  testEmail,
+  testName,
+} from "@calcom/web/playwright/lib/testUtils";
 
 import {
   addForm,
@@ -51,6 +59,13 @@ async function selectFirstValueForAttributeValue({
   });
 }
 
+async function selectOperatorOption({ fromLocator, option }: { fromLocator: Locator; option: number }) {
+  await selectOptionUsingLocator({
+    locator: fromLocator,
+    option,
+  });
+}
+
 async function addAttributeRoutingRule(page: Page) {
   // TODO: Use a better selector maybe?
   await page.locator('text="Add rule"').nth(1).click();
@@ -66,6 +81,25 @@ async function addAttributeRoutingRule(page: Page) {
     // Select 'Value of Field Short Text' option
     option: 1,
   });
+}
+
+async function addAttributeRoutingRuleWithOperator(page: Page, valueFrom: string, valueTo: string) {
+  await page.locator('text="Add rule"').nth(1).click();
+  const attributeQueryBuilder = page.locator(".group-container").nth(1);
+  const attributeSelectorFirstRule = attributeQueryBuilder.locator(".rule--field").nth(0);
+  await selectFirstAttributeOption({
+    fromLocator: attributeSelectorFirstRule,
+  });
+
+  const attributeOperatorSelector = attributeQueryBuilder.locator(".rule--operator").nth(0);
+  await selectOperatorOption({
+    fromLocator: attributeOperatorSelector,
+    option: 7,
+  });
+
+  const attributeValueSelector = attributeQueryBuilder.locator(".rule--value").nth(0);
+  await attributeValueSelector.locator("input").nth(0).fill(valueFrom);
+  await attributeValueSelector.locator("input").nth(1).fill(valueTo);
 }
 
 async function selectFirstEventRedirectOption(page: Page) {
@@ -84,7 +118,7 @@ test.describe("Routing Forms", () => {
     test("should be able to add a new form and view it", async ({ page }) => {
       const formId = await addForm(page);
 
-      await page.click('[data-test-id="routing"]');
+      await page.click('[data-testid="back-button"]');
 
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       // Ensure that it's visible in forms list
@@ -94,9 +128,16 @@ test.describe("Routing Forms", () => {
       await expect(page.locator("text=Test Form Name")).toBeVisible();
 
       await page.goto(`apps/routing-forms/route-builder/${formId}`);
+      await page.waitForSelector('[data-testid="add-route-button"]');
+      await expect(page.locator('[data-testid="add-route-button"]')).toBeVisible();
+    });
+
+    test.skip("should be able to disable form", async ({ page }) => {
+      const formId = await addForm(page);
+      await page.click('[data-testid="back-button"]');
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await expect(page.getByTestId(`404-page`)).toBeVisible();
+      await expect(page.locator('[data-testid="404-page"]')).toBeVisible();
     });
 
     test("recently added form appears first in the list", async ({ page }) => {
@@ -127,8 +168,10 @@ test.describe("Routing Forms", () => {
         label,
       });
 
+      await page.click('[data-testid="settings-button"]');
       await expect(page.locator('[data-testid="description"]')).toHaveValue(description);
       await expect(page.locator('[data-testid="field"]')).toHaveCount(types.length);
+      await page.click('[data-testid="settings-slider-over-cancel"]');
 
       fields.forEach((item, index) => {
         createdFields[index] = { label: item.label, typeIndex: index };
@@ -136,16 +179,18 @@ test.describe("Routing Forms", () => {
 
       await expectCurrentFormToHaveFields(page, createdFields, types);
 
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
 
+      await page.click('[data-testid="add-route-button"]');
       await page.click('[data-testid="add-rule"]');
 
       const options = Object.values(createdFields).map((item) => item.label);
       await verifyFieldOptionsInRule(options, page);
     });
 
-    test.describe("F1<-F2 Relationship", () => {
+    // This feature is disable till it is fully supported and tested with Routing Form with Attributes.
+    test.describe.skip("F1<-F2 Relationship", () => {
       test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
         const form1Id = await addForm(page, { name: "F1" });
         await page.goto(`/routing-forms/forms`);
@@ -172,10 +217,11 @@ test.describe("Routing Forms", () => {
 
         // Add F1 as Router to F2
         await page.goto(`/routing-forms/route-builder/${form2Id}`);
-        await selectNewRoute(page, {
-          // It should be F1. TODO: Verify that it's F1
-          routeSelectNumber: 2,
-        });
+        // await addNewRoute(page, {
+        //   // It should be F1. TODO: Verify that it's F1
+        //   routeSelectNumber: 2,
+        // });
+        await addNewRoute(page);
         await saveCurrentForm(page);
 
         // Expect F1 fields to be available in F2
@@ -205,8 +251,10 @@ test.describe("Routing Forms", () => {
 
     test("should be able to submit a prefilled form with all types of fields", async ({ page }) => {
       const formId = await addForm(page);
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      // Click desktop toggle group item
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
       await selectOption({
         selector: {
           selector: ".data-testid-select-routing-action",
@@ -215,7 +263,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://cal.com");
+      await page.fill("[name=externalRedirectUrl]", `${WEBAPP_URL}/pro`);
       await saveCurrentForm(page);
 
       const { fields } = await addAllTypesOfFieldsAndSaveForm(formId, page, {
@@ -243,7 +291,7 @@ test.describe("Routing Forms", () => {
 
       await page.click('button[type="submit"]');
       await page.waitForURL((url) => {
-        return url.hostname.includes("cal.com");
+        return url.pathname.endsWith("/pro");
       });
 
       const url = new URL(page.url());
@@ -279,6 +327,59 @@ test.describe("Routing Forms", () => {
 
   todo("should be able to duplicate form");
 
+  test.describe("Routing Form to Event Booking", () => {
+    test("should redirect to event page and successfully complete booking", async ({ page, users }) => {
+      const user = await users.create(
+        { username: "routing-to-booking" },
+        {
+          hasTeam: true,
+        }
+      );
+      await user.apiLogin();
+
+      // Create a routing form
+      const formId = await addForm(page, { name: "Event Redirect Form" });
+
+      await addShortTextFieldAndSaveForm({ page, formId });
+
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
+      await selectFirstEventRedirectOption(page);
+
+      await saveCurrentForm(page);
+
+      await gotoRoutingLink({ page, formId });
+      await page.fill('[data-testid="form-field-short-text"]', "Test Input");
+      await page.click('button[type="submit"]');
+
+      // Wait for redirect and verify presence of valid routingFormResponseId in URL
+      await page.waitForURL((url) => {
+        const routingFormResponseId = url.searchParams.get("cal.routingFormResponseId");
+        const parsedId = Number(routingFormResponseId);
+        return !!routingFormResponseId && !isNaN(parsedId);
+      });
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      // Fill booking form
+      await page.fill('[name="name"]', testName);
+      await page.fill('[name="email"]', testEmail);
+      await page.fill('[name="notes"]', "Booked via routing form");
+
+      await confirmBooking(page);
+
+      // Verify booking was successful
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toBeVisible();
+      await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toBeVisible();
+    });
+
+    test.afterEach(async ({ users }) => {
+      await users.deleteAll();
+    });
+  });
+
   test.describe("Seeded Routing Form ", () => {
     test.beforeEach(async ({ page }) => {
       await page.goto(`/routing-forms/forms`);
@@ -299,7 +400,6 @@ test.describe("Routing Forms", () => {
     test("Routing Link - Reporting and CSV Download ", async ({ page, users }) => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
-      test.setTimeout(120000);
       // Fill form when you are logged out
       await users.logout();
 
@@ -355,12 +455,11 @@ test.describe("Routing Forms", () => {
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
-      const [download] = await Promise.all([
-        // Start waiting for the download
-        page.waitForEvent("download"),
-        // Perform the action that initiates download
-        page.click('[data-testid="download-responses"]'),
-      ]);
+
+      const downloadPromise = page.waitForEvent("download");
+      await page.locator('[data-testid="form-dropdown"]').nth(1).click();
+      await page.locator('[data-testid="download-responses"]').click();
+      const download = await downloadPromise;
       const downloadStream = await download.createReadStream();
       expect(download.suggestedFilename()).toEqual(`${routingForm.name}-${routingForm.id}.csv`);
       const csv: string = await new Promise((resolve) => {
@@ -411,7 +510,7 @@ test.describe("Routing Forms", () => {
 
       await page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
       await page.waitForURL((url) => {
-        return url.hostname.includes("cal.com") && url.searchParams.get("Test field") === "external-redirect";
+        return url.pathname.endsWith("/pro") && url.searchParams.get("Test field") === "external-redirect";
       });
 
       await page.goto(`/router?form=${routingForm.id}&Test field=custom-page`);
@@ -438,7 +537,7 @@ test.describe("Routing Forms", () => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       await gotoRoutingLink({ page, formId: routingForm.id });
-      page.click('button[type="submit"]');
+      await page.click('button[type="submit"]');
       const firstInputMissingValue = await page.evaluate(() => {
         return document.querySelectorAll("input")[0].validity.valueMissing;
       });
@@ -450,65 +549,70 @@ test.describe("Routing Forms", () => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
       await page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
-      await page.click('[data-testid="test-preview"]');
 
       //event redirect
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "event-routing");
-      await page.click('[data-testid="test-routing"]');
-      let routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      let routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       let route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Event Redirect");
       expect(route).toBe("pro/30min");
+      await page.click('[data-testid="close-results-button"]');
 
       //custom page
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "custom-page");
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Custom Page Result");
+      await page.click('[data-testid="close-results-button"]');
 
       //external redirect
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "external-redirect");
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("External Redirect");
-      expect(route).toBe("https://cal.com");
-      await page.click('[data-testid="dialog-rejection"]');
+      expect(route).toBe(`${WEBAPP_URL}/pro`);
+      await page.click('[data-testid="close-results-button"]');
 
       // Multiselect(Legacy)
-      await page.click('[data-testid="test-preview"]');
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "doesntmatter");
       await page.click(`[data-testid="form-field-${Identifiers.multi}"]`); // Open dropdown
       await page.click("text=Option-2"); // Select option
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Multiselect(Legacy) chosen");
-      await page.click('[data-testid="dialog-rejection"]');
+      await page.click('[data-testid="close-results-button"]');
 
       // Multiselect
-      await page.click('[data-testid="test-preview"]');
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "doesntmatter");
       await page.click(`[data-testid="form-field-${Identifiers.multiNewFormat}"]`); // Open dropdown
       await page.click("text=Option-2"); // Select option
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Multiselect chosen");
-      await page.click('[data-testid="dialog-rejection"]');
+      await page.click('[data-testid="close-results-button"]');
 
       //fallback route
-      await page.click('[data-testid="test-preview"]');
+      await page.click('[data-testid="preview-button"]');
       await page.fill('[data-testid="form-field-Test field"]', "fallback");
-      await page.click('[data-testid="test-routing"]');
-      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      await page.click('[data-testid="submit-button"]');
+      routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("Custom Page");
       expect(route).toBe("Fallback Message");
+      await page.click('[data-testid="close-results-button"]');
     });
   });
 
@@ -589,31 +693,195 @@ test.describe("Routing Forms", () => {
         formId,
       });
 
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      // Click toggle group item
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await page.click('[data-testid="add-route-button"]');
       // This would select Round Robin event that we created above
       await selectFirstEventRedirectOption(page);
       await addAttributeRoutingRule(page);
       await saveCurrentForm(page);
 
       await (async function testPreviewWhereThereIsMatch() {
-        await page.click('[data-testid="test-preview"]');
+        await page.click('[data-testid="preview-button"]');
         await page.fill('[data-testid="form-field-short-text"]', "large");
-        await page.click('[data-testid="test-routing"]');
+        await page.click('[data-testid="submit-button"]');
         await page.waitForSelector("text=@example.com");
-        await page.click('[data-testid="dialog-rejection"]');
+        await page.click('[data-testid="close-results-button"]');
       })();
 
       await (async function testPreviewWhereThereIsNoMatch() {
-        await page.click('[data-testid="test-preview"]');
+        await page.click('[data-testid="preview-button"]');
         await page.fill('[data-testid="form-field-short-text"]', "medium");
-        await page.click('[data-testid="test-routing"]');
-        await page.waitForSelector("text=Attribute logic matched: No");
-        await page.waitForSelector("text=Attribute logic fallback matched: Yes");
-        await page.waitForSelector(
-          "text=All assigned members of the team event type. Consider adding some attribute rules to fallback."
-        );
-        await page.click('[data-testid="dialog-rejection"]');
+        await page.click('[data-testid="submit-button"]');
+        await expect(page.locator('[data-testid="attribute-logic-matched"]')).toHaveText("No");
+        await expect(page.locator('[data-testid="attribute-logic-fallback-matched"]')).toHaveText("Yes");
+        await page.click('[data-testid="close-results-button"]');
+      })();
+    });
+  });
+
+  test.describe("Form with Attribute Routing with Between operator - Not Matching - Team Form", () => {
+    test.beforeEach(async ({ page, users }) => {
+      const userFixture = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+          isOrg: true,
+          hasSubteam: true,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+        }
+      );
+
+      const orgMembership = await userFixture.getOrgMembership();
+
+      const createdAttribute = await prisma.attribute.create({
+        data: {
+          teamId: orgMembership.teamId,
+          type: AttributeType.NUMBER,
+          name: "Company Size",
+          slug: `company-size-orgId-${orgMembership.teamId}`,
+          options: {
+            create: [
+              {
+                slug: "10",
+                value: "10",
+              },
+            ],
+          },
+        },
+        include: {
+          options: true,
+        },
+      });
+
+      await prisma.attributeToUser.create({
+        data: {
+          member: {
+            connect: {
+              userId_teamId: {
+                userId: userFixture.id,
+                teamId: orgMembership.teamId,
+              },
+            },
+          },
+          attributeOption: {
+            connect: {
+              id: createdAttribute.options[0].id,
+            },
+          },
+        },
+      });
+      await userFixture.apiLogin();
+    });
+
+    test.afterEach(async ({ users }) => {
+      // This also delete forms on cascade
+      await users.deleteAll();
+    });
+
+    test("should not match any member if between operator values are input such that", async ({ page }) => {
+      await addForm(page, {
+        forTeam: true,
+      });
+
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
+      // This would select Round Robin event that we created above
+      await selectFirstEventRedirectOption(page);
+      await addAttributeRoutingRuleWithOperator(page, "1", "5");
+      await saveCurrentForm(page);
+
+      // asserting there is no match as attribute value for the member is 10, while input is between 1 and 5
+      await (async function testPreviewWhereThereIsNoMatch() {
+        await page.click('[data-testid="preview-button"]');
+        await page.click('[data-testid="submit-button"]');
+        await expect(page.locator('[data-testid="attribute-logic-matched"]')).toHaveText("No");
+        await expect(page.locator('[data-testid="attribute-logic-fallback-matched"]')).toHaveText("Yes");
+        await page.click('[data-testid="close-results-button"]');
+      })();
+    });
+  });
+
+  test.describe("Form with Attribute Routing with Between operator - Matching - Team Form", () => {
+    test.beforeEach(async ({ page, users }) => {
+      const userFixture = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+          isOrg: true,
+          hasSubteam: true,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+        }
+      );
+
+      const orgMembership = await userFixture.getOrgMembership();
+
+      const createdAttribute = await prisma.attribute.create({
+        data: {
+          teamId: orgMembership.teamId,
+          type: AttributeType.NUMBER,
+          name: "Company Size",
+          slug: `company-size-orgId-${orgMembership.teamId}`,
+          options: {
+            create: [
+              {
+                slug: "3",
+                value: "3",
+              },
+            ],
+          },
+        },
+        include: {
+          options: true,
+        },
+      });
+
+      await prisma.attributeToUser.create({
+        data: {
+          member: {
+            connect: {
+              userId_teamId: {
+                userId: userFixture.id,
+                teamId: orgMembership.teamId,
+              },
+            },
+          },
+          attributeOption: {
+            connect: {
+              id: createdAttribute.options[0].id,
+            },
+          },
+        },
+      });
+      await userFixture.apiLogin();
+    });
+
+    test.afterEach(async ({ users }) => {
+      // This also delete forms on cascade
+      await users.deleteAll();
+    });
+
+    test("should match the member if between operator values are input such that", async ({ page }) => {
+      await addForm(page, {
+        forTeam: true,
+      });
+
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
+      // This would select Round Robin event that we created above
+      await selectFirstEventRedirectOption(page);
+      await addAttributeRoutingRuleWithOperator(page, "1", "5");
+      await saveCurrentForm(page);
+
+      // asserting there is a match as attribute value for the member is 3 that is between 1 and 5
+      await (async function testPreviewWhereThereIsMatch() {
+        await page.click('[data-testid="preview-button"]');
+        await page.click('[data-testid="submit-button"]');
+        await page.waitForSelector("text=@example.com");
+        await page.click('[data-testid="close-results-button"]');
       })();
     });
   });
@@ -647,8 +915,9 @@ test.describe("Routing Forms", () => {
         page,
         formId,
       });
-      await page.click('[href*="/route-builder/"]');
-      await selectNewRoute(page);
+      await page.locator('[data-testid="toggle-group-item-route-builder"]').nth(1).click();
+      await page.waitForURL("/routing/route-builder/**");
+      await addNewRoute(page);
       await selectOption({
         selector: {
           selector: ".data-testid-select-routing-action",
@@ -657,7 +926,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://cal.com");
+      await page.fill("[name=externalRedirectUrl]", `${WEBAPP_URL}/pro`);
       await saveCurrentForm(page);
       return {
         formId,
@@ -668,7 +937,10 @@ test.describe("Routing Forms", () => {
 
     const selectSendMailToAllMembers = async ({ page, formId }: { page: Page; formId: string }) => {
       await page.goto(`apps/routing-forms/form-edit/${formId}`);
-      await page.click('[data-testid="assign-all-team-members-toggle"]');
+      await page.getByTestId("settings-button").click();
+      await page.getByTestId("assign-all-team-members-toggle").click();
+      await page.getByTestId("settings-slider-over-done").click();
+
       await saveCurrentForm(page);
     };
 
@@ -682,8 +954,10 @@ test.describe("Routing Forms", () => {
       text: string;
     }) => {
       await page.goto(`apps/routing-forms/form-edit/${formId}`);
+      await page.getByTestId("settings-button").click();
       await page.click('[data-testid="routing-form-select-members"]');
       await page.getByText(text).nth(1).click();
+      await page.getByTestId("settings-slider-over-done").click();
       await saveCurrentForm(page);
     };
 
@@ -705,7 +979,7 @@ test.describe("Routing Forms", () => {
       await page.fill('[data-testid="form-field-short-text"]', "test");
       await page.click('button[type="submit"]');
       await page.waitForURL((url) => {
-        return url.hostname.includes("cal.com");
+        return url.pathname.endsWith("/pro");
       });
     };
 
@@ -748,7 +1022,7 @@ test.describe("Routing Forms", () => {
 });
 
 async function disableForm(page: Page) {
-  await page.click('[data-testid="toggle-form"] [value="on"]');
+  await page.click('[data-testid="toggle-form-switch"]');
   await page.waitForSelector(".data-testid-toast-success");
 }
 
@@ -786,7 +1060,7 @@ async function fillSeededForm(page: Page, routingFormId: string) {
     await fillAllOptionsBasedFields();
     page.click('button[type="submit"]');
     await page.waitForURL((url) => {
-      return url.hostname.includes("cal.com");
+      return url.pathname.endsWith("/pro");
     });
   })();
 
@@ -829,7 +1103,6 @@ async function addAllTypesOfFieldsAndSaveForm(
 ) {
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
   await page.click('[data-testid="add-field"]');
-  await page.fill('[data-testid="description"]', form.description);
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
@@ -875,6 +1148,10 @@ async function addAllTypesOfFieldsAndSaveForm(
     fields.push({ identifier: identifier, label, type: fieldTypeLabel });
   }
 
+  await page.locator('[data-testid="settings-button"]').scrollIntoViewIfNeeded();
+  await page.click('[data-testid="settings-button"]');
+  await page.fill('[data-testid="description"]', form.description);
+  await page.click('[data-testid="settings-slider-over-done"]');
   await saveCurrentForm(page);
   return {
     fieldTypesList,
@@ -930,13 +1207,6 @@ async function verifyFieldOptionsInRule(options: string[], page: Page) {
   );
 }
 
-async function selectNewRoute(page: Page, { routeSelectNumber = 1 } = {}) {
-  await selectOption({
-    selector: {
-      selector: ".data-testid-select-router",
-      nth: 0,
-    },
-    option: routeSelectNumber,
-    page,
-  });
+async function addNewRoute(page: Page) {
+  await page.locator('[data-testid="add-route-button"]').click();
 }

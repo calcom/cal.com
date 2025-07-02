@@ -1,12 +1,19 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import {
+  eventTypeBookingFieldsSchema,
+  EventTypeWithOwnerAndTeam,
+} from "@/ee/bookings/2024-08-13/services/bookings.service";
+import {
   bookingResponsesSchema,
   seatedBookingDataSchema,
 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
+import { apiToInternalintegrationsMapping } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { defaultBookingResponses } from "@/lib/safe-parse/default-responses-booking";
+import { safeParse } from "@/lib/safe-parse/safe-parse";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
@@ -23,10 +30,7 @@ import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import {
-  EventTypeMetaDataSchema,
-  apiToInternalintegrationsMapping,
-} from "@calcom/platform-libraries/event-types";
+import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
@@ -41,9 +45,12 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
-import { EventType, PlatformOAuthClient } from "@calcom/prisma/client";
+import { EventType } from "@calcom/prisma/client";
 
-type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
+type BookingRequest = NextApiRequest & {
+  userId: number | undefined;
+  noEmail: boolean | undefined;
+} & OAuthRequestParams;
 
 type OAuthRequestParams = {
   platformClientId: string;
@@ -52,6 +59,7 @@ type OAuthRequestParams = {
   platformBookingUrl: string;
   platformBookingLocation?: string;
   arePlatformEmailsEnabled: boolean;
+  areCalendarEventsEnabled: boolean;
 };
 
 export enum Frequency {
@@ -90,10 +98,15 @@ export class InputBookingsService_2024_08_13 {
 
   async createBookingRequest(
     request: Request,
-    body: CreateBookingInput_2024_08_13 | CreateInstantBookingInput_2024_08_13
+    body: CreateBookingInput_2024_08_13 | CreateInstantBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
   ): Promise<BookingRequest> {
-    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParams(body.eventTypeId);
-    const bodyTransformed = await this.transformInputCreateBooking(body, oAuthClientParams?.platformClientId);
+    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParamsForEventType(eventType);
+    const bodyTransformed = await this.transformInputCreateBooking(
+      body,
+      eventType,
+      oAuthClientParams?.platformClientId
+    );
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
@@ -119,15 +132,11 @@ export class InputBookingsService_2024_08_13 {
     return newRequest as unknown as BookingRequest;
   }
 
-  async transformInputCreateBooking(inputBooking: CreateBookingInput_2024_08_13, platformClientId?: string) {
-    const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
-      inputBooking.eventTypeId
-    );
-
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
-    }
-
+  async transformInputCreateBooking(
+    inputBooking: CreateBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam,
+    platformClientId?: string
+  ) {
     this.validateBookingLengthInMinutes(inputBooking, eventType);
 
     const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
@@ -152,6 +161,12 @@ export class InputBookingsService_2024_08_13 {
     this.isBookingLocationWithEventTypeLocations(inputLocation, eventType);
     const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
 
+    const needsSmsReminderNumber = eventType.bookingFields
+      ? eventTypeBookingFieldsSchema
+          .parse(eventType.bookingFields)
+          .find((field) => field.name === "smsReminderNumber")
+      : undefined;
+
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
@@ -167,6 +182,7 @@ export class InputBookingsService_2024_08_13 {
         name: inputBooking.attendee.name,
         email: attendeeEmail ?? "",
         attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+        smsReminderNumber: needsSmsReminderNumber ? inputBooking.attendee.phoneNumber : undefined,
         guests,
         location,
       },
@@ -194,12 +210,14 @@ export class InputBookingsService_2024_08_13 {
 
   async createRecurringBookingRequest(
     request: Request,
-    body: CreateRecurringBookingInput_2024_08_13
+    body: CreateRecurringBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam
   ): Promise<BookingRequest> {
-    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParams(body.eventTypeId);
+    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParamsForEventType(eventType);
     // note(Lauris): update to this.transformInputCreate when rescheduling is implemented
     const bodyTransformed = await this.transformInputCreateRecurringBooking(
       body,
+      eventType,
       oAuthClientParams?.platformClientId
     );
 
@@ -221,7 +239,13 @@ export class InputBookingsService_2024_08_13 {
       creationSource: CreationSource.API_V2,
     }));
 
-    return newRequest as unknown as BookingRequest;
+    return {
+      ...newRequest,
+      headers: {
+        hostname: request.headers["host"] || "",
+        forcedSlug: request.headers["x-cal-force-slug"] as string | undefined,
+      },
+    } as unknown as BookingRequest;
   }
 
   transformLocation(location: string | BookingInputLocation_2024_08_13): {
@@ -364,14 +388,9 @@ export class InputBookingsService_2024_08_13 {
 
   async transformInputCreateRecurringBooking(
     inputBooking: CreateRecurringBookingInput_2024_08_13,
+    eventType: EventTypeWithOwnerAndTeam,
     platformClientId?: string
   ) {
-    const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
-      inputBooking.eventTypeId
-    );
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
-    }
     if (!eventType.recurringEvent) {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} is not a recurring event`);
     }
@@ -429,6 +448,7 @@ export class InputBookingsService_2024_08_13 {
           ...(inputBooking.bookingFieldsResponses || {}),
           name: inputBooking.attendee.name,
           email: attendeeEmail,
+          attendeePhoneNumber: inputBooking.attendee.phoneNumber,
           guests,
           location,
         },
@@ -566,14 +586,36 @@ export class InputBookingsService_2024_08_13 {
     if (!eventType) {
       throw new NotFoundException(`Event type with id=${booking.eventTypeId} not found`);
     }
+    if (eventType.seatsPerTimeSlot) {
+      throw new BadRequestException(
+        `Booking with uid=${bookingUid} is a seated booking which means you have to provide seatUid in the request body to specify which seat specifically you want to reschedule. First, fetch the booking using https://cal.com/docs/api-reference/v2/bookings/get-a-booking and then within the attendees array you will find the seatUid of the booking you want to reschedule. Second, provide the seatUid in the request body to specify which seat specifically you want to reschedule using the reschedule endpoint https://cal.com/docs/api-reference/v2/bookings/reschedule-a-booking#option-2`
+      );
+    }
 
-    const bookingResponses = bookingResponsesSchema.parse(booking.responses);
-    const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
+    const bookingResponses = safeParse(
+      bookingResponsesSchema,
+      booking.responses,
+      defaultBookingResponses,
+      false
+    );
+    const bookingResponsesMissing =
+      bookingResponses.name === defaultBookingResponses.name &&
+      bookingResponses.email === defaultBookingResponses.email;
+
+    const attendee = bookingResponsesMissing
+      ? booking.attendees[0]
+      : booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
 
     if (!attendee) {
       throw new NotFoundException(
         `Attendee with e-mail ${bookingResponses.email} for booking with uid=${bookingUid} not found`
       );
+    }
+
+    if (bookingResponsesMissing) {
+      bookingResponses.name = attendee.name;
+      bookingResponses.email = attendee.email;
+      bookingResponses.attendeePhoneNumber = attendee.phoneNumber || undefined;
     }
 
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
@@ -632,6 +674,8 @@ export class InputBookingsService_2024_08_13 {
         queryParams.eventTypeIds || (queryParams.eventTypeId ? [queryParams.eventTypeId] : undefined),
       afterUpdatedDate: queryParams.afterUpdatedAt,
       beforeUpdatedDate: queryParams.beforeUpdatedAt,
+      afterCreatedDate: queryParams.afterCreatedAt,
+      beforeCreatedDate: queryParams.beforeCreatedAt,
     };
   }
 

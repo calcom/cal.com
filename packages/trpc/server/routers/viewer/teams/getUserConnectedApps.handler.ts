@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
 
@@ -63,10 +63,12 @@ const checkCanUserAccessConnectedApps = async (
     throw new Error("Team not found");
   }
 
-  const isMember = await prisma.membership.findFirst({
+  const isMember = await prisma.membership.findUnique({
     where: {
-      userId: user.id,
-      teamId: teamId,
+      userId_teamId: {
+        userId: user.id,
+        teamId: teamId,
+      },
     },
   });
 

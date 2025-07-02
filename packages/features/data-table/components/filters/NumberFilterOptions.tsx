@@ -3,7 +3,8 @@
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form, NumberInput, Select, Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Form, Select, NumberInput } from "@calcom/ui/components/form";
 
 import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
@@ -29,7 +30,7 @@ export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
   });
 
   return (
-    <div className="mx-3 my-2">
+    <div className="mx-3 my-2" data-testid={`number-filter-options-${column.id}`}>
       <Form
         form={form}
         handleSubmit={({ operatorOption, operand }) => {
@@ -50,6 +51,7 @@ export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
             render={({ field: { value } }) => (
               <div className="flex items-center gap-2">
                 <Select
+                  data-testid={`number-filter-options-select-${column.id}`}
                   className="basis-1/3"
                   options={numberFilterOperatorOptions}
                   value={value}

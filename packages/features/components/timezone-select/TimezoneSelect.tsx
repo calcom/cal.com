@@ -8,8 +8,8 @@ import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import type { Timezones } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
-import { getReactSelectProps, inputStyles } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
 
 const SELECT_SEARCH_DATA: Timezones = [
   { label: "San Francisco", timezone: "America/Los_Angeles" },
@@ -48,9 +48,11 @@ export function TimezoneSelect(props: TimezoneSelectProps) {
       trpc: { context: { skipBatch: true } },
     }
   );
+  const cityTimezonesFormatted = data.map(({ city, timezone }) => ({ label: city, timezone }));
+
   return (
     <TimezoneSelectComponent
-      data={data.map(({ city, timezone }) => ({ label: city, timezone }))}
+      data={[...cityTimezonesFormatted, ...SELECT_SEARCH_DATA]}
       isPending={isPending}
       {...props}
     />
@@ -64,6 +66,7 @@ export type TimezoneSelectComponentProps = SelectProps & {
   timezoneSelectCustomClassname?: string;
   size?: "sm" | "md";
   grow?: boolean;
+  isWebTimezoneSelect?: boolean;
 };
 
 // TODO: I wonder if we move this to ui package, and keep the TRPC version in features
@@ -77,9 +80,10 @@ export function TimezoneSelectComponent({
   value,
   size = "md",
   grow = false,
+  isWebTimezoneSelect = true,
   ...props
 }: TimezoneSelectComponentProps) {
-  const data = [...(props.data || []), ...SELECT_SEARCH_DATA];
+  const data = [...(props.data || [])];
   /*
    * we support multiple timezones for the different labels
    * e.g. 'Sao Paulo' and 'Brazil Time' both being 'America/Sao_Paulo'
@@ -108,7 +112,7 @@ export function TimezoneSelectComponent({
       {...reactSelectProps}
       timezones={{
         ...(props.data ? addTimezonesToDropdown(data) : {}),
-        ...addTimezonesToDropdown(additionalTimezones),
+        ...(isWebTimezoneSelect ? addTimezonesToDropdown(additionalTimezones) : {}),
       }}
       styles={{
         control: (base) => ({
@@ -116,9 +120,31 @@ export function TimezoneSelectComponent({
           minHeight: size === "sm" ? "28px" : "36px",
           height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
         }),
+        menuList: (base) => ({
+          ...base,
+          height: grow ? "h-auto " : size === "sm" ? "200px" : "180px",
+        }),
       }}
       onInputChange={handleInputChange}
       {...props}
+      onChange={(selectedOption) => {
+        if (!props.onChange) return;
+
+        if (!selectedOption) {
+          props.onChange(selectedOption);
+          return;
+        }
+
+        // Fix inconsistent timezone naming formats
+        const corrections: Record<string, string> = {
+          "America/Port_Of_Spain": "America/Port_of_Spain",
+          "Africa/Porto-novo": "Africa/Porto-Novo",
+          "Africa/Dar_Es_Salaam": "Africa/Dar_es_Salaam",
+        };
+
+        const correctedValue = corrections[selectedOption.value] || selectedOption.value;
+        props.onChange({ ...selectedOption, value: correctedValue });
+      }}
       formatOptionLabel={(option) => (
         <p className="truncate">{(option as ITimezoneOption).value.replace(/_/g, " ")}</p>
       )}
@@ -132,7 +158,7 @@ export function TimezoneSelectComponent({
           ),
         option: (state) =>
           classNames(
-            "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-md text-default ",
+            "bg-default py-2.5 px-3 rounded-md text-default ",
             state.isFocused && "bg-subtle",
             state.isDisabled && "bg-muted",
             state.isSelected && "bg-emphasis text-default",
@@ -149,7 +175,7 @@ export function TimezoneSelectComponent({
                 : "px-3 h-fit"
               : size === "sm"
               ? "h-7 px-2"
-              : "h-9 px-3",
+              : "h-9 py-0 px-3",
             props.isDisabled && "bg-subtle",
             "rounded-[10px]",
             timezoneClassNames?.control && timezoneClassNames.control(state)

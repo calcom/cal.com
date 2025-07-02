@@ -16,8 +16,6 @@ export class DestinationCalendarsService {
     userId: number,
     delegationCredentialId?: string
   ) {
-    // note(Lauris): todo remove the log but leaving this now to confirm delegationCredentialId is received
-    console.log("debug: delegationCredentialId", delegationCredentialId);
     const userCalendars = await this.calendarsService.getCalendars(userId);
     const allCalendars: Calendar[] = userCalendars.connectedCalendars
       .map((cal: ConnectedCalendar) => cal.calendars ?? [])

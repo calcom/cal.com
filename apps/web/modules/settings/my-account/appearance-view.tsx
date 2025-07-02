@@ -19,19 +19,13 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import {
-  Alert,
-  Button,
-  ColorPicker,
-  Form,
-  showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  SettingsToggle,
-  UpgradeTeamsBadge,
-  useCalcomTheme,
-} from "@calcom/ui";
+import { Alert } from "@calcom/ui/components/alert";
+import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { useCalcomTheme } from "@calcom/ui/styles";
 
 const SkeletonLoader = () => {
   return (
@@ -85,7 +79,7 @@ const AppearanceView = ({
   user,
   hasPaidPlan,
 }: {
-  user: RouterOutputs["viewer"]["me"];
+  user: RouterOutputs["viewer"]["me"]["get"];
   hasPaidPlan: boolean;
 }) => {
   const { t } = useLocale();
@@ -161,7 +155,7 @@ const AppearanceView = ({
       typeof document !== "undefined" &&
       document.documentElement.classList.contains("dark"));
 
-  const mutation = trpc.viewer.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (data) => {
       await utils.viewer.me.invalidate();
       showToast(t("settings_updated_successfully"), "success");
@@ -436,7 +430,7 @@ const AppearanceView = ({
 };
 
 const AppearancePage = () => {
-  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.get.useQuery();
   const { isPending: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
   if (isPending || isTeamPlanStatusLoading || !user) return <SkeletonLoader />;

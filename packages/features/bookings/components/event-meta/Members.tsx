@@ -6,7 +6,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { AvatarGroup } from "@calcom/ui";
+import { AvatarGroup } from "@calcom/ui/components/avatar";
 
 export interface EventMembersProps {
   /**
@@ -47,7 +47,7 @@ export const EventMembers = ({
           {
             // We don't want booker to be able to see the list of other users or teams inside the embed
             href:
-              isEmbed || isPlatform || isPrivateLink
+              isEmbed || isPlatform || isPrivateLink || entity.hideProfileLink
                 ? null
                 : entity.teamSlug
                 ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
@@ -67,7 +67,7 @@ export const EventMembers = ({
           ...orgOrTeamAvatarItem,
           ...shownUsers.map((user) => ({
             href:
-              isPlatform || isPrivateLink
+              isPlatform || isPrivateLink || entity.hideProfileLink
                 ? null
                 : `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
                     user.profile?.username
