@@ -4,7 +4,13 @@ import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { useEffect, useRef } from "react";
 
-function Provider({ children }: { children: React.ReactNode }) {
+function Provider({
+  children,
+  enableSessionRecording = false,
+}: {
+  children: React.ReactNode;
+  enableSessionRecording?: boolean;
+}) {
   const initializeOnce = useRef(false);
 
   useEffect(() => {
@@ -20,13 +26,13 @@ function Provider({ children }: { children: React.ReactNode }) {
       request_batching: true,
       capture_pageview: false,
       capture_pageleave: false,
-      disable_session_recording: true,
+      disable_session_recording: !enableSessionRecording,
       advanced_disable_decide: true,
       loaded: (posthog) => {
         if (process.env.NODE_ENV === "development") posthog.debug();
       },
     });
-  }, []);
+  }, [enableSessionRecording]);
 
   return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
 }

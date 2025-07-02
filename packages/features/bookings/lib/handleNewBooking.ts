@@ -63,7 +63,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
-import { ServerPostHogBookingTracker } from "@calcom/lib/posthog/bookingEventTracker";
+import { BookingFunnelTracker } from "@calcom/lib/posthog/bookingEventTracker";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -405,7 +405,7 @@ async function handler(
 
   const isPlatformBooking = !!platformClientId;
 
-  const serverTracker = new ServerPostHogBookingTracker();
+  const funnelTracker = new BookingFunnelTracker();
 
   try {
     const eventType = await getEventType({
@@ -455,12 +455,11 @@ async function handler(
 
     const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
-    await serverTracker.trackBookingStarted({
+    funnelTracker.trackBookingStarted({
       eventTypeId,
       userId,
-      teamId: eventType.teamId,
+      teamId: eventType.teamId || undefined,
       isReschedule: !!rawBookingData.rescheduleUid,
-      isTeamEvent: !!eventType.teamId,
       paymentRequired: !!eventType.price,
       duration: eventType.length,
     });
@@ -851,7 +850,7 @@ async function handler(
           const userIdsSet = new Set(users.map((user) => user.id));
           const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
             memberId: eventTypeWithUsers.users[0].id ?? null,
-            teamId: eventType.teamId,
+            teamId: eventType.teamId || undefined,
           });
           const newLuckyUser = await getLuckyUser({
             // find a lucky user that is not already in the luckyUsers array
@@ -2236,14 +2235,12 @@ async function handler(
       });
     }
 
-    await serverTracker.trackBookingCompleted({
-      bookingId: booking.id,
+    funnelTracker.trackBookingCompleted({
       bookingUid: booking.uid,
       eventTypeId,
       userId,
-      teamId: eventType.teamId,
+      teamId: eventType.teamId || undefined,
       isReschedule: !!rawBookingData.rescheduleUid,
-      isTeamEvent: !!eventType.teamId,
       paymentRequired: !!eventType.price,
       duration: eventType.length,
     });
@@ -2269,17 +2266,6 @@ async function handler(
       videoCallUrl: metadata?.videoCallUrl,
     };
   } catch (error) {
-    await serverTracker.trackBookingFailed({
-      eventTypeId: rawBookingData.eventTypeId,
-      userId,
-      teamId: null,
-      isReschedule: !!rawBookingData.rescheduleUid,
-      isTeamEvent: false,
-      paymentRequired: false,
-      error: error instanceof Error ? error.message : String(error),
-      errorCode: error instanceof Error && "code" in error ? String(error.code) : undefined,
-    });
-
     throw error;
   }
 }

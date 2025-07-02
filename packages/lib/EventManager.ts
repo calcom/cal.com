@@ -19,7 +19,6 @@ import {
   getPiiFreeCredential,
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
-import { ServerPostHogBookingTracker } from "@calcom/lib/posthog/bookingEventTracker";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
@@ -136,7 +135,6 @@ export default class EventManager {
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
   appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
-  private serverTracker = new ServerPostHogBookingTracker();
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
@@ -295,25 +293,11 @@ export default class EventManager {
         };
       });
 
-      await this.serverTracker.trackCalendarEventCreated({
-        eventTypeId: event.eventTypeId,
-        userId: event.organizer?.id,
-        calendarIntegrations: this.calendarCredentials.map((c) => c.type),
-      });
-
       return {
         results,
         referencesToCreate,
       };
     } catch (error) {
-      await this.serverTracker.trackCalendarEventFailed({
-        eventTypeId: event.eventTypeId,
-        userId: event.organizer?.id,
-        calendarIntegrations: this.calendarCredentials.map((c) => c.type),
-        error: error instanceof Error ? error.message : String(error),
-        errorCode: error instanceof Error && "code" in error ? String(error.code) : undefined,
-      });
-
       throw error;
     }
   }

@@ -1,13 +1,10 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
-import { ServerPostHogBookingTracker } from "@calcom/lib/posthog/bookingEventTracker";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { createWebhookSignature, jsonParse } from "./sendPayload";
 
 export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
-  const serverTracker = new ServerPostHogBookingTracker();
-
   await prisma.webhookScheduledTriggers.deleteMany({
     where: {
       startAfter: {
@@ -77,11 +74,6 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
       endTime: string;
       triggerEvent: string;
     };
-
-    await serverTracker.trackWebhookExecuted({
-      bookingId: parsedJobPayload.id,
-      webhookType: parsedJobPayload.triggerEvent,
-    });
 
     // clean finished job
     await prisma.webhookScheduledTriggers.delete({

@@ -17,6 +17,7 @@ import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useBookingFunnelTracker } from "@calcom/lib/posthog/bookingEventTracker";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -120,6 +121,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
+  const funnelTracker = useBookingFunnelTracker();
 
   const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
   const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
@@ -203,6 +205,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         ? duration
         : event.data?.length;
 
+      funnelTracker.trackFormFilled({
+        bookingUid: booking.uid,
+        eventTypeId: eventTypeId || undefined,
+        teamId: undefined,
+        isReschedule: isRescheduling,
+        paymentRequired: !!paymentUid,
+        duration: validDuration,
+      });
+
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {
           booking: booking,
@@ -247,6 +258,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       }
 
       if (paymentUid) {
+        funnelTracker.trackPaymentInitiated({
+          bookingUid: booking.uid,
+          eventTypeId: eventTypeId || undefined,
+          teamId: undefined,
+          isReschedule: isRescheduling,
+          paymentRequired: true,
+          duration: validDuration,
+        });
+
         router.push(
           createPaymentLink({
             paymentUid,
@@ -339,6 +359,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       }
 
       const { uid } = booking;
+
+      funnelTracker.trackFormFilled({
+        bookingUid: booking.uid,
+        eventTypeId: eventTypeId || undefined,
+        teamId: undefined,
+        isReschedule: isRescheduling,
+        paymentRequired: false,
+        duration: event.data?.length,
+      });
 
       if (!uid) {
         console.error("No uid returned from createRecurringBookingMutation");

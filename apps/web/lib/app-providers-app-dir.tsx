@@ -7,6 +7,7 @@ import type { AppProps as NextAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
 
+import DynamicBookingPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/bookingProviderDynamic";
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
@@ -130,7 +131,7 @@ const AppProviders = (props: PageWrapperProps) => {
   );
 
   if (props.isBookingPage || isBookingPage) {
-    return RemainingProviders;
+    return <DynamicBookingPostHogProvider>{RemainingProviders}</DynamicBookingPostHogProvider>;
   }
 
   return (
