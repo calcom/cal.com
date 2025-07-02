@@ -272,6 +272,8 @@
   "guests": "Guests",
   "guest": "Guest",
   "web_conferencing_details_to_follow": "Web conferencing details to follow in the confirmation email.",
+  "confirmation":"Confirmation",
+  "what_booker_should_provide": "What your booker should provide to receive confirmations",
   "404_the_user": "The username",
   "username": "Username",
   "is_still_available": "is still available.",
@@ -1720,6 +1722,8 @@
   "show_available_seats_count": "Show the number of available seats",
   "how_booking_questions_as_variables": "How to use booking questions as variables?",
   "format": "Format",
+  "questions": "Questions",
+  "all_info_your_booker_provide": "All the info your booker should provide before booking with you.",
   "uppercase_for_letters": "Use uppercase for all letters",
   "replace_whitespaces_underscores": "Replace whitespaces with underscores",
   "platform_members": "Platform members",
@@ -3281,5 +3285,6 @@
   "booking_not_allowed_by_restriction_schedule_error": "Booking outside restriction schedule availability.",
   "restriction_schedule_not_found_error": "Restriction schedule not found",
   "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
+  "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
