@@ -7,7 +7,7 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@calcom/platform-libraries", "@calcom/features", "@calcom/lib", "@calcom/prisma"],
+  "ignore": ["@calcom/platform-libraries"],
   "privatePackages": {
     "version": false,
     "tag": false
