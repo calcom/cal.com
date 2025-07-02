@@ -494,10 +494,7 @@ class EventsInsights {
           .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
           .filter(Boolean);
 
-        return [
-          booking.uid,
-          { attendeeList: formattedAttendees, noShowGuest: attendeeList[0]?.noShow || false },
-        ];
+        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests }];
       })
     );
 
@@ -517,7 +514,7 @@ class EventsInsights {
         return [
           uid,
           {
-            noShowGuests,
+            noShowGuests: data.noShowGuests,
             ...attendeeFields,
           },
         ];
