@@ -32,7 +32,6 @@ import {
   SUCCESS_STATUS,
   VERSION_2024_06_14,
   VERSION_2024_08_13,
-  VERSION_2024_04_15,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
 import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
@@ -2596,7 +2595,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         const response = await request(app.getHttpServer())
           .post(`/v2/bookings/${cancelledBooking.uid}/cancel`)
           .send(body)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .expect(400);
 
