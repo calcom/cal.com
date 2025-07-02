@@ -4,6 +4,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { BOTID_USE_IN_BOOKER } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
 import { checkBotId } from "@calcom/lib/server/checkBotId";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -28,7 +29,9 @@ type RequestMeta = {
 async function handler(req: NextApiRequest & RequestMeta) {
   const userIp = getIP(req);
 
-  await checkBotId();
+  if (BOTID_USE_IN_BOOKER === "1") {
+    await checkBotId();
+  }
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",

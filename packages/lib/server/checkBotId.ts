@@ -1,9 +1,19 @@
 import { checkBotId as vercelCheckBotId } from "botid/server";
 
+import { NEXT_PUBLIC_BOTID_ENABLED } from "../constants";
 import { HttpError } from "../http-error";
 
 export async function checkBotId() {
   if (process.env.NEXT_PUBLIC_IS_E2E) {
+    return {
+      isHuman: true,
+      isBot: false,
+      isGoodBot: false,
+      bypassed: true,
+    };
+  }
+
+  if (!NEXT_PUBLIC_BOTID_ENABLED || NEXT_PUBLIC_BOTID_ENABLED !== "1") {
     return {
       isHuman: true,
       isBot: false,

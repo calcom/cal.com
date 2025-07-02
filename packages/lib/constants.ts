@@ -172,6 +172,8 @@ export const BOOKER_NUMBER_OF_DAYS_TO_LOAD = parseInt(
   0
 );
 
+export const NEXT_PUBLIC_BOTID_ENABLED = process.env.NEXT_PUBLIC_BOTID_ENABLED;
+export const BOTID_USE_IN_BOOKER = process.env.BOTID_USE_IN_BOOKER;
 export const MINIMUM_NUMBER_OF_ORG_SEATS = 30;
 export const ORG_SELF_SERVE_ENABLED = process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED === "1";
 export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE = 0;
