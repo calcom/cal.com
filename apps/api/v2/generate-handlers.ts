@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const handlerTemplate = (endpoint) => `import { VercelRequest, VercelResponse } from '@vercel/node';
+const handlerTemplate = (endpoint: string) => `import { VercelRequest, VercelResponse } from '@vercel/node';
 import { getServerlessApp } from '../../src/serverless/bootstrap';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
