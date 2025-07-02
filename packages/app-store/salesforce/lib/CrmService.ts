@@ -1181,10 +1181,6 @@ export default class SalesforceCRMService implements CRM {
 
     const customFieldInputsEnabled =
       appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectMap;
-    console.log(
-      "🚀 ~ generateWriteToEventBody ~ onBookingWriteToEventObjectMap:",
-      appOptions?.onBookingWriteToEventObjectMap
-    );
 
     if (!customFieldInputsEnabled) return {};
 
