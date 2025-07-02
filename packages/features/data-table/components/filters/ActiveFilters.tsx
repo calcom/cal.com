@@ -30,6 +30,7 @@ export function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
               key={column.id}
               column={column}
               options={column.dateRangeOptions}
+              showColumnName
               showClearButton
             />
           );

@@ -1,7 +1,6 @@
 import type { GetServerSidePropsResult, GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.server-config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
@@ -33,13 +32,6 @@ export async function getServerSideProps(
 
   const session = await getServerSession({ req });
   const user = session?.user;
-  const app = await getAppWithMetadata({ slug: "routing-forms" });
-
-  if (!app) {
-    return {
-      notFound: true,
-    };
-  }
 
   const result = await getServerSideProps(context as AppGetServerSidePropsContext, prisma, user);
 
@@ -53,7 +45,7 @@ export async function getServerSideProps(
 
   return {
     props: {
-      appUrl: app.simplePath || `/apps/routing-forms`,
+      appUrl: "/routing",
       ...result.props,
     },
   };

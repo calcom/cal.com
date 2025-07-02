@@ -133,7 +133,6 @@ export class UserRepository {
       orgSlug,
       usernameList,
     });
-    log.info("findUsersByUsername", safeStringify({ where, profiles }));
 
     return (
       await prisma.user.findMany({
@@ -141,7 +140,6 @@ export class UserRepository {
         where,
       })
     ).map((user) => {
-      log.info("findUsersByUsername", safeStringify({ user }));
       // User isn't part of any organization
       if (!profiles) {
         return {
@@ -159,6 +157,32 @@ export class UserRepository {
       return {
         ...user,
         profile: profileWithoutUser,
+      };
+    });
+  }
+
+  static async findPlatformMembersByUsernames({ usernameList }: { usernameList: string[] }) {
+    return (
+      await prisma.user.findMany({
+        select: userSelect,
+        where: {
+          username: {
+            in: usernameList,
+          },
+          isPlatformManaged: false,
+          profiles: {
+            some: {
+              organization: {
+                isPlatform: true,
+              },
+            },
+          },
+        },
+      })
+    ).map((user) => {
+      return {
+        ...user,
+        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
       };
     });
   }
@@ -338,7 +362,6 @@ export class UserRepository {
     user: T;
     upId: UpId;
   }) {
-    log.debug("enrichUserWithTheProfile", safeStringify({ user, upId }));
     const profile = await ProfileRepository.findByUpId(upId);
     if (!profile) {
       return {
@@ -613,7 +636,7 @@ export class UserRepository {
     return user;
   }
   static async getUserAdminTeams(userId: number) {
-    return prisma.user.findFirst({
+    return prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -690,10 +713,12 @@ export class UserRepository {
     return !!teams.length;
   }
   static async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
-    const isAdminOrOwnerOfTeam = await prisma.membership.findFirst({
+    const isAdminOrOwnerOfTeam = await prisma.membership.findUnique({
       where: {
-        userId,
-        teamId,
+        userId_teamId: {
+          userId,
+          teamId,
+        },
         role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
         accepted: true,
       },
@@ -853,7 +878,7 @@ export class UserRepository {
   }
 
   static async getUserStats({ userId }: { userId: number }) {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },

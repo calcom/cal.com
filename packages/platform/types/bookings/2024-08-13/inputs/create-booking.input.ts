@@ -17,6 +17,7 @@ import {
   Min,
   registerDecorator,
   Validate,
+  IsDefined,
 } from "class-validator";
 import { isValidPhoneNumber } from "libphonenumber-js";
 
@@ -40,6 +41,7 @@ export const FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE =
   "Either eventTypeId or eventTypeSlug + username or eventTypeSlug + teamSlug must be provided";
 
 function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (object: any) {
     registerDecorator({
       name: "requireEventTypeIdentification",
@@ -48,7 +50,7 @@ function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
       options: validationOptions,
       constraints: [],
       validator: {
-        validate(_value: any, args: ValidationArguments) {
+        validate(_: unknown, args: ValidationArguments) {
           const obj = args.object as CreateBookingInput_2024_08_13;
 
           const hasEventTypeId = !!obj?.eventTypeId;
@@ -68,28 +70,31 @@ function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
 }
 
 function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
-  return function (target: object, propertyName: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return function (object: any) {
     registerDecorator({
       name: "requireEmailOrPhone",
-      target: target.constructor,
-      propertyName: propertyName,
+      target: object,
+      propertyName: "attendee email or phone",
       options: validationOptions,
+      constraints: [],
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(_: unknown, args: ValidationArguments) {
           const obj = args.object as Attendee;
 
-          const hasPhoneNumber = !!obj.phoneNumber && obj.phoneNumber.trim().length > 0;
-          const hasEmail = !!obj.email && obj.email.trim().length > 0;
+          const hasPhoneNumber = !!obj.phoneNumber;
+          const hasEmail = !!obj.email;
           return hasPhoneNumber || hasEmail;
         },
         defaultMessage(): string {
-          return "At least one contact method (email or phone number) must be provided";
+          return "Attendee must have at least one contact method (email or phone number)";
         },
       },
     });
   };
 }
 
+@RequireEmailOrPhone()
 class Attendee {
   @ApiProperty({
     type: String,
@@ -108,7 +113,6 @@ class Attendee {
   @Validate((value: string) => !value || isEmail(value), {
     message: "Invalid email format",
   })
-  @RequireEmailOrPhone()
   email?: string;
 
   @ApiProperty({
@@ -162,15 +166,25 @@ export class CreateBookingInput_2024_08_13 {
   @IsDateString()
   start!: string;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @ApiPropertyOptional({
-    example: 30,
-    description: `If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.
-    If not provided then event type default length will be used for the booking.`,
+  @ApiProperty({
+    type: Attendee,
+    description: "The attendee's details.",
   })
-  lengthInMinutes?: number;
+  @IsDefined()
+  @ValidateNested()
+  @Type(() => Attendee)
+  attendee!: Attendee;
+
+  @ApiPropertyOptional({
+    type: Object,
+    description:
+      "Booking field responses consisting of an object with booking field slug as keys and user response as values for custom booking fields added by you.",
+    example: { customField: "customValue" },
+    required: false,
+  })
+  @IsObject()
+  @IsOptional()
+  bookingFieldsResponses?: Record<string, unknown>;
 
   @ApiPropertyOptional({
     type: Number,
@@ -221,14 +235,6 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   @IsString()
   organizationSlug?: string;
-
-  @ApiProperty({
-    type: Attendee,
-    description: "The attendee's details.",
-  })
-  @ValidateNested()
-  @Type(() => Attendee)
-  attendee!: Attendee;
 
   @ApiPropertyOptional({
     type: [String],
@@ -287,16 +293,15 @@ export class CreateBookingInput_2024_08_13 {
   })
   metadata?: Record<string, string>;
 
-  @ApiPropertyOptional({
-    type: Object,
-    description:
-      "Booking field responses consisting of an object with booking field slug as keys and user response as values.",
-    example: { customField: "customValue" },
-    required: false,
-  })
-  @IsObject()
   @IsOptional()
-  bookingFieldsResponses?: Record<string, unknown>;
+  @IsInt()
+  @Min(1)
+  @ApiPropertyOptional({
+    example: 30,
+    description: `If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.
+    If not provided then event type default length will be used for the booking.`,
+  })
+  lengthInMinutes?: number;
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
