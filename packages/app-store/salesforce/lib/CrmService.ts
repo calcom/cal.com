@@ -1250,6 +1250,10 @@ export default class SalesforceCRMService implements CRM {
       }
       valueToWrite = await this.getTextValueFromBookingTracking(fieldValue, bookingUid);
     } else if (fieldValue === "{assignmentReason}") {
+      if (!bookingUid) {
+        log.error(`BookingUid not passed. Cannot get assignment reason without it`);
+        return;
+      }
       valueToWrite = await this.getAssignmentReason(bookingUid);
       if (!valueToWrite) {
         log.error(`No assignment reason found for bookingUid ${bookingUid}`);
@@ -1347,7 +1351,7 @@ export default class SalesforceCRMService implements CRM {
     return tracking[`utm_${utmParam}` as keyof typeof tracking]?.toString() ?? "";
   }
 
-  private async getAssignmentReason(bookingId: number) {
+  private async getAssignmentReason(bookingId: string) {
     const assignmentReason = await AssignmentReasonRepository.findLatestReasonFromBookingUid(bookingId);
     return assignmentReason?.reasonString ?? "";
   }
