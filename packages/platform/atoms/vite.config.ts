@@ -1,8 +1,8 @@
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { resolve } from "path";
+import dts from "unplugin-dts/vite";
 import { defineConfig, loadEnv } from "vite";
-import dts from "vite-plugin-dts";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), ""); // .env inside of packages/platform/atoms

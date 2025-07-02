@@ -8,7 +8,7 @@ import {
   EMBED_MODAL_IFRAME_SLOT_STALE_TIME,
 } from "./constants";
 import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
-import css from "./embed.css";
+import css from "./embed.css?inline";
 import { SdkActionManager } from "./sdk-action-manager";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";

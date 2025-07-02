@@ -1,5 +1,5 @@
 import { EmbedElement } from "../EmbedElement";
-import loaderCss from "../loader.css";
+import loaderCss from "../loader.css?inline";
 import { getErrorString } from "../utils";
 import modalBoxHtml, { getSkeletonData } from "./ModalBoxHtml";
 
