@@ -302,6 +302,340 @@ describe("Calendar Cache", () => {
     ]);
   });
 
+  test("Cache HIT: Should avoid Google API calls when cache is available", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date().toISOString();
+
+    // Set up cache with test data
+    const calendarCache = await CalendarCache.init(null);
+    await calendarCache.upsertCachedAvailability({
+      credentialId: credentialInDb.id,
+      userId: credentialInDb.userId,
+      args: {
+        timeMin: getTimeMin(dateFrom),
+        timeMax: getTimeMax(dateTo),
+        items: [{ id: testSelectedCalendar.externalId }],
+      },
+      value: {
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: [
+              {
+                start: "2023-12-01T18:00:00Z",
+                end: "2023-12-01T19:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Spy on Google API methods that should NOT be called on cache hit
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+    const getAllCalendarsSpy = vi.spyOn(calendarService, "getAllCalendars");
+    const fetchAvailabilitySpy = vi.spyOn(calendarService, "fetchAvailability");
+
+    // Call getAvailability with selected calendars (should hit cache)
+    const result = await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar], true);
+
+    // Verify cache hit returned correct data
+    expect(result).toEqual([
+      {
+        start: "2023-12-01T18:00:00Z",
+        end: "2023-12-01T19:00:00Z",
+      },
+    ]);
+
+    // Verify NO Google API calls were made
+    expect(authedCalendarSpy).not.toHaveBeenCalled();
+    expect(getAllCalendarsSpy).not.toHaveBeenCalled();
+    expect(fetchAvailabilitySpy).not.toHaveBeenCalled();
+
+    // Clean up spies
+    authedCalendarSpy.mockRestore();
+    getAllCalendarsSpy.mockRestore();
+    fetchAvailabilitySpy.mockRestore();
+  });
+
+  test("Cache MISS: Should make Google API calls when cache is not available", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+    setFullMockOAuthManagerRequest();
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date(Date.now() + 100000000).toISOString(); // Different date to ensure cache miss
+
+    // Mock Google API responses
+    freebusyQueryMock.mockResolvedValueOnce({
+      data: {
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: [
+              {
+                start: "2023-12-01T10:00:00Z",
+                end: "2023-12-01T11:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Spy on Google API methods that SHOULD be called on cache miss
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+    const fetchAvailabilitySpy = vi.spyOn(calendarService, "fetchAvailability");
+
+    // Call getAvailability with selected calendars (should miss cache)
+    const result = await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar], true);
+
+    // Verify API call returned correct data
+    expect(result).toEqual([
+      {
+        start: "2023-12-01T10:00:00Z",
+        end: "2023-12-01T11:00:00Z",
+      },
+    ]);
+
+    // Verify Google API calls WERE made
+    expect(authedCalendarSpy).toHaveBeenCalled();
+    expect(fetchAvailabilitySpy).toHaveBeenCalled();
+
+    // Clean up spies
+    authedCalendarSpy.mockRestore();
+    fetchAvailabilitySpy.mockRestore();
+  });
+
+  test("Cache DISABLED: Should bypass cache when shouldServeCache=false", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+    setFullMockOAuthManagerRequest();
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date().toISOString();
+
+    // Set up cache with test data
+    const calendarCache = await CalendarCache.init(null);
+    await calendarCache.upsertCachedAvailability({
+      credentialId: credentialInDb.id,
+      userId: credentialInDb.userId,
+      args: {
+        timeMin: getTimeMin(dateFrom),
+        timeMax: getTimeMax(dateTo),
+        items: [{ id: testSelectedCalendar.externalId }],
+      },
+      value: {
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: [
+              {
+                start: "2023-12-01T18:00:00Z",
+                end: "2023-12-01T19:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Mock Google API to return different data than cache
+    freebusyQueryMock.mockResolvedValueOnce({
+      data: {
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: [
+              {
+                start: "2023-12-01T20:00:00Z",
+                end: "2023-12-01T21:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Spy on Google API methods
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+    const fetchAvailabilitySpy = vi.spyOn(calendarService, "fetchAvailability");
+
+    // Call getAvailability with shouldServeCache=false (should bypass cache)
+    const result = await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar], false);
+
+    // Verify API data was returned (not cache data)
+    expect(result).toEqual([
+      {
+        start: "2023-12-01T20:00:00Z",
+        end: "2023-12-01T21:00:00Z",
+      },
+    ]);
+
+    // Verify Google API calls WERE made even though cache existed
+    expect(authedCalendarSpy).toHaveBeenCalled();
+    expect(fetchAvailabilitySpy).toHaveBeenCalled();
+
+    // Clean up spies
+    authedCalendarSpy.mockRestore();
+    fetchAvailabilitySpy.mockRestore();
+  });
+
+  test("NO SELECTED CALENDARS: Should skip cache logic when no selectedCalendarIds", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+    setFullMockOAuthManagerRequest();
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date().toISOString();
+
+    // Mock Google API response for fallback scenario
+    calendarListMock.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: "primary@example.com",
+            primary: true,
+          },
+        ],
+      },
+    });
+
+    freebusyQueryMock.mockResolvedValueOnce({
+      data: {
+        calendars: {
+          "primary@example.com": {
+            busy: [
+              {
+                start: "2023-12-01T12:00:00Z",
+                end: "2023-12-01T13:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Spy on cache method that should NOT be called
+    const tryGetAvailabilityFromCacheSpy = vi.spyOn(calendarService, "tryGetAvailabilityFromCache" as any);
+
+    // Spy on Google API methods that SHOULD be called
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+    const getAllCalendarsSpy = vi.spyOn(calendarService, "getAllCalendars");
+
+    // Call getAvailability with empty selectedCalendars but fallbackToPrimary=true
+    const result = await calendarService.getAvailability(dateFrom, dateTo, [], true, true);
+
+    // Verify fallback logic worked
+    expect(result).toEqual([
+      {
+        start: "2023-12-01T12:00:00Z",
+        end: "2023-12-01T13:00:00Z",
+      },
+    ]);
+
+    // Verify cache was NOT checked
+    expect(tryGetAvailabilityFromCacheSpy).not.toHaveBeenCalled();
+
+    // Verify Google API calls WERE made for fallback logic
+    expect(authedCalendarSpy).toHaveBeenCalled();
+    expect(getAllCalendarsSpy).toHaveBeenCalled();
+
+    // Clean up spies
+    tryGetAvailabilityFromCacheSpy.mockRestore();
+    authedCalendarSpy.mockRestore();
+    getAllCalendarsSpy.mockRestore();
+  });
+
+  test("CACHE ERROR: Should handle cache errors gracefully and fall back to API", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+    setFullMockOAuthManagerRequest();
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date().toISOString();
+
+    // Mock cache to throw an error
+    const mockCalendarCache = {
+      getCachedAvailability: vi.fn().mockRejectedValueOnce(new Error("Cache error")),
+    };
+    vi.spyOn(CalendarCache, "init").mockResolvedValueOnce(mockCalendarCache as any);
+
+    // Mock Google API response
+    freebusyQueryMock.mockResolvedValueOnce({
+      data: {
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: [
+              {
+                start: "2023-12-01T14:00:00Z",
+                end: "2023-12-01T15:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Spy on Google API methods that SHOULD be called on cache error
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+    const fetchAvailabilitySpy = vi.spyOn(calendarService, "fetchAvailability");
+
+    // Call getAvailability (cache should fail, API should be called)
+    const result = await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar], true);
+
+    // Verify API fallback worked
+    expect(result).toEqual([
+      {
+        start: "2023-12-01T14:00:00Z",
+        end: "2023-12-01T15:00:00Z",
+      },
+    ]);
+
+    // Verify Google API calls WERE made due to cache error
+    expect(authedCalendarSpy).toHaveBeenCalled();
+    expect(fetchAvailabilitySpy).toHaveBeenCalled();
+
+    // Clean up spies
+    authedCalendarSpy.mockRestore();
+    fetchAvailabilitySpy.mockRestore();
+  });
+
+  test("OTHER INTEGRATIONS ONLY: Should return empty array without cache or API calls", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date().toISOString();
+
+    // Spy on methods that should NOT be called
+    const tryGetAvailabilityFromCacheSpy = vi.spyOn(calendarService, "tryGetAvailabilityFromCache" as any);
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+
+    // Call getAvailability with only other integration calendars
+    const result = await calendarService.getAvailability(
+      dateFrom,
+      dateTo,
+      [
+        {
+          integration: "outlook_calendar", // Different integration
+          externalId: "other@example.com",
+        },
+      ],
+      true
+    );
+
+    // Verify early return with empty array
+    expect(result).toEqual([]);
+
+    // Verify NO cache or API calls were made
+    expect(tryGetAvailabilityFromCacheSpy).not.toHaveBeenCalled();
+    expect(authedCalendarSpy).not.toHaveBeenCalled();
+
+    // Clean up spies
+    tryGetAvailabilityFromCacheSpy.mockRestore();
+    authedCalendarSpy.mockRestore();
+  });
+
   test("Calendar Cache is being ignored on cache MISS", async () => {
     const calendarCache = await CalendarCache.init(null);
     const credentialInDb = await createCredentialForCalendarService();
