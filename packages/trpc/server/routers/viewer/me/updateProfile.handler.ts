@@ -219,8 +219,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   if (bookingLimits) {
     const isValid = validateIntervalLimitOrder(bookingLimits);
-    if (!isValid)
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
+    if (!isValid) {
+      const t = await getTranslation(locale, "common");
+      throw new TRPCError({ code: "BAD_REQUEST", message: t("event_setup_booking_limits_error") });
+    }
 
     data.bookingLimits = bookingLimits;
   }

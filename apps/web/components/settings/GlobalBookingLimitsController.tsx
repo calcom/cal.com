@@ -14,11 +14,16 @@ import { Button } from "@calcom/ui/components/button";
 import { Form, SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-const GlobalBookingLimitsController = ({ bookingLimits }: { bookingLimits: IntervalLimit }) => {
+const GlobalBookingLimitsController = ({
+  bookingLimits,
+}: {
+  bookingLimits: IntervalLimit | null | undefined;
+}) => {
   const { t } = useLocale();
+  const safeBookingLimits = bookingLimits ?? {};
   const bookingsLimitFormMethods = useForm({
     defaultValues: {
-      bookingLimits,
+      bookingLimits: safeBookingLimits,
     },
   });
 

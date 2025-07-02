@@ -1,12 +1,15 @@
 import type { Session } from "next-auth";
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata, intervalLimitsType } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TGetInputSchema } from "./get.schema";
 
@@ -106,6 +109,16 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
       },
     })) !== null;
 
+  const bookingLimitsResult = intervalLimitsType.safeParse(user.bookingLimits || {});
+  if (!bookingLimitsResult.success) {
+    const t = await getTranslation(user.locale ?? "en", "common");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: t("event_setup_booking_limits_error"),
+      cause: bookingLimitsResult.error,
+    });
+  }
+
   return {
     id: user.id,
     name: user.name,
@@ -141,7 +154,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     ...profileData,
-    bookingLimits: intervalLimitsType.parse(user.bookingLimits || {}),
+    bookingLimits: bookingLimitsResult.data,
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),

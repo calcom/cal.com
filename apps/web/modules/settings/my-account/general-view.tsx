@@ -396,7 +396,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
         setValue={formMethods.setValue}
         existingSchedules={formMethods.getValues("travelSchedules") ?? []}
       />
-      <GlobalBookingLimitsController bookingLimits={user.bookingLimits ?? {}} />
+      <GlobalBookingLimitsController bookingLimits={user.bookingLimits} />
     </div>
   );
 };

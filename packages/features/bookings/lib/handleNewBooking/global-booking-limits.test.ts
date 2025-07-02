@@ -209,10 +209,9 @@ describe(
 
         // this is the third team booking of this week for user 101, limit reached
         await expect(
-          async () =>
-            await handleNewBooking({
-              bookingData: mockBookingAboveLimit,
-            })
+          handleNewBooking({
+            bookingData: mockBookingAboveLimit,
+          })
         ).rejects.toThrowError("no_available_users_found_error");
       });
 
@@ -294,12 +293,9 @@ describe(
         });
 
         // this is the second team booking of this day for user 101, limit reached
-        await expect(
-          async () =>
-            await handleNewBooking({
-              bookingData: mockBookingAboveLimit,
-            })
-        ).rejects.toThrowError("no_available_users_found_error");
+        await expect(handleNewBooking({ bookingData: mockBookingAboveLimit })).rejects.toThrowError(
+          "no_available_users_found_error"
+        );
       });
 
       test(`Booking limits per month`, async ({}) => {
@@ -619,9 +615,9 @@ describe(
         });
 
         // this is the second booking of this day for user 101, limit reached
-        await expect(
-          async () => await handleNewBooking({ bookingData: mockBookingData2 })
-        ).rejects.toThrowError("booking_limit_reached");
+        await expect(handleNewBooking({ bookingData: mockBookingData2 })).rejects.toThrowError(
+          "booking_limit_reached"
+        );
       });
       test(`Booking limits per week`, async ({}) => {
         await createBookingScenario(
@@ -698,9 +694,9 @@ describe(
         });
 
         // this is the fourth booking of this week for user 101, limit reached
-        await expect(
-          async () => await handleNewBooking({ bookingData: mockBookingData2 })
-        ).rejects.toThrowError("booking_limit_reached");
+        await expect(handleNewBooking({ bookingData: mockBookingData2 })).rejects.toThrowError(
+          "booking_limit_reached"
+        );
       });
       test(`Booking limits per month`, async ({}) => {
         await createBookingScenario(
@@ -777,9 +773,9 @@ describe(
         });
 
         // this is the fourth booking of this month for user 101, limit reached
-        await expect(
-          async () => await handleNewBooking({ bookingData: mockBookingData2 })
-        ).rejects.toThrowError("booking_limit_reached");
+        await expect(handleNewBooking({ bookingData: mockBookingData2 })).rejects.toThrowError(
+          "booking_limit_reached"
+        );
       });
       test(`Booking limits per year`, async ({}) => {
         await createBookingScenario(
@@ -806,7 +802,7 @@ describe(
                 userId: 101,
                 status: BookingStatus.ACCEPTED,
                 startTime: `2024-02-03T03:30:00.000Z`,
-                endTime: `2024-08-03T04:00:00.000Z`,
+                endTime: `2024-02-03T04:00:00.000Z`,
               },
             ],
             organizer: organizerWithBookingLimits({ PER_YEAR: 2 }),
@@ -849,9 +845,9 @@ describe(
         });
 
         // this is the third booking of this year for user 101, limit reached
-        await expect(
-          async () => await handleNewBooking({ bookingData: mockBookingData2 })
-        ).rejects.toThrowError("booking_limit_reached");
+        await expect(handleNewBooking({ bookingData: mockBookingData2 })).rejects.toThrowError(
+          "booking_limit_reached"
+        );
       });
     });
   },

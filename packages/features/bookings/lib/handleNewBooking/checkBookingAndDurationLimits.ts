@@ -47,6 +47,7 @@ const _checkBookingAndDurationLimits = async ({
     }
   }
 
+  // We are only interested in global booking limits for individual and managed events for which schedulingType is null
   if (eventType.userId && !eventType.schedulingType) {
     const eventTypeUser = await prisma.user.findUnique({
       where: {
@@ -66,7 +67,7 @@ const _checkBookingAndDurationLimits = async ({
         reqBodyRescheduleUid,
         eventType.schedule?.timeZone,
         { id: eventTypeUser.id, email: eventTypeUser.email },
-        true
+        /* isGlobalBookingLimits */ true
       );
     }
   }
