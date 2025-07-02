@@ -19,7 +19,7 @@ const SETUP_VIEW_SETPS = {
   ADMIN_USER: 1,
   LICENSE: 2,
   APPS: 3,
-};
+} as const;
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export function Setup(props: PageProps) {
