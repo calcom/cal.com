@@ -39,11 +39,18 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
   }
   // Find which hostname is being currently used
   let matchedHostname = null;
+  const webappUrl = new URL(WEBAPP_URL);
+  const webappHostname = `${webappUrl.hostname}${webappUrl.port ? `:${webappUrl.port}` : ""}`;
+
   const currentHostname = ALLOWED_HOSTNAMES.find((ahn) => {
     const normalizedAllowedHostname = ahn.replace(/^https?:\/\//, "");
-    const exactMatch = hostname === normalizedAllowedHostname;
-    const subdomainMatch = hostname.endsWith(`.${normalizedAllowedHostname}`);
-    if (exactMatch || subdomainMatch) {
+    const webappMatchesAllowed =
+      webappHostname.endsWith(`.${normalizedAllowedHostname}`) ||
+      webappHostname === normalizedAllowedHostname;
+    const hostnameMatchesAllowed =
+      hostname.endsWith(`.${normalizedAllowedHostname}`) || hostname === normalizedAllowedHostname;
+
+    if (webappMatchesAllowed && hostnameMatchesAllowed) {
       matchedHostname = normalizedAllowedHostname;
       return true;
     }
