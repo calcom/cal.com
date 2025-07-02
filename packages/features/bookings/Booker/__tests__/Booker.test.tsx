@@ -14,7 +14,7 @@ import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 import "@calcom/dayjs/__mocks__";
-import "@calcom/features/auth/Turnstile";
+import "@calcom/features/auth/BotId";
 
 import { Booker } from "../Booker";
 import { useBookerStore } from "../store";
