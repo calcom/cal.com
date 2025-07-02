@@ -491,16 +491,34 @@ class EventsInsights {
           .join("; ");
 
         const formattedAttendees = attendeeList
-          .slice(0, 3)
-          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null));
+          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+          .filter(Boolean);
 
         return [
           booking.uid,
+          { attendeeList: formattedAttendees, noShowGuest: attendeeList[0]?.noShow || false },
+        ];
+      })
+    );
+
+    const maxAttendees = Math.max(
+      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
+      0
+    );
+
+    const finalBookingMap = new Map(
+      Array.from(bookingMap.entries()).map(([uid, data]) => {
+        const attendeeFields: Record<string, string | null> = {};
+
+        for (let i = 1; i <= maxAttendees; i++) {
+          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
+        }
+
+        return [
+          uid,
           {
             noShowGuests,
-            attendee1: formattedAttendees[0] || null,
-            attendee2: formattedAttendees[1] || null,
-            attendee3: formattedAttendees[2] || null,
+            ...attendeeFields,
           },
         ];
       })
@@ -509,33 +527,37 @@ class EventsInsights {
     const data = csvData.map((bookingTimeStatus) => {
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
         return {
           ...bookingTimeStatus,
           noShowGuests: null,
-          attendee1: null,
-          attendee2: null,
-          attendee3: null,
+          ...nullAttendeeFields,
         };
       }
 
-      const attendeeData = bookingMap.get(bookingTimeStatus.uid);
+      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
 
       if (!attendeeData) {
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
         return {
           ...bookingTimeStatus,
           noShowGuests: null,
-          attendee1: null,
-          attendee2: null,
-          attendee3: null,
+          ...nullAttendeeFields,
         };
       }
 
       return {
         ...bookingTimeStatus,
         noShowGuests: attendeeData.noShowGuests,
-        attendee1: attendeeData.attendee1,
-        attendee2: attendeeData.attendee2,
-        attendee3: attendeeData.attendee3,
+        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
       };
     });
 
