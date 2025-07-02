@@ -3858,7 +3858,7 @@ __metadata:
     "@eslint/eslintrc": ^3
     "@radix-ui/react-tooltip": ^1.1.8
     "@types/mdx": ^2.0.13
-    "@types/node": ^20
+    "@types/node": ^22
     "@types/react": ^18
     "@types/react-dom": ^18
     airtable: ^0.12.2

@@ -3,7 +3,7 @@ description: "Cache or restore if necessary"
 inputs:
   node_version:
     required: false
-    default: v18.x
+    default: v22.x
 runs:
   using: "composite"
   steps:
