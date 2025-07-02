@@ -125,9 +125,9 @@ export class InsightsRoutingService {
           row.dateRange,
           {
             name: row.dateRange,
-            "Form Submissions": Number(row.totalSubmissions),
-            "Successful Routing": Number(row.successfulRoutings),
-            "Accepted Bookings": Number(row.acceptedBookings),
+            totalSubmissions: Number(row.totalSubmissions),
+            successfulRoutings: Number(row.successfulRoutings),
+            acceptedBookings: Number(row.acceptedBookings),
           },
         ])
     );
@@ -138,9 +138,9 @@ export class InsightsRoutingService {
       return (
         existingData || {
           name: dateRange.formattedDate,
-          "Form Submissions": 0,
-          "Successful Routing": 0,
-          "Accepted Bookings": 0,
+          totalSubmissions: 0,
+          successfulRoutings: 0,
+          acceptedBookings: 0,
         }
       );
     });

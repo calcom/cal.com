@@ -20,12 +20,11 @@ export default function InsightsRoutingFormResponsesPage() {
         <div className="mb-4 space-y-4">
           <RoutingFormResponsesTable />
 
+          <RoutingFunnel />
+
           <RoutedToPerPeriod />
 
-          <div className="flex space-x-4">
-            <FailedBookingsByField />
-            <RoutingFunnel />
-          </div>
+          <FailedBookingsByField />
 
           <small className="text-default block text-center">
             {t("looking_for_more_insights")}{" "}

@@ -4,11 +4,58 @@ import React from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 import { useInsightsParameters } from "@calcom/features/insights/hooks/useInsightsParameters";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+
+// Custom Tooltip component
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    dataKey: string;
+    name: string;
+    color: string;
+  }>;
+  label?: string;
+}) => {
+  const { t } = useLocale();
+
+  if (active && payload && payload.length) {
+    const totalSubmissions = payload.find((p) => p.dataKey === "totalSubmissions")?.value || 0;
+
+    return (
+      <div className="bg-inverted text-inverted border-subtle rounded-lg border p-3 shadow-lg">
+        <p className="font-medium">{label}</p>
+        {payload.map((entry, index: number) => {
+          const value = entry.value;
+          let displayValue = value.toString();
+
+          if (entry.dataKey === "successfulRoutings" || entry.dataKey === "acceptedBookings") {
+            const percentage = totalSubmissions > 0 ? ((value / totalSubmissions) * 100).toFixed(1) : "0";
+            displayValue = `${value} (${percentage}%)`;
+          }
+
+          return (
+            <p key={index} style={{ color: entry.color }}>
+              {entry.name}: {displayValue}
+            </p>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return null;
+};
 
 export function RoutingFunnel() {
   const { scope, selectedTeamId, startDate, endDate } = useInsightsParameters();
-  const { data, isSuccess, isPending } = trpc.viewer.insights.getRoutingFunnelData.useQuery(
+  const { t } = useLocale();
+  const { data, isSuccess } = trpc.viewer.insights.getRoutingFunnelData.useQuery(
     {
       scope,
       selectedTeamId,
@@ -32,7 +79,7 @@ export function RoutingFunnel() {
   return (
     <div className="w-full text-sm">
       <div className="flex h-12 items-center">
-        <h2 className="text-emphasis text-md font-semibold">Routing Funnel Over Time</h2>
+        <h2 className="text-emphasis text-md font-semibold">{t("routing_funnel")}</h2>
       </div>
       <div className="border-subtle w-full rounded-md border py-4">
         <ResponsiveContainer width="100%" height={300}>
@@ -40,11 +87,32 @@ export function RoutingFunnel() {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis allowDecimals={false} />
-            <Tooltip />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Area type="monotone" dataKey="Form Submissions" stackId="1" stroke="#8884d8" fill="#8884d8" />
-            <Area type="monotone" dataKey="Successful Routing" stackId="1" stroke="#83a6ed" fill="#83a6ed" />
-            <Area type="monotone" dataKey="Accepted Bookings" stackId="1" stroke="#82ca9d" fill="#82ca9d" />
+            <Area
+              type="monotone"
+              name={t("routing_funnel_total_submissions")}
+              dataKey="totalSubmissions"
+              stackId="1"
+              stroke="#8884d8"
+              fill="#8884d8"
+            />
+            <Area
+              type="monotone"
+              name={t("routing_funnel_successful_routings")}
+              dataKey="successfulRoutings"
+              stackId="1"
+              stroke="#83a6ed"
+              fill="#83a6ed"
+            />
+            <Area
+              type="monotone"
+              name={t("routing_funnel_accepted_bookings")}
+              dataKey="acceptedBookings"
+              stackId="1"
+              stroke="#82ca9d"
+              fill="#82ca9d"
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>

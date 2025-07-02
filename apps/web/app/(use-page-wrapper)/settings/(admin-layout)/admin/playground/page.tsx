@@ -2,8 +2,8 @@ import Link from "next/link";
 
 const LINKS = [
   {
-    title: "Drop Off",
-    href: "/settings/admin/playground/dropoff",
+    title: "Routing Funnel",
+    href: "/settings/admin/playground/routing-funnel",
   },
 ];
 
