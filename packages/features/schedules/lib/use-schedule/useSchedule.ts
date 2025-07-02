@@ -1,5 +1,7 @@
 import { useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
 
+import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
@@ -143,6 +145,42 @@ export const useSchedule = ({
         enabled: options.enabled && !isCallingApiV2Slots,
       })
     : trpc.viewer.slots.getSchedule.useQuery(input, options);
+
+  const availabilityLoadedFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (
+      schedule.isSuccess &&
+      schedule.data?.slots &&
+      eventSlug &&
+      eventId &&
+      !availabilityLoadedFiredRef.current
+    ) {
+      sdkActionManager?.fire("availabilityLoaded", {
+        eventId: eventId,
+        eventSlug: eventSlug,
+        eventTitle: eventSlug,
+      });
+      availabilityLoadedFiredRef.current = true;
+    }
+  }, [schedule.isSuccess, schedule.data?.slots, eventSlug, eventId]);
+
+  useEffect(() => {
+    if (
+      teamScheduleV2.isSuccess &&
+      teamScheduleV2.data?.slots &&
+      eventSlug &&
+      eventId &&
+      !availabilityLoadedFiredRef.current
+    ) {
+      sdkActionManager?.fire("availabilityLoaded", {
+        eventId: eventId,
+        eventSlug: eventSlug,
+        eventTitle: eventSlug,
+      });
+      availabilityLoadedFiredRef.current = true;
+    }
+  }, [teamScheduleV2.isSuccess, teamScheduleV2.data?.slots, eventSlug, eventId]);
 
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({
