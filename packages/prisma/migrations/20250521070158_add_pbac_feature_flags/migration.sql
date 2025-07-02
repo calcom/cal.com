@@ -4,6 +4,6 @@ VALUES
   (
     'pbac',
     false,
-    'Enable PBAC - Enables the PBAC feature globally.',
+    'Enables the PBAC feature.',
     'OPERATIONAL'
   ) ON CONFLICT (slug) DO NOTHING;
