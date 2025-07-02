@@ -269,4 +269,6 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
   }
 };
 
-export const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
+export const deleteScheduledWhatsappReminder = async (reminderId: number, referenceId: string | null) => {
+  return await deleteScheduledSMSReminder(reminderId, referenceId);
+};
