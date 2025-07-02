@@ -1,11 +1,9 @@
 import type { Prisma, Booking } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { buildWhereClause } from "~/lib/utils/bookings/get/buildWhereClause";
@@ -158,22 +156,9 @@ export async function handler(req: NextApiRequest) {
   const {
     userId,
     isSystemWideAdmin,
+    isOrganizationOwnerOrAdmin,
     pagination: { take, skip },
   } = req;
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { organizationId: true },
-  });
-
-  const isOrganizationOwnerOrAdmin = user?.organizationId
-    ? await checkPermissionWithFallback({
-        userId,
-        teamId: user.organizationId,
-        permission: "organization.listMembers",
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      })
-    : false;
   const { dateFrom, dateTo, order, sortBy, status } = schemaBookingGetParams.parse(req.query);
 
   const args: Prisma.BookingFindManyArgs = {};

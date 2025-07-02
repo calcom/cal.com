@@ -2,13 +2,11 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { getCalendarCredentialsWithoutDelegation, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import {
@@ -88,18 +86,7 @@ export async function patchHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin, query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const parsedBody = schemaDestinationCalendarEditBodyParams.parse(body);
-
-  const hasAdminPermission =
-    isSystemWideAdmin ||
-    (parsedBody.userId &&
-      (await checkPermissionWithFallback({
-        userId,
-        teamId: 0, // System-wide check
-        permission: "organization.listMembers",
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      })));
-
-  const assignedUserId = hasAdminPermission ? parsedBody.userId || userId : userId;
+  const assignedUserId = isSystemWideAdmin ? parsedBody.userId || userId : userId;
 
   validateIntegrationInput(parsedBody);
   const destinationCalendarObject: DestinationCalendarType = await getDestinationCalendar(id, prisma);

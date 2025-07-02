@@ -1,10 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 import { schemaTeamReadPublic } from "~/lib/validations/team";
@@ -42,18 +40,8 @@ export async function getHandler(req: NextApiRequest) {
   const { isSystemWideAdmin, userId } = req;
   const { teamId } = schemaQueryTeamId.parse(req.query);
   const where: Prisma.TeamWhereInput = { id: teamId };
-
-  const hasPermission =
-    isSystemWideAdmin ||
-    (await checkPermissionWithFallback({
-      userId,
-      teamId,
-      permission: "team.read",
-      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
-    }));
-
   // Non-admins can only query the teams they're part of
-  if (!hasPermission) where.members = { some: { userId } };
+  if (!isSystemWideAdmin) where.members = { some: { userId } };
   const data = await prisma.team.findFirstOrThrow({ where });
   return { team: schemaTeamReadPublic.parse(data) };
 }

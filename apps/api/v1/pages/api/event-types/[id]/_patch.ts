@@ -2,11 +2,10 @@ import { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import type { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
 import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
@@ -244,17 +243,6 @@ async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schema
   /** Only event type owners can modify it */
   const eventType = await prisma.eventType.findFirst({ where: { id, userId } });
   if (!eventType) throw new HttpError({ statusCode: 403, message: "Forbidden" });
-
-  if (eventType.teamId) {
-    const hasPermission = await checkPermissionWithFallback({
-      userId,
-      teamId: eventType.teamId,
-      permission: "eventType.update",
-      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-    });
-    if (!hasPermission) throw new HttpError({ statusCode: 403, message: "Forbidden" });
-  }
-
   await checkTeamEventEditPermission(req, body);
 }
 

@@ -91,9 +91,8 @@ export async function patchHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaSingleScheduleBodyParams>) {
-  const { isSystemWideAdmin, userId, user } = req;
+  const { isSystemWideAdmin } = req;
   if (isSystemWideAdmin) return;
-
   if (body.userId) {
     throw new HttpError({ statusCode: 403, message: "Non admin cannot change the owner of a schedule" });
   }

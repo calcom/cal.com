@@ -1,10 +1,8 @@
 import type { NextApiRequest } from "next";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
 import { schemaUserReadPublic } from "~/lib/validations/user";
@@ -40,29 +38,11 @@ import { schemaUserReadPublic } from "~/lib/validations/user";
  *         description: User was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { isSystemWideAdmin, userId } = req;
+  const { isSystemWideAdmin } = req;
 
   const query = schemaQueryUserId.parse(req.query);
-
-  let hasAdminAccess = isSystemWideAdmin;
-  if (!hasAdminAccess && userId) {
-    const targetUser = await prisma.user.findUnique({
-      where: { id: query.userId },
-      select: { organizationId: true },
-    });
-
-    if (targetUser?.organizationId) {
-      hasAdminAccess = await checkPermissionWithFallback({
-        userId,
-        teamId: targetUser.organizationId,
-        permission: "organization.listMembers",
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      });
-    }
-  }
-
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
-  if (!hasAdminAccess && query.userId !== req.userId)
+  if (!isSystemWideAdmin && query.userId !== req.userId)
     throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const data = await prisma.user.findUnique({ where: { id: query.userId } });
   const user = schemaUserReadPublic.parse({

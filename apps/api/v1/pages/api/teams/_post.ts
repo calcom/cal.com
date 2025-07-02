@@ -175,16 +175,15 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { isSystemWideAdmin, userId } = req;
+  const { isSystemWideAdmin } = req;
   const body = schemaTeamCreateBodyParams.parse(req.body);
 
   /* Non-admin users can only create teams for themselves */
-  if (!isSystemWideAdmin && body.ownerId) {
+  if (!isSystemWideAdmin && body.ownerId)
     throw new HttpError({
       statusCode: 401,
       message: "ADMIN required for `ownerId`",
     });
-  }
 }
 
 const generateTeamCheckoutSession = async ({

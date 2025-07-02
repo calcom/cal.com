@@ -1,8 +1,7 @@
 import type { NextApiRequest } from "next";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
-import { MembershipRole } from "@calcom/prisma/enums";
+import prisma from "@calcom/prisma";
 
 import { membershipIdSchema } from "~/lib/validations/membership";
 
@@ -11,15 +10,9 @@ async function authMiddleware(req: NextApiRequest) {
   const { teamId } = membershipIdSchema.parse(req.query);
   // Admins can just skip this check
   if (isSystemWideAdmin) return;
-
-  const hasPermission = await checkPermissionWithFallback({
-    userId,
-    teamId,
-    permission: "team.changeMemberRole",
-    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-  });
-
-  if (!hasPermission) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  // Only team members can modify a membership
+  const membership = await prisma.membership.findFirst({ where: { userId, teamId } });
+  if (!membership) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default authMiddleware;

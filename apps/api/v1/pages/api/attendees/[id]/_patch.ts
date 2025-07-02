@@ -1,11 +1,9 @@
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaAttendeeEditBodyParams, schemaAttendeeReadPublic } from "~/lib/validations/attendee";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -65,33 +63,14 @@ export async function patchHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaAttendeeEditBodyParams>) {
-  const { isSystemWideAdmin, userId } = req;
+  const { isSystemWideAdmin } = req;
   if (isSystemWideAdmin) return;
+  const { userId } = req;
   const { bookingId } = body;
   if (bookingId) {
     // Ensure that the booking the attendee is being added to belongs to the user
     const booking = await prisma.booking.findFirst({ where: { id: bookingId, userId } });
     if (!booking) throw new HttpError({ statusCode: 403, message: "You don't have access to the booking" });
-
-    if (booking.eventTypeId) {
-      const eventType = await prisma.eventType.findUnique({
-        where: { id: booking.eventTypeId },
-        select: { teamId: true },
-      });
-      if (eventType?.teamId) {
-        const hasPermission = await checkPermissionWithFallback({
-          userId,
-          teamId: eventType.teamId,
-          permission: "booking.update",
-          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-        });
-        if (!hasPermission)
-          throw new HttpError({
-            statusCode: 403,
-            message: "You don't have permission to edit this attendee",
-          });
-      }
-    }
   }
 }
 

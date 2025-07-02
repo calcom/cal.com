@@ -30,7 +30,6 @@ import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-c
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
-
   const args: Prisma.EventTypeCustomInputFindManyArgs = isSystemWideAdmin
     ? {}
     : { where: { eventType: { userId } } };

@@ -1,11 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import {
   membershipEditBodySchema,
@@ -67,29 +65,11 @@ async function checkPermissions(req: NextApiRequest) {
     });
   // Only team OWNERS and ADMINS can modify `role`
   if ("role" in data) {
-    const canChangeMemberRole = await checkPermissionWithFallback({
-      userId,
-      teamId,
-      permission: "team.changeMemberRole",
-      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    const membership = await prisma.membership.findFirst({
+      where: { userId, teamId, role: { in: ["ADMIN", "OWNER"] } },
     });
-
-    if (!canChangeMemberRole) {
+    if (!membership || (membership.role !== "OWNER" && req.body.role === "OWNER"))
       throw new HttpError({ statusCode: 403, message: "Forbidden" });
-    }
-
-    if (req.body.role === "OWNER") {
-      const canAssignOwnerRole = await checkPermissionWithFallback({
-        userId,
-        teamId,
-        permission: "team.changeMemberRole",
-        fallbackRoles: [MembershipRole.OWNER],
-      });
-
-      if (!canAssignOwnerRole) {
-        throw new HttpError({ statusCode: 403, message: "Forbidden" });
-      }
-    }
   }
 }
 

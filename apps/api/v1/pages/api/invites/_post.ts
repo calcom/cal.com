@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
+import prisma from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 import type { TInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
@@ -67,13 +67,10 @@ async function checkPermissions(req: NextApiRequest, body: TInviteMemberInputSch
   if (!isSystemWideAdmin && "accepted" in body)
     throw new HttpError({ statusCode: 403, message: "ADMIN needed for `accepted`" });
   // Only team OWNERS and ADMINS can add other members
-  const hasPermission = await checkPermissionWithFallback({
-    userId,
-    teamId: body.teamId,
-    permission: "team.invite",
-    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  const membership = await prisma.membership.findFirst({
+    where: { userId, teamId: body.teamId, role: { in: ["ADMIN", "OWNER"] } },
   });
-  if (!hasPermission) throw new HttpError({ statusCode: 403, message: "You can't add members to this team" });
+  if (!membership) throw new HttpError({ statusCode: 403, message: "You can't add members to this team" });
 }
 
 export default defaultResponder(postHandler);

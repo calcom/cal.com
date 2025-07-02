@@ -1,9 +1,7 @@
 import type { NextApiRequest } from "next";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -15,22 +13,7 @@ async function authMiddleware(req: NextApiRequest) {
   }
 
   const { id } = schemaQueryIdParseInt.parse(query);
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { organizationId: true },
-  });
-
-  const hasOrgAdminPermission = user?.organizationId
-    ? await checkPermissionWithFallback({
-        userId,
-        teamId: user.organizationId,
-        permission: "organization.listMembers",
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      })
-    : false;
-
-  if (hasOrgAdminPermission || isOrganizationOwnerOrAdmin) {
+  if (isOrganizationOwnerOrAdmin) {
     const booking = await prisma.booking.findUnique({
       where: { id },
       select: { userId: true },
@@ -47,7 +30,7 @@ async function authMiddleware(req: NextApiRequest) {
     }
   }
 
-  const userWithBookings = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       email: true,
@@ -55,15 +38,15 @@ async function authMiddleware(req: NextApiRequest) {
     },
   });
 
-  if (!userWithBookings) throw new HttpError({ statusCode: 404, message: "User not found" });
+  if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
 
-  const filteredBookings = userWithBookings?.bookings?.filter((booking) => booking.id === id);
+  const filteredBookings = user?.bookings?.filter((booking) => booking.id === id);
   const userIsHost = !!filteredBookings?.length;
 
   const bookingsAsAttendee = prisma.booking.findMany({
     where: {
       id,
-      attendees: { some: { email: userWithBookings.email } },
+      attendees: { some: { email: user.email } },
     },
   });
 

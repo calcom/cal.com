@@ -1,10 +1,8 @@
 import type { NextApiRequest } from "next";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "~/lib/validations/attendee";
 
@@ -60,20 +58,10 @@ async function postHandler(req: NextApiRequest) {
   if (!isSystemWideAdmin) {
     const userBooking = await prisma.booking.findFirst({
       where: { userId, id: body.bookingId },
-      select: { id: true, eventType: { select: { teamId: true } } },
+      select: { id: true },
     });
     // Here we make sure to only return attendee's of the user's own bookings.
     if (!userBooking) throw new HttpError({ statusCode: 403, message: "Forbidden" });
-
-    if (userBooking.eventType?.teamId) {
-      const hasPermission = await checkPermissionWithFallback({
-        userId,
-        teamId: userBooking.eventType.teamId,
-        permission: "booking.update",
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      });
-      if (!hasPermission) throw new HttpError({ statusCode: 403, message: "Forbidden" });
-    }
   }
 
   const data = await prisma.attendee.create({
