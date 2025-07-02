@@ -842,11 +842,11 @@ async function handler(
       );
 
       const luckyUsers: typeof users = [];
-
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
+      let index = 0;
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
-        while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+        while (luckyUserPool.length > 0 && luckyUsers.length < index + 1 /* TODO: Add variable */) {
           const freeUsers = luckyUserPool.filter(
             (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
           );
@@ -915,6 +915,7 @@ async function handler(
             luckyUsers.push(newLuckyUser);
           }
         }
+        index++;
       }
 
       // ALL fixed users must be available
