@@ -47,11 +47,9 @@ function getPageInfo(pathname: string, host: string) {
   }
 }
 
-export function NotFound() {
+export function NotFound({ host }: { host: string }) {
   const { t } = useLocale();
   const pathname = usePathname() ?? "";
-  const host = window.location.hostname;
-
   const { username, pageType, url } = getPageInfo(pathname, host);
   const isBookingSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isBookingSuccessPage;

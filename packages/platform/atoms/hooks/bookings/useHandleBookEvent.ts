@@ -4,7 +4,6 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -90,8 +89,6 @@ export const useHandleBookEvent = ({
         : duration && event.data.metadata?.multipleDuration?.includes(duration)
         ? duration
         : event.data.length;
-
-      setLastBookingResponse(values.responses);
 
       const bookingInput = {
         values,

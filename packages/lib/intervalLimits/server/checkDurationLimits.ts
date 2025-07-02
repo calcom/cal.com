@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
-import { getTotalBookingDuration } from "@calcom/lib/server/queries";
+import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit, IntervalLimitKey } from "../intervalLimitSchema";

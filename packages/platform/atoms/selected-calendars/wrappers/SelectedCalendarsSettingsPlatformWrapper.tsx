@@ -333,7 +333,7 @@ const PlatformAdditionalCalendarSelector = ({
         <div>
           <div>
             <Connect.GoogleCalendar
-              // isDryRun={isDryRun}
+              isDryRun={isDryRun}
               isMultiCalendar={true}
               isClickable={true}
               tooltip={<></>}
@@ -346,7 +346,7 @@ const PlatformAdditionalCalendarSelector = ({
           </div>
           <div>
             <Connect.OutlookCalendar
-              // isDryRun={isDryRun}
+              isDryRun={isDryRun}
               isMultiCalendar={true}
               isClickable={true}
               tooltip={<></>}
@@ -359,7 +359,7 @@ const PlatformAdditionalCalendarSelector = ({
           </div>
           <div>
             <AppleConnect
-              // isDryRun={isDryRun}
+              isDryRun={isDryRun}
               onSuccess={refetch}
               isClickable={true}
               isMultiCalendar={true}

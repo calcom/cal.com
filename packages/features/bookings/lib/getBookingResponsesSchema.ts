@@ -17,6 +17,7 @@ export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 const catchAllSchema = bookingResponsesDbSchema;
 
 const ensureValidPhoneNumber = (value: string) => {
+  if (!value) return "";
   // + in URL could be replaced with space, so we need to replace it back
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");

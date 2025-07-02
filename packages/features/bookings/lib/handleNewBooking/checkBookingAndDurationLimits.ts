@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { checkBookingLimits } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { checkDurationLimits } from "@calcom/lib/intervalLimits/server/checkDurationLimits";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
@@ -17,7 +18,7 @@ type InputProps = {
   reqBodyRescheduleUid?: string;
 };
 
-export const checkBookingAndDurationLimits = async ({
+const _checkBookingAndDurationLimits = async ({
   eventType,
   reqBodyStart,
   reqBodyRescheduleUid,
@@ -70,3 +71,8 @@ export const checkBookingAndDurationLimits = async ({
     }
   }
 };
+
+export const checkBookingAndDurationLimits = withReporting(
+  _checkBookingAndDurationLimits,
+  "checkBookingAndDurationLimits"
+);

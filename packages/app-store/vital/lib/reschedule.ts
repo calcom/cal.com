@@ -67,7 +67,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
 
   if (bookingToReschedule && bookingToReschedule.eventTypeId && bookingToReschedule.user) {
     const userOwner = bookingToReschedule.user;
-    const event = await prisma.eventType.findFirstOrThrow({
+    const event = await prisma.eventType.findUniqueOrThrow({
       select: {
         title: true,
       },
@@ -118,6 +118,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
         tAttendees
       ),
       organizer: userOwnerAsPeopleType,
+      hideOrganizerEmail: bookingToReschedule.eventType?.hideOrganizerEmail,
       team: !!bookingToReschedule.eventType?.team
         ? {
             name: bookingToReschedule.eventType.team.name,

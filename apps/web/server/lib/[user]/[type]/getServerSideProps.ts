@@ -8,6 +8,7 @@ import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/featu
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -15,6 +16,8 @@ import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+
+import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
 
 type Props = {
   eventData: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
@@ -58,7 +61,9 @@ async function processReschedule({
     booking === null ||
     !booking.eventTypeId ||
     (booking?.eventTypeId === props.eventData?.id &&
-      (booking.status !== BookingStatus.CANCELLED || allowRescheduleForCancelledBooking))
+      (booking.status !== BookingStatus.CANCELLED ||
+        allowRescheduleForCancelledBooking ||
+        !!(props.eventData as any)?.allowReschedulingCancelledBookings))
   ) {
     props.booking = booking;
     props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
@@ -228,10 +233,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const [user] = await UserRepository.findUsersByUsername({
-    usernameList: [username],
-    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-  });
+  const [user] = await getUsersInOrgContext([username], isValidOrgDomain ? currentOrgDomain : null);
 
   if (!user) {
     return {
@@ -240,6 +242,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
+
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
   const eventData = await EventRepository.getPublicEvent(
@@ -268,7 +271,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     eventData: eventData,
     user: username,
     slug,
-    isBrandingHidden: user?.hideBranding,
+    isBrandingHidden: shouldHideBrandingForUserEvent({
+      eventTypeId: eventData.id,
+      owner: user,
+    }),
     isSEOIndexable: allowSEOIndexing,
     themeBasis: username,
     bookingUid: bookingUid ? `${bookingUid}` : null,

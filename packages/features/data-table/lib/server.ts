@@ -4,6 +4,7 @@ import {
   isMultiSelectFilterValue,
   isTextFilterValue,
   isNumberFilterValue,
+  isDateRangeFilterValue,
 } from "./utils";
 
 type MakeWhereClauseProps = {
@@ -154,6 +155,19 @@ export function makeWhereClause(props: MakeWhereClauseProps) {
       default:
         throw new Error(`Invalid operator for number filter: ${operator}`);
     }
+  } else if (isDateRangeFilterValue(filterValue)) {
+    const { startDate, endDate } = filterValue.data;
+    if (!startDate || !endDate) {
+      throw new Error(`Invalid date range filter: ${JSON.stringify({ columnName, startDate, endDate })}`);
+    }
+
+    return {
+      [columnName]: {
+        ...jsonPathObj,
+        gte: startDate,
+        lte: endDate,
+      },
+    };
   }
   throw new Error(`Invalid filter type: ${JSON.stringify({ columnName, filterValue })}`);
 }

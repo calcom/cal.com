@@ -126,36 +126,6 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     await app.init();
   });
 
-  afterAll(async () => {
-    await prismaWriteService.prisma.app_RoutingForms_FormResponse.deleteMany({
-      where: {
-        formId: routingForm.id,
-      },
-    });
-    await prismaWriteService.prisma.app_RoutingForms_Form.deleteMany({
-      where: {
-        teamId: org.id,
-      },
-    });
-    await prismaWriteService.prisma.apiKey.deleteMany({
-      where: {
-        teamId: org.id,
-      },
-    });
-    await prismaWriteService.prisma.team.delete({
-      where: {
-        id: team.id,
-      },
-    });
-    await prismaWriteService.prisma.team.delete({
-      where: {
-        id: org.id,
-      },
-    });
-
-    await app.close();
-  });
-
   describe(`GET /v2/organizations/:orgId/routing-forms/:routingFormId/responses`, () => {
     it("should not get routing form responses for non existing org", async () => {
       return request(app.getHttpServer())
@@ -260,5 +230,45 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
           expect(data.response).toEqual(updatedResponse);
         });
     });
+  });
+
+  afterAll(async () => {
+    await prismaWriteService.prisma.app_RoutingForms_FormResponse.delete({
+      where: {
+        id: routingFormResponse.id,
+      },
+    });
+    await prismaWriteService.prisma.app_RoutingForms_FormResponse.delete({
+      where: {
+        id: routingFormResponse2.id,
+      },
+    });
+    await prismaWriteService.prisma.app_RoutingForms_Form.deleteMany({
+      where: {
+        teamId: org.id,
+      },
+    });
+    await prismaWriteService.prisma.apiKey.deleteMany({
+      where: {
+        teamId: org.id,
+      },
+    });
+    await prismaWriteService.prisma.team.delete({
+      where: {
+        id: team.id,
+      },
+    });
+    await prismaWriteService.prisma.team.delete({
+      where: {
+        id: org.id,
+      },
+    });
+    await prismaWriteService.prisma.user.delete({
+      where: {
+        id: user.id,
+      },
+    });
+
+    await app.close();
   });
 });

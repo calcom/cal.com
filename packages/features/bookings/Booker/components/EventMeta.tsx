@@ -53,6 +53,7 @@ export const EventMeta = ({
   classNames,
   locale,
   timeZones,
+  children,
 }: {
   event?: Pick<
     BookerEvent,
@@ -83,9 +84,11 @@ export const EventMeta = ({
     eventMetaContainer?: string;
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
+    eventMetaChildren?: string;
   };
   locale?: string | null;
   timeZones?: Timezone[];
+  children?: React.ReactNode;
 }) => {
   const { timeFormat, timezone } = useBookerTime();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
@@ -165,7 +168,9 @@ export const EventMeta = ({
             {translatedTitle ?? event?.title}
           </EventTitle>
           {(event.description || translatedDescription) && (
-            <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
+            <EventMetaBlock
+              data-testid="event-meta-description"
+              contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
               <div
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
@@ -250,6 +255,7 @@ export const EventMeta = ({
               </EventMetaBlock>
             ) : null}
           </div>
+          {children && <div className={classNames?.eventMetaChildren}>{children}</div>}
         </m.div>
       )}
     </div>
