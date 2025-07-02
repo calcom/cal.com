@@ -1,4 +1,4 @@
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
@@ -25,10 +25,11 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
 
   const { memberIds, teamIds, isOrg } = input;
 
+  const permissionCheckService = new PermissionCheckService();
   const isAdmin = await Promise.all(
     teamIds.map(
       async (teamId) =>
-        await checkPermissionWithFallback({
+        await permissionCheckService.checkPermission({
           userId: ctx.user.id,
           teamId,
           permission: "team.remove",
@@ -38,7 +39,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   ).then((results) => results.every((result) => result));
 
   const isOrgAdmin = ctx.user.profile?.organizationId
-    ? await checkPermissionWithFallback({
+    ? await permissionCheckService.checkPermission({
         userId: ctx.user.id,
         teamId: ctx.user.profile?.organizationId,
         permission: "organization.remove",
@@ -54,13 +55,13 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     memberIds.map(async (memberId) => {
       const isAnyTeamOwnerAndCurrentUserNotOwner = await Promise.all(
         teamIds.map(async (teamId) => {
-          const memberIsOwner = await checkPermissionWithFallback({
+          const memberIsOwner = await permissionCheckService.checkPermission({
             userId: memberId,
             teamId,
             permission: "team.changeMemberRole",
             fallbackRoles: [MembershipRole.OWNER],
           });
-          const currentUserIsOwner = await checkPermissionWithFallback({
+          const currentUserIsOwner = await permissionCheckService.checkPermission({
             userId: ctx.user.id,
             teamId,
             permission: "team.changeMemberRole",

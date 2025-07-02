@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -24,7 +24,8 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
 
   /** Only admin or owner can create apiKeys of team (if teamId is passed) */
   if (teamId) {
-    const hasPermission = await checkPermissionWithFallback({
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
       userId,
       teamId,
       permission: "team.update",

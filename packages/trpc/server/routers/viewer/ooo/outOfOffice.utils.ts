@@ -1,4 +1,4 @@
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -31,7 +31,8 @@ export const isAdminForUser = async (adminUserId: number, memberUserId: number) 
   if (!member?.id) return false;
 
   for (const teamId of adminTeamIds) {
-    const hasPermission = await checkPermissionWithFallback({
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
       userId: adminUserId,
       teamId,
       permission: "team.update",

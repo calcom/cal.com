@@ -1,6 +1,6 @@
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -21,8 +21,9 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   if (!orgId)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have an organization to upgrade" });
 
+  const permissionCheckService = new PermissionCheckService();
   if (
-    !(await checkPermissionWithFallback({
+    !(await permissionCheckService.checkPermission({
       userId: ctx.user.id,
       teamId: orgId,
       permission: "organization.listMembers",

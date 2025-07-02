@@ -1,4 +1,4 @@
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -15,8 +15,9 @@ type DeleteOptions = {
 };
 
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
+  const permissionCheckService = new PermissionCheckService();
   if (
-    !(await checkPermissionWithFallback({
+    !(await permissionCheckService.checkPermission({
       userId: ctx.user?.id,
       teamId: input.teamId,
       permission: "team.changeMemberRole",

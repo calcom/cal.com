@@ -1,3 +1,4 @@
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -5,11 +6,8 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 // also returns team
 export async function isOrganisationAdmin(userId: number, orgId: number) {
-  const { checkPermissionWithFallback } = await import(
-    "@calcom/features/pbac/lib/checkPermissionWithFallback"
-  );
-
-  return await checkPermissionWithFallback({
+  const permissionCheckService = new PermissionCheckService();
+  return await permissionCheckService.checkPermission({
     userId,
     teamId: orgId,
     permission: "organization.listMembers",
@@ -17,11 +15,8 @@ export async function isOrganisationAdmin(userId: number, orgId: number) {
   });
 }
 export async function isOrganisationOwner(userId: number, orgId: number) {
-  const { checkPermissionWithFallback } = await import(
-    "@calcom/features/pbac/lib/checkPermissionWithFallback"
-  );
-
-  return await checkPermissionWithFallback({
+  const permissionCheckService = new PermissionCheckService();
+  return await permissionCheckService.checkPermission({
     userId,
     teamId: orgId,
     permission: "organization.changeMemberRole",

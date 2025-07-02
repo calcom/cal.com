@@ -4,7 +4,7 @@ import type { TFunction } from "i18next";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
@@ -67,8 +67,9 @@ export async function ensureAtleastAdminPermissions({
 }) {
   // Checks if the team they are inviting to IS the org. Not a child team
   if (isOrg) {
+    const permissionCheckService = new PermissionCheckService();
     if (
-      !(await checkPermissionWithFallback({
+      !(await permissionCheckService.checkPermission({
         userId,
         teamId,
         permission: "organization.invite",
@@ -78,8 +79,9 @@ export async function ensureAtleastAdminPermissions({
       throw new TRPCError({ code: "UNAUTHORIZED" });
   } else {
     // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
+    const permissionCheckService = new PermissionCheckService();
     if (
-      !(await checkPermissionWithFallback({
+      !(await permissionCheckService.checkPermission({
         userId,
         teamId,
         permission: "team.update",

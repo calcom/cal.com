@@ -17,7 +17,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { checkPermissionWithFallback } from "../../../pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "../../../pbac/services/permission-check.service";
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 
 type OrganizationOnboardingId = string;
@@ -296,7 +296,8 @@ export class OrganizationPaymentService {
 
     const { orgOwnerEmail, pricePerSeat, slug, billingPeriod, seats } = organizationOnboarding;
 
-    const isAdmin = await checkPermissionWithFallback({
+    const permissionCheckService = new PermissionCheckService();
+    const isAdmin = await permissionCheckService.checkPermission({
       userId: this.user.id,
       teamId: 0, // System-wide admin check
       permission: "organization.create",

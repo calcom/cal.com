@@ -8,7 +8,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import { checkPermissionWithFallback } from "../../../pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "../../../pbac/services/permission-check.service";
 
 const log = logger.getSubLogger({ prefix: ["ee", "organizations", "OrganizationPermissionService"] });
 type SeatsPrice = {
@@ -34,7 +34,8 @@ export class OrganizationPermissionService {
   async hasPermissionToCreateForEmail(targetEmail: string): Promise<boolean> {
     if (this.user.email === targetEmail) return true;
 
-    return await checkPermissionWithFallback({
+    const permissionCheckService = new PermissionCheckService();
+    return await permissionCheckService.checkPermission({
       userId: this.user.id,
       teamId: 0, // System-wide admin check
       permission: "organization.create",
@@ -60,7 +61,8 @@ export class OrganizationPermissionService {
   }
 
   async hasPermissionToModifyDefaultPayment(): Promise<boolean> {
-    return await checkPermissionWithFallback({
+    const permissionCheckService = new PermissionCheckService();
+    return await permissionCheckService.checkPermission({
       userId: this.user.id,
       teamId: 0, // System-wide admin check
       permission: "organization.update",

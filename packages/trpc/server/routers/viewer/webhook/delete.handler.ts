@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -26,7 +26,8 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     } else if (input.teamId) {
       where.AND.push({ teamId: input.teamId });
     } else {
-      const hasSystemAdminPermission = await checkPermissionWithFallback({
+      const permissionCheckService = new PermissionCheckService();
+      const hasSystemAdminPermission = await permissionCheckService.checkPermission({
         userId: ctx.user.id,
         teamId: 0, // System-wide check
         permission: "organization.listMembers",

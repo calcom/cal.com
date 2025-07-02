@@ -1,4 +1,4 @@
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -18,8 +18,9 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
   if (!user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
+  const permissionCheckService = new PermissionCheckService();
   if (
-    !(await checkPermissionWithFallback({
+    !(await permissionCheckService.checkPermission({
       userId: user?.id,
       teamId: user.organizationId,
       permission: "organization.invite",

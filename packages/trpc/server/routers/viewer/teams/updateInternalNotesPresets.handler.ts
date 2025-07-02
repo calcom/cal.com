@@ -1,4 +1,4 @@
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -21,8 +21,9 @@ export const updateInternalNotesPresetsHandler = async ({
   const isOrgAdmin = ctx.user?.organization?.isOrgAdmin;
 
   if (!isOrgAdmin) {
+    const permissionCheckService = new PermissionCheckService();
     if (
-      !(await checkPermissionWithFallback({
+      !(await permissionCheckService.checkPermission({
         userId: ctx.user?.id,
         teamId: input.teamId,
         permission: "team.update",

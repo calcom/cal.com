@@ -1,6 +1,6 @@
 import type { Session } from "next-auth";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -107,7 +107,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
   });
 
   const isTeamAdminOrOwner = membership
-    ? await checkPermissionWithFallback({
+    ? await new PermissionCheckService().checkPermission({
         userId: user.id,
         teamId: membership.teamId,
         permission: "team.update",

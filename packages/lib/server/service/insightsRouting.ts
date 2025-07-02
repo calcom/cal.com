@@ -155,11 +155,12 @@ export class InsightsRoutingService {
   }
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
-    const { checkPermissionWithFallback } = await import(
-      "@calcom/features/pbac/lib/checkPermissionWithFallback"
+    const { PermissionCheckService } = await import(
+      "@calcom/features/pbac/services/permission-check.service"
     );
 
-    return await checkPermissionWithFallback({
+    const permissionCheckService = new PermissionCheckService();
+    return await permissionCheckService.checkPermission({
       userId,
       teamId: orgId,
       permission: "organization.listMembers",

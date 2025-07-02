@@ -1,4 +1,4 @@
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -28,9 +28,11 @@ export const deleteInviteHandler = async ({ ctx, input }: DeleteInviteOptions) =
   });
 
   if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND" });
+
+  const permissionCheckService = new PermissionCheckService();
   if (
     !verificationToken.teamId ||
-    !(await checkPermissionWithFallback({
+    !(await permissionCheckService.checkPermission({
       userId: ctx.user.id,
       teamId: verificationToken.teamId,
       permission: "team.update",

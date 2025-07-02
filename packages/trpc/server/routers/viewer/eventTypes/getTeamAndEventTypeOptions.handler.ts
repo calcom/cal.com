@@ -1,4 +1,4 @@
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
@@ -142,7 +142,8 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
             metadata: teamMetadataSchema.parse(membership.team.metadata),
           };
 
-          const canManageEventTypes = await checkPermissionWithFallback({
+          const permissionCheckService = new PermissionCheckService();
+          const canManageEventTypes = await permissionCheckService.checkPermission({
             userId: user.id,
             teamId: team.id,
             permission: "eventType.update",

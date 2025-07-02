@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -19,7 +19,8 @@ type CreateInviteOptions = {
 
 export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) => {
   const { teamId } = input;
-  const hasPermission = await checkPermissionWithFallback({
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId,
     permission: "team.update",

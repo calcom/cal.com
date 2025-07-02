@@ -1,5 +1,5 @@
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
@@ -19,7 +19,8 @@ type CreateOptions = {
 const log = logger.getSubLogger({ prefix: ["viewer", "organizations", "createWithPaymentIntent"] });
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const paymentService = new OrganizationPaymentService(ctx.user);
-  const isAdmin = await checkPermissionWithFallback({
+  const permissionCheckService = new PermissionCheckService();
+  const isAdmin = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId: 0, // System-wide admin check
     permission: "organization.create",

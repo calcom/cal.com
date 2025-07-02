@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { Redirect } from "@calcom/lib/redirect";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
@@ -55,9 +55,11 @@ const generateCheckoutSession = async ({
 
 async function checkPermissions({ ctx, input }: PublishOptions) {
   const { profile } = ctx.user;
+  const permissionCheckService = new PermissionCheckService();
+
   if (
     profile?.organizationId &&
-    !(await checkPermissionWithFallback({
+    !(await permissionCheckService.checkPermission({
       userId: ctx.user.id,
       teamId: profile.organizationId,
       permission: "organization.invite",
@@ -67,7 +69,7 @@ async function checkPermissions({ ctx, input }: PublishOptions) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   if (
     !profile?.organizationId &&
-    !(await checkPermissionWithFallback({
+    !(await permissionCheckService.checkPermission({
       userId: ctx.user.id,
       teamId: input.teamId,
       permission: "team.update",

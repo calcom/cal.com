@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -216,7 +216,8 @@ export class InsightsBookingService {
   }
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
-    return await checkPermissionWithFallback({
+    const permissionCheckService = new PermissionCheckService();
+    return await permissionCheckService.checkPermission({
       userId,
       teamId: orgId,
       permission: "organization.listMembers",

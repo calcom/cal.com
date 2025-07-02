@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
@@ -26,8 +26,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const isOrgAdmin = ctx.user?.organization?.isOrgAdmin;
 
   if (!isOrgAdmin) {
+    const permissionCheckService = new PermissionCheckService();
     if (
-      !(await checkPermissionWithFallback({
+      !(await permissionCheckService.checkPermission({
         userId: ctx.user?.id,
         teamId: input.id,
         permission: "team.update",

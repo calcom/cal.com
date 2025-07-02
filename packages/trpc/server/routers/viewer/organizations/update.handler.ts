@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { uploadLogo } from "@calcom/lib/server/avatar";
@@ -109,9 +109,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // A user can only have one org so we pass in their currentOrgId here
   const currentOrgId = ctx.user?.organization?.id || input.orgId;
 
+  const permissionCheckService = new PermissionCheckService();
   const isUserOrganizationAdmin =
     currentOrgId &&
-    (await checkPermissionWithFallback({
+    (await permissionCheckService.checkPermission({
       userId: ctx.user?.id,
       teamId: currentOrgId,
       permission: "organization.listMembers",

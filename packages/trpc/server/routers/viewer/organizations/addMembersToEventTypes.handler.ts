@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -21,8 +21,9 @@ export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEve
   if (!ctx.user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
+  const permissionCheckService = new PermissionCheckService();
   if (
-    !(await checkPermissionWithFallback({
+    !(await permissionCheckService.checkPermission({
       userId: ctx.user?.id,
       teamId: ctx.user.organizationId,
       permission: "organization.listMembers",

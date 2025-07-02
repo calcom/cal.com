@@ -1,7 +1,7 @@
 import { type TFunction } from "i18next";
 
 import { TeamBilling } from "@calcom/ee/billing/teams";
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -285,7 +285,8 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   return result;
 
   async function throwIfInviterCantAddOwnerToOrg() {
-    const isInviterOrgOwner = await checkPermissionWithFallback({
+    const permissionCheckService = new PermissionCheckService();
+    const isInviterOrgOwner = await permissionCheckService.checkPermission({
       userId: inviter.id,
       teamId: input.teamId,
       permission: "organization.changeMemberRole",

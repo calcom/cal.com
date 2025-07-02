@@ -1,4 +1,4 @@
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -16,7 +16,8 @@ type RemoveHostsFromEventTypes = {
 
 export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHostsFromEventTypes) {
   const { userIds, eventTypeIds, teamId } = input;
-  const isTeamAdminOrOwner = await checkPermissionWithFallback({
+  const permissionCheckService = new PermissionCheckService();
+  const isTeamAdminOrOwner = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId,
     permission: "team.update",

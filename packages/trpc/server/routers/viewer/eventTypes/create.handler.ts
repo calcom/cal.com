@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
@@ -86,7 +86,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    const hasPermission = await checkPermissionWithFallback({
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
       userId,
       teamId,
       permission: "eventType.create",

@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import EventManager from "@calcom/lib/EventManager";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
@@ -45,7 +45,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
 
   const isTeamAdminOrOwner = booking.eventType?.teamId
-    ? await checkPermissionWithFallback({
+    ? await new PermissionCheckService().checkPermission({
         userId: user.id,
         teamId: booking.eventType.teamId,
         permission: "team.update",

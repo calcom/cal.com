@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -19,7 +19,8 @@ type AddBulkToEventTypeHandler = {
 export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEventTypeHandler) {
   const { eventTypeIds, userIds, teamId } = input;
 
-  const isTeamAdminOrOwner = await checkPermissionWithFallback({
+  const permissionCheckService = new PermissionCheckService();
+  const isTeamAdminOrOwner = await permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId,
     permission: "team.update",

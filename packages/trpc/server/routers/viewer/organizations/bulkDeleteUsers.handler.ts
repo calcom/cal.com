@@ -1,5 +1,5 @@
 import { TeamBilling } from "@calcom/ee/billing/teams";
-import { checkPermissionWithFallback } from "@calcom/features/pbac/lib/checkPermissionWithFallback";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -23,8 +23,9 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
   if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
+  const permissionCheckService = new PermissionCheckService();
   if (
-    !(await checkPermissionWithFallback({
+    !(await permissionCheckService.checkPermission({
       userId: currentUser?.id,
       teamId: currentUserOrgId,
       permission: "organization.listMembers",
