@@ -15,6 +15,12 @@ import LicenseSelection from "@components/setup/LicenseSelection";
 
 import type { getServerSideProps } from "@server/lib/setup/getServerSideProps";
 
+const SETUP_VIEW_SETPS = {
+  ADMIN_USER: 1,
+  LICENSE: 2,
+  APPS: 3,
+};
+
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export function Setup(props: PageProps) {
   const [hasPickedAGPLv3, setHasPickedAGPLv3] = useState(false);
@@ -27,12 +33,12 @@ export function Setup(props: PageProps) {
   const defaultStep = useMemo(() => {
     if (props.userCount > 0) {
       if (!props.hasValidLicense && !hasPickedAGPLv3) {
-        return 2;
+        return SETUP_VIEW_SETPS.LICENSE;
       } else {
-        return 3;
+        return SETUP_VIEW_SETPS.APPS;
       }
     }
-    return 1;
+    return SETUP_VIEW_SETPS.ADMIN_USER;
   }, [props.userCount, props.hasValidLicense, hasPickedAGPLv3]);
 
   const steps: WizardStep[] = [
