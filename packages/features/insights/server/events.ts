@@ -65,7 +65,7 @@ export interface DateRange {
   startDate: string;
   endDate: string;
   formattedDate: string;
-  formattedDateStraightforward: string;
+  formattedDateFull: string;
 }
 
 export interface GetDateRangesParams {
@@ -331,7 +331,7 @@ class EventsInsights {
             wholeStart: startDate,
             wholeEnd: endDate,
           }),
-          formattedDateStraightforward: this.formatPeriodStraightforward({
+          formattedDateFull: this.formatPeriodFull({
             start: currentStartDate,
             end: currentEndDate,
             timeView,
@@ -352,7 +352,7 @@ class EventsInsights {
           wholeStart: startDate,
           wholeEnd: endDate,
         }),
-        formattedDateStraightforward: this.formatPeriodStraightforward({
+        formattedDateFull: this.formatPeriodFull({
           start: currentStartDate,
           end: currentEndDate,
           timeView,
@@ -416,7 +416,7 @@ class EventsInsights {
     }
   }
 
-  static formatPeriodStraightforward({
+  static formatPeriodFull({
     start,
     end,
     timeView,
