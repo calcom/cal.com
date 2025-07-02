@@ -484,11 +484,12 @@ class EventsInsights {
             : booking.attendees;
 
         // List all no-show guests (name and email)
-        const noShowGuests = attendeeList
-          .filter((attendee) => attendee?.noShow)
-          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
-          .filter(Boolean) // remove null values
-          .join("; ");
+        const noShowGuests =
+          attendeeList
+            .filter((attendee) => attendee?.noShow)
+            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+            .filter(Boolean) // remove null values
+            .join("; ") || null;
 
         const formattedAttendees = attendeeList
           .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
