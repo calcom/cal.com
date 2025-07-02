@@ -593,6 +593,141 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
+  /**
+   * Converts FreeBusy response data to EventBusyDate array
+   */
+  private convertFreeBusyToEventBusyDates(
+    freeBusyResult: calendar_v3.Schema$FreeBusyResponse
+  ): EventBusyDate[] {
+    if (!freeBusyResult.calendars) return [];
+
+    return Object.entries(freeBusyResult.calendars).reduce((events, [id, calendar]) => {
+      calendar.busy?.forEach((busyTime) => {
+        events.push({
+          start: busyTime.start || "",
+          end: busyTime.end || "",
+        });
+      });
+      return events;
+    }, [] as EventBusyDate[]);
+  }
+
+  /**
+   * Attempts to get availability from cache
+   */
+  private async tryGetAvailabilityFromCache(
+    timeMin: string,
+    timeMax: string,
+    calendarIds: string[]
+  ): Promise<EventBusyDate[] | null> {
+    try {
+      const calendarCache = await CalendarCache.init(null);
+      const cached = await calendarCache.getCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args: {
+          // Expand the start date to the start of the month to increase cache hits
+          timeMin: getTimeMin(timeMin),
+          // Expand the end date to the end of the month to increase cache hits
+          timeMax: getTimeMax(timeMax),
+          items: calendarIds.map((id) => ({ id })),
+        },
+      });
+
+      if (cached) {
+        this.log.debug(
+          "[Cache Hit] Returning cached availability result",
+          safeStringify({ timeMin, timeMax, calendarIds })
+        );
+        const freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+        return this.convertFreeBusyToEventBusyDates(freeBusyResult);
+      }
+
+      return null;
+    } catch (error) {
+      this.log.debug("Cache check failed, proceeding with API call", safeStringify(error));
+      return null;
+    }
+  }
+
+  /**
+   * Gets calendar IDs for the request, either from selected calendars or fallback logic
+   */
+  private async getCalendarIds(
+    selectedCalendarIds: string[],
+    fallbackToPrimary?: boolean
+  ): Promise<string[]> {
+    if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
+
+    const calendar = await this.authedCalendar();
+    const cals = await this.getAllCalendars(calendar, ["id", "primary"]);
+    if (!cals.length) return [];
+
+    if (!fallbackToPrimary) {
+      return this.getValidCalendars(cals).map((cal) => cal.id);
+    }
+
+    const primaryCalendar = this.filterPrimaryCalendar(cals);
+    return primaryCalendar ? [primaryCalendar.id] : [];
+  }
+
+  /**
+   * Fetches availability data using the cache-or-fetch pattern
+   */
+  private async fetchAvailabilityData(
+    calendarIds: string[],
+    dateFrom: string,
+    dateTo: string,
+    shouldServeCache?: boolean
+  ): Promise<EventBusyDate[]> {
+    const originalStartDate = dayjs(dateFrom);
+    const originalEndDate = dayjs(dateTo);
+    const diff = originalEndDate.diff(originalStartDate, "days");
+
+    // Google API only allows a date range of 90 days for /freebusy
+    if (diff <= 90) {
+      const freeBusyData = await this.getCacheOrFetchAvailability(
+        {
+          timeMin: dateFrom,
+          timeMax: dateTo,
+          items: calendarIds.map((id) => ({ id })),
+        },
+        shouldServeCache
+      );
+
+      if (!freeBusyData) throw new Error("No response from google calendar");
+      return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
+    }
+
+    // Handle longer periods by chunking into 90-day periods
+    const busyData: EventBusyDate[] = [];
+    const loopsNumber = Math.ceil(diff / 90);
+    let startDate = originalStartDate;
+    let endDate = originalStartDate.add(90, "days");
+
+    for (let i = 0; i < loopsNumber; i++) {
+      if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
+
+      const chunkData = await this.getCacheOrFetchAvailability(
+        {
+          timeMin: startDate.format(),
+          timeMax: endDate.format(),
+          items: calendarIds.map((id) => ({ id })),
+        },
+        shouldServeCache
+      );
+
+      if (chunkData) {
+        busyData.push(...chunkData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end })));
+      }
+
+      startDate = endDate.add(1, "minutes");
+      endDate = startDate.add(90, "days");
+    }
+
+    return busyData;
+  }
+
   async getAvailability(
     dateFrom: string,
     dateTo: string,
@@ -604,71 +739,33 @@ export default class GoogleCalendarService implements Calendar {
     fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]> {
     this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));
-    const calendar = await this.authedCalendar();
+
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
       .map((e) => e.externalId);
+
+    // Early return if only other integrations are selected
     if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
-      // Only calendars of other integrations selected
       return [];
     }
-    const getCalIds = async () => {
-      if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
-      const cals = await this.getAllCalendars(calendar, ["id", "primary"]);
-      if (!cals.length) return [];
-      if (!fallbackToPrimary) return this.getValidCalendars(cals).map((cal) => cal.id);
 
-      const primaryCalendar = this.filterPrimaryCalendar(cals);
-      if (!primaryCalendar) return [];
-      return [primaryCalendar.id];
-    };
+    // Try cache first when we have selected calendar IDs
+    if (selectedCalendarIds.length > 0 && shouldServeCache !== false) {
+      const cachedResult = await this.tryGetAvailabilityFromCache(dateFrom, dateTo, selectedCalendarIds);
+      if (cachedResult) {
+        return cachedResult;
+      }
+    }
+
+    // Cache miss - proceed with API calls
+    this.log.debug(
+      "[Cache Miss] Proceeding with Google API calls",
+      safeStringify({ selectedCalendarIds, fallbackToPrimary })
+    );
 
     try {
-      const calsIds = await getCalIds();
-      const originalStartDate = dayjs(dateFrom);
-      const originalEndDate = dayjs(dateTo);
-      const diff = originalEndDate.diff(originalStartDate, "days");
-
-      // /freebusy from google api only allows a date range of 90 days
-      if (diff <= 90) {
-        const freeBusyData = await this.getCacheOrFetchAvailability(
-          {
-            timeMin: dateFrom,
-            timeMax: dateTo,
-            items: calsIds.map((id) => ({ id })),
-          },
-          shouldServeCache
-        );
-        if (!freeBusyData) throw new Error("No response from google calendar");
-
-        return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
-      } else {
-        const busyData = [];
-
-        const loopsNumber = Math.ceil(diff / 90);
-
-        let startDate = originalStartDate;
-        let endDate = originalStartDate.add(90, "days");
-
-        for (let i = 0; i < loopsNumber; i++) {
-          if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
-
-          busyData.push(
-            ...((await this.getCacheOrFetchAvailability(
-              {
-                timeMin: startDate.format(),
-                timeMax: endDate.format(),
-                items: calsIds.map((id) => ({ id })),
-              },
-              shouldServeCache
-            )) || [])
-          );
-
-          startDate = endDate.add(1, "minutes");
-          endDate = startDate.add(90, "days");
-        }
-        return busyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
-      }
+      const calendarIds = await this.getCalendarIds(selectedCalendarIds, fallbackToPrimary);
+      return await this.fetchAvailabilityData(calendarIds, dateFrom, dateTo, shouldServeCache);
     } catch (error) {
       this.log.error(
         "There was an error getting availability from google calendar: ",
