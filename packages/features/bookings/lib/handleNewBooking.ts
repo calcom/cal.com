@@ -280,9 +280,7 @@ export const buildEventForTeamEventType = async ({
   const fixedUsers = users.filter((user) => user.isFixed);
   const nonFixedUsers = users.filter((user) => !user.isFixed);
   const filteredUsers =
-    schedulingType === SchedulingType.ROUND_ROBIN
-      ? [...fixedUsers, ...(nonFixedUsers.length > 0 ? [nonFixedUsers[0]] : [])]
-      : users;
+    schedulingType === SchedulingType.ROUND_ROBIN ? [...fixedUsers, ...nonFixedUsers] : users;
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = filteredUsers
