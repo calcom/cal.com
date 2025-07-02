@@ -27,7 +27,17 @@ jobs:
 
       - name: Configure git
         run: |
-          git config --local user.email "${{ github.actor }}@users.noreply.github.com"
+          # Get user information from GitHub API
+          USER_EMAIL=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/users/${{ github.actor }}" | \
+            jq -r '.email // empty')
+          
+          # Fallback to a team-friendly email if user email is private/null
+          if [ -z "$USER_EMAIL" ] || [ "$USER_EMAIL" = "null" ]; then
+            USER_EMAIL="${{ github.actor }}@users.noreply.github.com"
+          fi
+          
+          git config --local user.email "$USER_EMAIL"
           git config --local user.name "${{ github.actor }}"
 
       - uses: ./.github/actions/yarn-install
