@@ -14,7 +14,8 @@
     "jsx": "preserve",
     "incremental": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@calcom/atoms": ["../../atoms"]
     },
     "forceConsistentCasingInFileNames": true
   },
