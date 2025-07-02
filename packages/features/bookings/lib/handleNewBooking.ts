@@ -802,11 +802,22 @@ async function handler(
         }
       }
 
-      const luckyUserPools: IsFixedAwareUser[][] = [];
+      const luckyUserPools: Record<string, IsFixedAwareUser[]> = {};
       const fixedUserPool: IsFixedAwareUser[] = [];
 
       availableUsers.forEach((user) => {
-        user.isFixed ? fixedUserPool.push(user) : luckyUserPools[0].push(user);
+        if (user.isFixed) {
+          fixedUserPool.push(user);
+        } else {
+          let groupId = user.groupId;
+          if (!groupId) {
+            groupId = "default_group_id";
+          }
+          if (!luckyUserPools[groupId]) {
+            luckyUserPools[groupId] = [];
+          }
+          luckyUserPools[groupId].push(user);
+        }
       });
 
       const notAvailableLuckyUsers: typeof users = [];
@@ -815,7 +826,9 @@ async function handler(
         "Computed available users",
         safeStringify({
           availableUsers: availableUsers.map((user) => user.id),
-          luckyUserPool: luckyUserPools[0].map((user) => user.id),
+          luckyUserPools: Object.fromEntries(
+            Object.entries(luckyUserPools).map(([groupId, users]) => [groupId, users.map((user) => user.id)])
+          ),
         })
       );
 
@@ -823,75 +836,78 @@ async function handler(
 
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
-      while (luckyUserPools[0].length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
-        const freeUsers = luckyUserPools[0].filter(
-          (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
-        );
-        // no more freeUsers after subtracting notAvailableLuckyUsers from luckyUsers :(
-        if (freeUsers.length === 0) break;
-        assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too with an assertion; the error will never be thrown.
-        // freeUsers is ensured
+      for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
+        while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+          const freeUsers = luckyUserPool.filter(
+            (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
+          );
+          // no more freeUsers after subtracting notAvailableLuckyUsers from luckyUsers :(
+          if (freeUsers.length === 0) break;
+          assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too with an assertion; the error will never be thrown.
+          // freeUsers is ensured
 
-        const userIdsSet = new Set(users.map((user) => user.id));
-        const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
-          memberId: eventTypeWithUsers.users[0].id ?? null,
-          teamId: eventType.teamId,
-        });
-        const newLuckyUser = await getLuckyUser({
-          // find a lucky user that is not already in the luckyUsers array
-          availableUsers: freeUsers,
-          allRRHosts: (
-            await enrichHostsWithDelegationCredentials({
-              orgId: firstUserOrgId ?? null,
-              hosts: eventTypeWithUsers.hosts,
-            })
-          ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
-          eventType,
-          routingFormResponse,
-          meetingStartTime: new Date(reqBody.start),
-        });
-        if (!newLuckyUser) {
-          break; // prevent infinite loop
-        }
-        if (
-          input.bookingData.isFirstRecurringSlot &&
-          eventType.schedulingType === SchedulingType.ROUND_ROBIN
-        ) {
-          // for recurring round robin events check if lucky user is available for next slots
-          try {
-            for (
-              let i = 0;
-              i < input.bookingData.allRecurringDates.length &&
-              i < input.bookingData.numSlotsToCheckForAvailability;
-              i++
-            ) {
-              const start = input.bookingData.allRecurringDates[i].start;
-              const end = input.bookingData.allRecurringDates[i].end;
+          const userIdsSet = new Set(users.map((user) => user.id));
+          const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+            memberId: eventTypeWithUsers.users[0].id ?? null,
+            teamId: eventType.teamId,
+          });
+          const newLuckyUser = await getLuckyUser({
+            // find a lucky user that is not already in the luckyUsers array
+            availableUsers: freeUsers,
+            allRRHosts: (
+              await enrichHostsWithDelegationCredentials({
+                orgId: firstUserOrgId ?? null,
+                hosts: eventTypeWithUsers.hosts,
+              })
+            ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
+            eventType,
+            routingFormResponse,
+            meetingStartTime: new Date(reqBody.start),
+          });
+          if (!newLuckyUser) {
+            break; // prevent infinite loop
+          }
+          if (
+            input.bookingData.isFirstRecurringSlot &&
+            eventType.schedulingType === SchedulingType.ROUND_ROBIN
+          ) {
+            // for recurring round robin events check if lucky user is available for next slots
+            try {
+              for (
+                let i = 0;
+                i < input.bookingData.allRecurringDates.length &&
+                i < input.bookingData.numSlotsToCheckForAvailability;
+                i++
+              ) {
+                const start = input.bookingData.allRecurringDates[i].start;
+                const end = input.bookingData.allRecurringDates[i].end;
 
-              await ensureAvailableUsers(
-                { ...eventTypeWithUsers, users: [newLuckyUser] },
-                {
-                  dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-                  dateTo: dayjs(end).tz(reqBody.timeZone).format(),
-                  timeZone: reqBody.timeZone,
-                  originalRescheduledBooking,
-                },
-                loggerWithEventDetails,
-                shouldServeCache
+                await ensureAvailableUsers(
+                  { ...eventTypeWithUsers, users: [newLuckyUser] },
+                  {
+                    dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                    dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                    timeZone: reqBody.timeZone,
+                    originalRescheduledBooking,
+                  },
+                  loggerWithEventDetails,
+                  shouldServeCache
+                );
+              }
+              // if no error, then lucky user is available for the next slots
+              luckyUsers.push(newLuckyUser);
+            } catch {
+              notAvailableLuckyUsers.push(newLuckyUser);
+              loggerWithEventDetails.info(
+                `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
               );
             }
-            // if no error, then lucky user is available for the next slots
+          } else {
             luckyUsers.push(newLuckyUser);
-          } catch {
-            notAvailableLuckyUsers.push(newLuckyUser);
-            loggerWithEventDetails.info(
-              `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
-            );
           }
-        } else {
-          luckyUsers.push(newLuckyUser);
         }
       }
+
       // ALL fixed users must be available
       if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
@@ -903,7 +919,9 @@ async function handler(
         ...troubleshooterData,
         luckyUsers: luckyUsers.map((u) => u.id),
         fixedUsers: fixedUserPool.map((u) => u.id),
-        luckyUserPool: luckyUserPools[0].map((u) => u.id),
+        luckyUserPool: Object.values(luckyUserPools)
+          .flat()
+          .map((u) => u.id), //todo
       };
     } else if (
       input.bookingData.allRecurringDates &&

@@ -130,6 +130,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           priority: true,
           weight: true,
           createdAt: true,
+          groupId: true,
           user: {
             select: {
               credentials: {
