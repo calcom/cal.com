@@ -1,8 +1,6 @@
 const config = {
   plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-    "postcss-import": {},
+    "@tailwindcss/postcss": {},
     "postcss-prefixwrap": `.calcom-atoms`,
   },
 };
