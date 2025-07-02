@@ -1,32 +1,67 @@
-// import { InsightsRoutingService } from "@calcom/lib/server/service/insightsRouting";
-// import { readonlyPrisma } from "@calcom/prisma";
+"use client";
 
-export default async function RoutingFunnel() {
-  return null;
-  // const insightsRoutingService = new InsightsRoutingService({
-  //   prisma: readonlyPrisma,
-  //   options: { scope: "org", userId: 16, orgId: 5, teamId: undefined },
-  //   filters: {
-  //     startDate: "2025-06-20T22:00:00.000Z",
-  //     endDate: "2025-06-27T21:59:59.999Z",
-  //   },
-  // });
+import { RoutingFunnelContent } from "@calcom/features/insights/components/RoutingFunnel";
 
-  // const dateRanges = [
-  //   {
-  //     startDate: "2025-06-20T22:00:00.000Z",
-  //     endDate: "2025-06-27T21:59:59.999Z",
-  //     formattedDate: "2025-06-20 to 2025-06-27",
-  //   },
-  // ];
+// Random sample data for playground testing
+const sampleRoutingFunnelData = [
+  {
+    name: "Week 1",
+    totalSubmissions: 150,
+    successfulRoutings: 120,
+    acceptedBookings: 95,
+  },
+  {
+    name: "Week 2",
+    totalSubmissions: 180,
+    successfulRoutings: 145,
+    acceptedBookings: 110,
+  },
+  {
+    name: "Week 3",
+    totalSubmissions: 200,
+    successfulRoutings: 160,
+    acceptedBookings: 125,
+  },
+  {
+    name: "Week 4",
+    totalSubmissions: 170,
+    successfulRoutings: 135,
+    acceptedBookings: 105,
+  },
+  {
+    name: "Week 5",
+    totalSubmissions: 220,
+    successfulRoutings: 175,
+    acceptedBookings: 140,
+  },
+  {
+    name: "Week 6",
+    totalSubmissions: 190,
+    successfulRoutings: 155,
+    acceptedBookings: 120,
+  },
+];
 
-  // const routingFunnelData = await insightsRoutingService.getRoutingFunnelData(dateRanges);
-  // console.log("💡 TEST routingFunnelData", routingFunnelData);
+export default function RoutingFunnelPlayground() {
+  return (
+    <div className="space-y-6 p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Routing Funnel Playground</h1>
+        <p className="mt-2 text-gray-600">
+          This page demonstrates the RoutingFunnelContent component with sample data.
+        </p>
+      </div>
 
-  // return (
-  //   <div className="space-y-6">
-  //     <h1 className="text-3xl font-bold">Routing Form Funnel Analysis</h1>
-  //     <pre className="rounded bg-gray-100 p-4">{JSON.stringify(routingFunnelData, null, 2)}</pre>
-  //   </div>
-  // );
+      <div className="max-w-4xl">
+        <RoutingFunnelContent data={sampleRoutingFunnelData} />
+      </div>
+
+      <div className="mt-8 rounded-lg bg-gray-50 p-4">
+        <h2 className="mb-2 text-lg font-semibold">Sample Data Used:</h2>
+        <pre className="overflow-auto text-sm text-gray-700">
+          {JSON.stringify(sampleRoutingFunnelData, null, 2)}
+        </pre>
+      </div>
+    </div>
+  );
 }

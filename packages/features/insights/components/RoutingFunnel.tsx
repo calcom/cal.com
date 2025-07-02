@@ -22,8 +22,6 @@ const CustomTooltip = ({
   }>;
   label?: string;
 }) => {
-  const { t } = useLocale();
-
   if (active && payload && payload.length) {
     const totalSubmissions = payload.find((p) => p.dataKey === "totalSubmissions")?.value || 0;
 
@@ -52,29 +50,19 @@ const CustomTooltip = ({
   return null;
 };
 
-export function RoutingFunnel() {
-  const { scope, selectedTeamId, startDate, endDate } = useInsightsParameters();
+interface RoutingFunnelData {
+  name: string;
+  totalSubmissions: number;
+  successfulRoutings: number;
+  acceptedBookings: number;
+}
+
+interface RoutingFunnelContentProps {
+  data: RoutingFunnelData[];
+}
+
+export function RoutingFunnelContent({ data }: RoutingFunnelContentProps) {
   const { t } = useLocale();
-  const { data, isSuccess } = trpc.viewer.insights.getRoutingFunnelData.useQuery(
-    {
-      scope,
-      selectedTeamId,
-      startDate,
-      endDate,
-    },
-    {
-      staleTime: 30000,
-      trpc: {
-        context: { skipBatch: true },
-      },
-    }
-  );
-
-  console.log("💡 data", data);
-
-  if (!isSuccess || !data) {
-    return null;
-  }
 
   return (
     <div className="w-full text-sm">
@@ -118,4 +106,28 @@ export function RoutingFunnel() {
       </div>
     </div>
   );
+}
+
+export function RoutingFunnel() {
+  const { scope, selectedTeamId, startDate, endDate } = useInsightsParameters();
+  const { data, isSuccess } = trpc.viewer.insights.getRoutingFunnelData.useQuery(
+    {
+      scope,
+      selectedTeamId,
+      startDate,
+      endDate,
+    },
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
+
+  if (!isSuccess || !data) {
+    return null;
+  }
+
+  return <RoutingFunnelContent data={data} />;
 }

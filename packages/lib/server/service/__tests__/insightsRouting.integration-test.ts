@@ -589,7 +589,6 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const baseConditions = await service.getBaseConditions();
-      console.log("💡 baseConditions", baseConditions);
       const results = await prisma.$queryRaw<Array<{ id: number }>>`
         SELECT id FROM "RoutingFormResponseDenormalized" WHERE ${baseConditions}
       `;
