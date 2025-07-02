@@ -21,7 +21,7 @@
     "@calcom/lib": "*"
   },
   "devDependencies": {
-    "@types/node": "^20.3.1",
+    "@types/node": "^22.16.0",
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.7.2",
     "vite": "^5.0.12",

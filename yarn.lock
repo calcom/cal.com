@@ -2683,7 +2683,7 @@ __metadata:
     "@rollup/plugin-node-resolve": ^15.0.1
     "@tanstack/react-query": ^5.17.15
     "@types/jest": ^29.5.12
-    "@types/node": ^20.3.1
+    "@types/node": ^22.16.0
     "@types/react": 18.0.26
     "@types/react-dom": ^18.0.9
     "@vitejs/plugin-react": ^2.2.0
@@ -2748,7 +2748,7 @@ __metadata:
   dependencies:
     "@calcom/atoms": "*"
     "@prisma/client": 5.4.2
-    "@types/node": ^20.3.1
+    "@types/node": ^22.16.0
     "@types/react": ^18
     "@types/react-dom": ^18
     autoprefixer: ^10.0.1
@@ -3063,7 +3063,7 @@ __metadata:
   dependencies:
     "@calcom/atoms": "*"
     "@prisma/client": 5.4.2
-    "@types/node": ^20.3.1
+    "@types/node": ^22.16.0
     "@types/react": ^18
     "@types/react-dom": ^18
     autoprefixer: ^10.0.1
@@ -3581,7 +3581,7 @@ __metadata:
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-    "@types/node": ^20.3.1
+    "@types/node": ^22.16.0
     "@vitejs/plugin-react": ^4.2.1
     typescript: ^5.7.2
     vite: ^5.0.12
@@ -3914,7 +3914,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/types@workspace:packages/types"
   dependencies:
-    "@types/node": ^20.17.23
+    "@types/node": ^22.16.0
   languageName: unknown
   linkType: soft
 
@@ -18067,12 +18067,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.17.23":
-  version: 20.17.23
-  resolution: "@types/node@npm:20.17.23"
+"@types/node@npm:^22.16.0":
+  version: 22.16.0
+  resolution: "@types/node@npm:22.16.0"
   dependencies:
-    undici-types: ~6.19.2
-  checksum: 9957916d0781f6efd59f2db5bff8be51e0ea0de96f64aa282c0ed7482668b5bc0ad041ea772265ece0e57e1afb64f56b7a5be5fecb03ba467f7c48753b313d86
+    undici-types: ~6.21.0
+  checksum: fccc24b9cfa95e165fb6a22871c812c9b021b0c686ced9b1572e1bd79ac3f8c78b36c04edfb2c96e10a8a1247c026d1dcad91c0c3e62dccf414057a37bac729d
   languageName: node
   linkType: hard
 
@@ -46020,10 +46020,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.19.2":
-  version: 6.19.8
-  resolution: "undici-types@npm:6.19.8"
-  checksum: de51f1b447d22571cf155dfe14ff6d12c5bdaec237c765085b439c38ca8518fc360e88c70f99469162bf2e14188a7b0bcb06e1ed2dc031042b984b0bb9544017
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 46331c7d6016bf85b3e8f20c159d62f5ae471aba1eb3dc52fff35a0259d58dcc7d592d4cc4f00c5f9243fa738a11cfa48bd20203040d4a9e6bc25e807fab7ab3
   languageName: node
   linkType: hard
 
