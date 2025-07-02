@@ -20,7 +20,9 @@
   },
   "devDependencies": {
     "@savvywombat/tailwindcss-grid-areas": "^3.0.0",
+    "@tailwindcss/cli": "^4.1.11",
     "@tailwindcss/forms": "^0.5.2",
+    "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/typography": "^0.5.4",
     "@trivago/prettier-plugin-sort-imports": "4.1.1",
     "@typescript-eslint/eslint-plugin": "^5.52.0",
@@ -31,10 +33,9 @@
     "prettier": "^2.8.6",
     "prettier-plugin-tailwindcss": "^0.2.5",
     "tailwind-scrollbar": "^2.0.1",
-    "tailwindcss-radix": "^3.0.5",
+    "tailwindcss": "^4.1.11",
     "tailwindcss-animate": "^1.0.7",
-    "@tailwindcss/postcss": "^4.1.11",
-    "@tailwindcss/cli": "^4.1.11",
+    "tailwindcss-radix": "^3.0.5",
     "typescript": "^5.7.2"
   }
 }
