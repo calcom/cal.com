@@ -9,7 +9,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const app = await getServerlessApp();
     const expressApp = app.getHttpAdapter().getInstance();
     
-    req.url = req.url?.replace('/api/v2/${endpoint}', '/v2/${endpoint}') || '/v2/${endpoint}';
+    req.url = req.url?.replace('/serverless/${endpoint}', '/v2/${endpoint}') || '/v2/${endpoint}';
     
     return expressApp(req, res);
   } catch (error) {
@@ -46,7 +46,7 @@ const endpoints = [
   "stripe",
 ];
 
-const apiDir = path.join(__dirname, "..", "api", "v2");
+const apiDir = path.join(__dirname, "serverless");
 
 if (!fs.existsSync(apiDir)) {
   fs.mkdirSync(apiDir, { recursive: true });

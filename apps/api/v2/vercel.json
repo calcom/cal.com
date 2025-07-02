@@ -1,98 +1,98 @@
 {
   "functions": {
-    "api/v2/health.ts": {
+    "serverless/health.ts": {
       "memory": 512,
       "maxDuration": 10
     },
-    "api/v2/event-types.ts": {
+    "serverless/event-types.ts": {
       "memory": 1024,
       "maxDuration": 30
     },
-    "api/v2/bookings.ts": {
+    "serverless/bookings.ts": {
       "memory": 1024,
       "maxDuration": 30
     },
-    "api/v2/oauth-clients.ts": {
+    "serverless/oauth-clients.ts": {
       "memory": 1024,
       "maxDuration": 30
     },
-    "api/v2/me.ts": {
+    "serverless/me.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/schedules.ts": {
+    "serverless/schedules.ts": {
       "memory": 1024,
       "maxDuration": 30
     },
-    "api/v2/slots.ts": {
+    "serverless/slots.ts": {
       "memory": 1024,
       "maxDuration": 30
     },
-    "api/v2/webhooks.ts": {
+    "serverless/webhooks.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/organizations.ts": {
+    "serverless/organizations.ts": {
       "memory": 1024,
       "maxDuration": 30
     },
-    "api/v2/calendars.ts": {
+    "serverless/calendars.ts": {
       "memory": 1024,
       "maxDuration": 30
     },
-    "api/v2/gcal.ts": {
+    "serverless/gcal.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/provider.ts": {
+    "serverless/provider.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/conferencing.ts": {
+    "serverless/conferencing.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/api-keys.ts": {
+    "serverless/api-keys.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/routing-forms.ts": {
+    "serverless/routing-forms.ts": {
       "memory": 1024,
       "maxDuration": 30
     },
-    "api/v2/verified-resources.ts": {
+    "serverless/verified-resources.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/destination-calendars.ts": {
+    "serverless/destination-calendars.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/selected-calendars.ts": {
+    "serverless/selected-calendars.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/atoms.ts": {
+    "serverless/atoms.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/billing.ts": {
+    "serverless/billing.ts": {
       "memory": 1024,
       "maxDuration": 30
     },
-    "api/v2/timezones.ts": {
+    "serverless/timezones.ts": {
       "memory": 256,
       "maxDuration": 10
     },
-    "api/v2/cal-unified-calendars.ts": {
+    "serverless/cal-unified-calendars.ts": {
       "memory": 1024,
       "maxDuration": 30
     },
-    "api/v2/router.ts": {
+    "serverless/router.ts": {
       "memory": 512,
       "maxDuration": 15
     },
-    "api/v2/stripe.ts": {
+    "serverless/stripe.ts": {
       "memory": 1024,
       "maxDuration": 30
     }
@@ -100,99 +100,99 @@
   "rewrites": [
     {
       "source": "/v2/health",
-      "destination": "/api/v2/health"
+      "destination": "/serverless/health"
     },
     {
       "source": "/v2/event-types/(.*)",
-      "destination": "/api/v2/event-types"
+      "destination": "/serverless/event-types"
     },
     {
       "source": "/v2/bookings/(.*)",
-      "destination": "/api/v2/bookings"
+      "destination": "/serverless/bookings"
     },
     {
       "source": "/v2/oauth-clients/(.*)",
-      "destination": "/api/v2/oauth-clients"
+      "destination": "/serverless/oauth-clients"
     },
     {
       "source": "/v2/me/(.*)",
-      "destination": "/api/v2/me"
+      "destination": "/serverless/me"
     },
     {
       "source": "/v2/schedules/(.*)",
-      "destination": "/api/v2/schedules"
+      "destination": "/serverless/schedules"
     },
     {
       "source": "/v2/slots/(.*)",
-      "destination": "/api/v2/slots"
+      "destination": "/serverless/slots"
     },
     {
       "source": "/v2/webhooks/(.*)",
-      "destination": "/api/v2/webhooks"
+      "destination": "/serverless/webhooks"
     },
     {
       "source": "/v2/organizations/(.*)",
-      "destination": "/api/v2/organizations"
+      "destination": "/serverless/organizations"
     },
     {
       "source": "/v2/calendars/(.*)",
-      "destination": "/api/v2/calendars"
+      "destination": "/serverless/calendars"
     },
     {
       "source": "/v2/gcal/(.*)",
-      "destination": "/api/v2/gcal"
+      "destination": "/serverless/gcal"
     },
     {
       "source": "/v2/provider/(.*)",
-      "destination": "/api/v2/provider"
+      "destination": "/serverless/provider"
     },
     {
       "source": "/v2/conferencing/(.*)",
-      "destination": "/api/v2/conferencing"
+      "destination": "/serverless/conferencing"
     },
     {
       "source": "/v2/api-keys/(.*)",
-      "destination": "/api/v2/api-keys"
+      "destination": "/serverless/api-keys"
     },
     {
       "source": "/v2/routing-forms/(.*)",
-      "destination": "/api/v2/routing-forms"
+      "destination": "/serverless/routing-forms"
     },
     {
       "source": "/v2/verified-resources/(.*)",
-      "destination": "/api/v2/verified-resources"
+      "destination": "/serverless/verified-resources"
     },
     {
       "source": "/v2/destination-calendars/(.*)",
-      "destination": "/api/v2/destination-calendars"
+      "destination": "/serverless/destination-calendars"
     },
     {
       "source": "/v2/selected-calendars/(.*)",
-      "destination": "/api/v2/selected-calendars"
+      "destination": "/serverless/selected-calendars"
     },
     {
       "source": "/v2/atoms/(.*)",
-      "destination": "/api/v2/atoms"
+      "destination": "/serverless/atoms"
     },
     {
       "source": "/v2/billing/(.*)",
-      "destination": "/api/v2/billing"
+      "destination": "/serverless/billing"
     },
     {
       "source": "/v2/timezones/(.*)",
-      "destination": "/api/v2/timezones"
+      "destination": "/serverless/timezones"
     },
     {
       "source": "/v2/cal-unified-calendars/(.*)",
-      "destination": "/api/v2/cal-unified-calendars"
+      "destination": "/serverless/cal-unified-calendars"
     },
     {
       "source": "/v2/router/(.*)",
-      "destination": "/api/v2/router"
+      "destination": "/serverless/router"
     },
     {
       "source": "/v2/stripe/(.*)",
-      "destination": "/api/v2/stripe"
+      "destination": "/serverless/stripe"
     }
   ]
 }
