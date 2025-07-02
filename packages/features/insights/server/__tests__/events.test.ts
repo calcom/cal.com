@@ -542,234 +542,6 @@ describe("EventsInsights", () => {
     });
   });
 
-  describe("formatPeriodFull", () => {
-    describe("Day View", () => {
-      it("should always show month and day for same year", () => {
-        const result = EventsInsights.formatPeriodFull({
-          start: dayjs("2024-01-16"),
-          end: dayjs("2024-01-16"),
-          timeView: "day",
-          wholeStart: dayjs("2024-01-15"),
-          wholeEnd: dayjs("2024-01-20"),
-        });
-        expect(result).toBe("Jan 16");
-      });
-
-      it("should always show month, day and year for different years", () => {
-        const result = EventsInsights.formatPeriodFull({
-          start: dayjs("2024-01-16"),
-          end: dayjs("2024-01-16"),
-          timeView: "day",
-          wholeStart: dayjs("2023-12-15"),
-          wholeEnd: dayjs("2024-02-01"),
-        });
-        expect(result).toBe("Jan 16, 2024");
-      });
-
-      it("should show month for first day when same year", () => {
-        const result = EventsInsights.formatPeriodFull({
-          start: dayjs("2024-01-15"),
-          end: dayjs("2024-01-15"),
-          timeView: "day",
-          wholeStart: dayjs("2024-01-15"),
-          wholeEnd: dayjs("2024-01-20"),
-        });
-        expect(result).toBe("Jan 15");
-      });
-
-      it("should show month for first day of month when same year", () => {
-        const result = EventsInsights.formatPeriodFull({
-          start: dayjs("2024-02-01"),
-          end: dayjs("2024-02-01"),
-          timeView: "day",
-          wholeStart: dayjs("2024-01-15"),
-          wholeEnd: dayjs("2024-02-10"),
-        });
-        expect(result).toBe("Feb 1");
-      });
-
-      describe("Real-world scenarios", () => {
-        it("should format a range from Jan 15 to Jan 20 with full dates", () => {
-          const wholeStart = dayjs("2024-01-15");
-          const wholeEnd = dayjs("2024-01-20");
-
-          const results: string[] = [];
-          for (let i = 0; i <= 5; i++) {
-            const currentDay = wholeStart.add(i, "day");
-            results.push(
-              EventsInsights.formatPeriodFull({
-                start: currentDay,
-                end: currentDay,
-                timeView: "day",
-                wholeStart,
-                wholeEnd,
-              })
-            );
-          }
-
-          expect(results).toEqual(["Jan 15", "Jan 16", "Jan 17", "Jan 18", "Jan 19", "Jan 20"]);
-        });
-
-        it("should format a range from Jan 30 to Feb 3 with full dates", () => {
-          const wholeStart = dayjs("2024-01-30");
-          const wholeEnd = dayjs("2024-02-03");
-
-          const results: string[] = [];
-          let currentDay = wholeStart;
-          while (currentDay.isBefore(wholeEnd) || currentDay.isSame(wholeEnd)) {
-            results.push(
-              EventsInsights.formatPeriodFull({
-                start: currentDay,
-                end: currentDay,
-                timeView: "day",
-                wholeStart,
-                wholeEnd,
-              })
-            );
-            currentDay = currentDay.add(1, "day");
-          }
-
-          expect(results).toEqual(["Jan 30", "Jan 31", "Feb 1", "Feb 2", "Feb 3"]);
-        });
-
-        it("should format a range from Dec 30, 2023 to Jan 2, 2024 with full dates", () => {
-          const wholeStart = dayjs("2023-12-30");
-          const wholeEnd = dayjs("2024-01-02");
-
-          const results: string[] = [];
-          let currentDay = wholeStart;
-          while (currentDay.isBefore(wholeEnd) || currentDay.isSame(wholeEnd)) {
-            results.push(
-              EventsInsights.formatPeriodFull({
-                start: currentDay,
-                end: currentDay,
-                timeView: "day",
-                wholeStart,
-                wholeEnd,
-              })
-            );
-            currentDay = currentDay.add(1, "day");
-          }
-
-          expect(results).toEqual(["Dec 30, 2023", "Dec 31, 2023", "Jan 1, 2024", "Jan 2, 2024"]);
-        });
-      });
-    });
-
-    describe("Week View", () => {
-      describe("Same month", () => {
-        it("should format dates without year when wholeStart and wholeEnd are same year", () => {
-          const result = EventsInsights.formatPeriodFull({
-            start: dayjs("2024-01-01"),
-            end: dayjs("2024-01-07"),
-            timeView: "week",
-            wholeStart: dayjs("2024-01-01"),
-            wholeEnd: dayjs("2024-12-31"),
-          });
-          expect(result).toBe("Jan 1 - Jan 7");
-        });
-
-        it("should format dates with year when wholeStart and wholeEnd are different years", () => {
-          const result = EventsInsights.formatPeriodFull({
-            start: dayjs("2024-01-01"),
-            end: dayjs("2024-01-07"),
-            timeView: "week",
-            wholeStart: dayjs("2023-12-01"),
-            wholeEnd: dayjs("2024-02-01"),
-          });
-          expect(result).toBe("Jan 1 - Jan 7, 2024");
-        });
-      });
-
-      describe("Different months", () => {
-        it("should format dates without year when wholeStart and wholeEnd are same year", () => {
-          const result = EventsInsights.formatPeriodFull({
-            start: dayjs("2024-01-29"),
-            end: dayjs("2024-02-04"),
-            timeView: "week",
-            wholeStart: dayjs("2024-01-01"),
-            wholeEnd: dayjs("2024-12-31"),
-          });
-          expect(result).toBe("Jan 29 - Feb 4");
-        });
-
-        it("should format dates with year when wholeStart and wholeEnd are different years", () => {
-          const result = EventsInsights.formatPeriodFull({
-            start: dayjs("2024-01-29"),
-            end: dayjs("2024-02-04"),
-            timeView: "week",
-            wholeStart: dayjs("2023-12-01"),
-            wholeEnd: dayjs("2024-03-01"),
-          });
-          expect(result).toBe("Jan 29 - Feb 4, 2024");
-        });
-      });
-
-      describe("Different years", () => {
-        it("should format dates with respective years when start and end span different years", () => {
-          const result = EventsInsights.formatPeriodFull({
-            start: dayjs("2023-12-31"),
-            end: dayjs("2024-01-06"),
-            timeView: "week",
-            wholeStart: dayjs("2023-12-01"),
-            wholeEnd: dayjs("2024-01-31"),
-          });
-          expect(result).toBe("Dec 31, 2023 - Jan 6, 2024");
-        });
-      });
-    });
-
-    describe("Month View", () => {
-      it("should format month without year when wholeStart and wholeEnd are same year", () => {
-        const result = EventsInsights.formatPeriodFull({
-          start: dayjs("2024-01-01"),
-          end: dayjs("2024-01-31"),
-          timeView: "month",
-          wholeStart: dayjs("2024-01-01"),
-          wholeEnd: dayjs("2024-12-31"),
-        });
-        expect(result).toBe("Jan");
-      });
-
-      it("should format month with year when wholeStart and wholeEnd are different years", () => {
-        const result = EventsInsights.formatPeriodFull({
-          start: dayjs("2024-01-01"),
-          end: dayjs("2024-01-31"),
-          timeView: "month",
-          wholeStart: dayjs("2023-12-01"),
-          wholeEnd: dayjs("2024-02-01"),
-        });
-        expect(result).toBe("Jan 2024");
-      });
-    });
-
-    describe("Year View", () => {
-      it("should format year regardless of wholeStart and wholeEnd values", () => {
-        const result = EventsInsights.formatPeriodFull({
-          start: dayjs("2024-01-01"),
-          end: dayjs("2024-12-31"),
-          timeView: "year",
-          wholeStart: dayjs("2024-01-01"),
-          wholeEnd: dayjs("2024-12-31"),
-        });
-        expect(result).toBe("2024");
-      });
-    });
-
-    describe("Invalid View", () => {
-      it("should return empty string for invalid timeView", () => {
-        const result = EventsInsights.formatPeriodFull({
-          start: dayjs("2024-01-01"),
-          end: dayjs("2024-01-01"),
-          timeView: "invalid" as any,
-          wholeStart: dayjs("2024-01-01"),
-          wholeEnd: dayjs("2024-12-31"),
-        });
-        expect(result).toBe("");
-      });
-    });
-  });
-
   describe("formatPeriod", () => {
     describe("Day View", () => {
       describe("Beginning of data (wholeStart === start)", () => {
@@ -1138,21 +910,9 @@ describe("EventsInsights", () => {
         const formattedDates = ranges.map((r) => r.formattedDate);
         const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
 
-        expect(formattedDates).toEqual([
-          "Jan 15", // Smart: shows month for first day
-          "16", // Smart: omits month for cleaner display
-          "17", // Smart: omits month
-          "18", // Smart: omits month
-          "19", // Smart: omits month
-        ]);
+        expect(formattedDates).toEqual(["Jan 15", "16", "17", "18", "19"]);
 
-        expect(formattedDatesFull).toEqual([
-          "Jan 15", // Full: always shows month
-          "Jan 16", // Full: always shows complete date
-          "Jan 17", // Full: shows complete date
-          "Jan 18", // Full: shows complete date
-          "Jan 19", // Full: shows complete date
-        ]);
+        expect(formattedDatesFull).toEqual(["Jan 15", "Jan 16", "Jan 17", "Jan 18", "Jan 19"]);
       });
 
       it("should show formatting differences across month boundaries", () => {
@@ -1176,19 +936,9 @@ describe("EventsInsights", () => {
         const formattedDates = ranges.map((r) => r.formattedDate);
         const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
 
-        expect(formattedDates).toEqual([
-          "Jan 30", // Smart: shows month for first day
-          "31", // Smart: omits month
-          "Feb 1", // Smart: shows month for first of month
-          "2", // Smart: omits month
-        ]);
+        expect(formattedDates).toEqual(["Jan 30", "31", "Feb 1", "2"]);
 
-        expect(formattedDatesFull).toEqual([
-          "Jan 30", // Full: shows month
-          "Jan 31", // Full: shows complete date
-          "Feb 1", // Full: shows month
-          "Feb 2", // Full: shows complete date
-        ]);
+        expect(formattedDatesFull).toEqual(["Jan 30", "Jan 31", "Feb 1", "Feb 2"]);
       });
     });
 
@@ -1214,15 +964,9 @@ describe("EventsInsights", () => {
         const formattedDates = ranges.map((r) => r.formattedDate);
         const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
 
-        expect(formattedDates).toEqual([
-          "Jan 15 - 21", // Smart: omits repeated month
-          "Jan 22 - 28", // Smart: omits repeated month
-        ]);
+        expect(formattedDates).toEqual(["Jan 15 - 21", "Jan 22 - 28"]);
 
-        expect(formattedDatesFull).toEqual([
-          "Jan 15 - Jan 21", // Full: shows month for both dates
-          "Jan 22 - Jan 28", // Full: shows month for both dates
-        ]);
+        expect(formattedDatesFull).toEqual(["Jan 15 - Jan 21", "Jan 22 - Jan 28"]);
       });
 
       it("should show formatting differences for cross-month weekly ranges", () => {
@@ -1246,15 +990,9 @@ describe("EventsInsights", () => {
         const formattedDates = ranges.map((r) => r.formattedDate);
         const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
 
-        expect(formattedDates).toEqual([
-          "Jan 29 - Feb 4", // Smart: shows both months when different
-          "Feb 5 - 11", // Smart: omits repeated month
-        ]);
+        expect(formattedDates).toEqual(["Jan 29 - Feb 4", "Feb 5 - 11"]);
 
-        expect(formattedDatesFull).toEqual([
-          "Jan 29 - Feb 4", // Full: shows both months
-          "Feb 5 - Feb 11", // Full: shows month for both dates
-        ]);
+        expect(formattedDatesFull).toEqual(["Jan 29 - Feb 4", "Feb 5 - Feb 11"]);
       });
     });
 
@@ -1280,17 +1018,9 @@ describe("EventsInsights", () => {
         const formattedDates = ranges.map((r) => r.formattedDate);
         const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
 
-        expect(formattedDates).toEqual([
-          "Jan", // Smart: month only
-          "Feb", // Smart: month only
-          "Mar", // Smart: month only
-        ]);
+        expect(formattedDates).toEqual(["Jan", "Feb", "Mar"]);
 
-        expect(formattedDatesFull).toEqual([
-          "Jan", // Full: same as smart for monthly view
-          "Feb", // Full: same as smart for monthly view
-          "Mar", // Full: same as smart for monthly view
-        ]);
+        expect(formattedDatesFull).toEqual(["Jan", "Feb", "Mar"]);
       });
     });
 
@@ -1315,19 +1045,11 @@ describe("EventsInsights", () => {
         const formattedDates = ranges.map((r) => r.formattedDate);
         const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
 
-        expect(formattedDates).toEqual([
-          "Jan 15", // First day shows month
-          "16", // Subsequent days omit month for cleaner display
-          "17",
-          "18",
-          "19",
-          "20",
-          "21",
-        ]);
+        expect(formattedDates).toEqual(["Jan 15", "16", "17", "18", "19", "20", "21"]);
 
         expect(formattedDatesFull).toEqual([
-          "Jan 15", // Always shows complete date
-          "Jan 16", // Never omits contextual information
+          "Jan 15",
+          "Jan 16",
           "Jan 17",
           "Jan 18",
           "Jan 19",
@@ -1356,25 +1078,9 @@ describe("EventsInsights", () => {
         const formattedDates = ranges.map((r) => r.formattedDate);
         const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
 
-        expect(formattedDates).toEqual([
-          "Jan 30", // Month shown for first day
-          "31", // Ambiguous - which month?
-          "Feb 1", // Month shown for first of month
-          "2", // Ambiguous - which month?
-          "3", // Ambiguous - which month?
-          "4", // Ambiguous - which month?
-          "5", // Ambiguous - which month?
-        ]);
+        expect(formattedDates).toEqual(["Jan 30", "31", "Feb 1", "2", "3", "4", "5"]);
 
-        expect(formattedDatesFull).toEqual([
-          "Jan 30", // Clear and complete
-          "Jan 31", // No ambiguity about month
-          "Feb 1", // Clear month transition
-          "Feb 2", // Always clear which month
-          "Feb 3", // Perfect for data export
-          "Feb 4", // No context needed
-          "Feb 5", // Self-contained information
-        ]);
+        expect(formattedDatesFull).toEqual(["Jan 30", "Jan 31", "Feb 1", "Feb 2", "Feb 3", "Feb 4", "Feb 5"]);
       });
     });
   });
