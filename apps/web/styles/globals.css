@@ -1,6 +1,6 @@
 /* @import rules must precede all rules aside from @charset and @layer statements. */
 @import "./raqb.css";
-@import "../../packages/config/theme.css";
+@import "../../../packages/config/theme.css";
 
 @import "tailwindcss";
 /**
@@ -373,7 +373,29 @@ select:focus {
 
 @layer components {
   .scroll-bar {
-    @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(209 213 219) transparent;
+  }
+  
+  .dark .scroll-bar {
+    scrollbar-color: rgb(68 64 60) transparent;
+  }
+  
+  .scroll-bar::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scroll-bar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scroll-bar::-webkit-scrollbar-thumb {
+    background-color: rgb(209 213 219);
+    border-radius: 6px;
+  }
+  
+  .dark .scroll-bar::-webkit-scrollbar-thumb {
+    background-color: rgb(68 64 60);
   }
 }
 
@@ -623,20 +645,24 @@ select:focus {
 
 .react-tel-input .country-list .country:hover,
 .react-tel-input .country-list .country.highlight {
-  @apply !bg-emphasis;
+  background-color: var(--cal-bg-emphasis) !important;
 }
 
 .react-tel-input .flag-dropdown .selected-flag,
 .react-tel-input .flag-dropdown.open .selected-flag {
-  @apply !bg-default;
+  background-color: var(--cal-bg, white) !important;
 }
 
 .react-tel-input .flag-dropdown {
-  @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
+  border-right-color: var(--cal-border) !important;
+  left: 0.125rem;
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
 }
 
 .intercom-lightweight-app {
-  @apply z-40 !important;
+  z-index: 40 !important;
 }
 
 [data-radix-popper-content-wrapper] {

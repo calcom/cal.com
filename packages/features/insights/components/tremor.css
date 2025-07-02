@@ -12,96 +12,149 @@
 }
 
 .recharts-cartesian-grid-horizontal line {
-  @apply stroke-emphasis;
+  stroke: var(--cal-text-emphasis);
 }
 
 .tremor-DateRangePicker-button button {
-  @apply border-default hover:border-emphasis !h-9 !max-h-9;
+  border-color: var(--cal-border);
+  height: 2.25rem !important;
+  max-height: 2.25rem !important;
+}
+
+.tremor-DateRangePicker-button button:hover {
+  border-color: var(--cal-border-emphasis);
 }
 
 .tremor-DateRangePicker-calendarButton,
 .tremor-DateRangePicker-dropdownButton {
-  @apply border-subtle bg-default focus-within:ring-emphasis hover:border-subtle dark:focus-within:ring-emphasis hover:bg-subtle text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-0;
+  border-color: var(--cal-border-subtle);
+  background-color: var(--cal-bg, white);
+  font-size: 0.875rem;
+  line-height: 1rem;
+  --tw-ring-width: 0px;
+}
+
+.tremor-DateRangePicker-calendarButton:hover,
+.tremor-DateRangePicker-dropdownButton:hover {
+  border-color: var(--cal-border-subtle);
+  background-color: var(--cal-bg-subtle);
+}
+
+.tremor-DateRangePicker-calendarButton:focus-within,
+.tremor-DateRangePicker-dropdownButton:focus-within {
+  --tw-ring-color: var(--cal-text-emphasis);
+}
+
+.tremor-DateRangePicker-calendarButton::placeholder,
+.tremor-DateRangePicker-dropdownButton::placeholder {
+  font-size: 0.875rem;
+  font-weight: normal;
 }
 
 .tremor-DateRangePicker-dropdownModal {
-  @apply divide-none;
+  border-width: 0;
 }
 
 .tremor-DropdownItem-root {
-  @apply bg-default hover:bg-subtle text-default hover:text-emphasis !h-9 !max-h-9;
+  background-color: var(--cal-bg, white);
+  color: var(--cal-text);
+  height: 2.25rem !important;
+  max-height: 2.25rem !important;
+}
+
+.tremor-DropdownItem-root:hover {
+  background-color: var(--cal-bg-subtle);
+  color: var(--cal-text-emphasis);
 }
 
 .tremor-DateRangePicker-calendarButtonText,
 .tremor-DateRangePicker-dropdownButtonText {
-  @apply text-default;
+  color: var(--cal-text);
 }
 
 .tremor-DateRangePicker-calendarHeaderText {
-  @apply !text-default;
+  color: var(--cal-text) !important;
 }
 
 .tremor-DateRangePicker-calendarHeader svg {
-  @apply text-default;
+  color: var(--cal-text);
 }
 
 .tremor-DateRangePicker-calendarHeader button {
-  @apply hover:bg-emphasis shadow-none focus:ring-0;
+  box-shadow: none;
+  --tw-ring-width: 0px;
+}
+
+.tremor-DateRangePicker-calendarHeader button:hover {
+  background-color: var(--cal-bg-emphasis);
 }
 
 .tremor-DateRangePicker-calendarHeader button:hover svg {
-  @apply text-emphasis;
+  color: var(--cal-text-emphasis);
 }
 
 .tremor-DateRangePicker-calendarButtonIcon {
-  @apply text-default;
+  color: var(--cal-text);
 }
 
 .tremor-DateRangePicker-calendarModal,
 .tremor-DateRangePicker-dropdownModal {
-  @apply bg-default border-subtle shadow-dropdown;
+  background-color: var(--cal-bg, white);
+  border-color: var(--cal-border-subtle);
+  box-shadow: 0px 5px 20px 0px rgba(0, 0, 0, 0.10), 0px 10px 40px 0px rgba(0, 0, 0, 0.03);
 }
 
 .tremor-DateRangePicker-calendarBodyDate button {
-  @apply text-default  hover:bg-emphasis;
+  color: var(--cal-text);
+}
+
+.tremor-DateRangePicker-calendarBodyDate button:hover {
+  background-color: var(--cal-bg-emphasis);
 }
 
 .tremor-DateRangePicker-calendarBodyDate button:disabled,
 .tremor-DateRangePicker-calendarBodyDate button[disabled] {
-  @apply opacity-25;
+  opacity: 0.25;
 }
 
 .tremor-DateRangePicker-calendarHeader button {
-  @apply border-default text-default;
+  border-color: var(--cal-border);
+  color: var(--cal-text);
 }
 
 .tremor-DateRangePicker-calendarBodyDate .bg-gray-100 {
-  @apply bg-subtle;
+  background-color: var(--cal-bg-subtle);
 }
 
 .tremor-DateRangePicker-calendarBodyDate .bg-gray-500 {
-  @apply !bg-brand-default text-inverted;
+  background-color: var(--cal-brand-default) !important;
+  color: var(--cal-text-inverted);
 }
 
 .tremor-Card-root {
-  @apply bg-default p-5;
+  background-color: var(--cal-bg, white);
+  padding: 1.25rem;
 }
 
 .tremor-TableCell-root {
-  @apply pl-0;
+  padding-left: 0;
 }
 
 .recharts-responsive-container {
-  @apply -mx-4;
+  margin-left: -1rem;
+  margin-right: -1rem;
 }
 .tremor-Card-root > p {
-  @apply mb-2 text-base font-semibold;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
 }
 
 .tremor-Legend-legendItem {
-  @apply ml-2;
+  margin-left: 0.5rem;
 }
 
 .tremor-TableBody-root {
-  @apply divide-subtle;
+  border-color: var(--cal-border-subtle);
 }
