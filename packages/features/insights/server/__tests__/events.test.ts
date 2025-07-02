@@ -1112,4 +1112,291 @@ describe("EventsInsights", () => {
       expect(result).toBe("day");
     });
   });
+
+  describe("getDateRanges - Formatting Comparison", () => {
+    const timeZone = "UTC";
+
+    describe("Daily view formatting differences", () => {
+      it("should show smart vs full formatting for consecutive days", () => {
+        const startDate = "2024-01-15T00:00:00.000Z";
+        const endDate = "2024-01-19T23:59:59.999Z";
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "day",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(5);
+
+        expect(ranges[0]).toEqual({
+          startDate: "2024-01-15T00:00:00.000Z",
+          endDate: "2024-01-15T23:59:59.999Z",
+          formattedDate: "Jan 15", // Smart: shows month for first day
+          formattedDateFull: "Jan 15", // Full: always shows month
+        });
+
+        expect(ranges[1]).toEqual({
+          startDate: "2024-01-16T00:00:00.000Z",
+          endDate: "2024-01-16T23:59:59.999Z",
+          formattedDate: "16", // Smart: omits month for cleaner display
+          formattedDateFull: "Jan 16", // Full: always shows complete date
+        });
+
+        expect(ranges[2]).toEqual({
+          startDate: "2024-01-17T00:00:00.000Z",
+          endDate: "2024-01-17T23:59:59.999Z",
+          formattedDate: "17", // Smart: omits month
+          formattedDateFull: "Jan 17", // Full: shows complete date
+        });
+      });
+
+      it("should show formatting differences across month boundaries", () => {
+        const startDate = "2024-01-30T00:00:00.000Z";
+        const endDate = "2024-02-02T23:59:59.999Z";
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "day",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(4);
+
+        expect(ranges[0]).toEqual({
+          startDate: "2024-01-30T00:00:00.000Z",
+          endDate: "2024-01-30T23:59:59.999Z",
+          formattedDate: "Jan 30", // Smart: shows month for first day
+          formattedDateFull: "Jan 30", // Full: shows month
+        });
+
+        expect(ranges[1]).toEqual({
+          startDate: "2024-01-31T00:00:00.000Z",
+          endDate: "2024-01-31T23:59:59.999Z",
+          formattedDate: "31", // Smart: omits month
+          formattedDateFull: "Jan 31", // Full: shows complete date
+        });
+
+        expect(ranges[2]).toEqual({
+          startDate: "2024-02-01T00:00:00.000Z",
+          endDate: "2024-02-01T23:59:59.999Z",
+          formattedDate: "Feb 1", // Smart: shows month for first of month
+          formattedDateFull: "Feb 1", // Full: shows month
+        });
+
+        expect(ranges[3]).toEqual({
+          startDate: "2024-02-02T00:00:00.000Z",
+          endDate: "2024-02-02T23:59:59.999Z",
+          formattedDate: "2", // Smart: omits month
+          formattedDateFull: "Feb 2", // Full: shows complete date
+        });
+      });
+    });
+
+    describe("Weekly view formatting differences", () => {
+      it("should show smart vs full formatting for weekly ranges", () => {
+        const startDate = "2024-01-15T00:00:00.000Z"; // Monday
+        const endDate = "2024-01-28T23:59:59.999Z"; // Sunday
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "week",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(2);
+
+        expect(ranges[0]).toEqual({
+          startDate: "2024-01-15T00:00:00.000Z",
+          endDate: "2024-01-21T23:59:59.999Z",
+          formattedDate: "Jan 15 - 21", // Smart: omits repeated month
+          formattedDateFull: "Jan 15 - Jan 21", // Full: shows month for both dates
+        });
+
+        expect(ranges[1]).toEqual({
+          startDate: "2024-01-22T00:00:00.000Z",
+          endDate: "2024-01-28T23:59:59.999Z",
+          formattedDate: "Jan 22 - 28", // Smart: omits repeated month
+          formattedDateFull: "Jan 22 - Jan 28", // Full: shows month for both dates
+        });
+      });
+
+      it("should show formatting differences for cross-month weekly ranges", () => {
+        const startDate = "2024-01-29T00:00:00.000Z"; // Monday
+        const endDate = "2024-02-11T23:59:59.999Z"; // Sunday
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "week",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(2);
+
+        expect(ranges[0]).toEqual({
+          startDate: "2024-01-29T00:00:00.000Z",
+          endDate: "2024-02-04T23:59:59.999Z",
+          formattedDate: "Jan 29 - Feb 4", // Smart: shows both months when different
+          formattedDateFull: "Jan 29 - Feb 4", // Full: shows both months
+        });
+
+        expect(ranges[1]).toEqual({
+          startDate: "2024-02-05T00:00:00.000Z",
+          endDate: "2024-02-11T23:59:59.999Z",
+          formattedDate: "Feb 5 - 11", // Smart: omits repeated month
+          formattedDateFull: "Feb 5 - Feb 11", // Full: shows month for both dates
+        });
+      });
+    });
+
+    describe("Monthly view formatting differences", () => {
+      it("should show consistent formatting for monthly ranges", () => {
+        const startDate = "2024-01-15T00:00:00.000Z";
+        const endDate = "2024-03-15T23:59:59.999Z";
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "month",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(3);
+
+        expect(ranges[0]).toEqual({
+          startDate: "2024-01-15T00:00:00.000Z",
+          endDate: "2024-01-31T23:59:59.999Z",
+          formattedDate: "Jan", // Smart: month only
+          formattedDateFull: "Jan", // Full: same as smart for monthly view
+        });
+
+        expect(ranges[1]).toEqual({
+          startDate: "2024-02-01T00:00:00.000Z",
+          endDate: "2024-02-29T23:59:59.999Z",
+          formattedDate: "Feb", // Smart: month only
+          formattedDateFull: "Feb", // Full: same as smart for monthly view
+        });
+
+        expect(ranges[2]).toEqual({
+          startDate: "2024-03-01T00:00:00.000Z",
+          endDate: "2024-03-15T23:59:59.999Z",
+          formattedDate: "Mar", // Smart: month only
+          formattedDateFull: "Mar", // Full: same as smart for monthly view
+        });
+      });
+    });
+
+    describe("Real-world usage examples", () => {
+      it("should demonstrate practical differences for chart display", () => {
+        // Simulate a common analytics scenario: 7 days of data
+        const startDate = "2024-01-15T00:00:00.000Z";
+        const endDate = "2024-01-21T23:59:59.999Z";
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "day",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        const smartFormatted = ranges.map((r) => r.formattedDate);
+        const fullFormatted = ranges.map((r) => r.formattedDateFull);
+
+        expect(smartFormatted).toEqual([
+          "Jan 15", // First day shows month
+          "16", // Subsequent days omit month for cleaner display
+          "17",
+          "18",
+          "19",
+          "20",
+          "21",
+        ]);
+
+        expect(fullFormatted).toEqual([
+          "Jan 15", // Always shows complete date
+          "Jan 16", // Never omits contextual information
+          "Jan 17",
+          "Jan 18",
+          "Jan 19",
+          "Jan 20",
+          "Jan 21",
+        ]);
+      });
+
+      it("should show benefits of full formatting for data export", () => {
+        // Simulate data that might be exported or used in external systems
+        const startDate = "2024-01-30T00:00:00.000Z";
+        const endDate = "2024-02-05T23:59:59.999Z";
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "day",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        const smartFormatted = ranges.map((r) => r.formattedDate);
+        const fullFormatted = ranges.map((r) => r.formattedDateFull);
+
+        expect(smartFormatted).toEqual([
+          "Jan 30", // Month shown for first day
+          "31", // Ambiguous - which month?
+          "Feb 1", // Month shown for first of month
+          "2", // Ambiguous - which month?
+          "3", // Ambiguous - which month?
+          "4", // Ambiguous - which month?
+          "5", // Ambiguous - which month?
+        ]);
+
+        expect(fullFormatted).toEqual([
+          "Jan 30", // Clear and complete
+          "Jan 31", // No ambiguity about month
+          "Feb 1", // Clear month transition
+          "Feb 2", // Always clear which month
+          "Feb 3", // Perfect for data export
+          "Feb 4", // No context needed
+          "Feb 5", // Self-contained information
+        ]);
+      });
+    });
+  });
 });
