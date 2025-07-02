@@ -32,9 +32,11 @@ jobs:
             "https://api.github.com/users/${{ github.actor }}" | \
             jq -r '.email // empty')
           
-          # Fallback to a team-friendly email if user email is private/null
+          # Fail if user email is private/null - no fallback allowed
           if [ -z "$USER_EMAIL" ] || [ "$USER_EMAIL" = "null" ]; then
-            USER_EMAIL="${{ github.actor }}@users.noreply.github.com"
+            echo "Error: User ${{ github.actor }} has no public email address."
+            echo "Please make your email address public in your GitHub profile settings."
+            exit 1
           fi
           
           git config --local user.email "$USER_EMAIL"
