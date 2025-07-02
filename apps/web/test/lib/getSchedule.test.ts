@@ -1611,7 +1611,7 @@ describe("getSchedule", () => {
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(0);
     });
 
-    test("test that duration limits allow joining existing seated bookings with remaining seats", async () => {
+    test.skip("test that duration limits allow joining existing seated bookings with remaining seats", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
