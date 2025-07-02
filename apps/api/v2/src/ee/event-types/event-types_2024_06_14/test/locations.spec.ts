@@ -1,5 +1,3 @@
-import { describe, expect, it } from "vitest";
-
 import { transformLocationsInternalToApi } from "../transformers/internal-to-api/locations";
 import type { InternalLocation } from "../transformers/internal/locations";
 
@@ -28,6 +26,7 @@ describe("Location transformation", () => {
       {
         type: "link",
         link: "https://example.com/meeting",
+        displayLocationPublicly: false,
       },
     ];
 
