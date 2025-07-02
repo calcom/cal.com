@@ -805,18 +805,27 @@ async function handler(
       const luckyUserPools: Record<string, IsFixedAwareUser[]> = {};
       const fixedUserPool: IsFixedAwareUser[] = [];
 
+      const hostGroups = eventType.hostGroups;
+      const defaultGroupId = "default_group_id";
+
+      const hasGroups = hostGroups?.length > 0;
+
+      if (hasGroups) {
+        hostGroups.forEach((group) => {
+          luckyUserPools[group.id] = [];
+        });
+      } else {
+        luckyUserPools[defaultGroupId] = [];
+      }
+
       availableUsers.forEach((user) => {
         if (user.isFixed) {
           fixedUserPool.push(user);
         } else {
-          let groupId = user.groupId;
-          if (!groupId) {
-            groupId = "default_group_id";
+          const groupId = hasGroups ? user.groupId : defaultGroupId;
+          if (luckyUserPools[groupId]) {
+            luckyUserPools[groupId].push(user);
           }
-          if (!luckyUserPools[groupId]) {
-            luckyUserPools[groupId] = [];
-          }
-          luckyUserPools[groupId].push(user);
         }
       });
 
