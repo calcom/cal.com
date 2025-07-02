@@ -67,13 +67,13 @@ const LicenseSelection = (
       z.object({
         licenseKey: z
           .string()
-          .min(1, "License key is required")
+          .min(1, t("license_key_required"))
           .refine(() => !licenseTouched || (licenseValidation ? licenseValidation.valid : true), {
-            message: licenseValidation?.message || "License key is invalid",
+            message: licenseValidation?.message || t("invalid_license_key"),
           }),
         signatureToken: z.string().optional(),
       }),
-    [licenseValidation, licenseTouched]
+    [licenseValidation, licenseTouched, t]
   );
 
   const formMethods = useForm<LicenseSelectionFormValues>({
