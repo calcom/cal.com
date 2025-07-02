@@ -30,16 +30,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-01T23:59:59.999Z",
           formattedDate: "May 1",
+          formattedDateStraightforward: "May 1",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-02T00:00:00.000Z",
           endDate: "2025-05-02T23:59:59.999Z",
           formattedDate: "2",
+          formattedDateStraightforward: "May 2",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-03T00:00:00.000Z",
           endDate: "2025-05-03T23:59:59.999Z",
           formattedDate: "3",
+          formattedDateStraightforward: "May 3",
         });
       });
 
@@ -64,26 +67,31 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-03T23:59:59.999Z",
           formattedDate: "May 1 - 3",
+          formattedDateStraightforward: "May 1 - May 3",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-04T00:00:00.000Z",
           endDate: "2025-05-10T23:59:59.999Z",
           formattedDate: "May 4 - 10",
+          formattedDateStraightforward: "May 4 - May 10",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-11T00:00:00.000Z",
           endDate: "2025-05-17T23:59:59.999Z",
           formattedDate: "May 11 - 17",
+          formattedDateStraightforward: "May 11 - May 17",
         });
         expect(ranges[3]).toEqual({
           startDate: "2025-05-18T00:00:00.000Z",
           endDate: "2025-05-24T23:59:59.999Z",
           formattedDate: "May 18 - 24",
+          formattedDateStraightforward: "May 18 - May 24",
         });
         expect(ranges[4]).toEqual({
           startDate: "2025-05-25T00:00:00.000Z",
           endDate: "2025-05-25T23:59:59.999Z",
           formattedDate: "May 25 - 25",
+          formattedDateStraightforward: "May 25 - May 25",
         });
       });
 
@@ -108,16 +116,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-15T00:00:00.000Z",
           endDate: "2025-05-31T23:59:59.999Z",
           formattedDate: "May",
+          formattedDateStraightforward: "May",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-06-01T00:00:00.000Z",
           endDate: "2025-06-30T23:59:59.999Z",
           formattedDate: "Jun",
+          formattedDateStraightforward: "Jun",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-07-01T00:00:00.000Z",
           endDate: "2025-07-15T23:59:59.999Z",
           formattedDate: "Jul",
+          formattedDateStraightforward: "Jul",
         });
       });
 
@@ -142,16 +153,19 @@ describe("EventsInsights", () => {
           startDate: "2025-06-15T00:00:00.000Z",
           endDate: "2025-12-31T23:59:59.999Z",
           formattedDate: "2025",
+          formattedDateStraightforward: "2025",
         });
         expect(ranges[1]).toEqual({
           startDate: "2026-01-01T00:00:00.000Z",
           endDate: "2026-12-31T23:59:59.999Z",
           formattedDate: "2026",
+          formattedDateStraightforward: "2026",
         });
         expect(ranges[2]).toEqual({
           startDate: "2027-01-01T00:00:00.000Z",
           endDate: "2027-03-15T23:59:59.999Z",
           formattedDate: "2027",
+          formattedDateStraightforward: "2027",
         });
       });
 
@@ -176,6 +190,7 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-01T23:59:59.999Z",
           formattedDate: "May 1",
+          formattedDateStraightforward: "May 1",
         });
       });
     });
@@ -205,6 +220,7 @@ describe("EventsInsights", () => {
           startDate: "2025-03-29T23:00:00.000Z", // March 30th 00:00 Paris time
           endDate: "2025-03-30T21:59:59.999Z", // March 30th 23:59:59 Paris time
           formattedDate: "Mar 30",
+          formattedDateStraightforward: "Mar 30",
         });
         expect(new Date(ranges[0].endDate).getTime() - new Date(ranges[0].startDate).getTime()).toBeLessThan(
           23 * 60 * 60 * 1000
@@ -213,6 +229,7 @@ describe("EventsInsights", () => {
           startDate: "2025-03-30T22:00:00.000Z", // March 31st 00:00 Paris time
           endDate: "2025-03-31T21:59:59.999Z", // March 31st 23:59:59 Paris time
           formattedDate: "31",
+          formattedDateStraightforward: "Mar 31",
         });
       });
 
@@ -237,16 +254,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-15T22:00:00.000Z",
           endDate: "2025-05-17T21:59:59.999Z",
           formattedDate: "May 16 - 17",
+          formattedDateStraightforward: "May 16 - May 17",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-17T22:00:00.000Z",
           endDate: "2025-05-24T21:59:59.999Z",
           formattedDate: "May 18 - 24",
+          formattedDateStraightforward: "May 18 - May 24",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-24T22:00:00.000Z",
           endDate: "2025-05-29T21:59:59.999Z",
           formattedDate: "May 25 - 29",
+          formattedDateStraightforward: "May 25 - May 29",
         });
       });
 
@@ -271,11 +291,13 @@ describe("EventsInsights", () => {
           startDate: "2025-05-31T22:00:00.000Z",
           endDate: "2025-06-30T21:59:59.999Z",
           formattedDate: "Jun",
+          formattedDateStraightforward: "Jun",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-06-30T22:00:00.000Z",
           endDate: "2025-07-31T21:59:59.999Z",
           formattedDate: "Jul",
+          formattedDateStraightforward: "Jul",
         });
       });
     });
@@ -304,11 +326,13 @@ describe("EventsInsights", () => {
           startDate: "2025-05-14T15:00:00.000Z",
           endDate: "2025-05-15T14:59:59.999Z",
           formattedDate: "May 15",
+          formattedDateStraightforward: "May 15",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-15T15:00:00.000Z",
           endDate: "2025-05-16T14:59:59.999Z",
           formattedDate: "16",
+          formattedDateStraightforward: "May 16",
         });
       });
 
@@ -333,16 +357,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-11T15:00:00.000Z",
           endDate: "2025-05-17T14:59:59.999Z",
           formattedDate: "May 12 - 17",
+          formattedDateStraightforward: "May 12 - May 17",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-17T15:00:00.000Z",
           endDate: "2025-05-24T14:59:59.999Z",
           formattedDate: "May 18 - 24",
+          formattedDateStraightforward: "May 18 - May 24",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-24T15:00:00.000Z",
           endDate: "2025-05-25T14:59:59.999Z",
           formattedDate: "May 25 - 25",
+          formattedDateStraightforward: "May 25 - May 25",
         });
       });
 
@@ -367,11 +394,13 @@ describe("EventsInsights", () => {
           startDate: "2025-04-30T15:00:00.000Z",
           endDate: "2025-05-31T14:59:59.999Z",
           formattedDate: "May",
+          formattedDateStraightforward: "May",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-31T15:00:00.000Z",
           endDate: "2025-06-30T14:59:59.999Z",
           formattedDate: "Jun",
+          formattedDateStraightforward: "Jun",
         });
       });
     });
@@ -421,16 +450,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-04T23:59:59.999Z",
           formattedDate: "May 1 - 4",
+          formattedDateStraightforward: "May 1 - May 4",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-05T00:00:00.000Z",
           endDate: "2025-05-11T23:59:59.999Z",
           formattedDate: "May 5 - 11",
+          formattedDateStraightforward: "May 5 - May 11",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-12T00:00:00.000Z",
           endDate: "2025-05-14T23:59:59.999Z",
           formattedDate: "May 12 - 14",
+          formattedDateStraightforward: "May 12 - May 14",
         });
       });
 
@@ -455,16 +487,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-03T23:59:59.999Z",
           formattedDate: "May 1 - 3",
+          formattedDateStraightforward: "May 1 - May 3",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-04T00:00:00.000Z",
           endDate: "2025-05-10T23:59:59.999Z",
           formattedDate: "May 4 - 10",
+          formattedDateStraightforward: "May 4 - May 10",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-11T00:00:00.000Z",
           endDate: "2025-05-14T23:59:59.999Z",
           formattedDate: "May 11 - 14",
+          formattedDateStraightforward: "May 11 - May 14",
         });
       });
 
@@ -489,17 +524,248 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-02T23:59:59.999Z",
           formattedDate: "May 1 - 2",
+          formattedDateStraightforward: "May 1 - May 2",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-03T00:00:00.000Z",
           endDate: "2025-05-09T23:59:59.999Z",
           formattedDate: "May 3 - 9",
+          formattedDateStraightforward: "May 3 - May 9",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-10T00:00:00.000Z",
           endDate: "2025-05-14T23:59:59.999Z",
           formattedDate: "May 10 - 14",
+          formattedDateStraightforward: "May 10 - May 14",
         });
+      });
+    });
+  });
+
+  describe("formatPeriodStraightforward", () => {
+    describe("Day View", () => {
+      it("should always show month and day for same year", () => {
+        const result = EventsInsights.formatPeriodStraightforward({
+          start: dayjs("2024-01-16"),
+          end: dayjs("2024-01-16"),
+          timeView: "day",
+          wholeStart: dayjs("2024-01-15"),
+          wholeEnd: dayjs("2024-01-20"),
+        });
+        expect(result).toBe("Jan 16");
+      });
+
+      it("should always show month, day and year for different years", () => {
+        const result = EventsInsights.formatPeriodStraightforward({
+          start: dayjs("2024-01-16"),
+          end: dayjs("2024-01-16"),
+          timeView: "day",
+          wholeStart: dayjs("2023-12-15"),
+          wholeEnd: dayjs("2024-02-01"),
+        });
+        expect(result).toBe("Jan 16, 2024");
+      });
+
+      it("should show month for first day when same year", () => {
+        const result = EventsInsights.formatPeriodStraightforward({
+          start: dayjs("2024-01-15"),
+          end: dayjs("2024-01-15"),
+          timeView: "day",
+          wholeStart: dayjs("2024-01-15"),
+          wholeEnd: dayjs("2024-01-20"),
+        });
+        expect(result).toBe("Jan 15");
+      });
+
+      it("should show month for first day of month when same year", () => {
+        const result = EventsInsights.formatPeriodStraightforward({
+          start: dayjs("2024-02-01"),
+          end: dayjs("2024-02-01"),
+          timeView: "day",
+          wholeStart: dayjs("2024-01-15"),
+          wholeEnd: dayjs("2024-02-10"),
+        });
+        expect(result).toBe("Feb 1");
+      });
+
+      describe("Real-world scenarios", () => {
+        it("should format a range from Jan 15 to Jan 20 with full dates", () => {
+          const wholeStart = dayjs("2024-01-15");
+          const wholeEnd = dayjs("2024-01-20");
+
+          const results: string[] = [];
+          for (let i = 0; i <= 5; i++) {
+            const currentDay = wholeStart.add(i, "day");
+            results.push(
+              EventsInsights.formatPeriodStraightforward({
+                start: currentDay,
+                end: currentDay,
+                timeView: "day",
+                wholeStart,
+                wholeEnd,
+              })
+            );
+          }
+
+          expect(results).toEqual(["Jan 15", "Jan 16", "Jan 17", "Jan 18", "Jan 19", "Jan 20"]);
+        });
+
+        it("should format a range from Jan 30 to Feb 3 with full dates", () => {
+          const wholeStart = dayjs("2024-01-30");
+          const wholeEnd = dayjs("2024-02-03");
+
+          const results: string[] = [];
+          let currentDay = wholeStart;
+          while (currentDay.isBefore(wholeEnd) || currentDay.isSame(wholeEnd)) {
+            results.push(
+              EventsInsights.formatPeriodStraightforward({
+                start: currentDay,
+                end: currentDay,
+                timeView: "day",
+                wholeStart,
+                wholeEnd,
+              })
+            );
+            currentDay = currentDay.add(1, "day");
+          }
+
+          expect(results).toEqual(["Jan 30", "Jan 31", "Feb 1", "Feb 2", "Feb 3"]);
+        });
+
+        it("should format a range from Dec 30, 2023 to Jan 2, 2024 with full dates", () => {
+          const wholeStart = dayjs("2023-12-30");
+          const wholeEnd = dayjs("2024-01-02");
+
+          const results: string[] = [];
+          let currentDay = wholeStart;
+          while (currentDay.isBefore(wholeEnd) || currentDay.isSame(wholeEnd)) {
+            results.push(
+              EventsInsights.formatPeriodStraightforward({
+                start: currentDay,
+                end: currentDay,
+                timeView: "day",
+                wholeStart,
+                wholeEnd,
+              })
+            );
+            currentDay = currentDay.add(1, "day");
+          }
+
+          expect(results).toEqual(["Dec 30, 2023", "Dec 31, 2023", "Jan 1, 2024", "Jan 2, 2024"]);
+        });
+      });
+    });
+
+    describe("Week View", () => {
+      describe("Same month", () => {
+        it("should format dates without year when wholeStart and wholeEnd are same year", () => {
+          const result = EventsInsights.formatPeriodStraightforward({
+            start: dayjs("2024-01-01"),
+            end: dayjs("2024-01-07"),
+            timeView: "week",
+            wholeStart: dayjs("2024-01-01"),
+            wholeEnd: dayjs("2024-12-31"),
+          });
+          expect(result).toBe("Jan 1 - Jan 7");
+        });
+
+        it("should format dates with year when wholeStart and wholeEnd are different years", () => {
+          const result = EventsInsights.formatPeriodStraightforward({
+            start: dayjs("2024-01-01"),
+            end: dayjs("2024-01-07"),
+            timeView: "week",
+            wholeStart: dayjs("2023-12-01"),
+            wholeEnd: dayjs("2024-02-01"),
+          });
+          expect(result).toBe("Jan 1 - Jan 7, 2024");
+        });
+      });
+
+      describe("Different months", () => {
+        it("should format dates without year when wholeStart and wholeEnd are same year", () => {
+          const result = EventsInsights.formatPeriodStraightforward({
+            start: dayjs("2024-01-29"),
+            end: dayjs("2024-02-04"),
+            timeView: "week",
+            wholeStart: dayjs("2024-01-01"),
+            wholeEnd: dayjs("2024-12-31"),
+          });
+          expect(result).toBe("Jan 29 - Feb 4");
+        });
+
+        it("should format dates with year when wholeStart and wholeEnd are different years", () => {
+          const result = EventsInsights.formatPeriodStraightforward({
+            start: dayjs("2024-01-29"),
+            end: dayjs("2024-02-04"),
+            timeView: "week",
+            wholeStart: dayjs("2023-12-01"),
+            wholeEnd: dayjs("2024-03-01"),
+          });
+          expect(result).toBe("Jan 29 - Feb 4, 2024");
+        });
+      });
+
+      describe("Different years", () => {
+        it("should format dates with respective years when start and end span different years", () => {
+          const result = EventsInsights.formatPeriodStraightforward({
+            start: dayjs("2023-12-31"),
+            end: dayjs("2024-01-06"),
+            timeView: "week",
+            wholeStart: dayjs("2023-12-01"),
+            wholeEnd: dayjs("2024-01-31"),
+          });
+          expect(result).toBe("Dec 31, 2023 - Jan 6, 2024");
+        });
+      });
+    });
+
+    describe("Month View", () => {
+      it("should format month without year when wholeStart and wholeEnd are same year", () => {
+        const result = EventsInsights.formatPeriodStraightforward({
+          start: dayjs("2024-01-01"),
+          end: dayjs("2024-01-31"),
+          timeView: "month",
+          wholeStart: dayjs("2024-01-01"),
+          wholeEnd: dayjs("2024-12-31"),
+        });
+        expect(result).toBe("Jan");
+      });
+
+      it("should format month with year when wholeStart and wholeEnd are different years", () => {
+        const result = EventsInsights.formatPeriodStraightforward({
+          start: dayjs("2024-01-01"),
+          end: dayjs("2024-01-31"),
+          timeView: "month",
+          wholeStart: dayjs("2023-12-01"),
+          wholeEnd: dayjs("2024-02-01"),
+        });
+        expect(result).toBe("Jan 2024");
+      });
+    });
+
+    describe("Year View", () => {
+      it("should format year regardless of wholeStart and wholeEnd values", () => {
+        const result = EventsInsights.formatPeriodStraightforward({
+          start: dayjs("2024-01-01"),
+          end: dayjs("2024-12-31"),
+          timeView: "year",
+          wholeStart: dayjs("2024-01-01"),
+          wholeEnd: dayjs("2024-12-31"),
+        });
+        expect(result).toBe("2024");
+      });
+    });
+
+    describe("Invalid View", () => {
+      it("should return empty string for invalid timeView", () => {
+        const result = EventsInsights.formatPeriodStraightforward({
+          start: dayjs("2024-01-01"),
+          end: dayjs("2024-01-01"),
+          timeView: "invalid" as any,
+          wholeStart: dayjs("2024-01-01"),
+          wholeEnd: dayjs("2024-12-31"),
+        });
+        expect(result).toBe("");
       });
     });
   });
