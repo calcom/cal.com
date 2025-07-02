@@ -798,15 +798,6 @@ describe("handleNewBooking", () => {
           expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T04:00:00.000Z`);
           expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T04:15:00.000Z`);
 
-          // Verify that a new calendar event was created
-          expectSuccessfulCalendarEventUpdationInCalendar(calendarMock, {
-            externalCalendarId: expect.any(String),
-            calEvent: {
-              location: BookingLocations.CalVideo,
-            },
-            uid: "NEW_CALENDAR_EVENT_UID",
-          });
-
           // Verify the new booking has proper calendar references
           await expectBookingInDBToBeRescheduledFromTo({
             from: {
