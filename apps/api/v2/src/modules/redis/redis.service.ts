@@ -10,9 +10,27 @@ export class RedisService implements OnModuleDestroy {
 
   constructor(readonly configService: ConfigService<AppConfig>) {
     const dbUrl = configService.get<string>("db.redisUrl", { infer: true });
-    if (!dbUrl) throw new Error("Misconfigured Redis, halting.");
+    if (!dbUrl) {
+      if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        this.logger.warn("Redis URL not configured in serverless environment, using mock Redis");
+        this.redis = this.createMockRedis();
+        return;
+      }
+      throw new Error("Misconfigured Redis, halting.");
+    }
 
     this.redis = new Redis(dbUrl);
+  }
+
+  private createMockRedis(): any {
+    return {
+      get: async () => null,
+      set: async () => "OK",
+      del: async () => 1,
+      exists: async () => 0,
+      expire: async () => 1,
+      quit: async () => "OK",
+    };
   }
 
   async onModuleDestroy() {

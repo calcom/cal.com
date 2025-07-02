@@ -1,0 +1,198 @@
+{
+  "functions": {
+    "api/v2/health.ts": {
+      "memory": 512,
+      "maxDuration": 10
+    },
+    "api/v2/event-types.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/v2/bookings.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/v2/oauth-clients.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/v2/me.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/schedules.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/v2/slots.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/v2/webhooks.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/organizations.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/v2/calendars.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/v2/gcal.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/provider.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/conferencing.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/api-keys.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/routing-forms.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/v2/verified-resources.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/destination-calendars.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/selected-calendars.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/atoms.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/billing.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/v2/timezones.ts": {
+      "memory": 256,
+      "maxDuration": 10
+    },
+    "api/v2/cal-unified-calendars.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "api/v2/router.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
+    "api/v2/stripe.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/v2/health",
+      "destination": "/api/v2/health"
+    },
+    {
+      "source": "/v2/event-types/(.*)",
+      "destination": "/api/v2/event-types"
+    },
+    {
+      "source": "/v2/bookings/(.*)",
+      "destination": "/api/v2/bookings"
+    },
+    {
+      "source": "/v2/oauth-clients/(.*)",
+      "destination": "/api/v2/oauth-clients"
+    },
+    {
+      "source": "/v2/me/(.*)",
+      "destination": "/api/v2/me"
+    },
+    {
+      "source": "/v2/schedules/(.*)",
+      "destination": "/api/v2/schedules"
+    },
+    {
+      "source": "/v2/slots/(.*)",
+      "destination": "/api/v2/slots"
+    },
+    {
+      "source": "/v2/webhooks/(.*)",
+      "destination": "/api/v2/webhooks"
+    },
+    {
+      "source": "/v2/organizations/(.*)",
+      "destination": "/api/v2/organizations"
+    },
+    {
+      "source": "/v2/calendars/(.*)",
+      "destination": "/api/v2/calendars"
+    },
+    {
+      "source": "/v2/gcal/(.*)",
+      "destination": "/api/v2/gcal"
+    },
+    {
+      "source": "/v2/provider/(.*)",
+      "destination": "/api/v2/provider"
+    },
+    {
+      "source": "/v2/conferencing/(.*)",
+      "destination": "/api/v2/conferencing"
+    },
+    {
+      "source": "/v2/api-keys/(.*)",
+      "destination": "/api/v2/api-keys"
+    },
+    {
+      "source": "/v2/routing-forms/(.*)",
+      "destination": "/api/v2/routing-forms"
+    },
+    {
+      "source": "/v2/verified-resources/(.*)",
+      "destination": "/api/v2/verified-resources"
+    },
+    {
+      "source": "/v2/destination-calendars/(.*)",
+      "destination": "/api/v2/destination-calendars"
+    },
+    {
+      "source": "/v2/selected-calendars/(.*)",
+      "destination": "/api/v2/selected-calendars"
+    },
+    {
+      "source": "/v2/atoms/(.*)",
+      "destination": "/api/v2/atoms"
+    },
+    {
+      "source": "/v2/billing/(.*)",
+      "destination": "/api/v2/billing"
+    },
+    {
+      "source": "/v2/timezones/(.*)",
+      "destination": "/api/v2/timezones"
+    },
+    {
+      "source": "/v2/cal-unified-calendars/(.*)",
+      "destination": "/api/v2/cal-unified-calendars"
+    },
+    {
+      "source": "/v2/router/(.*)",
+      "destination": "/api/v2/router"
+    },
+    {
+      "source": "/v2/stripe/(.*)",
+      "destination": "/api/v2/stripe"
+    }
+  ]
+}

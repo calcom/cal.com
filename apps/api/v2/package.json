@@ -7,6 +7,8 @@
   "private": true,
   "scripts": {
     "build": "yarn dev:build && nest build",
+    "build:serverless": "yarn dev:build && nest build && yarn copy-serverless-handlers",
+    "copy-serverless-handlers": "npx ts-node generate-handlers.ts && cp -r api dist/",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev:build:watch": "concurrently --names \"libraries,lru-fix,constants,enums,utils,types\" \"yarn _dev:build:watch:libraries\" \"yarn _dev:build:watch:libraries:lru-fix\" \"yarn _dev:build:watch:constants\" \"yarn _dev:build:watch:enums\" \"yarn _dev:build:watch:utils\" \"yarn _dev:build:watch:types\"",
@@ -35,6 +37,7 @@
     "snyk-protect": "snyk-protect"
   },
   "dependencies": {
+    "@vercel/node": "^3.0.0",
     "@axiomhq/winston": "^1.2.0",
     "@calcom/platform-constants": "*",
     "@calcom/platform-enums": "*",

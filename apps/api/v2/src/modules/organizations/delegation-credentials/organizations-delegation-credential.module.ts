@@ -7,10 +7,13 @@ import { OrganizationsRepository } from "@/modules/organizations/index/organizat
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
+import { QueueMockService } from "@/serverless/queue-mock.service";
 import { BullModule } from "@nestjs/bull";
 import { Module } from "@nestjs/common";
 
 import { OrganizationsDelegationCredentialService } from "./services/organizations-delegation-credential.service";
+
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
 @Module({
   imports: [
@@ -19,19 +22,24 @@ import { OrganizationsDelegationCredentialService } from "./services/organizatio
     RedisModule,
     CalendarsModule,
     MembershipsModule,
-    BullModule.registerQueue({
-      name: CALENDARS_QUEUE,
-      limiter: {
-        max: 1,
-        duration: 1000,
-      },
-    }),
+    ...(!isServerless
+      ? [
+          BullModule.registerQueue({
+            name: CALENDARS_QUEUE,
+            limiter: {
+              max: 1,
+              duration: 1000,
+            },
+          }),
+        ]
+      : []),
   ],
   providers: [
     OrganizationsDelegationCredentialService,
     OrganizationsDelegationCredentialRepository,
     OrganizationsRepository,
-    CalendarsProcessor,
+    ...(isServerless ? [] : [CalendarsProcessor]),
+    ...(isServerless ? [QueueMockService] : []),
   ],
   controllers: [OrganizationsDelegationCredentialController],
 })

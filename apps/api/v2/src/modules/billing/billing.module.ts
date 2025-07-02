@@ -11,8 +11,11 @@ import { OrganizationsModule } from "@/modules/organizations/organizations.modul
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { UsersModule } from "@/modules/users/users.module";
+import { QueueMockService } from "@/serverless/queue-mock.service";
 import { BullModule } from "@nestjs/bull";
 import { Module } from "@nestjs/common";
+
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
 @Module({
   imports: [
@@ -20,23 +23,28 @@ import { Module } from "@nestjs/common";
     StripeModule,
     MembershipsModule,
     OrganizationsModule,
-    BullModule.registerQueue({
-      name: "billing",
-      limiter: {
-        max: 1,
-        duration: 1000,
-      },
-    }),
+    ...(!isServerless
+      ? [
+          BullModule.registerQueue({
+            name: "billing",
+            limiter: {
+              max: 1,
+              duration: 1000,
+            },
+          }),
+        ]
+      : []),
     UsersModule,
   ],
   providers: [
     BillingConfigService,
     BillingService,
     BillingRepository,
-    BillingProcessor,
+    ...(isServerless ? [] : [BillingProcessor]),
     ManagedOrganizationsBillingService,
     OAuthClientRepository,
     BookingsRepository_2024_08_13,
+    ...(isServerless ? [QueueMockService] : []),
   ],
   exports: [BillingService, BillingRepository, ManagedOrganizationsBillingService],
   controllers: [BillingController],
