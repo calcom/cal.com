@@ -5,8 +5,26 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import { identityProviderNameMap } from "./identityProviderNameMap";
 
+type CalComAdapterType = {
+  createUser: (data: Prisma.UserCreateInput) => any;
+  getUser: (id: string | number) => any;
+  getUserByEmail: (email: User["email"]) => any;
+  getUserByAccount: (provider_providerAccountId: {
+    providerAccountId: Account["providerAccountId"];
+    provider: User["identityProvider"];
+  }) => any;
+  updateUser: (data: Prisma.UserUncheckedCreateInput) => any;
+  deleteUser: (id: User["id"]) => any;
+  createVerificationToken: (data: VerificationToken) => any;
+  useVerificationToken: (identifier_token: Prisma.VerificationTokenIdentifierTokenCompoundUniqueInput) => any;
+  linkAccount: (data: Prisma.AccountCreateInput) => any;
+  unlinkAccount: (
+    provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput
+  ) => any;
+};
+
 /** @return { import("next-auth/adapters").Adapter } */
-export default function CalComAdapter(prismaClient: PrismaClient) {
+export default function CalComAdapter(prismaClient: PrismaClient): CalComAdapterType {
   return {
     createUser: (data: Prisma.UserCreateInput) => prismaClient.user.create({ data }),
     getUser: (id: string | number) =>
