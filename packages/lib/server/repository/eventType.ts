@@ -711,6 +711,11 @@ export class EventTypeRepository {
           redirectUrlOnExit: true,
         },
       },
+      zoomVideoSettings: {
+        select: {
+          enableWaitingRoom: true,
+        },
+      },
     });
 
     // This is more efficient than using a complex join with team.members in the query
