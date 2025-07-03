@@ -16,6 +16,12 @@ export class ManagedOrganizationOutput {
   @ApiProperty()
   readonly name!: string;
 
+  @IsString()
+  @IsOptional()
+  @Expose()
+  @ApiPropertyOptional()
+  readonly slug?: string;
+
   @ApiPropertyOptional({
     type: Object,
     example: { key: "value" },

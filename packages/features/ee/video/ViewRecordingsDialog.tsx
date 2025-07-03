@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
@@ -58,7 +60,7 @@ const getTimeSpan = ({ startTime, endTime, locale, hour12 }: GetTimeSpanProps) =
 
 const useRecordingDownload = () => {
   const [recordingId, setRecordingId] = useState("");
-  const { isFetching, data } = trpc.viewer.getDownloadLinkOfCalVideoRecordings.useQuery(
+  const { isFetching, data } = trpc.viewer.calVideo.getDownloadLinkOfCalVideoRecordings.useQuery(
     {
       recordingId,
     },
@@ -74,21 +76,19 @@ const useRecordingDownload = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (data && data.download_link) {
-        window.location.href = data.download_link;
+        window.open(data.download_link, "_blank", "noopener,noreferrer");
       }
     },
     [data]
   );
   return {
     setRecordingId: (newRecordingId: string) => {
-      // may be a way to do this by default, but this is easy enough.
       if (recordingId === newRecordingId && data) {
-        window.location.href = data.download_link;
+        window.open(data.download_link, "_blank", "noopener,noreferrer");
       }
       if (!isFetching) {
         setRecordingId(newRecordingId);
       }
-      // assume it is still fetching, do nothing.
     },
     isFetching,
     recordingId,
@@ -100,7 +100,7 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
   const { setRecordingId, isFetching, recordingId } = useRecordingDownload();
   const router = useRouter();
 
-  const { data: recordings } = trpc.viewer.getCalVideoRecordings.useQuery(
+  const { data: recordings } = trpc.viewer.calVideo.getCalVideoRecordings.useQuery(
     { roomName },
     {
       suspense: true,

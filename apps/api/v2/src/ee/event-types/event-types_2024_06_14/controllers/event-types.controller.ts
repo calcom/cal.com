@@ -75,7 +75,7 @@ export class EventTypesController_2024_06_14 {
     @GetUser() user: UserWithProfile
   ): Promise<CreateEventTypeOutput_2024_06_14> {
     const transformedBody = await this.inputEventTypesService.transformAndValidateCreateEventTypeInput(
-      user.id,
+      user,
       body
     );
 
@@ -114,6 +114,9 @@ export class EventTypesController_2024_06_14 {
     @Query() queryParams: GetEventTypesQuery_2024_06_14
   ): Promise<GetEventTypesOutput_2024_06_14> {
     const eventTypes = await this.eventTypesService.getEventTypes(queryParams);
+    if (!eventTypes || eventTypes.length === 0) {
+      throw new NotFoundException(`Event types not found`);
+    }
     const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
     const eventTypesWithoutHiddenFields = eventTypesFormatted.map((eventType) => {
       return {
@@ -150,7 +153,7 @@ export class EventTypesController_2024_06_14 {
   ): Promise<UpdateEventTypeOutput_2024_06_14> {
     const transformedBody = await this.inputEventTypesService.transformAndValidateUpdateEventTypeInput(
       body,
-      user.id,
+      user,
       eventTypeId
     );
 

@@ -7,6 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+import { addFilter, openFilter } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/localize";
 import { submitAndWaitForResponse } from "./lib/testUtils";
@@ -657,12 +658,9 @@ test.describe("Out of office", () => {
       await page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
-      await page.locator('[data-testid="add-filter-button"]').click();
-      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
+      await addFilter(page, "dateRange");
       await expect(
-        page
-          .locator('[data-testid="filter-popover-trigger-dateRange"] span', { hasText: "Last 7 Days" })
-          .nth(0)
+        page.locator('[data-testid="filter-popover-trigger-dateRange"]', { hasText: "Last 7 Days" }).first()
       ).toBeVisible();
     });
 
@@ -674,10 +672,8 @@ test.describe("Out of office", () => {
       await page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
-      await page.locator('[data-testid="add-filter-button"]').click();
-      await page.locator('[data-testid="add-filter-item-dateRange"]').click();
-      await page.locator('[data-testid="add-filter-button"]').click();
-      await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
+      await addFilter(page, "dateRange");
+      await openFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible(); //Last 7 Days
@@ -687,10 +683,7 @@ test.describe("Out of office", () => {
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible(); //Custom
     });
 
-    test("OOO records are fetched correctly w.r.t their end dates matching the date range filter selected.", async ({
-      page,
-      users,
-    }) => {
+    test("Default - No date range filter selected.", async ({ page, users }) => {
       const member1Name = `member-1-${Date.now()}`;
       const member2Name = `member-2-${Date.now()}`;
       const member3Name = `member-3-${Date.now()}`;
@@ -722,22 +715,39 @@ test.describe("Out of office", () => {
         },
       });
 
-      //create OOO for member3, start:currentDate-12Days, end:currentDate-10days (for Last 30 Days)
-      await prisma.outOfOfficeEntry.create({
-        data: {
-          start: dayjs().startOf("day").subtract(12, "days").toDate(),
-          end: dayjs().startOf("day").subtract(10, "days").toDate(),
-          uuid: uuidv4(),
-          user: { connect: { id: member3User?.id } },
-          toUser: { connect: { id: member1User?.id } },
-          createdAt: new Date(),
-          reason: {
-            connect: {
-              id: 2,
-            },
-          },
-        },
-      });
+      await member3User?.apiLogin();
+      const entriesListRespPromise = page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
+      await page.goto("/settings/my-account/out-of-office");
+      await entriesListRespPromise;
+      await page.waitForLoadState("domcontentloaded");
+
+      //By Default future OOO will be displayed
+      //1 OOO record should be visible for member3, end=currentDate+4days
+      const oooEntries = page.locator('[data-testid="ooo-actions"]');
+      await oooEntries.waitFor({ state: "visible" });
+      const oooEntriesCount = await oooEntries.count();
+
+      expect(oooEntriesCount).toBe(1);
+      await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
+    });
+
+    test("Date range filter selected - 'Last 7 Days' (default filter).", async ({ page, users }) => {
+      const member1Name = `member-1-${Date.now()}`;
+      const member2Name = `member-2-${Date.now()}`;
+      const member3Name = `member-3-${Date.now()}`;
+      const teamMatesObj = [{ name: member1Name }, { name: member2Name }];
+      const member3User = await users.create(
+        { name: member3Name },
+        {
+          hasTeam: true,
+          teamRole: MembershipRole.MEMBER,
+          teammates: teamMatesObj,
+        }
+      );
+      const member1User = users.get().find((user) => user.name === member1Name);
+      const member2User = users.get().find((user) => user.name === member2Name);
 
       //create OOO for member3, start:currentDate-2Days, end:currentDate-4days (for Last 7 Days)
       await prisma.outOfOfficeEntry.create({
@@ -764,42 +774,88 @@ test.describe("Out of office", () => {
       await entriesListRespPromise;
       await page.waitForLoadState("domcontentloaded");
 
-      //By Default future OOO will be displayed
-      //1 OOO record should be visible for member3, end=currentDate+4days
-      expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
-      await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
-
       //Default filter 'Last 7 Days' when DateRange Filter is selected
       await test.step("Default filter - 'Last 7 Days'", async () => {
-        await page.locator('[data-testid="add-filter-button"]').click();
+        await addFilter(page, "dateRange");
         const entriesListRespPromise = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
-        await page.locator('[data-testid="add-filter-item-dateRange"]').click();
         await entriesListRespPromise;
-        await page.locator('[data-testid="add-filter-button"]').click(); //close popover
 
         //1 OOO record should be visible for member3, end=currentDate-4days
-        expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(1);
+        const oooEntries = page.locator('[data-testid="ooo-actions"]');
+        await oooEntries.waitFor({ state: "visible" });
+        const oooEntriesCount = await oooEntries.count();
+
+        expect(oooEntriesCount).toBe(1);
         await expect(
           page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)
         ).toBeVisible();
       });
+    });
+
+    test("Date range filter selected - 'Last 30 Days'.", async ({ page, users }) => {
+      const member1Name = `member-1-${Date.now()}`;
+      const member2Name = `member-2-${Date.now()}`;
+      const member3Name = `member-3-${Date.now()}`;
+      const teamMatesObj = [{ name: member1Name }, { name: member2Name }];
+      const member3User = await users.create(
+        { name: member3Name },
+        {
+          hasTeam: true,
+          teamRole: MembershipRole.MEMBER,
+          teammates: teamMatesObj,
+        }
+      );
+      const member1User = users.get().find((user) => user.name === member1Name);
+      const member2User = users.get().find((user) => user.name === member2Name);
+
+      //create OOO for member3, start:currentDate-12Days, end:currentDate-10days (for Last 30 Days)
+      await prisma.outOfOfficeEntry.create({
+        data: {
+          start: dayjs().startOf("day").subtract(12, "days").toDate(),
+          end: dayjs().startOf("day").subtract(10, "days").toDate(),
+          uuid: uuidv4(),
+          user: { connect: { id: member3User?.id } },
+          toUser: { connect: { id: member1User?.id } },
+          createdAt: new Date(),
+          reason: {
+            connect: {
+              id: 2,
+            },
+          },
+        },
+      });
+
+      await member3User?.apiLogin();
+      const entriesListRespPromise = page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
+      await page.goto("/settings/my-account/out-of-office");
+      await entriesListRespPromise;
+      await page.waitForLoadState("domcontentloaded");
 
       //Select 'Last 30 Days'
       await test.step("select 'Last 30 Days'", async () => {
-        await page.locator('[data-testid="filter-popover-trigger-dateRange"]').click();
-        const entriesListRespPromise = page.waitForResponse(
+        await addFilter(page, "dateRange");
+        const entriesListRespPromise1 = page.waitForResponse(
           (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
         );
-        await page.locator(`[data-testid="date-range-options-t"]`).click();
-        await entriesListRespPromise;
+        await entriesListRespPromise1;
 
-        //2 OOO records should be visible end=currentDate-4days, end=currentDate-12days
-        expect(await page.locator('[data-testid^="table-redirect-"]').count()).toBe(2);
-        await expect(
-          page.locator(`data-testid=table-redirect-${member2User?.username}`).nth(0)
-        ).toBeVisible();
+        await openFilter(page, "dateRange");
+        const entriesListRespPromise2 = page.waitForResponse(
+          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+        );
+        await page.locator(`[data-testid="date-range-options-t"]`).click(); //Last 30 Days
+        await entriesListRespPromise2;
+
+        //1 OOO record should be visible end=currentDate-12days
+        const oooEntries = page.locator('[data-testid="ooo-actions"]');
+        await oooEntries.waitFor({ state: "visible" });
+        const oooEntriesCount = await oooEntries.count();
+
+        expect(oooEntriesCount).toBe(1);
         await expect(
           page.locator(`data-testid=table-redirect-${member1User?.username}`).nth(0)
         ).toBeVisible();

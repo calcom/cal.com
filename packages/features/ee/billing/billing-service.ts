@@ -9,6 +9,7 @@ export interface BillingService {
     subscriptionItemId: string;
     membershipCount: number;
   }): Promise<void>;
+  handleEndTrial(subscriptionId: string): Promise<void>;
 
   // Customer management
   createCustomer(args: {

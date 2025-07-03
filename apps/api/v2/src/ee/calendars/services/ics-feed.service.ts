@@ -35,6 +35,7 @@ export class IcsFeedService implements ICSFeedCalendarApp {
       teamId: null,
       appId: ICS_CALENDAR,
       invalid: false,
+      delegationCredentialId: null,
     };
 
     try {
@@ -52,7 +53,7 @@ export class IcsFeedService implements ICSFeedCalendarApp {
         );
       }
 
-      const credential = await this.credentialRepository.upsertAppCredential(
+      const credential = await this.credentialRepository.upsertUserAppCredential(
         ICS_CALENDAR_TYPE,
         data.key,
         userId
@@ -75,7 +76,10 @@ export class IcsFeedService implements ICSFeedCalendarApp {
   }
 
   async check(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const icsFeedCredentials = await this.credentialRepository.getByTypeAndUserId(ICS_CALENDAR_TYPE, userId);
+    const icsFeedCredentials = await this.credentialRepository.findCredentialByTypeAndUserId(
+      ICS_CALENDAR_TYPE,
+      userId
+    );
 
     if (!icsFeedCredentials) {
       throw new BadRequestException("Credentials for Ics Feed calendar not found.");

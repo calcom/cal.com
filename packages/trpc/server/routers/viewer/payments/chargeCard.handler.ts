@@ -19,7 +19,7 @@ interface ChargeCardHandlerOptions {
 export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions) => {
   const { prisma } = ctx;
 
-  const booking = await prisma.booking.findFirst({
+  const booking = await prisma.booking.findUnique({
     where: {
       id: input.bookingId,
     },
@@ -74,6 +74,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
     },
     attendees: attendeesList,
+    hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     paymentInfo: {
       amount: booking.payment[0].amount,
       currency: booking.payment[0].currency,
@@ -86,10 +87,12 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     : { userId: ctx.user.id };
 
   if (booking.eventType?.teamId) {
-    const userIsInTeam = await prisma.membership.findFirst({
+    const userIsInTeam = await prisma.membership.findUnique({
       where: {
-        userId: ctx.user.id,
-        teamId: booking.eventType?.teamId,
+        userId_teamId: {
+          userId: ctx.user.id,
+          teamId: booking.eventType?.teamId,
+        },
       },
     });
 

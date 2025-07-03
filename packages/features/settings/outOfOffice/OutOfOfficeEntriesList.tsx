@@ -16,10 +16,13 @@ import {
   DataTableToolbar,
   DataTableProvider,
   ColumnFilterType,
+  useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
   DataTableFilters,
+  DataTableSegment,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -61,7 +64,7 @@ interface OutOfOfficeEntry {
 
 export default function OutOfOfficeEntriesList() {
   return (
-    <DataTableProvider>
+    <DataTableProvider useSegments={useSegments}>
       <OutOfOfficeEntriesListContent />
     </DataTableProvider>
   );
@@ -70,7 +73,6 @@ export default function OutOfOfficeEntriesList() {
 function OutOfOfficeEntriesListContent() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
@@ -80,6 +82,7 @@ function OutOfOfficeEntriesListContent() {
     setOpenModal(true);
   };
 
+  const { searchTerm } = useDataTable();
   const searchParams = useCompatSearchParams();
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
 
@@ -235,7 +238,7 @@ function OutOfOfficeEntriesListContent() {
           return (
             <>
               {row.original && !isPending && !isFetching ? (
-                <div className="flex flex-row items-center justify-end gap-x-2">
+                <div className="flex flex-row items-center justify-end gap-x-2" data-testid="ooo-actions">
                   <Tooltip content={t("edit")}>
                     <Button
                       className="self-center rounded-lg border"
@@ -345,12 +348,17 @@ function OutOfOfficeEntriesListContent() {
         totalRowCount={totalRowCount}
         tableContainerRef={tableContainerRef}
         paginationMode="infinite"
-        ToolbarLeft={<DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchTerm(value)} />}
+        ToolbarLeft={
+          <>
+            <DataTableToolbar.SearchBar />
+            <DataTableFilters.FilterBar table={table} />
+          </>
+        }
         ToolbarRight={
           <>
-            <DataTableFilters.AddFilterButton table={table} />
-            <DataTableFilters.ActiveFilters table={table} />
             <DataTableFilters.ClearFiltersButton />
+            <DataTableSegment.SaveButton />
+            <DataTableSegment.Select />
           </>
         }
         EmptyView={
@@ -374,9 +382,11 @@ function OutOfOfficeEntriesListContent() {
                       <div className="w-12" />
                     </div>
                     <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
-                      <Icon name="clock" size={28} />
+                      <Icon name="clock" size={28} className="text-black" />
                       <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
-                      <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>
+                      <span className="absolute right-4 top-3 font-sans text-sm font-extrabold text-black">
+                        z
+                      </span>
                     </div>
                   </div>
                 </div>

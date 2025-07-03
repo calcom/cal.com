@@ -1,10 +1,9 @@
-import type { NextApiRequest } from "next";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getAllDelegationCredentialsForUser } from "@calcom/lib/delegationCredential/server";
+import { getRichDescription } from "@calcom/lib/CalEventParser";
+import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -18,10 +17,13 @@ import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import type { AppRouterRequest, CustomRequest } from "../../handleCancelBooking/types";
+import type { BookingToDelete } from "../../handleCancelBooking";
 
 async function cancelAttendeeSeat(
-  req: CustomRequest,
+  data: {
+    seatReferenceUid?: string;
+    bookingToDelete: BookingToDelete;
+  },
   dataForWebhooks: {
     webhooks: {
       id: string;
@@ -35,12 +37,13 @@ async function cancelAttendeeSeat(
   },
   eventTypeMetadata: EventTypeMetadata
 ) {
-  const body = (req as AppRouterRequest).appDirRequestBody ?? (req as NextApiRequest).body;
-  const input = bookingCancelAttendeeSeatSchema.safeParse(body);
+  const input = bookingCancelAttendeeSeatSchema.safeParse({
+    seatReferenceUid: data.seatReferenceUid,
+  });
   const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
   if (!input.success) return;
   const { seatReferenceUid } = input.data;
-  const bookingToDelete = req.bookingToDelete;
+  const bookingToDelete = data.bookingToDelete;
   if (!bookingToDelete?.attendees.length || bookingToDelete.attendees.length < 2) return;
 
   if (!bookingToDelete.userId) {
@@ -65,12 +68,12 @@ async function cancelAttendeeSeat(
       },
     }),
   ]);
-  (req as NextApiRequest).statusCode = 200;
 
   const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
   const bookingToDeleteUser = bookingToDelete.user ?? null;
   const delegationCredentials = bookingToDeleteUser
-    ? await getAllDelegationCredentialsForUser({
+    ? // We fetch delegation credentials with ServiceAccount key as CalendarService instance created later in the flow needs it
+      await getAllDelegationCredentialsForUserIncludeServiceAccountKey({
         user: { email: bookingToDeleteUser.email, id: bookingToDeleteUser.id },
       })
     : [];
@@ -94,6 +97,7 @@ async function cancelAttendeeSeat(
           const updatedEvt = {
             ...evt,
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
+            calendarDescription: getRichDescription(evt),
           };
           if (reference.type.includes("_video")) {
             integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));

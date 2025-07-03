@@ -117,7 +117,7 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
     },
   });
 
-  const deleteMutation = trpc.viewer.deleteCredential.useMutation({
+  const deleteMutation = trpc.viewer.credentials.delete.useMutation({
     onSuccess: () => {
       router.push("/apps/hitpay");
     },

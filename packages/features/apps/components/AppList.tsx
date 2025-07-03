@@ -19,7 +19,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
-import { List } from "@calcom/ui/components/list";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import {
@@ -29,6 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -152,7 +152,7 @@ export const AppList = ({
                   <Button StartIcon="ellipsis" variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  {!appIsDefault && variant === "conferencing" && !item.credentialOwner?.teamId && (
+                  {!appIsDefault && variant === "conferencing" && (
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"

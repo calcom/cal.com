@@ -164,6 +164,9 @@ const WithLabel = ({
             </div>
           )}
       {children}
+      {field.name === "smsReminderNumber" && (
+        <div className="text-sm text-gray-500">{t("sms_workflow_consent")}</div>
+      )}
     </div>
   );
 };

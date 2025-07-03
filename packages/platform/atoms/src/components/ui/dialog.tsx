@@ -14,11 +14,17 @@ const Dialog = DialogPrimitives.Root;
 
 const DialogTrigger = DialogPrimitives.Trigger;
 
-const DialogPortal = ({ children }: { children: ReactElement | ReactElement[] }) => <>{children}</>;
+const DialogPortal = DialogPrimitives.Portal;
 
 const DialogClose = DialogPrimitives.Close;
 
-const Portal = ({ children }: { children: ReactElement | ReactElement[] }) => <>{children}</>;
+const Portal = ({ children }: { children: React.ReactElement | React.ReactElement[] }) => {
+  return (
+    <DialogPrimitives.Portal className="calcom-atoms">
+      <div className="calcom-atoms">{children}</div>
+    </DialogPrimitives.Portal>
+  );
+};
 const Root = DialogPrimitives.Root;
 const Trigger = DialogPrimitives.Trigger;
 const Overlay = DialogPrimitives.Overlay;
