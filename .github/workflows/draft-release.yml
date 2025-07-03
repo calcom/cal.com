@@ -27,15 +27,18 @@ jobs:
 
       - name: Configure git
         run: |
-          # Get user information from GitHub API
-          USER_EMAIL=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/users/${{ github.actor }}" | \
-            jq -r '.email // empty')
+          # Define authorized users and their emails using organization secret
+          # Expected format: JSON object with username -> email mapping
+          USER_EMAILS='${{ secrets.RELEASE_USER_EMAILS }}'
           
-          # Fail if user email is private/null - no fallback allowed
+          # Extract email for the triggering user
+          USER_EMAIL=$(echo "$USER_EMAILS" | jq -r --arg user "${{ github.actor }}" '.[$user] // empty')
+          
+          # Fail if user is not authorized or not in mapping
           if [ -z "$USER_EMAIL" ] || [ "$USER_EMAIL" = "null" ]; then
-            echo "Error: User ${{ github.actor }} has no public email address."
-            echo "Please make your email address public in your GitHub profile settings."
+            echo "Error: User '${{ github.actor }}' is not authorized to run the release workflow."
+            echo "Only authorized team members can trigger releases."
+            echo "Contact your administrator to be added to the authorized users list."
             exit 1
           fi
           
