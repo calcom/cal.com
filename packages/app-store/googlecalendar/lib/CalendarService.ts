@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { calendar_v3 } from "@googleapis/calendar";
-import type { Prisma } from "@prisma/client";
 import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
@@ -16,6 +15,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type {
   Calendar,
   CalendarServiceEvent,
@@ -562,10 +562,6 @@ export default class GoogleCalendarService implements Calendar {
     try {
       const calIdsWithTimeZone = await getCalIdsWithTimeZone();
       const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({ id: calIdWithTimeZone.id }));
-
-      const originalStartDate = dayjs(dateFrom);
-      const originalEndDate = dayjs(dateTo);
-      const diff = originalEndDate.diff(originalStartDate, "days");
       const freeBusyData = await this.getCacheOrFetchAvailability({
         timeMin: dateFrom,
         timeMax: dateTo,
@@ -678,9 +674,11 @@ export default class GoogleCalendarService implements Calendar {
     dateTo: string,
     shouldServeCache?: boolean
   ): Promise<EventBusyDate[]> {
-    const originalStartDate = dayjs(dateFrom);
-    const originalEndDate = dayjs(dateTo);
-    const diff = originalEndDate.diff(originalStartDate, "days");
+    // More efficient date difference calculation using native Date objects
+    // Use Math.floor to match dayjs diff behavior (truncates, doesn't round up)
+    const fromDate = new Date(dateFrom);
+    const toDate = new Date(dateTo);
+    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
 
     // Google API only allows a date range of 90 days for /freebusy
     if (diff <= 90) {
@@ -700,16 +698,23 @@ export default class GoogleCalendarService implements Calendar {
     // Handle longer periods by chunking into 90-day periods
     const busyData: EventBusyDate[] = [];
     const loopsNumber = Math.ceil(diff / 90);
-    let startDate = originalStartDate;
-    let endDate = originalStartDate.add(90, "days");
+    let currentStartTime = fromDate.getTime();
+    const originalEndTime = toDate.getTime();
+    const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+    const oneMinuteMs = 60 * 1000;
 
     for (let i = 0; i < loopsNumber; i++) {
-      if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
+      let currentEndTime = currentStartTime + ninetyDaysMs;
+
+      // Don't go beyond the original end date
+      if (currentEndTime > originalEndTime) {
+        currentEndTime = originalEndTime;
+      }
 
       const chunkData = await this.getCacheOrFetchAvailability(
         {
-          timeMin: startDate.format(),
-          timeMax: endDate.format(),
+          timeMin: new Date(currentStartTime).toISOString(),
+          timeMax: new Date(currentEndTime).toISOString(),
           items: calendarIds.map((id) => ({ id })),
         },
         shouldServeCache
@@ -719,8 +724,7 @@ export default class GoogleCalendarService implements Calendar {
         busyData.push(...chunkData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end })));
       }
 
-      startDate = endDate.add(1, "minutes");
-      endDate = startDate.add(90, "days");
+      currentStartTime = currentEndTime + oneMinuteMs;
     }
 
     return busyData;
