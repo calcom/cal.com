@@ -232,6 +232,15 @@ export class BookingsController_2024_04_15 {
     }
 
     if (bookingUid) {
+      const { bookingInfo } = await getBookingInfo(bookingUid);
+      if (!bookingInfo) {
+        throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
+      }
+      if (bookingInfo.status === "CANCELLED") {
+        throw new BadRequestException(
+          `Can't cancel booking with uid=${bookingUid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
+        );
+      }
       try {
         req.body.uid = bookingUid;
         const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
