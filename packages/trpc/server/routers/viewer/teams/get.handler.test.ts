@@ -17,16 +17,10 @@ vi.mock("@calcom/lib/server/queries/teams", () => ({
 }));
 
 describe("getTeam", () => {
-  const createMockUser = (overrides: Partial<{ id: number; organization: { isOrgAdmin: boolean } }> = {}) =>
-    ({
-      id: 1,
-      email: "test@example.com",
-      username: "testuser",
-      organization: { isOrgAdmin: false },
-      ...overrides,
-    } as NonNullable<TrpcSessionUser>);
-
-  const user = createMockUser();
+  const user = {
+    id: 1,
+    organization: { isOrgAdmin: false },
+  } as NonNullable<TrpcSessionUser>;
 
   const input = {
     teamId: 123,
