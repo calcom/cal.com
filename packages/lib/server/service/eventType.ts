@@ -8,8 +8,6 @@ import { EventTypeMetaDataSchema, EventTypeAppMetadataSchema } from "@calcom/pri
 import { getPlaceholderAvatar } from "../../defaultAvatarImage";
 import type { TeamWithEventTypes } from "./team";
 
-export type ProcessedEventData = Awaited<ReturnType<typeof EventTypeService.processEventDataForBooking>>;
-
 export class EventTypeService {
   static async getEventTypeAppDataFromId(eventTypeId: number, appSlug: keyof typeof appDataSchemas) {
     const eventType = await prisma.eventType.findUnique({

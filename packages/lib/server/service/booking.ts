@@ -1,23 +1,12 @@
 import type { GetServerSidePropsContext } from "next";
 
-import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { SchedulingType } from "@calcom/prisma/enums";
 
-export interface BookingSessionData {
-  booking: GetBookingType | null;
-  userId?: number;
-}
-
-export interface CRMData {
+interface CRMData {
   teamMemberEmail?: string;
   crmOwnerRecordType?: string;
   crmAppSlug?: string;
-}
-
-export interface DynamicBookingData extends BookingSessionData, CRMData {
-  isInstantMeeting: boolean;
-  useApiV2: boolean;
 }
 
 export class BookingService {
