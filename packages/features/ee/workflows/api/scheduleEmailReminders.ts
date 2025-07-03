@@ -12,16 +12,12 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowReminderRepository } from "@calcom/lib/server/repository/workflowReminder";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import {
-  getAllRemindersToCancel,
-  getAllRemindersToDelete,
-  getAllUnscheduledReminders,
-} from "../lib/getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "../lib/reminders/providers/emailProvider";
 import {
   cancelScheduledEmail,
@@ -41,10 +37,12 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
+  const workflowReminderRepository = new WorkflowReminderRepository(prisma);
   const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
 
   if (isSendgridEnabled) {
-    const remindersToDelete: { referenceId: string | null; id: number }[] = await getAllRemindersToDelete();
+    const remindersToDelete: { referenceId: string | null; id: number }[] =
+      await workflowReminderRepository.getAllRemindersToDelete();
 
     const handlePastCancelledReminders = remindersToDelete.map(async (reminder) => {
       try {
@@ -56,10 +54,7 @@ export async function handler(req: NextRequest) {
       }
 
       try {
-        await prisma.workflowReminder.update({
-          where: { id: reminder.id },
-          data: { referenceId: null },
-        });
+        await workflowReminderRepository.updateReminderReferenceId(reminder.id, null);
       } catch (err) {
         logger.error(`Error updating reminder (id: ${reminder.id}): ${err}`);
       }
@@ -68,7 +63,8 @@ export async function handler(req: NextRequest) {
     await Promise.allSettled(handlePastCancelledReminders);
 
     //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
-    const remindersToCancel: { referenceId: string | null; id: number }[] = await getAllRemindersToCancel();
+    const remindersToCancel: { referenceId: string | null; id: number }[] =
+      await workflowReminderRepository.getAllRemindersToCancel();
 
     const cancelUpdatePromises: Promise<any>[] = [];
 
@@ -99,7 +95,7 @@ export async function handler(req: NextRequest) {
   // schedule all unscheduled reminders within the next 72 hours
   const sendEmailPromises: Promise<any>[] = [];
 
-  const unscheduledReminders = await getAllUnscheduledReminders();
+  const unscheduledReminders = await workflowReminderRepository.getAllUnscheduledReminders();
 
   if (!unscheduledReminders.length) {
     return NextResponse.json({ message: "No Emails to schedule" }, { status: 200 });
@@ -119,10 +115,10 @@ export async function handler(req: NextRequest) {
           case WorkflowActions.EMAIL_HOST:
             sendTo = reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email;
             const hosts = reminder?.booking?.eventType?.hosts
-              ?.filter((host) =>
-                reminder.booking?.attendees.some((attendee) => attendee.email === host.user.email)
+              ?.filter((host: any) =>
+                reminder.booking?.attendees.some((attendee: any) => attendee.email === host.user.email)
               )
-              .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
+              .map(({ user }: any) => user.destinationCalendar?.primaryEmail ?? user.email);
             const schedulingType = reminder.booking.eventType?.schedulingType;
 
             if (
@@ -367,15 +363,9 @@ export async function handler(req: NextRequest) {
             );
           }
 
-          await prisma.workflowReminder.update({
-            where: {
-              id: reminder.id,
-            },
-            data: {
-              scheduled: true,
-              referenceId: batchId,
-              uuid: referenceUid,
-            },
+          await workflowReminderRepository.updateReminderAsScheduled(reminder.id, {
+            referenceId: batchId,
+            uuid: referenceUid,
           });
         }
       } catch (error) {
@@ -455,15 +445,9 @@ export async function handler(req: NextRequest) {
             );
           }
 
-          await prisma.workflowReminder.update({
-            where: {
-              id: reminder.id,
-            },
-            data: {
-              scheduled: true,
-              referenceId: batchId,
-              uuid: referenceUid,
-            },
+          await workflowReminderRepository.updateReminderAsScheduled(reminder.id, {
+            referenceId: batchId,
+            uuid: referenceUid,
           });
         }
       } catch (error) {

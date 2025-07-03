@@ -9,14 +9,13 @@ import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelper
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowReminderRepository } from "@calcom/lib/server/repository/workflowReminder";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
-import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
-import { select } from "../lib/getWorkflowReminders";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
@@ -29,23 +28,10 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
+  const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+
   //find all unscheduled SMS reminders
-  const unscheduledReminders = (await prisma.workflowReminder.findMany({
-    where: {
-      method: WorkflowMethods.SMS,
-      scheduled: false,
-      scheduledDate: {
-        lte: dayjs().add(2, "hour").toISOString(),
-      },
-      retryCount: {
-        lt: 3, // Don't continue retrying if it's already failed 3 times
-      },
-    },
-    select: {
-      ...select,
-      retryCount: true,
-    },
-  })) as (PartialWorkflowReminder & { retryCount: number })[];
+  const unscheduledReminders = await workflowReminderRepository.getUnscheduledSMSReminders();
 
   if (!unscheduledReminders.length) {
     return NextResponse.json({ ok: true });
@@ -190,42 +176,18 @@ export async function handler(req: NextRequest) {
 
         if (scheduledNotification) {
           if (scheduledNotification.sid) {
-            await prisma.workflowReminder.update({
-              where: {
-                id: reminder.id,
-              },
-              data: {
-                scheduled: true,
-                referenceId: scheduledNotification.sid,
-              },
+            await workflowReminderRepository.updateReminderAsScheduled(reminder.id, {
+              referenceId: scheduledNotification.sid,
             });
           } else if (scheduledNotification.emailReminderId) {
-            await prisma.workflowReminder.delete({
-              where: {
-                id: reminder.id,
-              },
-            });
+            await workflowReminderRepository.deleteReminder(reminder.id);
           }
         } else {
-          await prisma.workflowReminder.update({
-            where: {
-              id: reminder.id,
-            },
-            data: {
-              retryCount: reminder.retryCount + 1,
-            },
-          });
+          await workflowReminderRepository.updateReminderRetryCount(reminder.id, reminder.retryCount + 1);
         }
       }
     } catch (error) {
-      await prisma.workflowReminder.update({
-        where: {
-          id: reminder.id,
-        },
-        data: {
-          retryCount: reminder.retryCount + 1,
-        },
-      });
+      await workflowReminderRepository.updateReminderRetryCount(reminder.id, reminder.retryCount + 1);
       console.log(`Error scheduling SMS with error ${error}`);
     }
   }
