@@ -16,4 +16,5 @@ fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 let viteConfig = fs.readFileSync(viteConfigPath, "utf-8");
 viteConfig = viteConfig.replace(/formats: \["es"\],/g, "");
 viteConfig = viteConfig.replace(/external: \[([^\]]+)\]/, 'external: [$1, "react-awesome-query-builder"]');
+viteConfig = viteConfig.replace(/format: "esm",\s*/g, "");
 fs.writeFileSync(viteConfigPath, viteConfig);
