@@ -176,6 +176,7 @@ describe("CreditService", () => {
           teamId: 1,
           availableCredits: 0,
           creditType: CreditType.ADDITIONAL,
+          limitReached: true,
         });
       });
     });

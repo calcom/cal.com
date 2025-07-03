@@ -2552,6 +2552,59 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
+    describe("cant't cancel already cancelled booking", () => {
+      it("should not be able to cancel alraedy cancelled booking", async () => {
+        const cancelledBooking = await bookingsRepositoryFixture.create({
+          status: "CANCELLED",
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          startTime: new Date(Date.UTC(2050, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2050, 0, 8, 14, 0, 0)),
+          title: "peer coding lets goo",
+          uid: `cancelled-booking-${randomString()}`,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          location: "integrations:daily",
+          customInputs: {},
+          metadata: {},
+          responses: {
+            name: "Oldie",
+            email: "oldie@gmail.com",
+          },
+          attendees: {
+            create: {
+              email: "oldie@gmail.com",
+              name: "Oldie",
+              locale: "lv",
+              timeZone: "Europe/Rome",
+            },
+          },
+        });
+
+        const body: CancelBookingInput_2024_08_13 = {
+          cancellationReason: "Going on a vacation",
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings/${cancelledBooking.uid}/cancel`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .expect(400);
+
+        expect(response.body.error.message).toEqual(
+          `Can't cancel booking with uid=${cancelledBooking.uid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
+        );
+        await bookingsRepositoryFixture.deleteById(cancelledBooking.id);
+      });
+    });
+
     describe("calendar events", () => {
       beforeEach(() => {
         jest.restoreAllMocks();

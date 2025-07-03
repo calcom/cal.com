@@ -186,6 +186,39 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
+  static async findAllByParentId({
+    parentId,
+    select = teamSelect,
+  }: {
+    parentId: number;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await prisma.team.findMany({
+      where: {
+        parentId,
+      },
+      select,
+    });
+  }
+
+  static async findByIdAndParentId({
+    id,
+    parentId,
+    select = teamSelect,
+  }: {
+    id: number;
+    parentId: number;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await prisma.team.findFirst({
+      where: {
+        id,
+        parentId,
+      },
+      select,
+    });
+  }
+
   static async deleteById({ id }: { id: number }) {
     try {
       await WorkflowService.deleteWorkflowRemindersOfRemovedTeam(id);

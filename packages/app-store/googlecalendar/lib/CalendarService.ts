@@ -678,15 +678,6 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  /**
-   * Better alternative to `getPrimaryCalendar` that doesn't require any argument
-   */
-  async fetchPrimaryCalendar() {
-    const calendar = await this.authedCalendar();
-    const primaryCalendar = await this.getPrimaryCalendar(calendar);
-    return primaryCalendar;
-  }
-
   async listCalendars(): Promise<IntegrationCalendar[]> {
     this.log.debug("Listing calendars");
     const calendar = await this.authedCalendar();
@@ -1009,39 +1000,16 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async getPrimaryCalendar(
-    calendar: calendar_v3.Calendar,
-    fields: string[] = ["id", "summary", "primary", "accessRole"]
-  ): Promise<calendar_v3.Schema$CalendarListEntry | null> {
-    let pageToken: string | undefined;
-    let firstCalendar: calendar_v3.Schema$CalendarListEntry | undefined;
-
+  async getPrimaryCalendar(_calendar?: calendar_v3.Calendar): Promise<calendar_v3.Schema$Calendar | null> {
     try {
-      do {
-        const response: any = await calendar.calendarList.list({
-          fields: `items(${fields.join(",")}),nextPageToken`,
-          pageToken,
-          maxResults: 250, // 250 is max
-        });
-
-        const cals = response.data.items ?? [];
-        const primaryCal = cals.find((cal: calendar_v3.Schema$CalendarListEntry) => cal.primary);
-        if (primaryCal) {
-          return primaryCal;
-        }
-
-        // Store the first calendar in case no primary is found
-        if (cals.length > 0 && !firstCalendar) {
-          firstCalendar = cals[0];
-        }
-
-        pageToken = response.data.nextPageToken;
-      } while (pageToken);
-
-      // should not be reached because Google Cal always has a primary cal
-      return firstCalendar ?? null;
+      const calendar = _calendar ?? (await this.authedCalendar());
+      const response = await calendar.calendars.get({
+        calendarId: "primary",
+      });
+      return response.data;
     } catch (error) {
-      logger.error("Error in `getPrimaryCalendar`", { error });
+      // should not be reached because Google Cal always has a primary cal
+      logger.error("Error getting primary calendar", { error });
       throw error;
     }
   }

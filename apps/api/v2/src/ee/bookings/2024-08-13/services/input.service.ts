@@ -711,6 +711,12 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
 
+    if (booking.status === "CANCELLED") {
+      throw new BadRequestException(
+        `Can't cancel booking with uid=${bookingUid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
+      );
+    }
+
     const oAuthClientParams = booking.eventTypeId
       ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
       : undefined;

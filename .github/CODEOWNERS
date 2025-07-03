@@ -24,7 +24,7 @@
 /packages/lib/server/getLuckyUser.ts @calcom/Foundation
 /packages/lib/slots.ts @calcom/Foundation
 /packages/platform/**/* @calcom/Platform @calcom/Foundation
-/packages/prisma/**/* @calcom/Foundation
+/packages/prisma/**/* @calcom/DBA
 /packages/trpc/server/routers/viewer/bookings/confirm.handler.ts @calcom/Foundation
 /packages/trpc/server/routers/viewer/bookings/get.handler.ts @calcom/Foundation
 /packages/trpc/server/routers/viewer/slots/**/* @calcom/Foundation
