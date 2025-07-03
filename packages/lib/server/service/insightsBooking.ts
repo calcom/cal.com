@@ -2,8 +2,12 @@ import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import type { readonlyPrisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-export const insightsBookingRepositoryOptionsSchema = z.discriminatedUnion("scope", [
+import { MembershipRepository } from "../repository/membership";
+import { TeamRepository } from "../repository/team";
+
+export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({
     scope: z.literal("user"),
     userId: z.number(),
@@ -22,9 +26,9 @@ export const insightsBookingRepositoryOptionsSchema = z.discriminatedUnion("scop
   }),
 ]);
 
-export type InsightsBookingRepositoryOptions = z.infer<typeof insightsBookingRepositoryOptionsSchema>;
+export type InsightsBookingServiceOptions = z.infer<typeof insightsBookingServiceOptionsSchema>;
 
-export type InsightsBookingRepositoryFilterOptions = {
+export type InsightsBookingServiceFilterOptions = {
   eventTypeId?: number;
   memberUserId?: number;
 };
@@ -33,10 +37,10 @@ const NOTHING = {
   id: -1,
 } as const;
 
-export class InsightsBookingRepository {
+export class InsightsBookingService {
   private prisma: typeof readonlyPrisma;
-  private options: InsightsBookingRepositoryOptions | null;
-  private filters?: InsightsBookingRepositoryFilterOptions;
+  private options: InsightsBookingServiceOptions | null;
+  private filters?: InsightsBookingServiceFilterOptions;
   private cachedAuthConditions?: Prisma.BookingTimeStatusDenormalizedWhereInput;
   private cachedFilterConditions?: Prisma.BookingTimeStatusDenormalizedWhereInput | null;
 
@@ -46,12 +50,11 @@ export class InsightsBookingRepository {
     filters,
   }: {
     prisma: typeof readonlyPrisma;
-    options: InsightsBookingRepositoryOptions;
-    filters?: InsightsBookingRepositoryFilterOptions;
+    options: InsightsBookingServiceOptions;
+    filters?: InsightsBookingServiceFilterOptions;
   }) {
     this.prisma = prisma;
-
-    const validation = insightsBookingRepositoryOptionsSchema.safeParse(options);
+    const validation = insightsBookingServiceOptionsSchema.safeParse(options);
     this.options = validation.success ? validation.data : null;
 
     this.filters = filters;
@@ -138,37 +141,21 @@ export class InsightsBookingRepository {
   }
 
   private async buildOrgAuthorizationCondition(
-    options: Extract<InsightsBookingRepositoryOptions, { scope: "org" }>
+    options: Extract<InsightsBookingServiceOptions, { scope: "org" }>
   ): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
     // Get all teams from the organization
-    const teamsFromOrg = await this.prisma.team.findMany({
-      where: {
-        parentId: options.orgId,
-      },
-      select: {
-        id: true,
-      },
+    const teamsFromOrg = await TeamRepository.findAllByParentId({
+      parentId: options.orgId,
+      select: { id: true },
     });
     const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)];
 
     // Get all users from the organization
     const userIdsFromOrg =
       teamsFromOrg.length > 0
-        ? (
-            await this.prisma.membership.findMany({
-              where: {
-                team: {
-                  id: {
-                    in: teamIds,
-                  },
-                },
-                accepted: true,
-              },
-              select: {
-                userId: true,
-              },
-            })
-          ).map((m) => m.userId)
+        ? (await MembershipRepository.findAllByTeamIds({ teamIds, select: { userId: true } })).map(
+            (m) => m.userId
+          )
         : [];
 
     return {
@@ -194,26 +181,20 @@ export class InsightsBookingRepository {
   }
 
   private async buildTeamAuthorizationCondition(
-    options: Extract<InsightsBookingRepositoryOptions, { scope: "team" }>
+    options: Extract<InsightsBookingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
-    const childTeamOfOrg = await this.prisma.team.findFirst({
-      where: {
-        id: options.teamId,
-        parentId: options.orgId,
-      },
+    const childTeamOfOrg = await TeamRepository.findByIdAndParentId({
+      id: options.teamId,
+      parentId: options.orgId,
+      select: { id: true },
     });
     if (!childTeamOfOrg) {
       return NOTHING;
     }
 
-    const usersFromTeam = await this.prisma.membership.findMany({
-      where: {
-        teamId: options.teamId,
-        accepted: true,
-      },
-      select: {
-        userId: true,
-      },
+    const usersFromTeam = await MembershipRepository.findAllByTeamIds({
+      teamIds: [options.teamId],
+      select: { userId: true },
     });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
@@ -235,22 +216,12 @@ export class InsightsBookingRepository {
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
-    const membershipOrg = await this.prisma.membership.findUnique({
-      where: {
-        userId_teamId: {
-          userId,
-          teamId: orgId,
-        },
-        accepted: true,
-        role: {
-          in: ["OWNER", "ADMIN"],
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    return Boolean(membershipOrg);
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
+    return Boolean(
+      membership &&
+        membership.accepted &&
+        membership.role &&
+        ([MembershipRole.OWNER, MembershipRole.ADMIN] as const).includes(membership.role)
+    );
   }
 }
