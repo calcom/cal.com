@@ -33,7 +33,6 @@ const getTeamMetadataForBooking = (team: NonNullable<TeamWithEventTypes>) => {
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
   return {
-    teamId: team.id,
     orgBannerUrl: team.parent?.bannerUrl ?? "",
     isBrandingHidden: shouldHideBrandingForTeamEvent({
       eventTypeId: team.eventTypes[0]?.id,
@@ -180,6 +179,7 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
       ...eventData,
     },
     booking: bookingForReschedule,
+    teamId: team.id,
   };
   const ClientBooker = <Type {...props} />;
 

@@ -1,12 +1,13 @@
+import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { SchedulingType } from "@calcom/prisma/enums";
 
 interface CRMData {
-  teamMemberEmail?: string;
-  crmOwnerRecordType?: string;
-  crmAppSlug?: string;
+  teamMemberEmail: string | undefined;
+  crmOwnerRecordType: string | undefined;
+  crmAppSlug: string | undefined;
 }
 
 export class BookingService {
@@ -16,7 +17,7 @@ export class BookingService {
       id: number;
       isInstantEvent: boolean;
       schedulingType: SchedulingType | null;
-      metadata: any;
+      metadata: Prisma.JsonValue | null;
       length: number;
     }
   ): Promise<CRMData> {
