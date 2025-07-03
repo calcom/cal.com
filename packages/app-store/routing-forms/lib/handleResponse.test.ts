@@ -281,7 +281,10 @@ describe("handleResponse", () => {
       formFillerId: "user1",
       chosenRouteId: "route1",
       isPreview: false,
-      identifierKeyedResponse: mockResponse,
+      identifierKeyedResponse: {
+        name: "John Doe",
+        email: "john.doe@example.com",
+      },
     });
 
     expect(routerGetCrmContactOwnerEmail).toHaveBeenCalled();
