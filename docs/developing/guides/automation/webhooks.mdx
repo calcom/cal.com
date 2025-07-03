@@ -156,7 +156,7 @@ To create a new webhook subscription, visit `/settings/developer/webhooks` and p
         Use the **secret key** to create an HMAC, and update it with the webhook payload received to generate an SHA256 hash.
     </Step>
     <Step title="Verify the payload authenticity">
-        Compare the hash received in the header of the webhook `(X-Cal-Signature-256)` with the one you created using the **secret key** and the body of the payload. If they don't match, the received payload has been adulterated and cannot be trusted.
+        Compare the hash received in the header of the webhook `(x-cal-signature-256)` with the one you created using the **secret key** and the body of the payload. If they don't match, the received payload has been adulterated and cannot be trusted.
     </Step>
 </Steps>
 

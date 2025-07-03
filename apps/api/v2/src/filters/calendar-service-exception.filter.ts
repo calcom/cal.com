@@ -1,3 +1,4 @@
+import { extractUserContext } from "@/lib/extract-user-context";
 import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
 import { Request } from "express";
@@ -39,6 +40,7 @@ export class CalendarServiceExceptionFilter implements ExceptionFilter {
     const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
     response.setHeader("X-Request-Id", requestId.toString());
 
+    const userContext = extractUserContext(request);
     this.logger.error(`Calendar Service Exception Filter: ${exception?.message}`, {
       exception,
       body: request.body,
@@ -46,6 +48,7 @@ export class CalendarServiceExceptionFilter implements ExceptionFilter {
       url: request.url,
       method: request.method,
       requestId,
+      ...userContext,
     });
 
     response.status(400).json({
