@@ -601,15 +601,13 @@ export default class GoogleCalendarService implements Calendar {
   ): EventBusyDate[] {
     if (!freeBusyResult.calendars) return [];
 
-    return Object.entries(freeBusyResult.calendars).reduce((events, [id, calendar]) => {
-      calendar.busy?.forEach((busyTime) => {
-        events.push({
+    return Object.values(freeBusyResult.calendars).flatMap(
+      (calendar) =>
+        calendar.busy?.map((busyTime) => ({
           start: busyTime.start || "",
           end: busyTime.end || "",
-        });
-      });
-      return events;
-    }, [] as EventBusyDate[]);
+        })) || []
+    );
   }
 
   /**
