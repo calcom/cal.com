@@ -3,11 +3,12 @@ import { describe, it, beforeEach, vi, expect } from "vitest";
 import { getTeamWithoutMembers } from "@calcom/lib/server/queries/teams";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 
+import type { TrpcSessionUser } from "../../../types";
 import getTeam from "./get.handler";
 
 vi.mock("@calcom/lib/server/repository/membership", () => ({
   MembershipRepository: {
-    findFirstByUserIdAndTeamId: vi.fn(),
+    findUniqueByUserIdAndTeamId: vi.fn(),
   },
 }));
 
@@ -16,13 +17,19 @@ vi.mock("@calcom/lib/server/queries/teams", () => ({
 }));
 
 describe("getTeam", () => {
-  const user = {
-    id: "user-1",
-    organization: { isOrgAdmin: false },
-  };
+  const createMockUser = (overrides: Partial<{ id: number; organization: { isOrgAdmin: boolean } }> = {}) =>
+    ({
+      id: 1,
+      email: "test@example.com",
+      username: "testuser",
+      organization: { isOrgAdmin: false },
+      ...overrides,
+    } as NonNullable<TrpcSessionUser>);
+
+  const user = createMockUser();
 
   const input = {
-    teamId: "team-123",
+    teamId: 123,
     isOrg: false,
   };
 
@@ -32,7 +39,7 @@ describe("getTeam", () => {
   });
 
   it("throws UNAUTHORIZED if user is not a member of the team", async () => {
-    (MembershipRepository.findFirstByUserIdAndTeamId as any).mockResolvedValue(null);
+    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue(null);
 
     await expect(getTeam({ ctx: { user }, input })).rejects.toMatchObject({
       code: "UNAUTHORIZED",
@@ -41,7 +48,7 @@ describe("getTeam", () => {
   });
 
   it("throws NOT_FOUND if team does not exist", async () => {
-    (MembershipRepository.findFirstByUserIdAndTeamId as any).mockResolvedValue({
+    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue({
       role: "member",
       accepted: true,
     });
@@ -59,7 +66,7 @@ describe("getTeam", () => {
       organization: { isOrgAdmin: true },
     };
 
-    (MembershipRepository.findFirstByUserIdAndTeamId as any).mockResolvedValue({
+    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue({
       role: "admin",
       accepted: true,
     });
@@ -88,7 +95,7 @@ describe("getTeam", () => {
       description: "A team",
     };
 
-    (MembershipRepository.findFirstByUserIdAndTeamId as any).mockResolvedValue(membershipData);
+    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue(membershipData);
     (getTeamWithoutMembers as any).mockResolvedValue(teamData);
 
     const result = await getTeam({ ctx: { user }, input });
@@ -98,7 +105,7 @@ describe("getTeam", () => {
       membership: membershipData,
     });
 
-    expect(MembershipRepository.findFirstByUserIdAndTeamId).toHaveBeenCalledWith({
+    expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
       userId: user.id,
       teamId: input.teamId,
     });
