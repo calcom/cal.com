@@ -30,7 +30,7 @@ export const getCachedTeamWithEventTypes = unstable_cache(
   }
 );
 
-export const getCachedProcessedEventData = unstable_cache(
+export const getCachedEventData = unstable_cache(
   async ({
     team,
     orgSlug,

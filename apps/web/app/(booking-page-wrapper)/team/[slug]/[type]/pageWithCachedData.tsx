@@ -21,14 +21,14 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import Type from "~/team/type-view";
 
-import { getCachedTeamWithEventTypes, getCachedProcessedEventData } from "./actions";
+import { getCachedTeamWithEventTypes, getCachedEventData } from "./actions";
 
 const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),
   type: z.string().transform((s) => slugify(s)),
 });
 
-const processTeamDataForBooking = (team: NonNullable<TeamWithEventTypes>) => {
+const getTeamMetadataForBooking = (team: NonNullable<TeamWithEventTypes>) => {
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
@@ -49,9 +49,7 @@ export async function getOrgContext(params: Params) {
     type: params?.type,
   });
 
-  if (!result.success) {
-    return notFound();
-  }
+  if (!result.success) return notFound(); // should never happen
 
   const { slug: teamSlug, type: meetingSlug } = result.data;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
@@ -73,15 +71,14 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const team = await getCachedTeamWithEventTypes(teamSlug, meetingSlug, currentOrgDomain);
   if (!team || !team.eventTypes?.[0]) return {}; // should never happen
 
-  const searchParamsObj = await searchParams;
-  const eventData = await getCachedProcessedEventData({
+  const eventData = await getCachedEventData({
     team,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-    fromRedirectOfNonOrgLink: searchParamsObj.orgRedirection === "true",
+    fromRedirectOfNonOrgLink: (await searchParams).orgRedirection === "true",
   });
   if (!eventData) return {}; // should never happen
 
-  const teamData = processTeamDataForBooking(team);
+  const { isBrandingHidden, isSEOIndexable } = getTeamMetadataForBooking(team);
   const title = eventData.title;
   const profileName = eventData.profile.name ?? "";
   const profileImage = eventData.profile.image;
@@ -101,7 +98,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     meeting,
     () => `${title} | ${profileName}`,
     () => title,
-    teamData.isBrandingHidden,
+    isBrandingHidden,
     getOrgFullOrigin(eventData.entity.orgSlug ?? null),
     `/team/${teamSlug}/${meetingSlug}`
   );
@@ -109,8 +106,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   return {
     ...metadata,
     robots: {
-      follow: !(eventData.hidden || !teamData.isSEOIndexable),
-      index: !(eventData.hidden || !teamData.isSEOIndexable),
+      follow: !(eventData.hidden || !isSEOIndexable),
+      index: !(eventData.hidden || !isSEOIndexable),
     },
   };
 };
@@ -134,7 +131,7 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
   const team = await getCachedTeamWithEventTypes(teamSlug, meetingSlug, currentOrgDomain);
   if (!team) return notFound();
 
-  const eventData = await getCachedProcessedEventData({
+  const eventData = await getCachedEventData({
     team,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
@@ -170,7 +167,7 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
   ]);
 
   const props = {
-    ...processTeamDataForBooking(team),
+    ...getTeamMetadataForBooking(team),
     ...crmData,
     useApiV2,
     isInstantMeeting: legacyCtx.query.isInstantMeeting === "true",
