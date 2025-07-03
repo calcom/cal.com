@@ -1465,3 +1465,302 @@ describe("Date Optimization Benchmarks", () => {
     getCacheOrFetchAvailabilitySpy.mockRestore();
   });
 });
+
+describe("createEvent", () => {
+  test("should create event with correct input/output format and handle all expected properties", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+
+    // Mock Google Calendar API response
+    const mockGoogleEvent = {
+      id: "mock-event-id-123",
+      summary: "Test Meeting",
+      description: "Test meeting description",
+      start: {
+        dateTime: "2024-06-15T10:00:00Z",
+        timeZone: "UTC",
+      },
+      end: {
+        dateTime: "2024-06-15T11:00:00Z",
+        timeZone: "UTC",
+      },
+      attendees: [
+        {
+          email: "organizer@example.com",
+          displayName: "Test Organizer",
+          responseStatus: "accepted",
+          organizer: true,
+        },
+        {
+          email: "attendee@example.com",
+          displayName: "Test Attendee",
+          responseStatus: "accepted",
+        },
+      ],
+      location: "Test Location",
+      iCalUID: "test-ical-uid@google.com",
+      recurrence: null,
+    };
+
+    // Mock calendar.events.insert
+    const eventsInsertMock = vi.fn().mockResolvedValue({
+      data: mockGoogleEvent,
+    });
+
+    calendarMock.calendar_v3.Calendar().events.insert = eventsInsertMock;
+
+    // Test input - simplified CalendarServiceEvent
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "cal-event-uid-123",
+      title: "Test Meeting",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: {
+          translate: (...args: any[]) => args[0], // Mock translate function
+          locale: "en",
+        },
+      },
+      attendees: [
+        {
+          id: 2,
+          name: "Test Attendee",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: {
+            translate: (...args: any[]) => args[0], // Mock translate function
+            locale: "en",
+          },
+        },
+      ],
+      location: "Test Location",
+      calendarDescription: "Test meeting description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: credential.userId,
+          eventTypeId: null,
+          credentialId: credential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+        },
+      ],
+      iCalUID: "test-ical-uid@google.com",
+      conferenceData: undefined,
+      hideCalendarEventDetails: false,
+      seatsPerTimeSlot: null,
+      seatsShowAttendees: true,
+    };
+
+    // Call createEvent and verify result using inline snapshot
+    const result = await calendarService.createEvent(testCalEvent, credential.id);
+
+    // Verify input processing - check that Google API was called with correct payload
+    expect(eventsInsertMock).toHaveBeenCalledTimes(1);
+    const insertCall = eventsInsertMock.mock.calls[0][0];
+
+    // Use inline snapshot for input validation
+    expect(insertCall).toMatchInlineSnapshot(`
+      {
+        "calendarId": "primary",
+        "conferenceDataVersion": 1,
+        "requestBody": {
+          "attendees": [
+            {
+              "displayName": "Test Organizer",
+              "email": "primary",
+              "id": "1",
+              "language": {
+                "locale": "en",
+                "translate": [Function],
+              },
+              "name": "Test Organizer",
+              "organizer": true,
+              "responseStatus": "accepted",
+              "timeZone": "UTC",
+            },
+            {
+              "email": "attendee@example.com",
+              "language": {
+                "locale": "en",
+                "translate": [Function],
+              },
+              "name": "Test Attendee",
+              "responseStatus": "accepted",
+              "timeZone": "UTC",
+            },
+          ],
+          "description": "Test meeting description",
+          "end": {
+            "dateTime": "2024-06-15T11:00:00Z",
+            "timeZone": "UTC",
+          },
+          "guestsCanSeeOtherGuests": true,
+          "iCalUID": "test-ical-uid@google.com",
+          "location": "Test Location",
+          "reminders": {
+            "useDefault": true,
+          },
+          "start": {
+            "dateTime": "2024-06-15T10:00:00Z",
+            "timeZone": "UTC",
+          },
+          "summary": "Test Meeting",
+        },
+        "sendUpdates": "none",
+      }
+    `);
+
+    // Use inline snapshot for output validation
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "additionalInfo": {
+          "hangoutLink": "",
+        },
+        "attendees": [
+          {
+            "displayName": "Test Organizer",
+            "email": "organizer@example.com",
+            "organizer": true,
+            "responseStatus": "accepted",
+          },
+          {
+            "displayName": "Test Attendee",
+            "email": "attendee@example.com",
+            "responseStatus": "accepted",
+          },
+        ],
+        "description": "Test meeting description",
+        "end": {
+          "dateTime": "2024-06-15T11:00:00Z",
+          "timeZone": "UTC",
+        },
+        "iCalUID": "test-ical-uid@google.com",
+        "id": "mock-event-id-123",
+        "location": "Test Location",
+        "password": "",
+        "recurrence": null,
+        "start": {
+          "dateTime": "2024-06-15T10:00:00Z",
+          "timeZone": "UTC",
+        },
+        "summary": "Test Meeting",
+        "thirdPartyRecurringEventId": null,
+        "type": "google_calendar",
+        "uid": "",
+        "url": "",
+      }
+    `);
+
+    log.info("createEvent test passed - input/output formats verified");
+  });
+
+  test("should handle recurring events correctly", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+
+    // Mock recurring event response
+    const mockRecurringEvent = {
+      id: "recurring-event-id",
+      summary: "Weekly Meeting",
+      recurrence: ["RRULE:FREQ=WEEKLY;INTERVAL=1;COUNT=10"],
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+    };
+
+    const mockFirstInstance = {
+      id: "recurring-event-id_20240615T100000Z",
+      summary: "Weekly Meeting",
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+    };
+
+    calendarMock.calendar_v3.Calendar().events.insert = vi.fn().mockResolvedValue({
+      data: mockRecurringEvent,
+    });
+
+    calendarMock.calendar_v3.Calendar().events.instances = vi.fn().mockResolvedValue({
+      data: { items: [mockFirstInstance] },
+    });
+
+    const recurringCalEvent = {
+      type: "recurring-meeting",
+      title: "Weekly Meeting",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: {
+          translate: (...args: any[]) => args[0], // Mock translate function
+          locale: "en",
+        },
+      },
+      attendees: [],
+      recurringEvent: {
+        freq: 2, // Weekly
+        interval: 1,
+        count: 10,
+      },
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: credential.userId,
+          eventTypeId: null,
+          credentialId: credential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+        },
+      ],
+      calendarDescription: "Weekly team meeting",
+    };
+
+    const result = await calendarService.createEvent(recurringCalEvent, credential.id);
+
+    // Use inline snapshot for recurring event result
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "additionalInfo": {
+          "hangoutLink": "",
+        },
+        "end": {
+          "dateTime": "2024-06-15T11:00:00Z",
+          "timeZone": "UTC",
+        },
+        "iCalUID": undefined,
+        "id": "recurring-event-id_20240615T100000Z",
+        "password": "",
+        "start": {
+          "dateTime": "2024-06-15T10:00:00Z",
+          "timeZone": "UTC",
+        },
+        "summary": "Weekly Meeting",
+        "thirdPartyRecurringEventId": "recurring-event-id",
+        "type": "google_calendar",
+        "uid": "",
+        "url": "",
+      }
+    `);
+
+    // Verify recurrence rule was included in the request
+    const insertCall = calendarMock.calendar_v3.Calendar().events.insert.mock.calls[0][0];
+    expect(insertCall.requestBody.recurrence).toEqual(["RRULE:FREQ=WEEKLY;INTERVAL=1;COUNT=10"]);
+
+    log.info("createEvent recurring event test passed");
+  });
+});
