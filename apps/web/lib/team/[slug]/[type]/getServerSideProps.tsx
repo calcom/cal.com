@@ -4,12 +4,11 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
-import { TeamService } from "@calcom/lib/server/service/team";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -49,8 +48,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const orgSlug = isValidOrgDomain && currentOrgDomain ? currentOrgDomain : null;
-  const team = await TeamService.getTeamWithEventTypes(teamSlug, meetingSlug, orgSlug);
+  const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
 
   if (!team || !team.eventTypes?.[0]) {
     return { notFound: true } as const;
@@ -68,6 +66,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventTypeId,
     eventData.hosts.map((h) => h.user)
   );
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const name = team.parent?.name ?? team.name ?? null;
 
   let booking: GetBookingType | null = null;
@@ -171,6 +170,81 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isSEOIndexable: allowSEOIndexing,
     },
   };
+};
+
+const getTeamWithEventsData = async (
+  teamSlug: string,
+  meetingSlug: string,
+  isValidOrgDomain: boolean,
+  currentOrgDomain: string | null
+) => {
+  return await prisma.team.findFirst({
+    where: {
+      ...getSlugOrRequestedSlug(teamSlug),
+      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+    },
+    orderBy: {
+      slug: { sort: "asc", nulls: "last" },
+    },
+    select: {
+      id: true,
+      isPrivate: true,
+      hideBranding: true,
+      parent: {
+        select: {
+          slug: true,
+          name: true,
+          bannerUrl: true,
+          logoUrl: true,
+          hideBranding: true,
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+            },
+          },
+        },
+      },
+      logoUrl: true,
+      name: true,
+      slug: true,
+      eventTypes: {
+        where: {
+          slug: meetingSlug,
+        },
+        select: {
+          id: true,
+          title: true,
+          isInstantEvent: true,
+          schedulingType: true,
+          metadata: true,
+          length: true,
+          hidden: true,
+          disableCancelling: true,
+          disableRescheduling: true,
+          allowReschedulingCancelledBookings: true,
+          interfaceLanguage: true,
+          hosts: {
+            take: 3,
+            select: {
+              user: {
+                select: {
+                  name: true,
+                  username: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      isOrganization: true,
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
+        },
+      },
+    },
+  });
 };
 
 const getUsersData = async (
