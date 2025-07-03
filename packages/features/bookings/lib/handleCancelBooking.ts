@@ -187,7 +187,8 @@ async function handler(input: CancelBookingInput) {
   const hostsPresent = !!bookingToDelete.eventType?.hosts;
   const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
-  for (const [index, attendee] of bookingToDelete.attendees.entries()) {
+  for (let index = 0; index < bookingToDelete.attendees.length; index++) {
+    const attendee = bookingToDelete.attendees[index];
     const attendeeObject = {
       name: attendee.name,
       email: attendee.email,
