@@ -167,6 +167,15 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       return trimmed;
     };
 
+    let zoomVideoSettings;
+    if (event.eventTypeId) {
+      zoomVideoSettings = await prisma.zoomVideoSettings.findUnique({
+        where: {
+          eventTypeId: event.eventTypeId,
+        },
+      });
+    }
+
     const userSettings = await getUserSettings();
     const recurrence = getRecurrence(event);
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
@@ -180,6 +189,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       password: userSettings?.schedule_meeting?.default_password_for_scheduled_meetings ?? undefined,
       agenda: truncateAgenda(event.description),
       settings: {
+        waiting_room: zoomVideoSettings?.enableWaitingRoom ?? false,
         host_video: true,
         participant_video: true,
         cn_meeting: false, // TODO: true if host meeting in China
