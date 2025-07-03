@@ -553,15 +553,15 @@ export const EventAdvancedTab = ({
     userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
 
-  const formValues = formMethods.watch();
+  const metadata = formMethods.watch("metadata");
   const paymentAppData = useMemo(() => {
     const _eventType = {
       price: 0,
       currency: "",
-      metadata: formValues.metadata,
+      metadata,
     };
     return getPaymentAppData(_eventType);
-  }, [formValues.metadata]);
+  }, [metadata]);
 
   const isPaidEvent = useMemo(
     () => !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0,
