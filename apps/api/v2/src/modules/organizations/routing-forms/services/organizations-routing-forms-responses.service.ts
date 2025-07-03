@@ -67,12 +67,11 @@ export class OrganizationsRoutingFormsResponsesService {
   async createRoutingFormResponseWithSlots(
     orgId: number,
     routingFormId: string,
-    body: CreateRoutingFormResponseInput,
+    query: CreateRoutingFormResponseInput,
     request: Request
   ): Promise<CreateRoutingFormResponseOutputData> {
-    const { queueResponse, ...slotsQuery } = body;
-    // Use getRoutedUrl to handle routing logic and CRM processing
-    const routingUrlData = await this.getRoutingUrl(request, routingFormId, queueResponse ?? false, body);
+    const { queueResponse, ...slotsQuery } = query;
+    const routingUrlData = await this.getRoutingUrl(request, routingFormId, queueResponse ?? false);
 
     // Extract event type information from the routed URL
     const { eventTypeId, crmParams } = await this.extractEventTypeAndCrmParams(routingUrlData);
@@ -100,15 +99,11 @@ export class OrganizationsRoutingFormsResponsesService {
     };
   }
 
-  private async getRoutingUrl(
-    request: Request,
-    formId: string,
-    queueResponse: boolean,
-    formResponseData: any
-  ) {
+  private async getRoutingUrl(request: Request, formId: string, queueResponse: boolean) {
+    const params = Object.fromEntries(new URLSearchParams(request.body));
     const routedUrlData = await getRoutedUrl({
       req: request,
-      query: { ...formResponseData, form: formId, ...(queueResponse && { "cal.queueFormResponse": "true" }) },
+      query: { ...params, form: formId, ...(queueResponse && { "cal.queueFormResponse": "true" }) },
     });
 
     const destination = routedUrlData?.redirect?.destination;

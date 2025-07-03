@@ -2571,18 +2571,129 @@
             "schema": {
               "type": "string"
             }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateRoutingFormResponseInput"
+          },
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z\n      ",
+            "example": "2050-09-05",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "description": "\n      Time until which available slots should be checked.\n      \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to end of day or specify hours:\n      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z",
+            "example": "2050-09-06",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
+            "example": "Europe/Rome",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "duration",
+            "required": false,
+            "in": "query",
+            "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
+            "example": "60",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Format of slot times in response. Use 'range' to get start and end times.",
+            "example": "range",
+            "schema": {
+              "enum": [
+                "range",
+                "time"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUidToReschedule",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
+            "example": "abc123def456",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamMemberEmail",
+            "required": false,
+            "in": "query",
+            "description": "The email of the team member to skip the contact owner check.",
+            "example": "team-member@example.com",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "routingFormResponseId",
+            "required": false,
+            "in": "query",
+            "description": "The ID of the routing form response to skip the contact owner check.",
+            "example": 1,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "routedTeamMemberIds",
+            "required": false,
+            "in": "query",
+            "description": "The IDs of the team members to skip the contact owner check.",
+            "example": [
+              1,
+              2,
+              3
+            ],
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
               }
             }
+          },
+          {
+            "name": "skipContactOwner",
+            "required": false,
+            "in": "query",
+            "description": "Whether to skip the contact owner check.",
+            "example": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "queueResponse",
+            "required": false,
+            "in": "query",
+            "description": "Whether to queue the form response.",
+            "example": true,
+            "schema": {
+              "type": "boolean"
+            }
           }
-        },
+        ],
         "responses": {
           "201": {
             "description": "",
@@ -26776,81 +26887,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "CreateRoutingFormResponseInput": {
-        "type": "object",
-        "properties": {
-          "start": {
-            "type": "string",
-            "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z\n      ",
-            "example": "2050-09-05"
-          },
-          "end": {
-            "type": "string",
-            "description": "\n      Time until which available slots should be checked.\n      \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to end of day or specify hours:\n      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z",
-            "example": "2050-09-06"
-          },
-          "timeZone": {
-            "type": "string",
-            "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
-            "example": "Europe/Rome"
-          },
-          "duration": {
-            "type": "number",
-            "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
-            "example": "60"
-          },
-          "format": {
-            "type": "string",
-            "description": "Format of slot times in response. Use 'range' to get start and end times.",
-            "example": "range",
-            "enum": [
-              "range",
-              "time"
-            ]
-          },
-          "bookingUidToReschedule": {
-            "type": "string",
-            "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
-            "example": "abc123def456"
-          },
-          "teamMemberEmail": {
-            "type": "string",
-            "description": "The email of the team member to skip the contact owner check.",
-            "example": "team-member@example.com"
-          },
-          "routingFormResponseId": {
-            "type": "number",
-            "description": "The ID of the routing form response to skip the contact owner check.",
-            "example": 1
-          },
-          "routedTeamMemberIds": {
-            "description": "The IDs of the team members to skip the contact owner check.",
-            "example": [
-              1,
-              2,
-              3
-            ],
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "skipContactOwner": {
-            "type": "boolean",
-            "description": "Whether to skip the contact owner check.",
-            "example": true
-          },
-          "queueResponse": {
-            "type": "boolean",
-            "description": "Whether to queue the form response.",
-            "example": true
-          }
-        },
-        "required": [
-          "start",
-          "end"
         ]
       },
       "CreateRoutingFormResponseOutputData": {

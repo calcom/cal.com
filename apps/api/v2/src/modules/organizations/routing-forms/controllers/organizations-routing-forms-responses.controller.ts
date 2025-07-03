@@ -78,13 +78,13 @@ export class OrganizationsRoutingFormsResponsesController {
   async createRoutingFormResponse(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("routingFormId") routingFormId: string,
-    @Body() body: CreateRoutingFormResponseInput,
+    @Query() query: CreateRoutingFormResponseInput,
     @Req() request: Request
   ): Promise<CreateRoutingFormResponseOutput> {
     const result = await this.organizationsRoutingFormsResponsesService.createRoutingFormResponseWithSlots(
       orgId,
       routingFormId,
-      body,
+      query,
       request
     );
 
