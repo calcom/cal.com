@@ -31,6 +31,7 @@ const handlePayment = async ({
   bookerPhoneNumber,
   isDryRun = false,
   bookingFields,
+  locale = "en",
 }: {
   evt: CalendarEvent;
   selectedEventType: Pick<CompleteEventType, "metadata" | "title">;
@@ -54,6 +55,7 @@ const handlePayment = async ({
   bookerPhoneNumber?: string | null;
   isDryRun?: boolean;
   bookingFields?: Fields;
+  locale?: string;
 }) => {
   if (isDryRun) return null;
   const key = paymentAppCredentials?.app?.dirName;
@@ -98,7 +100,9 @@ const handlePayment = async ({
       switch (field.type) {
         case "number":
           // Multiply the numeric value by the field's price
-          addonsPrice += Number(response.value || 0) * (typedInput.price || 0);
+          const parsedValue = Number((response.value ?? "").toString().trim());
+          const safeValue = Number.isFinite(parsedValue) ? parsedValue : 0;
+          addonsPrice += safeValue * (typedInput.price || 0);
           break;
 
         case "boolean":
@@ -115,9 +119,9 @@ const handlePayment = async ({
           let selectedOption;
 
           if (field.type === "radio") {
-            // For radio, the value coming is the label itself
+            // For radio, the value coming is the label itself (formatted with price)
             selectedOption = typedInput.options?.find((opt) => {
-              const formattedValue = `${opt.value} (${Intl.NumberFormat("en", {
+              const formattedValue = `${opt.value} (${Intl.NumberFormat(locale, {
                 style: "currency",
                 currency: paymentCurrency,
               }).format(opt.price || 0)})`;

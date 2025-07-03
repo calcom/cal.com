@@ -250,4 +250,37 @@ describe("handlePayment", () => {
 
     expect(result?.amount).toBe(5500); // Base 1000 cents + (2 * $5 * 100 cents) + ($15 * 100 cents) + ($20 * 100 cents)
   });
+
+  it("should calculate total amount with radio field addon using locale", async () => {
+    const mockEventWithResponse = {
+      ...mockEvent,
+      responses: {
+        mealChoice: { value: "premium ($20.00)" }, // Formatted with price
+      },
+    };
+
+    const bookingFields = [
+      {
+        name: "mealChoice",
+        type: "radio" as const,
+        options: [
+          { value: "basic", price: 10 },
+          { value: "premium", price: 20 },
+        ],
+      },
+    ];
+
+    const result = await handlePayment({
+      evt: mockEventWithResponse,
+      selectedEventType: mockEventType,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields,
+      locale: "en",
+    });
+
+    expect(result?.amount).toBe(3000); // Base 1000 cents + ($20 * 100 cents)
+  });
 });

@@ -32,14 +32,14 @@ export const BookingFields = ({
   isPaidEvent?: boolean;
   paymentCurrency?: string;
 }) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const { watch, setValue } = useFormContext();
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
   const getPriceFormattedLabel = (label: string, price: number) =>
-    `${label} (${Intl.NumberFormat("en", {
+    `${label} (${Intl.NumberFormat(i18n.language, {
       style: "currency",
       currency: paymentCurrency,
     }).format(price)})`;
