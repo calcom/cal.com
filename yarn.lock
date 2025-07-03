@@ -24,6 +24,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@adyen/adyen-web@npm:^6.3.0":
+  version: 6.18.0
+  resolution: "@adyen/adyen-web@npm:6.18.0"
+  dependencies:
+    "@types/applepayjs": 14.0.9
+    "@types/googlepay": 0.7.6
+    classnames: 2.5.1
+    preact: 10.22.1
+  checksum: d098c010282a221784067aedb9a899ab46fbddbed3d7071b01374929a37d6e9d1a5a3f8fdc84f8d9ee264ef4758c416e4de62b3c42c460ef013756477eaa1d8e
+  languageName: node
+  linkType: hard
+
+"@adyen/api-library@npm:^19.4.0":
+  version: 19.4.0
+  resolution: "@adyen/api-library@npm:19.4.0"
+  dependencies:
+    "@types/node": 14.18.63
+    https-proxy-agent: 5.0.1
+  dependenciesMeta:
+    "@types/node":
+      optional: true
+  checksum: 361dc93ffc736c4deea3a20ec6a1b4607fd7967b46ccb718d930c4cfdc52c49b00b5a2602da66e601542587b14e3bfca554d2f6812e223f0c6a6b02ad674c38c
+  languageName: node
+  linkType: hard
+
 "@alloc/quick-lru@npm:^5.2.0":
   version: 5.2.0
   resolution: "@alloc/quick-lru@npm:5.2.0"
@@ -2478,6 +2503,18 @@ __metadata:
   checksum: e31c1262cbc044373e757117b1b152acc86ba5d088124153b3d1ae83e0de0a2b4d2362758cec3e1a49cf15c39a4447587cc2672e4f5a961754c91ef9ca3221e1
   languageName: node
   linkType: hard
+
+"@calcom/adyen@workspace:packages/app-store/adyen":
+  version: 0.0.0-use.local
+  resolution: "@calcom/adyen@workspace:packages/app-store/adyen"
+  dependencies:
+    "@adyen/adyen-web": ^6.3.0
+    "@adyen/api-library": ^19.4.0
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+    pkce-challenge: ^4.1.0
+  languageName: unknown
+  linkType: soft
 
 "@calcom/alby@workspace:packages/app-store/alby":
   version: 0.0.0-use.local
@@ -17157,6 +17194,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/applepayjs@npm:14.0.9":
+  version: 14.0.9
+  resolution: "@types/applepayjs@npm:14.0.9"
+  checksum: 76a0ddc13366f4df8d06ede8e2ff2672da1036dac589a475cf0279033ffb3327d37ba1f873aee6ac561d3405aebc1cde6874daa12379a3b88ee2e3c604a04201
+  languageName: node
+  linkType: hard
+
 "@types/argparse@npm:1.0.38":
   version: 1.0.38
   resolution: "@types/argparse@npm:1.0.38"
@@ -17634,6 +17678,13 @@ __metadata:
   version: 3.4.2
   resolution: "@types/glidejs__glide@npm:3.4.2"
   checksum: 56ca1975118b652989e913af23415937583851e13c760feb7147963b0de4e1a1d25ea830d2cc2506cedec37b4d12e50c3918228ed280f552099888bcacb698d3
+  languageName: node
+  linkType: hard
+
+"@types/googlepay@npm:0.7.6":
+  version: 0.7.6
+  resolution: "@types/googlepay@npm:0.7.6"
+  checksum: 6874d432fbf0badb9af24911d6c8fa446ed91e63267b83a281da3a79f591fd3bbe85656c03859adfd6de21f8d0355acdc515ba810515569ccdd40d1c4c40cdab
   languageName: node
   linkType: hard
 
@@ -22524,6 +22575,13 @@ __metadata:
   dependencies:
     clsx: ^2.1.1
   checksum: e05ba26ef9ec38f7c675047ce366b067d60af6c954dba08f7802af19a9460a534ae752d8fe1294fff99d0fa94a669b16ccebd87e8a20f637c0736cf2751dd2c5
+  languageName: node
+  linkType: hard
+
+"classnames@npm:2.5.1":
+  version: 2.5.1
+  resolution: "classnames@npm:2.5.1"
+  checksum: da424a8a6f3a96a2e87d01a432ba19315503294ac7e025f9fece656db6b6a0f7b5003bb1fbb51cbb0d9624d964f1b9bb35a51c73af9b2434c7b292c42231c1e5
   languageName: node
   linkType: hard
 
@@ -29956,6 +30014,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"https-proxy-agent@npm:5.0.1, https-proxy-agent@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "https-proxy-agent@npm:5.0.1"
+  dependencies:
+    agent-base: 6
+    debug: 4
+  checksum: 571fccdf38184f05943e12d37d6ce38197becdd69e58d03f43637f7fa1269cf303a7d228aa27e5b27bbd3af8f09fd938e1c91dcfefff2df7ba77c20ed8dfc765
+  languageName: node
+  linkType: hard
+
 "https-proxy-agent@npm:7.0.2, https-proxy-agent@npm:^7.0.1":
   version: 7.0.2
   resolution: "https-proxy-agent@npm:7.0.2"
@@ -29963,16 +30031,6 @@ __metadata:
     agent-base: ^7.0.2
     debug: 4
   checksum: 088969a0dd476ea7a0ed0a2cf1283013682b08f874c3bc6696c83fa061d2c157d29ef0ad3eb70a2046010bb7665573b2388d10fdcb3e410a66995e5248444292
-  languageName: node
-  linkType: hard
-
-"https-proxy-agent@npm:^5.0.1":
-  version: 5.0.1
-  resolution: "https-proxy-agent@npm:5.0.1"
-  dependencies:
-    agent-base: 6
-    debug: 4
-  checksum: 571fccdf38184f05943e12d37d6ce38197becdd69e58d03f43637f7fa1269cf303a7d228aa27e5b27bbd3af8f09fd938e1c91dcfefff2df7ba77c20ed8dfc765
   languageName: node
   linkType: hard
 
@@ -38502,6 +38560,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pkce-challenge@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "pkce-challenge@npm:4.1.0"
+  checksum: b85c50cefe3d9586ed77f5fde0c0832717c8cb3c88ab4470961306e78d84522a0f040a684d74907bd3b0c3c259f0aafbb6ff9f1f7c39bbad1ca180ac3750adb0
+  languageName: node
+  linkType: hard
+
 "pkg-dir@npm:^4.1.0, pkg-dir@npm:^4.2.0":
   version: 4.2.0
   resolution: "pkg-dir@npm:4.2.0"
@@ -38934,6 +38999,13 @@ __metadata:
   peerDependencies:
     preact: ">=10"
   checksum: be8d5d8fb502d422c503e68af7bcccb6facd942f3ae9a4d093ebe3f1d4f0b15c540624bdac434d53a2a8e8fb7afa4606383414e937c40933ca43445470a026ff
+  languageName: node
+  linkType: hard
+
+"preact@npm:10.22.1":
+  version: 10.22.1
+  resolution: "preact@npm:10.22.1"
+  checksum: 8762645766b1c057eaf9a58ff904b6659ffa7a7d33eb94dc2b96ff1ba08743855c3ade913dfbe9e8da994777aa9f4f5e9f23d39886340f23eaebcd98f5e107e5
   languageName: node
   linkType: hard
 
