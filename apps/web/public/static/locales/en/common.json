@@ -3267,6 +3267,7 @@
   "booking_not_allowed_by_restriction_schedule_error": "Booking outside restriction schedule availability.",
   "restriction_schedule_not_found_error": "Restriction schedule not found",
   "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
+  "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "lock_default_availability": "Lock default availability",
   "lock_default_availability_description": "When enabled, team members cannot edit their default availability schedule. They can still add new schedules.",
   "availability_lock_updated_successfully": "Default availability lock setting updated successfully",
