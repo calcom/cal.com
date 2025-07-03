@@ -1,6 +1,6 @@
 import { CustomI18nProvider } from "app/CustomI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
+import type { PageProps, SearchParams } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
@@ -16,16 +16,18 @@ import type { PageProps as LegacyPageProps } from "~/team/type-view";
 
 import CachedTeamBooker, { generateMetadata as generateCachedMetadata } from "./pageWithCachedData";
 
-async function isCachedTeamBookingEnabled(): Promise<boolean> {
+async function isCachedTeamBookingEnabled(searchParams: SearchParams): Promise<boolean> {
   const featuresRepository = new FeaturesRepository();
-  return await featuresRepository.checkIfFeatureIsEnabledGlobally("team-booking-page-cache");
+  const isGloballyEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+    "team-booking-page-cache"
+  );
+  return isGloballyEnabled && searchParams.experimentalTeamBookingPageCache === "true";
 }
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  if (await isCachedTeamBookingEnabled()) {
+  if (await isCachedTeamBookingEnabled(await searchParams)) {
     return await generateCachedMetadata({ params, searchParams });
   }
-
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
   const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
@@ -65,7 +67,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  if (await isCachedTeamBookingEnabled()) {
+  if (await isCachedTeamBookingEnabled(await searchParams)) {
     return await CachedTeamBooker({ params, searchParams });
   }
 

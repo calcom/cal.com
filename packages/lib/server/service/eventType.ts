@@ -115,7 +115,7 @@ export class EventTypeService {
     orgSlug: string | null,
     fromRedirectOfNonOrgLink: boolean
   ): Promise<ProcessedEventData | null> {
-    if (!team.eventTypes?.[0]) {
+    if (!team?.eventTypes?.[0]) {
       return null;
     }
 
