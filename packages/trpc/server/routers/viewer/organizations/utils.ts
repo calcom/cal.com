@@ -1,4 +1,4 @@
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -18,7 +18,15 @@ export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => 
   if (!user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
-  if (!(await isOrganisationAdmin(user?.id, user.organizationId)))
+  const permissionCheckService = new PermissionCheckService();
+  if (
+    !(await permissionCheckService.checkPermission({
+      userId: user?.id,
+      teamId: user.organizationId,
+      permission: "organization.invite",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }))
+  )
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const usersInOrganization = await prisma.membership.findMany({

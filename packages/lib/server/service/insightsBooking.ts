@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -215,13 +216,12 @@ export class InsightsBookingService {
   }
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
-    // Check if the user is an owner or admin of the organization
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
-    return Boolean(
-      membership &&
-        membership.accepted &&
-        membership.role &&
-        ([MembershipRole.OWNER, MembershipRole.ADMIN] as const).includes(membership.role)
-    );
+    const permissionCheckService = new PermissionCheckService();
+    return await permissionCheckService.checkPermission({
+      userId,
+      teamId: orgId,
+      permission: "organization.listMembers",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
   }
 }
