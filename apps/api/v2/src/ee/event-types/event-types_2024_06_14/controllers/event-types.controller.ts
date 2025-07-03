@@ -8,9 +8,11 @@ import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { GetOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -29,6 +31,7 @@ import {
   ParseIntPipe,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { User } from "@prisma/client";
 
 import {
   EVENT_TYPE_READ,
@@ -109,12 +112,11 @@ export class EventTypesController_2024_06_14 {
   }
 
   @Get("/")
-  @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @UseGuards(OptionalApiAuthGuard)
   @ApiOperation({ summary: "Get all event types" })
   async getEventTypes(
     @Query() queryParams: GetEventTypesQuery_2024_06_14,
-    @GetUser() user?: UserWithProfile
+    @GetOptionalUser() user: User
   ): Promise<GetEventTypesOutput_2024_06_14> {
     const eventTypes = await this.eventTypesService.getEventTypes(queryParams, user?.id);
     if (!eventTypes || eventTypes.length === 0) {
