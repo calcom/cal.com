@@ -1,6 +1,6 @@
 import { createSelfServePhoneCall } from "@calcom/features/ee/cal-ai-phone/retellAIService";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 

@@ -155,12 +155,11 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
 
       // If a phone number is provided, make the test call.
       if (values.numberToCall) {
-        makeCallMutation.mutate({ eventTypeId: eventType.id, numberToCall: values.numberToCall });
         const callData = await makeCallMutation.mutateAsync({
           eventTypeId: eventType.id,
           numberToCall: values.numberToCall,
         });
-        showToast(`${t("call_initiated_successfully")} Call ID: ${callData.call_id}`, "success");
+        showToast(`${t("call_initiated_successfully")} Call ID: ${callData?.call_id}`, "success");
       }
     } catch (error: any) {
       showToast(error.message, "error");
