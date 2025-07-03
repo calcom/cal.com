@@ -9,6 +9,7 @@ export interface UserContext {
   userEmail?: string;
   organizationId?: string;
   teamId?: string;
+  userOrgId?: string;
 }
 
 export function extractUserContext(request: Request): UserContext {
@@ -18,6 +19,9 @@ export function extractUserContext(request: Request): UserContext {
   if (user) {
     context.userId = String(user.id);
     context.userEmail = user.email;
+    if (user.profiles?.[0]?.organizationId) {
+      context.userOrgId = String(user.profiles?.[0].organizationId);
+    }
   }
 
   const organizationId = (request as any).organizationId as number | undefined;
