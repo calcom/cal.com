@@ -4,8 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "PORT=4321 next dev",
-    "atoms-dev-on": "./atoms-dev-on.sh",
-    "atoms-dev-off": "git checkout -- package.json ../../../../yarn.lock",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
