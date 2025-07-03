@@ -175,10 +175,12 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
   const props = {
     ...teamData,
     ...dynamicData,
-    ...eventData,
     slug: meetingSlug,
     user: teamSlug,
     themeBasis: null,
+    eventData: {
+      ...eventData,
+    },
   } as any;
   const ClientBooker = <Type {...props} />;
 
