@@ -676,7 +676,8 @@ export default class GoogleCalendarService implements Calendar {
     // Use Math.floor to match dayjs diff behavior (truncates, doesn't round up)
     const fromDate = new Date(dateFrom);
     const toDate = new Date(dateTo);
-    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
+    const oneDayMs = 1000 * 60 * 60 * 24;
+    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / (oneDayMs));
 
     // Google API only allows a date range of 90 days for /freebusy
     if (diff <= 90) {
