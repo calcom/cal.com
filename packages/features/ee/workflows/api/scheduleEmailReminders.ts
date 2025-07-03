@@ -115,10 +115,10 @@ export async function handler(req: NextRequest) {
           case WorkflowActions.EMAIL_HOST:
             sendTo = reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email;
             const hosts = reminder?.booking?.eventType?.hosts
-              ?.filter((host: any) =>
-                reminder.booking?.attendees.some((attendee: any) => attendee.email === host.user.email)
+              ?.filter((host) =>
+                reminder.booking?.attendees.some((attendee) => attendee.email === host.user.email)
               )
-              .map(({ user }: any) => user.destinationCalendar?.primaryEmail ?? user.email);
+              .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
             const schedulingType = reminder.booking.eventType?.schedulingType;
 
             if (
