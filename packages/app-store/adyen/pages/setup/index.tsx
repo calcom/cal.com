@@ -7,9 +7,11 @@ import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalle
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Badge, Button, showToast } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
+import { showToast } from "@calcom/ui/components/toast";
 
 import createOAuthUrl from "../../lib/createOAuthUrl";
 import "../../lib/styles.css";
@@ -28,7 +30,7 @@ const isErrorWithMessage = (error: unknown): error is { message: string } => {
 export default function AdyenSetup(props: IAdyenSetupProps) {
   const router = useRouter();
   const { t } = useLocale();
-  const integrations = trpc.viewer.integrations.useQuery({ variant: "payment", appId: "adyen" });
+  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "adyen" });
   const [adyenPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = adyenPaymentAppCredentials?.userCredentialIds || [-1];
   const showContent =
@@ -41,7 +43,7 @@ export default function AdyenSetup(props: IAdyenSetupProps) {
   const [newKeyGenerated, setNewKeyGenerated] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [merchantAccountId, setMerchantAccountId] = useState<string | null>(props.merchantAccountId);
-  const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
+  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
     onSuccess: (_, variables) => {
       setMerchantAccountId(adyenCredentialKeysSchema.parse(variables.key).merchant_account_id || null);
       showToast(t("keys_have_been_saved"), "success");
