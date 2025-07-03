@@ -2,10 +2,7 @@ export { CalProvider } from "./cal-provider";
 export { GcalConnect } from "./connect/google/GcalConnect";
 export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./availability";
 export type { AvailabilitySettingsPlatformWrapperProps as AvailabilitySettingsProps } from "./availability/wrappers/AvailabilitySettingsPlatformWrapper";
-export type AtomScheduleType =
-  | import("@calcom/lib/server/repository/schedule").FindDetailedScheduleByIdReturnType
-  | null
-  | undefined;
+export type { AtomScheduleType } from "./availability/wrappers/AvailabilitySettingsPlatformWrapper";
 export { BookerPlatformWrapper as Booker } from "./booker/BookerPlatformWrapper";
 export { useIsPlatform } from "./hooks/useIsPlatform";
 export { useAtomsContext } from "./hooks/useAtomsContext";

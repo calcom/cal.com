@@ -15,6 +15,11 @@ import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues } from "../types";
 
+export type AtomScheduleType =
+  | import("@calcom/lib/server/repository/schedule").FindDetailedScheduleByIdReturnType
+  | null
+  | undefined;
+
 export type AvailabilitySettingsPlatformWrapperProps = {
   id?: string;
   labels?: {
