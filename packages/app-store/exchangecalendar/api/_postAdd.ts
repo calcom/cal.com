@@ -39,57 +39,14 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const service = new CalendarService({ id: 0, user: { email: session.user.email || "" }, ...data });
-    
-    // Test the connection by trying to list calendars
     await service?.listCalendars();
-    
-    // If successful, create the credential
     await prisma.credential.create({ data });
-    
-    logger.info(`Exchange calendar successfully added for user ${session.user?.id}`);
   } catch (reason) {
-    logger.error("Failed to add Exchange calendar:", reason);
-    
-    // Provide more specific error messages based on the error type
-    if (reason instanceof Error) {
-      // Handle OpenSSL/Node.js compatibility issues
-      if (reason.message.indexOf('digital envelope routines::unsupported') >= 0) {
-        return res.status(500).json({ 
-          message: "Node.js OpenSSL compatibility issue with NTLM authentication. Please contact your administrator or try using Basic authentication instead." 
-        });
-      }
-      
-      // Handle authentication failures
-      if (reason.message.indexOf('401') >= 0 || reason.message.indexOf('Unauthorized') >= 0 || reason.message.indexOf('Authentication failed') >= 0) {
-        return res.status(401).json({ 
-          message: "Authentication failed. Please verify your username and password are correct and that your account has the necessary Exchange permissions." 
-        });
-      }
-      
-      // Handle connection issues
-      if (reason.message.indexOf('timeout') >= 0 || reason.message.indexOf('ECONNREFUSED') >= 0 || reason.message.indexOf('ENOTFOUND') >= 0) {
-        return res.status(500).json({ 
-          message: "Cannot connect to Exchange server. Please verify the EWS URL is correct and the server is accessible from this network." 
-        });
-      }
-      
-      // Handle SSL/TLS issues
-      if (reason.message.indexOf('certificate') >= 0 || reason.message.indexOf('SSL') >= 0 || reason.message.indexOf('TLS') >= 0) {
-        return res.status(500).json({ 
-          message: "SSL/TLS certificate issue. Your Exchange server may be using a self-signed certificate or there may be a certificate configuration problem." 
-        });
-      }
-    }
-    
-    // Handle SOAP faults from Exchange Web Services
+    logger.info(reason);
     if (reason instanceof SoapFaultDetails && reason.message != "") {
-      return res.status(500).json({ message: `Exchange server error: ${reason.message}` });
+      return res.status(500).json({ message: reason.message });
     }
-    
-    // Generic error fallback
-    return res.status(500).json({ 
-      message: "Could not add this Exchange account. Please check your configuration and try again." 
-    });
+    return res.status(500).json({ message: "Could not add this exchange account" });
   }
 
   return res.status(200).json({ url: "/apps/installed" });
