@@ -92,38 +92,18 @@ export class GetAvailableSlotsInput_2024_09_04 {
 
   @IsString()
   @IsOptional()
-  @ApiPropertyOptional({
-    type: String,
-    description: "The email of the team member to skip the contact owner check.",
-    example: "team-member@example.com",
-  })
   teamMemberEmail?: string;
 
   @IsNumber()
   @IsOptional()
-  @ApiPropertyOptional({
-    type: Number,
-    description: "The ID of the routing form response to skip the contact owner check.",
-    example: 1,
-  })
   routingFormResponseId?: number;
 
   @IsArray()
   @IsOptional()
-  @ApiPropertyOptional({
-    type: [Number],
-    description: "The IDs of the team members to skip the contact owner check.",
-    example: [1, 2, 3],
-  })
   routedTeamMemberIds?: number[];
 
   @IsBoolean()
   @IsOptional()
-  @ApiPropertyOptional({
-    type: Boolean,
-    description: "Whether to skip the contact owner check.",
-    example: true,
-  })
   skipContactOwner?: boolean;
 }
 

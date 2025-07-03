@@ -2637,53 +2637,6 @@
             }
           },
           {
-            "name": "teamMemberEmail",
-            "required": false,
-            "in": "query",
-            "description": "The email of the team member to skip the contact owner check.",
-            "example": "team-member@example.com",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "routingFormResponseId",
-            "required": false,
-            "in": "query",
-            "description": "The ID of the routing form response to skip the contact owner check.",
-            "example": 1,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "routedTeamMemberIds",
-            "required": false,
-            "in": "query",
-            "description": "The IDs of the team members to skip the contact owner check.",
-            "example": [
-              1,
-              2,
-              3
-            ],
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "number"
-              }
-            }
-          },
-          {
-            "name": "skipContactOwner",
-            "required": false,
-            "in": "query",
-            "description": "Whether to skip the contact owner check.",
-            "example": true,
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
             "name": "queueResponse",
             "required": false,
             "in": "query",
@@ -10870,53 +10823,6 @@
             "example": "abc123def456",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "teamMemberEmail",
-            "required": false,
-            "in": "query",
-            "description": "The email of the team member to skip the contact owner check.",
-            "example": "team-member@example.com",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "routingFormResponseId",
-            "required": false,
-            "in": "query",
-            "description": "The ID of the routing form response to skip the contact owner check.",
-            "example": 1,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "routedTeamMemberIds",
-            "required": false,
-            "in": "query",
-            "description": "The IDs of the team members to skip the contact owner check.",
-            "example": [
-              1,
-              2,
-              3
-            ],
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "number"
-              }
-            }
-          },
-          {
-            "name": "skipContactOwner",
-            "required": false,
-            "in": "query",
-            "description": "Whether to skip the contact owner check.",
-            "example": true,
-            "schema": {
-              "type": "boolean"
             }
           },
           {
