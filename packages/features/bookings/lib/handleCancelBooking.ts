@@ -199,10 +199,7 @@ async function handler(input: CancelBookingInput) {
       },
     };
 
-    /**
-     * Note: We only check if there is more than one attendee because if there is only one,
-     * it means one of the hosts is the sole booker.
-     */
+    // The first attendee is the booker in all cases, so always consider them as an attendee.
     if (index === 0) {
       attendeesListPromises.push(attendeeObject);
     } else {
