@@ -4,6 +4,7 @@ import { ZodError } from "zod";
 
 import { stripeInvalidRequestErrorSchema } from "@calcom/app-store/_utils/stripe.types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
@@ -60,6 +61,15 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (parsedStripeError.success) {
     return getHttpError({ statusCode: 400, cause: parsedStripeError.data });
   }
+  if (cause instanceof ErrorWithCode) {
+    const statusCode = getStatusCode(cause);
+    return new HttpError({
+      statusCode,
+      message: cause.message ?? "",
+      data: cause.data,
+      cause,
+    });
+  }
   if (cause instanceof HttpError) {
     const redactedCause = redactError(cause);
     return {
@@ -87,25 +97,35 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   });
 }
 
-function getStatusCode(cause: Error): number {
-  switch (cause.message) {
+function getStatusCode(cause: Error | ErrorWithCode): number {
+  const errorCode = cause instanceof ErrorWithCode ? cause.code : cause.message;
+
+  switch (errorCode) {
+    // 400 Bad Request
     case ErrorCode.RequestBodyWithouEnd:
     case ErrorCode.MissingPaymentCredential:
     case ErrorCode.MissingPaymentAppId:
     case ErrorCode.AvailabilityNotFoundInSchedule:
-      return 400;
     case ErrorCode.CancelledBookingsCannotBeRescheduled:
+    case ErrorCode.BookingTimeOutOfBounds:
+    case ErrorCode.BookingNotAllowedByRestrictionSchedule:
+    case ErrorCode.BookerLimitExceeded:
+    case ErrorCode.BookerLimitExceededReschedule:
       return 400;
+    // 409 Conflict
     case ErrorCode.NoAvailableUsersFound:
     case ErrorCode.HostsUnavailableForBooking:
-    case ErrorCode.PaymentCreationFailure:
-    case ErrorCode.ChargeCardFailure:
     case ErrorCode.AlreadySignedUpForBooking:
     case ErrorCode.BookingSeatsFull:
     case ErrorCode.NotEnoughAvailableSeats:
+    case ErrorCode.BookingConflict:
+    case ErrorCode.PaymentCreationFailure:
+    case ErrorCode.ChargeCardFailure:
       return 409;
+    // 404 Not Found
     case ErrorCode.EventTypeNotFound:
     case ErrorCode.BookingNotFound:
+    case ErrorCode.RestrictionScheduleNotFound:
       return 404;
     case ErrorCode.UnableToSubscribeToThePlatform:
     case ErrorCode.UpdatingOauthClientError:

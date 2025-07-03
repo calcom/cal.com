@@ -7,6 +7,11 @@ type fakeCurrentDocumentUrlParams = {
   params?: Record<string, string>;
 };
 
+beforeEach(() => {
+  // Ensure that we have it globally so that unexpected errors like 'document is not defined' don't happen due to timer being fired when test is shutting down
+  vi.useFakeTimers();
+});
+
 function fakeCurrentDocumentUrl({
   origin = "https://example.com",
   path = "",
