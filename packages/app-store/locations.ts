@@ -59,6 +59,8 @@ export type EventLocationType = DefaultEventLocationType | EventLocationTypeFrom
 
 export const DailyLocationType = "integrations:daily";
 
+export const ZoomLocationType = "integrations:zoom";
+
 export const MeetLocationType = "integrations:google:meet";
 
 /**

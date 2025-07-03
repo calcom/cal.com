@@ -37,6 +37,13 @@ const calVideoSettingsSchema = z
   .optional()
   .nullable();
 
+const zoomVideoSettingsSchema = z
+  .object({
+    enableWaitingRoom: z.boolean().optional().nullable(),
+  })
+  .optional()
+  .nullable();
+
 const hostSchema = z.object({
   userId: z.number(),
   profileId: z.number().or(z.null()).optional(),
@@ -64,6 +71,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     instantMeetingExpiryTimeOffsetInSeconds: z.number(),
     aiPhoneCallConfig,
     calVideoSettings: calVideoSettingsSchema,
+    zoomVideoSettings: zoomVideoSettingsSchema,
     calAiPhoneScript: z.string(),
     customInputs: z.array(customInputSchema),
     destinationCalendar: _DestinationCalendarModel

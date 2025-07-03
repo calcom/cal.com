@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType, ZoomLocationType } from "@calcom/app-store/locations";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -15,6 +15,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import { ZoomVideoSettingsRepository } from "@calcom/lib/server/repository/zoomVideoSettings";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
@@ -91,6 +92,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     seatsPerTimeSlot,
     restrictionScheduleId,
     calVideoSettings,
+    zoomVideoSettings,
     ...rest
   } = input;
 
@@ -133,6 +135,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
+        },
+      },
+      zoomVideoSettings: {
+        select: {
+          enableWaitingRoom: true,
         },
       },
       children: {
@@ -604,6 +611,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
+  if (zoomVideoSettings) {
+    await ZoomVideoSettingsRepository.createOrUpdateZoomVideoSettings({
+      eventTypeId: id,
+      zoomVideoSettings,
+    });
+  }
+
   const parsedEventTypeLocations = eventTypeLocations.safeParse(eventType.locations ?? []);
 
   const isCalVideoLocationActive = locations
@@ -613,6 +627,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (eventType.calVideoSettings && !isCalVideoLocationActive) {
     await CalVideoSettingsRepository.deleteCalVideoSettings(id);
+  }
+
+  const isZoomVideoLocationActive = locations
+    ? locations.some((location) => location.type === ZoomLocationType)
+    : parsedEventTypeLocations.success &&
+      parsedEventTypeLocations.data?.some((location) => location.type === ZoomLocationType);
+
+  if (eventType.zoomVideoSettings && !isZoomVideoLocationActive) {
+    await ZoomVideoSettingsRepository.deleteZoomVideoSettings(id);
   }
 
   // Logic for updating `fieldTranslations`
