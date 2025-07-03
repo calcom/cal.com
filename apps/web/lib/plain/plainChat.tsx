@@ -5,6 +5,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState, useCallback, useMemo } from "react";
 
+import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
+
 declare global {
   interface Window {
     Plain?: {
@@ -75,228 +77,233 @@ interface PlainChatConfig {
   };
 }
 
-const PlainChat = () => {
-  const [config, setConfig] = useState<PlainChatConfig | null>(null);
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const { data: session } = useSession();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+const PlainChat = IS_PLAIN_CHAT_ENABLED
+  ? () => {
+      const [config, setConfig] = useState<PlainChatConfig | null>(null);
+      const [isSmallScreen, setIsSmallScreen] = useState(false);
+      const { data: session } = useSession();
+      const pathname = usePathname();
+      const searchParams = useSearchParams();
 
-  const shouldOpenPlain = pathname === "/event-types" && searchParams?.has("openPlain");
-  const userEmail = session?.user?.email;
+      const shouldOpenPlain = pathname === "/event-types" && searchParams?.has("openPlain");
+      const userEmail = session?.user?.email;
+      const isPaidUser = session?.user.belongsToActiveTeam || !!session?.user.org;
 
-  const isAppDomain = useMemo(() => {
-    const restrictedPathsSet = new Set(
-      (process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || []).map((path) => path.trim())
-    );
+      const isAppDomain = useMemo(() => {
+        const restrictedPathsSet = new Set(
+          (process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || []).map((path) => path.trim())
+        );
 
-    const pathSegments = pathname?.split("/").filter(Boolean) || [];
+        const pathSegments = pathname?.split("/").filter(Boolean) || [];
 
-    return (
-      typeof window !== "undefined" &&
-      window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
-      !pathSegments.some((segment) => restrictedPathsSet.has(segment))
-    );
-  }, [pathname]);
+        return (
+          typeof window !== "undefined" &&
+          window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
+          !pathSegments.some((segment) => restrictedPathsSet.has(segment))
+        );
+      }, [pathname]);
 
-  const checkScreenSize = useCallback(() => {
-    if (typeof window === "undefined") return;
+      const checkScreenSize = useCallback(() => {
+        if (typeof window === "undefined") return;
 
-    const isSmall = window.innerWidth < 768;
-    setIsSmallScreen(isSmall);
+        const isSmall = window.innerWidth < 768;
+        setIsSmallScreen(isSmall);
 
-    if (isSmall && window.Plain) {
-      const plainElement = document.querySelector("#plain-container");
-      plainElement?.remove();
-      window.Plain = undefined;
-    } else if (!isSmall && window.Plain === undefined) {
-      window.plainScriptLoaded?.();
-    }
-  }, []);
+        if (isSmall && window.Plain) {
+          const plainElement = document.querySelector("#plain-container");
+          plainElement?.remove();
+          window.Plain = undefined;
+        } else if (!isSmall && window.Plain === undefined) {
+          window.plainScriptLoaded?.();
+        }
+      }, []);
 
-  const initConfig = useCallback(async () => {
-    if (!userEmail) return;
+      const initConfig = useCallback(async () => {
+        if (!userEmail) return;
 
-    try {
-      const response = await fetch("/api/plain-hash", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+        // Check if Plain Chat is enabled
+        if (!IS_PLAIN_CHAT_ENABLED) {
+          return;
+        }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to generate hash: ${errorText}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.hash || !data.email || !data.appId) {
-        throw new Error("Missing required fields in API response");
-      }
-
-      const plainChatConfig: PlainChatConfig = {
-        appId: data.appId,
-        customerDetails: {
-          email: data.email,
-          shortName: data.shortName,
-          fullName: data.fullName,
-          emailHash: data.hash,
-          chatAvatarUrl: data.chatAvatarUrl,
-        },
-        links: [
-          {
-            icon: "book",
-            text: "Documentation",
-            url: "https://cal.com/docs",
-          },
-          {
-            icon: "chat",
-            text: "Ask the community",
-            url: "https://github.com/calcom/cal.com/discussions",
-          },
-        ],
-        chatButtons: [
-          {
-            icon: "chat",
-            text: "Ask a question",
-            threadDetails: {
-              labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-              tierIdentifier: { externalId: data.userTier },
+        try {
+          const response = await fetch("/api/plain-hash", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          },
-          {
-            icon: "bulb",
-            text: "Send feedback",
-            threadDetails: {
-              labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
-              tierIdentifier: { externalId: data.userTier },
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to generate hash: ${errorText}`);
+          }
+
+          const data = await response.json();
+
+          if (!data.hash || !data.email || !data.appId) {
+            throw new Error("Missing required fields in API response");
+          }
+
+          const plainChatConfig: PlainChatConfig = {
+            appId: data.appId,
+            customerDetails: {
+              email: data.email,
+              shortName: data.shortName,
+              fullName: data.fullName,
+              emailHash: data.hash,
+              chatAvatarUrl: data.chatAvatarUrl,
             },
-          },
-          {
-            icon: "error",
-            text: "Report an issue",
-            form: {
-              fields: [
-                {
-                  type: "dropdown",
-                  placeholder: "Select severity...",
-                  options: [
+            links: [
+              {
+                icon: "book",
+                text: "Documentation",
+                url: "https://cal.com/docs",
+              },
+              {
+                icon: "chat",
+                text: "Ask the community",
+                url: "https://github.com/calcom/cal.com/discussions",
+              },
+            ],
+            chatButtons: [
+              {
+                icon: "bulb",
+                text: "Send feedback",
+                threadDetails: {
+                  labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
+                  tierIdentifier: { externalId: data.userTier },
+                },
+              },
+              {
+                icon: "error",
+                text: "Report an issue",
+                form: {
+                  fields: [
                     {
-                      icon: "support",
-                      text: "I'm unable to use the app",
-                      threadDetails: {
-                        labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-                        tierIdentifier: { externalId: data.userTier },
-                      },
-                      onClick: () => {
-                        console.log("User selected severity: Unable to use app");
-                      },
-                    },
-                    {
-                      icon: "error",
-                      text: "Major functionality degraded",
-                      threadDetails: {
-                        labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
-                        tierIdentifier: { externalId: data.userTier },
-                      },
-                      onClick: () => {
-                        console.log("User selected severity: Major functionality degraded");
-                      },
-                    },
-                    {
-                      icon: "bug",
-                      text: "Minor annoyance",
-                      threadDetails: {
-                        labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
-                        tierIdentifier: { externalId: data.userTier },
-                      },
-                      onClick: () => {
-                        console.log("User selected severity: Minor annoyance");
-                      },
+                      type: "dropdown",
+                      placeholder: "Select severity...",
+                      options: [
+                        {
+                          icon: "support",
+                          text: "I'm unable to use the app",
+                          threadDetails: {
+                            labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+                            tierIdentifier: { externalId: data.userTier },
+                          },
+                        },
+                        {
+                          icon: "error",
+                          text: "Major functionality degraded",
+                          threadDetails: {
+                            labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
+                            tierIdentifier: { externalId: data.userTier },
+                          },
+                        },
+                        {
+                          icon: "bug",
+                          text: "Minor annoyance",
+                          threadDetails: {
+                            labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
+                            tierIdentifier: { externalId: data.userTier },
+                          },
+                        },
+                      ],
                     },
                   ],
                 },
-              ],
+              },
+            ],
+            entryPoint: {
+              type: "chat",
             },
-          },
-        ],
-        entryPoint: {
-          type: "chat",
-        },
-        hideBranding: true,
-        theme: "auto",
-        style: {
-          brandColor: "#FFFFFF",
-          launcherBackgroundColor: "#262626",
-          launcherIconColor: "#FFFFFF",
-        },
-        position: {
-          zIndex: "1",
-          bottom: "20px",
-          right: "20px",
-        },
-      };
+            hideBranding: true,
+            theme: "auto",
+            style: {
+              brandColor: "#FFFFFF",
+              launcherBackgroundColor: "#262626",
+              launcherIconColor: "#FFFFFF",
+            },
+            position: {
+              zIndex: "1",
+              bottom: "20px",
+              right: "20px",
+            },
+          };
 
-      if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
-        window.__PLAIN_CONFIG__ = plainChatConfig;
-      }
-
-      setConfig(plainChatConfig);
-
-      if (shouldOpenPlain) {
-        const timer = setTimeout(() => {
-          if (window.Plain) {
-            window.Plain.open();
+          if (isPaidUser) {
+            plainChatConfig.chatButtons.push({
+              icon: "chat",
+              text: "Ask a question",
+              threadDetails: {
+                labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+                tierIdentifier: { externalId: data.userTier },
+              },
+            });
           }
-        }, 100);
-        return () => clearTimeout(timer);
-      }
-    } catch (error) {
-      console.error("Failed to initialize Plain Chat:", error);
-    }
-  }, [userEmail, shouldOpenPlain]);
 
-  useEffect(() => {
-    if (!isAppDomain) return;
+          if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
+            window.__PLAIN_CONFIG__ = plainChatConfig;
+          }
 
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    initConfig();
+          setConfig(plainChatConfig);
 
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, [isAppDomain, checkScreenSize, initConfig, userEmail]);
-
-  const plainChatScript = `
-    window.plainScriptLoaded = function() {
-      if (window.Plain && ${Boolean(config)}) {
-        try {
-          Plain.init(${config ? JSON.stringify(config) : null});
+          if (shouldOpenPlain) {
+            const timer = setTimeout(() => {
+              if (window.Plain) {
+                window.Plain.open();
+              }
+            }, 100);
+            return () => clearTimeout(timer);
+          }
         } catch (error) {
-          console.error("Failed to initialize Plain:", error);
+          console.error("Failed to initialize Plain Chat:", error);
         }
-      }
+      }, [userEmail, shouldOpenPlain]);
+
+      useEffect(() => {
+        if (!isAppDomain) return;
+
+        // Skip initialization if Plain Chat is not enabled
+        if (!IS_PLAIN_CHAT_ENABLED) return;
+
+        checkScreenSize();
+        window.addEventListener("resize", checkScreenSize);
+        initConfig();
+
+        return () => window.removeEventListener("resize", checkScreenSize);
+      }, [isAppDomain, checkScreenSize, initConfig, userEmail]);
+
+      const plainChatScript = `
+        window.plainScriptLoaded = function() {
+          if (window.Plain && ${Boolean(config)}) {
+            try {
+              Plain.init(${config ? JSON.stringify(config) : null});
+            } catch (error) {
+              console.error("Failed to initialize Plain:", error);
+            }
+          }
+        }
+      `;
+
+      if (!isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null;
+
+      return (
+        <>
+          <Script
+            id="plain-chat"
+            src="https://chat.cdn-plain.com/index.js"
+            strategy="afterInteractive"
+            onLoad={() => window.plainScriptLoaded?.()}
+          />
+          <Script
+            id="plain-chat-init"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{ __html: plainChatScript }}
+          />
+        </>
+      );
     }
-  `;
-
-  if (!isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null;
-
-  return (
-    <>
-      <Script
-        id="plain-chat"
-        src="https://chat.cdn-plain.com/index.js"
-        strategy="afterInteractive"
-        onLoad={() => window.plainScriptLoaded?.()}
-      />
-      <Script
-        id="plain-chat-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{ __html: plainChatScript }}
-      />
-    </>
-  );
-};
+  : () => null;
 
 export default PlainChat;

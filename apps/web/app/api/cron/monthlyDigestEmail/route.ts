@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -13,7 +14,7 @@ const querySchema = z.object({
   page: z.coerce.number().min(0).optional().default(0),
 });
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
       const userIdsFromTeams = team.members.map((u) => u.userId);
 
       // Booking Events
-      const whereConditional: Prisma.BookingTimeStatusWhereInput = {
+      const whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput = {
         OR: [
           {
             teamId: team.id,
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
       EventData["Cancelled"] = countGroupedByStatus["cancelled"];
 
       // Most Booked Event Type
-      const bookingWhere: Prisma.BookingTimeStatusWhereInput = {
+      const bookingWhere: Prisma.BookingTimeStatusDenormalizedWhereInput = {
         createdAt: {
           gte: dayjs(firstDateOfMonth).startOf("day").toDate(),
           lte: dayjs(new Date()).endOf("day").toDate(),
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
         ],
       };
 
-      const bookingsFromSelected = await prisma.bookingTimeStatus.groupBy({
+      const bookingsFromSelected = await prisma.bookingTimeStatusDenormalized.groupBy({
         by: ["eventTypeId"],
         where: bookingWhere,
         _count: {
@@ -233,7 +234,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Most booked members
-      const bookingsFromTeam = await prisma.bookingTimeStatus.groupBy({
+      const bookingsFromTeam = await prisma.bookingTimeStatusDenormalized.groupBy({
         by: ["userId"],
         where: bookingWhere,
         _count: {
@@ -313,3 +314,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
+
+export const POST = defaultResponderForAppDir(postHandler);

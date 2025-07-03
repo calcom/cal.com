@@ -6,16 +6,14 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { DestinationCalendarSettingsWebWrapper } from "@calcom/atoms/destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper";
 import { SelectedCalendarsSettingsWebWrapper } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
+import { SkeletonLoader } from "@calcom/features/apps/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  EmptyScreen,
-  List,
-  ShellSubHeading,
-  AppSkeletonLoader as SkeletonLoader,
-  showToast,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { ShellSubHeading } from "@calcom/ui/components/layout";
+import { List } from "@calcom/ui/components/list";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { QueryCell } from "@lib/QueryCell";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -31,7 +29,7 @@ type Props = {
 
 function CalendarList(props: Props) {
   const { t } = useLocale();
-  const query = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
+  const query = trpc.viewer.apps.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
   return (
     <QueryCell
@@ -80,19 +78,22 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
   const utils = trpc.useUtils();
   const onChanged = () =>
     Promise.allSettled([
-      utils.viewer.integrations.invalidate(
+      utils.viewer.apps.integrations.invalidate(
         { variant: "calendar", onlyInstalled: true },
         {
           exact: true,
         }
       ),
-      utils.viewer.connectedCalendars.invalidate(),
+      utils.viewer.calendars.connectedCalendars.invalidate(),
     ]);
-  const query = trpc.viewer.connectedCalendars.useQuery();
-  const installedCalendars = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: true });
-  const mutation = trpc.viewer.setDestinationCalendar.useMutation({
+  const query = trpc.viewer.calendars.connectedCalendars.useQuery();
+  const installedCalendars = trpc.viewer.apps.integrations.useQuery({
+    variant: "calendar",
+    onlyInstalled: true,
+  });
+  const mutation = trpc.viewer.calendars.setDestinationCalendar.useMutation({
     onSuccess: () => {
-      utils.viewer.connectedCalendars.invalidate();
+      utils.viewer.calendars.connectedCalendars.invalidate();
     },
   });
   return (

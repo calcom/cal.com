@@ -13,7 +13,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Form, PasswordField, TextField } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { PasswordField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 
 import { SUCCESS_STATUS } from "../../../constants/api";
 import { useCheck } from "../../hooks/connect/useCheck";
@@ -35,6 +38,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   tooltipSide = "bottom",
   isClickable,
   onSuccess,
+  isDryRun = false,
 }) => {
   const { t } = useLocale();
   const form = useForm({
@@ -131,7 +135,16 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
             handleSubmit={async (values) => {
               const { username, password } = values;
 
-              await saveCredentials({ calendar: "apple", username, password });
+              if (isDryRun) {
+                form.reset();
+                setIsDialogOpen(false);
+                toast({
+                  description: "Calendar credentials added successfully",
+                });
+                onSuccess?.();
+              } else {
+                await saveCredentials({ calendar: "apple", username, password });
+              }
             }}>
             <fieldset
               className="space-y-4"

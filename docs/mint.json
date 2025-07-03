@@ -11,7 +11,7 @@
       "method": "bearer"
     }
   },
-  "favicon": "/favicon-32x32.png",
+  "favicon": "/favicon.png",
   "colors": {
     "primary": "#111827",
     "light": "#d6d6d6",
@@ -83,8 +83,7 @@
           "pages": [
             "developing/guides/appstore-and-integration/build-a-greeter-app",
             "developing/guides/appstore-and-integration/build-an-app",
-            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm",
-            "developing/guides/appstore-and-integration/oauth"
+            "developing/guides/appstore-and-integration/how-to-show-assigned-people-from-a-crm"
           ]
         },
         {
@@ -191,6 +190,7 @@
           "group": "Atoms",
           "icon": "atom",
           "pages": [
+            "platform/atoms/cal-provider",
             "platform/atoms/google-calendar-connect",
             "platform/atoms/outlook-calendar-connect",
             "platform/atoms/apple-calendar-connect",
@@ -202,7 +202,16 @@
             "platform/atoms/conferencing-apps"
           ]
         },
-        "platform/hooks",
+        {
+          "group": "Hooks",
+          "icon": "brackets-curly",
+          "pages": [
+            "platform/bookings-hooks",
+            "platform/event-types-hooks",
+            "platform/calendars-hooks",
+            "platform/user-or-team-related-hooks"
+          ]
+        },
         {
           "group": "Guides",
           "icon": "book",
@@ -210,7 +219,9 @@
             "platform/guides/replacing-toasts",
             "platform/guides/booking-fields",
             "platform/guides/booking-redirects",
-            "platform/guides/teams-setup"
+            "platform/guides/teams-setup",
+            "platform/guides/global-event-types",
+            "platform/guides/custom-booking-flow"
           ]
         },
         "platform/faq"

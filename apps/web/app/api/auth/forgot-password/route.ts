@@ -1,4 +1,5 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -8,7 +9,8 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import prisma from "@calcom/prisma";
 
 async function handler(req: NextRequest) {
-  const email = emailSchema.transform((val) => val.toLowerCase()).safeParse((await req.json())?.email);
+  const body = await parseRequestData(req);
+  const email = emailSchema.transform((val) => val.toLowerCase()).safeParse(body?.email);
 
   if (!email.success) {
     return NextResponse.json({ message: "email is required" }, { status: 400 });
@@ -35,8 +37,7 @@ async function handler(req: NextRequest) {
       select: { name: true, email: true, locale: true },
     });
     // Don't leak info about whether the user exists
-    if (!user) return NextResponse.json({ message: "password_reset_email_sent" }, { status: 201 });
-    await passwordResetRequest(user);
+    if (user) passwordResetRequest(user).catch(console.error);
     return NextResponse.json({ message: "password_reset_email_sent" }, { status: 201 });
   } catch (reason) {
     console.error(reason);
@@ -44,6 +45,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-const postHandler = defaultResponderForAppDir(handler);
-
-export { postHandler as POST };
+export const POST = defaultResponderForAppDir(handler);

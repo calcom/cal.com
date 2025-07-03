@@ -36,6 +36,4 @@ async function handler(req: NextRequest) {
   }
 }
 
-const getHandler = defaultResponderForAppDir(handler);
-
-export { getHandler as GET };
+export const GET = defaultResponderForAppDir(handler);

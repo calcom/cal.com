@@ -1,6 +1,11 @@
 import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
 import { CreatePhoneCallOutput } from "@/ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_API_KEY_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
@@ -35,7 +40,7 @@ import {
   NotFoundException,
   Query,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { handleCreatePhoneCall } from "@calcom/platform-libraries";
@@ -56,7 +61,10 @@ export type EventTypeHandlerResponse = {
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Orgs / Event Types")
+@DocsTags("Orgs / Teams / Event Types")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsEventTypesController {
   constructor(
     private readonly organizationsEventTypesService: OrganizationsEventTypesService,
@@ -81,7 +89,7 @@ export class OrganizationsEventTypesController {
       bodyEventType
     );
 
-    const eventType = await this.organizationsEventTypesService.createTeamEventType(
+    const eventType = await this.organizationsEventTypesService.createOrganizationTeamEventType(
       user,
       teamId,
       orgId,
@@ -144,7 +152,7 @@ export class OrganizationsEventTypesController {
 
   @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
-  @ApiOperation({ summary: "Get a team event type" })
+  @ApiOperation({ summary: "Get team event types" })
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
@@ -212,7 +220,7 @@ export class OrganizationsEventTypesController {
       bodyEventType
     );
 
-    const eventType = await this.organizationsEventTypesService.updateTeamEventType(
+    const eventType = await this.organizationsEventTypesService.updateOrganizationTeamEventType(
       eventTypeId,
       teamId,
       transformedBody,

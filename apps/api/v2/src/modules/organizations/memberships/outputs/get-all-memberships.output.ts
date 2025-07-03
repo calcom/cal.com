@@ -1,4 +1,4 @@
-import { OrgMembershipOutputDto } from "@/modules/organizations/memberships/outputs/membership.output";
+import { OrganizationMembershipOutput } from "@/modules/organizations/memberships/outputs/organization-membership.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsNotEmptyObject, ValidateNested, IsArray } from "class-validator";
@@ -11,11 +11,11 @@ export class GetAllOrgMemberships {
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: OrgMembershipOutputDto,
+    type: OrganizationMembershipOutput,
   })
   @IsNotEmptyObject()
   @ValidateNested({ each: true })
-  @Type(() => OrgMembershipOutputDto)
+  @Type(() => OrganizationMembershipOutput)
   @IsArray()
-  data!: OrgMembershipOutputDto[];
+  data!: OrganizationMembershipOutput[];
 }

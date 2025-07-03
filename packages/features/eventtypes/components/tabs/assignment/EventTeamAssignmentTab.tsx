@@ -1,4 +1,4 @@
-import { Trans } from "next-i18next";
+import type { TFunction } from "i18next";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -12,7 +12,7 @@ import AddMembersWithSwitch, {
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { sortHosts, weightDescription } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type {
   FormValues,
   TeamMember,
@@ -21,12 +21,18 @@ import type {
   SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
+import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
+import WeightDescription from "../../WeightDescription";
 
 export type EventTeamAssignmentTabCustomClassNames = {
   assignmentType?: {
@@ -111,16 +117,20 @@ const ChildrenEventTypesList = ({
   );
 };
 
-const FixedHostHelper = (
-  <Trans i18nKey="fixed_host_helper">
-    Add anyone who needs to attend the event.
-    <Link
-      className="underline underline-offset-2"
-      target="_blank"
-      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
-      Learn more
-    </Link>
-  </Trans>
+const FixedHostHelper = ({ t }: { t: TFunction }) => (
+  <ServerTrans
+    t={t}
+    i18nKey="fixed_host_helper"
+    components={[
+      <Link
+        key="fixed_host_helper"
+        className="underline underline-offset-2"
+        target="_blank"
+        href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#fixed-hosts">
+        Learn more
+      </Link>,
+    ]}
+  />
 );
 
 type FixedHostsCustomClassNames = SettingsToggleClassNames & {
@@ -169,7 +179,7 @@ const FixedHosts = ({
                 "text-subtle max-w-full break-words text-sm leading-tight",
                 customClassNames?.description
               )}>
-              {FixedHostHelper}
+              <FixedHostHelper t={t} />
             </p>
           </div>
           <div className="border-subtle rounded-b-md border border-t-0 px-6">
@@ -209,7 +219,7 @@ const FixedHosts = ({
           data-testid="fixed-hosts-switch"
           toggleSwitchAtTheEnd={true}
           title={t("fixed_hosts")}
-          description={FixedHostHelper}
+          description={<FixedHostHelper t={t} />}
           checked={isDisabled && !assignAllTeamMembers}
           hideSwitch={assignAllTeamMembers}
           labelClassName={classNames("text-sm", customClassNames?.label)}
@@ -331,7 +341,7 @@ const RoundRobinHosts = ({
             render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
               <SettingsToggle
                 title={t("enable_weights")}
-                description={weightDescription}
+                description={<WeightDescription t={t} />}
                 checked={isRRWeightsEnabled}
                 switchContainerClassName={customClassNames?.enableWeights?.container}
                 labelClassName={customClassNames?.enableWeights?.label}
@@ -612,7 +622,7 @@ export const EventTeamAssignmentTab = ({
     );
   });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-  const { getValues, setValue } = useFormContext<FormValues>();
+  const { getValues, setValue, control } = useFormContext<FormValues>();
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
     getValues("assignAllTeamMembers") ?? false
   );
@@ -622,6 +632,11 @@ export const EventTeamAssignmentTab = ({
     setValue("assignAllTeamMembers", false, { shouldDirty: true });
     setAssignAllTeamMembers(false);
   };
+
+  const schedulingType = useWatch({
+    control,
+    name: "schedulingType",
+  });
 
   return (
     <div>
@@ -673,44 +688,82 @@ export const EventTeamAssignmentTab = ({
               />
             </div>
           </div>
-          <div className="border-subtle mt-4 flex flex-col rounded-md">
-            <div className="border-subtle rounded-t-md border p-6 pb-5">
-              <Label className="mb-1 text-sm font-semibold">{t("rr_distribution_method")}</Label>
-              <p className="text-subtle max-w-full break-words text-sm leading-tight">
-                {t("rr_distribution_method_description")}
-              </p>
+          {schedulingType === "ROUND_ROBIN" && (
+            <div className="border-subtle mt-4 flex flex-col rounded-md">
+              <div className="border-subtle rounded-t-md border p-6 pb-5">
+                <Label className="mb-1 text-sm font-semibold">{t("rr_distribution_method")}</Label>
+                <p className="text-subtle max-w-full break-words text-sm leading-tight">
+                  {t("rr_distribution_method_description")}
+                </p>
+              </div>
+              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+                <Controller
+                  name="maxLeadThreshold"
+                  render={({ field: { value, onChange } }) => (
+                    <RadioArea.Group
+                      onValueChange={(val) => {
+                        if (val === "loadBalancing") onChange(3);
+                        else onChange(null);
+                      }}
+                      className="mt-1 flex flex-col gap-4">
+                      <RadioArea.Item
+                        value="maximizeAvailability"
+                        checked={value === null}
+                        className="w-full text-sm"
+                        classNames={{ container: "w-full" }}>
+                        <strong className="mb-1 block">
+                          {t("rr_distribution_method_availability_title")}
+                        </strong>
+                        <p>{t("rr_distribution_method_availability_description")}</p>
+                      </RadioArea.Item>
+                      {!!(
+                        eventType.team?.rrTimestampBasis &&
+                        eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+                      ) ? (
+                        <Tooltip content={t("rr_load_balancing_disabled")}>
+                          <div className="w-full">
+                            <RadioArea.Item
+                              value="loadBalancing"
+                              checked={value !== null}
+                              className="text-sm"
+                              disabled={true}
+                              classNames={{ container: "w-full" }}>
+                              <strong className="mb-1">{t("rr_distribution_method_balanced_title")}</strong>
+                              <p>{t("rr_distribution_method_balanced_description")}</p>
+                            </RadioArea.Item>
+                          </div>
+                        </Tooltip>
+                      ) : (
+                        <div className="w-full">
+                          <RadioArea.Item
+                            value="loadBalancing"
+                            checked={value !== null}
+                            className="text-sm"
+                            classNames={{ container: "w-full" }}>
+                            <strong className="mb-1">{t("rr_distribution_method_balanced_title")}</strong>
+                            <p>{t("rr_distribution_method_balanced_description")}</p>
+                          </RadioArea.Item>
+                        </div>
+                      )}
+                    </RadioArea.Group>
+                  )}
+                />
+                <div className="mt-4">
+                  <Controller
+                    name="includeNoShowInRRCalculation"
+                    render={({ field: { value, onChange } }) => (
+                      <SettingsToggle
+                        title={t("include_no_show_in_rr_calculation")}
+                        labelClassName="mt-1.5"
+                        checked={value}
+                        onCheckedChange={(val) => onChange(val)}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="border-subtle rounded-b-md border border-t-0 p-6">
-              <Controller
-                name="maxLeadThreshold"
-                render={({ field: { value, onChange } }) => (
-                  <RadioArea.Group
-                    onValueChange={(val) => {
-                      if (val === "loadBalancing") onChange(3);
-                      else onChange(null);
-                    }}
-                    className="mt-1 flex flex-col gap-4">
-                    <RadioArea.Item
-                      value="maximizeAvailability"
-                      checked={value === null}
-                      className="w-full text-sm"
-                      classNames={{ container: "w-full" }}>
-                      <strong className="mb-1 block">{t("rr_distribution_method_availability_title")}</strong>
-                      <p>{t("rr_distribution_method_availability_description")}</p>
-                    </RadioArea.Item>
-                    <RadioArea.Item
-                      value="loadBalancing"
-                      checked={value !== null}
-                      className="text-sm"
-                      classNames={{ container: "w-full" }}>
-                      <strong className="mb-1 block">{t("rr_distribution_method_balanced_title")}</strong>
-                      <p>{t("rr_distribution_method_balanced_description")}</p>
-                    </RadioArea.Item>
-                  </RadioArea.Group>
-                )}
-              />
-            </div>
-          </div>
+          )}
           <Hosts
             orgId={orgId}
             isSegmentApplicable={isSegmentApplicable}

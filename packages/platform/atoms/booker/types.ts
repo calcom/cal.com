@@ -1,13 +1,43 @@
+import type React from "react";
+
 import type { BookerProps } from "@calcom/features/bookings/Booker";
-import type { BookingResponse } from "@calcom/platform-libraries";
+import type { BookerStore } from "@calcom/features/bookings/Booker/store";
+import type { Timezone } from "@calcom/features/bookings/Booker/types";
+import type { BookingResponse } from "@calcom/features/bookings/types";
 import type {
   ApiSuccessResponse,
   ApiErrorResponse,
   ApiSuccessResponseWithoutData,
+  RoutingFormSearchParams,
 } from "@calcom/platform-types";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
+
+// Type that includes only the data values from BookerStore (excluding functions)
+export type BookerStoreValues = Omit<
+  BookerStore,
+  | "setState"
+  | "setLayout"
+  | "setSelectedDate"
+  | "setSelectedDatesAndTimes"
+  | "addToSelectedDate"
+  | "setVerifiedEmail"
+  | "setMonth"
+  | "setDayCount"
+  | "setSeatedEventData"
+  | "setTimezone"
+  | "initialize"
+  | "setSelectedDuration"
+  | "setBookingData"
+  | "setRecurringEventCount"
+  | "setOccurenceCount"
+  | "setTentativeSelectedTimeslots"
+  | "setSelectedTimeslot"
+  | "setFormValues"
+  | "setOrg"
+>;
 
 export type BookerPlatformWrapperAtomProps = Omit<
   BookerProps,
@@ -38,6 +68,8 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onReserveSlotError?: (data: ApiErrorResponse) => void;
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
+  onBookerStateChange?: (state: BookerStoreValues) => void;
+  handleSlotReservation?: (timeslot: string) => void;
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
@@ -45,6 +77,25 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onDryRunSuccess?: () => void;
   hostsLimit?: number;
   preventEventTypeRedirect?: boolean;
+  allowUpdatingUrlParams?: boolean;
+  confirmButtonDisabled?: boolean;
+  timeZones?: Timezone[];
+  isBookingDryRun?: boolean;
+  eventMetaChildren?: React.ReactNode;
+  onTimeslotsLoaded?: (slots: Record<string, Slot[]>) => void;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
+
+export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
+  username: string | string[];
+  isTeamEvent?: false;
+  routingFormSearchParams?: RoutingFormSearchParams;
+};
+
+export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
+  username?: string | string[];
+  isTeamEvent: true;
+  teamId: number;
+  routingFormSearchParams?: RoutingFormSearchParams;
+};

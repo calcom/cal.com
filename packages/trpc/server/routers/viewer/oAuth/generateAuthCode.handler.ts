@@ -3,7 +3,7 @@ import { randomBytes } from "crypto";
 import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
 import type { AccessScope } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -18,7 +18,7 @@ type AddClientOptions = {
 
 export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) => {
   const { clientId, scopes, teamSlug } = input;
-  const client = await prisma.oAuthClient.findFirst({
+  const client = await prisma.oAuthClient.findUnique({
     where: {
       clientId,
     },

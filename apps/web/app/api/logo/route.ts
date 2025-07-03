@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -162,12 +163,12 @@ async function getTeamLogos(subdomain: string, isValidOrgDomain: boolean) {
 /**
  * This API endpoint is used to serve the logo associated with a team if no logo is found we serve our default logo
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const parsedQuery = logoApiSchema.parse(Object.fromEntries(searchParams.entries()));
 
   // Create a legacy request object for compatibility
-  const legacyReq = buildLegacyRequest(headers(), cookies());
+  const legacyReq = buildLegacyRequest(await headers(), await cookies());
   const { isValidOrgDomain } = orgDomainConfig(legacyReq);
 
   const hostname = request.headers.get("host");
@@ -191,11 +192,12 @@ export async function GET(request: NextRequest) {
   try {
     const response = await fetch(filteredLogo);
     const arrayBuffer = await response.arrayBuffer();
-    let buffer = Buffer.from(arrayBuffer);
+    let buffer: Buffer = Buffer.from(arrayBuffer);
 
     // If we need to resize the team logos (via Next.js' built-in image processing)
     if (teamLogos[logoDefinition.source] && logoDefinition.w) {
       const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
+
       buffer = await optimizeImage({
         buffer,
         contentType: detectContentType(buffer) ?? "image/jpeg",
@@ -217,3 +219,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Failed fetching logo" }, { status: 404 });
   }
 }
+
+export const GET = defaultResponderForAppDir(getHandler);

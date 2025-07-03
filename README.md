@@ -24,6 +24,7 @@
 
 <p align="center">
    <a href="https://www.producthunt.com/products/cal-com"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
+   <img src="https://api.checklyhq.com/v1/badges/groups/1120718?style=flat&theme=default" alt="Checkly QA">
    <a href="https://status.cal.com"><img height="20px" src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
    <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
    <a href="https://news.ycombinator.com/item?id=34507672"><img src="https://img.shields.io/badge/Hacker%20News-%231-%23FF6600" alt="Hacker News"></a>
@@ -644,6 +645,14 @@ following
 14. Copy Messaging Service SID to your `.env` file into the `TWILIO_MESSAGING_SID` field
 15. Create a verify service
 16. Copy Verify Service SID to your `.env` file into the `TWILIO_VERIFY_SID` field
+
+## Changesets
+
+We use changesets to generate changelogs and publish public packages (packages with `private: true` are ignored).
+
+An example of good readme is [atoms readme](https://github.com/calcom/cal.com/blob/main/packages/platform/atoms/README.md). Every public package must:
+1. Follow semantic versioning when using changesets.
+2. Mark breaking changes using `❗️Breaking change`
 
 <!-- LICENSE -->
 

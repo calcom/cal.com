@@ -1,7 +1,7 @@
 import { trpc } from "../trpc";
 
 export function useMeQuery() {
-  const meQuery = trpc.viewer.me.useQuery(undefined, {
+  const meQuery = trpc.viewer.me.get.useQuery(undefined, {
     retry(failureCount) {
       return failureCount > 3;
     },

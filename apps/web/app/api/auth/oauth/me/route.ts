@@ -1,3 +1,4 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -14,5 +15,5 @@ async function handler(req: NextRequest) {
 
   return NextResponse.json({ username: account.name }, { status: 201 });
 }
-
-export { handler as GET, handler as POST };
+export const GET = defaultResponderForAppDir(handler);
+export const POST = defaultResponderForAppDir(handler);
