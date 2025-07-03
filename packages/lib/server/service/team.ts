@@ -69,6 +69,22 @@ export class TeamService {
             seatsShowAvailabilityCount: true,
             hideOrganizerEmail: true,
             successRedirectUrl: true,
+            forwardParamsSuccessRedirect: true,
+            lockTimeZoneToggleOnBookingPage: true,
+            autoTranslateDescriptionEnabled: true,
+            fieldTranslations: {
+              select: {
+                translatedText: true,
+                targetLocale: true,
+                field: true,
+              },
+            },
+            schedule: {
+              select: {
+                id: true,
+                timeZone: true,
+              },
+            },
             hosts: {
               take: 3,
               select: {

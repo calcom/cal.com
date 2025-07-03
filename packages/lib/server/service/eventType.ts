@@ -144,6 +144,13 @@ export class EventTypeService {
         name: team.name,
         slug: team.slug,
       },
+      subsetOfHosts: eventData.hosts ?? [],
+      isDynamic: false,
+      forwardParamsSuccessRedirect: eventData.forwardParamsSuccessRedirect,
+      lockTimeZoneToggleOnBookingPage: eventData.lockTimeZoneToggleOnBookingPage,
+      autoTranslateDescriptionEnabled: eventData.autoTranslateDescriptionEnabled,
+      fieldTranslations: eventData.fieldTranslations ?? [],
+      schedule: eventData.schedule,
     };
   }
 }
