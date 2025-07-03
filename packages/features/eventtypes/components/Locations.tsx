@@ -181,6 +181,66 @@ const getLocationInfo = ({
   return { locationAvailable, locationDetails };
 };
 
+const LocationInput = (props: {
+  eventLocationType: EventLocationType;
+  defaultValue?: string;
+  index: number;
+  customClassNames?: LocationInputCustomClassNames;
+  disableLocationProp?: boolean;
+}) => {
+  const { t } = useLocale();
+  const { eventLocationType, index, customClassNames, disableLocationProp, ...remainingProps } = props;
+  if (eventLocationType?.organizerInputType === "text") {
+    const { defaultValue, ...rest } = remainingProps;
+
+    return (
+      <Controller
+        name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
+        defaultValue={defaultValue}
+        render={({ field: { onChange, value } }) => {
+          return (
+            <Input
+              name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+              placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+              type="text"
+              required
+              onChange={onChange}
+              value={value}
+              {...(disableLocationProp ? { disabled: true } : {})}
+              className={classNames("my-0", customClassNames?.addressInput)}
+              {...rest}
+            />
+          );
+        }}
+      />
+    );
+  } else if (eventLocationType?.organizerInputType === "phone") {
+    const { defaultValue, ...rest } = remainingProps;
+
+    return (
+      <Controller
+        name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
+        defaultValue={defaultValue}
+        render={({ field: { onChange, value } }) => {
+          return (
+            <PhoneInput
+              required
+              disabled={disableLocationProp}
+              placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+              name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+              className={customClassNames?.phoneInput}
+              value={value}
+              onChange={onChange}
+              {...rest}
+            />
+          );
+        }}
+      />
+    );
+  }
+  return null;
+};
+
 const Locations: React.FC<LocationsProps> = ({
   isChildrenManagedEventType,
   disableLocationProp,
