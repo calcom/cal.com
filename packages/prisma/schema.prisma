@@ -1159,7 +1159,7 @@ model App_RoutingForms_Form {
 
 model App_RoutingForms_FormResponse {
   id           Int                   @id @default(autoincrement())
-  uuid         String                @unique @default(uuid())
+  uuid         String?               @default(uuid())
   formFillerId String                @default(cuid())
   form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId       String
@@ -1240,7 +1240,7 @@ view RoutingFormResponse {
 
 model RoutingFormResponseDenormalized {
   id                      Int                           @id
-  uuid                    String                        @unique
+  uuid                    String?
   formId                  String
   formName                String
   formTeamId              Int?
