@@ -1,28 +1,32 @@
 import { z } from "zod";
 
-import { handleCreateSelfServePhoneCall } from "@calcom/features/ee/cal-ai-phone/handleCreateSelfServePhoneCall";
-import {
-  createAgent,
-  getRetellLLM,
-  initialSetupLLM,
-  updateRetellLLM,
-} from "@calcom/features/ee/cal-ai-phone/retellAIService";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import { protectedProcedure, router } from "../../trpc";
+import authedProcedure from "../../../procedures/authedProcedure";
+import { router } from "../../../trpc";
 
 export const aiRouter = router({
-  getConfig: protectedProcedure.input(z.object({ eventTypeId: z.number() })).query(async ({ input }) => {
-    return prisma.aISelfServeConfiguration.findUnique({
+  test: authedProcedure.query(async ({ ctx }) => {
+    return {
+      message: "test",
+    };
+  }),
+  getConfig: authedProcedure.input(z.object({ eventTypeId: z.number() })).query(async ({ input }) => {
+    console.log("getConfig", input);
+    return await prisma.aISelfServeConfiguration.findUnique({
       where: { eventTypeId: input.eventTypeId },
     });
   }),
-  setup: protectedProcedure
+  setup: authedProcedure
     .input(z.object({ eventTypeId: z.number(), calApiKey: z.string(), timeZone: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const { eventTypeId, calApiKey, timeZone } = input;
+
+      const { initialSetupLLM, createAgent } = await import(
+        "@calcom/features/ee/cal-ai-phone/retellAIService"
+      );
 
       const eventType = await prisma.eventType.findFirst({
         where: {
@@ -62,10 +66,11 @@ export const aiRouter = router({
 
       return config;
     }),
-  getLlm: protectedProcedure.input(z.object({ llmId: z.string() })).query(async ({ input }) => {
+  getLlm: authedProcedure.input(z.object({ llmId: z.string() })).query(async ({ input }) => {
+    const { getRetellLLM } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
     return getRetellLLM(input.llmId);
   }),
-  updateLlm: protectedProcedure
+  updateLlm: authedProcedure
     .input(
       z.object({
         llmId: z.string(),
@@ -74,6 +79,7 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const { updateRetellLLM } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
       const { llmId, ...updateData } = input;
 
       const config = await prisma.aISelfServeConfiguration.findFirst({
@@ -91,10 +97,13 @@ export const aiRouter = router({
 
       return updateRetellLLM(llmId, updateData);
     }),
-  makePhoneCall: protectedProcedure
+  makeSelfServePhoneCall: authedProcedure
     .input(z.object({ eventTypeId: z.number(), numberToCall: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const { eventTypeId, numberToCall } = input;
+      const { handleCreateSelfServePhoneCall } = await import(
+        "@calcom/features/ee/cal-ai-phone/handleCreateSelfServePhoneCall"
+      );
       return handleCreateSelfServePhoneCall({
         userId: ctx.user.id,
         eventTypeId,

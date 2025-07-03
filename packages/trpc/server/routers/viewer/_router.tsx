@@ -9,7 +9,7 @@ import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
 import { timezonesRouter } from "../publicViewer/timezones/_router";
 import { adminRouter } from "./admin/_router";
-import { aiRouter } from "./ai.router";
+import { aiRouter } from "./ai/_router";
 import { apiKeysRouter } from "./apiKeys/_router";
 import { appsRouter } from "./apps/_router";
 import { attributesRouter } from "./attributes/_router";
@@ -86,6 +86,6 @@ export const viewerRouter = router({
   credits: creditsRouter,
   ooo: oooRouter,
   travelSchedules: travelSchedulesRouter,
-  phoneNumbers: phoneNumberRouter,
   ai: aiRouter,
+  phoneNumbers: phoneNumberRouter,
 });

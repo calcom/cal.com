@@ -14,12 +14,37 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
+import { TextAreaField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
+
+const formatPhoneNumber = (phoneNumber: string) => {
+  const cleaned = `${phoneNumber}`.replace(/\D/g, "");
+  const match = cleaned.match(/^(\d{1})(\d{3})(\d{3})(\d{4})$/);
+  if (match) {
+    return `+${match[1]} (${match[2]}) ${match[3]}-${match[4]}`;
+  }
+  return phoneNumber;
+};
+
+const PhoneNumberOption = (props: {
+  option: { label: string; value: number };
+  isSelected: boolean;
+  prefix: string;
+}) => {
+  const { t } = useLocale();
+  return (
+    <div className="flex items-center">
+      <div className="flex-grow">
+        <span className="text-emphasis text-sm font-medium">{formatPhoneNumber(props.option.label)}</span>
+      </div>
+      {props.isSelected && <span className="text-brand-default text-sm font-medium">{t("selected")}</span>}
+    </div>
+  );
+};
 
 const setupSchema = z.object({
   calApiKey: z.string().min(1, "API Key is required"),
@@ -29,7 +54,9 @@ const setupSchema = z.object({
 const configAndCallSchema = z.object({
   generalPrompt: z.string(),
   beginMessage: z.string(),
-  numberToCall: z.string().optional(),
+  numberToCall: z.string().nullable(),
+  yourPhoneNumber: z.string().nullable(),
+  yourPhoneNumberId: z.number().nullable(),
 });
 
 const ErrorMessage = ({ fieldName, message }: { fieldName: string; message: string }) => {
@@ -45,35 +72,37 @@ const ErrorMessage = ({ fieldName, message }: { fieldName: string; message: stri
 export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: aiConfig, isLoading: isLoadingAiConfig } = trpc.viewer.ai.getConfig.useQuery({
-    eventTypeId: eventType.id,
-  });
+  const { data: aiConfig, isLoading: isLoadingAiConfig } =
+    trpc.viewer.loggedInViewerRouter.getConfig.useQuery({
+      eventTypeId: eventType.id,
+    });
   const { timezone: preferredTimezone } = useTimePreferences();
 
-  const { data: llmDetails, isLoading: isLoadingLlmDetails } = trpc.viewer.ai.getLlm.useQuery(
-    { llmId: aiConfig?.llmId },
-    { enabled: !!aiConfig?.llmId }
-  );
-  const { data: phoneNumbers } = trpc.viewer.phoneNumbers.list.useQuery();
+  const { data: llmDetails, isLoading: isLoadingLlmDetails } =
+    trpc.viewer.loggedInViewerRouter.getLlm.useQuery(
+      { llmId: aiConfig?.llmId as string },
+      { enabled: !!aiConfig?.llmId }
+    );
+  const { data: phoneNumbers } = trpc.viewer.loggedInViewerRouter.list.useQuery();
+  const makeCallMutation = trpc.viewer.loggedInViewerRouter.makeSelfServePhoneCall.useMutation();
 
-  const setupMutation = trpc.viewer.ai.setup.useMutation({
+  const setupMutation = trpc.viewer.loggedInViewerRouter.setup.useMutation({
     onSuccess: () => {
-      utils.viewer.ai.getConfig.invalidate();
+      utils.viewer.loggedInViewerRouter.getConfig.invalidate();
       showToast(t("ai_assistant_setup_successfully"), "success");
     },
-    onError: (error) => showToast(error.message, "error"),
+    onError: (error: any) => showToast(error.message, "error"),
   });
 
-  const updateLlmMutation = trpc.viewer.ai.updateLlm.useMutation();
-  const makeCallMutation = trpc.viewer.ai.makePhoneCall.useMutation();
+  const updateLlmMutation = trpc.viewer.loggedInViewerRouter.updateLlm.useMutation();
 
-  const buyNumberMutation = trpc.viewer.phoneNumbers.buy.useMutation({
+  const buyNumberMutation = trpc.viewer.loggedInViewerRouter.buy.useMutation({
     onSuccess: () => {
-      utils.viewer.ai.getConfig.invalidate();
-      utils.viewer.phoneNumbers.list.invalidate();
+      utils.viewer.loggedInViewerRouter.getConfig.invalidate();
+      utils.viewer.loggedInViewerRouter.list.invalidate();
       showToast(t("phone_number_purchased_successfully"), "success");
     },
-    onError: (error) => showToast(error.message, "error"),
+    onError: (error: any) => showToast(error.message, "error"),
   });
 
   const setupForm = useForm<z.infer<typeof setupSchema>>({ resolver: zodResolver(setupSchema) });
@@ -82,23 +111,38 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
     defaultValues: {
       generalPrompt: "",
       beginMessage: "",
-      numberToCall: "",
+      numberToCall: aiConfig?.numberToCall || null,
+      yourPhoneNumber: aiConfig?.yourPhoneNumber?.phoneNumber || null,
+      yourPhoneNumberId: aiConfig?.yourPhoneNumber?.id || null,
     },
   });
+
+  console.log("form.getValues()", aiConfig, form.getValues());
 
   useEffect(() => {
     if (llmDetails) {
       form.reset({
         generalPrompt: llmDetails.general_prompt,
-        beginMessage: llmDetails.begin_message,
-        numberToCall: form.getValues().numberToCall, // Keep existing value on re-renders
+        beginMessage: llmDetails.begin_message || "",
       });
     }
   }, [llmDetails, form]);
 
+  useEffect(() => {
+    if (aiConfig) {
+      form.reset({
+        numberToCall: aiConfig.numberToCall || null,
+        yourPhoneNumber: aiConfig.yourPhoneNumber?.phoneNumber || null,
+        yourPhoneNumberId: aiConfig.yourPhoneNumber?.id || null,
+      });
+    }
+  }, [aiConfig, form]);
+
   const assignedPhoneNumber = phoneNumbers?.find((n) => n.id === aiConfig?.yourPhoneNumberId);
 
-  const onSubmit = async (values: z.infer<typeof configAndCallSchema>) => {
+  const handlePhoneCall = async () => {
+    const values = form.getValues();
+    console.log("aiConfig", values, aiConfig);
     if (!aiConfig?.llmId) return;
 
     try {
@@ -111,6 +155,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
 
       // If a phone number is provided, make the test call.
       if (values.numberToCall) {
+        makeCallMutation.mutate({ eventTypeId: eventType.id, numberToCall: values.numberToCall });
         const callData = await makeCallMutation.mutateAsync({
           eventTypeId: eventType.id,
           numberToCall: values.numberToCall,
@@ -123,8 +168,6 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
   };
 
   if (isLoadingAiConfig) return <ShellMain>{t("loading")}</ShellMain>;
-
-  console.log("preferredTimezone", aiConfig);
 
   if (!aiConfig) {
     const handleSubmit = () => {
@@ -141,7 +184,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
       <ShellMain
         heading={t("setup_ai_phone_assistant")}
         subtitle={t("provide_api_key_and_timezone_to_setup")}>
-        <Form className="space-y-6" form={setupForm}>
+        <div className="space-y-6">
           <TextField
             required
             type="text"
@@ -172,10 +215,12 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
           <Button onClick={handleSubmit} loading={setupMutation.isPending}>
             {t("setup_ai_phone_assistant")}
           </Button>
-        </Form>
+        </div>
       </ShellMain>
     );
   }
+
+  if (isLoadingLlmDetails) return <ShellMain>{t("loading")}</ShellMain>;
 
   return (
     <ShellMain>
@@ -186,8 +231,40 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
             subtitle={t("this_is_the_number_your_agent_will_use")}
           />
           <div className="mt-4 max-w-sm">
-            {assignedPhoneNumber ? (
-              <Input type="tel" readOnly value={assignedPhoneNumber.phoneNumber} />
+            {!!phoneNumbers?.length ? (
+              <Select
+                options={phoneNumbers?.map((n) => ({
+                  label: n.phoneNumber,
+                  value: n.id,
+                }))}
+                placeholder={t("choose_phone_number")}
+                value={
+                  !!assignedPhoneNumber?.phoneNumber
+                    ? { label: assignedPhoneNumber.phoneNumber, value: assignedPhoneNumber.id }
+                    : undefined
+                }
+                formatOptionLabel={(option, { context }) => (
+                  <PhoneNumberOption
+                    option={option}
+                    isSelected={
+                      context === "menu"
+                        ? assignedPhoneNumber?.id === option.value
+                        : false /* isSelected is for menu only */
+                    }
+                    prefix={t("phone_number")}
+                  />
+                )}
+                onChange={(e) => {
+                  console.log("e", e);
+                  if (e) {
+                    form.setValue("yourPhoneNumber", e.label);
+                    form.setValue("yourPhoneNumberId", e.value);
+                  } else {
+                    form.setValue("yourPhoneNumber", null);
+                    form.setValue("yourPhoneNumberId", null);
+                  }
+                }}
+              />
             ) : (
               <Button
                 onClick={() => buyNumberMutation.mutate({ eventTypeId: eventType.id })}
@@ -199,14 +276,14 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
         </div>
         <div>
           <ShellSubHeading title={t("configure_agent")} subtitle={t("configure_agent_subtitle")} />
-          <Form form={form} handleSubmit={onSubmit} className="mt-4 space-y-6">
-            <TextField
+          <div className="mt-4 space-y-6">
+            <TextAreaField
               required
-              type="text"
               {...form.register("generalPrompt")}
               label={t("general_prompt")}
               placeholder="Enter your general prompt here"
               data-testid="general-prompt"
+              className="h-[200px]"
             />
             <TextField
               required
@@ -220,6 +297,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
             <Label>{t("number_to_call")}</Label>
             <Controller
               name="numberToCall"
+              control={form.control}
               render={({ field: { onChange, value, name }, fieldState: { error } }) => {
                 return (
                   <div>
@@ -228,9 +306,10 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                       placeholder={t("phone_number")}
                       id="numberToCall"
                       name="numberToCall"
-                      value={value}
+                      value={value ?? ""}
                       onChange={(val) => {
                         onChange(val);
+                        // form.setValue("numberToCall", val);
                       }}
                     />
                     {error?.message && <ErrorMessage message={error.message} fieldName={name} />}
@@ -240,12 +319,12 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
             />
 
             <Button
-              type="submit"
+              onClick={handlePhoneCall}
               loading={form.formState.isSubmitting || isLoadingLlmDetails}
               disabled={!assignedPhoneNumber && !!form.getValues().numberToCall}>
               {assignedPhoneNumber ? t("save_and_test_call") : t("save_changes")}
             </Button>
-          </Form>
+          </div>
         </div>
       </div>
     </ShellMain>

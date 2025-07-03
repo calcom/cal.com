@@ -1,23 +1,27 @@
 import { z } from "zod";
 
 // import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import { createPhoneNumber, updatePhoneNumber } from "@calcom/features/ee/cal-ai-phone/retellAIService";
-import { PhoneNumberRepository } from "@calcom/lib/server/repository/phoneNumber";
-import prisma from "@calcom/prisma";
+// import { createPhoneNumber, updatePhoneNumber } from "@calcom/features/ee/cal-ai-phone/retellAIService";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
+import authedProcedure from "../../procedures/authedProcedure";
 // import { TRPCError } from "@trpc/server";
-import { protectedProcedure, router } from "../../trpc";
+import { router } from "../../trpc";
 
 export const phoneNumberRouter = router({
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: authedProcedure.query(async ({ ctx }) => {
+    const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
     return await PhoneNumberRepository.findPhoneNumbersFromUserId({ userId: ctx.user.id });
   }),
 
-  buy: protectedProcedure
+  buy: authedProcedure
     .input(z.object({ eventTypeId: z.number().optional() }).optional())
     .mutation(async ({ ctx, input }) => {
+      const { createPhoneNumber, updatePhoneNumber } = await import(
+        "@calcom/features/ee/cal-ai-phone/retellAIService"
+      );
       console.log("protectedProcedure.protectedProcedureprotectedProcedureinput", ctx, input);
       // const { eventTypeId } = input;
       // const creditService = new CreditService();

@@ -130,16 +130,16 @@ class GetRetellLLMCommand implements Command<TGetRetellLLMSchema> {
 }
 
 class UpdateRetellLLMCommand implements Command<TGetRetellLLMSchema> {
-  constructor(
-    private llmId: string,
-    private updateData: { general_prompt?: string; begin_message?: string }
-  ) {}
+  constructor(private llmId: string, private updateData: { generalPrompt?: string; beginMessage?: string }) {}
 
   async execute(): Promise<TGetRetellLLMSchema> {
     try {
       const updatedRetellLLM = await fetcher(`/update-retell-llm/${this.llmId}`, {
         method: "PATCH",
-        body: JSON.stringify(this.updateData),
+        body: JSON.stringify({
+          general_prompt: this.updateData.generalPrompt,
+          begin_message: this.updateData.beginMessage,
+        }),
       }).then(ZGetRetellLLMSchema.parse);
 
       return updatedRetellLLM;
@@ -242,7 +242,10 @@ export class RetellAIService {
   }
 
   async updatedRetellLLMAndUpdateWebsocketUrl(llmId: string): Promise<TGetRetellLLMSchema> {
-    const command = new UpdateRetellLLMCommand(this.props, llmId);
+    const command = new UpdateRetellLLMCommand(llmId, {
+      generalPrompt: this.props.generalPrompt,
+      beginMessage: this.props.beginMessage ?? undefined,
+    });
     return command.execute();
   }
 
@@ -278,6 +281,7 @@ class InitialSetupLLMCommand implements Command<TCreateRetellLLMSchema> {
               name: "check_availability",
               cal_api_key: this.calApiKey,
               event_type_id: this.eventTypeId,
+              // event_type_id: 297707,
               timezone: this.timeZone,
             },
             {
@@ -285,6 +289,7 @@ class InitialSetupLLMCommand implements Command<TCreateRetellLLMSchema> {
               name: "book_appointment",
               cal_api_key: this.calApiKey,
               event_type_id: this.eventTypeId,
+              // event_type_id: 297707,
               timezone: this.timeZone,
             },
           ],
@@ -311,9 +316,12 @@ export async function getRetellLLM(llmId: string): Promise<TGetRetellLLMSchema> 
 
 export async function updateRetellLLM(
   llmId: string,
-  updateData: { general_prompt?: string; begin_message?: string }
+  updateData: { generalPrompt?: string; beginMessage?: string }
 ): Promise<TGetRetellLLMSchema> {
-  const command = new UpdateRetellLLMCommand(llmId, updateData);
+  const command = new UpdateRetellLLMCommand(llmId, {
+    generalPrompt: updateData.generalPrompt ?? undefined,
+    beginMessage: updateData.beginMessage ?? undefined,
+  });
   return command.execute();
 }
 
@@ -325,7 +333,7 @@ class CreateAgentCommand implements Command<TCreateAgentResponseSchema> {
       const agent = await fetcher("/create-agent", {
         method: "POST",
         body: JSON.stringify({
-          llm_id: this.llmId,
+          response_engine: { llm_id: this.llmId, type: "retell-llm" },
           agent_name: this.agentName,
           voice_id: "11labs-Adrian", // A default voice
         }),
