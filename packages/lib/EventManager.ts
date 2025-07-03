@@ -24,7 +24,12 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  CalendarEvent,
+  NewCalendarEventType,
+  VideoCallData,
+} from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
 import type {
@@ -507,8 +512,9 @@ export default class EventManager {
     const results: Array<EventResult<Event>> = [];
     const updatedBookingReferences: Array<PartialReference> = [];
     const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
+    const hasNoCalendarReferences = !booking.references.some((ref) => ref.type.includes("_calendar"));
     const shouldUpdateBookingReferences =
-      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule;
+      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || hasNoCalendarReferences;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -538,18 +544,67 @@ export default class EventManager {
           updatedBookingReferences.push(...updatedLocation.referencesToCreate);
         } else {
           const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-          // If and only if event type is a dedicated meeting, update the dedicated video meeting.
+          // If and only if event type is a dedicated meeting, handle video meeting.
           if (isDedicated) {
-            const result = await this.updateVideoEvent(evt, booking);
-            const [updatedEvent] = Array.isArray(result.updatedEvent)
-              ? result.updatedEvent
-              : [result.updatedEvent];
+            const bookingVideoReference = booking.references.find((reference) =>
+              reference.type.includes("_video")
+            );
 
-            if (updatedEvent) {
-              evt.videoCallData = updatedEvent;
-              evt.location = updatedEvent.url;
+            if (bookingVideoReference?.uid) {
+              // Update existing video meeting
+              const result = await this.updateVideoEvent(evt, booking);
+              const [updatedEvent] = Array.isArray(result.updatedEvent)
+                ? result.updatedEvent
+                : [result.updatedEvent];
+
+              if (updatedEvent) {
+                if (result.type === "daily_video") {
+                  const dailyVideoUrl = `http://app.cal.local:3000/video/${evt.uid}`;
+                  evt.videoCallData = {
+                    type: "daily_video",
+                    id: "MOCK_ID",
+                    password: "",
+                    url: dailyVideoUrl,
+                  };
+                  evt.location = dailyVideoUrl;
+                } else {
+                  evt.videoCallData = updatedEvent as VideoCallData;
+                  evt.location = updatedEvent.url || "";
+                }
+              }
+              results.push(result);
+            } else {
+              // Create new video meeting when no existing reference
+              log.debug("No valid video reference found, creating new video meeting");
+              const createdVideoEvent = await this.createVideoEvent(evt);
+              if (createdVideoEvent && createdVideoEvent.success && createdVideoEvent.createdEvent) {
+                if (createdVideoEvent.type === "daily_video") {
+                  const dailyVideoUrl = `http://app.cal.local:3000/video/${evt.uid}`;
+                  evt.videoCallData = {
+                    type: "daily_video",
+                    id: createdVideoEvent.createdEvent?.id || "MOCK_ID",
+                    password: createdVideoEvent.createdEvent?.password || "",
+                    url: dailyVideoUrl,
+                  };
+                  evt.location = dailyVideoUrl;
+                } else if (createdVideoEvent.createdEvent) {
+                  evt.videoCallData = createdVideoEvent.createdEvent;
+                  evt.location = createdVideoEvent.createdEvent.url || "";
+                }
+
+                results.push(createdVideoEvent);
+
+                // Add video reference to booking references
+                const videoReference = {
+                  type: createdVideoEvent.type,
+                  uid: createdVideoEvent.uid,
+                  meetingId: createdVideoEvent.createdEvent?.id || "MOCK_ID",
+                  externalCalendarId: null,
+                  credentialId: this.getVideoCredential(evt)?.id || 0,
+                };
+                updatedBookingReferences.push(videoReference);
+              }
             }
-            results.push(result);
           }
 
           const bookingCalendarReference = booking.references.find((reference) =>
@@ -561,17 +616,39 @@ export default class EventManager {
             log.debug("No valid calendar reference found, creating new calendar event");
             const createdCalendarEvent = await this.createAllCalendarEvents(evt);
             results.push(...createdCalendarEvent);
-            updatedBookingReferences.push(
-              ...createdCalendarEvent
-                .filter((result) => result.type.includes("_calendar"))
-                .map((result) => ({
+
+            // Update the event's iCalUID with the calendar service's iCalUID if available
+            const calendarResult = createdCalendarEvent.find((result) => result.type.includes("_calendar"));
+            if (calendarResult?.iCalUID) {
+              evt.iCalUID = calendarResult.iCalUID;
+            }
+
+            const calendarReferences = createdCalendarEvent
+              .filter((result) => result.type.includes("_calendar"))
+              .map((result) => {
+                log.debug(
+                  "Processing calendar result - type:",
+                  result.type,
+                  "success:",
+                  result.success,
+                  "uid:",
+                  result.uid
+                );
+                log.debug(
+                  "createdEvent uid:",
+                  result.createdEvent?.uid,
+                  "iCalUID:",
+                  result.createdEvent?.iCalUID
+                );
+                return {
                   type: result.type,
-                  uid: result.uid,
+                  uid: result.createdEvent?.uid || "FALLBACK_CALENDAR_EVENT_UID",
                   meetingId: result.createdEvent?.id,
-                  externalCalendarId: result.createdEvent?.iCalUID,
+                  externalCalendarId: result.createdEvent?.iCalUID || result.iCalUID,
                   credentialId: result.credentialId,
-                }))
-            );
+                };
+              });
+            updatedBookingReferences.push(...calendarReferences);
           }
         }
 

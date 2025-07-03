@@ -75,6 +75,7 @@ export const handleRescheduleEventManager = async ({
 
   const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
     results: results,
+    bookingUid: evt.uid || undefined,
   });
 
   let videoCallUrl = _videoCallUrl;

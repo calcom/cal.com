@@ -222,7 +222,7 @@ describe("handleNewBooking", () => {
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               responses: expect.objectContaining({
                 email: booker.email,
                 name: booker.name,
@@ -440,7 +440,7 @@ describe("handleNewBooking", () => {
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               responses: expect.objectContaining({
                 email: booker.email,
                 name: booker.name,
@@ -626,7 +626,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              location: "integrations:daily",
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
@@ -770,6 +770,11 @@ describe("handleNewBooking", () => {
             },
           });
 
+          // Mock successful video meeting creation for Cal Video
+          const videoMock = mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
           const mockBookingData = getMockRequestDataForBooking({
             data: {
               eventTypeId: 1,
@@ -811,12 +816,17 @@ describe("handleNewBooking", () => {
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               responses: expect.objectContaining({
                 email: booker.email,
                 name: booker.name,
               }),
               references: [
+                {
+                  type: appStoreMetadata.dailyvideo.type,
+                  uid: createdBooking.uid,
+                  meetingId: "MOCK_ID",
+                },
                 {
                   type: appStoreMetadata.googlecalendar.type,
                   uid: "NEW_CALENDAR_EVENT_UID",
@@ -988,7 +998,7 @@ describe("handleNewBooking", () => {
                 eventTypeId: mockBookingData.eventTypeId,
                 // Rescheduled booking sill stays in pending state
                 status: BookingStatus.PENDING,
-                location: BookingLocations.CalVideo,
+                location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
                 responses: expect.objectContaining({
                   email: booker.email,
                   name: booker.name,
@@ -1024,7 +1034,7 @@ describe("handleNewBooking", () => {
             expectBookingRequestedWebhookToHaveBeenFired({
               booker,
               organizer,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               subscriberUrl,
               eventType: scenarioData.eventTypes[0],
             });
@@ -1218,7 +1228,7 @@ describe("handleNewBooking", () => {
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
-                location: BookingLocations.CalVideo,
+                location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
                 responses: expect.objectContaining({
                   email: booker.email,
                   name: booker.name,
@@ -1289,7 +1299,7 @@ describe("handleNewBooking", () => {
             expectBookingRescheduledWebhookToHaveBeenFired({
               booker,
               organizer,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               subscriberUrl: "http://my-webhook.example.com",
               videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
@@ -1683,7 +1693,7 @@ describe("handleNewBooking", () => {
                 eventTypeId: mockBookingData.eventTypeId,
                 // Rescheduled booking sill stays in pending state
                 status: BookingStatus.PENDING,
-                location: BookingLocations.CalVideo,
+                location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
                 responses: expect.objectContaining({
                   email: booker.email,
                   name: booker.name,
@@ -1719,7 +1729,7 @@ describe("handleNewBooking", () => {
             expectBookingRequestedWebhookToHaveBeenFired({
               booker,
               organizer,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               subscriberUrl,
               eventType: scenarioData.eventTypes[0],
             });
@@ -1926,7 +1936,7 @@ describe("handleNewBooking", () => {
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
-                location: BookingLocations.CalVideo,
+                location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
                 responses: expect.objectContaining({
                   email: booker.email,
                   name: booker.name,
@@ -1998,7 +2008,7 @@ describe("handleNewBooking", () => {
             expectBookingRescheduledWebhookToHaveBeenFired({
               booker,
               organizer,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               subscriberUrl: "http://my-webhook.example.com",
               videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
@@ -2142,7 +2152,7 @@ describe("handleNewBooking", () => {
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               responses: expect.objectContaining({
                 email: booker.email,
                 name: booker.name,
@@ -2304,7 +2314,7 @@ describe("handleNewBooking", () => {
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               responses: expect.objectContaining({
                 email: booker.email,
                 name: booker.name,
@@ -2452,7 +2462,7 @@ describe("handleNewBooking", () => {
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               responses: expect.objectContaining({
                 email: booker.email,
                 name: booker.name,
@@ -2652,7 +2662,7 @@ describe("handleNewBooking", () => {
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               responses: expect.objectContaining({
                 email: booker.email,
                 attendeePhoneNumber: booker.attendeePhoneNumber,
@@ -2810,7 +2820,7 @@ describe("handleNewBooking", () => {
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               responses: expect.objectContaining({
                 email: booker.email,
                 name: booker.name,
@@ -2968,7 +2978,7 @@ describe("handleNewBooking", () => {
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
-              location: BookingLocations.CalVideo,
+              location: `http://app.cal.local:3000/video/${createdBooking.uid}`,
               responses: expect.objectContaining({
                 email: booker.email,
                 name: booker.name,

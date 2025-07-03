@@ -238,6 +238,7 @@ export interface AdditionalInformation {
   conferenceData?: ConferenceData;
   entryPoints?: EntryPoint[];
   hangoutLink?: string;
+  videoCallUrl?: string;
 }
 
 export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, "externalId"> {

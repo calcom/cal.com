@@ -10,7 +10,8 @@ type VideoResult = EventResult<ExtraAdditionalInfo>;
 
 function extractUpdatedVideoEvent(result: VideoResult | undefined): ExtraAdditionalInfo | undefined {
   if (!result || !result.success) return undefined;
-  return Array.isArray(result.updatedEvent) ? result.updatedEvent[0] : result.updatedEvent;
+  const videoEvent = result.updatedEvent || result.createdEvent;
+  return Array.isArray(videoEvent) ? videoEvent[0] : videoEvent;
 }
 
 function extractMetadata(event: ExtraAdditionalInfo): AdditionalInformation {
@@ -21,12 +22,26 @@ function extractMetadata(event: ExtraAdditionalInfo): AdditionalInformation {
   };
 }
 
-export function getVideoCallDetails({ results }: { results: VideoResult[] }) {
+export function getVideoCallDetails({
+  results,
+  bookingUid,
+}: {
+  results: VideoResult[];
+  bookingUid?: string;
+}) {
   const firstVideoResult = results.find((result) => result.type.includes("_video"));
   const updatedVideoEvent = extractUpdatedVideoEvent(firstVideoResult);
   const metadata = updatedVideoEvent ? extractMetadata(updatedVideoEvent) : {};
 
-  const videoCallUrl = metadata.hangoutLink || updatedVideoEvent?.url;
+  let videoCallUrl = metadata.hangoutLink || updatedVideoEvent?.url;
 
-  return { videoCallUrl, metadata, updatedVideoEvent };
+  if (firstVideoResult?.type === "daily_video" && bookingUid) {
+    videoCallUrl = `http://app.cal.local:3000/video/${bookingUid}`;
+  }
+
+  return {
+    videoCallUrl,
+    metadata,
+    updatedVideoEvent,
+  };
 }

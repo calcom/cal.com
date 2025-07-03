@@ -1486,32 +1486,63 @@ async function handler(
   //this is the actual rescheduling logic
   if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
-    // cancel workflow reminders from previous rescheduled booking
-    await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
+    let updateManager;
+    try {
+      // cancel workflow reminders from previous rescheduled booking
+      await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
 
-    evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
-    evt.rescheduledBy = reqBody.rescheduledBy;
+      evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
+      evt.rescheduledBy = reqBody.rescheduledBy;
 
-    // If organizer is changed in RR event then we need to delete the previous host destination calendar events
-    const previousHostDestinationCalendar = originalRescheduledBooking?.destinationCalendar
-      ? [originalRescheduledBooking?.destinationCalendar]
-      : [];
+      // If organizer is changed in RR event then we need to delete the previous host destination calendar events
+      const previousHostDestinationCalendar = originalRescheduledBooking?.destinationCalendar
+        ? [originalRescheduledBooking?.destinationCalendar]
+        : [];
 
-    if (changedOrganizer) {
-      // location might changed and will be new created in eventManager.create (organizer default location)
-      evt.videoCallData = undefined;
-      // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
-      evt.iCalUID = undefined;
+      if (changedOrganizer) {
+        // location might changed and will be new created in eventManager.create (organizer default location)
+        evt.videoCallData = undefined;
+        // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+        evt.iCalUID = undefined;
+      }
+
+      updateManager = await eventManager.reschedule(
+        evt,
+        originalRescheduledBooking.uid,
+        undefined,
+        changedOrganizer,
+        previousHostDestinationCalendar,
+        isBookingRequestedReschedule
+      );
+
+      if (!evt.videoCallData && updateManager.results) {
+        const videoResult = updateManager.results.find((result) => result.type.includes("_video"));
+        if (videoResult && videoResult.success && videoResult.createdEvent) {
+          const videoEvent = videoResult.createdEvent;
+          if (videoEvent.type === "daily_video") {
+            const dailyVideoUrl = `http://app.cal.local:3000/video/${evt.uid}`;
+            evt.videoCallData = {
+              type: "daily_video",
+              id: videoEvent.id,
+              password: videoEvent.password || "",
+              url: dailyVideoUrl,
+            };
+            evt.location = dailyVideoUrl;
+          } else if (videoEvent) {
+            evt.videoCallData = videoEvent;
+            evt.location = videoEvent.url;
+          }
+        }
+      }
+
+      // Ensure evt.location is set for daily video calls after reschedule
+      if (evt.videoCallData && evt.videoCallData.type === "daily_video" && evt.uid) {
+        const dailyVideoUrl = `http://app.cal.local:3000/video/${evt.uid}`;
+        evt.location = dailyVideoUrl;
+      }
+    } catch (error) {
+      throw error;
     }
-
-    const updateManager = await eventManager.reschedule(
-      evt,
-      originalRescheduledBooking.uid,
-      undefined,
-      changedOrganizer,
-      previousHostDestinationCalendar,
-      isBookingRequestedReschedule
-    );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
@@ -1527,6 +1558,7 @@ async function handler(
 
     const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
       results,
+      bookingUid: evt.uid || undefined,
     });
 
     let metadata: AdditionalInformation = {};
@@ -1619,9 +1651,11 @@ async function handler(
 
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
-      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-        ? calendarResult?.updatedEvent[0]?.iCalUID
-        : calendarResult?.updatedEvent?.iCalUID || undefined;
+      const calendarEvent = Array.isArray(calendarResult?.updatedEvent)
+        ? calendarResult?.updatedEvent[0]
+        : calendarResult?.updatedEvent || calendarResult?.createdEvent;
+
+      evt.iCalUID = calendarEvent?.iCalUID || undefined;
     }
 
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
@@ -1743,6 +1777,13 @@ async function handler(
   } else if (isConfirmedByDefault) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+
+    // Handle daily video URL generation for new bookings
+    if (evt.videoCallData && evt.videoCallData.type === "daily_video" && evt.uid) {
+      const dailyVideoUrl = `http://app.cal.local:3000/video/${evt.uid}`;
+      evt.location = dailyVideoUrl;
+    }
+
     if (evt.location) {
       booking.location = evt.location;
     }
@@ -1912,13 +1953,18 @@ async function handler(
     }
   }
 
-  if (booking.location?.startsWith("http")) {
+  if (evt.location && evt.location.startsWith("http")) {
+    booking.location = evt.location;
+    videoCallUrl = evt.location;
+  } else if (booking.location?.startsWith("http")) {
     videoCallUrl = booking.location;
   }
 
+  const videoCallUrlFromCalEvent = getVideoCallUrlFromCalEvent(evt);
+
   const metadata = videoCallUrl
     ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+        videoCallUrl: videoCallUrlFromCalEvent || videoCallUrl,
       }
     : undefined;
 
