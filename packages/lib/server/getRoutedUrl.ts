@@ -148,6 +148,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       form: serializableForm,
       formFillerId: uuidv4(),
       response: response,
+      identifierKeyedResponse: fieldsResponses,
       chosenRouteId: matchingRoute.id,
       isPreview: isBookingDryRun,
       queueFormResponse: shouldQueueFormResponse,

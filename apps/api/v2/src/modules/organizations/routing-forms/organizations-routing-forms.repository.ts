@@ -125,4 +125,19 @@ export class OrganizationsRoutingFormsRepository {
       },
     });
   }
+
+  async getRoutingFormByIdWithUserProfile(orgId: number, routingFormId: string) {
+    return this.dbRead.prisma.app_RoutingForms_Form.findFirst({
+      where: {
+        id: routingFormId,
+        team: {
+          parentId: orgId,
+        },
+      },
+      include: {
+        user: true,
+        team: true,
+      },
+    });
+  }
 }

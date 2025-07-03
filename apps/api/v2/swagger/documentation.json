@@ -2542,6 +2542,126 @@
         "tags": [
           "Orgs / Routing forms"
         ]
+      },
+      "post": {
+        "operationId": "OrganizationsRoutingFormsResponsesController_createRoutingFormResponse",
+        "summary": "Create routing form response and get available slots",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z\n      ",
+            "example": "2050-09-05",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "description": "\n      Time until which available slots should be checked.\n      \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to end of day or specify hours:\n      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z",
+            "example": "2050-09-06",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
+            "example": "Europe/Rome",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "duration",
+            "required": false,
+            "in": "query",
+            "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
+            "example": "60",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Format of slot times in response. Use 'range' to get start and end times.",
+            "example": "range",
+            "schema": {
+              "enum": [
+                "range",
+                "time"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUidToReschedule",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
+            "example": "abc123def456",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "queueResponse",
+            "required": false,
+            "in": "query",
+            "description": "Whether to queue the form response.",
+            "example": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateRoutingFormResponseOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Routing forms"
+        ]
       }
     },
     "/v2/organizations/{orgId}/routing-forms/{routingFormId}/responses/{responseId}": {
@@ -10703,6 +10823,53 @@
             "example": "abc123def456",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamMemberEmail",
+            "required": false,
+            "in": "query",
+            "description": "The email of the team member to skip the contact owner check.",
+            "example": "team-member@example.com",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "routingFormResponseId",
+            "required": false,
+            "in": "query",
+            "description": "The ID of the routing form response to skip the contact owner check.",
+            "example": 1,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "routedTeamMemberIds",
+            "required": false,
+            "in": "query",
+            "description": "The IDs of the team members to skip the contact owner check.",
+            "example": [
+              1,
+              2,
+              3
+            ],
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          {
+            "name": "skipContactOwner",
+            "required": false,
+            "in": "query",
+            "description": "Whether to skip the contact owner check.",
+            "example": true,
+            "schema": {
+              "type": "boolean"
             }
           },
           {
@@ -23931,6 +24098,31 @@
           "timeZone"
         ]
       },
+      "Routing": {
+        "type": "object",
+        "properties": {
+          "responseId": {
+            "type": "number",
+            "description": "The ID of the routing form response that determined this booking assignment.",
+            "example": 123
+          },
+          "teamMemberIds": {
+            "description": "Array of team member IDs that were routed to handle this booking.",
+            "example": [
+              101,
+              102
+            ],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "responseId",
+          "teamMemberIds"
+        ]
+      },
       "CreateBookingInput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -24036,6 +24228,21 @@
             "type": "number",
             "example": 30,
             "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          },
+          "routing": {
+            "description": "Routing information from routing forms that determined the booking assignment. Both responseId and teamMemberIds are required if provided.",
+            "example": {
+              "responseId": 123,
+              "teamMemberIds": [
+                101,
+                102
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Routing"
+              }
+            ]
           }
         },
         "required": [
@@ -24148,6 +24355,21 @@
             "type": "number",
             "example": 30,
             "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          },
+          "routing": {
+            "description": "Routing information from routing forms that determined the booking assignment. Both responseId and teamMemberIds are required if provided.",
+            "example": {
+              "responseId": 123,
+              "teamMemberIds": [
+                101,
+                102
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Routing"
+              }
+            ]
           },
           "instant": {
             "type": "boolean",
@@ -24266,6 +24488,21 @@
             "type": "number",
             "example": 30,
             "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          },
+          "routing": {
+            "description": "Routing information from routing forms that determined the booking assignment. Both responseId and teamMemberIds are required if provided.",
+            "example": {
+              "responseId": 123,
+              "teamMemberIds": [
+                101,
+                102
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Routing"
+              }
+            ]
           },
           "recurrenceCount": {
             "type": "number",
@@ -26593,6 +26830,65 @@
           },
           "data": {
             "$ref": "#/components/schemas/UnifiedCalendarEventOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateRoutingFormResponseOutputData": {
+        "type": "object",
+        "properties": {
+          "responseId": {
+            "type": "number",
+            "nullable": true
+          },
+          "queuedResponseId": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventTypeId": {
+            "type": "number"
+          },
+          "routedTeamMemberIds": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "slots": {
+            "oneOf": [
+              {
+                "type": "object",
+                "description": "Time slots"
+              },
+              {
+                "type": "object",
+                "description": "Range slots"
+              }
+            ]
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slots"
+        ]
+      },
+      "CreateRoutingFormResponseOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateRoutingFormResponseOutputData"
           }
         },
         "required": [

@@ -93,13 +93,62 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
     apiKeyString = `${keyString}`;
 
+    // Create an event type for routing form to route to
+    const eventType = await prismaWriteService.prisma.eventType.create({
+      data: {
+        title: "Test Event Type",
+        slug: "test-event-type",
+        length: 30,
+        userId: user.id,
+        teamId: team.id,
+      },
+    });
+
     routingForm = await prismaWriteService.prisma.app_RoutingForms_Form.create({
       data: {
         name: "Test Routing Form",
         description: "Test Description",
         disabled: false,
-        routes: JSON.stringify([]),
-        fields: JSON.stringify([]),
+        routes: JSON.stringify([
+          {
+            id: "route-1",
+            queryValue: {
+              type: "group",
+              children1: {
+                "question1": {
+                  type: "rule",
+                  properties: {
+                    field: "question1",
+                    operator: "equals",
+                    value: "answer1"
+                  }
+                }
+              }
+            },
+            action: {
+              type: "eventTypeRedirectUrl",
+              eventTypeId: eventType.id,
+              value: `team/${team.slug}/${eventType.slug}`
+            },
+            isFallback: false
+          }
+        ]),
+        fields: JSON.stringify([
+          {
+            id: "question1",
+            type: "text",
+            label: "Question 1",
+            required: true,
+            identifier: "question1"
+          },
+          {
+            id: "question2", 
+            type: "text",
+            label: "Question 2",
+            required: false,
+            identifier: "question2"
+          }
+        ]),
         settings: JSON.stringify({}),
         teamId: team.id,
         userId: user.id,
@@ -171,6 +220,161 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
           expect(responses.find((response) => response.id === routingFormResponse2.id)?.formId).toEqual(
             routingFormResponse2.formId
           );
+        });
+    });
+  });
+
+  describe(`POST /v2/organizations/:orgId/routing-forms/:routingFormId/responses`, () => {
+    it("should not create routing form response for non existing org", async () => {
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/99999/routing-forms/${routingForm.id}/responses`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          response: { question1: "answer1" },
+          start: "2050-09-05",
+          end: "2050-09-06",
+        })
+        .expect(403);
+    });
+
+    it("should not create routing form response for non existing form", async () => {
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/routing-forms/non-existent-id/responses`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          response: { question1: "answer1" },
+          start: "2050-09-05",
+          end: "2050-09-06",
+        })
+        .expect(404);
+    });
+
+    it("should not create routing form response without authentication", async () => {
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .send({
+          response: { question1: "answer1" },
+          start: "2050-09-05",
+          end: "2050-09-06",
+        })
+        .expect(401);
+    });
+
+    it("should create routing form response and return available slots", async () => {
+      const formResponse = { 
+        question1: "answer1", // This matches the route condition
+        question2: "answer2" 
+      };
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          response: formResponse,
+          start: "2050-09-05",
+          end: "2050-09-06",
+        })
+        .expect(200)
+        .then((response) => {
+          const responseBody = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const data = responseBody.data;
+          expect(data).toBeDefined();
+          expect(data.responseId).toBeDefined();
+          expect(typeof data.responseId).toBe("number");
+          expect(data.eventTypeId).toBeDefined();
+          expect(typeof data.eventTypeId).toBe("number");
+          expect(data.slots).toBeDefined();
+          expect(typeof data.slots).toBe("object");
+        });
+    });
+
+    it("should handle missing required fields validation", async () => {
+      const formResponse = { 
+        question2: "answer2" // Missing required question1
+      };
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          response: formResponse,
+          start: "2050-09-05",
+          end: "2050-09-06",
+        })
+        .expect(400);
+    });
+
+    it("should handle no matching route scenario", async () => {
+      const formResponse = { 
+        question1: "different-answer", // This won't match any route
+        question2: "answer2" 
+      };
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          response: formResponse,
+          start: "2050-09-05",
+          end: "2050-09-06",
+        })
+        .expect(404)
+        .then((response) => {
+          expect(response.body.message).toContain("No matching route found");
+        });
+    });
+
+    it("should validate required slot parameters", async () => {
+      const formResponse = { 
+        question1: "answer1",
+        question2: "answer2" 
+      };
+      
+      // Missing start parameter
+      await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          response: formResponse,
+          end: "2050-09-06",
+        })
+        .expect(400);
+
+      // Missing end parameter  
+      await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          response: formResponse,
+          start: "2050-09-05",
+        })
+        .expect(400);
+    });
+
+    it("should support optional slot parameters", async () => {
+      const formResponse = { 
+        question1: "answer1",
+        question2: "answer2" 
+      };
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          response: formResponse,
+          start: "2050-09-05",
+          end: "2050-09-06",
+          timeZone: "America/New_York",
+          duration: 60,
+          format: "range",
+        })
+        .expect(200)
+        .then((response) => {
+          const responseBody = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const data = responseBody.data;
+          expect(data).toBeDefined();
+          expect(data.responseId).toBeDefined();
+          expect(typeof data.responseId).toBe("number");
+          expect(data.eventTypeId).toBeDefined();
+          expect(data.slots).toBeDefined();
         });
     });
   });

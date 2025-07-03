@@ -114,6 +114,7 @@ describe("handleResponse", () => {
       handleResponse({
         response: { email: { value: "test@test.com", label: "Email" } }, // Name is missing
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: false,
@@ -129,6 +130,7 @@ describe("handleResponse", () => {
           email: { value: "invalid-email", label: "Email" },
         },
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: false,
@@ -153,6 +155,7 @@ describe("handleResponse", () => {
     const result = await handleResponse({
       response: mockResponse,
       form: mockForm,
+      identifierKeyedResponse: null,
       formFillerId: "user1",
       chosenRouteId: null,
       isPreview: false,
@@ -187,6 +190,7 @@ describe("handleResponse", () => {
     const result = await handleResponse({
       response: mockResponse,
       form: mockForm,
+      identifierKeyedResponse: null,
       formFillerId: "user1",
       chosenRouteId: null,
       isPreview: false,
@@ -209,6 +213,7 @@ describe("handleResponse", () => {
       const result = await handleResponse({
         response: mockResponse,
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: true,
@@ -225,6 +230,7 @@ describe("handleResponse", () => {
       const result = await handleResponse({
         response: mockResponse,
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: true,
@@ -275,6 +281,7 @@ describe("handleResponse", () => {
       formFillerId: "user1",
       chosenRouteId: "route1",
       isPreview: false,
+      identifierKeyedResponse: mockResponse,
     });
 
     expect(routerGetCrmContactOwnerEmail).toHaveBeenCalled();
@@ -301,6 +308,7 @@ describe("handleResponse", () => {
       handleResponse({
         response: mockResponse,
         form: formWithRoute,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: "route1",
         isPreview: false,

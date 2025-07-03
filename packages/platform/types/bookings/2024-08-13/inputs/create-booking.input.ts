@@ -145,6 +145,25 @@ class Attendee {
   language?: BookingLanguageType;
 }
 
+class Routing {
+  @ApiProperty({
+    type: Number,
+    description: "The ID of the routing form response that determined this booking assignment.",
+    example: 123,
+  })
+  @IsInt()
+  responseId!: number;
+
+  @ApiProperty({
+    type: [Number],
+    description: "Array of team member IDs that were routed to handle this booking.",
+    example: [101, 102],
+  })
+  @IsArray()
+  @IsInt({ each: true })
+  teamMemberIds!: number[];
+}
+
 @ApiExtraModels(
   BookingInputAddressLocation_2024_08_13,
   BookingInputAttendeeAddressLocation_2024_08_13,
@@ -302,6 +321,20 @@ export class CreateBookingInput_2024_08_13 {
     If not provided then event type default length will be used for the booking.`,
   })
   lengthInMinutes?: number;
+
+  @ApiPropertyOptional({
+    type: Routing,
+    description:
+      "Routing information from routing forms that determined the booking assignment. Both responseId and teamMemberIds are required if provided.",
+    example: {
+      responseId: 123,
+      teamMemberIds: [101, 102],
+    },
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => Routing)
+  routing?: Routing;
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {

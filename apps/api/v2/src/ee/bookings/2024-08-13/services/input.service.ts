@@ -186,6 +186,11 @@ export class InputBookingsService_2024_08_13 {
         guests,
         location,
       },
+      // Add routing form data if provided
+      ...(inputBooking.routing && {
+        routedTeamMemberIds: inputBooking.routing.teamMemberIds,
+        routingFormResponseId: inputBooking.routing.responseId,
+      }),
     };
   }
 
@@ -453,6 +458,11 @@ export class InputBookingsService_2024_08_13 {
           location,
         },
         schedulingType: eventType.schedulingType,
+        // Add routing form data if provided
+        ...(inputBooking.routing && {
+          routedTeamMemberIds: inputBooking.routing.teamMemberIds,
+          routingFormResponseId: inputBooking.routing.responseId,
+        }),
       });
 
       switch (timeBetween) {

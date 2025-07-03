@@ -23,7 +23,7 @@ export class RoutingFormsService {
     if (!eventTypeId) {
       throw new NotFoundException("Event type not found.");
     }
-
+    console.log("calling slots service with", { eventTypeId, type: ById_2024_09_04_type, ...slotsQuery, });
     const slots = await this.slotsService.getAvailableSlots({
       type: ById_2024_09_04_type,
       eventTypeId,
