@@ -83,6 +83,16 @@ model CalVideoSettings {
   updatedAt DateTime @updatedAt
 }
 
+model ZoomVideoSettings {
+  eventTypeId Int       @id
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+
+  enableWaitingRoom Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model EventType {
   id                Int     @id @default(autoincrement())
   /// @zod.min(1)
@@ -195,6 +205,7 @@ model EventType {
   /// @zod.custom(imports.emailSchema)
   customReplyToEmail                       String?
   calVideoSettings                         CalVideoSettings?
+  zoomVideoSettings                        ZoomVideoSettings?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?

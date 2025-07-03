@@ -51,6 +51,7 @@
   "disable_recording_for_organizer": "Disable recording for organizer",
   "disable_transcription_for_guests": "Disable transcription for guests",
   "disable_transcription_for_organizer": "Disable transcription for organizer",
+  "enable_waiting_room": "Enable waiting room",
   "event_request_declined_recurring": "Your recurring event request has been declined",
   "event_request_cancelled": "Your scheduled event was canceled",
   "event_request_reassigned": "Your scheduled event was reassigned",

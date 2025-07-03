@@ -261,6 +261,7 @@ const Locations: React.FC<LocationsProps> = ({
           const defaultLocation = field;
 
           const isCalVideo = field.type === "integrations:daily";
+          const isZoomVideo = field.type === "integrations:zoom";
 
           const option = getLocationFromType(field.type, locationOptions);
           return (
@@ -438,6 +439,29 @@ const Locations: React.FC<LocationsProps> = ({
                         className={classNames("text-error text-sm")}
                         as="div"
                         id="calVideoSettings.redirectUrlOnExit-error"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isZoomVideo && !isPlatform && (
+                <div className="bg-muted mt-2 space-y-2 rounded-lg p-4">
+                  <div className="w-full">
+                    <div className="flex flex-col gap-2">
+                      <Controller
+                        name="zoomVideoSettings.enableWaitingRoom"
+                        defaultValue={!!eventType.zoomVideoSettings?.enableWaitingRoom}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("enable_waiting_room")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
                       />
                     </div>
                   </div>

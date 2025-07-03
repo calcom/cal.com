@@ -137,6 +137,7 @@ export const useEventTypeForm = ({
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
       customReplyToEmail: eventType.customReplyToEmail || null,
       calVideoSettings: eventType.calVideoSettings,
+      zoomVideoSettings: eventType.zoomVideoSettings,
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
     };
@@ -179,6 +180,12 @@ export const useEventTypeForm = ({
               enableAutomaticTranscription: z.boolean().nullable(),
               disableTranscriptionForGuests: z.boolean().nullable(),
               disableTranscriptionForOrganizer: z.boolean().nullable(),
+            })
+            .optional()
+            .nullable(),
+          zoomVideoSettings: z
+            .object({
+              enableWaitingRoom: z.boolean().nullable(),
             })
             .optional()
             .nullable(),
