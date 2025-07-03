@@ -167,12 +167,18 @@ const Days = ({
       days.push(browsingDate.set("date", day));
     }
 
-    const rows = Math.ceil(days.length / 7);
-    const extraDays = (rows + 1) * 7 - days.length;
+    // Calculate how many days we need to add to complete the current row and add one more week
+    const currentTotalDays = days.length;
+    const currentRow = Math.floor(currentTotalDays / 7);
+    const daysInCurrentRow = currentTotalDays % 7;
+    const daysToCompleteCurrentRow = daysInCurrentRow > 0 ? 7 - daysInCurrentRow : 0;
+    const daysForNextWeek = 7; // One full week
+    const totalExtraDays = daysToCompleteCurrentRow + daysForNextWeek;
     const nextMonth = browsingDate.add(1, "month");
 
-    for (let i = 0; i < extraDays; i++) {
-      days.push(nextMonth.set("date", 8 + i));
+    // Add days starting from day 1 of next month
+    for (let i = 0; i < totalExtraDays; i++) {
+      days.push(nextMonth.set("date", 1 + i));
     }
   } else {
     const pad = getPadding(1);
