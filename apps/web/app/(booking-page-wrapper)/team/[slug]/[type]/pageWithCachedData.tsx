@@ -6,7 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule, type GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
@@ -140,14 +140,16 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
 
   // Handle rescheduling
   const { rescheduleUid } = legacyCtx.query;
+  let bookingForReschedule: GetBookingType | null = null;
   if (rescheduleUid) {
-    if (eventData.disableRescheduling) return redirect(`/booking/${rescheduleUid}`);
     const session = await getServerSession({ req: legacyCtx.req });
+    bookingForReschedule = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+    if (eventData.disableRescheduling) return redirect(`/booking/${rescheduleUid}`);
+
     const shouldAllowRescheduleForCancelledBooking =
       legacyCtx.query.allowRescheduleForCancelledBooking === "true" &&
       eventData?.allowReschedulingCancelledBookings &&
-      (await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id))?.status ===
-        BookingStatus.CANCELLED;
+      bookingForReschedule?.status === BookingStatus.CANCELLED;
 
     if (!shouldAllowRescheduleForCancelledBooking) {
       // redirecting to the same booking page without `rescheduleUid` search param
@@ -177,6 +179,7 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
     eventData: {
       ...eventData,
     },
+    booking: bookingForReschedule,
   };
   const ClientBooker = <Type {...props} />;
 
