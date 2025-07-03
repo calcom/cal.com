@@ -2,6 +2,7 @@ export { CalProvider } from "./cal-provider";
 export { GcalConnect } from "./connect/google/GcalConnect";
 export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./availability";
 export type { AvailabilitySettingsPlatformWrapperProps as AvailabilitySettingsProps } from "./availability/wrappers/AvailabilitySettingsPlatformWrapper";
+export type { FindDetailedScheduleByIdReturnType as AtomScheduleType } from "@calcom/lib/server/repository/schedule";
 export { BookerPlatformWrapper as Booker } from "./booker/BookerPlatformWrapper";
 export { useIsPlatform } from "./hooks/useIsPlatform";
 export { useAtomsContext } from "./hooks/useAtomsContext";
