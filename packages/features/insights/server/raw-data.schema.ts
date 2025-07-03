@@ -67,4 +67,5 @@ export const routingRepositoryBaseInputSchema = z.object({
   selectedTeamId: z.number().optional(),
   startDate: z.string(),
   endDate: z.string(),
+  columnFilters: z.array(ZColumnFilter).optional(),
 });

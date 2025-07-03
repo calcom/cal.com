@@ -3,6 +3,7 @@
 import React from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
+import { useColumnFilters } from "@calcom/features/data-table";
 import { useInsightsParameters } from "@calcom/features/insights/hooks/useInsightsParameters";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -106,12 +107,16 @@ export function RoutingFunnelContent({ data }: RoutingFunnelContentProps) {
 export function RoutingFunnel() {
   const { t } = useLocale();
   const { scope, selectedTeamId, startDate, endDate } = useInsightsParameters();
+  const columnFilters = useColumnFilters({
+    exclude: ["createdAt"],
+  });
   const { data, isSuccess } = trpc.viewer.insights.getRoutingFunnelData.useQuery(
     {
       scope,
       selectedTeamId,
       startDate,
       endDate,
+      columnFilters,
     },
     {
       staleTime: 30000,

@@ -1755,6 +1755,7 @@ export const insightsRouter = router({
         filters: {
           startDate: input.startDate,
           endDate: input.endDate,
+          columnFilters: input.columnFilters,
         },
       });
       return await insightsRoutingService.getRoutingFunnelData(dateRanges);

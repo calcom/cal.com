@@ -1,6 +1,15 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { makeSqlWhereClause } from "@calcom/features/data-table/lib/server";
+import type { FilterValue, TextFilterValue, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
+import type { ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import {
+  isMultiSelectFilterValue,
+  isTextFilterValue,
+  isNumberFilterValue,
+  isSingleSelectFilterValue,
+} from "@calcom/features/data-table/lib/utils";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -38,7 +47,7 @@ export type InsightsRoutingServiceOptions = z.infer<typeof insightsRoutingServic
 export type InsightsRoutingServiceFilterOptions = {
   startDate?: string;
   endDate?: string;
-  timeZone?: string;
+  columnFilters?: TypedColumnFilter<ColumnFilterType>[];
 };
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
@@ -176,11 +185,124 @@ export class InsightsRoutingService {
   }
 
   async buildFilterConditions(): Promise<Prisma.Sql | null> {
-    if (!this.filters.startDate || !this.filters.endDate) {
-      return NOTHING_CONDITION;
+    const conditions: Prisma.Sql[] = [];
+
+    // Date range filtering
+    if (this.filters.startDate && this.filters.endDate) {
+      conditions.push(
+        Prisma.sql`"createdAt" >= ${this.filters.startDate}::timestamp AND "createdAt" <= ${this.filters.endDate}::timestamp`
+      );
     }
 
-    return Prisma.sql`"createdAt" >= ${this.filters.startDate}::timestamp AND "createdAt" <= ${this.filters.endDate}::timestamp`;
+    // Extract specific filters from columnFilters
+    // Convert columnFilters array to object for easier access
+    const filtersMap =
+      this.filters.columnFilters?.reduce((acc, filter) => {
+        acc[filter.id] = filter;
+        return acc;
+      }, {} as Record<string, TypedColumnFilter<ColumnFilterType>>) || {};
+
+    // Extract booking status order filter
+    const bookingStatusOrder = filtersMap["bookingStatusOrder"];
+    if (bookingStatusOrder && isMultiSelectFilterValue(bookingStatusOrder.value)) {
+      const statusCondition = makeSqlWhereClause({
+        columnName: "bookingStatusOrder",
+        filterValue: bookingStatusOrder.value,
+      });
+      if (statusCondition) {
+        conditions.push(statusCondition);
+      }
+    }
+
+    // Extract booking assignment reason filter
+    const bookingAssignmentReason = filtersMap["bookingAssignmentReason"];
+    if (bookingAssignmentReason && isTextFilterValue(bookingAssignmentReason.value)) {
+      const reasonCondition = makeSqlWhereClause({
+        columnName: "bookingAssignmentReason",
+        filterValue: bookingAssignmentReason.value,
+      });
+      if (reasonCondition) {
+        conditions.push(reasonCondition);
+      }
+    }
+
+    // Extract booking UID filter
+    const bookingUid = filtersMap["bookingUid"];
+    if (bookingUid && isTextFilterValue(bookingUid.value)) {
+      const uidCondition = makeSqlWhereClause({
+        columnName: "bookingUid",
+        filterValue: bookingUid.value,
+      });
+      if (uidCondition) {
+        conditions.push(uidCondition);
+      }
+    }
+
+    // Extract booking attendees filter
+    const bookingAttendees = filtersMap["bookingAttendees"];
+    if (bookingAttendees && isTextFilterValue(bookingAttendees.value)) {
+      const attendeesCondition = this.buildAttendeeSqlCondition(bookingAttendees.value);
+      if (attendeesCondition) {
+        conditions.push(attendeesCondition);
+      }
+    }
+
+    // Extract member user IDs filter (multi-select)
+    const memberUserIds = filtersMap["bookingUserId"];
+    if (memberUserIds && isMultiSelectFilterValue(memberUserIds.value)) {
+      conditions.push(Prisma.sql`"bookingUserId" = ANY(${memberUserIds.value.data})`);
+    }
+
+    // Extract form ID filter (single-select)
+    const formId = filtersMap["formId"];
+    if (formId && isSingleSelectFilterValue(formId.value)) {
+      const formIdCondition = makeSqlWhereClause({
+        columnName: "formId",
+        filterValue: formId.value,
+      });
+      if (formIdCondition) {
+        conditions.push(formIdCondition);
+      }
+    }
+
+    // Extract form field filters (exclude the system filters we already processed)
+    const alreadyHandledFilters = [
+      "bookingStatusOrder",
+      "bookingAssignmentReason",
+      "bookingUid",
+      "bookingAttendees",
+      "bookingUserId",
+      "formId",
+    ];
+
+    const fieldFilters = (this.filters.columnFilters || []).filter(
+      (filter) => !alreadyHandledFilters.includes(filter.id)
+    );
+
+    if (fieldFilters.length > 0) {
+      const fieldConditions = fieldFilters
+        .map((fieldFilter) => this.buildFormFieldSqlCondition(fieldFilter.id, fieldFilter.value))
+        .filter((condition): condition is Prisma.Sql => condition !== null);
+
+      if (fieldConditions.length > 0) {
+        // Join multiple field conditions with AND
+        const joinedConditions = fieldConditions.reduce((acc, condition, index) => {
+          if (index === 0) return condition;
+          return Prisma.sql`(${acc}) AND (${condition})`;
+        });
+        conditions.push(joinedConditions);
+      }
+    }
+
+    if (conditions.length === 0) {
+      return null;
+    }
+
+    // Join all conditions with AND
+    return conditions.reduce((acc, condition, index) => {
+      if (index === 0) return condition;
+      return Prisma.sql`(${acc}) AND (${condition})`;
+    });
   }
 
   async buildAuthorizationConditions(): Promise<Prisma.Sql> {
@@ -241,5 +363,69 @@ export class InsightsRoutingService {
         membership.role &&
         (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
     );
+  }
+
+  private buildFormFieldSqlCondition(fieldId: string, filterValue: FilterValue): Prisma.Sql | null {
+    if (isMultiSelectFilterValue(filterValue)) {
+      // For multi-select fields, check if the field contains any of the selected values
+      // Use array overlap operator (&&) for PostgreSQL text arrays
+      return Prisma.sql`EXISTS (
+        SELECT 1 FROM "RoutingFormResponseField" rrf
+        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        AND rrf."fieldId" = ${fieldId}
+        AND rrf."valueStringArray" && ${filterValue.data.map(String)}
+      )`;
+    }
+
+    let columnName: "valueString" | "valueNumber" | "valueStringArray" | undefined = undefined;
+    if (isTextFilterValue(filterValue)) {
+      columnName = "valueString";
+    } else if (isNumberFilterValue(filterValue)) {
+      columnName = "valueNumber";
+    } else if (isSingleSelectFilterValue(filterValue)) {
+      columnName = "valueString";
+    }
+
+    if (!columnName) {
+      return null;
+    }
+
+    const condition = makeSqlWhereClause({ columnName, filterValue, tableAlias: "rrf" });
+    if (!condition) {
+      return null;
+    }
+
+    return Prisma.sql`EXISTS (
+      SELECT 1 FROM "RoutingFormResponseField" rrf
+      WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+      AND rrf."fieldId" = ${fieldId}
+      AND ${condition}
+    )`;
+  }
+
+  private buildAttendeeSqlCondition(filterValue: TextFilterValue): Prisma.Sql | null {
+    if (!isTextFilterValue(filterValue)) {
+      return null;
+    }
+
+    const nameCondition = makeSqlWhereClause({ columnName: "name", filterValue, tableAlias: "a" });
+    const emailCondition = makeSqlWhereClause({ columnName: "email", filterValue, tableAlias: "a" });
+
+    if (!nameCondition && !emailCondition) {
+      return null;
+    }
+
+    const conditions = [nameCondition, emailCondition].filter(Boolean) as Prisma.Sql[];
+    const combinedCondition = conditions.reduce((acc, condition, index) => {
+      if (index === 0) return condition;
+      return Prisma.sql`(${acc}) OR (${condition})`;
+    });
+
+    return Prisma.sql`EXISTS (
+      SELECT 1 FROM "Booking" b
+      INNER JOIN "Attendee" a ON a."bookingId" = b."id"
+      WHERE b."uid" = "RoutingFormResponseDenormalized"."bookingUid"
+      AND (${combinedCondition})
+    )`;
   }
 }

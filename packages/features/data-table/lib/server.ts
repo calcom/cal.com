@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 import type { FilterValue, SortingState } from "./types";
 import {
   isSingleSelectFilterValue,
@@ -13,6 +15,12 @@ type MakeWhereClauseProps = {
   json?: true | { path: string[] };
 };
 
+type MakeSqlWhereClauseProps = {
+  columnName: string;
+  filterValue: FilterValue;
+  tableAlias?: string;
+};
+
 export function makeOrderBy(sorting: SortingState) {
   if (!sorting || !sorting.length) return undefined;
 
@@ -21,6 +29,9 @@ export function makeOrderBy(sorting: SortingState) {
   }));
 }
 
+/**
+ * Builds a Prisma where clause for use with Prisma queries
+ */
 export function makeWhereClause(props: MakeWhereClauseProps) {
   const { columnName, filterValue } = props;
   const isJson = props.json === true || (typeof props.json === "object" && props.json.path?.length > 0);
@@ -170,4 +181,69 @@ export function makeWhereClause(props: MakeWhereClauseProps) {
     };
   }
   throw new Error(`Invalid filter type: ${JSON.stringify({ columnName, filterValue })}`);
+}
+
+/**
+ * Builds a SQL where clause for use with raw SQL queries
+ */
+export function makeSqlWhereClause(props: MakeSqlWhereClauseProps): Prisma.Sql | null {
+  const { columnName, filterValue, tableAlias } = props;
+  const prefix = tableAlias ? `${tableAlias}."` : `"`;
+  const suffix = `"`;
+
+  if (isMultiSelectFilterValue(filterValue)) {
+    return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} = ANY(${filterValue.data})`;
+  } else if (isSingleSelectFilterValue(filterValue)) {
+    return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} = ${filterValue.data}`;
+  } else if (isTextFilterValue(filterValue)) {
+    const { operator, operand } = filterValue.data;
+    switch (operator) {
+      case "equals":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} = ${operand}`;
+      case "notEquals":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} != ${operand}`;
+      case "contains":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} ILIKE ${`%${operand}%`}`;
+      case "notContains":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} NOT ILIKE ${`%${operand}%`}`;
+      case "startsWith":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} ILIKE ${`${operand}%`}`;
+      case "endsWith":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} ILIKE ${`%${operand}`}`;
+      case "isEmpty":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} = ''`;
+      case "isNotEmpty":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} != ''`;
+      default:
+        return null;
+    }
+  } else if (isNumberFilterValue(filterValue)) {
+    const { operator, operand } = filterValue.data;
+    switch (operator) {
+      case "eq":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} = ${operand}`;
+      case "neq":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} != ${operand}`;
+      case "gt":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} > ${operand}`;
+      case "gte":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} >= ${operand}`;
+      case "lt":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} < ${operand}`;
+      case "lte":
+        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} <= ${operand}`;
+      default:
+        return null;
+    }
+  } else if (isDateRangeFilterValue(filterValue)) {
+    const { startDate, endDate } = filterValue.data;
+    if (!startDate || !endDate) {
+      return null;
+    }
+    return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} >= ${startDate}::timestamp AND ${Prisma.raw(
+      prefix + columnName + suffix
+    )} <= ${endDate}::timestamp`;
+  }
+
+  return null;
 }
