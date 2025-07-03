@@ -14,9 +14,18 @@ import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 import LegacyPage from "~/team/type-view";
 import type { PageProps as LegacyPageProps } from "~/team/type-view";
 
-import CachedTeamBooker from "./pageWithCachedData";
+import CachedTeamBooker, { generateMetadata as generateCachedMetadata } from "./pageWithCachedData";
+
+async function isCachedTeamBookingEnabled(): Promise<boolean> {
+  const featuresRepository = new FeaturesRepository();
+  return await featuresRepository.checkIfFeatureIsEnabledGlobally("team-booking-page-cache");
+}
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
+  if (await isCachedTeamBookingEnabled()) {
+    return await generateCachedMetadata({ params, searchParams });
+  }
+
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
   const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
@@ -56,12 +65,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const featuresRepository = new FeaturesRepository();
-  const isCachedVersionEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
-    "team-booking-page-cache"
-  );
-
-  if (isCachedVersionEnabled) {
+  if (await isCachedTeamBookingEnabled()) {
     return await CachedTeamBooker({ params, searchParams });
   }
 
