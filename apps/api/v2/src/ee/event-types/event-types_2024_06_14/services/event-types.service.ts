@@ -181,7 +181,7 @@ export class EventTypesService_2024_06_14 {
     return await getEventTypesPublic(user.id);
   }
 
-  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14) {
+  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14, userId?: number) {
     const { username, eventSlug, usernames, orgSlug, orgId } = queryParams;
     if (username && eventSlug) {
       const eventType = await this.getEventTypeByUsernameAndSlug(username, eventSlug, orgSlug, orgId);
@@ -195,6 +195,10 @@ export class EventTypesService_2024_06_14 {
     if (usernames) {
       const dynamicEventType = await this.getDynamicEventType(usernames, orgSlug, orgId);
       return [dynamicEventType];
+    }
+
+    if (userId) {
+      return await this.getUserEventTypes(userId);
     }
 
     return [];

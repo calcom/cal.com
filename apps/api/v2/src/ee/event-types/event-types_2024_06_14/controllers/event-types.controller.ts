@@ -109,11 +109,14 @@ export class EventTypesController_2024_06_14 {
   }
 
   @Get("/")
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get all event types" })
   async getEventTypes(
-    @Query() queryParams: GetEventTypesQuery_2024_06_14
+    @Query() queryParams: GetEventTypesQuery_2024_06_14,
+    @GetUser() user?: UserWithProfile
   ): Promise<GetEventTypesOutput_2024_06_14> {
-    const eventTypes = await this.eventTypesService.getEventTypes(queryParams);
+    const eventTypes = await this.eventTypesService.getEventTypes(queryParams, user?.id);
     if (!eventTypes || eventTypes.length === 0) {
       throw new NotFoundException(`Event types not found`);
     }
