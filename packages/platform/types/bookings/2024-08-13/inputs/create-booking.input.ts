@@ -165,12 +165,12 @@ class Routing {
 
   @ApiPropertyOptional({
     type: String,
-    description: "The email of the contact owner/team member assigned to handle this booking.",
+    description: "The email of the team member assigned to handle this booking.",
     example: "john.doe@example.com",
   })
   @IsString()
   @IsOptional()
-  contactOwnerEmail?: string;
+  teamMemberEmail?: string;
 }
 
 @ApiExtraModels(

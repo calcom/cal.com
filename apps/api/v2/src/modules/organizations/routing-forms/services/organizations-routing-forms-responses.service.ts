@@ -85,16 +85,34 @@ export class OrganizationsRoutingFormsResponsesService {
 
     // Get available slots using the slots service with CRM parameters
     const slots = await this.slotsService.getAvailableSlots(paramsForGetAvailableSlots);
+    const teamMemberIds = crmParams.routedTeamMemberIds ?? [];
+    const teamMemberEmail = crmParams.teamMemberEmail ?? undefined;
+    const queuedResponseId = crmParams.queuedFormResponseId ?? null;
+    const responseId = crmParams.routingFormResponseId ?? null;
 
-    if (!crmParams.routingFormResponseId && !crmParams.queuedFormResponseId) {
+    if (responseId) {
+      return {
+        routing: {
+          responseId,
+          teamMemberEmail,
+          teamMemberIds,
+        },
+        eventTypeId,
+        slots,
+      };
+    }
+    
+    if (!queuedResponseId) {
       throw new NotFoundException("No routing form response ID or queued form response ID could be found.");
     }
+
     return {
-      responseId: crmParams.routingFormResponseId ?? null,
-      queuedResponseId: crmParams.queuedFormResponseId ?? null,
+      routing: {
+        queuedResponseId,
+        teamMemberEmail,
+        teamMemberIds,
+      },
       eventTypeId,
-      routedTeamMemberIds: crmParams.routedTeamMemberIds ?? null,
-      teamMemberEmail: crmParams.teamMemberEmail ?? null,
       slots,
     };
   }

@@ -24164,9 +24164,9 @@
               "type": "number"
             }
           },
-          "contactOwnerEmail": {
+          "teamMemberEmail": {
             "type": "string",
-            "description": "The email of the contact owner/team member assigned to handle this booking.",
+            "description": "The email of the team member assigned to handle this booking.",
             "example": "john.doe@example.com"
           }
         },
@@ -26892,27 +26892,11 @@
       "CreateRoutingFormResponseOutputData": {
         "type": "object",
         "properties": {
-          "responseId": {
-            "type": "number",
-            "nullable": true
-          },
-          "queuedResponseId": {
-            "type": "string",
-            "nullable": true
-          },
           "eventTypeId": {
             "type": "number"
           },
-          "routedTeamMemberIds": {
-            "nullable": true,
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "teamMemberEmail": {
-            "type": "string",
-            "nullable": true
+          "routing": {
+            "$ref": "#/components/schemas/Routing"
           },
           "slots": {
             "oneOf": [
@@ -26929,6 +26913,7 @@
         },
         "required": [
           "eventTypeId",
+          "routing",
           "slots"
         ]
       },

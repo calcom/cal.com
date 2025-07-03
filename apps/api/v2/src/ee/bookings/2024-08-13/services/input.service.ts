@@ -190,7 +190,7 @@ export class InputBookingsService_2024_08_13 {
       ...(inputBooking.routing && {
         routedTeamMemberIds: inputBooking.routing.teamMemberIds,
         routingFormResponseId: inputBooking.routing.responseId,
-        teamMemberEmail: inputBooking.routing.contactOwnerEmail,
+        teamMemberEmail: inputBooking.routing.teamMemberEmail,
       }),
     };
   }
@@ -463,7 +463,7 @@ export class InputBookingsService_2024_08_13 {
         ...(inputBooking.routing && {
           routedTeamMemberIds: inputBooking.routing.teamMemberIds,
           routingFormResponseId: inputBooking.routing.responseId,
-          teamMemberEmail: inputBooking.routing.contactOwnerEmail,
+          teamMemberEmail: inputBooking.routing.teamMemberEmail,
         }),
       });
 
