@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsNumber, IsOptional, ValidateNested } from "class-validator";
+import { IsArray, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { ApiResponseWithoutData, SlotsOutput_2024_09_04, RangeSlotsOutput_2024_09_04 } from "@calcom/platform-types";
 
@@ -24,6 +24,11 @@ export class CreateRoutingFormResponseOutputData {
   @IsOptional()
   @ApiPropertyOptional({ type: [Number] })
   routedTeamMemberIds!: number[] | null;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ type: String })
+  teamMemberEmail!: string | null;
 
   @ValidateNested()
   @ApiProperty({

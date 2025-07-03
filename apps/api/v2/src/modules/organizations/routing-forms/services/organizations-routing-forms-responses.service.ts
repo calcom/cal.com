@@ -70,7 +70,6 @@ export class OrganizationsRoutingFormsResponsesService {
     body: CreateRoutingFormResponseInput,
     request: Request
   ): Promise<CreateRoutingFormResponseOutputData> {
-    console.log("createRoutingFormResponseWithSlots called", { orgId, routingFormId });
     const { queueResponse, ...slotsQuery } = body;
     // Use getRoutedUrl to handle routing logic and CRM processing
     const routingUrlData = await this.getRoutingUrl(request, routingFormId, queueResponse ?? false, body);
@@ -85,7 +84,6 @@ export class OrganizationsRoutingFormsResponsesService {
       ...crmParams,
     } as const;
 
-    console.log("calling slots service with", paramsForGetAvailableSlots);
     // Get available slots using the slots service with CRM parameters
     const slots = await this.slotsService.getAvailableSlots(paramsForGetAvailableSlots);
 
@@ -97,6 +95,7 @@ export class OrganizationsRoutingFormsResponsesService {
       queuedResponseId: crmParams.queuedFormResponseId ?? null,
       eventTypeId,
       routedTeamMemberIds: crmParams.routedTeamMemberIds ?? null,
+      teamMemberEmail: crmParams.teamMemberEmail ?? null,
       slots,
     };
   }
@@ -111,8 +110,6 @@ export class OrganizationsRoutingFormsResponsesService {
       req: request,
       query: { ...formResponseData, form: formId, ...(queueResponse && { "cal.queueFormResponse": "true" }) },
     });
-
-    console.log("routedUrlData", routedUrlData);
 
     const destination = routedUrlData?.redirect?.destination;
 

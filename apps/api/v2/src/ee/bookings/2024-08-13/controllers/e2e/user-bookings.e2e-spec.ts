@@ -527,8 +527,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
-      
-
       it("should create a recurring booking", async () => {
         const body: CreateRecurringBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString(),

@@ -162,6 +162,15 @@ class Routing {
   @IsArray()
   @IsInt({ each: true })
   teamMemberIds!: number[];
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "The email of the contact owner/team member assigned to handle this booking.",
+    example: "john.doe@example.com",
+  })
+  @IsString()
+  @IsOptional()
+  contactOwnerEmail?: string;
 }
 
 @ApiExtraModels(

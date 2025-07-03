@@ -81,14 +81,12 @@ export class OrganizationsRoutingFormsResponsesController {
     @Body() body: CreateRoutingFormResponseInput,
     @Req() request: Request
   ): Promise<CreateRoutingFormResponseOutput> {
-    console.log("createRoutingFormResponse called", { orgId, routingFormId });
     const result = await this.organizationsRoutingFormsResponsesService.createRoutingFormResponseWithSlots(
       orgId,
       routingFormId,
       body,
       request
     );
-    console.log("createRoutingFormResponse result", result);
 
     return {
       status: SUCCESS_STATUS,

@@ -230,7 +230,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         .post(`/v2/organizations/99999/routing-forms/${routingForm.id}/responses`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
-          response: { question1: "answer1" },
+          question1: "answer1",
           start: "2050-09-05",
           end: "2050-09-06",
         })
@@ -242,7 +242,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         .post(`/v2/organizations/${org.id}/routing-forms/non-existent-id/responses`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
-          response: { question1: "answer1" },
+          question1: "answer1",
           start: "2050-09-05",
           end: "2050-09-06",
         })
@@ -253,7 +253,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
         .send({
-          response: { question1: "answer1" },
+          question1: "answer1",
           start: "2050-09-05",
           end: "2050-09-06",
         })
@@ -261,15 +261,12 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     });
 
     it("should create routing form response and return available slots", async () => {
-      const formResponse = { 
-        question1: "answer1", // This matches the route condition
-        question2: "answer2" 
-      };
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
-          response: formResponse,
+          question1: "answer1", // This matches the route condition
+          question2: "answer2",
           start: "2050-09-05",
           end: "2050-09-06",
         })
@@ -289,14 +286,11 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     });
 
     it("should handle missing required fields validation", async () => {
-      const formResponse = { 
-        question2: "answer2" // Missing required question1
-      };
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
-          response: formResponse,
+          question2: "answer2", // Missing required question1
           start: "2050-09-05",
           end: "2050-09-06",
         })
@@ -304,15 +298,12 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     });
 
     it("should handle no matching route scenario", async () => {
-      const formResponse = { 
-        question1: "different-answer", // This won't match any route
-        question2: "answer2" 
-      };
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
-          response: formResponse,
+          question1: "different-answer", // This won't match any route
+          question2: "answer2",
           start: "2050-09-05",
           end: "2050-09-06",
         })
@@ -323,17 +314,13 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     });
 
     it("should validate required slot parameters", async () => {
-      const formResponse = { 
-        question1: "answer1",
-        question2: "answer2" 
-      };
-      
       // Missing start parameter
       await request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
-          response: formResponse,
+          question1: "answer1",
+          question2: "answer2",
           end: "2050-09-06",
         })
         .expect(400);
@@ -343,22 +330,20 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
-          response: formResponse,
+          question1: "answer1",
+          question2: "answer2",
           start: "2050-09-05",
         })
         .expect(400);
     });
 
     it("should support optional slot parameters", async () => {
-      const formResponse = { 
-        question1: "answer1",
-        question2: "answer2" 
-      };
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
-          response: formResponse,
+          question1: "answer1",
+          question2: "answer2",
           start: "2050-09-05",
           end: "2050-09-06",
           timeZone: "America/New_York",
