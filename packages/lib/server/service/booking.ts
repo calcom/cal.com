@@ -1,13 +1,8 @@
 import type { GetServerSidePropsContext } from "next";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
-
-import type { ProcessedEventData } from "./eventType";
 
 export interface BookingSessionData {
   booking: GetBookingType | null;
@@ -26,23 +21,6 @@ export interface DynamicBookingData extends BookingSessionData, CRMData {
 }
 
 export class BookingService {
-  static async getBookingSessionData(
-    req: GetServerSidePropsContext["req"],
-    rescheduleUid?: string | string[]
-  ): Promise<BookingSessionData> {
-    const session = await getServerSession({ req });
-
-    let booking: GetBookingType | null = null;
-    if (rescheduleUid) {
-      booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-    }
-
-    return {
-      booking,
-      userId: session?.user?.id,
-    };
-  }
-
   static async getCRMData(
     query: GetServerSidePropsContext["query"],
     eventData: {
@@ -96,20 +74,5 @@ export class BookingService {
     const useApiV2 = teamHasApiV2Route && Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
 
     return useApiV2;
-  }
-
-  static canRescheduleCancelledBooking(
-    booking: GetBookingType | null,
-    allowRescheduleForCancelledBooking: boolean,
-    eventData: ProcessedEventData
-  ): boolean {
-    if (
-      booking?.status === BookingStatus.CANCELLED &&
-      !allowRescheduleForCancelledBooking &&
-      !eventData.allowReschedulingCancelledBookings
-    ) {
-      return false;
-    }
-    return true;
   }
 }

@@ -31,8 +31,20 @@ export const getCachedTeamWithEventTypes = unstable_cache(
 );
 
 export const getCachedProcessedEventData = unstable_cache(
-  async (team: TeamWithEventTypes, orgSlug: string | null, fromRedirectOfNonOrgLink: boolean) => {
-    return await EventTypeService.processEventDataForBooking(team, orgSlug, fromRedirectOfNonOrgLink);
+  async ({
+    team,
+    orgSlug,
+    fromRedirectOfNonOrgLink,
+  }: {
+    team: TeamWithEventTypes;
+    orgSlug: string | null;
+    fromRedirectOfNonOrgLink: boolean;
+  }) => {
+    return await EventTypeService.processEventDataForBooking({
+      team,
+      orgSlug,
+      fromRedirectOfNonOrgLink,
+    });
   },
   undefined,
   {

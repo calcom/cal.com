@@ -8,38 +8,7 @@ import { EventTypeMetaDataSchema, EventTypeAppMetadataSchema } from "@calcom/pri
 import { getPlaceholderAvatar } from "../../defaultAvatarImage";
 import type { TeamWithEventTypes } from "./team";
 
-export interface ProcessedEventData {
-  eventTypeId: number;
-  entity: {
-    fromRedirectOfNonOrgLink: boolean;
-    considerUnpublished: boolean;
-    orgSlug: string | null;
-    teamSlug: string | null;
-    name: string | null;
-  };
-  length: number;
-  metadata: any;
-  profile: {
-    image: string;
-    name: string | null;
-    username: string | null;
-  };
-  title: string;
-  users: Array<{
-    username: string;
-    name: string;
-  }>;
-  hidden: boolean;
-  interfaceLanguage: string | null;
-  slug: string;
-  disableRescheduling: boolean;
-  allowReschedulingCancelledBookings: boolean;
-  team: {
-    id: number;
-    name: string | null;
-    slug: string | null;
-  };
-}
+export type ProcessedEventData = Awaited<ReturnType<typeof EventTypeService.processEventDataForBooking>>;
 
 export class EventTypeService {
   static async getEventTypeAppDataFromId(eventTypeId: number, appSlug: keyof typeof appDataSchemas) {
@@ -110,11 +79,15 @@ export class EventTypeService {
     return [];
   }
 
-  static async processEventDataForBooking(
-    team: TeamWithEventTypes,
-    orgSlug: string | null,
-    fromRedirectOfNonOrgLink: boolean
-  ): Promise<ProcessedEventData | null> {
+  static async processEventDataForBooking({
+    team,
+    orgSlug,
+    fromRedirectOfNonOrgLink,
+  }: {
+    team: TeamWithEventTypes;
+    orgSlug: string | null;
+    fromRedirectOfNonOrgLink: boolean;
+  }) {
     if (!team?.eventTypes?.[0]) {
       return null;
     }
@@ -162,9 +135,5 @@ export class EventTypeService {
         slug: team.slug,
       },
     };
-  }
-
-  static canReschedule(eventData: ProcessedEventData, rescheduleUid?: string | string[]): boolean {
-    return !(rescheduleUid && eventData.disableRescheduling);
   }
 }
