@@ -34,6 +34,9 @@ export class TeamService {
         logoUrl: true,
         name: true,
         slug: true,
+        brandColor: true,
+        darkBrandColor: true,
+        theme: true,
         eventTypes: {
           where: {
             OR: [{ slug: meetingSlug }, { slug: { startsWith: `${meetingSlug}-team-id-` } }],
@@ -42,6 +45,7 @@ export class TeamService {
             id: true,
             title: true,
             slug: true,
+            description: true,
             isInstantEvent: true,
             schedulingType: true,
             metadata: true,
@@ -51,6 +55,18 @@ export class TeamService {
             disableRescheduling: true,
             allowReschedulingCancelledBookings: true,
             interfaceLanguage: true,
+            bookingFields: true,
+            customInputs: true,
+            locations: true,
+            price: true,
+            currency: true,
+            requiresConfirmation: true,
+            recurringEvent: true,
+            seatsPerTimeSlot: true,
+            seatsShowAttendees: true,
+            seatsShowAvailabilityCount: true,
+            hideOrganizerEmail: true,
+            successRedirectUrl: true,
             hosts: {
               take: 3,
               select: {

@@ -19,7 +19,7 @@ import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 import { buildLegacyCtx, buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
-import Type from "~/team/type-view";
+import CachedClientView, { type TeamBookingPageProps } from "~/team/type-view-cached";
 
 import { getCachedTeamWithEventTypes, getCachedEventData } from "./actions";
 
@@ -34,7 +34,7 @@ const getTeamMetadataForBooking = (team: NonNullable<TeamWithEventTypes>) => {
 
   return {
     orgBannerUrl: team.parent?.bannerUrl ?? "",
-    isBrandingHidden: shouldHideBrandingForTeamEvent({
+    hideBranding: shouldHideBrandingForTeamEvent({
       eventTypeId: team.eventTypes[0]?.id,
       team,
     }),
@@ -42,7 +42,7 @@ const getTeamMetadataForBooking = (team: NonNullable<TeamWithEventTypes>) => {
   };
 };
 
-export async function getOrgContext(params: Params) {
+async function getOrgContext(params: Params) {
   const result = paramsSchema.safeParse({
     slug: params?.slug,
     type: params?.type,
@@ -64,6 +64,16 @@ export async function getOrgContext(params: Params) {
   };
 }
 
+const getMultipleDurationValue = (
+  multipleDurationConfig: number[] | undefined,
+  queryDuration: string | string[] | null | undefined,
+  defaultValue: number
+) => {
+  if (!multipleDurationConfig) return null;
+  if (multipleDurationConfig.includes(Number(queryDuration))) return Number(queryDuration);
+  return defaultValue;
+};
+
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getOrgContext(await params);
 
@@ -77,7 +87,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   });
   if (!eventData) return {}; // should never happen
 
-  const { isBrandingHidden, isSEOIndexable } = getTeamMetadataForBooking(team);
+  const { hideBranding, isSEOIndexable } = getTeamMetadataForBooking(team);
   const title = eventData.title;
   const profileName = eventData.profile.name ?? "";
   const profileImage = eventData.profile.image;
@@ -86,7 +96,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     title,
     profile: { name: profileName, image: profileImage },
     users: [
-      ...(eventData?.users || []).map((user) => ({
+      ...(eventData?.subsetOfUsers || []).map((user) => ({
         name: `${user.name}`,
         username: `${user.username}`,
       })),
@@ -97,7 +107,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     meeting,
     () => `${title} | ${profileName}`,
     () => title,
-    isBrandingHidden,
+    hideBranding,
     getOrgFullOrigin(eventData.entity.orgSlug ?? null),
     `/team/${teamSlug}/${meetingSlug}`
   );
@@ -167,21 +177,27 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
     BookingService.shouldUseApiV2ForTeamSlots(team.id),
   ]);
 
-  const props = {
+  const props: TeamBookingPageProps = {
     ...getTeamMetadataForBooking(team),
     ...crmData,
     useApiV2,
     isInstantMeeting: legacyCtx.query.isInstantMeeting === "true",
-    slug: meetingSlug,
-    user: teamSlug,
-    themeBasis: null,
+    eventSlug: meetingSlug,
+    username: teamSlug,
     eventData: {
       ...eventData,
     },
-    booking: bookingForReschedule,
-    teamId: team.id,
+    entity: { ...eventData.entity },
+    bookingData: bookingForReschedule,
+    isTeamEvent: true,
+    durationConfig: eventData.metadata?.multipleDuration,
+    duration: getMultipleDurationValue(
+      eventData.metadata?.multipleDuration,
+      legacyCtx.query.duration,
+      eventData.length
+    ),
   };
-  const ClientBooker = <Type {...props} />;
+  const Booker = <CachedClientView {...props} />;
 
   const eventLocale = eventData.interfaceLanguage;
   if (eventLocale) {
@@ -189,12 +205,12 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
     const translations = await loadTranslations(eventLocale, ns);
     return (
       <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
-        {ClientBooker}
+        {Booker}
       </CustomI18nProvider>
     );
   }
 
-  return ClientBooker;
+  return Booker;
 };
 
 export default CachedTeamBooker;

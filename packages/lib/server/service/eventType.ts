@@ -3,7 +3,11 @@ import type { Prisma } from "@prisma/client";
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema, EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
+import {
+  EventTypeMetaDataSchema,
+  EventTypeAppMetadataSchema,
+  bookerLayouts as bookerLayoutsSchema,
+} from "@calcom/prisma/zod-utils";
 
 import { getPlaceholderAvatar } from "../../defaultAvatarImage";
 import type { TeamWithEventTypes } from "./team";
@@ -96,15 +100,19 @@ export class EventTypeService {
     const eventHostsUserData = await this.getEventTypeUsersData(
       team.isPrivate,
       eventTypeId,
-      eventData.hosts.map((h) => h.user)
+      eventData.hosts?.map((h) => h.user) ?? []
     );
 
     const name = team.parent?.name ?? team.name ?? null;
     const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
+    const eventMetaData = EventTypeMetaDataSchema.parse(eventData.metadata);
+
     return {
+      ...eventData,
       eventTypeId,
       entity: {
+        eventTypeId,
         fromRedirectOfNonOrgLink,
         considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
         orgSlug,
@@ -112,16 +120,20 @@ export class EventTypeService {
         name,
       },
       length: eventData.length,
-      metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
+      metadata: eventMetaData,
       profile: {
         image: team.parent
           ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
           : getPlaceholderAvatar(team.logoUrl, team.name),
         name,
         username: orgSlug ?? null,
+        brandColor: team.brandColor,
+        darkBrandColor: team.darkBrandColor,
+        theme: team.theme,
+        bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
       },
       title: eventData.title,
-      users: eventHostsUserData,
+      subsetOfUsers: eventHostsUserData ?? [],
       hidden: eventData.hidden ?? false,
       interfaceLanguage: eventData.interfaceLanguage,
       slug: eventData.slug,
