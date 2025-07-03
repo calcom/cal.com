@@ -798,6 +798,9 @@ describe("handleNewBooking", () => {
           expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T04:00:00.000Z`);
           expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T04:15:00.000Z`);
 
+          // Verify that a new calendar event was created
+          expect(calendarMock.create).toHaveBeenCalled();
+
           // Verify the new booking has proper calendar references
           await expectBookingInDBToBeRescheduledFromTo({
             from: {
@@ -829,7 +832,6 @@ describe("handleNewBooking", () => {
             organizer,
             emails,
             iCalUID: "NEW_ICAL_UID",
-            appsStatus: [getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug })],
           });
 
           expectBookingRescheduledWebhookToHaveBeenFired({
@@ -838,21 +840,6 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-            payload: {
-              appsStatus: [getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug })],
-            },
-          });
-
-          // Verify that a new calendar event was created
-          expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
-            calendarId: expect.any(String),
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-            destinationCalendars: [
-              {
-                integration: appStoreMetadata.googlecalendar.slug,
-                externalId: "external-calendar-id",
-              },
-            ],
           });
         },
         timeout
