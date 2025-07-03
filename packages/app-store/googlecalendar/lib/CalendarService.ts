@@ -5,7 +5,6 @@ import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
-import dayjs from "@calcom/dayjs";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
@@ -232,14 +231,13 @@ export default class GoogleCalendarService implements Calendar {
           eventId: calEvent.existingRecurringEvent.recurringEventId,
         });
         if (recurringEventInstances.data.items) {
-          const calComEventStartTime = dayjs(calEvent.startTime).tz(calEvent.organizer.timeZone).format();
+          // Compare timestamps directly for more reliable and faster matching
+          const calComEventStartTimeMs = new Date(calEvent.startTime).getTime();
           for (let i = 0; i < recurringEventInstances.data.items.length; i++) {
             const instance = recurringEventInstances.data.items[i];
-            const instanceStartTime = dayjs(instance.start?.dateTime)
-              .tz(instance.start?.timeZone == null ? undefined : instance.start?.timeZone)
-              .format();
+            const instanceStartTimeMs = new Date(instance.start?.dateTime || "").getTime();
 
-            if (instanceStartTime === calComEventStartTime) {
+            if (instanceStartTimeMs === calComEventStartTimeMs) {
               event = instance;
               break;
             }
