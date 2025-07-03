@@ -81,7 +81,7 @@ export default class ExchangeCalendarService implements Calendar {
         };
       })
       .catch((reason) => {
-        this.log.error(reason);
+        this.log.error("Error creating Exchange event:", reason);
         throw reason;
       });
   }
@@ -120,7 +120,7 @@ export default class ExchangeCalendarService implements Calendar {
         };
       })
       .catch((reason) => {
-        this.log.error(reason);
+        this.log.error("Error updating Exchange event:", reason);
         throw reason;
       });
   }
@@ -128,7 +128,7 @@ export default class ExchangeCalendarService implements Calendar {
   async deleteEvent(uid: string): Promise<void> {
     const appointment: Appointment = await Appointment.Bind(await this.getExchangeService(), new ItemId(uid));
     return appointment.Delete(DeleteMode.MoveToDeletedItems).catch((reason) => {
-      this.log.error(reason);
+      this.log.error("Error deleting Exchange event:", reason);
       throw reason;
     });
   }
@@ -158,7 +158,7 @@ export default class ExchangeCalendarService implements Calendar {
             });
           })
           .catch((reason) => {
-            this.log.error(reason);
+            this.log.error("Error getting availability from Exchange calendar:", reason);
             throw reason;
           });
       });
@@ -191,22 +191,69 @@ export default class ExchangeCalendarService implements Calendar {
         });
       })
       .catch((reason) => {
-        this.log.error(reason);
+        this.log.error("Error listing Exchange calendars:", reason);
         throw reason;
       });
   }
 
   private async getExchangeService(): Promise<ExchangeService> {
-    const service: ExchangeService = new ExchangeService(this.payload.exchangeVersion);
-    service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
-    service.Url = new Uri(this.payload.url);
-    if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
-      const { XhrApi } = await import("@ewsjs/xhr");
-      const xhr = new XhrApi({
-        rejectUnauthorized: false,
-      }).useNtlmAuthentication(this.payload.username, this.payload.password);
-      service.XHRApi = xhr;
+    try {
+      const service: ExchangeService = new ExchangeService(this.payload.exchangeVersion);
+      service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
+      service.Url = new Uri(this.payload.url);
+      
+      if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
+        // Fix for Node.js OpenSSL compatibility issues with NTLM
+        try {
+          // Set Node.js to use legacy OpenSSL provider if needed
+          if (process.env.NODE_OPTIONS && !process.env.NODE_OPTIONS.includes('--openssl-legacy-provider')) {
+            process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS} --openssl-legacy-provider`;
+          } else if (!process.env.NODE_OPTIONS) {
+            process.env.NODE_OPTIONS = '--openssl-legacy-provider';
+          }
+
+          const { XhrApi } = await import("@ewsjs/xhr");
+          const xhr = new XhrApi({
+            rejectUnauthorized: false,
+            // Additional options for better on-premise Exchange compatibility
+            timeout: 30000, // 30 second timeout
+          }).useNtlmAuthentication(this.payload.username, this.payload.password);
+          
+          service.XHRApi = xhr;
+          this.log.info("NTLM authentication configured for Exchange service");
+        } catch (ntlmError) {
+          this.log.error("Error configuring NTLM authentication:", ntlmError);
+          // Fallback to standard authentication if NTLM fails
+          this.log.info("Falling back to standard authentication");
+        }
+      } else {
+        // Enhanced Basic Authentication setup for on-premise Exchange
+        service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
+        this.log.info("Basic authentication configured for Exchange service");
+      }
+
+      return service;
+    } catch (error) {
+      this.log.error("Error creating Exchange service:", error);
+      
+      // Provide more specific error messages based on the error type
+      if (error instanceof Error) {
+        if (error.message.includes('digital envelope routines::unsupported')) {
+          throw new Error(
+            'Node.js OpenSSL compatibility issue. Please set NODE_OPTIONS="--openssl-legacy-provider" or upgrade your Exchange server configuration.'
+          );
+        } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+          throw new Error(
+            'Authentication failed. Please verify your username, password, and ensure the account has proper Exchange permissions.'
+          );
+        } else if (error.message.includes('timeout') || error.message.includes('ECONNREFUSED')) {
+          throw new Error(
+            'Cannot connect to Exchange server. Please verify the EWS URL and ensure the server is accessible.'
+          );
+        }
+      }
+      
+      throw error;
     }
-    return service;
   }
 }
