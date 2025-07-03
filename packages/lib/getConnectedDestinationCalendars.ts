@@ -5,7 +5,6 @@ import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -229,32 +228,18 @@ async function ensureSelectedCalendarIsInDb({
   };
   eventTypeId: number | null;
 }) {
-  log.debug(
+  console.log(
     `Upsert the selectedCalendar record to the DB for user ${user.id} with details ${JSON.stringify(
       selectedCalendar
     )}`
   );
 
-  const selectedCalendarWhereUnique = {
+  await SelectedCalendarRepository.createIfNotExists({
     userId: user.id,
     integration: selectedCalendar.integration,
     externalId: selectedCalendar.externalId,
-  };
-
-  try {
-    await SelectedCalendarRepository.createIfNotExists({
-      userId: user.id,
-      integration: selectedCalendar.integration,
-      externalId: selectedCalendar.externalId,
-      eventTypeId,
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      log.debug(`P2002 conflict when creating selectedCalendar for user ${user.id}, attempting recovery`);
-      return;
-    }
-    throw error;
-  }
+    eventTypeId,
+  });
 }
 
 function getSelectedCalendars({

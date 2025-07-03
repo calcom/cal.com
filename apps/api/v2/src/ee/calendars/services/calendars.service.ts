@@ -56,18 +56,37 @@ export class CalendarsService {
     if (!userWithCalendars) {
       throw new NotFoundException("User not found");
     }
-    return getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
-      user: {
-        ...userWithCalendars,
-        allSelectedCalendars: userWithCalendars.selectedCalendars,
-        userLevelSelectedCalendars: userWithCalendars.selectedCalendars.filter(
-          (calendar) => !calendar.eventTypeId
-        ),
-      },
-      onboarding: false,
-      eventTypeId: null,
-      prisma: this.dbWrite.prisma as unknown as PrismaClient,
-    });
+
+    try {
+      return await getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
+        user: {
+          ...userWithCalendars,
+          allSelectedCalendars: userWithCalendars.selectedCalendars,
+          userLevelSelectedCalendars: userWithCalendars.selectedCalendars.filter(
+            (calendar) => !calendar.eventTypeId
+          ),
+        },
+        onboarding: false,
+        eventTypeId: null,
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        return await getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
+          user: {
+            ...userWithCalendars,
+            allSelectedCalendars: userWithCalendars.selectedCalendars,
+            userLevelSelectedCalendars: userWithCalendars.selectedCalendars.filter(
+              (calendar) => !calendar.eventTypeId
+            ),
+          },
+          onboarding: false,
+          eventTypeId: null,
+          prisma: this.dbWrite.prisma as unknown as PrismaClient,
+        });
+      }
+      throw error;
+    }
   }
 
   async getBusyTimes(
