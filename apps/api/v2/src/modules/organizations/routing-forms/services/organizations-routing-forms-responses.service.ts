@@ -67,14 +67,14 @@ export class OrganizationsRoutingFormsResponsesService {
   async createRoutingFormResponseWithSlots(
     orgId: number,
     routingFormId: string,
-    query: CreateRoutingFormResponseInput,
+    body: CreateRoutingFormResponseInput,
     request: Request
   ): Promise<CreateRoutingFormResponseOutputData> {
     console.log("createRoutingFormResponseWithSlots called", { orgId, routingFormId });
-    const { queueResponse, ...slotsQuery } = query;
+    const { queueResponse, ...slotsQuery } = body;
     // Use getRoutedUrl to handle routing logic and CRM processing
-    const routingUrlData = await this.getRoutingUrl(request, routingFormId, queueResponse ?? false);
-    
+    const routingUrlData = await this.getRoutingUrl(request, routingFormId, queueResponse ?? false, body);
+
     // Extract event type information from the routed URL
     const { eventTypeId, crmParams } = await this.extractEventTypeAndCrmParams(routingUrlData);
 
@@ -85,7 +85,7 @@ export class OrganizationsRoutingFormsResponsesService {
       ...crmParams,
     } as const;
 
-    console.log('calling slots service with', paramsForGetAvailableSlots);
+    console.log("calling slots service with", paramsForGetAvailableSlots);
     // Get available slots using the slots service with CRM parameters
     const slots = await this.slotsService.getAvailableSlots(paramsForGetAvailableSlots);
 
@@ -101,11 +101,15 @@ export class OrganizationsRoutingFormsResponsesService {
     };
   }
 
-  private async getRoutingUrl(request: Request, formId: string, queueResponse: boolean) {
-    const params = Object.fromEntries(new URLSearchParams(request.body));
+  private async getRoutingUrl(
+    request: Request,
+    formId: string,
+    queueResponse: boolean,
+    formResponseData: any
+  ) {
     const routedUrlData = await getRoutedUrl({
       req: request,
-      query: { ...params, form: formId, ...(queueResponse && { "cal.queueFormResponse": "true" }) },
+      query: { ...formResponseData, form: formId, ...(queueResponse && { "cal.queueFormResponse": "true" }) },
     });
 
     console.log("routedUrlData", routedUrlData);
@@ -128,7 +132,7 @@ export class OrganizationsRoutingFormsResponsesService {
     // Extract team and event type information
     const { teamId, eventTypeSlug } = this.extractTeamIdAndEventTypeSlugFromRedirectUrl(routingUrl);
     const eventType = await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(teamId, eventTypeSlug);
-    
+
     if (!eventType?.id) {
       throw new NotFoundException("Event type not found.");
     }
@@ -137,14 +141,17 @@ export class OrganizationsRoutingFormsResponsesService {
     const urlParams = routingUrl.searchParams;
     const crmParams = {
       teamMemberEmail: urlParams.get("cal.crmContactOwnerEmail") || undefined,
-      routedTeamMemberIds: urlParams.get("cal.routedTeamMemberIds") 
-        ? urlParams.get("cal.routedTeamMemberIds")!.split(",").map(id => parseInt(id))
+      routedTeamMemberIds: urlParams.get("cal.routedTeamMemberIds")
+        ? urlParams
+            .get("cal.routedTeamMemberIds")!
+            .split(",")
+            .map((id) => parseInt(id))
         : undefined,
       routingFormResponseId: urlParams.get("cal.routingFormResponseId")
         ? parseInt(urlParams.get("cal.routingFormResponseId")!)
         : undefined,
       queuedFormResponseId: urlParams.get("cal.queuedFormResponseId")
-        ? urlParams.get("cal.queuedFormResponseId") as string
+        ? (urlParams.get("cal.queuedFormResponseId") as string)
         : undefined,
     };
 

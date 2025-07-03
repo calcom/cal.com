@@ -9,18 +9,29 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { GetRoutingFormResponsesOutput } from "@/modules/organizations/routing-forms/outputs/get-routing-form-responses.output";
 import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizations/routing-forms/services/organizations-routing-forms-responses.service";
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards, ParseIntPipe, Req } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  ParseIntPipe,
+  Req,
+} from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
-import { GetAvailableSlotsInput_2024_09_04 } from "@calcom/platform-types";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GetAvailableSlotsInput_2024_09_04 } from "@calcom/platform-types";
 
+import { CreateRoutingFormResponseInput } from "../inputs/create-routing-form-response.input";
 import { GetRoutingFormResponsesParams } from "../inputs/get-routing-form-responses-params.input";
 import { UpdateRoutingFormResponseInput } from "../inputs/update-routing-form-response.input";
-import { CreateRoutingFormResponseInput } from "../inputs/create-routing-form-response.input";
-import { UpdateRoutingFormResponseOutput } from "../outputs/update-routing-form-response.output";
 import { CreateRoutingFormResponseOutput } from "../outputs/create-routing-form-response.output";
+import { UpdateRoutingFormResponseOutput } from "../outputs/update-routing-form-response.output";
 
 @Controller({
   path: "/v2/organizations/:orgId/routing-forms/:routingFormId/responses",
@@ -67,14 +78,14 @@ export class OrganizationsRoutingFormsResponsesController {
   async createRoutingFormResponse(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("routingFormId") routingFormId: string,
-    @Query() query: CreateRoutingFormResponseInput,
-    @Req() request: Request,
+    @Body() body: CreateRoutingFormResponseInput,
+    @Req() request: Request
   ): Promise<CreateRoutingFormResponseOutput> {
     console.log("createRoutingFormResponse called", { orgId, routingFormId });
     const result = await this.organizationsRoutingFormsResponsesService.createRoutingFormResponseWithSlots(
       orgId,
       routingFormId,
-      query,
+      body,
       request
     );
     console.log("createRoutingFormResponse result", result);
