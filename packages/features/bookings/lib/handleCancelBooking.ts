@@ -185,8 +185,9 @@ async function handler(input: CancelBookingInput) {
   const teamMembersPromises = [];
   const attendeesListPromises = [];
   const hostsPresent = !!bookingToDelete.eventType?.hosts;
+  const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
-  for (const attendee of bookingToDelete.attendees) {
+  for (const [index, attendee] of bookingToDelete.attendees.entries()) {
     const attendeeObject = {
       name: attendee.name,
       email: attendee.email,
@@ -199,21 +200,25 @@ async function handler(input: CancelBookingInput) {
     };
 
     /**
-     * Check for the presence of hosts to determine if it is a team event type.
      * Note: We only check if there is more than one attendee because if there is only one,
      * it means one of the hosts is the sole booker.
      */
-    if (hostsPresent && bookingToDelete.attendees.length > 1) {
-      // If the attendee is a host then they are a team member
-      const teamMember = bookingToDelete.eventType?.hosts.some((host) => host.user.email === attendee.email);
-      if (teamMember) {
-        teamMembersPromises.push(attendeeObject);
-        // If not then they are an attendee
+    if (index === 0) {
+      attendeesListPromises.push(attendeeObject);
+    } else {
+      // Check for the presence of hosts to determine if it is a team event type
+      if (hostsPresent) {
+        // If the attendee is a host then they are a team member
+        const teamMember = hostEmails.has(attendee.email);
+        if (teamMember) {
+          teamMembersPromises.push(attendeeObject);
+          // If not then they are an attendee
+        } else {
+          attendeesListPromises.push(attendeeObject);
+        }
       } else {
         attendeesListPromises.push(attendeeObject);
       }
-    } else {
-      attendeesListPromises.push(attendeeObject);
     }
   }
 
