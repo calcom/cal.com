@@ -169,9 +169,7 @@ async function handler(input: CancelBookingInput) {
     },
   });
 
-  const teamMembersPromises = [];
   const attendeesListPromises = [];
-  const hostsPresent = !!bookingToDelete.eventType?.hosts;
 
   for (const attendee of bookingToDelete.attendees) {
     const attendeeObject = {
@@ -184,24 +182,10 @@ async function handler(input: CancelBookingInput) {
         locale: attendee.locale ?? "en",
       },
     };
-
-    // Check for the presence of hosts to determine if it is a team event type
-    if (hostsPresent) {
-      // If the attendee is a host then they are a team member
-      const teamMember = bookingToDelete.eventType?.hosts.some((host) => host.user.email === attendee.email);
-      if (teamMember) {
-        teamMembersPromises.push(attendeeObject);
-        // If not then they are an attendee
-      } else {
-        attendeesListPromises.push(attendeeObject);
-      }
-    } else {
-      attendeesListPromises.push(attendeeObject);
-    }
+    attendeesListPromises.push(attendeeObject);
   }
 
   const attendeesList = await Promise.all(attendeesListPromises);
-  const teamMembers = await Promise.all(teamMembersPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
   const ownerProfile = await prisma.profile.findFirst({
@@ -252,14 +236,6 @@ async function handler(input: CancelBookingInput) {
       ? [bookingToDelete?.user.destinationCalendar]
       : [],
     cancellationReason: cancellationReason,
-    ...(teamMembers &&
-      teamId && {
-        team: {
-          name: bookingToDelete?.eventType?.team?.name || "Nameless",
-          members: teamMembers,
-          id: teamId,
-        },
-      }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
