@@ -15,7 +15,7 @@ import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues } from "../types";
 
-export type AtomScheduleType =
+export type AvailabilitySettingsAtomScheduleType =
   | import("@calcom/lib/server/repository/schedule").FindDetailedScheduleByIdReturnType
   | null
   | undefined;
