@@ -423,6 +423,8 @@ function Options({
   showPrice?: boolean;
   paymentCurrency: string;
 }) {
+  const { t } = useLocale();
+
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
   if (!value) {
     onChange([
@@ -459,7 +461,7 @@ function Options({
                       onChange(newOptions);
                     }}
                     readOnly={readOnly}
-                    placeholder={`Enter Option ${index + 1}`}
+                    placeholder={t("enter_option", { index: index + 1 })}
                   />
                 </div>
                 {showPrice && (
