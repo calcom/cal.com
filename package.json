@@ -80,8 +80,9 @@
     "docker-build-api": "docker build -t cal-api -f ./infra/docker/api/Dockerfile .",
     "docker-run-api": "docker run -p 80:80 cal-api",
     "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop",
+    "changesets-add": "yarn changeset add",
     "changesets-version": "yarn changeset version",
-    "changesets-release": "turbo run build && yarn changeset publish"
+    "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build --filter=@calcom/atoms && yarn changeset publish"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
