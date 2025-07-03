@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import type { PrismaClient } from "@calcom/prisma";
-import type { EventType, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
+import type { EventType, User, WorkflowStep } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
@@ -42,13 +42,6 @@ type PartialBooking =
     })
   | null;
 
-export type PartialWorkflowReminder = Pick<
-  WorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate" | "uuid"
-> & {
-  booking: PartialBooking | null;
-} & { workflowStep: PartialWorkflowStep };
-
 const workflowReminderSelect = {
   id: true,
   scheduledDate: true,
@@ -56,6 +49,7 @@ const workflowReminderSelect = {
   uuid: true,
   workflowStep: {
     select: {
+      id: true,
       action: true,
       sendTo: true,
       reminderBody: true,
@@ -77,10 +71,12 @@ const workflowReminderSelect = {
       endTime: true,
       location: true,
       description: true,
+      title: true,
       smsReminderNumber: true,
       userPrimaryEmail: true,
       user: {
         select: {
+          id: true,
           email: true,
           name: true,
           timeZone: true,
@@ -100,6 +96,8 @@ const workflowReminderSelect = {
           bookingFields: true,
           title: true,
           slug: true,
+          schedulingType: true,
+          hideOrganizerEmail: true,
           hosts: {
             select: {
               user: {
@@ -201,7 +199,7 @@ export class WorkflowReminderRepository {
     return remindersToCancel;
   }
 
-  async getAllUnscheduledReminders(): Promise<PartialWorkflowReminder[]> {
+  async getAllUnscheduledReminders() {
     const whereFilter: Prisma.WorkflowReminderWhereInput = {
       method: WorkflowMethods.EMAIL,
       scheduled: false,
@@ -211,15 +209,10 @@ export class WorkflowReminderRepository {
       OR: [{ cancelled: false }, { cancelled: null }],
     };
 
-    const unscheduledReminders = (await this.getWorkflowReminders(
-      whereFilter,
-      workflowReminderSelect
-    )) as PartialWorkflowReminder[];
-
-    return unscheduledReminders;
+    return await this.getWorkflowReminders(whereFilter, workflowReminderSelect);
   }
 
-  async getUnscheduledSMSReminders(): Promise<(PartialWorkflowReminder & { retryCount: number })[]> {
+  async getUnscheduledSMSReminders() {
     const whereFilter: Prisma.WorkflowReminderWhereInput = {
       method: WorkflowMethods.SMS,
       scheduled: false,
@@ -236,15 +229,10 @@ export class WorkflowReminderRepository {
       retryCount: true,
     } satisfies Prisma.WorkflowReminderSelect;
 
-    const unscheduledReminders = (await this.getWorkflowReminders(
-      whereFilter,
-      select
-    )) as (PartialWorkflowReminder & { retryCount: number })[];
-
-    return unscheduledReminders;
+    return await this.getWorkflowReminders(whereFilter, select);
   }
 
-  async getUnscheduledWhatsappReminders(): Promise<PartialWorkflowReminder[]> {
+  async getUnscheduledWhatsappReminders() {
     const whereFilter: Prisma.WorkflowReminderWhereInput = {
       method: WorkflowMethods.WHATSAPP,
       scheduled: false,
@@ -253,12 +241,7 @@ export class WorkflowReminderRepository {
       },
     };
 
-    const unscheduledReminders = (await this.getWorkflowReminders(
-      whereFilter,
-      workflowReminderSelect
-    )) as PartialWorkflowReminder[];
-
-    return unscheduledReminders;
+    return await this.getWorkflowReminders(whereFilter, workflowReminderSelect);
   }
 
   async updateReminderAsScheduled(
