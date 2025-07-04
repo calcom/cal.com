@@ -72,22 +72,21 @@ export class OrganizationsRoutingFormsResponsesService {
   ): Promise<CreateRoutingFormResponseOutputData> {
     const { queueResponse, ...slotsQuery } = query;
     
-    // Validate date range
-    if (slotsQuery.start && slotsQuery.end) {
-      const startDate = new Date(slotsQuery.start);
-      const endDate = new Date(slotsQuery.end);
-      
-      if (endDate < startDate) {
-        throw new BadRequestException("End date cannot be before start date.");
-      }
-    }
+    this.validateDateRange(slotsQuery.start, slotsQuery.end);
     
-    const { redirectUrl, message } = await this.getRoutingUrl(request, routingFormId, queueResponse ?? false);
+    const { redirectUrl, customMessage } = await this.getRoutingUrl(request, routingFormId, queueResponse ?? false);
 
+    // If there is no redirect URL, then we have to show the message as that would be custom page message to be shown as per the route chosen
     if (!redirectUrl) {
       return {
-        routingCustomMessage: message,
+        routingCustomMessage: customMessage,
       };
+    }
+
+    if (!this.isEventTypeRedirectUrl(redirectUrl)) {
+      return {
+        routingExternalRedirectUrl: redirectUrl.toString(),
+      }
     }
 
     // Extract event type information from the routed URL
@@ -143,6 +142,15 @@ export class OrganizationsRoutingFormsResponsesService {
     };
   }
 
+  private validateDateRange(start: string, end: string) {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    
+    if (endDate < startDate) {
+      throw new BadRequestException("End date cannot be before start date.");
+    }
+  }
+
   private async getRoutingUrl(request: Request, formId: string, queueResponse: boolean) {
     const params = Object.fromEntries(new URLSearchParams(request.body));
     const routedUrlData = await getRoutedUrl({
@@ -150,40 +158,43 @@ export class OrganizationsRoutingFormsResponsesService {
       query: { ...params, form: formId, ...(queueResponse && { "cal.queueFormResponse": "true" }) },
     }, true);
 
-    const destination = routedUrlData?.redirect?.destination;
+    if (routedUrlData.notFound) {
+      throw new NotFoundException("Routing form not found.");
+    }
 
     if (routedUrlData?.props?.errorMessage) {
       throw new BadRequestException(routedUrlData.props.errorMessage);
     }
 
+    const destination = routedUrlData?.redirect?.destination;
+
     if (!destination) {
       if (routedUrlData?.props?.message) {
         return {
           redirectUrl: null,
-          message: routedUrlData.props.message,
+          customMessage: routedUrlData.props.message,
         };
       }
-      throw new NotFoundException("Route to which the form response should be redirected not found.");
+      // This should never happen because there is always a fallback route
+      throw new InternalServerErrorException("No route found.");
     }
 
     return {
       redirectUrl: new URL(destination),
-      message: null,
+      customMessage: null,
     };
   }
 
   private async extractEventTypeAndCrmParams(routingUrl: URL) {
-    // Check if it's an event type redirect URL
-    if (!this.isEventTypeRedirectUrl(routingUrl)) {
-      throw new NotFoundException("Routed to a non cal.com event type URL.");
-    }
+
 
     // Extract team and event type information
     const { teamId, eventTypeSlug } = this.extractTeamIdAndEventTypeSlugFromRedirectUrl(routingUrl);
     const eventType = await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(teamId, eventTypeSlug);
 
     if (!eventType?.id) {
-      throw new NotFoundException("Event type not found.");
+      // This could only happen if the event-type earlier selected as route action was deleted
+      throw new InternalServerErrorException("Chosen event type not found.");
     }
 
     // Extract CRM parameters from URL

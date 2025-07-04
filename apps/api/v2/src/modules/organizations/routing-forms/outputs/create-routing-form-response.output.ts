@@ -108,6 +108,15 @@ export class CreateRoutingFormResponseOutputData {
   })
   routingCustomMessage?: string;
 
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: String,
+    description: "The external redirect URL to be used in case of routing to a non cal.com event type URL.",
+    example: "https://example.com/",
+  })
+  routingExternalRedirectUrl?: string;
+
   @ValidateNested()
   @ApiProperty({
     oneOf: [

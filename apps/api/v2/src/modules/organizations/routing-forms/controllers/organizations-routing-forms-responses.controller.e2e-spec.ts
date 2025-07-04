@@ -405,7 +405,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         });
     });
 
-    it("should return 404 when event type is not found", async () => {
+    it("should return 500 when event type is not found", async () => {
       // Create a routing form with an invalid eventTypeId
       const routingFormWithInvalidEventType = await prismaWriteService.prisma.app_RoutingForms_Form.create({
         data: {
@@ -470,8 +470,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
           question1: "answer1",
         });
 
-      // Should return 404 for invalid event type
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(500);
 
       // Clean up the form
       await prismaWriteService.prisma.app_RoutingForms_Form.delete({
@@ -504,6 +503,89 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         });
     });
 
+    it("should return external redirect URL when routing to external URL", async () => {
+      // Create a routing form with external redirect action
+      const externalRoutingForm = await prismaWriteService.prisma.app_RoutingForms_Form.create({
+        data: {
+          name: "Test External Routing Form",
+          description: "Test Description for External Redirect",
+          disabled: false,
+          routes: [
+            {
+              id: "external-route-1",
+              queryValue: {
+                id: "external-route-1",
+                type: "group",
+                children1: {
+                  "rule-1": {
+                    type: "rule",
+                    properties: {
+                      field: "question1",
+                      operator: "equal",
+                      value: ["external"],
+                      valueSrc: ["value"],
+                      valueType: ["text"]
+                    }
+                  }
+                }
+              },
+              action: {
+                type: "externalRedirectUrl",
+                value: "https://example.com/external-booking"
+              },
+              isFallback: false
+            },
+            {
+              id: "fallback-route",
+              action: { type: "customPageMessage", value: "Fallback Message" },
+              isFallback: true,
+              queryValue: { id: "fallback-route", type: "group" }
+            }
+          ],
+          fields: [
+            {
+              id: "question1",
+              type: "text",
+              label: "Question 1",
+              required: true,
+              identifier: "question1"
+            }
+          ],
+          settings: {
+            emailOwnerOnSubmission: false
+          },
+          teamId: team.id,
+          userId: user.id,
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/routing-forms/${externalRoutingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          question1: "external", // This matches the route condition for external redirect
+        })
+        .expect(201);
+
+      const responseBody = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      const data = responseBody.data;
+      expect(data).toBeDefined();
+      expect(data.routingExternalRedirectUrl).toBeDefined();
+      expect(data.routingExternalRedirectUrl).toContain("https://example.com/external-booking");
+      expect(data.routingExternalRedirectUrl).toContain("cal.action=externalRedirectUrl");
+      
+      // Verify that it doesn't contain event type routing data
+      expect(data.eventTypeId).toBeUndefined();
+      expect(data.slots).toBeUndefined();
+      expect(data.routing).toBeUndefined();
+      expect(data.routingCustomMessage).toBeUndefined();
+
+      // Clean up the external routing form
+      await prismaWriteService.prisma.app_RoutingForms_Form.delete({
+        where: { id: externalRoutingForm.id }
+      });
+    });
 
   });
 
