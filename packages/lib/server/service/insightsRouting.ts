@@ -305,7 +305,7 @@ export class InsightsRoutingService {
     }
 
     if (this.options.scope === "user") {
-      return Prisma.sql`"formUserId" = ${this.options.userId}`;
+      return Prisma.sql`"formUserId" = ${this.options.userId} AND "formTeamId" IS NULL`;
     } else if (this.options.scope === "org") {
       return await this.buildOrgAuthorizationCondition(this.options);
     } else if (this.options.scope === "team") {
