@@ -90,7 +90,7 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
 
-  getOutputBooking(databaseBooking: DatabaseBooking) {
+  async getOutputBooking(databaseBooking: DatabaseBooking) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -101,6 +101,12 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
+
+    let rescheduledToUid: string | undefined = undefined;
+    if (databaseBooking.rescheduled) {
+      const rescheduledTo = await this.bookingsRepository.getByFromReschedule(databaseBooking.uid);
+      rescheduledToUid = rescheduledTo?.uid;
+    }
 
     const booking = {
       id: databaseBooking.id,
@@ -114,6 +120,8 @@ export class OutputBookingsService_2024_08_13 {
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
+      rescheduledToUid,
+      rescheduled: databaseBooking.rescheduled || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
       duration,
@@ -179,13 +187,13 @@ export class OutputBookingsService_2024_08_13 {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
       }
 
-      transformed.push(this.getOutputRecurringBooking(databaseBooking));
+      transformed.push(await this.getOutputRecurringBooking(databaseBooking));
     }
 
     return transformed.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   }
 
-  getOutputRecurringBooking(databaseBooking: DatabaseBooking) {
+  async getOutputRecurringBooking(databaseBooking: DatabaseBooking) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -196,6 +204,12 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
+
+    let rescheduledToUid: string | undefined = undefined;
+    if (databaseBooking.rescheduled) {
+      const rescheduledTo = await this.bookingsRepository.getByFromReschedule(databaseBooking.uid);
+      rescheduledToUid = rescheduledTo?.uid;
+    }
 
     const booking = {
       id: databaseBooking.id,
@@ -209,6 +223,8 @@ export class OutputBookingsService_2024_08_13 {
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
+      rescheduledToUid,
+      rescheduled: databaseBooking.rescheduled || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
       duration,

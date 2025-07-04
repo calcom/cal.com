@@ -1389,6 +1389,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.start).toEqual(body.start);
             expect(data.end).toEqual(new Date(Date.UTC(2035, 0, 8, 15, 0, 0)).toISOString());
             expect(data.rescheduledFromUid).toEqual(createdBooking.uid);
+            expect(data.rescheduledToUid).toBeUndefined();
+            expect(data.rescheduled).toBeFalsy();
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
@@ -1425,8 +1427,28 @@ describe("Bookings Endpoints 2024-08-13", () => {
             // @ts-ignore
             const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.status).toEqual("cancelled");
+            expect(data.rescheduledToUid).toEqual(rescheduledBooking.uid);
+            expect(data.rescheduled).toBe(true);
 
             createdBooking = data;
+          });
+      });
+
+      it("should fetch rescheduled booking with rescheduledToUid", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${createdBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const data: BookingOutput_2024_08_13 = responseBody.data;
+            expect(data.status).toEqual("cancelled");
+            expect(data.rescheduledToUid).toEqual(rescheduledBooking.uid);
+            expect(data.rescheduled).toBe(true);
           });
       });
 
