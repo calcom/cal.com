@@ -3,7 +3,7 @@ import {
   getBooker,
   getOrganizer,
   getScenarioData,
-  mockCalendarToHaveNoBusySlots,
+  mockCalendar,
   TestData,
   Timezones,
   getDate,
@@ -59,13 +59,13 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
             id: 1,
             slotInterval: 45,
             length: 45,
-            users: [
+            hosts: [
               {
-                ...fixedHost,
+                userId: 101,
                 isFixed: true,
               },
               {
-                ...roundRobinHost,
+                userId: 102,
                 isFixed: false,
               },
             ],
@@ -78,13 +78,17 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
 
       await createBookingScenario(scenarioData);
 
-      mockCalendarToHaveNoBusySlots("round-robin-host@google-calendar.com", {
+      mockCalendar("googlecalendar", {
         create: {
-          [`${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`]: {
+          id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+        },
+        busySlots: [
+          {
             start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
             end: `${getDate({ dateIncrement: 1 }).dateString}T04:45:00.000Z`,
           },
-        },
+        ],
       });
 
       const mockBookingData = getMockRequestDataForBooking({
@@ -103,7 +107,6 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
       await expect(
         handleNewBooking({
           bookingData: mockBookingData,
-          userId: booker.id,
         })
       ).rejects.toThrow(ErrorCode.NoAvailableUsersFound);
     },
