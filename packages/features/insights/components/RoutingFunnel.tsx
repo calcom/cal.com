@@ -1,24 +1,13 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { Suspense } from "react";
-
 import { useColumnFilters } from "@calcom/features/data-table";
 import { useInsightsParameters } from "@calcom/features/insights/hooks/useInsightsParameters";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { ChartCard } from "./ChartCard";
+import { RoutingFunnelContent } from "./RoutingFunnelContent";
 import { RoutingFunnelSkeleton } from "./RoutingFunnelSkeleton";
-
-// Dynamically load the RoutingFunnelContent component
-const RoutingFunnelContent = dynamic(
-  () => import("./RoutingFunnelContent").then((mod) => ({ default: mod.RoutingFunnelContent })),
-  {
-    loading: () => <RoutingFunnelSkeleton />,
-    ssr: false,
-  }
-);
 
 export function RoutingFunnel() {
   const { t } = useLocale();
@@ -42,7 +31,7 @@ export function RoutingFunnel() {
     }
   );
 
-  if (!isSuccess || !data) {
+  if (isLoading || !isSuccess || !data) {
     return (
       <ChartCard title={t("routing_funnel")}>
         <RoutingFunnelSkeleton />
@@ -52,9 +41,7 @@ export function RoutingFunnel() {
 
   return (
     <ChartCard title={t("routing_funnel")}>
-      <Suspense fallback={<RoutingFunnelSkeleton />}>
-        <RoutingFunnelContent data={data} />
-      </Suspense>
+      <RoutingFunnelContent data={data} />
     </ChartCard>
   );
 }
