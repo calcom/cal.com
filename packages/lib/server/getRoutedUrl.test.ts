@@ -1,5 +1,6 @@
 import "@calcom/lib/__mocks__/logger";
 
+import { createHash } from "crypto";
 import type { GetServerSidePropsContext } from "next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -12,12 +13,14 @@ import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substit
 import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { getRoutedUrl } from "./getRoutedUrl";
 
 // Mock dependencies
+vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
 vi.mock("@calcom/lib/server/repository/routingForm");
 vi.mock("@calcom/lib/server/repository/user");
@@ -112,6 +115,7 @@ describe("getRoutedUrl", () => {
   it("should return notFound if form is not found", async () => {
     vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(null);
     const context = mockContext({});
+
     const result = await getRoutedUrl(context);
     expect(result).toEqual({ notFound: true });
     expect(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).toHaveBeenCalledWith("form-id");
@@ -257,6 +261,19 @@ describe("getRoutedUrl", () => {
     expect(handleResponse).toHaveBeenCalledWith(
       expect.objectContaining({ response: { "xxx-xxx": { value: "test@cal.com" } } })
     );
+  });
+
+  it("should throw an error if rate limit is exceeded", async () => {
+    vi.mocked(checkRateLimitAndThrowError).mockRejectedValue(new Error("Rate limit exceeded"));
+    const context = mockContext({ email: "test@cal.com" });
+    const expectedHash = createHash("sha256")
+      .update(JSON.stringify({ email: "test@cal.com" }))
+      .digest("hex");
+
+    await expect(getRoutedUrl(context)).rejects.toThrow("Rate limit exceeded");
+    expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
+      identifier: `form:form-id:hash:${expectedHash}`,
+    });
   });
 
   describe("Dry Run", () => {
