@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { canAccessEntity } from "@calcom/lib/entityPermissionUtils";
+import { canAccessEntity } from "@calcom/lib/entityPermissionUtils.server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";

@@ -10,6 +10,16 @@ export class CreateOrganizationInput extends RefreshApiKeyInput {
   @ApiProperty({ description: "Name of the organization", example: "CalTeam" })
   readonly name!: string;
 
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "Organization slug in kebab-case - if not provided will be generated automatically based on name.",
+    example: "cal-tel",
+  })
+  readonly slug?: string;
+
   @ApiPropertyOptional({
     type: Object,
     description: METADATA_DOCS,

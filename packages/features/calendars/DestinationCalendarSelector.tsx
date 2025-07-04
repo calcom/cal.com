@@ -18,7 +18,7 @@ interface Props {
   value: string | undefined;
   maxWidth?: number;
   hideAdvancedText?: boolean;
-  calendarsQueryData?: RouterOutputs["viewer"]["connectedCalendars"];
+  calendarsQueryData?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
   customClassNames?: SelectClassNames;
 }
 

@@ -90,7 +90,6 @@ export class WatchlistRepository implements IWatchlistRepository {
       });
       return blockedRecords;
     } catch (err) {
-      const captureException = (await import("@sentry/nextjs")).captureException;
       captureException(err);
       throw err;
     }

@@ -15,9 +15,29 @@
     {
       "path": "/api/tasks/cleanup",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/credentials",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/selected-calendars",
+      "schedule": "*/5 * * * *"
     }
   ],
   "functions": {
+    "app/api/cron/workflows/scheduleEmailReminders/route.ts": {
+      "maxDuration": 800
+    },
+    "app/api/cron/workflows/scheduleSMSReminders/route.ts": {
+      "maxDuration": 800
+    },
+    "app/api/cron/workflows/scheduleWhatsappReminders/route.ts": {
+      "maxDuration": 800
+    },
+    "pages/api/trpc/workflows/[trpc].ts": {
+      "maxDuration": 800
+    },
     "pages/api/trpc/highPerf/[trpc].ts": {
       "memory": 3008
     },

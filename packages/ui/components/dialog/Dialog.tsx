@@ -14,7 +14,7 @@ import type { IconName } from "../icon";
 import { Icon } from "../icon";
 
 const dialogClasses = cva(
-  "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle",
+  "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-[95vw] m-auto -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle",
   {
     variants: {
       size: {
@@ -126,12 +126,12 @@ export function DialogHeader(props: DialogHeaderProps) {
 
   return (
     <div className="mb-4">
-      <h3
+      <h2
         data-testid="dialog-title"
         className="leading-20 text-semibold text-emphasis font-cal mb-1 text-xl"
         id="modal-title">
         {props.title}
-      </h3>
+      </h2>
       {props.subtitle && (
         <p className="text-subtle text-sm" data-testid="dialog-subtitle">
           {props.subtitle}
@@ -151,7 +151,7 @@ export function DialogFooter(props: DialogFooterProps) {
   return (
     <div
       className={classNames(
-        "bg-muted border-subtle bottom-0 -mx-8 mt-10 rounded-b-2xl",
+        "bg-muted border-muted bottom-0 -mx-8 mt-10 rounded-b-2xl border",
         props?.noSticky ? "" : "sticky",
         props.className
       )}>

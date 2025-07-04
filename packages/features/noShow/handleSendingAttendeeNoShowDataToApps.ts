@@ -16,7 +16,7 @@ export default async function handleSendingAttendeeNoShowDataToApps(
   attendees: NoShowAttendees
 ) {
   // Get event type metadata
-  const eventTypeQuery = await prisma.booking.findFirst({
+  const eventTypeQuery = await prisma.booking.findUnique({
     where: {
       uid: bookingUid,
     },
@@ -62,7 +62,7 @@ async function handleCRMNoShow(
 ) {
   // Handle checking if no she in CrmService
 
-  const credential = await prisma.credential.findFirst({
+  const credential = await prisma.credential.findUnique({
     where: {
       id: appData.credentialId,
     },

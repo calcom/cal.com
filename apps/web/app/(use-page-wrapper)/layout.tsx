@@ -21,19 +21,21 @@ export default async function PageWrapperLayout({ children }: { children: React.
   ].filter((script): script is { id: string; script: string } => !!script.script);
 
   return (
-    <PageWrapper requiresLicense={false} nonce={nonce}>
-      {children}
-      {scripts.map((script) => (
-        <Script
-          key={script.id}
-          nonce={nonce}
-          id={script.id}
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{
-            __html: script.script,
-          }}
-        />
-      ))}
-    </PageWrapper>
+    <>
+      <PageWrapper requiresLicense={false} nonce={nonce}>
+        {children}
+        {scripts.map((script) => (
+          <Script
+            key={script.id}
+            nonce={nonce}
+            id={script.id}
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{
+              __html: script.script,
+            }}
+          />
+        ))}
+      </PageWrapper>
+    </>
   );
 }

@@ -22,7 +22,7 @@ export class IsOrgGuard implements CanActivate {
     const organizationId: string = request.params.orgId;
 
     if (!organizationId) {
-      throw new ForbiddenException("No organization id found in request params.");
+      throw new ForbiddenException("IsOrgGuard - No organization id found in request params.");
     }
 
     const { canAccess, org } = await this.checkOrgAccess(organizationId);
@@ -31,7 +31,13 @@ export class IsOrgGuard implements CanActivate {
       request.organization = org;
     }
 
-    return canAccess;
+    if (!canAccess) {
+      throw new ForbiddenException(
+        `IsOrgGuard - provided organization id=${organizationId} does not represent any existing organization.`
+      );
+    }
+
+    return true;
   }
 
   async checkOrgAccess(organizationId: string): Promise<{ canAccess: boolean; org?: Team | null }> {
@@ -55,7 +61,7 @@ export class IsOrgGuard implements CanActivate {
       canAccess = true;
     }
 
-    if (org) {
+    if (org && canAccess) {
       await this.redisService.redis.set(
         REDIS_CACHE_KEY,
         JSON.stringify({ org, canAccess } satisfies CachedData),

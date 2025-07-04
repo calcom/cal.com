@@ -8,7 +8,10 @@ import BillingView from "~/settings/billing/billing-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("billing"),
-    (t) => t("manage_billing_description")
+    (t) => t("manage_billing_description"),
+    undefined,
+    undefined,
+    "/settings/billing"
   );
 
 const Page = async () => {

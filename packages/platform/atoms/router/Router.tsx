@@ -57,6 +57,7 @@ export const Router = React.memo(
       | "hostsLimit"
       | "metadata"
       | "handleCreateBooking"
+      | "handleSlotReservation"
       | "preventEventTypeRedirect"
     >;
     renderLoader?: (isLoading?: boolean) => ReactElement | ReactElement[];

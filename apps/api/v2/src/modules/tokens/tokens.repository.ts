@@ -5,6 +5,7 @@ import { Injectable } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { PlatformAuthorizationToken } from "@prisma/client";
 import { DateTime } from "luxon";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class TokensRepository {
@@ -50,6 +51,97 @@ export class TokensRepository {
     });
   }
 
+  async createOAuthTokens(clientId: string, ownerId: number) {
+    const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
+    const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
+    const [accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
+      this.dbWrite.prisma.accessToken.create({
+        data: {
+          secret: this.jwtService.signAccessToken({
+            clientId,
+            ownerId,
+            expiresAt: accessExpiry.valueOf(),
+            jti: uuidv4(),
+          }),
+          expiresAt: accessExpiry,
+          client: { connect: { id: clientId } },
+          owner: { connect: { id: ownerId } },
+        },
+      }),
+      this.dbWrite.prisma.refreshToken.create({
+        data: {
+          secret: this.jwtService.signRefreshToken({
+            clientId,
+            ownerId,
+            expiresAt: refreshExpiry.valueOf(),
+            jti: uuidv4(),
+          }),
+          expiresAt: refreshExpiry,
+          client: { connect: { id: clientId } },
+          owner: { connect: { id: ownerId } },
+        },
+      }),
+    ]);
+
+    return {
+      accessToken: accessToken.secret,
+      accessTokenExpiresAt: accessToken.expiresAt,
+      refreshToken: refreshToken.secret,
+      refreshTokenExpiresAt: refreshToken.expiresAt,
+    };
+  }
+
+  async forceRefreshOAuthTokens(clientId: string, ownerId: number) {
+    const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
+    const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
+
+    const [_deletedAccessToken, _deletedRefreshToken, accessToken, refreshToken] =
+      await this.dbWrite.prisma.$transaction([
+        this.dbWrite.prisma.accessToken.deleteMany({
+          where: { client: { id: clientId }, userId: ownerId },
+        }),
+        this.dbWrite.prisma.refreshToken.deleteMany({
+          where: {
+            client: { id: clientId },
+            userId: ownerId,
+          },
+        }),
+        this.dbWrite.prisma.accessToken.create({
+          data: {
+            secret: this.jwtService.signAccessToken({
+              clientId,
+              ownerId,
+              expiresAt: accessExpiry.valueOf(),
+              jti: uuidv4(),
+            }),
+            expiresAt: accessExpiry,
+            client: { connect: { id: clientId } },
+            owner: { connect: { id: ownerId } },
+          },
+        }),
+        this.dbWrite.prisma.refreshToken.create({
+          data: {
+            secret: this.jwtService.signRefreshToken({
+              clientId,
+              ownerId,
+              expiresAt: refreshExpiry.valueOf(),
+              jti: uuidv4(),
+            }),
+            expiresAt: refreshExpiry,
+            client: { connect: { id: clientId } },
+            owner: { connect: { id: ownerId } },
+          },
+        }),
+      ]);
+
+    return {
+      accessToken: accessToken.secret,
+      accessTokenExpiresAt: accessToken.expiresAt,
+      refreshToken: refreshToken.secret,
+      refreshTokenExpiresAt: refreshToken.expiresAt,
+    };
+  }
+
   async getAccessTokenExpiryDate(accessTokenSecret: string) {
     const accessToken = await this.dbRead.prisma.accessToken.findFirst({
       where: {
@@ -75,57 +167,48 @@ export class TokensRepository {
     return accessToken?.userId;
   }
 
-  async refreshOAuthTokens(ownerId: number, clientId: string) {
-    try {
-      await this.deleteOAuthTokens(ownerId, clientId);
-    } catch (err) {
-      this.logger.error("refreshOAuthTokens - Failed to delete old tokens", err);
-    }
-
-    return await this.createOAuthTokens(ownerId, clientId);
-  }
-
-  private async deleteOAuthTokens(ownerId: number, clientId: string) {
-    await this.dbWrite.prisma.$transaction([
-      this.dbWrite.prisma.accessToken.deleteMany({
-        where: { client: { id: clientId }, userId: ownerId },
-      }),
-      this.dbWrite.prisma.refreshToken.deleteMany({
-        where: {
-          client: { id: clientId },
-          userId: ownerId,
-        },
-      }),
-    ]);
-  }
-
-  async createOAuthTokens(ownerId: number, clientId: string) {
+  async refreshOAuthTokens(clientId: string, refreshTokenSecret: string, tokenUserId: number) {
     const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
 
-    const [accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, _refresh, accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
+      this.dbWrite.prisma.accessToken.deleteMany({
+        where: { client: { id: clientId }, expiresAt: { lte: new Date() } },
+      }),
+      this.dbWrite.prisma.refreshToken.delete({ where: { secret: refreshTokenSecret } }),
       this.dbWrite.prisma.accessToken.create({
         data: {
-          secret: this.jwtService.signAccessToken({ clientId, ownerId, expiresAt: accessExpiry.valueOf() }),
+          secret: this.jwtService.signAccessToken({
+            clientId,
+            ownerId: tokenUserId,
+            expiresAt: accessExpiry.valueOf(),
+            userId: tokenUserId,
+            jti: uuidv4(),
+          }),
           expiresAt: accessExpiry,
           client: { connect: { id: clientId } },
-          owner: { connect: { id: ownerId } },
+          owner: { connect: { id: tokenUserId } },
         },
       }),
       this.dbWrite.prisma.refreshToken.create({
         data: {
-          secret: this.jwtService.signRefreshToken({ clientId, ownerId, expiresAt: refreshExpiry.valueOf() }),
+          // note(Lauris): I am leaving userId because it was before adding ownerId to standardize payload like in the createOAuthTokens function for
+          // backwards compatibility.
+          secret: this.jwtService.signRefreshToken({
+            clientId,
+            ownerId: tokenUserId,
+            expiresAt: refreshExpiry.valueOf(),
+            userId: tokenUserId,
+            jti: uuidv4(),
+          }),
           expiresAt: refreshExpiry,
           client: { connect: { id: clientId } },
-          owner: { connect: { id: ownerId } },
+          owner: { connect: { id: tokenUserId } },
         },
       }),
     ]);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   }
 
   async getAccessTokenClient(accessToken: string) {

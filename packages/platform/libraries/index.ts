@@ -4,6 +4,10 @@ import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
+import {
+  verifyPhoneNumber,
+  sendVerificationCode,
+} from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
@@ -18,10 +22,10 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
-export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
+
+export type { EventBusyDate } from "@calcom/types/Calendar";
 
 export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
@@ -38,15 +42,10 @@ export { handleCreatePhoneCall };
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
-export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 
 export { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 
-export type {
-  BookingCreateBody,
-  BookingResponse,
-  RecurringBookingCreateBody,
-} from "@calcom/features/bookings/types";
+export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";
 
 export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
@@ -102,7 +101,8 @@ export { paymentDataSelect };
 export { getClientSecretFromPayment };
 
 export { confirmHandler as confirmBookingHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
-
+export { groupMembershipAttributes } from "@calcom/trpc/server/routers/viewer/attributes/getByUserId.handler";
+export type { GroupedAttribute } from "@calcom/trpc/server/routers/viewer/attributes/getByUserId.handler";
 export { getBookingFieldsWithSystemFields };
 
 export { getRoutedUrl };
@@ -113,4 +113,9 @@ export { SelectedCalendarRepository } from "@calcom/lib/server/repository/select
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
 export { getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";
+
+export { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/trpc/server/routers/viewer/attributes/findTeamMembersMatchingAttributeLogic.schema";
 export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+
+export { verifyPhoneNumber, sendVerificationCode };

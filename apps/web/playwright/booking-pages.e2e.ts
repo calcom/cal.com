@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
@@ -246,9 +247,13 @@ test.describe("pro user", () => {
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
     await expect(cancelledHeadline).toBeVisible();
     const bookingCancelledId = new URL(page.url()).pathname.split("/booking/")[1];
+
+    const { slug: eventSlug } = await pro.getFirstEventAsOwner();
+
     await page.goto(`/reschedule/${bookingCancelledId}`);
-    // Should be redirected to the booking details page which shows the cancelled headline
-    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+
+    expect(page.url()).not.toContain("rescheduleUid");
+    await expect(cancelledHeadline).toBeVisible();
   });
 
   test("can book an event that requires confirmation and then that booking can be accepted by organizer", async ({
@@ -283,7 +288,10 @@ test.describe("pro user", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
-  test("cannot book an unconfirmed event multiple times with the same email", async ({ page, users }) => {
+  test("booking an unconfirmed event with the same email brings you to the original request", async ({
+    page,
+    users,
+  }) => {
     await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
     await selectFirstAvailableTimeSlotNextMonth(page);
 
@@ -293,8 +301,8 @@ test.describe("pro user", () => {
     // go back to the booking page to re-book.
     await page.goto(pageUrl);
 
-    await bookTimeSlot(page, { expectedStatusCode: 409 });
-    await expect(page.getByText("Could not book the meeting.")).toBeVisible();
+    await bookTimeSlot(page);
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
   test("can book with multiple guests", async ({ page, users }) => {
@@ -652,5 +660,98 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     expect(response.status()).toBe(400);
     const responseBody = await response.json();
     expect(responseBody.message).toBe("This event type does not allow cancellations");
+  });
+});
+test("Should throw error when both seatsPerTimeSlot and recurringEvent are set", async ({ page, users }) => {
+  const user = await users.create({
+    name: `Test-user-${randomString(4)}`,
+    eventTypes: [
+      {
+        title: "Seats With Recurrence",
+        slug: "seats-with-recurrence",
+        length: 30,
+        seatsPerTimeSlot: 3,
+        recurringEvent: {
+          freq: 1,
+          count: 4,
+          interval: 1,
+        },
+      },
+    ],
+  });
+
+  // Way to book the event
+  await page.goto(`/${user.username}/seats-with-recurrence`);
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  await page.locator('[name="name"]').fill("Test name");
+  await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+
+  page.locator("[data-testid=confirm-book-button]").click();
+
+  // Expect an error message to be displayed
+  const alertError = page.locator("[data-testid=booking-fail]");
+  await expect(alertError).toBeVisible();
+  await expect(alertError).toContainText(
+    "Could not book the meeting. Recurring event doesn't support seats feature. Disable seats feature or make the event non-recurring."
+  );
+});
+
+test.describe("GTM container", () => {
+  test.beforeEach(async ({ page, users }) => {
+    await users.create();
+  });
+
+  test("global GTM should not be loaded on private booking link", async ({ page, users, emails, prisma }) => {
+    const [user] = users.get();
+    const eventType = await user.getFirstEventAsOwner();
+
+    const eventWithPrivateLink = await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        hashedLink: {
+          create: [
+            {
+              link: generateHashedLink(eventType.id),
+            },
+          ],
+        },
+      },
+      include: {
+        hashedLink: true,
+      },
+    });
+
+    const getScheduleRespPromise = page.waitForResponse(
+      (response) => response.url().includes("getSchedule") && response.status() === 200
+    );
+    await page.goto(`/d/${eventWithPrivateLink.hashedLink[0]?.link}/${eventWithPrivateLink.slug}`);
+    await page.waitForLoadState("domcontentloaded");
+    await getScheduleRespPromise;
+
+    const injectedScript = page.locator('script[id="injected-body-script"]');
+    await expect(injectedScript).not.toBeAttached();
+  });
+
+  test("global GTM should be loaded on non-booking pages", async ({ page, users }) => {
+    test.skip(!process.env.NEXT_PUBLIC_BODY_SCRIPTS, "Skipping test as NEXT_PUBLIC_BODY_SCRIPTS is not set");
+
+    const [user] = users.get();
+    await user.apiLogin();
+
+    // Go to /insights page and wait for one of the common API call to complete
+    const eventsByStatusRespPromise = page.waitForResponse(
+      (response) => response.url().includes("getEventTypesFromGroup") && response.status() === 200
+    );
+    await page.goto(`/insights`);
+    await page.waitForLoadState("domcontentloaded");
+    await eventsByStatusRespPromise;
+
+    const injectedScript = page.locator('script[id="injected-body-script"]');
+    await expect(injectedScript).toBeAttached();
+
+    const scriptContent = await injectedScript.textContent();
+    expect(scriptContent).toContain("googletagmanager");
   });
 });

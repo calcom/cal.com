@@ -10,9 +10,9 @@ import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAn
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
-import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -84,7 +84,7 @@ export function checkInputEmailIsValid(email: string) {
 }
 
 export async function getTeamOrThrow(teamId: number) {
-  const team = await prisma.team.findFirst({
+  const team = await prisma.team.findUnique({
     where: {
       id: teamId,
     },
@@ -376,6 +376,7 @@ export async function createNewUsersConnectToOrgIfExists({
         if (parentId) {
           await tx.membership.create({
             data: {
+              createdAt: new Date(),
               teamId: parentId,
               userId: createdUser.id,
               role: MembershipRole.MEMBER,
@@ -413,8 +414,10 @@ export async function createMemberships({
       data: invitees.flatMap((invitee) => {
         const organizationRole = invitee?.teams?.[0]?.role;
         const data = [];
+        const createdAt = new Date();
         // membership for the team
         data.push({
+          createdAt,
           teamId,
           userId: invitee.id,
           accepted,
@@ -424,6 +427,7 @@ export async function createMemberships({
         // membership for the org
         if (parentId && invitee.needToCreateOrgMembership) {
           data.push({
+            createdAt,
             accepted,
             teamId: parentId,
             userId: invitee.id,
@@ -457,35 +461,46 @@ export async function sendSignupToOrganizationEmail({
   teamId: number;
   isOrg: boolean;
 }) {
-  const token: string = randomBytes(32).toString("hex");
+  try {
+    const token: string = randomBytes(32).toString("hex");
 
-  await prisma.verificationToken.create({
-    data: {
-      identifier: usernameOrEmail,
-      token,
-      expires: new Date(new Date().setHours(168)), // +1 week
-      team: {
-        connect: {
-          id: teamId,
+    await prisma.verificationToken.create({
+      data: {
+        identifier: usernameOrEmail,
+        token,
+        expires: new Date(new Date().setHours(168)), // +1 week
+        team: {
+          connect: {
+            id: teamId,
+          },
         },
       },
-    },
-  });
-  await sendTeamInviteEmail({
-    language: translation,
-    from: inviterName || `${team.name}'s admin`,
-    to: usernameOrEmail,
-    teamName: team.name,
-    joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
-    isCalcomMember: false,
-    isOrg: isOrg,
-    parentTeamName: team?.parent?.name,
-    isAutoJoin: false,
-    isExistingUserMovedToOrg: false,
-    // For a new user there is no prev and new links.
-    prevLink: null,
-    newLink: null,
-  });
+    });
+    await sendTeamInviteEmail({
+      language: translation,
+      from: inviterName || `${team.name}'s admin`,
+      to: usernameOrEmail,
+      teamName: team.name,
+      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
+      isCalcomMember: false,
+      isOrg: isOrg,
+      parentTeamName: team?.parent?.name,
+      isAutoJoin: false,
+      isExistingUserMovedToOrg: false,
+      // For a new user there is no prev and new links.
+      prevLink: null,
+      newLink: null,
+    });
+  } catch (error) {
+    logger.error(
+      "Failed to send signup to organization email",
+      safeStringify({
+        usernameOrEmail,
+        orgId: teamId,
+      }),
+      error
+    );
+  }
 }
 
 type TeamAndOrganizationSettings = Team & {
@@ -855,6 +870,7 @@ export async function handleExistingUsersInvites({
 
         await prisma.membership.create({
           data: {
+            createdAt: new Date(),
             userId: user.id,
             teamId: team.id,
             accepted: shouldAutoAccept,

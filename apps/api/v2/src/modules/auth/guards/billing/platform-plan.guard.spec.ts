@@ -104,13 +104,6 @@ describe("PlatformPlanGuard", () => {
     await expect(guard.canActivate(mockContext)).resolves.toBe(true);
   });
 
-  it("should throw ForbiddenException if the result is cached as false in Redis", async () => {
-    jest.spyOn(reflector, "get").mockReturnValue("ESSENTIALS");
-    jest.spyOn(redisService.redis, "get").mockResolvedValue(JSON.stringify(false));
-
-    await expect(guard.canActivate(mockContext)).rejects.toThrow(ForbiddenException);
-  });
-
   function createMockExecutionContext(context: Record<string, string | object>): ExecutionContext {
     return createMock<ExecutionContext>({
       switchToHttp: () => ({

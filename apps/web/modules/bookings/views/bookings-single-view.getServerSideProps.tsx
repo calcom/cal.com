@@ -5,13 +5,14 @@ import { z } from "zod";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
-import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -82,6 +83,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     rescheduledToUid = rescheduledTo?.uid ?? null;
   }
 
+  let previousBooking: {
+    rescheduledBy: string | null;
+    uid: string;
+  } | null = null;
+
+  if (bookingInfo.fromReschedule) {
+    previousBooking = await BookingRepository.findReschedulerByUid({
+      uid: bookingInfo.fromReschedule,
+    });
+  }
+
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
     : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
@@ -118,9 +130,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ...eventTypeRaw,
     periodStartDate: eventTypeRaw.periodStartDate?.toString() ?? null,
     periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
-    metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
+    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
+    hideOrganizerEmail: eventTypeRaw.hideOrganizerEmail,
     bookingFields: eventTypeRaw.bookingFields.map((field) => {
       return {
         ...field,
@@ -139,28 +152,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
-
-  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
-    await handleSeatsEventTypeOnBooking(
-      eventType,
-      bookingInfo,
-      seatReferenceUid,
-      session?.user.id === eventType.userId
-    );
-  }
-
-  const payment = await prisma.payment.findFirst({
-    where: {
-      bookingId: bookingInfo.id,
-    },
-    select: {
-      success: true,
-      refunded: true,
-      currency: true,
-      amount: true,
-      paymentOption: true,
-    },
-  });
 
   const userId = session?.user?.id;
 
@@ -181,6 +172,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
+
+  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
+    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
+  }
+
+  const payment = await prisma.payment.findFirst({
+    where: {
+      bookingId: bookingInfo.id,
+    },
+    select: {
+      success: true,
+      refunded: true,
+      currency: true,
+      amount: true,
+      paymentOption: true,
+    },
+  });
 
   if (!isLoggedInUserHost) {
     // Removing hidden fields from responses
@@ -210,16 +218,30 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
 
+  // Filter out organizer information if hideOrganizerEmail is true
+  const sanitizedPreviousBooking =
+    eventType.hideOrganizerEmail &&
+    previousBooking &&
+    previousBooking.rescheduledBy === bookingInfo.user?.email
+      ? { ...previousBooking, rescheduledBy: bookingInfo.user?.name }
+      : previousBooking;
+
   return {
     props: {
       orgSlug: currentOrgDomain,
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
-      hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
+      hideBranding: await shouldHideBrandingForEvent({
+        eventTypeId: eventType.id,
+        team: eventType.team,
+        owner: eventType.users[0] ?? null,
+        organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
+      }),
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
+      previousBooking: sanitizedPreviousBooking,
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,

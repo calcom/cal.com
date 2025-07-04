@@ -95,10 +95,12 @@ export type EventAdvancedTabCustomClassNames = {
     seatsInput: InputClassNames;
   };
   timezoneLock?: SettingsToggleClassNames;
+  hideOrganizerEmail?: SettingsToggleClassNames;
   eventTypeColors?: SettingsToggleClassNames & {
     warningText?: string;
   };
   roundRobinReschedule?: SettingsToggleClassNames;
+  customReplyToEmail?: SettingsToggleClassNames;
   emailNotifications?: EmailNotificationToggleCustomClassNames;
 };
 
@@ -115,11 +117,12 @@ export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "te
 
 export type EventAdvancedTabProps = EventAdvancedBaseProps & {
   calendarsQuery: {
-    data?: RouterOutputs["viewer"]["connectedCalendars"];
+    data?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
     isPending: boolean;
     error: unknown;
   };
   showBookerLayoutSelector: boolean;
+  verifiedEmails?: string[];
 };
 
 type CalendarSettingsProps = {
@@ -399,6 +402,7 @@ export const EventAdvancedTab = ({
   showToast,
   showBookerLayoutSelector,
   customClassNames,
+  verifiedEmails,
 }: EventAdvancedTabProps) => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
@@ -444,6 +448,8 @@ export const EventAdvancedTab = ({
     formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
 
+  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+
   const isRoundRobinEventType =
     eventType.schedulingType && eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
@@ -487,9 +493,14 @@ export const EventAdvancedTab = ({
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
+  const hideOrganizerEmailLocked = shouldLockDisableProps("hideOrganizerEmail");
+  const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
   const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
+  const allowReschedulingCancelledBookingsLocked = shouldLockDisableProps(
+    "allowReschedulingCancelledBookings"
+  );
 
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
@@ -501,9 +512,15 @@ export const EventAdvancedTab = ({
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
 
+  const [allowReschedulingCancelledBookings, setallowReschedulingCancelledBookings] = useState(
+    eventType.allowReschedulingCancelledBookings ?? false
+  );
+
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
+
+  const customReplyToEmail = formMethods.watch("customReplyToEmail");
 
   const [eventTypeColorState, setEventTypeColorState] = useState(
     eventType.eventTypeColor || {
@@ -559,27 +576,39 @@ export const EventAdvancedTab = ({
           isUserLoading={isUserLoading}
         />
       )}
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <FormBuilder
-          title={t("booking_questions_title")}
-          description={t("booking_questions_description")}
-          addFieldLabel={t("add_a_booking_question")}
-          formProp="bookingFields"
-          {...shouldLockDisableProps("bookingFields")}
-          dataStore={{
-            options: {
-              locations: {
-                // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
-                source: { label: "Location" },
-                value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+
+      <div className="border-subtle bg-muted rounded-lg border p-1">
+        <div className="p-5">
+          <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
+            {t("booking_questions_title")}
+          </div>
+          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+            {t("booking_questions_description")}
+          </p>
+        </div>
+        <div className="border-subtle bg-default rounded-lg border p-5">
+          <FormBuilder
+            showPhoneAndEmailToggle
+            title={t("confirmation")}
+            description={t("what_booker_should_provide")}
+            addFieldLabel={t("add_a_booking_question")}
+            formProp="bookingFields"
+            {...shouldLockDisableProps("bookingFields")}
+            dataStore={{
+              options: {
+                locations: {
+                  // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
+                  source: { label: "Location" },
+                  value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+                },
               },
-            },
-          }}
-          shouldConsiderRequired={(field: BookingField) => {
-            // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
-            return field.name === "location" ? true : field.required;
-          }}
-        />
+            }}
+            shouldConsiderRequired={(field: BookingField) => {
+              // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
+              return field.name === "location" ? true : field.required;
+            }}
+          />
+        </div>
       </div>
       <RequiresConfirmationController
         eventType={eventType}
@@ -853,12 +882,14 @@ export const EventAdvancedTab = ({
               {...seatsLocked}
               description={t("offer_seats_description")}
               checked={value}
-              disabled={noShowFeeEnabled || multiLocation}
+              disabled={noShowFeeEnabled || multiLocation || (!seatsEnabled && isRecurringEvent)}
               tooltip={
                 multiLocation
                   ? t("multilocation_doesnt_support_seats")
                   : noShowFeeEnabled
                   ? t("no_show_fee_doesnt_support_seats")
+                  : isRecurringEvent
+                  ? t("recurring_event_doesnt_support_seats")
                   : undefined
               }
               onCheckedChange={(e) => {
@@ -891,6 +922,8 @@ export const EventAdvancedTab = ({
                         disabled={seatsLocked.disabled}
                         //For old events if value > MAX_SEATS_PER_TIME_SLOT
                         value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : value ?? 1}
+                        step={1}
+                        placeholder="1"
                         min={1}
                         max={MAX_SEATS_PER_TIME_SLOT}
                         containerClassName={classNames(
@@ -902,8 +935,7 @@ export const EventAdvancedTab = ({
                         labelClassName={customClassNames?.seatsOptions?.seatsInput?.label}
                         addOnSuffix={t("seats")}
                         onChange={(e) => {
-                          let enteredValue = Number(e.target.value);
-                          if (enteredValue < 1) enteredValue = 1;
+                          const enteredValue = parseInt(e.target.value);
                           onChange(Math.min(enteredValue, MAX_SEATS_PER_TIME_SLOT));
                         }}
                         data-testid="seats-per-time-slot"
@@ -963,6 +995,26 @@ export const EventAdvancedTab = ({
         )}
       />
       <Controller
+        name="hideOrganizerEmail"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName={classNames("text-sm", customClassNames?.hideOrganizerEmail?.label)}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassNames?.hideOrganizerEmail?.container
+            )}
+            title={t("hide_organizer_email")}
+            {...hideOrganizerEmailLocked}
+            description={t("hide_organizer_email_description")}
+            descriptionClassName={customClassNames?.hideOrganizerEmail?.description}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+            data-testid="hide-organizer-email"
+          />
+        )}
+      />
+      <Controller
         name="lockTimeZoneToggleOnBookingPage"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
@@ -997,6 +1049,72 @@ export const EventAdvancedTab = ({
           />
         )}
       />
+
+      <Controller
+        name="allowReschedulingCancelledBookings"
+        render={({ field: { onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("allow_rescheduling_cancelled_bookings")}
+            data-testid="allow-rescheduling-cancelled-bookings-toggle"
+            {...allowReschedulingCancelledBookingsLocked}
+            description={t("description_allow_rescheduling_cancelled_bookings")}
+            checked={allowReschedulingCancelledBookings}
+            onCheckedChange={(val) => {
+              setallowReschedulingCancelledBookings(val);
+              onChange(val);
+            }}
+          />
+        )}
+      />
+      {!isPlatform && (
+        <>
+          <Controller
+            name="customReplyToEmail"
+            render={({ field: { value, onChange } }) => (
+              <>
+                <SettingsToggle
+                  labelClassName={classNames("text-sm", customClassNames?.customReplyToEmail?.label)}
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName={classNames(
+                    "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                    !!value && "rounded-b-none",
+                    customClassNames?.customReplyToEmail?.container
+                  )}
+                  descriptionClassName={customClassNames?.customReplyToEmail?.description}
+                  childrenClassName={classNames("lg:ml-0", customClassNames?.customReplyToEmail?.children)}
+                  title={t("custom_reply_to_email_title")}
+                  {...customReplyToEmailLocked}
+                  data-testid="custom-reply-to-email"
+                  description={t("custom_reply_to_email_description")}
+                  checked={!!customReplyToEmail}
+                  onCheckedChange={(e) => {
+                    onChange(
+                      e
+                        ? customReplyToEmail || eventType.customReplyToEmail || verifiedEmails?.[0] || null
+                        : null
+                    );
+                  }}>
+                  <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                    <SelectField
+                      className="w-full"
+                      label={t("custom_reply_to_email_title")}
+                      required={!!customReplyToEmail}
+                      placeholder={t("select_verified_email")}
+                      data-testid="custom-reply-to-email-input"
+                      value={value ? { label: value, value } : undefined}
+                      onChange={(option) => onChange(option?.value || null)}
+                      options={verifiedEmails?.map((email) => ({ label: email, value: email })) || []}
+                    />
+                  </div>
+                </SettingsToggle>
+              </>
+            )}
+          />
+        </>
+      )}
       <Controller
         name="eventTypeColor"
         render={() => (
