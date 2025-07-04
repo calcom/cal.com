@@ -1,16 +1,18 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
 
-async function getHandler() {
+async function getHandler(request: NextRequest) {
   const headersList = await headers();
-  const userIp = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
+  const ip = getIP(request);
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "common",
-    identifier: `geolocation-${userIp}`,
+    identifier: `geolocation-${ip}`,
   });
 
   const country = headersList.get("x-vercel-ip-country") || "Unknown";
