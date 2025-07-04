@@ -24,7 +24,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
   setupAndTeardown();
 
   test(
-    "should throw NoAvailableUsersFound when Round Robin event has Round Robin hosts assigned but none available",
+    "should throw NoAvailableUsersFound when Round Robin event has fixed hosts and Round Robin hosts assigned but no Round Robin hosts available",
     async () => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
