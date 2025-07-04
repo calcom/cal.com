@@ -78,6 +78,7 @@ export async function getConnectedApps({
             accepted: true,
           },
         },
+        ...(teamId ? { id: teamId } : {}),
       },
       select: {
         id: true,
@@ -114,6 +115,7 @@ export async function getConnectedApps({
         },
       },
     });
+
     // If a team is a part of an org then include those apps
     // Don't want to iterate over these parent teams
     const filteredTeams: TeamQuery[] = [];
