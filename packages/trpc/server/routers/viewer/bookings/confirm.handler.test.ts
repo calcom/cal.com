@@ -8,6 +8,7 @@ import {
 
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
+import * as handleConfirmationModule from "@calcom/features/bookings/lib/handleConfirmation";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -107,8 +108,10 @@ describe("confirmHandler", () => {
     expect(res?.status).toBe(BookingStatus.ACCEPTED);
   });
 
-  it("should successfully confirm booking with hideCalendarNotes enabled", async () => {
+  it("should pass hideCalendarNotes property to CalendarEvent when enabled", async () => {
     vi.setSystemTime("2050-01-07T00:00:00Z");
+
+    const handleConfirmationSpy = vi.spyOn(handleConfirmationModule, "handleConfirmation");
 
     const attendeeUser = getOrganizer({
       email: "test@example.com",
@@ -138,6 +141,7 @@ describe("confirmHandler", () => {
             length: 15,
             locations: [],
             hideCalendarNotes: true,
+            hideCalendarEventDetails: true,
             requiresConfirmation: true,
             users: [
               {
@@ -185,5 +189,12 @@ describe("confirmHandler", () => {
     });
 
     expect(res?.status).toBe(BookingStatus.ACCEPTED);
+    expect(handleConfirmationSpy).toHaveBeenCalledTimes(1);
+
+    const handleConfirmationCall = handleConfirmationSpy.mock.calls[0][0];
+    const calendarEvent = handleConfirmationCall.evt;
+
+    expect(calendarEvent.hideCalendarNotes).toBe(true);
+    expect(calendarEvent.hideCalendarEventDetails).toBe(true);
   });
 });
