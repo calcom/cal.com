@@ -368,7 +368,7 @@ const TeamListCollapsible = () => {
                     )}
                   </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-0.5" id={`team-content-${team.id}`}>
+                <CollapsibleContent className="flex flex-col gap-0.5" id={`team-content-${team.id}`}>
                   {team.accepted && (
                     <VerticalTabItem
                       name={t("profile")}
@@ -485,7 +485,7 @@ const SettingsSidebarContainer = ({
     <nav
       style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
       className={classNames(
-        "no-scrollbar bg-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
+        "no-scrollbar bg-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col gap-1 overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
@@ -662,7 +662,7 @@ const SettingsSidebarContainer = ({
                                 </button>
                               </CollapsibleTrigger>
                               <CollapsibleContent
-                                className="space-y-0.5"
+                                className="flex flex-col gap-0.5"
                                 id={`other-team-content-${otherTeam.id}`}>
                                 <VerticalTabItem
                                   name={t("profile")}
@@ -707,13 +707,13 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   return (
     <>
       <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3">
           <Button StartIcon="menu" color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 
           <button
-            className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
+            className="hover:bg-emphasis flex items-center gap-2 rounded-md px-3 py-1"
             onClick={() => router.back()}>
             <Icon name="arrow-left" className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>

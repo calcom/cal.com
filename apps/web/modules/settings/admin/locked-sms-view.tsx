@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc";
-import { TextField } from "@calcom/ui/components/form";
 import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import UsersTable from "./components/UsersTable";
@@ -38,7 +38,7 @@ export default function LockedSMSView() {
 
   return (
     <div>
-      <div className="mb-4 flex w-full items-center justify-between space-x-2 rtl:space-x-reverse">
+      <div className="mb-4 flex w-full items-center justify-between gap-2">
         <div className="flex">
           <TextField
             name="Lock User"

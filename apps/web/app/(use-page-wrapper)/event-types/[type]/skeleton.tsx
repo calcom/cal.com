@@ -20,7 +20,7 @@ export const EventTypeEditPageSkeleton = () => {
       <div className="flex items-center gap-2">
         <SkeletonButton className="h-9 w-9 rounded-md" />
         <SkeletonButton className="h-9 w-9 rounded-md" />
-        <div className="flex space-x-2 rtl:space-x-reverse">
+        <div className="flex gap-2 rtl:flex-row-reverse">
           <SkeletonButton className="h-9 w-24 rounded-md" />
           <SkeletonButton className="h-9 w-24 rounded-md" />
         </div>
@@ -30,10 +30,10 @@ export const EventTypeEditPageSkeleton = () => {
 
   return (
     <Shell subtitle={<SkeletonText className="hidden h-4 w-24" />} afterHeading={backButtonSkeleton}>
-      <div className="flex flex-col xl:flex-row xl:space-x-6">
+      <div className="flex flex-col xl:flex-row xl:gap-6">
         <div className="hidden xl:block">
-          <div className="primary-navigation w-64 flex-shrink-0">
-            <div className="flex flex-col space-y-1">
+          <div className="primary-navigation w-64 shrink-0">
+            <div className="flex flex-col gap-1">
               {/* Tab navigation items */}
               {Array.from({ length: 8 }).map((_, index) => (
                 <div
@@ -58,14 +58,14 @@ export const EventTypeEditPageSkeleton = () => {
                 <SkeletonText className="h-8 w-full max-w-md" />
               </div>
 
-              <div className="mb-6 space-y-6">
+              <div className="mb-6 flex flex-col gap-6">
                 {/* Form fields */}
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col gap-2">
                   <SkeletonText className="h-4 w-32" />
                   <SkeletonText className="h-10 w-full" />
                 </div>
 
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col gap-2">
                   <SkeletonText className="h-4 w-40" />
                   <div className="flex items-center">
                     <SkeletonText className="h-10 w-full" />
@@ -73,12 +73,12 @@ export const EventTypeEditPageSkeleton = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col gap-2">
                   <SkeletonText className="h-4 w-36" />
                   <SkeletonText className="h-24 w-full" />
                 </div>
 
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col gap-2">
                   <SkeletonText className="h-4 w-28" />
                   <div className="flex items-center">
                     <SkeletonText className="h-10 w-full" />
@@ -86,13 +86,13 @@ export const EventTypeEditPageSkeleton = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col gap-2">
                   <SkeletonText className="h-4 w-32" />
                   <SkeletonText className="h-10 w-full" />
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end gap-2">
                 <SkeletonButton className="h-10 w-24 rounded-md" />
                 <SkeletonButton className="h-10 w-24 rounded-md" />
               </div>

@@ -71,7 +71,7 @@ const UserSettings = (props: IUserSettingsProps) => {
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         {/* Username textfield: when not coming from signup */}
         {!props.hideUsername && <UsernameAvailabilityField />}
 

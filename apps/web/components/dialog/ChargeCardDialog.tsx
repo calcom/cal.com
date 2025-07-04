@@ -41,8 +41,8 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent>
-        <div className="flex flex-row space-x-3">
-          <div className=" bg-subtle flex h-10 w-10 flex-shrink-0 justify-center rounded-full">
+        <div className="flex flex-row gap-3">
+          <div className=" bg-subtle flex h-10 w-10 shrink-0 justify-center rounded-full">
             <Icon name="credit-card" className="m-auto h-6 w-6" />
           </div>
           <div className="pt-1">

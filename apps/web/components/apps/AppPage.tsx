@@ -230,10 +230,10 @@ export const AppPage = ({
     );
 
     return (
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center gap-3">
         {isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
-            <div className="flex space-x-3">
+            <div className="flex gap-3">
               <Button StartIcon="check" color="secondary" disabled>
                 {existingCredentials.length > 0
                   ? t("active_install", { count: existingCredentials.length })

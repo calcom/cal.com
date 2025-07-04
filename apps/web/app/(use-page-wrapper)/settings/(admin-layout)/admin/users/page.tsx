@@ -20,7 +20,7 @@ const Page = async () => {
       title={t("users")}
       description={t("admin_users_description")}
       CTA={
-        <div className="mt-4 space-x-5 sm:ml-16 sm:mt-0 sm:flex-none">
+        <div className="mt-4 flex gap-5 sm:ml-16 sm:mt-0 sm:flex-none">
           {/* TODO: Add import users functionality */}
           {/* <Button disabled>Import users</Button> */}
           <Button href="/settings/admin/users/add">Add user</Button>

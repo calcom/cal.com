@@ -235,7 +235,7 @@ export const ReassignDialog = ({
                           "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring focus:ring-2",
                           watchedTeamMemberId === member.value && "bg-subtle"
                         )}>
-                        <div className="flex flex-1 items-center space-x-3">
+                        <div className="flex flex-1 items-center gap-3">
                           <input
                             type="radio"
                             className="hidden"
@@ -244,7 +244,7 @@ export const ReassignDialog = ({
                           />
                           <div
                             className={classNames(
-                              "h-3 w-3 flex-shrink-0 rounded-full",
+                              "h-3 w-3 shrink-0 rounded-full",
                               member.status === "unavailable" ? "bg-red-500" : "bg-green-500"
                             )}
                           />

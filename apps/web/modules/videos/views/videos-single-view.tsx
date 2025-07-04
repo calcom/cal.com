@@ -239,7 +239,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
         description={t("choose_how_you_d_like_to_join_call")}
         className="bg-black text-white sm:max-w-[480px]">
         <div className="pb-8">
-          <div className="space-y-8">
+          <div className="flex flex-col gap-8">
             <Button color="primary" className="mt-4 w-full justify-center " onClick={() => setOpen(false)}>
               {t("continue_as_guest")}
             </Button>
@@ -254,7 +254,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <h4 className="text-lg font-semibold text-white">{t("sign_in_to_cal_com")}</h4>
               <p className="text-sm text-gray-300">{t("track_your_meetings")}</p>
               <Button

@@ -199,7 +199,7 @@ PageProps & WithNonceProps<{}>) {
         <FormProvider {...methods}>
           {!twoFactorRequired && (
             <>
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 {isGoogleLoginEnabled && (
                   <Button
                     color="primary"
@@ -245,8 +245,8 @@ PageProps & WithNonceProps<{}>) {
             <div>
               <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
             </div>
-            <div className="space-y-6">
-              <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
+            <div className="flex flex-col gap-6">
+              <div className={classNames("flex flex-col gap-6", { hidden: twoFactorRequired })}>
                 <EmailField
                   id="email"
                   label={t("email_address")}

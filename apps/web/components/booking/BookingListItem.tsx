@@ -725,7 +725,7 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
             </Link>
           </div>
-          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
+          <div className="flex w-full flex-col flex-wrap items-end justify-end gap-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:gap-2 sm:pl-0">
             {isUpcoming && !isCancelled ? (
               <>
                 {isPending && <TableActions actions={pendingActions} />}
@@ -1243,7 +1243,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <div className="flex justify-end space-x-2 p-2 ">
+        <div className="flex justify-end gap-2 p-2 ">
           <Link href={`mailto:${selectedEmail}`}>
             <Button
               color="secondary"

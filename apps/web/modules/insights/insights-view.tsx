@@ -66,7 +66,7 @@ function InsightsPageContent() {
         <TimezoneBadge />
       </div>
 
-      <div className="my-4 space-y-4">
+      <div className="my-4 flex flex-col gap-4">
         <BookingKPICards />
 
         <BookingStatusLineChart />

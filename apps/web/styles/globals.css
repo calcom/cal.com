@@ -333,16 +333,14 @@ html.todesktop.dark {
     https://github.com/tailwindlabs/tailwindcss/discussions/2394
     https://github.com/tailwindlabs/tailwindcss/pull/5732
 */
-@layer utilities {
+@utility no-scrollbar {
   /* Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     display: none;
   }
 
-  .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /*
@@ -370,10 +368,8 @@ select:focus {
   border-color: var(--brand-color);
 }
 
-@layer components {
-  .scroll-bar {
-    @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
-  }
+@utility scroll-bar {
+  @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
 }
 
 /* TODO: avoid global specific css */
@@ -381,29 +377,26 @@ select:focus {
   transform: translateX(16px);
 } */
 
-@layer components {
-  /* slider */
-  .slider {
-    @apply relative flex h-4 w-40 select-none items-center;
-  }
+@utility slider {
+  @apply relative flex h-4 w-40 select-none items-center;
 
-  .slider > .slider-track {
+  & > .slider-track {
     @apply relative h-1 flex-grow rounded-md bg-gray-400;
   }
 
-  .slider .slider-range {
+  & .slider-range {
     @apply absolute h-full rounded-full bg-gray-700;
   }
 
-  .slider .slider-thumb {
+  & .slider-thumb {
     @apply block h-3 w-3 cursor-pointer rounded-full bg-gray-700 transition-all;
   }
 
-  .slider .slider-thumb:hover {
+  & .slider-thumb:hover {
     @apply bg-gray-600;
   }
 
-  .slider .slider-thumb:focus {
+  & .slider-thumb:focus {
     box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2);
   }
 }
@@ -526,11 +519,9 @@ select:focus {
   color: white !important;
 }
 
-@layer utilities {
-  .transition-max-width {
-    -webkit-transition-property: max-width;
-    transition-property: max-width;
-  }
+@utility transition-max-width {
+  -webkit-transition-property: max-width;
+  transition-property: max-width;
 }
 
 #timeZone input:focus {

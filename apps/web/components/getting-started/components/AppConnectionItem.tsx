@@ -43,12 +43,12 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
 
   return (
     <div className="flex flex-row items-center justify-between p-5">
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center gap-3">
         <img src={logo} alt={title} className="h-8 w-8" />
         <p className="text-sm font-bold">{title}</p>
         {isDefault && <Badge variant="green">{t("default")}</Badge>}
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center gap-2">
         <InstallAppButtonWithoutPlanCheck
           type={type}
           options={{
@@ -74,7 +74,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
               loading={isInstalling || buttonProps?.loading}
               tooltip={
                 dependency ? (
-                  <div className="items-start space-x-2.5">
+                  <div className="items-start gap-2.5">
                     <div className="flex items-start">
                       <div>
                         <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />

@@ -138,7 +138,7 @@ const EventTypeGroup = ({
     keyName: "fieldId",
   });
   return (
-    <div className="ml-2 flex flex-col space-y-6">
+    <div className="ml-2 flex flex-col gap-6">
       {fields.map(
         (field, index) =>
           field.selected && (
