@@ -3207,5 +3207,6 @@
   "available_credits": "Kreditu erabilgarriak",
   "members_affected_by_disabling_delegation_credential": "Eragindako kideak",
   "no_members_affected_by_disabling_delegation_credential": "Ez dago kiderik delegazio kredentzialak desgaitzeak eraginda",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Erreserba iraungita"
 }

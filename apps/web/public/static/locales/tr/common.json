@@ -3208,5 +3208,6 @@
   "available_credits": "Kullanılabilir krediler",
   "members_affected_by_disabling_delegation_credential": "Etkilenen üyeler",
   "no_members_affected_by_disabling_delegation_credential": "Yetkilendirme kimlik bilgisinin devre dışı bırakılmasından etkilenen üye yok",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Rezervasyon süresi doldu"
 }

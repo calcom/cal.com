@@ -3207,5 +3207,6 @@
   "available_credits": "ក្រេឌីតដែលមាន",
   "members_affected_by_disabling_delegation_credential": "សមាជិកដែលរងផលប៉ះពាល់",
   "no_members_affected_by_disabling_delegation_credential": "គ្មានសមាជិកណាម្នាក់រងផលប៉ះពាល់ដោយការបិទលិខិតប្រគល់សិទ្ធិទេ",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "ការកក់បានផុតកំណត់"
 }
