@@ -760,19 +760,18 @@ async function handler(
           luckyUsers.push(newLuckyUser);
         }
       }
+
       // For Round Robin events with both fixed and Round Robin hosts, ensure at least one Round Robin host is available
-      if (
-        eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-        fixedUserPool.length > 0 &&
-        luckyUserPool.length > 0 &&
-        luckyUsers.length === 0
-      ) {
-        throw new Error(ErrorCode.NoAvailableUsersFound);
-      }
       // ALL fixed users must be available
-      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
+
+      if (fixedUserPool.length !== fixedUsers.length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
+
+      if ([...qualifiedRRUsers, ...additionalFallbackRRUsers].length > 0 && luckyUsers.length === 0) {
+        throw new Error(ErrorCode.HostsUnavailableForBooking);
+      }
+
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
       users = [...fixedUserPool, ...luckyUsers];
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
