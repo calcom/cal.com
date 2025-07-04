@@ -19,6 +19,11 @@ type DuplicateOptions = {
 };
 
 export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
+  await checkRateLimitAndThrowError({
+    identifier: `duplicate-event-type:${input.id}`,
+    rateLimitingType: "core",
+  });
+
   try {
     const {
       id: originalEventTypeId,
@@ -27,11 +32,6 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       description: newDescription,
       length: newLength,
     } = input;
-
-    await checkRateLimitAndThrowError({
-      identifier: `duplicate-event-type:${originalEventTypeId}`,
-      rateLimitingType: "core",
-    });
 
     const eventType = await prisma.eventType.findUnique({
       where: {

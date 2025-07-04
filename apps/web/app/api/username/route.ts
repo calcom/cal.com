@@ -17,14 +17,13 @@ const bodySchema = z.object({
 });
 
 async function postHandler(request: NextRequest) {
+  const userIp = getIP(request);
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "common",
+    identifier: `username-check-${userIp}`,
+  });
   try {
-    const userIp = getIP(request);
-
-    await checkRateLimitAndThrowError({
-      rateLimitingType: "common",
-      identifier: `username-check-${userIp}`,
-    });
-
     const body = await request.json();
     const { username, orgSlug } = bodySchema.parse(body);
 

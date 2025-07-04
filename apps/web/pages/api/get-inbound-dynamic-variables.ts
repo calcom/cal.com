@@ -5,8 +5,6 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { ZGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import type { TGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import getIP from "@calcom/lib/getIP";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
@@ -45,13 +43,6 @@ const getEventTypeIdFromRetellLLM = (
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const userIp = getIP(req);
-
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "common",
-    identifier: `inbound-variables-${userIp}`,
-  });
-
   const response = schema.safeParse(req.body);
 
   if (!response.success) {

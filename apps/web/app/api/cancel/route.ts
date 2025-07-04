@@ -13,6 +13,10 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function handler(req: NextRequest) {
   const ip = getIP(req);
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: `booking.cancel.${ip}`,
+  });
   let appDirRequestBody;
   try {
     appDirRequestBody = await req.json();
@@ -20,11 +24,6 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ success: false, message: "Invalid JSON" }, { status: 400 });
   }
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: session?.user?.id ? `booking.cancel.${session.user.id}` : `booking.cancel.${ip}`,
-  });
 
   const bookingData = bookingCancelInput.parse(appDirRequestBody);
   const result = await handleCancelBooking({
