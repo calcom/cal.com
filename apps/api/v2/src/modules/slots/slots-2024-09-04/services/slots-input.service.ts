@@ -16,6 +16,7 @@ import {
   ById_2024_09_04_type,
   ByUsernameAndEventTypeSlug_2024_09_04_type,
   ByTeamSlugAndEventTypeSlug_2024_09_04_type,
+  GetSlotsInputWithRouting_2024_09_04,
 } from "@calcom/platform-types";
 
 @Injectable()
@@ -46,10 +47,6 @@ export class SlotsInputService_2024_09_04 {
     const timeZone = query.timeZone;
     const orgSlug = "organizationSlug" in query ? query.organizationSlug : null;
     const rescheduleUid = query.bookingUidToReschedule || null;
-    const routedTeamMemberIds = query.routedTeamMemberIds || null;
-    const skipContactOwner = query.skipContactOwner || false;
-    const teamMemberEmail = query.teamMemberEmail || null;
-    const routingFormResponseId = query.routingFormResponseId || null;
 
     return {
       isTeamEvent,
@@ -61,6 +58,37 @@ export class SlotsInputService_2024_09_04 {
       usernameList,
       timeZone,
       orgSlug,
+      rescheduleUid,
+    };
+  }
+
+  async transformGetSlotsQueryWithRouting(query: GetSlotsInputWithRouting_2024_09_04) {
+    const eventType = await this.eventTypeRepository.getEventTypeById(query.eventTypeId)
+    if (!eventType) {
+      throw new NotFoundException(`Event Type not found`);
+    }
+    const isTeamEvent = !!eventType?.teamId;
+
+    const startTime = this.adjustStartTime(query.start);
+    const endTime = this.adjustEndTime(query.end);
+    const duration = query.duration;
+    const eventTypeId = eventType.id;
+    const eventTypeSlug = eventType.slug;
+    const timeZone = query.timeZone;
+    const rescheduleUid = query.bookingUidToReschedule || null;
+    const routedTeamMemberIds = query.routedTeamMemberIds || null;
+    const skipContactOwner = query.skipContactOwner || false;
+    const teamMemberEmail = query.teamMemberEmail || null;
+    const routingFormResponseId = query.routingFormResponseId ?? undefined;
+
+    return {
+      isTeamEvent,
+      startTime,
+      endTime,
+      duration,
+      eventTypeId,
+      eventTypeSlug,
+      timeZone,
       rescheduleUid,
       routedTeamMemberIds,
       skipContactOwner,
