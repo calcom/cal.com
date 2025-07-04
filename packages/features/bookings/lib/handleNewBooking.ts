@@ -760,8 +760,12 @@ async function handler(
           luckyUsers.push(newLuckyUser);
         }
       }
-      // For Round Robin events, ensure at least one non-fixed host is available
-      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && luckyUsers.length === 0) {
+      // For Round Robin events with Round Robin hosts assigned, ensure at least one is available
+      if (
+        eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+        luckyUserPool.length > 0 &&
+        luckyUsers.length === 0
+      ) {
         throw new Error(ErrorCode.NoAvailableUsersFound);
       }
       // ALL fixed users must be available
