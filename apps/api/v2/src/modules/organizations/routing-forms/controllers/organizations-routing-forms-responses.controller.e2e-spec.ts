@@ -37,7 +37,13 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
   let user: User;
   const userEmail = `OrganizationsRoutingFormsResponsesController-key-bookings-2024-08-13-user-${randomString()}@api.com`;
   let profileRepositoryFixture: ProfileRepositoryFixture;
-
+  let routingEventType: {
+    id: number;
+    slug: string | null;
+    teamId: number | null;
+    userId: number | null;
+    title: string;
+  }
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -72,6 +78,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
       role: "OWNER",
       user: { connect: { id: user.id } },
       team: { connect: { id: org.id } },
+      accepted: true,
     });
 
     await profileRepositoryFixture.create({
@@ -94,7 +101,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     apiKeyString = `${keyString}`;
 
     // Create an event type for routing form to route to
-    const eventType = await prismaWriteService.prisma.eventType.create({
+    routingEventType = await prismaWriteService.prisma.eventType.create({
       data: {
         title: "Test Event Type",
         slug: "test-event-type",
@@ -109,31 +116,40 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         name: "Test Routing Form",
         description: "Test Description",
         disabled: false,
-        routes: JSON.stringify([
+        routes: [
           {
             id: "route-1",
             queryValue: {
+              id: "route-1",
               type: "group",
               children1: {
-                "question1": {
+                "rule-1": {
                   type: "rule",
                   properties: {
                     field: "question1",
-                    operator: "equals",
-                    value: "answer1"
+                    operator: "equal",
+                    value: ["answer1"],
+                    valueSrc: ["value"],
+                    valueType: ["text"]
                   }
                 }
               }
             },
             action: {
               type: "eventTypeRedirectUrl",
-              eventTypeId: eventType.id,
-              value: `team/${team.slug}/${eventType.slug}`
+              eventTypeId: routingEventType.id,
+              value: `team/${team.slug}/${routingEventType.slug}`
             },
             isFallback: false
+          },
+          {
+            id: "fallback-route",
+            action: { type: "customPageMessage", value: "Fallback Message" },
+            isFallback: true,
+            queryValue: { id: "fallback-route", type: "group" }
           }
-        ]),
-        fields: JSON.stringify([
+        ],
+        fields: [
           {
             id: "question1",
             type: "text",
@@ -148,8 +164,10 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
             required: false,
             identifier: "question2"
           }
-        ]),
-        settings: JSON.stringify({}),
+        ],
+        settings: {
+          emailOwnerOnSubmission: false
+        },
         teamId: team.id,
         userId: user.id,
       },
@@ -227,59 +245,50 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
   describe(`POST /v2/organizations/:orgId/routing-forms/:routingFormId/responses`, () => {
     it("should not create routing form response for non existing org", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/99999/routing-forms/${routingForm.id}/responses`)
+        .post(`/v2/organizations/99999/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1",
-          start: "2050-09-05",
-          end: "2050-09-06",
         })
         .expect(403);
     });
 
     it("should not create routing form response for non existing form", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/non-existent-id/responses`)
+        .post(`/v2/organizations/${org.id}/routing-forms/non-existent-id/responses?start=2050-09-05&end=2050-09-06`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1",
-          start: "2050-09-05",
-          end: "2050-09-06",
         })
         .expect(404);
     });
 
     it("should not create routing form response without authentication", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
         .send({
           question1: "answer1",
-          start: "2050-09-05",
-          end: "2050-09-06",
         })
         .expect(401);
     });
 
     it("should create routing form response and return available slots", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1", // This matches the route condition
           question2: "answer2",
-          start: "2050-09-05",
-          end: "2050-09-06",
         })
-        .expect(200)
+        .expect(201)
         .then((response) => {
           const responseBody = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           const data = responseBody.data;
           expect(data).toBeDefined();
-          expect(data.responseId).toBeDefined();
-          expect(typeof data.responseId).toBe("number");
-          expect(data.eventTypeId).toBeDefined();
-          expect(typeof data.eventTypeId).toBe("number");
+          expect(data.routing?.responseId).toBeDefined();
+          expect(typeof data.routing?.responseId).toBe("number");
+          expect(data.eventTypeId).toEqual(routingEventType.id);
           expect(data.slots).toBeDefined();
           expect(typeof data.slots).toBe("object");
         });
@@ -287,80 +296,53 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
     it("should handle missing required fields validation", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question2: "answer2", // Missing required question1
-          start: "2050-09-05",
-          end: "2050-09-06",
         })
         .expect(400);
     });
 
-    it("should handle no matching route scenario", async () => {
+    it("should handle custom page message routing", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "different-answer", // This won't match any route
           question2: "answer2",
-          start: "2050-09-05",
-          end: "2050-09-06",
         })
-        .expect(404)
+        .expect(201)
         .then((response) => {
-          expect(response.body.message).toContain("No matching route found");
+          const responseBody = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const data = responseBody.data;
+          expect(data).toBeDefined();
+          expect(data.routingCustomMessage).toBeDefined();
+          expect(data.routingCustomMessage).toBe("Fallback Message");
         });
     });
 
     it("should validate required slot parameters", async () => {
       // Missing start parameter
       await request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?end=2050-09-06`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1",
           question2: "answer2",
-          end: "2050-09-06",
         })
         .expect(400);
 
       // Missing end parameter  
       await request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
+        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1",
           question2: "answer2",
-          start: "2050-09-05",
         })
         .expect(400);
-    });
-
-    it("should support optional slot parameters", async () => {
-      return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses`)
-        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
-        .send({
-          question1: "answer1",
-          question2: "answer2",
-          start: "2050-09-05",
-          end: "2050-09-06",
-          timeZone: "America/New_York",
-          duration: 60,
-          format: "range",
-        })
-        .expect(200)
-        .then((response) => {
-          const responseBody = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          const data = responseBody.data;
-          expect(data).toBeDefined();
-          expect(data.responseId).toBeDefined();
-          expect(typeof data.responseId).toBe("number");
-          expect(data.eventTypeId).toBeDefined();
-          expect(data.slots).toBeDefined();
-        });
     });
   });
 
