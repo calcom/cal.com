@@ -9,6 +9,7 @@ import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
+import { groupHostsByGroupId } from "@calcom/lib/bookings/groupHostsByGroupId";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
@@ -326,7 +327,6 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   const eventType = await getRegularOrDynamicEventType(input, orgDetails);
-
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
@@ -396,6 +396,11 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
       contactOwnerEmail,
       routingFormResponse,
     });
+
+  const rrHostGroups = groupHostsByGroupId({
+    hosts: qualifiedRRHosts,
+    hostGroups: eventType.hostGroups,
+  });
 
   const allHosts = [...qualifiedRRHosts, ...fixedHosts];
 

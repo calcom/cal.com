@@ -17,6 +17,7 @@ type Host<T> = {
   createdAt: Date;
   priority?: number | null;
   weight?: number | null;
+  groupId?: string | null;
 } & {
   user: T;
 };
@@ -81,6 +82,7 @@ const _findQualifiedHostsWithDelegationCredentials = async <
     createdAt: Date | null;
     priority?: number | null;
     weight?: number | null;
+    groupId?: string | null;
     user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
   }[];
   fixedHosts: {
@@ -88,6 +90,7 @@ const _findQualifiedHostsWithDelegationCredentials = async <
     createdAt: Date | null;
     priority?: number | null;
     weight?: number | null;
+    groupId?: string | null;
     user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
   }[];
   // all hosts we want to fallback to including the qualifiedRRHosts (fairness + crm contact owner)
@@ -96,6 +99,7 @@ const _findQualifiedHostsWithDelegationCredentials = async <
     createdAt: Date | null;
     priority?: number | null;
     weight?: number | null;
+    groupId?: string | null;
     user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
   }[];
 }> => {
