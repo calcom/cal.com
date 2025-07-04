@@ -37,6 +37,7 @@ export type TeamMember = {
   avatar: string;
   email: string;
   defaultScheduleId: number | null;
+  role: MembershipRole;
 };
 
 type EventLocation = {

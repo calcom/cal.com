@@ -68,7 +68,7 @@ export const mapMemberToChildrenOption = (
       name: member.name ?? "",
       email: member.email,
       username: member.username ?? "",
-      membership: member.membership,
+      membership: member.role,
       eventTypeSlugs: member.eventTypes ?? [],
       avatar: member.avatar,
       profile: member.profile,
@@ -605,7 +605,7 @@ export const EventTeamAssignmentTab = ({
     },
   ];
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
-    (!!eventType.team?.parentId || !!member.username) && member.membership === MembershipRole.MEMBER;
+    (!!eventType.team?.parentId || !!member.username) && member.role === MembershipRole.MEMBER;
   const teamMembersOptions = teamMembers
     .filter(pendingMembers)
     .map((member) => mapUserToValue(member, t("pending")));
