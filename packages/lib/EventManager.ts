@@ -609,8 +609,8 @@ export default class EventManager {
           );
           if (bookingCalendarReference?.uid) {
             results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
-          } else {
-            log.debug("No valid calendar reference found, creating new calendar event");
+          } else if (hasNoCalendarReferences && !changedOrganizer) {
+            console.log("No valid calendar reference found, creating new calendar event for reschedule");
             const createdCalendarEvent = await this.createAllCalendarEvents(evt);
             results.push(...createdCalendarEvent);
 
