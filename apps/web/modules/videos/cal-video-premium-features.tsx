@@ -2,8 +2,6 @@ import { useTranscription, useRecording } from "@daily-co/daily-react";
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import React, { Fragment, useCallback, useRef, useState, useLayoutEffect, useEffect } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { BUTTONS } from "./button-states";
 
 export type DailyCustomTrayButtonVisualState = "default" | "sidebar-open" | "active";
@@ -15,7 +13,7 @@ export interface DailyCustomTrayButton {
   tooltip: string;
   visualState?: DailyCustomTrayButtonVisualState;
 }
-export const CalAiTranscribe = ({
+export const CalVideoPremiumFeatures = ({
   showRecordingButton,
   enableAutomaticTranscription,
   enableAutomaticRecordingForOrganizer,
@@ -27,7 +25,6 @@ export const CalAiTranscribe = ({
   showTranscriptionButton: boolean;
 }) => {
   const daily = useDaily();
-  const { t } = useLocale();
 
   const [transcript, setTranscript] = useState("");
 
