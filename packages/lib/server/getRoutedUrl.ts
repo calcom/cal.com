@@ -129,7 +129,22 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     fieldsResponses,
   });
 
-  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  let matchingRoute;
+  try {
+    matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  } catch (e) {
+    if (e instanceof TRPCError) {
+      return {
+        props: {
+          ...pageProps,
+          form: serializableForm,
+          message: e.message,
+        },
+      };
+    }
+
+    throw e;
+  }
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
@@ -144,10 +159,10 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let crmAppSlug: string | null = null;
   let queuedFormResponseId;
   try {
-    const result = await handleResponse({
+    const result: HandleResponseResult = await handleResponse({
+      response,
       form: serializableForm,
       formFillerId: uuidv4(),
-      response: response,
       chosenRouteId: matchingRoute.id,
       isPreview: isBookingDryRun,
       queueFormResponse: shouldQueueFormResponse,
@@ -207,7 +222,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
               stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
             ),
             teamMembersMatchingAttributeLogic,
-            formResponseId: formResponseId ?? null,
+            formResponseId: formResponseId,
             queuedFormResponseId: queuedFormResponseId ?? null,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId: form?.teamId,

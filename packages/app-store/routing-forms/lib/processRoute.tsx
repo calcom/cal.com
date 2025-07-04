@@ -5,6 +5,7 @@ import type { JsonTree } from "react-awesome-query-builder";
 import type { z } from "zod";
 
 import { evaluateRaqbLogic, RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
+import { TRPCError } from "@trpc/server";
 
 import type { FormResponse, Route, SerializableForm } from "../types/types";
 import type { zodNonRouterRoute } from "../zod";
@@ -22,7 +23,16 @@ export function findMatchingRoute({
   const queryBuilderConfig = getQueryBuilderConfigForFormFields(form);
 
   const routes = form.routes || [];
+ const missingRequiredFields =
+    form.fields?.filter((field) => field.required && !field.deleted && !response[field.id]?.value) || [];
 
+  if (missingRequiredFields.length > 0) {
+    const missingFieldLabels = missingRequiredFields.map((f: { label: string }) => f.label).join(", ");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Missing required fields: ${missingFieldLabels}`,
+    });
+  }
   let chosenRoute: Route | null = null;
 
   const fallbackRoute = routes.find(isFallbackRoute);
