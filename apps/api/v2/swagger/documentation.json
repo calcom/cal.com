@@ -26842,6 +26842,11 @@
             "description": "A custom message to be displayed to the user in case of routing to a custom page.",
             "example": "This is a custom message."
           },
+          "routingExternalRedirectUrl": {
+            "type": "string",
+            "description": "The external redirect URL to be used in case of routing to a non cal.com event type URL.",
+            "example": "https://example.com/"
+          },
           "slots": {
             "oneOf": [
               {

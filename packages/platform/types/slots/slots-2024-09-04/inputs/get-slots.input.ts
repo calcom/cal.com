@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import {
   IsDateString,
@@ -92,18 +92,22 @@ export class GetAvailableSlotsInput_2024_09_04 {
 
   @IsString()
   @IsOptional()
+  @ApiHideProperty()
   teamMemberEmail?: string;
 
   @IsNumber()
   @IsOptional()
+  @ApiHideProperty()
   routingFormResponseId?: number;
 
   @IsArray()
   @IsOptional()
+  @ApiHideProperty()
   routedTeamMemberIds?: number[];
 
   @IsBoolean()
   @IsOptional()
+  @ApiHideProperty()
   skipContactOwner?: boolean;
 }
 
