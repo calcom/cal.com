@@ -36,7 +36,7 @@ export class AtomsConferencingAppsController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Version(VERSION_NEUTRAL)
-  async listTeamInstalledConferencingApps(
+  async listOrgInstalledConferencingApps(
     @GetUser() user: UserWithProfile,
     @Param("orgId", ParseIntPipe) orgId: number
   ): Promise<ApiResponse<ConnectedApps>> {
@@ -52,7 +52,7 @@ export class AtomsConferencingAppsController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Version(VERSION_NEUTRAL)
-  async listOrgInstalledConferencingApps(
+  async listTeamInstalledConferencingApps(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<ApiResponse<ConnectedApps>> {

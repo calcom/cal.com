@@ -9,6 +9,7 @@ import DisconnectIntegrationModal from "@calcom/features/apps/components/Disconn
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
+import { type RouterOutputs } from "@calcom/trpc";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui/components/button";
@@ -41,6 +42,7 @@ import {
   QUERY_KEY as defaultConferencingAppQueryKey,
 } from "./hooks/useGetDefaultConferencingApp";
 import { useUpdateUserDefaultConferencingApp } from "./hooks/useUpdateUserDefaultConferencingApp";
+import { isAppInstalled } from "./utils/isAppInstalled";
 
 type ConferencingAppSlug = typeof GOOGLE_MEET | typeof ZOOM | typeof OFFICE_365_VIDEO;
 
@@ -85,6 +87,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   const { t } = useLocale();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const shouldDisableBulkUpdates = !teamId && orgId ? false : disableBulkUpdateEventTypes;
 
   const showToast = (message: string, variant: "success" | "warning" | "error") => {
     if (!disableToasts) {
@@ -115,7 +118,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   const { data: defaultConferencingApp } = useGetDefaultConferencingApp(teamId, orgId);
   const { data: eventTypesQuery, isFetching: isEventTypesFetching } = useAtomGetEventTypes(
     teamId,
-    disableBulkUpdateEventTypes
+    shouldDisableBulkUpdates
   );
 
   const deleteCredentialMutation = useDeleteCredential({
@@ -159,7 +162,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
       onSuccess: () => {
         showToast("Default app updated successfully", "success");
         queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
-        !disableBulkUpdateEventTypes && onSuccessCallback();
+        !shouldDisableBulkUpdates && onSuccessCallback();
       },
       onError: (error) => {
         showToast(`Error: ${error.message}`, "error");
@@ -169,7 +172,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   };
 
   const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {
-    if (disableBulkUpdateEventTypes) {
+    if (shouldDisableBulkUpdates) {
       callback();
       return;
     }
@@ -205,7 +208,11 @@ export const ConferencingAppsViewPlatformWrapper = ({
     orgId,
   });
 
-  const AddConferencingButtonPlatform = ({ installedApps }: { installedApps?: Array<{ slug: string }> }) => {
+  const AddConferencingButtonPlatform = ({
+    installedApps,
+  }: {
+    installedApps?: RouterOutputs["viewer"]["apps"]["integrations"]["items"];
+  }) => {
     return (
       <Dropdown>
         <DropdownMenuTrigger asChild>
@@ -216,7 +223,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
         <DropdownMenuContent>
           {/* Show Google Meet if it's not installed and either no apps filter is provided or it's in the apps filter */}
           {installedApps &&
-            !installedApps.find((app) => app.slug === GOOGLE_MEET) &&
+            !isAppInstalled({ appSlug: GOOGLE_MEET, installedApps, orgId, teamId }) &&
             (!apps || apps.includes(GOOGLE_MEET)) && (
               <DropdownMenuItem>
                 <DropdownItem color="secondary" onClick={() => connect(GOOGLE_MEET)}>
@@ -227,7 +234,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
 
           {/* Show Zoom if it's not installed and either no apps filter is provided or it's in the apps filter */}
           {installedApps &&
-            !installedApps.find((app) => app.slug === ZOOM) &&
+            !isAppInstalled({ appSlug: ZOOM, installedApps, orgId, teamId }) &&
             (!apps || apps.includes(ZOOM)) && (
               <DropdownMenuItem>
                 <DropdownItem color="secondary" onClick={() => connect(ZOOM)}>
@@ -238,7 +245,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
 
           {/* Show Office 365 Video if it's not installed and either no apps filter is provided or it's in the apps filter */}
           {installedApps &&
-            !installedApps.find((app) => app.slug === OFFICE_365_VIDEO) &&
+            !isAppInstalled({ appSlug: OFFICE_365_VIDEO, installedApps, orgId, teamId }) &&
             (!apps || apps.includes(OFFICE_365_VIDEO)) && (
               <DropdownMenuItem>
                 <DropdownItem color="secondary" onClick={() => setIsAccountModalOpen(true)}>
