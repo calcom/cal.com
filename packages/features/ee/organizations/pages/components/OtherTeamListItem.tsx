@@ -1,10 +1,11 @@
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Dialog, DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -127,6 +128,7 @@ export default function OtherTeamListItem(props: Props) {
                           color="destructive"
                           type="button"
                           StartIcon="trash"
+                          className="rounded-t-none"
                           onClick={(e) => {
                             e.stopPropagation();
                           }}>

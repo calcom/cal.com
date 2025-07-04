@@ -9,6 +9,7 @@ export interface BillingService {
     subscriptionItemId: string;
     membershipCount: number;
   }): Promise<void>;
+  handleEndTrial(subscriptionId: string): Promise<void>;
 
   // Customer management
   createCustomer(args: {
@@ -30,6 +31,20 @@ export interface BillingService {
     quantity: number;
     metadata?: Record<string, string | number>;
     mode?: "subscription" | "setup" | "payment";
+    allowPromotionCodes?: boolean;
+    customerUpdate?: {
+      address?: "auto" | "never";
+    };
+    automaticTax?: {
+      enabled: boolean;
+    };
+    discounts?: Array<{
+      coupon: string;
+    }>;
+    subscriptionData?: {
+      metadata?: Record<string, string | number>;
+      trial_period_days?: number;
+    };
   }): Promise<{ checkoutUrl: string | null; sessionId: string }>;
 
   // Price management
@@ -41,5 +56,11 @@ export interface BillingService {
     productId: string;
     metadata?: Record<string, string | number>;
   }): Promise<{ priceId: string }>;
+  getPrice(priceId: string): Promise<Stripe.Price | null>;
   getSubscriptionStatus(subscriptionId: string): Promise<Stripe.Subscription.Status | null>;
+
+  getCheckoutSession(checkoutSessionId: string): Promise<Stripe.Checkout.Session | null>;
+  getCustomer(customerId: string): Promise<Stripe.Customer | Stripe.DeletedCustomer | null>;
+  getSubscriptions(customerId: string): Promise<Stripe.Subscription[] | null>;
+  updateCustomer(args: { customerId: string; email: string; userId?: number }): Promise<void>;
 }

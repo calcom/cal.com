@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm, Controller, useFormContext } from "react-hook-form";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
@@ -10,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Form } from "@calcom/ui/components/form";
 import { TextAreaField } from "@calcom/ui/components/form";
@@ -322,12 +323,21 @@ function DelegationCredentialList() {
     deleteMutation.mutate({ id });
   };
 
+  const [delegationToToggle, setDelegationToToggle] = useState<DelegationItemProps["delegation"] | null>(
+    null
+  );
+
   const toggleDelegation = (delegation: DelegationItemProps["delegation"]) => {
-    if (delegation) {
+    setDelegationToToggle(delegation);
+  };
+
+  const handleToggleConfirm = () => {
+    if (delegationToToggle) {
       toggleEnabledMutation.mutate({
-        id: delegation.id,
-        enabled: !delegation.enabled,
+        id: delegationToToggle.id,
+        enabled: !delegationToToggle.enabled,
       });
+      setDelegationToToggle(null);
     }
   };
 
@@ -409,7 +419,8 @@ function DelegationCredentialList() {
                 )
             )}
           </ul>
-          <AddDwDButton />
+          {/* Disable till we thoroughly test multiple delegation credentials support */}
+          {/* <AddDwDButton /> */}
         </>
       ) : (
         <EmptyScreen
@@ -437,9 +448,93 @@ function DelegationCredentialList() {
           handleCreate={handleCreate}
         />
       )}
+
+      <ToggleDelegationDialog
+        delegation={delegationToToggle}
+        onClose={() => setDelegationToToggle(null)}
+        onConfirm={handleToggleConfirm}
+      />
     </div>
   );
 }
+
+function MembersThatWillBeAffectedOnDisablingDelegationCredential({
+  delegationCredentialId,
+}: {
+  delegationCredentialId: string;
+}) {
+  const { t } = useLocale();
+  const { data: affectedMembers, isLoading: isLoadingAffectedMembers } =
+    trpc.viewer.delegationCredential.getAffectedMembersForDisable.useQuery({ id: delegationCredentialId });
+
+  return (
+    <div className="mt-4">
+      <strong>{t("members_affected_by_disabling_delegation_credential")}</strong>
+      {isLoadingAffectedMembers ? (
+        <div>{t("loading")}</div>
+      ) : affectedMembers?.length ? (
+        <>
+          <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
+            {affectedMembers.slice(0, 5).map((m) => (
+              <li className="text-muted text-sm" key={m.email}>
+                {m.name ? `${m.name} (${m.email})` : m.email}
+              </li>
+            ))}
+          </ul>
+          {affectedMembers.length > 5 && (
+            <p className="mt-2 text-sm text-gray-500">
+              {t("and_count_more", { count: affectedMembers.length - 5 })}
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="mt-2">{t("no_members_affected_by_disabling_delegation_credential")}</div>
+      )}
+    </div>
+  );
+}
+const ToggleDelegationDialog = ({
+  delegation,
+  onConfirm,
+  onClose,
+}: {
+  delegation: DelegationItemProps["delegation"] | null;
+  onConfirm: () => void;
+  onClose: () => void;
+}) => {
+  const { t } = useLocale();
+
+  if (!delegation) {
+    return null;
+  }
+
+  const isDisablingDelegation = delegation.enabled;
+
+  return (
+    <Dialog
+      name="toggle-delegation"
+      open={!!delegation}
+      onOpenChange={(open) => (!open ? onClose() : undefined)}>
+      <ConfirmationDialogContent
+        title={t(isDisablingDelegation ? "disable_delegation_credential" : "enable_delegation_credential")}
+        confirmBtnText={t(isDisablingDelegation ? "disable" : "enable")}
+        cancelBtnText={t("cancel")}
+        variety={isDisablingDelegation ? "danger" : "success"}
+        onConfirm={onConfirm}>
+        <p className="mt-5">
+          {t(
+            isDisablingDelegation
+              ? "disable_delegation_credential_description"
+              : "enable_delegation_credential_description"
+          )}
+        </p>
+        {isDisablingDelegation && (
+          <MembersThatWillBeAffectedOnDisablingDelegationCredential delegationCredentialId={delegation.id} />
+        )}
+      </ConfirmationDialogContent>
+    </Dialog>
+  );
+};
 
 export default function DelegationCredentialListPage() {
   return <DelegationCredentialList />;

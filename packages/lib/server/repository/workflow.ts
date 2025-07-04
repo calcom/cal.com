@@ -3,7 +3,6 @@ import { z } from "zod";
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import prisma from "@calcom/prisma";
@@ -21,6 +20,8 @@ export const ZGetInputSchema = z.object({
 });
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
+
+const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
 
 const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>()({
   include: {
@@ -139,36 +140,58 @@ export class WorkflowRepository {
 
     let verifiedEmails: string[] = [userEmail];
 
+    const secondaryEmails = await prisma.secondaryEmail.findMany({
+      where: {
+        userId,
+        emailVerified: {
+          not: null,
+        },
+      },
+    });
+    verifiedEmails = verifiedEmails.concat(secondaryEmails.map((secondaryEmail) => secondaryEmail.email));
     if (teamId) {
-      const team = await prisma.team.findFirst({
+      const teamMembers = await prisma.user.findMany({
         where: {
-          id: teamId,
+          teams: {
+            some: {
+              teamId,
+            },
+          },
         },
         select: {
-          members: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  email: true,
-                },
+          id: true,
+          email: true,
+          secondaryEmails: {
+            where: {
+              emailVerified: {
+                not: null,
               },
+            },
+            select: {
+              email: true,
             },
           },
         },
       });
-
-      if (!team) {
+      if (!teamMembers.length) {
         throw new Error("Team not found");
       }
 
-      const isTeamMember = team.members.some((member) => member.userId === userId);
+      const isTeamMember = teamMembers.some((member) => member.id === userId);
 
       if (!isTeamMember) {
         throw new Error("You are not a member of this team");
       }
 
-      verifiedEmails = verifiedEmails.concat(team.members.map((member) => member.user.email));
+      teamMembers.forEach((member) => {
+        if (member.id === userId) {
+          return;
+        }
+        verifiedEmails.push(member.email);
+        member.secondaryEmails.forEach((secondaryEmail) => {
+          verifiedEmails.push(secondaryEmail.email);
+        });
+      });
     }
 
     const emails = (
@@ -373,7 +396,7 @@ export class WorkflowRepository {
     const reminderMethods: {
       [x: string]: (id: number, referenceId: string | null) => void;
     } = {
-      [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id, referenceId),
+      [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id),
       [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
       [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
     };

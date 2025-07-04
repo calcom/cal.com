@@ -57,7 +57,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
-  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.username}`;
+  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
 
   const bottomNavItems = useBottomNavItems({
     publicPageUrl,
@@ -143,7 +143,9 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
 
         {!isPlatformPages && (
           <div>
-            <Tips />
+            <div className="overflow-hidden">
+              <Tips />
+            </div>
             {bottomNavItems.map((item, index) => (
               <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
                 <ButtonOrLink

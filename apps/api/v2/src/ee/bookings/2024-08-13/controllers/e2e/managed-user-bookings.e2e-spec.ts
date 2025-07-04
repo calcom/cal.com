@@ -301,8 +301,8 @@ describe("Managed user bookings 2024-08-13", () => {
         attendee: {
           name: thirdManagedUser.user.name!,
           email: thirdManagedUserEmail,
-          timeZone: secondManagedUser.user.timeZone,
-          language: secondManagedUser.user.locale,
+          timeZone: thirdManagedUser.user.timeZone,
+          language: thirdManagedUser.user.locale,
         },
         guests: [secondManagedUserEmail],
         location: "https://meet.google.com/abc-def-ghi",
@@ -418,8 +418,8 @@ describe("Managed user bookings 2024-08-13", () => {
         attendee: {
           name: thirdManagedUser.user.name!,
           email: thirdManagedUser.user.email,
-          timeZone: secondManagedUser.user.timeZone,
-          language: secondManagedUser.user.locale,
+          timeZone: thirdManagedUser.user.timeZone,
+          language: thirdManagedUser.user.locale,
         },
         guests: [secondManagedUser.user.email],
         location: "https://meet.google.com/abc-def-ghi",
@@ -474,6 +474,72 @@ describe("Managed user bookings 2024-08-13", () => {
       // @ts-ignore
       const thirdManagedUserBookings: BookingOutput_2024_08_13[] = thirdManagedUserBookingsResponseBody.data;
       expect(thirdManagedUserBookings.length).toEqual(thirdManagedUserBookingsCount);
+    });
+  });
+
+  describe("fetch bookings by attendeeEmail", () => {
+    it("should return bookings for the original email when original email is attendee only", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/v2/bookings?attendeeEmail=${thirdManagedUserEmail}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${firstManagedUser.accessToken}`)
+        .expect(200);
+
+      const thirdManagedUserAttendeeBookingsResponseBody: GetBookingsOutput_2024_08_13 = response.body;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const thirdManagedUserAttendeeBookings: BookingOutput_2024_08_13[] =
+        thirdManagedUserAttendeeBookingsResponseBody.data;
+      expect(thirdManagedUserBookingsCount).toEqual(2);
+      expect(thirdManagedUserAttendeeBookings.length).toEqual(thirdManagedUserBookingsCount);
+    });
+
+    it("should return bookings for the oAuth email when original oAuth email is attendee only", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/v2/bookings?attendeeEmail=${thirdManagedUser.user.email}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${firstManagedUser.accessToken}`)
+        .expect(200);
+
+      const thirdManagedUserAttendeeBookingsResponseBody: GetBookingsOutput_2024_08_13 = response.body;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const thirdManagedUserAttendeeBookings: BookingOutput_2024_08_13[] =
+        thirdManagedUserAttendeeBookingsResponseBody.data;
+      expect(thirdManagedUserBookingsCount).toEqual(2);
+      expect(thirdManagedUserAttendeeBookings.length).toEqual(thirdManagedUserBookingsCount);
+    });
+
+    it("should return bookings for the original email when original email is attendee or guest", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/v2/bookings?attendeeEmail=${secondManagedUserEmail}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${firstManagedUser.accessToken}`)
+        .expect(200);
+
+      const secondManagedUserAttendeeBookingsResponseBody: GetBookingsOutput_2024_08_13 = response.body;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const secondManagedUserAttendeeBookings: BookingOutput_2024_08_13[] =
+        secondManagedUserAttendeeBookingsResponseBody.data;
+      expect(secondManagedUserBookingsCount).toEqual(4);
+      expect(secondManagedUserAttendeeBookings.length).toEqual(secondManagedUserBookingsCount);
+    });
+
+    it("should return bookings for the oAuth email when original oAuth email is attendee or guest", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/v2/bookings?attendeeEmail=${secondManagedUser.user.email}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${firstManagedUser.accessToken}`)
+        .expect(200);
+
+      const secondManagedUserAttendeeBookingsResponseBody: GetBookingsOutput_2024_08_13 = response.body;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const secondManagedUserAttendeeBookings: BookingOutput_2024_08_13[] =
+        secondManagedUserAttendeeBookingsResponseBody.data;
+      expect(secondManagedUserBookingsCount).toEqual(4);
+      expect(secondManagedUserAttendeeBookings.length).toEqual(secondManagedUserBookingsCount);
     });
   });
 

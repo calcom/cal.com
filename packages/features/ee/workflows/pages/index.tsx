@@ -66,7 +66,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
   });
 
   return (
-    <Shell withoutMain withoutSeo={true}>
+    <Shell withoutMain>
       <LicenseRequired>
         <ShellMain
           heading={t("workflows")}

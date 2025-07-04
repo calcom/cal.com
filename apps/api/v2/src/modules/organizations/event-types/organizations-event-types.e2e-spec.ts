@@ -17,7 +17,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookerLayoutsInputEnum_2024_06_14,
@@ -27,6 +27,7 @@ import {
 import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
+  EventTypeOutput_2024_06_14,
   Host,
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
@@ -62,6 +63,8 @@ describe("Organizations Event Types Endpoints", () => {
     let collectiveEventType: TeamEventTypeOutput_2024_06_14;
     let managedEventType: TeamEventTypeOutput_2024_06_14;
 
+    const managedEventTypeSlug = `organizations-event-types-managed-${randomString()}`;
+
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
         userEmail,
@@ -86,11 +89,13 @@ describe("Organizations Event Types Endpoints", () => {
       teammate1 = await userRepositoryFixture.create({
         email: teammate1Email,
         username: teammate1Email,
+        name: "alice",
       });
 
       teammate2 = await userRepositoryFixture.create({
         email: teammate2Email,
         username: teammate2Email,
+        name: "bob",
       });
 
       falseTestUser = await userRepositoryFixture.create({
@@ -101,6 +106,7 @@ describe("Organizations Event Types Endpoints", () => {
       org = await organizationsRepositoryFixture.create({
         name: `organizations-event-types-organization-${randomString()}`,
         isOrganization: true,
+        slug: `organizations-event-types-organization-${randomString()}`,
       });
 
       falseTestOrg = await organizationsRepositoryFixture.create({
@@ -131,6 +137,36 @@ describe("Organizations Event Types Endpoints", () => {
         user: {
           connect: {
             id: userAdmin.id,
+          },
+        },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${teammate1.id}`,
+        username: teammate1Email,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: teammate1.id,
+          },
+        },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${teammate2.id}`,
+        username: teammate2Email,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: teammate2.id,
           },
         },
       });
@@ -306,6 +342,7 @@ describe("Organizations Event Types Endpoints", () => {
         requiresBookerEmailVerification: true,
         hideCalendarNotes: true,
         hideCalendarEventDetails: true,
+        hideOrganizerEmail: true,
         lockTimeZoneToggleOnBookingPage: true,
         color: {
           darkThemeHex: "#292929",
@@ -324,9 +361,9 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
-          expect(data.schedulingType).toEqual("COLLECTIVE");
-          evaluateHost(body.hosts[0], data.hosts[0]);
-          evaluateHost(body.hosts[1], data.hosts[1]);
+          expect(data.schedulingType).toEqual("collective");
+          evaluateHost(body.hosts?.[0] || { userId: -1 }, data.hosts[0]);
+          evaluateHost(body.hosts?.[1] || { userId: -1 }, data.hosts[1]);
           expect(data.bookingLimitsCount).toEqual(body.bookingLimitsCount);
           expect(data.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
           expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
@@ -337,6 +374,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
           expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
           expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
@@ -347,7 +385,7 @@ describe("Organizations Event Types Endpoints", () => {
     it("should create a managed team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Coding consultation managed",
-        slug: `organizations-event-types-managed-${randomString()}`,
+        slug: managedEventTypeSlug,
         description: "Our team will review your codebase.",
         lengthInMinutes: 60,
         locations: [
@@ -387,13 +425,30 @@ describe("Organizations Event Types Endpoints", () => {
           const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
 
           expect(teammate1EventTypes.length).toEqual(1);
+          expect(teammate1EventTypes[0].slug).toEqual(managedEventTypeSlug);
           expect(teammate2EventTypes.length).toEqual(1);
+          expect(teammate2EventTypes[0].slug).toEqual(managedEventTypeSlug);
           expect(teamEventTypes.filter((eventType) => eventType.schedulingType === "MANAGED").length).toEqual(
             1
           );
 
           const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
           expect(responseTeamEvent).toBeDefined();
+          expect(responseTeamEvent?.hosts).toEqual([
+            {
+              userId: teammate1.id,
+              name: teammate1.name,
+              username: teammate1.username,
+              avatarUrl: teammate1.avatarUrl,
+            },
+            {
+              userId: teammate2.id,
+              name: teammate2.name,
+              username: teammate2.username,
+              avatarUrl: teammate2.avatarUrl,
+            },
+          ]);
+
           if (!responseTeamEvent) {
             throw new Error("Team event not found");
           }
@@ -407,6 +462,42 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseTeammate2Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
 
           managedEventType = responseTeamEvent;
+        });
+    });
+
+    it("managed team event types should be returned when fetching event types of users", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/event-types?username=${teammate1.username}&orgSlug=${org.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.length).toEqual(1);
+          expect(data[0].slug).toEqual(managedEventTypeSlug);
+          expect(data[0].ownerId).toEqual(teammate1.id);
+          expect(data[0].id).not.toEqual(managedEventType.id);
+        });
+    });
+
+    it("managed team event type should be returned when fetching event types of users", async () => {
+      return request(app.getHttpServer())
+        .get(
+          `/v2/event-types?username=${teammate1.username}&orgSlug=${org.slug}&eventSlug=${managedEventTypeSlug}`
+        )
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.length).toEqual(1);
+          expect(data[0].slug).toEqual(managedEventTypeSlug);
+          expect(data[0].ownerId).toEqual(teammate1.id);
+          expect(data[0].id).not.toEqual(managedEventType.id);
         });
     });
 
@@ -457,8 +548,8 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.length).toEqual(2);
 
-          const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "COLLECTIVE");
-          const eventTypeManaged = data.find((eventType) => eventType.schedulingType === "MANAGED");
+          const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "collective");
+          const eventTypeManaged = data.find((eventType) => eventType.schedulingType === "managed");
 
           expect(eventTypeCollective?.title).toEqual(collectiveEventType.title);
           expect(eventTypeCollective?.hosts.length).toEqual(2);
@@ -564,7 +655,7 @@ describe("Organizations Event Types Endpoints", () => {
           ).toEqual(newTitle);
 
           const responseTeamEvent = responseBody.data.find(
-            (eventType) => eventType.schedulingType === "MANAGED"
+            (eventType) => eventType.schedulingType === "managed"
           );
           expect(responseTeamEvent).toBeDefined();
           expect(responseTeamEvent?.title).toEqual(newTitle);
@@ -823,7 +914,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(managedTeamEventTypes[0].assignAllTeamMembers).toEqual(true);
 
           const responseTeamEvent = responseBody.data.find(
-            (eventType) => eventType.schedulingType === "MANAGED"
+            (eventType) => eventType.schedulingType === "managed"
           );
           expect(responseTeamEvent).toBeDefined();
           expect(responseTeamEvent?.teamId).toEqual(team.id);
@@ -951,6 +1042,119 @@ describe("Organizations Event Types Endpoints", () => {
               hidden: false,
             },
           ]);
+        });
+    });
+
+    it("should create a round robin team event-type", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        successRedirectUrl: "https://masterchief.com/argentina/flan/video/1234",
+        title: "Coding consultation round robin",
+        slug: `organizations-event-types-round-robin-${randomString()}`,
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "select",
+            label: "select which language is your codebase in",
+            slug: "select-language",
+            required: true,
+            placeholder: "select language",
+            options: ["javascript", "python", "cobol"],
+          },
+        ],
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        schedulingType: "roundRobin",
+        hosts: [
+          {
+            userId: teammate1.id,
+            mandatory: true,
+            priority: "high",
+          },
+          {
+            userId: teammate2.id,
+            mandatory: false,
+            priority: "medium",
+          },
+        ],
+        bookingLimitsCount: {
+          day: 2,
+          week: 5,
+        },
+        onlyShowFirstAvailableSlot: true,
+        bookingLimitsDuration: {
+          day: 60,
+          week: 100,
+        },
+        offsetStart: 30,
+        bookingWindow: {
+          type: BookingWindowPeriodInputTypeEnum_2024_06_14.calendarDays,
+          value: 30,
+          rolling: true,
+        },
+        bookerLayouts: {
+          enabledLayouts: [
+            BookerLayoutsInputEnum_2024_06_14.column,
+            BookerLayoutsInputEnum_2024_06_14.month,
+            BookerLayoutsInputEnum_2024_06_14.week,
+          ],
+          defaultLayout: BookerLayoutsInputEnum_2024_06_14.month,
+        },
+
+        confirmationPolicy: {
+          type: ConfirmationPolicyEnum.TIME,
+          noticeThreshold: {
+            count: 60,
+            unit: NoticeThresholdUnitEnum.MINUTES,
+          },
+          blockUnconfirmedBookingsInBooker: true,
+        },
+        requiresBookerEmailVerification: true,
+        hideCalendarNotes: true,
+        hideCalendarEventDetails: true,
+        hideOrganizerEmail: true,
+        lockTimeZoneToggleOnBookingPage: true,
+        color: {
+          darkThemeHex: "#292929",
+          lightThemeHex: "#fafafa",
+        },
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(201)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.title).toEqual(body.title);
+          expect(data.hosts.length).toEqual(2);
+          expect(data.schedulingType).toEqual("roundRobin");
+          evaluateHost(body.hosts?.[0] || { userId: -1 }, data.hosts[0]);
+          evaluateHost(body.hosts?.[1] || { userId: -1 }, data.hosts[1]);
+          expect(data.bookingLimitsCount).toEqual(body.bookingLimitsCount);
+          expect(data.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
+          expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
+          expect(data.offsetStart).toEqual(body.offsetStart);
+          expect(data.bookingWindow).toEqual(body.bookingWindow);
+          expect(data.bookerLayouts).toEqual(body.bookerLayouts);
+          expect(data.confirmationPolicy).toEqual(body.confirmationPolicy);
+          expect(data.requiresBookerEmailVerification).toEqual(body.requiresBookerEmailVerification);
+          expect(data.hideCalendarNotes).toEqual(body.hideCalendarNotes);
+          expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
+          expect(data.hideOrganizerEmail).toEqual(body.hideOrganizerEmail);
+          expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
+          expect(data.color).toEqual(body.color);
+          expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
+          collectiveEventType = responseBody.data;
         });
     });
 

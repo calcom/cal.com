@@ -12,7 +12,13 @@ export class TeamsEventTypesRepository {
         id: eventTypeId,
         teamId,
       },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: true,
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+        calVideoSettings: true,
+      },
     });
   }
 
@@ -33,6 +39,7 @@ export class TeamsEventTypesRepository {
             }
           : true,
         destinationCalendar: true,
+        calVideoSettings: true,
         team: {
           select: {
             bannerUrl: true,
@@ -49,6 +56,29 @@ export class TeamsEventTypesRepository {
     });
   }
 
+  async getEventTypeByTeamIdAndSlug(teamId: number, eventTypeSlug: string) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: {
+        teamId_slug: {
+          teamId,
+          slug: eventTypeSlug,
+        },
+      },
+    });
+  }
+
+  async getEventTypeByTeamIdAndSlugWithOwnerAndTeam(teamId: number, eventTypeSlug: string) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: {
+        teamId_slug: {
+          teamId,
+          slug: eventTypeSlug,
+        },
+      },
+      include: { owner: true, team: true },
+    });
+  }
+
   async getTeamEventTypes(teamId: number) {
     return this.dbRead.prisma.eventType.findMany({
       where: {
@@ -59,6 +89,7 @@ export class TeamsEventTypesRepository {
         schedule: true,
         hosts: true,
         destinationCalendar: true,
+        calVideoSettings: true,
         team: {
           select: {
             bannerUrl: true,
@@ -78,7 +109,13 @@ export class TeamsEventTypesRepository {
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: true,
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+        calVideoSettings: true,
+      },
     });
   }
 

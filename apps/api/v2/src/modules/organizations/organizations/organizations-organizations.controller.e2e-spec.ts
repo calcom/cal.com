@@ -7,6 +7,7 @@ import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controller
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
+import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
 import {
   ManagedOrganizationWithApiKeyOutput,
   ManagedOrganizationOutput,
@@ -46,6 +47,7 @@ import {
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { slugify } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
@@ -176,6 +178,7 @@ describe("Organizations Organizations Endpoints", () => {
         managedOrg = responseBody.data;
         expect(managedOrg?.id).toBeDefined();
         expect(managedOrg?.name).toEqual(body.name);
+        expect(managedOrg?.slug).toEqual(slugify(body.name));
         expect(managedOrg?.metadata).toEqual(body.metadata);
         expect(managedOrg?.apiKey).toBeDefined();
 
@@ -302,7 +305,7 @@ describe("Organizations Organizations Endpoints", () => {
       .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
       .expect(200)
       .then(async (response) => {
-        const responseBody: ApiSuccessResponse<ManagedOrganizationOutput[]> = response.body;
+        const responseBody: GetManagedOrganizationsOutput = response.body;
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
         const responseManagedOrgs = responseBody.data;
         expect(responseManagedOrgs?.length).toEqual(1);
@@ -310,6 +313,14 @@ describe("Organizations Organizations Endpoints", () => {
         expect(responseManagedOrg?.id).toBeDefined();
         expect(responseManagedOrg?.name).toEqual(managedOrg.name);
         expect(responseManagedOrg?.metadata).toEqual(managedOrg.metadata);
+
+        expect(responseBody.pagination).toBeDefined();
+        expect(responseBody.pagination.totalItems).toEqual(1);
+        expect(responseBody.pagination.remainingItems).toEqual(0);
+        expect(responseBody.pagination.returnedItems).toEqual(1);
+        expect(responseBody.pagination.itemsPerPage).toEqual(250);
+        expect(responseBody.pagination.currentPage).toEqual(1);
+        expect(responseBody.pagination.totalPages).toEqual(1);
       });
   });
 

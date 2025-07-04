@@ -34,3 +34,6 @@ export { PaymentForm } from "./event-types/payments/PaymentForm";
 
 export { useCreateEventType } from "./hooks/event-types/private/useCreateEventType";
 export { useCreateTeamEventType } from "./hooks/event-types/private/useCreateTeamEventType";
+
+export { useOrganizationBookings } from "./hooks/organizations/bookings/useOrganizationBookings";
+export { useOrganizationUserBookings } from "./hooks/organizations/bookings/useOrganizationUserBookings";

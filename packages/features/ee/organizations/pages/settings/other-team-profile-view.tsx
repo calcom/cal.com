@@ -9,6 +9,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
@@ -22,7 +23,7 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button, LinkIconButton } from "@calcom/ui/components/button";
-import { Dialog, DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
@@ -30,6 +31,7 @@ import { TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
@@ -127,6 +129,7 @@ const OtherTeamProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },

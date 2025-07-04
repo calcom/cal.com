@@ -14,6 +14,18 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   })),
 }));
 
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return {
+    ...actual,
+    useRouter: vi.fn(() => ({
+      push: vi.fn(() => {
+        return;
+      }),
+    })),
+  };
+});
+
 type InitialOption = {
   id?: string;
   value: string;

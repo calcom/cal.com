@@ -32,7 +32,7 @@ export const getWhen = (
 export const getWho = (
   calEvent: Pick<
     CalendarEvent,
-    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team"
+    "attendees" | "seatsPerTimeSlot" | "seatsShowAttendees" | "organizer" | "team" | "hideOrganizerEmail"
   >,
   t: TFunction
 ) => {
@@ -43,13 +43,15 @@ export const getWho = (
   const attendees = attendeesFromCalEvent
     .map(
       (attendee) =>
-        `${attendee?.name || t("guest")}\n${
-          !isSmsCalEmail(attendee.email) ? attendee.email : attendee.phoneNumber
+        `${attendee?.name || t("guest")}${attendee.phoneNumber ? ` - ${attendee.phoneNumber}` : ""}\n${
+          !isSmsCalEmail(attendee.email) ? attendee.email : ""
         }`
     )
     .join("\n");
 
-  const organizer = `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
+  const organizer = calEvent.hideOrganizerEmail
+    ? `${calEvent.organizer.name} - ${t("organizer")}`
+    : `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
@@ -69,7 +71,10 @@ export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNote
   return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
 };
 
-export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValueMapFromResponses>[0]) => {
+export const getUserFieldsResponses = (
+  calEvent: Parameters<typeof getLabelValueMapFromResponses>[0],
+  t: TFunction
+) => {
   const labelValueMap = getLabelValueMapFromResponses(calEvent);
 
   if (!labelValueMap) {
@@ -80,7 +85,7 @@ export const getUserFieldsResponses = (calEvent: Parameters<typeof getLabelValue
       if (!labelValueMap) return "";
       if (labelValueMap[key] !== "") {
         return `
-${key}:
+${t(key)}:
 ${labelValueMap[key]}
   `;
       }
@@ -325,7 +330,7 @@ export const getRichDescription = (
     `${t("where")}:\n${getLocation(calEvent)}`,
     getDescription(calEvent, t),
     getAdditionalNotes(calEvent, t),
-    getUserFieldsResponses(calEvent),
+    getUserFieldsResponses(calEvent, t),
     includeAppStatus ? getAppsStatus(calEvent, t) : "",
     // TODO: Only the original attendee can make changes to the event
     // Guests cannot

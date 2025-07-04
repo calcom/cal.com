@@ -5,15 +5,16 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { EmailField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
@@ -167,11 +168,6 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       options={actionOptions.map((option) => ({
                         ...option,
                       }))}
-                      isOptionDisabled={(option: {
-                        label: string;
-                        value: WorkflowActions;
-                        needsTeamsUpgrade: boolean;
-                      }) => option.needsTeamsUpgrade}
                     />
                   );
                 }}

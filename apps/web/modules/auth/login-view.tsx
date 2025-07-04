@@ -15,15 +15,14 @@ import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/consta
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLastUsed, LastUsed } from "@calcom/lib/hooks/useLastUsed";
+import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { EmailField } from "@calcom/ui/components/form";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { PasswordField } from "@calcom/ui/components/form";
+import { EmailField, PasswordField } from "@calcom/ui/components/form";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";
@@ -184,7 +183,7 @@ PageProps & WithNonceProps<{}>) {
     : isSAMLLoginEnabled && !isPending && data?.connectionExists;
 
   return (
-    <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand:#111827] [--cal-brand-subtle:#9CA3AF] [--cal-brand-emphasis:#101010] [--cal-brand-text:white] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
+    <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
       <AuthContainer
         showLogo
         heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
@@ -254,12 +253,13 @@ PageProps & WithNonceProps<{}>) {
                   defaultValue={totpEmail || (searchParams?.get("email") as string)}
                   placeholder="john.doe@example.com"
                   required
+                  autoComplete="email"
                   {...register("email")}
                 />
                 <div className="relative">
                   <PasswordField
                     id="password"
-                    autoComplete="off"
+                    autoComplete="current-password"
                     required={!totpEmail}
                     className="mb-0"
                     {...register("password")}

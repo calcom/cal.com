@@ -17,6 +17,7 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import {
   APP_NAME,
   URL_PROTOCOL_REGEX,
@@ -44,7 +45,6 @@ import { Button } from "@calcom/ui/components/button";
 import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -146,6 +146,7 @@ function UsernameField({
                 <p>
                   {t("premium_username", {
                     price: getPremiumPlanPriceValue(),
+                    interpolation: { escapeValue: false },
                   })}
                 </p>
               </div>
@@ -317,8 +318,12 @@ export default function Signup({
             </>
           )}
           <DubAnalytics
+            apiHost="/_proxy/dub"
             cookieOptions={{
               domain: isENVDev ? undefined : `.${new URL(WEBSITE_URL).hostname}`,
+            }}
+            domainsConfig={{
+              refer: "refer.cal.com",
             }}
           />
         </>
@@ -403,9 +408,11 @@ export default function Signup({
                   ) : null}
                   {/* Email */}
                   <TextField
+                    id="signup-email"
                     {...register("email")}
                     label={t("email")}
                     type="email"
+                    autoComplete="email"
                     disabled={prepopulateFormValues?.email}
                     data-testid="signup-emailfield"
                   />
@@ -413,7 +420,9 @@ export default function Signup({
                   {/* Password */}
                   {!isSamlSignup && (
                     <PasswordField
+                      id="signup-password"
                       data-testid="signup-passwordfield"
+                      autoComplete="new-password"
                       label={t("password")}
                       {...register("password")}
                       hintErrors={["caplow", "min", "num"]}
@@ -682,25 +691,23 @@ export default function Signup({
               />
             </div>
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
-              {FEATURES.map((feature) => (
-                <>
-                  <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
-                    <div className="text-emphasis items-center">
-                      <Icon name={feature.icon} className="mb-1 h-4 w-4" />
-                      <span className="text-sm font-medium">{t(feature.title)}</span>
-                    </div>
-                    <div className="text-subtle text-sm">
-                      <p>
-                        {t(
-                          feature.description,
-                          feature.i18nOptions && {
-                            ...feature.i18nOptions,
-                          }
-                        )}
-                      </p>
-                    </div>
+              {FEATURES.map((feature, index) => (
+                <div key={index} className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
+                  <div className="text-emphasis items-center">
+                    <Icon name={feature.icon} className="mb-1 h-4 w-4" />
+                    <span className="text-sm font-medium">{t(feature.title)}</span>
                   </div>
-                </>
+                  <div className="text-subtle text-sm">
+                    <p>
+                      {t(
+                        feature.description,
+                        feature.i18nOptions && {
+                          ...feature.i18nOptions,
+                        }
+                      )}
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

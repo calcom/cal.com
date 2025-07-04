@@ -426,7 +426,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     }
   }, [editor, isLink]);
 
-  if (!props.editable) return <></>;
+  if (!props.editable) return null;
   return (
     <div className="toolbar flex" ref={toolbarRef}>
       <>

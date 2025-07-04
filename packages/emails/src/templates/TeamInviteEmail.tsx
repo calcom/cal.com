@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME, WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
-import ServerTrans from "@calcom/web/components/ServerTrans";
 
 import { getSubject, getTypeOfInvite } from "../../templates/team-invite-email";
 import { V2BaseEmailHtml, CallToAction } from "../components";

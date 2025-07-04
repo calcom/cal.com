@@ -1,8 +1,6 @@
-import {
-  isEmailAction,
-  isSMSOrWhatsappAction,
-} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import tasker from "@calcom/features/tasker";
+import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { PrismaClient } from "@calcom/prisma";
@@ -28,7 +26,7 @@ import {
 
 type UpdateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat">;
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
@@ -265,29 +263,29 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       isOrg,
     });
 
-    await scheduleWorkflowNotifications(
+    await scheduleWorkflowNotifications({
       activeOn, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
       isOrg,
-      userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+      workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
       time,
       timeUnit,
       trigger,
-      user.id,
-      userWorkflow.teamId
-    );
+      userId: user.id,
+      teamId: userWorkflow.teamId,
+    });
   } else {
     // if trigger didn't change, only schedule reminders for all new activeOn
-    await scheduleWorkflowNotifications(
-      newActiveOn,
+    await scheduleWorkflowNotifications({
+      activeOn: newActiveOn,
       isOrg,
-      userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+      workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
       time,
       timeUnit,
       trigger,
-      user.id,
-      userWorkflow.teamId,
-      activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)) // alreadyScheduledActiveOnIds
-    );
+      userId: user.id,
+      teamId: userWorkflow.teamId,
+      alreadyScheduledActiveOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
+    });
   }
 
   // handle deleted and edited workflow steps
@@ -333,15 +331,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: oldStep.id,
         },
       });
-    } else if (isStepEdited(oldStep, newStep)) {
+    } else if (isStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt })) {
       // check if step that require team plan already existed before
-      if (!hasPaidPlan) {
-        const isChangingToSMSOrWhatsapp =
-          !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action);
+      if (!hasPaidPlan && isEmailAction(newStep.action)) {
         const isChangingToCustomTemplate =
           newStep.template === WorkflowTemplates.CUSTOM && oldStep.template !== WorkflowTemplates.CUSTOM;
 
-        if (isChangingToSMSOrWhatsapp || isChangingToCustomTemplate) {
+        if (isChangingToCustomTemplate) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
         }
 
@@ -352,16 +348,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
           }
 
-          if (isEmailAction(newStep.action)) {
-            // on free plans always use predefined templates
-            const { emailBody, emailSubject } = getEmailTemplateText(newStep.template, {
-              locale: ctx.user.locale,
-              action: newStep.action,
-              timeFormat: ctx.user.timeFormat,
-            });
+          // on free plans always use predefined templates
+          const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
+            locale: ctx.user.locale,
+            action: newStep.action,
+            timeFormat: ctx.user.timeFormat,
+          });
 
-            newStep = { ...newStep, reminderBody: emailBody, emailSubject };
-          }
+          newStep = { ...newStep, reminderBody: emailBody, emailSubject };
         }
       }
 
@@ -374,6 +368,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
         await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
       }
+
+      const didBodyChange = newStep.reminderBody !== oldStep.reminderBody;
 
       await ctx.prisma.workflowStep.update({
         where: {
@@ -391,23 +387,32 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender,
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
+          verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
         },
       });
 
+      if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
+        await tasker.create("scanWorkflowBody", {
+          workflowStepId: oldStep.id,
+          userId: ctx.user.id,
+          createdAt: new Date().toISOString(),
+        });
+      } else {
+        // schedule notifications for edited steps
+        await scheduleWorkflowNotifications({
+          activeOn,
+          isOrg,
+          workflowSteps: [newStep],
+          time,
+          timeUnit,
+          trigger,
+          userId: user.id,
+          teamId: userWorkflow.teamId,
+        });
+      }
+
       // cancel all notifications of edited step
       await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
-
-      // schedule notifications for edited steps
-      await scheduleWorkflowNotifications(
-        activeOn,
-        isOrg,
-        [newStep],
-        time,
-        timeUnit,
-        trigger,
-        user.id,
-        userWorkflow.teamId
-      );
     }
   });
 
@@ -416,13 +421,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     steps
       .filter((step) => step.id <= 0)
       .map(async (newStep) => {
-        if (!hasPaidPlan) {
-          if (isSMSOrWhatsappAction(newStep.action) || newStep.template === WorkflowTemplates.CUSTOM) {
+        if (!hasPaidPlan && isEmailAction(newStep.action)) {
+          if (newStep.template === WorkflowTemplates.CUSTOM) {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
           }
-
           // on free plans always use predefined templates
-          const { emailBody, emailSubject } = getEmailTemplateText(newStep.template, {
+          const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
             locale: ctx.user.locale,
             action: newStep.action,
             timeFormat: ctx.user.timeFormat,
@@ -457,22 +461,38 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const createdSteps = await Promise.all(
       addedSteps.map((step) =>
         ctx.prisma.workflowStep.create({
-          data: { ...step, numberVerificationPending: false },
+          data: {
+            ...step,
+            numberVerificationPending: false,
+            ...(!SCANNING_WORKFLOW_STEPS ? { verifiedAt: new Date() } : {}),
+          },
         })
       )
     );
 
-    // schedule notification for new step
-    await scheduleWorkflowNotifications(
-      activeOn,
-      isOrg,
-      createdSteps,
-      time,
-      timeUnit,
-      trigger,
-      user.id,
-      userWorkflow.teamId
-    );
+    if (SCANNING_WORKFLOW_STEPS) {
+      await Promise.all(
+        createdSteps.map((step) =>
+          tasker.create("scanWorkflowBody", {
+            workflowStepId: step.id,
+            userId: ctx.user.id,
+            createdAt: new Date().toISOString(),
+          })
+        )
+      );
+    } else {
+      // schedule notification for new step
+      await scheduleWorkflowNotifications({
+        activeOn,
+        isOrg,
+        workflowSteps: createdSteps,
+        time,
+        timeUnit,
+        trigger,
+        userId: user.id,
+        teamId: userWorkflow.teamId,
+      });
+    }
   }
 
   //update trigger, name, time, timeUnit
@@ -489,7 +509,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
-  const workflow = await ctx.prisma.workflow.findFirst({
+  const workflow = await ctx.prisma.workflow.findUnique({
     where: {
       id,
     },

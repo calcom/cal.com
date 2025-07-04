@@ -3,13 +3,14 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;

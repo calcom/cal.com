@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,11 +16,12 @@ import turndown from "@calcom/lib/turndownService";
 import { EventTypeDuplicateInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 
 const querySchema = z.object({
   title: z.string().min(1),
@@ -73,6 +75,7 @@ const DuplicateDialog = () => {
       await router.replace(`/event-types/${eventType.id}`);
 
       await utils.viewer.eventTypes.getUserEventGroups.invalidate();
+      revalidateEventTypesList();
       await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
         limit: 10,
         searchQuery: debouncedSearchTerm,
