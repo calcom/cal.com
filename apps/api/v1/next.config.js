@@ -5,9 +5,6 @@ const plugins = [withAxiom];
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  experimental: {
-    instrumentationHook: true,
-  },
   transpilePackages: [
     "@calcom/app-store",
     "@calcom/dayjs",
