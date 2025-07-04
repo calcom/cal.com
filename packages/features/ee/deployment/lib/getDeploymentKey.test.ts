@@ -19,16 +19,18 @@ describe("getDeploymentKey", () => {
 
   beforeEach(() => {
     vi.resetModules();
-    process.env = {};
+    // Set required environment variables
+    vi.stubEnv("NODE_ENV", "test");
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
   });
 
   describe("getDeploymentKey", () => {
     it("should return license key from environment variable if set", async () => {
-      process.env.CALCOM_LICENSE_KEY = "test-license-key";
+      vi.stubEnv("CALCOM_LICENSE_KEY", "test-license-key");
       const result = await getDeploymentKey(mockDeploymentRepo);
       expect(result).toBe("test-license-key");
       expect(mockDeploymentRepo.getLicenseKeyWithId).not.toHaveBeenCalled();
@@ -53,11 +55,11 @@ describe("getDeploymentKey", () => {
     const ENCRYPTION_KEY = "test-encryption-key";
 
     beforeEach(() => {
-      process.env.CALENDSO_ENCRYPTION_KEY = ENCRYPTION_KEY;
+      vi.stubEnv("CALENDSO_ENCRYPTION_KEY", ENCRYPTION_KEY);
     });
 
     it("should return signature token from environment variable if set", async () => {
-      process.env.CAL_SIGNATURE_TOKEN = "test-signature-token";
+      vi.stubEnv("CAL_SIGNATURE_TOKEN", "test-signature-token");
       const result = await getDeploymentSignatureToken(mockDeploymentRepo);
       expect(result).toBe("test-signature-token");
       expect(mockDeploymentRepo.getSignatureToken).not.toHaveBeenCalled();
@@ -80,7 +82,7 @@ describe("getDeploymentKey", () => {
     });
 
     it("should return null when decryption fails due to missing encryption key", async () => {
-      process.env.CALENDSO_ENCRYPTION_KEY = "";
+      vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "");
       const encryptedToken = "encrypted:test-token";
       mockDeploymentRepo.getSignatureToken.mockResolvedValue(encryptedToken);
 
