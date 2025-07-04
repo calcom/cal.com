@@ -186,6 +186,20 @@ export class InputBookingsService_2024_08_13 {
         guests,
         location,
       },
+      ...this.getRoutingFormData(inputBooking.routing),
+    };
+  }
+
+  private getRoutingFormData(routing: { teamMemberIds?: number[]; responseId?: number; teamMemberEmail?: string; skipContactOwner?: boolean; crmAppSlug?: string; crmOwnerRecordType?: string } | undefined) {
+    if (!routing) return null;
+    
+    return {
+      routedTeamMemberIds: routing.teamMemberIds,
+      routingFormResponseId: routing.responseId,
+      teamMemberEmail: routing.teamMemberEmail,
+      skipContactOwner: routing.skipContactOwner,
+      crmAppSlug: routing.crmAppSlug,
+      crmOwnerRecordType: routing.crmOwnerRecordType,
     };
   }
 
@@ -453,6 +467,7 @@ export class InputBookingsService_2024_08_13 {
           location,
         },
         schedulingType: eventType.schedulingType,
+        ...this.getRoutingFormData(inputBooking.routing),
       });
 
       switch (timeBetween) {
