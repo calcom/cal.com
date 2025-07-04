@@ -1,195 +1,96 @@
-import type { Awaitable } from "next-auth";
-import type { Adapter, AdapterUser, AdapterSession, AdapterAccount } from "next-auth/adapters";
+import type { Adapter, AdapterUser, AdapterAccount } from "next-auth/adapters";
 
 import type { PrismaClient } from "@calcom/prisma";
-import type { Account, IdentityProvider, Prisma, User, VerificationToken } from "@calcom/prisma/client";
+import type { Account, IdentityProvider, Prisma, User } from "@calcom/prisma/client";
 import { PrismaClientKnownRequestError } from "@calcom/prisma/client/runtime/library";
 
 import { identityProviderNameMap } from "./identityProviderNameMap";
 
-type CalComAdapter = {
-  createUser: (data: Prisma.UserCreateInput) => Awaitable<User>;
-  getUser: (id: string | number) => Awaitable<User | null>;
-  getUserByEmail: (email: User["email"]) => Awaitable<User | null>;
-  getUserByAccount: (provider_providerAccountId: {
-    providerAccountId: Account["providerAccountId"];
-    provider: User["identityProvider"];
-  }) => Awaitable<User | null>;
-  updateUser: (data: Prisma.UserUncheckedCreateInput) => Awaitable<User>;
-  deleteUser: (id: User["id"]) => Awaitable<User>;
-  createVerificationToken: (data: VerificationToken) => Awaitable<Omit<VerificationToken, "id">>;
-  useVerificationToken: (
-    identifier_token: Prisma.VerificationTokenIdentifierTokenCompoundUniqueInput
-  ) => Awaitable<Omit<VerificationToken, "id"> | null>;
-  linkAccount: (data: Prisma.AccountCreateInput) => Awaitable<Account>;
-  unlinkAccount: (
-    provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput
-  ) => Awaitable<Account>;
-};
-
-/**
- * Generic utility to safely parse an ID string to integer
- */
-const parseIntSafe = (id: string): number => {
+const parseIntSafe = (id: string | number): number => {
+  if (typeof id === "number") return id;
   const parsed = parseInt(id, 10);
-  if (isNaN(parsed)) {
-    throw new Error(`Invalid ID format: ${id}`);
-  }
+  if (isNaN(parsed)) throw new Error(`Invalid ID format: ${id}`);
   return parsed;
 };
 
-/**
- * Presenters to transform data between NextAuth and Prisma models
- */
-const UserPresenter = {
-  // Transform Prisma User to NextAuth AdapterUser
-  toAdapter(user: User): AdapterUser {
-    return {
-      ...user,
-      id: user.id.toString(),
-      emailVerified: user.emailVerified,
-    };
-  },
+// Simple utility functions for transformations
+const toAdapterUser = (user: User): AdapterUser => ({
+  id: user.id.toString(),
+  name: user.name,
+  email: user.email,
+  emailVerified: user.emailVerified,
+  image: user.avatarUrl,
+});
 
-  // Transform NextAuth user data to Prisma UserCreateInput
-  toPrismaCreate(data: Omit<AdapterUser, "id">): Prisma.UserCreateInput {
-    return {
-      name: data.name || null,
-      email: data.email,
-      emailVerified: data.emailVerified || null,
-      avatarUrl: data.image || null,
-    };
-  },
+const toAdapterAccount = (account: Account): AdapterAccount => ({
+  userId: account.userId.toString(),
+  type: account.type as AdapterAccount["type"],
+  provider: account.provider,
+  providerAccountId: account.providerAccountId,
+  refresh_token: account.refresh_token ?? undefined,
+  access_token: account.access_token ?? undefined,
+  expires_at: account.expires_at ?? undefined,
+  token_type: account.token_type ?? undefined,
+  scope: account.scope ?? undefined,
+  id_token: account.id_token ?? undefined,
+  session_state: account.session_state ?? undefined,
+});
 
-  // Transform NextAuth user data to Prisma UserUpdateInput
-  toPrismaUpdate(data: Partial<AdapterUser>): Prisma.UserUpdateInput {
-    return {
-      name: data.name,
-      email: data.email,
-      emailVerified: data.emailVerified,
-      avatarUrl: data.image,
-    };
-  },
-};
+const createUserData = (data: Omit<AdapterUser, "id">): Prisma.UserCreateInput => ({
+  name: data.name || null,
+  email: data.email,
+  emailVerified: data.emailVerified || null,
+  avatarUrl: data.image || null,
+});
 
-const AccountPresenter = {
-  // Transform NextAuth account data to Prisma AccountCreateInput
-  toPrismaCreate(account: AdapterAccount): Prisma.AccountCreateInput {
-    return {
-      provider: account.provider,
-      providerAccountId: account.providerAccountId,
-      type: account.type,
-      user: {
-        connect: {
-          id: parseIntSafe(account.userId),
-        },
-      },
-      access_token: account.access_token,
-      refresh_token: account.refresh_token,
-      expires_at: account.expires_at,
-      token_type: account.token_type,
-      scope: account.scope,
-      id_token: account.id_token,
-      session_state: account.session_state,
-    };
-  },
+const createAccountData = (account: AdapterAccount): Prisma.AccountCreateInput => ({
+  provider: account.provider,
+  providerAccountId: account.providerAccountId,
+  type: account.type,
+  user: { connect: { id: parseIntSafe(account.userId) } },
+  access_token: account.access_token,
+  refresh_token: account.refresh_token,
+  expires_at: account.expires_at,
+  token_type: account.token_type,
+  scope: account.scope,
+  id_token: account.id_token,
+  session_state: account.session_state,
+});
 
-  // Create a provider_providerAccountId compound key for queries
-  getProviderAccountId(provider: string, providerAccountId: string) {
-    return {
-      provider_providerAccountId: {
-        provider,
-        providerAccountId,
-      },
-    };
-  },
-};
+const getAccountWhere = (provider: string, providerAccountId: string) => ({
+  provider_providerAccountId: { provider, providerAccountId },
+});
 
-// Type for verification token data
-interface VerificationTokenData {
-  identifier: string;
-  token: string;
-  expires: Date;
-}
-
-const VerificationTokenPresenter = {
-  // Transform NextAuth verification token to Prisma VerificationTokenCreateInput
-  toPrismaCreate(token: VerificationTokenData): Prisma.VerificationTokenCreateInput {
-    return {
-      identifier: token.identifier,
-      token: token.token,
-      expires: token.expires,
-    };
-  },
-
-  // Transform Prisma VerificationToken to NextAuth VerificationToken (removing id)
-  toAdapter(token: VerificationToken) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...verificationToken } = token;
-    return verificationToken;
-  },
-};
-
-const SessionPresenter = {
-  // Ensure session has all required fields
-  ensureSession(session: Partial<AdapterSession>): AdapterSession {
-    return {
-      sessionToken: session.sessionToken || "",
-      userId: session.userId || "",
-      expires: session.expires || new Date(),
-    };
-  },
-};
-
-/**
- * Create a NextAuth adapter for Prisma
- */
-export default function CalComAdapter(prismaClient: PrismaClient) {
-  // Helper to safely handle null user results
-  const safeUserAdapter = (user: User | null) => {
-    return user ? UserPresenter.toAdapter(user) : null;
-  };
-
+export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
   return {
-    // User operations
     createUser: async (data) => {
-      const prismaData = UserPresenter.toPrismaCreate(data);
-      const user = await prismaClient.user.create({ data: prismaData });
-      return UserPresenter.toAdapter(user);
+      const user = await prismaClient.user.create({ data: createUserData(data) });
+      return toAdapterUser(user);
     },
 
     getUser: async (id) => {
-      const user = await prismaClient.user.findUnique({
-        where: { id: parseIntSafe(id) },
-      });
-      return safeUserAdapter(user);
+      const user = await prismaClient.user.findUnique({ where: { id: parseIntSafe(id) } });
+      return user ? toAdapterUser(user) : null;
     },
 
     getUserByEmail: async (email) => {
       const user = await prismaClient.user.findUnique({ where: { email } });
-      return safeUserAdapter(user);
+      return user ? toAdapterUser(user) : null;
     },
 
     async getUserByAccount(providerAccountId) {
-      // First try to find the user through the account relation
       const account = await prismaClient.account.findUnique({
-        where: AccountPresenter.getProviderAccountId(
-          providerAccountId.provider,
-          providerAccountId.providerAccountId
-        ),
+        where: getAccountWhere(providerAccountId.provider, providerAccountId.providerAccountId),
         select: { user: true },
       });
 
       if (account?.user) {
-        return UserPresenter.toAdapter(account.user);
+        return toAdapterUser(account.user);
       }
 
-      // Fallback for users without Account but with credentials in User Table
-      // This should be removed after all Google tokens have expired
+      // Fallback for legacy users without Account entries
       const provider = providerAccountId.provider.toUpperCase() as IdentityProvider;
-      if (["GOOGLE", "SAML"].indexOf(provider) < 0) {
-        return null;
-      }
+      if (!["GOOGLE", "SAML"].includes(provider)) return null;
 
       const obtainProvider = identityProviderNameMap[provider].toUpperCase() as IdentityProvider;
       const user = await prismaClient.user.findFirst({
@@ -199,42 +100,40 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
         },
       });
 
-      return safeUserAdapter(user);
+      return user ? toAdapterUser(user) : null;
     },
 
     updateUser: async (userData) => {
       const { id, ...data } = userData;
-      const prismaData = UserPresenter.toPrismaUpdate(data);
       const user = await prismaClient.user.update({
         where: { id: parseIntSafe(id) },
-        data: prismaData,
+        data: {
+          name: data.name,
+          email: data.email,
+          emailVerified: data.emailVerified,
+          avatarUrl: data.image,
+        },
       });
-      return UserPresenter.toAdapter(user);
+      return toAdapterUser(user);
     },
 
     deleteUser: async (userId) => {
       const user = await prismaClient.user.delete({ where: { id: parseIntSafe(userId) } });
-      return UserPresenter.toAdapter(user);
+      return toAdapterUser(user);
     },
 
-    // Verification token operations
-    async createVerificationToken(data) {
-      const prismaData = VerificationTokenPresenter.toPrismaCreate(data);
-      const token = await prismaClient.verificationToken.create({
-        data: prismaData,
-      });
-      return VerificationTokenPresenter.toAdapter(token);
+    createVerificationToken: async (data) => {
+      const token = await prismaClient.verificationToken.create({ data });
+      const { id, ...verificationToken } = token;
+      return verificationToken;
     },
 
-    async useVerificationToken(identifier_token) {
+    useVerificationToken: async (identifier_token) => {
       try {
-        const token = await prismaClient.verificationToken.delete({
-          where: { identifier_token },
-        });
-        return VerificationTokenPresenter.toAdapter(token);
+        const token = await prismaClient.verificationToken.delete({ where: { identifier_token } });
+        const { id, ...verificationToken } = token;
+        return verificationToken;
       } catch (error) {
-        // If token already used/deleted, just return null
-        // https://www.prisma.io/docs/reference/api-reference/error-reference#p2025
         if (error instanceof PrismaClientKnownRequestError && error.code === "P2025") {
           return null;
         }
@@ -242,36 +141,27 @@ export default function CalComAdapter(prismaClient: PrismaClient) {
       }
     },
 
-    // Account operations
     linkAccount: async (account) => {
-      const prismaData = AccountPresenter.toPrismaCreate(account);
-      await prismaClient.account.create({ data: prismaData });
+      const createdAccount = await prismaClient.account.create({ data: createAccountData(account) });
+      return toAdapterAccount(createdAccount);
     },
 
     unlinkAccount: async (providerAccountId) => {
-      await prismaClient.account.delete({
-        where: AccountPresenter.getProviderAccountId(
-          providerAccountId.provider,
-          providerAccountId.providerAccountId
-        ),
+      const deletedAccount = await prismaClient.account.delete({
+        where: getAccountWhere(providerAccountId.provider, providerAccountId.providerAccountId),
       });
+      return toAdapterAccount(deletedAccount);
     },
 
-    // Session operations (minimal implementation as required by the interface)
-    createSession: async (session) => {
-      return session;
-    },
-
-    getSessionAndUser: async (sessionToken) => {
-      return null;
-    },
-
-    updateSession: async (session) => {
-      return SessionPresenter.ensureSession(session);
-    },
-
-    deleteSession: async (sessionToken) => {
-      return;
+    createSession: async (session) => session,
+    getSessionAndUser: async () => null,
+    updateSession: async (session) => ({
+      sessionToken: session.sessionToken || "",
+      userId: session.userId || "",
+      expires: session.expires || new Date(),
+    }),
+    deleteSession: async () => {
+      // No-op implementation for minimal session support
     },
   } satisfies Adapter;
 }
