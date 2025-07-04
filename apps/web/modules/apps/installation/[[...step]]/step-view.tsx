@@ -44,6 +44,7 @@ export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
     | "position"
     | "destinationCalendar"
     | "calVideoSettings"
+    | "zoomVideoSettings"
   > & {
     selected: boolean;
     locations: LocationFormValues["locations"];
