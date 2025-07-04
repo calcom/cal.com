@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getParsedTeam } from "./teamUtils";
