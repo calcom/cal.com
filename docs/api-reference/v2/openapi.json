@@ -21530,8 +21530,7 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT",
-              "RESERVATION_EXPIRED"
+              "FORM_SUBMITTED_NO_EVENT"
             ]
           },
           "secret": {
@@ -21608,8 +21607,7 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT",
-              "RESERVATION_EXPIRED"
+              "FORM_SUBMITTED_NO_EVENT"
             ]
           },
           "secret": {
@@ -23614,7 +23612,7 @@
             "example": 123
           },
           "routing": {
-            "description": "The routing information.",
+            "description": "The routing information that could be passed as is to the booking API.",
             "example": {
               "eventTypeId": 123,
               "routing": {
@@ -24805,7 +24803,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "example": "en"
           },
@@ -24818,7 +24817,12 @@
             "example": "+1234567890"
           }
         },
-        "required": ["name", "email", "timeZone", "absent"]
+        "required": [
+          "name",
+          "email",
+          "timeZone",
+          "absent"
+        ]
       },
       "BookingOutput_2024_08_13": {
         "type": "object",
@@ -26215,7 +26219,10 @@
             "type": "boolean"
           }
         },
-        "required": ["email", "absent"]
+        "required": [
+          "email",
+          "absent"
+        ]
       },
       "MarkAbsentBookingInput_2024_08_13": {
         "type": "object",
