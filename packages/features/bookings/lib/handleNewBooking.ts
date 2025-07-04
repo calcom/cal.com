@@ -761,13 +761,12 @@ async function handler(
         }
       }
 
-      // For Round Robin events with both fixed and Round Robin hosts, ensure at least one Round Robin host is available
       // ALL fixed users must be available
-
       if (fixedUserPool.length !== fixedUsers.length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
 
+      // If there are RR hosts, we need to find a lucky user
       if ([...qualifiedRRUsers, ...additionalFallbackRRUsers].length > 0 && luckyUsers.length === 0) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
