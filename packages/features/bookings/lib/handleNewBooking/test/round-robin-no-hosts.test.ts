@@ -24,7 +24,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
   setupAndTeardown();
 
   test(
-    "should throw NoAvailableUsersFound when Round Robin event has fixed hosts and Round Robin hosts assigned but no Round Robin hosts available",
+    "should throw NoAvailableUsersFound when Round Robin event has both fixed and round robin hosts busy",
     async () => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
@@ -74,6 +74,34 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
         ],
         organizer: fixedHost,
         usersApartFromOrganizer: [roundRobinHost],
+        bookings: [
+          {
+            userId: 101, // Make fixed host busy
+            eventTypeId: 1,
+            startTime: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
+            endTime: `${getDate({ dateIncrement: 1 }).dateString}T04:45:00.000Z`,
+            status: "ACCEPTED",
+            attendees: [
+              {
+                email: "existing-booker@example.com",
+                name: "Existing Booker",
+              },
+            ],
+          },
+          {
+            userId: 102, // Make round robin host busy
+            eventTypeId: 1,
+            startTime: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
+            endTime: `${getDate({ dateIncrement: 1 }).dateString}T04:45:00.000Z`,
+            status: "ACCEPTED",
+            attendees: [
+              {
+                email: "existing-booker2@example.com",
+                name: "Existing Booker 2",
+              },
+            ],
+          },
+        ],
       });
 
       await createBookingScenario(scenarioData);
@@ -83,13 +111,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
           id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
         },
-        busySlots: [
-          {
-            start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
-            end: `${getDate({ dateIncrement: 1 }).dateString}T04:45:00.000Z`,
-            userId: 102, // Only make Round Robin host (userId: 102) busy
-          },
-        ],
+        busySlots: [], // No calendar busy slots
       });
 
       const mockBookingData = getMockRequestDataForBooking({
@@ -110,6 +132,107 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
           bookingData: mockBookingData,
         })
       ).rejects.toThrow(ErrorCode.NoAvailableUsersFound);
+    },
+    timeout
+  );
+
+  test(
+    "should throw HostsUnavailableForBooking when Round Robin event has fixed hosts but no round robin host is available",
+    async () => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const fixedHost = getOrganizer({
+        name: "Fixed Host",
+        email: "fixed-host@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstMorningShift],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+
+      const roundRobinHost = {
+        name: "Round Robin Host",
+        username: "round-robin-host",
+        timeZone: Timezones["+5:30"],
+        email: "round-robin-host@example.com",
+        id: 102,
+        schedules: [TestData.schedules.IstMorningShift],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      };
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            length: 45,
+            hosts: [
+              {
+                userId: 101,
+                isFixed: true,
+              },
+              {
+                userId: 102,
+                isFixed: false,
+              },
+            ],
+            schedulingType: SchedulingType.ROUND_ROBIN,
+          },
+        ],
+        organizer: fixedHost,
+        usersApartFromOrganizer: [roundRobinHost],
+        bookings: [
+          {
+            userId: 102, // Make round robin host busy with an existing booking
+            eventTypeId: 1,
+            startTime: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
+            endTime: `${getDate({ dateIncrement: 1 }).dateString}T04:45:00.000Z`,
+            status: "ACCEPTED",
+            attendees: [
+              {
+                email: "existing-booker@example.com",
+                name: "Existing Booker",
+              },
+            ],
+          },
+        ],
+      });
+
+      await createBookingScenario(scenarioData);
+
+      // Use no busy slots since we're creating an actual booking to make the round robin host busy
+      mockCalendar("googlecalendar", {
+        create: {
+          id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+        },
+        busySlots: [], // No calendar busy slots
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
+          end: `${getDate({ dateIncrement: 1 }).dateString}T04:45:00.000Z`,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "integrations:daily" },
+          },
+        },
+      });
+
+      await expect(
+        handleNewBooking({
+          bookingData: mockBookingData,
+        })
+      ).rejects.toThrow(ErrorCode.HostsUnavailableForBooking);
     },
     timeout
   );
