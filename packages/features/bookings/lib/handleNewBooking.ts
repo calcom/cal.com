@@ -760,6 +760,10 @@ async function handler(
           luckyUsers.push(newLuckyUser);
         }
       }
+      // For Round Robin events, ensure at least one non-fixed host is available
+      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && luckyUsers.length === 0) {
+        throw new Error(ErrorCode.NoAvailableUsersFound);
+      }
       // ALL fixed users must be available
       if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
