@@ -125,7 +125,6 @@ export const loggedInViewerRouter = router({
     .input(z.object({ eventTypeId: z.number(), numberToCall: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const { eventTypeId, numberToCall } = input;
-      console.log("makeSelfServePhoneCall", ctx, input);
 
       const { handleCreateSelfServePhoneCall } = await import(
         "@calcom/features/ee/cal-ai-phone/handleCreateSelfServePhoneCall"
