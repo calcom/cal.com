@@ -760,10 +760,9 @@ async function handler(
           luckyUsers.push(newLuckyUser);
         }
       }
-      // For Round Robin events with both fixed and Round Robin hosts, ensure at least one Round Robin host is available
+      // For Round Robin events with Round Robin hosts assigned, ensure at least one is available
       if (
         eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-        fixedUserPool.length > 0 &&
         luckyUserPool.length > 0 &&
         luckyUsers.length === 0
       ) {
