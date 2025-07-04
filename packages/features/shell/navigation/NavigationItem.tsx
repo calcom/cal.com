@@ -55,6 +55,10 @@ export const NavigationItem: React.FC<{
   if (!shouldDisplayNavigationItem) return null;
 
   const hasChildren = item.child && item.child.length > 0;
+  const hasActiveChild =
+    hasChildren && item.child?.some((child) => isCurrent({ isChild: true, item: child, pathname }));
+  const shouldShowChildren = isExpanded || hasActiveChild || isCurrent({ pathname, isChild, item });
+  const shouldShowChevron = hasChildren && !hasActiveChild;
 
   return (
     <Fragment>
@@ -90,7 +94,9 @@ export const NavigationItem: React.FC<{
             ) : (
               <SkeletonText className="h-[20px] w-full" />
             )}
-            <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="ml-auto h-4 w-4" />
+            {shouldShowChevron && (
+              <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="ml-auto h-4 w-4" />
+            )}
           </button>
         </Tooltip>
       ) : (
@@ -140,7 +146,7 @@ export const NavigationItem: React.FC<{
         </Tooltip>
       )}
       {item.child &&
-        (isExpanded || isCurrent({ pathname, isChild, item })) &&
+        shouldShowChildren &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
     </Fragment>
   );
