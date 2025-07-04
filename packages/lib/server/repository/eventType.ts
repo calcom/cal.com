@@ -705,6 +705,7 @@ export class EventTypeRepository {
         select: {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
+          disableRecordingDownloadEmailForGuests: true,
           enableAutomaticTranscription: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,

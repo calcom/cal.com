@@ -23,6 +23,7 @@ export const getBooking = async (bookingId: number) => {
           parentId: true,
           canSendCalVideoTranscriptionEmails: true,
           customReplyToEmail: true,
+          calVideoSettings: true,
         },
       },
       user: {

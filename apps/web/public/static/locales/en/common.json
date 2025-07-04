@@ -47,6 +47,7 @@
   "customize_calvideo_settings": "Customize Cal Video Settings",
   "calvideo_settings_description": "Configure video meeting preferences including recording permissions for hosts and attendees.",
   "disable_recording_for_guests": "Disable recording for guests",
+  "disable_recording_download_email_for_guests": "Disable recording download email for guests",
   "enable_automatic_transcription": "Enable automatic transcription after joining the meeting",
   "video_options": "Video Options",
   "get_meeting_session_details": "Get Meeting Session Details",
