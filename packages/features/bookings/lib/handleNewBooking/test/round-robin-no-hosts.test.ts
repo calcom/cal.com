@@ -87,6 +87,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
           {
             start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
             end: `${getDate({ dateIncrement: 1 }).dateString}T04:45:00.000Z`,
+            userId: 102, // Only make Round Robin host (userId: 102) busy
           },
         ],
       });
