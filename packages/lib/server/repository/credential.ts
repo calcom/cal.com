@@ -6,16 +6,23 @@ import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { buildNonDelegationCredential } from "../../delegationCredential/server";
+import { BookingReferenceRepository } from "./bookingReference";
 
 const log = logger.getSubLogger({ prefix: ["CredentialRepository"] });
 
-type CredentialCreateInput = {
+type BaseCredentialCreateInput = {
   type: string;
   key: any;
-  userId: number;
   appId: string;
   delegationCredentialId?: string | null;
+  subscriptionId?: string | null;
+  paymentStatus?: string | null;
+  billingCycleStart?: number | null;
 };
+
+type CredentialCreateInput =
+  | (BaseCredentialCreateInput & { userId: number })
+  | (BaseCredentialCreateInput & { teamId: number });
 
 type CredentialUpdateInput = {
   type?: string;
@@ -29,6 +36,7 @@ type CredentialUpdateInput = {
 export class CredentialRepository {
   static async create(data: CredentialCreateInput) {
     const credential = await prisma.credential.create({ data: { ...data } });
+    await BookingReferenceRepository.reconnectWithNewCredential(credential.id);
     return buildNonDelegationCredential(credential);
   }
   static async findByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
@@ -228,5 +236,19 @@ export class CredentialRepository {
 
   static async updateWhereId({ id, data }: { id: number; data: { key: Prisma.InputJsonValue } }) {
     return prisma.credential.update({ where: { id }, data });
+  }
+
+  static async findByIdWithSelectedCalendar({ id }: { id: number }) {
+    return await prisma.credential.findFirst({
+      where: { id },
+      select: {
+        ...safeCredentialSelect,
+        selectedCalendars: {
+          select: {
+            externalId: true,
+          },
+        },
+      },
+    });
   }
 }

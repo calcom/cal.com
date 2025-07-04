@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 
 import { decodeOAuthState } from "../oauth/decodeOAuthState";
 import { throwIfNotHaveAdminAccessToTeam } from "../throwIfNotHaveAdminAccessToTeam";
@@ -31,23 +31,19 @@ const createOAuthAppCredential = async (
     // Check that the user belongs to the team
     await throwIfNotHaveAdminAccessToTeam({ teamId: state?.teamId ?? null, userId });
 
-    return await prisma.credential.create({
-      data: {
-        type: appData.type,
-        key: key || {},
-        teamId: state.teamId,
-        appId: appData.appId,
-      },
+    return await CredentialRepository.create({
+      type: appData.type,
+      key: key || {},
+      teamId: state.teamId,
+      appId: appData.appId,
     });
   }
 
-  return await prisma.credential.create({
-    data: {
-      type: appData.type,
-      key: key || {},
-      userId,
-      appId: appData.appId,
-    },
+  return await CredentialRepository.create({
+    type: appData.type,
+    key: key || {},
+    userId,
+    appId: appData.appId,
   });
 };
 

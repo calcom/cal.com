@@ -5,7 +5,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -64,17 +64,15 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const { access_token, refresh_token, expires_in } = responseJson;
     const expires_at = Date.now() + expires_in * 1000;
 
-    await prisma.credential.create({
-      data: {
-        type: "closecom_crm",
-        key: {
-          access_token,
-          refresh_token,
-          expires_at,
-        },
-        userId: req.session.user.id,
-        appId: "closecom",
+    await CredentialRepository.create({
+      type: "closecom_crm",
+      key: {
+        access_token,
+        refresh_token,
+        expires_at,
       },
+      userId: req.session.user.id,
+      appId: "closecom",
     });
 
     return res.redirect(redirectAfterSuccess);
