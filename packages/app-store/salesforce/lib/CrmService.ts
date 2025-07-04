@@ -10,6 +10,7 @@ import { RetryableError } from "@calcom/lib/crmManager/errors";
 import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { AssignmentReasonRepository } from "@calcom/lib/server/repository/assignmentReason";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -1244,6 +1245,16 @@ export default class SalesforceCRMService implements CRM {
         return;
       }
       valueToWrite = await this.getTextValueFromBookingTracking(fieldValue, bookingUid);
+    } else if (fieldValue === "{assignmentReason}") {
+      if (!bookingUid) {
+        log.error(`BookingUid not passed. Cannot get assignment reason without it`);
+        return;
+      }
+      valueToWrite = await this.getAssignmentReason(bookingUid);
+      if (!valueToWrite) {
+        log.error(`No assignment reason found for bookingUid ${bookingUid}`);
+        return;
+      }
     } else {
       // Get the value from the booking response
       if (!calEventResponses) {
@@ -1336,6 +1347,11 @@ export default class SalesforceCRMService implements CRM {
     return tracking[`utm_${utmParam}` as keyof typeof tracking]?.toString() ?? "";
   }
 
+  private async getAssignmentReason(bookingId: string) {
+    const assignmentReason = await AssignmentReasonRepository.findLatestReasonFromBookingUid(bookingId);
+    return assignmentReason?.reasonString ?? "";
+  }
+
   private getTextValueFromBookingResponse(fieldValue: string, calEventResponses: CalEventResponses) {
     const regexValueToReplace = /\{(.*?)\}/g;
     return fieldValue.replace(regexValueToReplace, (match, captured) => {
@@ -1356,7 +1372,7 @@ export default class SalesforceCRMService implements CRM {
       if (!organizerEmail) {
         this.log.warn(`No organizer email found for bookingUid ${bookingUid}`);
       }
-      const booking = await prisma.booking.findFirst({
+      const booking = await prisma.booking.findUnique({
         where: { uid: bookingUid },
         select: { createdAt: true },
       });

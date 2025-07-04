@@ -63,7 +63,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     throw new NotAuthorizedError();
   }
 
-  const organization = await prisma.team.findFirst({
+  const organization = await prisma.team.findUnique({
     where: { id: orgId },
     select: { slug: true, id: true, metadata: true },
   });

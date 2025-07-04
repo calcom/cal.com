@@ -72,9 +72,12 @@ model CalVideoSettings {
   eventTypeId Int       @id
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
 
-  disableRecordingForOrganizer Boolean @default(false)
-  disableRecordingForGuests    Boolean @default(false)
-  redirectUrlOnExit            String?
+  disableRecordingForOrganizer     Boolean @default(false)
+  disableRecordingForGuests        Boolean @default(false)
+  enableAutomaticTranscription     Boolean @default(false)
+  redirectUrlOnExit                String?
+  disableTranscriptionForGuests    Boolean @default(false)
+  disableTranscriptionForOrganizer Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -101,7 +104,7 @@ model EventType {
   userId            Int?
 
   profileId Int?
-  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profile   Profile? @relation(fields: [profileId], references: [id])
 
   team                               Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                             Int?
@@ -133,62 +136,65 @@ model EventType {
   requiresBookerEmailVerification    Boolean                @default(false)
   canSendCalVideoTranscriptionEmails Boolean                @default(true)
 
-  autoTranslateDescriptionEnabled         Boolean                   @default(false)
+  autoTranslateDescriptionEnabled          Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
-  recurringEvent                          Json?
-  disableGuests                           Boolean                   @default(false)
-  hideCalendarNotes                       Boolean                   @default(false)
-  hideCalendarEventDetails                Boolean                   @default(false)
+  recurringEvent                           Json?
+  disableGuests                            Boolean                   @default(false)
+  hideCalendarNotes                        Boolean                   @default(false)
+  hideCalendarEventDetails                 Boolean                   @default(false)
   /// @zod.min(0)
-  minimumBookingNotice                    Int                       @default(120)
-  beforeEventBuffer                       Int                       @default(0)
-  afterEventBuffer                        Int                       @default(0)
-  seatsPerTimeSlot                        Int?
-  onlyShowFirstAvailableSlot              Boolean                   @default(false)
-  disableCancelling                       Boolean?                  @default(false)
-  disableRescheduling                     Boolean?                  @default(false)
-  seatsShowAttendees                      Boolean?                  @default(false)
-  seatsShowAvailabilityCount              Boolean?                  @default(true)
-  schedulingType                          SchedulingType?
-  schedule                                Schedule?                 @relation(fields: [scheduleId], references: [id])
-  scheduleId                              Int?
+  minimumBookingNotice                     Int                       @default(120)
+  beforeEventBuffer                        Int                       @default(0)
+  afterEventBuffer                         Int                       @default(0)
+  seatsPerTimeSlot                         Int?
+  onlyShowFirstAvailableSlot               Boolean                   @default(false)
+  disableCancelling                        Boolean?                  @default(false)
+  disableRescheduling                      Boolean?                  @default(false)
+  seatsShowAttendees                       Boolean?                  @default(false)
+  seatsShowAvailabilityCount               Boolean?                  @default(true)
+  schedulingType                           SchedulingType?
+  schedule                                 Schedule?                 @relation(fields: [scheduleId], references: [id])
+  scheduleId                               Int?
+  allowReschedulingCancelledBookings       Boolean?                  @default(false)
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
-  price                                   Int                       @default(0)
+  price                                    Int                       @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
-  currency                                String                    @default("usd")
-  slotInterval                            Int?
+  currency                                 String                    @default("usd")
+  slotInterval                             Int?
   /// @zod.custom(imports.EventTypeMetaDataSchema)
-  metadata                                Json?
+  metadata                                 Json?
   /// @zod.custom(imports.successRedirectUrl)
-  successRedirectUrl                      String?
-  forwardParamsSuccessRedirect            Boolean?                  @default(true)
-  workflows                               WorkflowsOnEventTypes[]
+  successRedirectUrl                       String?
+  forwardParamsSuccessRedirect             Boolean?                  @default(true)
+  workflows                                WorkflowsOnEventTypes[]
   /// @zod.custom(imports.intervalLimitsType)
-  bookingLimits                           Json?
+  bookingLimits                            Json?
   /// @zod.custom(imports.intervalLimitsType)
-  durationLimits                          Json?
-  isInstantEvent                          Boolean                   @default(false)
-  instantMeetingExpiryTimeOffsetInSeconds Int                       @default(90)
-  instantMeetingScheduleId                Int?
-  instantMeetingSchedule                  Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
-  instantMeetingParameters                String[]
-  assignAllTeamMembers                    Boolean                   @default(false)
+  durationLimits                           Json?
+  isInstantEvent                           Boolean                   @default(false)
+  instantMeetingExpiryTimeOffsetInSeconds  Int                       @default(90)
+  instantMeetingScheduleId                 Int?
+  instantMeetingSchedule                   Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
+  instantMeetingParameters                 String[]
+  assignAllTeamMembers                     Boolean                   @default(false)
   // It is applicable only when assignAllTeamMembers is true and it filters out all the team members using rrSegmentQueryValue
-  assignRRMembersUsingSegment             Boolean                   @default(false)
+  assignRRMembersUsingSegment              Boolean                   @default(false)
   /// @zod.custom(imports.rrSegmentQueryValueSchema)
-  rrSegmentQueryValue                     Json?
-  useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
-  aiPhoneCallConfig                       AIPhoneCallConfiguration?
-  isRRWeightsEnabled                      Boolean                   @default(false)
-  fieldTranslations                       EventTypeTranslation[]
-  maxLeadThreshold                        Int?
-  includeNoShowInRRCalculation            Boolean                   @default(false)
-  selectedCalendars                       SelectedCalendar[]
-  allowReschedulingPastBookings           Boolean                   @default(false)
-  hideOrganizerEmail                      Boolean                   @default(false)
+  rrSegmentQueryValue                      Json?
+  useEventTypeDestinationCalendarEmail     Boolean                   @default(false)
+  aiPhoneCallConfig                        AIPhoneCallConfiguration?
+  isRRWeightsEnabled                       Boolean                   @default(false)
+  fieldTranslations                        EventTypeTranslation[]
+  maxLeadThreshold                         Int?
+  includeNoShowInRRCalculation             Boolean                   @default(false)
+  selectedCalendars                        SelectedCalendar[]
+  allowReschedulingPastBookings            Boolean                   @default(false)
+  hideOrganizerEmail                       Boolean                   @default(false)
+  maxActiveBookingsPerBooker               Int?
+  maxActiveBookingPerBookerOfferReschedule Boolean                   @default(false)
   /// @zod.custom(imports.emailSchema)
-  customReplyToEmail                      String?
-  calVideoSettings                        CalVideoSettings?
+  customReplyToEmail                       String?
+  calVideoSettings                         CalVideoSettings?
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -196,6 +202,10 @@ model EventType {
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
+
+  useBookerTimezone     Boolean   @default(false)
+  restrictionScheduleId Int?
+  restrictionSchedule   Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -206,6 +216,7 @@ model EventType {
   @@index([scheduleId])
   @@index([secondaryEmailId])
   @@index([parentId])
+  @@index([restrictionScheduleId])
 }
 
 model Credential {
@@ -477,6 +488,7 @@ model Team {
   metadata               Json?
   theme                  String?
   rrResetInterval        RRResetInterval?        @default(MONTH)
+  rrTimestampBasis       RRTimestampBasis        @default(CREATED_AT)
   brandColor             String?
   darkBrandColor         String?
   verifiedNumbers        VerifiedNumber[]
@@ -537,16 +549,25 @@ model Team {
 }
 
 model CreditBalance {
-  id                String             @id @default(uuid())
-  team              Team?              @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId            Int?               @unique
+  id                String              @id @default(uuid())
+  team              Team?               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId            Int?                @unique
   // user credit balances will be supported in the future
-  user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            Int?               @unique
-  additionalCredits Int                @default(0)
+  user              User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?                @unique
+  additionalCredits Int                 @default(0)
   limitReachedAt    DateTime?
   warningSentAt     DateTime?
   expenseLogs       CreditExpenseLog[]
+  purchaseLogs      CreditPurchaseLog[]
+}
+
+model CreditPurchaseLog {
+  id              String        @id @default(uuid())
+  creditBalanceId String
+  creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
+  credits         Int
+  createdAt       DateTime      @default(now())
 }
 
 model CreditExpenseLog {
@@ -559,6 +580,7 @@ model CreditExpenseLog {
   creditType      CreditType
   date            DateTime
   smsSid          String?
+  smsSegments     Int?
 }
 
 enum CreditType {
@@ -797,6 +819,7 @@ model Schedule {
   userId               Int
   eventType            EventType[]
   instantMeetingEvents EventType[]    @relation("InstantMeetingSchedule")
+  restrictionSchedule  EventType[]    @relation("restrictionSchedule")
   name                 String
   timeZone             String?
   availability         Availability[]
@@ -1124,6 +1147,7 @@ model App_RoutingForms_Form {
   team                     Team?                                       @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                   Int?
   responses                App_RoutingForms_FormResponse[]
+  queuedResponses          App_RoutingForms_QueuedFormResponse[]
   disabled                 Boolean                                     @default(false)
   /// @zod.custom(imports.RoutingFormSettings)
   settings                 Json?
@@ -1135,6 +1159,7 @@ model App_RoutingForms_Form {
 
 model App_RoutingForms_FormResponse {
   id           Int                   @id @default(autoincrement())
+  uuid         String?               @default(uuid())
   formFillerId String                @default(cuid())
   form         App_RoutingForms_Form @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId       String
@@ -1142,17 +1167,30 @@ model App_RoutingForms_FormResponse {
   createdAt    DateTime              @default(now())
   updatedAt    DateTime?             @updatedAt
 
-  routedToBookingUid        String?                           @unique
+  routedToBookingUid        String?                              @unique
   // We should not cascade delete the booking, because we want to keep the form response even if the routedToBooking is deleted
-  routedToBooking           Booking?                          @relation(fields: [routedToBookingUid], references: [uid])
+  routedToBooking           Booking?                             @relation(fields: [routedToBookingUid], references: [uid])
   chosenRouteId             String?
   routingFormResponseFields RoutingFormResponseField[]
   routingFormResponses      RoutingFormResponseDenormalized[]
+  queuedFormResponse        App_RoutingForms_QueuedFormResponse?
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
   @@index([routedToBookingUid])
+}
+
+model App_RoutingForms_QueuedFormResponse {
+  id               String                         @id @default(cuid())
+  form             App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId           String
+  response         Json
+  chosenRouteId    String?
+  createdAt        DateTime                       @default(now())
+  updatedAt        DateTime?                      @updatedAt
+  actualResponseId Int?                           @unique
+  actualResponse   App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
 }
 
 model RoutingFormResponseField {
@@ -1202,6 +1240,7 @@ view RoutingFormResponse {
 
 model RoutingFormResponseDenormalized {
   id                      Int                           @id
+  uuid                    String?
   formId                  String
   formName                String
   formTeamId              Int?
@@ -1525,6 +1564,11 @@ enum RRResetInterval {
   DAY
 }
 
+enum RRTimestampBasis {
+  CREATED_AT
+  START_TIME
+}
+
 model SelectedSlots {
   id               Int      @id @default(autoincrement())
   eventTypeId      Int
@@ -1769,6 +1813,7 @@ model PlatformOAuthClient {
   bookingRescheduleRedirectUri String?
   areEmailsEnabled             Boolean @default(false)
   areDefaultEventTypesEnabled  Boolean @default(true)
+  areCalendarEventsEnabled     Boolean @default(true)
 
   createdAt DateTime @default(now())
 }

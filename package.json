@@ -80,8 +80,9 @@
     "docker-build-api": "docker build -t cal-api -f ./infra/docker/api/Dockerfile .",
     "docker-run-api": "docker run -p 80:80 cal-api",
     "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop",
+    "changesets-add": "yarn changeset add",
     "changesets-version": "yarn changeset version",
-    "changesets-release": "turbo run build && yarn changeset publish"
+    "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build --filter=@calcom/atoms && yarn changeset publish"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
@@ -108,7 +109,7 @@
     "prismock": "^1.33.4",
     "resize-observer-polyfill": "^1.5.1",
     "tsc-absolute": "^1.0.0",
-    "typescript": "^5.8.3",
+    "typescript": "^5.7.2",
     "vitest": "^2.1.1",
     "vitest-fetch-mock": "^0.3.0",
     "vitest-mock-extended": "^2.0.2"

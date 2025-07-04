@@ -1123,7 +1123,7 @@
     "/v2/organizations/{orgId}/attributes/{attributeId}/options/assigned": {
       "get": {
         "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptions",
-        "summary": "Get by attribute id all of the attribute options that are assigned to users",
+        "summary": "Get all assigned attribute options by attribute ID",
         "parameters": [
           {
             "name": "Authorization",
@@ -1215,7 +1215,7 @@
     "/v2/organizations/{orgId}/attributes/slugs/{attributeSlug}/options/assigned": {
       "get": {
         "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptionsBySlug",
-        "summary": "Get by attribute slug all of the attribute options that are assigned to users",
+        "summary": "Get all assigned attribute options by attribute slug",
         "parameters": [
           {
             "name": "Authorization",
@@ -1467,7 +1467,7 @@
     "/v2/organizations/{orgId}/bookings": {
       "get": {
         "operationId": "OrganizationsBookingsController_getAllOrgTeamBookings",
-        "summary": "Get Organization Bookings",
+        "summary": "Get organization bookings",
         "parameters": [
           {
             "name": "Authorization",
@@ -1763,7 +1763,7 @@
     "/v2/organizations/{orgId}/delegation-credentials": {
       "post": {
         "operationId": "OrganizationsDelegationCredentialController_createDelegationCredential",
-        "summary": "Save delegation credentials for your organization.",
+        "summary": "Save delegation credentials for your organization",
         "parameters": [
           {
             "name": "Authorization",
@@ -1831,7 +1831,7 @@
     "/v2/organizations/{orgId}/delegation-credentials/{credentialId}": {
       "patch": {
         "operationId": "OrganizationsDelegationCredentialController_updateDelegationCredential",
-        "summary": "Update delegation credentials of your organization.",
+        "summary": "Update delegation credentials of your organization",
         "parameters": [
           {
             "name": "Authorization",
@@ -2534,6 +2534,126 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetRoutingFormResponsesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Routing forms"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsRoutingFormsResponsesController_createRoutingFormResponse",
+        "summary": "Create routing form response and get available slots",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z\n      ",
+            "example": "2050-09-05",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "description": "\n      Time until which available slots should be checked.\n      \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to end of day or specify hours:\n      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z",
+            "example": "2050-09-06",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
+            "example": "Europe/Rome",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "duration",
+            "required": false,
+            "in": "query",
+            "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
+            "example": "60",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Format of slot times in response. Use 'range' to get start and end times.",
+            "example": "range",
+            "schema": {
+              "enum": [
+                "range",
+                "time"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUidToReschedule",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
+            "example": "abc123def456",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "queueResponse",
+            "required": false,
+            "in": "query",
+            "description": "Whether to queue the form response.",
+            "example": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateRoutingFormResponseOutput"
                 }
               }
             }
@@ -3454,7 +3574,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url": {
       "get": {
         "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
-        "summary": "Get OAuth conferencing app's auth url for a team",
+        "summary": "Get OAuth conferencing app's auth URL for a team",
         "parameters": [
           {
             "name": "Authorization",
@@ -5071,6 +5191,360 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/workflows": {
+      "get": {
+        "operationId": "OrganizationTeamWorkflowsController_getWorkflows",
+        "summary": "Get organization team workflows",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Workflows"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationTeamWorkflowsController_createWorkflow",
+        "summary": "Create organization team workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkflowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Workflows"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}": {
+      "get": {
+        "operationId": "OrganizationTeamWorkflowsController_getWorkflowById",
+        "summary": "Get organization team workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Workflows"
+        ]
+      },
+      "patch": {
+        "operationId": "OrganizationTeamWorkflowsController_updateWorkflow",
+        "summary": "Update workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkflowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Workflows"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationTeamWorkflowsController_deleteWorkflow",
+        "summary": "Delete organization team workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Workflows"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/users": {
       "get": {
         "operationId": "OrganizationsUsersController_getOrganizationsUsers",
@@ -5407,7 +5881,7 @@
     "/v2/organizations/{orgId}/users/{userId}/bookings": {
       "get": {
         "operationId": "OrganizationsUsersBookingsController_getOrganizationUserBookings",
-        "summary": "Get all bookings of an organization user",
+        "summary": "Get all bookings for an organization user",
         "parameters": [
           {
             "name": "Authorization",
@@ -5694,7 +6168,7 @@
     "/v2/organizations/{orgId}/users/{userId}/ooo": {
       "get": {
         "operationId": "OrganizationsUsersOOOController_getOrganizationUserOOO",
-        "summary": "Get all ooo entries of a user",
+        "summary": "Get all out-of-office entries for a user",
         "parameters": [
           {
             "name": "Authorization",
@@ -5796,7 +6270,7 @@
       },
       "post": {
         "operationId": "OrganizationsUsersOOOController_createOrganizationUserOOO",
-        "summary": "Create an ooo entry for user",
+        "summary": "Create an out-of-office entry for a user",
         "parameters": [
           {
             "name": "Authorization",
@@ -5857,7 +6331,7 @@
     "/v2/organizations/{orgId}/users/{userId}/ooo/{oooId}": {
       "patch": {
         "operationId": "OrganizationsUsersOOOController_updateOrganizationUserOOO",
-        "summary": "Update ooo entry of a user",
+        "summary": "Update an out-of-office entry for a user",
         "parameters": [
           {
             "name": "Authorization",
@@ -5924,7 +6398,7 @@
       },
       "delete": {
         "operationId": "OrganizationsUsersOOOController_deleteOrganizationUserOOO",
-        "summary": "Delete ooo entry of a user",
+        "summary": "Delete an out-of-office entry for a user",
         "parameters": [
           {
             "name": "Authorization",
@@ -5975,7 +6449,7 @@
     "/v2/organizations/{orgId}/ooo": {
       "get": {
         "operationId": "OrganizationsUsersOOOController_getOrganizationUsersOOO",
-        "summary": "Get all OOO entries of org users",
+        "summary": "Get all out-of-office entries for organization users",
         "parameters": [
           {
             "name": "Authorization",
@@ -7151,6 +7625,90 @@
         ]
       }
     },
+    "/v2/bookings/{bookingUid}/recordings": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingRecordings",
+        "summary": "Get all the recordings for the booking",
+        "description": "Fetches all the recordings for the booking `:bookingUid`",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingRecordingsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/v2/bookings/{bookingUid}/transcripts": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
+        "summary": "Get all the transcripts download links for the booking",
+        "description": "Fetches all the transcripts download links for the booking `:bookingUid`",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingTranscriptsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
     "/v2/bookings/{bookingUid}/reschedule": {
       "post": {
         "operationId": "BookingsController_2024_08_13_rescheduleBooking",
@@ -7215,7 +7773,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_cancelBooking",
         "summary": "Cancel a booking",
-        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    For seated bookings to cancel one individual booking provide :bookingUid and :seatUid in the request body. For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.",
+        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    \n    \nCancelling seated bookings:\n    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.\n    \n1. As an attendee - provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and seatUid in the request body `{\"seatUid\": \"123-123-123\"}` . This will remove this particular attendance from the booking.\n    \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}` and `Authorization: Bearer token` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.\n    \n    \nCancelling recurring seated bookings:\n    For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -7683,6 +8241,59 @@
         ]
       }
     },
+    "/v2/calendars/{calendar}/event/{eventUid}": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
+        "summary": "Get meeting Details from calendar",
+        "description": "Returns detailed information about a meeting including attendance metrics",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "google"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cal Unified Calendars"
+        ]
+      }
+    },
     "/v2/calendars/ics-feed/save": {
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
@@ -7871,7 +8482,7 @@
     "/v2/calendars/{calendar}/connect": {
       "get": {
         "operationId": "CalendarsController_redirect",
-        "summary": "Get oAuth connect URL",
+        "summary": "Get OAuth connect URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -8166,7 +8777,7 @@
     "/v2/conferencing/{app}/oauth/auth-url": {
       "get": {
         "operationId": "ConferencingController_redirect",
-        "summary": "Get OAuth conferencing app auth url",
+        "summary": "Get OAuth conferencing app auth URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -8227,7 +8838,7 @@
     "/v2/conferencing/{app}/oauth/callback": {
       "get": {
         "operationId": "ConferencingController_save",
-        "summary": "conferencing apps oauths callback",
+        "summary": "Conferencing app OAuth callback",
         "parameters": [
           {
             "name": "state",
@@ -9997,7 +10608,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
       "get": {
         "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
-        "summary": "Get stripe connect URL for a team",
+        "summary": "Get Stripe connect URL for a team",
         "parameters": [
           {
             "name": "Authorization",
@@ -10060,7 +10671,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/check": {
       "get": {
         "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
-        "summary": "Check team stripe connection",
+        "summary": "Check team Stripe connection",
         "parameters": [
           {
             "name": "teamId",
@@ -10091,7 +10702,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/save": {
       "get": {
         "operationId": "OrganizationsStripeController_save",
-        "summary": "Save stripe credentials",
+        "summary": "Save Stripe credentials",
         "parameters": [
           {
             "name": "state",
@@ -10201,6 +10812,16 @@
                 "range",
                 "time"
               ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUidToReschedule",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
+            "example": "abc123def456",
+            "schema": {
               "type": "string"
             }
           },
@@ -10630,8 +11251,8 @@
     "/v2/slots": {
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
-        "summary": "Find out when is an event type ready to be booked.",
-        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
+        "summary": "Get available time slots for an event type",
+        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      - bookingUidToReschedule: When rescheduling an existing booking, provide the booking's unique identifier to exclude its time slot from busy time calculations. This ensures the original booking time appears as available for rescheduling.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10642,6 +11263,14 @@
               "type": "string",
               "default": "2024-09-04"
             }
+          },
+          {
+            "name": "bookingUidToReschedule",
+            "required": false,
+            "in": "query",
+            "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
+            "example": "abc123def456",
+            "schema": {}
           },
           {
             "name": "start",
@@ -10928,7 +11557,7 @@
       },
       "patch": {
         "operationId": "SlotsController_2024_09_04_updateReservedSlot",
-        "summary": "Updated reserved a slot",
+        "summary": "Update a reserved slot",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -11021,7 +11650,7 @@
     "/v2/stripe/connect": {
       "get": {
         "operationId": "StripeController_redirect",
-        "summary": "Get stripe connect URL",
+        "summary": "Get Stripe connect URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -11053,7 +11682,7 @@
     "/v2/stripe/save": {
       "get": {
         "operationId": "StripeController_save",
-        "summary": "Save stripe credentials",
+        "summary": "Save Stripe credentials",
         "parameters": [
           {
             "name": "state",
@@ -11092,7 +11721,7 @@
     "/v2/stripe/check": {
       "get": {
         "operationId": "StripeController_check",
-        "summary": "Check stripe connection",
+        "summary": "Check Stripe connection",
         "parameters": [
           {
             "name": "Authorization",
@@ -12710,7 +13339,7 @@
       },
       "get": {
         "operationId": "WebhooksController_getWebhooks",
-        "summary": "Get all webooks",
+        "summary": "Get all webhooks",
         "description": "Gets a paginated list of webhooks for the authenticated user.",
         "parameters": [
           {
@@ -13421,6 +14050,11 @@
             "type": "boolean",
             "default": false,
             "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
+          },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
           }
         },
         "required": [
@@ -13543,6 +14177,11 @@
             "example": true,
             "description": "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user."
           },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "example": true,
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
+          },
           "bookingRedirectUri": {
             "type": "string",
             "example": "https://example.com/booking-redirect"
@@ -13565,7 +14204,8 @@
           "organizationId",
           "createdAt",
           "areEmailsEnabled",
-          "areDefaultEventTypesEnabled"
+          "areDefaultEventTypesEnabled",
+          "areCalendarEventsEnabled"
         ]
       },
       "GetOAuthClientsResponseDto": {
@@ -13641,6 +14281,10 @@
           "areDefaultEventTypesEnabled": {
             "type": "boolean",
             "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
+          },
+          "areCalendarEventsEnabled": {
+            "type": "boolean",
+            "description": "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true."
           }
         }
       },
@@ -13702,6 +14346,71 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "BookerLayouts_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "defaultLayout": {
+            "type": "string",
+            "enum": [
+              "month",
+              "week",
+              "column"
+            ]
+          },
+          "enabledLayouts": {
+            "type": "array",
+            "description": "Array of valid layouts - month, week or column",
+            "items": {
+              "type": "string",
+              "enum": [
+                "month",
+                "week",
+                "column"
+              ]
+            }
+          }
+        },
+        "required": [
+          "defaultLayout",
+          "enabledLayouts"
+        ]
+      },
+      "EventTypeColor_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lightThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in light theme",
+            "example": "#292929"
+          },
+          "darkThemeHex": {
+            "type": "string",
+            "description": "Color used for event types in dark theme",
+            "example": "#fafafa"
+          }
+        },
+        "required": [
+          "lightThemeHex",
+          "darkThemeHex"
+        ]
+      },
+      "DestinationCalendar_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
+          },
+          "externalId": {
+            "type": "string",
+            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
+          }
+        },
+        "required": [
+          "integration",
+          "externalId"
         ]
       },
       "InputAddressLocation_2024_06_14": {
@@ -14820,70 +15529,22 @@
           "type"
         ]
       },
-      "BookerLayouts_2024_06_14": {
+      "CalVideoSettings": {
         "type": "object",
         "properties": {
-          "defaultLayout": {
-            "type": "string",
-            "enum": [
-              "month",
-              "week",
-              "column"
-            ]
+          "disableRecordingForOrganizer": {
+            "type": "boolean",
+            "description": "If true, the organizer will not be able to record the meeting"
           },
-          "enabledLayouts": {
-            "type": "array",
-            "description": "Array of valid layouts - month, week or column",
-            "items": {
-              "type": "string",
-              "enum": [
-                "month",
-                "week",
-                "column"
-              ]
-            }
-          }
-        },
-        "required": [
-          "defaultLayout",
-          "enabledLayouts"
-        ]
-      },
-      "EventTypeColor_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "lightThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in light theme",
-            "example": "#292929"
+          "disableRecordingForGuests": {
+            "type": "boolean",
+            "description": "If true, the guests will not be able to record the meeting"
           },
-          "darkThemeHex": {
-            "type": "string",
-            "description": "Color used for event types in dark theme",
-            "example": "#fafafa"
+          "redirectUrlOnExit": {
+            "type": "object",
+            "description": "URL to which participants are redirected when they exit the call"
           }
-        },
-        "required": [
-          "lightThemeHex",
-          "darkThemeHex"
-        ]
-      },
-      "DestinationCalendar_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "integration": {
-            "type": "string",
-            "description": "The integration type of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the integration type of your connected calendars."
-          },
-          "externalId": {
-            "type": "string",
-            "description": "The external ID of the destination calendar. Refer to the /api/v2/calendars endpoint to retrieve the external IDs of your connected calendars."
-          }
-        },
-        "required": [
-          "integration",
-          "externalId"
-        ]
+        }
       },
       "CreateEventTypeInput_2024_06_14": {
         "type": "object",
@@ -15107,7 +15768,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -15127,6 +15788,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "locations": {
             "type": "array",
@@ -16781,6 +17450,14 @@
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -17121,6 +17798,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "locations": {
             "type": "array",
@@ -18921,7 +19606,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -18941,6 +19626,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "schedulingType": {
             "type": "string",
@@ -19366,6 +20059,15 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "nullable": true,
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "teamId": {
             "type": "number"
@@ -19804,6 +20506,14 @@
           "hideOrganizerEmail": {
             "type": "boolean",
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
           },
           "hosts": {
             "type": "array",
@@ -20855,6 +21565,426 @@
             ]
           }
         }
+      },
+      "WorkflowActivationOutputDto": {
+        "type": "object",
+        "properties": {
+          "isActiveOnAllEventTypes": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the workflow is active for all event types associated with the team/user",
+            "example": false
+          },
+          "activeOnEventTypeIds": {
+            "description": "List of Event Type IDs the workflow is specifically active on (if not active on all)",
+            "example": [
+              698191,
+              698192
+            ],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "WorkflowTriggerOffsetOutputDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "description": "Time value for offset",
+            "example": 24
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit for the offset time",
+            "example": "hour",
+            "enum": [
+              "hour",
+              "minute",
+              "day"
+            ]
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ]
+      },
+      "WorkflowTriggerOutputDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Trigger type for the workflow",
+            "example": "beforeEvent",
+            "enum": [
+              "beforeEvent",
+              "eventCancelled",
+              "newEvent",
+              "afterEvent",
+              "rescheduleEvent",
+              "afterHostsCalVideoNoShow",
+              "afterGuestsCalVideoNoShow"
+            ]
+          },
+          "offset": {
+            "description": "Offset details (present for BEFORE_EVENT/AFTER_EVENT)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetOutputDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "WorkflowMessageOutputDto": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Subject of the message",
+            "example": "Reminder: Your Meeting {EVENT_NAME} - {EVENT_DATE_ddd, MMM D, YYYY h:mma} with Cal.com"
+          },
+          "html": {
+            "type": "string",
+            "description": "HTML content of the message",
+            "example": "<p>Reminder for {EVENT_NAME}.</p>"
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content of the message (used for SMS/WhatsApp)",
+            "example": "Reminder for {EVENT_NAME}."
+          }
+        },
+        "required": [
+          "subject"
+        ]
+      },
+      "WorkflowStepOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step",
+            "example": 67244
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "action": {
+            "type": "string",
+            "description": "Action to perform",
+            "example": "email_host",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ]
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Intended recipient type",
+            "example": "const",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "email": {
+            "type": "string",
+            "description": "Verified Email  if action is EMAIL_ADDRESS",
+            "example": 31214
+          },
+          "phone": {
+            "type": "string",
+            "description": "Verified Phone if action is SMS_NUMBER or WHATSAPP_NUMBER"
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type used",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether a calendar event (.ics) was included (for email actions)",
+            "example": true
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name used for this step",
+            "example": "Cal.com Notifications"
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowMessageOutputDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "stepNumber",
+          "action",
+          "recipient",
+          "template",
+          "sender",
+          "message"
+        ]
+      },
+      "WorkflowOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the workflow",
+            "example": 101
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "userId": {
+            "type": "number",
+            "description": "ID of the user who owns the workflow (if not team-owned)",
+            "example": 2313
+          },
+          "teamId": {
+            "type": "number",
+            "description": "ID of the team owning the workflow",
+            "example": 4214321
+          },
+          "activation": {
+            "description": "Activation settings (scope)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowActivationOutputDto"
+              }
+            ]
+          },
+          "trigger": {
+            "description": "Trigger configuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOutputDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps comprising the workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepOutputDto"
+            }
+          },
+          "createdAt": {
+            "type": "object",
+            "description": "Timestamp of creation",
+            "example": "2024-05-12T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "object",
+            "description": "Timestamp of last update",
+            "example": "2024-05-12T11:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "activation",
+          "trigger",
+          "steps"
+        ]
+      },
+      "GetWorkflowsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Indicates the status of the response",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "description": "List of workflows",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetWorkflowOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Indicates the status of the response",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "description": "workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "WorkflowActivationDto": {
+        "type": "object",
+        "properties": {
+          "isActiveOnAllEventTypes": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the workflow is active for all the event-types",
+            "example": false
+          },
+          "activeOnEventTypeIds": {
+            "default": [],
+            "description": "List of event-types IDs the workflow applies to, required if isActiveOnAllEventTypes is false",
+            "example": [
+              698191
+            ],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "isActiveOnAllEventTypes"
+        ]
+      },
+      "CreateWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowActivationDto"
+              }
+            ]
+          },
+          "trigger": {
+            "type": "object",
+            "description": "Trigger configuration for the workflow",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/OnBeforeEventTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterEventTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnCancelTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnCreationTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnRescheduleTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterCalVideoGuestsNoShowTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+                }
+              ]
+            }
+          },
+          "steps": {
+            "description": "Steps to execute as part of the workflow",
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "activation",
+          "trigger",
+          "steps"
+        ]
+      },
+      "UpdateWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow, the action that will trigger the workflow.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowActivationDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps to execute as part of the workflow",
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "trigger": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "trigger"
+        ]
       },
       "StripConnectOutputDto": {
         "type": "object",
@@ -22921,6 +24051,51 @@
           "timeZone"
         ]
       },
+      "Routing": {
+        "type": "object",
+        "properties": {
+          "responseId": {
+            "type": "number",
+            "description": "The ID of the routing form response that determined this booking assignment.",
+            "example": 123
+          },
+          "teamMemberIds": {
+            "description": "Array of team member IDs that were routed to handle this booking.",
+            "example": [
+              101,
+              102
+            ],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "teamMemberEmail": {
+            "type": "string",
+            "description": "The email of the team member assigned to handle this booking.",
+            "example": "john.doe@example.com"
+          },
+          "skipContactOwner": {
+            "type": "boolean",
+            "description": "Whether to skip contact owner assignment from CRM integration.",
+            "example": true
+          },
+          "crmAppSlug": {
+            "type": "string",
+            "description": "The CRM application slug for integration.",
+            "example": "salesforce"
+          },
+          "crmOwnerRecordType": {
+            "type": "string",
+            "description": "The CRM owner record type for contact assignment.",
+            "example": "Account"
+          }
+        },
+        "required": [
+          "responseId",
+          "teamMemberIds"
+        ]
+      },
       "CreateBookingInput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -23026,6 +24201,21 @@
             "type": "number",
             "example": 30,
             "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          },
+          "routing": {
+            "description": "Routing information from routing forms that determined the booking assignment. Both responseId and teamMemberIds are required if provided.",
+            "example": {
+              "responseId": 123,
+              "teamMemberIds": [
+                101,
+                102
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Routing"
+              }
+            ]
           }
         },
         "required": [
@@ -23138,6 +24328,21 @@
             "type": "number",
             "example": 30,
             "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          },
+          "routing": {
+            "description": "Routing information from routing forms that determined the booking assignment. Both responseId and teamMemberIds are required if provided.",
+            "example": {
+              "responseId": 123,
+              "teamMemberIds": [
+                101,
+                102
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Routing"
+              }
+            ]
           },
           "instant": {
             "type": "boolean",
@@ -23256,6 +24461,21 @@
             "type": "number",
             "example": 30,
             "description": "If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.\n    If not provided then event type default length will be used for the booking."
+          },
+          "routing": {
+            "description": "Routing information from routing forms that determined the booking assignment. Both responseId and teamMemberIds are required if provided.",
+            "example": {
+              "responseId": 123,
+              "teamMemberIds": [
+                101,
+                102
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Routing"
+              }
+            ]
           },
           "recurrenceCount": {
             "type": "number",
@@ -24399,6 +25619,113 @@
           "data"
         ]
       },
+      "RecordingItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "roomName": {
+            "type": "string",
+            "example": "daily-video-room-123"
+          },
+          "startTs": {
+            "type": "number",
+            "example": 1678901234
+          },
+          "status": {
+            "type": "string",
+            "example": "completed"
+          },
+          "maxParticipants": {
+            "type": "number",
+            "example": 10
+          },
+          "duration": {
+            "type": "number",
+            "example": 3600
+          },
+          "shareToken": {
+            "type": "string",
+            "example": "share-token-123"
+          },
+          "downloadLink": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cal-video-recordings.s3.us-east-2.amazonaws.com/meetco/123s"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "example": "Error message"
+          }
+        },
+        "required": [
+          "id",
+          "roomName",
+          "startTs",
+          "status",
+          "duration",
+          "shareToken"
+        ]
+      },
+      "GetBookingRecordingsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "error": {
+            "type": "object"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecordingItem"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetBookingTranscriptsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "example": [
+              "https://transcript1.com",
+              "https://transcript2.com"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "error": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "GetBookingsOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -25274,6 +26601,277 @@
           },
           "data": {
             "$ref": "#/components/schemas/DestinationCalendarsOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CalendarEventResponseStatus": {
+        "type": "string",
+        "description": "Host's response to the invitation",
+        "enum": [
+          "accepted",
+          "pending",
+          "declined",
+          "needsAction"
+        ]
+      },
+      "CalendarEventAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the attendee"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the attendee"
+          },
+          "responseStatus": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
+          },
+          "self": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the current user"
+          },
+          "optional": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee's attendance is optional"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "CalendarEventStatus": {
+        "type": "string",
+        "description": "Status of the event (accepted, pending, declined, cancelled)",
+        "enum": [
+          "accepted",
+          "pending",
+          "declined",
+          "cancelled"
+        ]
+      },
+      "CalendarEventHost": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the event host"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name of the event host"
+          },
+          "responseStatus": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "CalendarSource": {
+        "type": "string",
+        "description": "Calendar integration source (e.g., Google Calendar, Office 365, Apple Calendar). Currently only Google Calendar is supported.",
+        "enum": [
+          "google",
+          "office365",
+          "apple"
+        ]
+      },
+      "UnifiedCalendarEventOutput": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "Start date and time of the calendar event with timezone information"
+          },
+          "end": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "End date and time of the calendar event with timezone information"
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the calendar event"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the calendar event"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the calendar event"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/CalendarEventVideoLocation"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarEventPhoneLocation"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarEventSipLocation"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarEventMoreLocation"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type"
+              }
+            },
+            "nullable": true,
+            "description": "Conference locations with entry points (video, phone, sip, more)"
+          },
+          "attendees": {
+            "nullable": true,
+            "description": "List of attendees with their response status",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventAttendee"
+            }
+          },
+          "status": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventStatus"
+          },
+          "hosts": {
+            "nullable": true,
+            "description": "Information about the event hosts (organizers)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventHost"
+            }
+          },
+          "source": {
+            "example": "google",
+            "$ref": "#/components/schemas/CalendarSource"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "id",
+          "title",
+          "source"
+        ]
+      },
+      "GetUnifiedCalendarEventOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UnifiedCalendarEventOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateRoutingFormResponseOutputData": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "description": "The ID of the event type that was routed to.",
+            "example": 123
+          },
+          "routing": {
+            "description": "The routing information.",
+            "example": {
+              "eventTypeId": 123,
+              "routing": {
+                "teamMemberIds": [
+                  101,
+                  102
+                ],
+                "teamMemberEmail": "john.doe@example.com",
+                "skipContactOwner": true
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Routing"
+              }
+            ]
+          },
+          "routingCustomMessage": {
+            "type": "string",
+            "description": "A custom message to be displayed to the user in case of routing to a custom page.",
+            "example": "This is a custom message."
+          },
+          "routingExternalRedirectUrl": {
+            "type": "string",
+            "description": "The external redirect URL to be used in case of routing to a non cal.com event type URL.",
+            "example": "https://example.com/"
+          },
+          "slots": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SlotsOutput_2024_09_04"
+              },
+              {
+                "$ref": "#/components/schemas/RangeSlotsOutput_2024_09_04"
+              }
+            ]
+          }
+        }
+      },
+      "CreateRoutingFormResponseOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateRoutingFormResponseOutputData"
           }
         },
         "required": [

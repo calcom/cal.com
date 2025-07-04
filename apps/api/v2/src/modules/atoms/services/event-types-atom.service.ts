@@ -1,4 +1,5 @@
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { systemBeforeFieldEmail } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -7,7 +8,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from "@nestjs/common";
 
 import { checkAdminOrOwner, getClientSecretFromPayment } from "@calcom/platform-libraries";
 import type { TeamQuery } from "@calcom/platform-libraries";
@@ -21,6 +22,7 @@ import type {
   CredentialDataWithTeamName,
   LocationOption,
 } from "@calcom/platform-libraries/app-store";
+import { type PublicEventType, getPublicEvent } from "@calcom/platform-libraries/event-types";
 import {
   getEventTypeById,
   bulkUpdateEventsToDefaultLocation,
@@ -31,7 +33,6 @@ import {
 import {
   updateEventType,
   TUpdateEventTypeInputSchema,
-  systemBeforeFieldEmail,
   EventTypeMetaDataSchema,
 } from "@calcom/platform-libraries/event-types";
 import { PrismaClient } from "@calcom/prisma";
@@ -54,6 +55,18 @@ export class EventTypesAtomService {
     private readonly eventTypeService: EventTypesService_2024_06_14,
     private readonly teamEventTypeService: TeamsEventTypesService
   ) {}
+
+  private async getTeamSlug(teamId: number): Promise<string> {
+    const team = await this.dbRead.prisma.team.findUnique({
+      where: { id: teamId },
+      select: { slug: true },
+    });
+
+    if (!team?.slug) {
+      throw new NotFoundException(`Team with id ${teamId} not found`);
+    }
+    return team.slug;
+  }
 
   async getUserEventType(user: UserWithProfile, eventTypeId: number) {
     const organizationId = this.usersService.getUserMainOrgId(user);
@@ -82,7 +95,9 @@ export class EventTypesAtomService {
     }
 
     // note (Lauris): don't show platform owner as one of the people that can be assigned to managed team event type
-    const onlyManagedTeamMembers = eventType.teamMembers.filter((user) => user.isPlatformManaged);
+    const onlyManagedTeamMembers = eventType.teamMembers.filter(
+      (user) => user.isPlatformManaged && user.membership === "MEMBER"
+    );
     eventType.teamMembers = onlyManagedTeamMembers;
 
     return eventType;
@@ -368,5 +383,62 @@ export class EventTypesAtomService {
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
       teamId,
     });
+  }
+  /**
+   * Returns the public event type for atoms, handling both team and user events.
+   */
+  async getPublicEventTypeForAtoms({
+    username,
+    eventSlug,
+    isTeamEvent,
+    orgId,
+    teamId,
+  }: {
+    username?: string;
+    eventSlug: string;
+    isTeamEvent?: boolean;
+    orgId?: number;
+    teamId?: number;
+  }): Promise<PublicEventType> {
+    const orgSlug = orgId ? await this.getTeamSlug(orgId) : null;
+
+    let slug: string | null = null;
+    if (isTeamEvent) {
+      if (!teamId) {
+        throw new BadRequestException("teamId is required for team events, please provide a valid teamId");
+      }
+      slug = await this.getTeamSlug(teamId);
+    } else {
+      if (!username) {
+        throw new BadRequestException(
+          "username is required for non-team events, please provide a valid username"
+        );
+      }
+      slug = username;
+    }
+
+    const slugLower = slug.toLowerCase();
+
+    try {
+      const event = await getPublicEvent(
+        slugLower,
+        eventSlug,
+        isTeamEvent,
+        orgSlug,
+        this.dbRead.prisma as unknown as PrismaClient,
+        true
+      );
+
+      if (!event) {
+        throw new NotFoundException(`Event type with slug ${eventSlug} not found`);
+      }
+
+      return event;
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new NotFoundException(err.message);
+      }
+      throw new NotFoundException(`Event type with slug ${eventSlug} not found`);
+    }
   }
 }

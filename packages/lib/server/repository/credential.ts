@@ -23,6 +23,7 @@ type CredentialUpdateInput = {
   userId?: number;
   appId?: string;
   delegationCredentialId?: string | null;
+  invalid?: boolean;
 };
 
 export class CredentialRepository {
@@ -44,7 +45,7 @@ export class CredentialRepository {
    * Doesn't retrieve key field as that has credentials
    */
   static async findFirstByIdWithUser({ id }: { id: number }) {
-    const credential = await prisma.credential.findFirst({ where: { id }, select: safeCredentialSelect });
+    const credential = await prisma.credential.findUnique({ where: { id }, select: safeCredentialSelect });
     return buildNonDelegationCredential(credential);
   }
 
@@ -52,7 +53,7 @@ export class CredentialRepository {
    * Includes 'key' field which is sensitive data.
    */
   static async findFirstByIdWithKeyAndUser({ id }: { id: number }) {
-    const credential = await prisma.credential.findFirst({
+    const credential = await prisma.credential.findUnique({
       where: { id },
       select: { ...safeCredentialSelect, key: true },
     });

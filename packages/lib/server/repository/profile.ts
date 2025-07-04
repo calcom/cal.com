@@ -50,6 +50,7 @@ const organizationSelect = {
   logoUrl: true,
   bannerUrl: true,
   isPlatform: true,
+  hideBranding: true,
 };
 const organizationWithSettingsSelect = {
   ...organizationSelect,
@@ -363,10 +364,12 @@ export class ProfileRepository {
     if (!organizationId) {
       return null;
     }
-    const profile = await prisma.profile.findFirst({
+    const profile = await prisma.profile.findUnique({
       where: {
-        userId,
-        organizationId,
+        userId_organizationId: {
+          userId,
+          organizationId,
+        },
       },
       include: {
         organization: {
@@ -400,10 +403,12 @@ export class ProfileRepository {
     organizationId: number;
     username: string;
   }) {
-    const profile = await prisma.profile.findFirst({
+    const profile = await prisma.profile.findUnique({
       where: {
-        username,
-        organizationId,
+        username_organizationId: {
+          username,
+          organizationId,
+        },
       },
       include: {
         organization: {
@@ -480,6 +485,7 @@ export class ProfileRepository {
             bannerUrl: true,
             isPrivate: true,
             isPlatform: true,
+            hideBranding: true,
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,
@@ -657,6 +663,29 @@ export class ProfileRepository {
       return profile;
     }
     return normalizeProfile(profile);
+  }
+
+  static async findByUserIdAndOrgSlug({
+    userId,
+    organizationId,
+  }: {
+    userId: number;
+    organizationId: number;
+  }) {
+    const profile = await prisma.profile.findUnique({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId,
+        },
+      },
+      include: {
+        organization: {
+          select: organizationSelect,
+        },
+      },
+    });
+    return profile;
   }
 
   /**

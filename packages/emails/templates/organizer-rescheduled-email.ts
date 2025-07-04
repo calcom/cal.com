@@ -19,7 +19,8 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
       to: toAddresses.join(","),
       ...getReplyToHeader(
         this.calEvent,
-        this.calEvent.attendees.map(({ email }) => email)
+        this.calEvent.attendees.map(({ email }) => email),
+        true
       ),
       subject: `${this.calEvent.organizer.language.translate("event_type_has_been_rescheduled_on_time_date", {
         title: this.calEvent.title,
