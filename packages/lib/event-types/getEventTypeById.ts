@@ -216,7 +216,7 @@ export const getEventTypeById = async ({
   const isOrgEventType = !!eventTypeObject.team?.parentId;
   const teamMembers = eventTypeObject.team
     ? eventTeamMembershipsWithUserProfile
-        .filter((member) => (member.accepted || isOrgEventType) && member.role === MembershipRole.MEMBER)
+        .filter((member) => member.accepted || isOrgEventType)
         .map((member) => {
           const user: typeof member.user & { avatar: string } = {
             ...member.user,

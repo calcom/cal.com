@@ -35,7 +35,7 @@ import {
   TUpdateEventTypeInputSchema,
   EventTypeMetaDataSchema,
 } from "@calcom/platform-libraries/event-types";
-import { PrismaClient } from "@calcom/prisma";
+import { PrismaClient, MembershipRole } from "@calcom/prisma";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
@@ -94,9 +94,11 @@ export class EventTypesAtomService {
       this.eventTypeService.checkUserOwnsEventType(user.id, eventType.eventType);
     }
 
-    // note (Lauris): don't show platform owner as one of the people that can be assigned to managed team event type
-    const onlyManagedTeamMembers = eventType.teamMembers.filter((user) => user.isPlatformManaged);
-    eventType.teamMembers = onlyManagedTeamMembers;
+    // Only include managed users with MEMBER role that can be assigned as hosts
+    const assignableTeamMembers = eventType.teamMembers.filter(
+      (user) => user.isPlatformManaged && user.role === MembershipRole.MEMBER
+    );
+    eventType.teamMembers = assignableTeamMembers;
 
     return eventType;
   }
