@@ -3,7 +3,7 @@ import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { Redirect } from "@calcom/lib/redirect";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { TeamService } from "@calcom/lib/server/service/team";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -65,7 +65,7 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
   await checkPermissions({ ctx, input });
 
   try {
-    const { redirectUrl, status } = await TeamRepository.publish(teamId);
+    const { redirectUrl, status } = await TeamService.publish(teamId);
     if (redirectUrl) return { url: redirectUrl, status };
   } catch (error) {
     /** We return the url for client redirect if needed */

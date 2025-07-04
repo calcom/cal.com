@@ -1,10 +1,31 @@
+import type { Awaitable } from "next-auth";
 import type { Adapter, AdapterUser, AdapterSession, AdapterAccount } from "next-auth/adapters";
 
 import type { PrismaClient } from "@calcom/prisma";
-import type { IdentityProvider, Prisma, User, VerificationToken } from "@calcom/prisma/client";
+import type { Account, IdentityProvider, Prisma, User, VerificationToken } from "@calcom/prisma/client";
 import { PrismaClientKnownRequestError } from "@calcom/prisma/client/runtime/library";
 
 import { identityProviderNameMap } from "./identityProviderNameMap";
+
+type CalComAdapter = {
+  createUser: (data: Prisma.UserCreateInput) => Awaitable<User>;
+  getUser: (id: string | number) => Awaitable<User | null>;
+  getUserByEmail: (email: User["email"]) => Awaitable<User | null>;
+  getUserByAccount: (provider_providerAccountId: {
+    providerAccountId: Account["providerAccountId"];
+    provider: User["identityProvider"];
+  }) => Awaitable<User | null>;
+  updateUser: (data: Prisma.UserUncheckedCreateInput) => Awaitable<User>;
+  deleteUser: (id: User["id"]) => Awaitable<User>;
+  createVerificationToken: (data: VerificationToken) => Awaitable<Omit<VerificationToken, "id">>;
+  useVerificationToken: (
+    identifier_token: Prisma.VerificationTokenIdentifierTokenCompoundUniqueInput
+  ) => Awaitable<Omit<VerificationToken, "id"> | null>;
+  linkAccount: (data: Prisma.AccountCreateInput) => Awaitable<Account>;
+  unlinkAccount: (
+    provider_providerAccountId: Prisma.AccountProviderProviderAccountIdCompoundUniqueInput
+  ) => Awaitable<Account>;
+};
 
 /**
  * Generic utility to safely parse an ID string to integer
