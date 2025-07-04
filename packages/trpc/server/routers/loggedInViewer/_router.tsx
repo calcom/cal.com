@@ -44,9 +44,9 @@ export const loggedInViewerRouter = router({
   }),
 
   setup: authedProcedure
-    .input(z.object({ eventTypeId: z.number(), calApiKey: z.string(), timeZone: z.string() }))
+    .input(z.object({ eventTypeId: z.number(), agentTimeZone: z.string(), calApiKey: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const { eventTypeId, calApiKey, timeZone } = input;
+      const { eventTypeId, calApiKey, agentTimeZone } = input;
 
       const { initialSetupLLM, createAgent } = await import(
         "@calcom/features/ee/cal-ai-phone/retellAIService"
@@ -65,7 +65,7 @@ export const loggedInViewerRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const llm = await initialSetupLLM(calApiKey, timeZone, eventTypeId);
+      const llm = await initialSetupLLM(calApiKey, agentTimeZone, eventTypeId);
       if (!llm.llm_id) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create LLM." });
       }
@@ -84,7 +84,7 @@ export const loggedInViewerRouter = router({
           enabled: true,
           llmId: llm.llm_id,
           agentId: agent.agent_id,
-          agentTimeZone: timeZone,
+          agentTimeZone,
         },
       });
 

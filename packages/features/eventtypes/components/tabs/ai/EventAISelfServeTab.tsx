@@ -1,13 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useFormContext, Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -30,33 +30,9 @@ const formatPhoneNumber = (phoneNumber: string) => {
   return phoneNumber;
 };
 
-const PhoneNumberOption = (props: {
-  option: { label: string; value: number };
-  isSelected: boolean;
-  prefix: string;
-}) => {
-  const { t } = useLocale();
-  return (
-    <div className="flex items-center">
-      <div className="flex-grow">
-        <span className="text-emphasis text-sm font-medium">{formatPhoneNumber(props.option.label)}</span>
-      </div>
-      {props.isSelected && <span className="text-brand-default text-sm font-medium">{t("selected")}</span>}
-    </div>
-  );
-};
-
 const setupSchema = z.object({
   calApiKey: z.string().min(1, "API Key is required"),
-  timeZone: z.string().min(1, "Timezone is required"),
-});
-
-const configAndCallSchema = z.object({
-  generalPrompt: z.string(),
-  beginMessage: z.string(),
-  numberToCall: z.string().nullable(),
-  yourPhoneNumber: z.string().nullable(),
-  yourPhoneNumberId: z.number().nullable(),
+  agentTimeZone: z.string().min(1, "Timezone is required"),
 });
 
 const ErrorMessage = ({ fieldName, message }: { fieldName: string; message: string }) => {
@@ -72,10 +48,14 @@ const ErrorMessage = ({ fieldName, message }: { fieldName: string; message: stri
 export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+
+  const formMethods = useFormContext<FormValues>();
+
   const { data: aiConfig, isLoading: isLoadingAiConfig } =
     trpc.viewer.loggedInViewerRouter.getConfig.useQuery({
       eventTypeId: eventType.id,
     });
+
   const { timezone: preferredTimezone } = useTimePreferences();
 
   const { data: llmDetails, isLoading: isLoadingLlmDetails } =
@@ -106,42 +86,13 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
   });
 
   const setupForm = useForm<z.infer<typeof setupSchema>>({ resolver: zodResolver(setupSchema) });
-  const form = useForm<z.infer<typeof configAndCallSchema>>({
-    resolver: zodResolver(configAndCallSchema),
-    defaultValues: {
-      generalPrompt: "",
-      beginMessage: "",
-      numberToCall: aiConfig?.numberToCall || null,
-      yourPhoneNumber: aiConfig?.yourPhoneNumber?.phoneNumber || null,
-      yourPhoneNumberId: aiConfig?.yourPhoneNumber?.id || null,
-    },
-  });
 
-  console.log("form.getValues()", aiConfig, form.getValues());
-
-  useEffect(() => {
-    if (llmDetails) {
-      form.reset({
-        generalPrompt: llmDetails.general_prompt,
-        beginMessage: llmDetails.begin_message || "",
-      });
-    }
-  }, [llmDetails, form]);
-
-  useEffect(() => {
-    if (aiConfig) {
-      form.reset({
-        numberToCall: aiConfig.numberToCall || null,
-        yourPhoneNumber: aiConfig.yourPhoneNumber?.phoneNumber || null,
-        yourPhoneNumberId: aiConfig.yourPhoneNumber?.id || null,
-      });
-    }
-  }, [aiConfig, form]);
+  console.log("form.getValues()", aiConfig, formMethods.getValues());
 
   const assignedPhoneNumber = phoneNumbers?.find((n) => n.id === aiConfig?.yourPhoneNumberId);
 
   const handlePhoneCall = async () => {
-    const values = form.getValues();
+    const values = formMethods.getValues("aiSelfServeConfiguration");
     console.log("aiConfig", values, aiConfig);
     if (!aiConfig?.llmId) return;
 
@@ -151,7 +102,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
         generalPrompt: values.generalPrompt,
         beginMessage: values.beginMessage,
       });
-      showToast(t("ai_assistant_updated_successfully"), "success");
+      showToast(t("initiating_call"), "success");
 
       // If a phone number is provided, make the test call.
       if (values.numberToCall) {
@@ -161,29 +112,54 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
         });
         showToast(`${t("call_initiated_successfully")} Call ID: ${callData?.call_id}`, "success");
       }
-    } catch (error: any) {
-      showToast(error.message, "error");
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        const fieldName = err.issues?.[0]?.path?.[0];
+        const message = err.issues?.[0]?.message;
+        showToast(`Error on ${fieldName}: ${message} `, "error");
+
+        const issues = err.issues;
+        for (const issue of issues) {
+          const fieldName = `aiSelfServeConfiguration.${issue.path[0]}` as unknown as keyof FormValues;
+          formMethods.setError(fieldName, {
+            type: "custom",
+            message: issue.message,
+          });
+        }
+      } else {
+        showToast(t("something_went_wrong"), "error");
+      }
     }
   };
 
-  if (isLoadingAiConfig) return <ShellMain>{t("loading")}</ShellMain>;
+  console.log("aiConfig", aiConfig);
+
+  if (isLoadingAiConfig || isLoadingLlmDetails) return <></>;
 
   if (!aiConfig) {
     const handleSubmit = () => {
       try {
         const values = setupForm.getValues();
-        console.log("values", values);
-        setupMutation.mutate({ eventTypeId: eventType.id, ...values });
+        const { agentTimeZone, calApiKey } = values;
+        setupMutation.mutate({
+          eventTypeId: eventType.id,
+          agentTimeZone: agentTimeZone ?? preferredTimezone,
+          calApiKey,
+        });
+        showToast(t("ai_assistant_setup_successfully"), "success");
       } catch (e) {
         console.log("e", e);
+        showToast(t("error_setting_up_ai_assistant"), "error");
       }
     };
 
     return (
-      <ShellMain
-        heading={t("setup_ai_phone_assistant")}
-        subtitle={t("provide_api_key_and_timezone_to_setup")}>
-        <div className="space-y-6">
+      <div>
+        <div className="border-subtle rounded-lg rounded-b-none border px-4 py-6 sm:px-6">
+          <h2 className="text-emphasis text-md font-medium">{t("setup_ai_phone_assistant")}</h2>
+          <p className="text-subtle text-sm">{t("provide_api_key_and_timezone_to_setup")}</p>
+        </div>
+        <div className="border-subtle flex flex-col gap-y-6 rounded-b-lg border border-t-0 p-6">
           <TextField
             required
             type="text"
@@ -194,7 +170,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
           />
 
           <Controller
-            name="timeZone"
+            name="agentTimeZone"
             control={setupForm.control}
             render={({ field: { value } }) => (
               <div>
@@ -202,28 +178,32 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                   <>{t("agent_timezone")}</>
                 </Label>
                 <TimezoneSelect
-                  id="timezone"
+                  id="agentTimeZone"
                   value={value ?? preferredTimezone}
                   onChange={(event) => {
-                    if (event) setupForm.setValue("timeZone", event.value, { shouldDirty: true });
+                    if (event) setupForm.setValue("agentTimeZone", event.value, { shouldDirty: true });
                   }}
                 />
               </div>
             )}
           />
-          <Button onClick={handleSubmit} loading={setupMutation.isPending}>
+          <Button className="w-48" onClick={handleSubmit} loading={setupMutation.isPending}>
             {t("setup_ai_phone_assistant")}
           </Button>
         </div>
-      </ShellMain>
+      </div>
     );
   }
 
-  if (isLoadingLlmDetails) return <ShellMain>{t("loading")}</ShellMain>;
+  if (!llmDetails) return <ShellMain>{t("error_loading_llm")}</ShellMain>;
 
   return (
-    <ShellMain>
-      <div className="flex flex-col gap-y-6">
+    <div>
+      <div className="border-subtle rounded-lg rounded-b-none border px-4 py-6 sm:px-6">
+        <h2 className="text-emphasis text-md font-medium">Cal.ai</h2>
+        <p className="text-subtle text-sm">{t("use_cal_ai_to_make_call_description")}</p>
+      </div>
+      <div className="border-subtle flex flex-col gap-y-6 rounded-b-lg border border-t-0 p-6">
         <div>
           <ShellSubHeading
             title={t("assigned_phone_number")}
@@ -232,35 +212,37 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
           <div className="mt-4 max-w-sm">
             {!!phoneNumbers?.length ? (
               <Select
-                options={phoneNumbers?.map((n) => ({
-                  label: n.phoneNumber,
-                  value: n.id,
-                }))}
+                options={phoneNumbers?.map((phoneNumber) => {
+                  const isAssignedToOtherEventType =
+                    phoneNumber?.aiSelfServeConfigurations?.eventTypeId &&
+                    phoneNumber?.aiSelfServeConfigurations.eventTypeId !== eventType.id;
+                  return {
+                    label: phoneNumber.phoneNumber,
+                    value: phoneNumber.id,
+                    isDisabled: !!isAssignedToOtherEventType,
+                  };
+                })}
+                isOptionDisabled={(option) => {
+                  return option.isDisabled;
+                }}
                 placeholder={t("choose_phone_number")}
                 value={
                   !!assignedPhoneNumber?.phoneNumber
                     ? { label: assignedPhoneNumber.phoneNumber, value: assignedPhoneNumber.id }
                     : undefined
                 }
-                formatOptionLabel={(option, { context }) => (
-                  <PhoneNumberOption
-                    option={option}
-                    isSelected={
-                      context === "menu"
-                        ? assignedPhoneNumber?.id === option.value
-                        : false /* isSelected is for menu only */
-                    }
-                    prefix={t("phone_number")}
-                  />
-                )}
+                getOptionLabel={(option) => {
+                  console.log("option", option);
+                  return `${formatPhoneNumber(option.label)} ${option.isDisabled ? "(Taken)" : ""}`;
+                }}
                 onChange={(e) => {
                   console.log("e", e);
                   if (e) {
-                    form.setValue("yourPhoneNumber", e.label);
-                    form.setValue("yourPhoneNumberId", e.value);
+                    formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumber", e.label);
+                    formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", e.value);
                   } else {
-                    form.setValue("yourPhoneNumber", null);
-                    form.setValue("yourPhoneNumberId", null);
+                    formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumber", null);
+                    formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", null);
                   }
                 }}
               />
@@ -278,7 +260,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
           <div className="mt-4 space-y-6">
             <TextAreaField
               required
-              {...form.register("generalPrompt")}
+              {...formMethods.register("aiSelfServeConfiguration.generalPrompt")}
               label={t("general_prompt")}
               placeholder="Enter your general prompt here"
               data-testid="general-prompt"
@@ -287,7 +269,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
             <TextField
               required
               type="text"
-              {...form.register("beginMessage")}
+              {...formMethods.register("aiSelfServeConfiguration.beginMessage")}
               label={t("begin_message")}
               placeholder={t("begin_message_description")}
               data-testid="begin-message"
@@ -295,8 +277,8 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
 
             <Label>{t("number_to_call")}</Label>
             <Controller
-              name="numberToCall"
-              control={form.control}
+              name="aiSelfServeConfiguration.numberToCall"
+              control={formMethods.control}
               render={({ field: { onChange, value, name }, fieldState: { error } }) => {
                 return (
                   <div>
@@ -308,7 +290,6 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                       value={value ?? ""}
                       onChange={(val) => {
                         onChange(val);
-                        // form.setValue("numberToCall", val);
                       }}
                     />
                     {error?.message && <ErrorMessage message={error.message} fieldName={name} />}
@@ -319,13 +300,18 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
 
             <Button
               onClick={handlePhoneCall}
-              loading={form.formState.isSubmitting || isLoadingLlmDetails}
-              disabled={!assignedPhoneNumber && !!form.getValues().numberToCall}>
+              loading={
+                formMethods.formState.isSubmitting ||
+                isLoadingLlmDetails ||
+                makeCallMutation.isPending ||
+                updateLlmMutation.isPending
+              }
+              disabled={!assignedPhoneNumber && !!formMethods.getValues().numberToCall}>
               {assignedPhoneNumber ? t("save_and_test_call") : t("save_changes")}
             </Button>
           </div>
         </div>
       </div>
-    </ShellMain>
+    </div>
   );
 };

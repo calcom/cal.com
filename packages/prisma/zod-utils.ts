@@ -621,6 +621,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   instantMeetingParameters: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
   aiPhoneCallConfig: true,
+  aISelfServeConfiguration: true,
   currency: true,
   periodDays: true,
   position: true,

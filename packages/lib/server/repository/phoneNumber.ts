@@ -6,6 +6,21 @@ export class PhoneNumberRepository {
       where: {
         userId,
       },
+      include: {
+        aiSelfServeConfigurations: {
+          select: {
+            eventTypeId: true,
+          },
+        },
+      },
+    });
+  }
+  static async findUnassignedPhoneNumbersFromUserId({ userId }: { userId: number }) {
+    return await prisma.calAiPhoneNumber.findMany({
+      where: {
+        userId,
+        aiSelfServeConfigurations: null,
+      },
     });
   }
 }

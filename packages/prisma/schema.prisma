@@ -183,7 +183,7 @@ model EventType {
   rrSegmentQueryValue                      Json?
   useEventTypeDestinationCalendarEmail     Boolean                   @default(false)
   aiPhoneCallConfig                        AIPhoneCallConfiguration?
-  aiSelfServeConfig                        AISelfServeConfiguration?
+  aiSelfServeConfiguration                 AISelfServeConfiguration?
   isRRWeightsEnabled                       Boolean                   @default(false)
   fieldTranslations                        EventTypeTranslation[]
   maxLeadThreshold                         Int?

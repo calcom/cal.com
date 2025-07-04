@@ -129,6 +129,27 @@ class GetRetellLLMCommand implements Command<TGetRetellLLMSchema> {
   }
 }
 
+class GetPublicRetellLLMCommand implements Command<TGetRetellLLMSchema> {
+  constructor(private llmId: string) {}
+
+  async execute(): Promise<TGetRetellLLMSchema> {
+    try {
+      const retellLLM = await fetcher(`/get-retell-llm/${this.llmId}`).then(ZGetRetellLLMSchema.parse);
+      const filteredRetellLLM = {
+        ...retellLLM,
+        general_tools: retellLLM.general_tools.map((tool) => ({
+          ...tool,
+          cal_api_key: undefined,
+        })),
+      };
+      return filteredRetellLLM;
+    } catch (err) {
+      log.error("Unable to get Retell LLM", safeStringify(err));
+      throw new Error("Something went wrong! Unable to get Retell LLM");
+    }
+  }
+}
+
 class UpdateRetellLLMCommand implements Command<TGetRetellLLMSchema> {
   constructor(private llmId: string, private updateData: { generalPrompt?: string; beginMessage?: string }) {}
 
@@ -311,6 +332,11 @@ export const initialSetupLLM = (calApiKey: string, timeZone: string, eventTypeId
 
 export async function getRetellLLM(llmId: string): Promise<TGetRetellLLMSchema> {
   const command = new GetRetellLLMCommand(llmId);
+  return command.execute();
+}
+
+export async function getPublicRetellLLM(llmId: string): Promise<TGetRetellLLMSchema> {
+  const command = new GetPublicRetellLLMCommand(llmId);
   return command.execute();
 }
 
