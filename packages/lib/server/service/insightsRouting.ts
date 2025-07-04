@@ -10,6 +10,7 @@ import {
   isNumberFilterValue,
   isSingleSelectFilterValue,
 } from "@calcom/features/data-table/lib/utils";
+import type { DateRange } from "@calcom/features/insights/server/events";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -80,9 +81,7 @@ export class InsightsRoutingService {
    * Returns routing funnel data split by the given date ranges.
    * @param dateRanges Array of { startDate, endDate, formattedDate }
    */
-  async getRoutingFunnelData(
-    dateRanges: Array<{ startDate: string; endDate: string; formattedDate: string }>
-  ) {
+  async getRoutingFunnelData(dateRanges: DateRange[]) {
     if (!dateRanges.length) return [];
 
     const baseConditions = await this.getBaseConditions();
@@ -144,14 +143,17 @@ export class InsightsRoutingService {
     // Return all date ranges, filling with 0 values for missing data
     return dateRanges.map((dateRange) => {
       const existingData = resultsMap.get(dateRange.formattedDate);
-      return (
-        existingData || {
-          name: dateRange.formattedDate,
-          totalSubmissions: 0,
-          successfulRoutings: 0,
-          acceptedBookings: 0,
-        }
-      );
+      const data = existingData || {
+        name: dateRange.formattedDate,
+        totalSubmissions: 0,
+        successfulRoutings: 0,
+        acceptedBookings: 0,
+      };
+
+      return {
+        ...data,
+        formattedDateFull: dateRange.formattedDateFull,
+      };
     });
   }
 

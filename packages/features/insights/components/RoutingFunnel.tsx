@@ -10,51 +10,9 @@ import { trpc } from "@calcom/trpc";
 
 import { ChartCard } from "./ChartCard";
 
-// Custom Tooltip component
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: Array<{
-    value: number;
-    dataKey: string;
-    name: string;
-    color: string;
-  }>;
-  label?: string;
-}) => {
-  if (!active || !payload?.length) {
-    return null;
-  }
-
-  const totalSubmissions = payload.find((p) => p.dataKey === "totalSubmissions")?.value || 0;
-
-  return (
-    <div className="bg-inverted text-inverted border-subtle rounded-lg border p-3 shadow-lg">
-      <p className="font-medium">{label}</p>
-      {payload.toReversed().map((entry, index: number) => {
-        const value = entry.value;
-        let displayValue = value.toString();
-
-        if (entry.dataKey === "successfulRoutings" || entry.dataKey === "acceptedBookings") {
-          const percentage = totalSubmissions > 0 ? ((value / totalSubmissions) * 100).toFixed(1) : "0";
-          displayValue = `${value} (${percentage}%)`;
-        }
-
-        return (
-          <p key={index} style={{ color: entry.color }}>
-            {entry.name}: {displayValue}
-          </p>
-        );
-      })}
-    </div>
-  );
-};
-
 interface RoutingFunnelData {
   name: string;
+  formattedDateFull: string;
   totalSubmissions: number;
   successfulRoutings: number;
   acceptedBookings: number;
@@ -136,3 +94,47 @@ export function RoutingFunnel() {
     </ChartCard>
   );
 }
+
+// Custom Tooltip component
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    dataKey: string;
+    name: string;
+    color: string;
+    payload: RoutingFunnelData;
+  }>;
+  label?: string;
+}) => {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const totalSubmissions = payload.find((p) => p.dataKey === "totalSubmissions")?.value || 0;
+
+  return (
+    <div className="bg-inverted text-inverted border-subtle rounded-lg border p-3 shadow-lg">
+      <p className="font-medium">{payload[0].payload.formattedDateFull}</p>
+      {payload.toReversed().map((entry, index: number) => {
+        const value = entry.value;
+        let displayValue = value.toString();
+
+        if (entry.dataKey === "successfulRoutings" || entry.dataKey === "acceptedBookings") {
+          const percentage = totalSubmissions > 0 ? ((value / totalSubmissions) * 100).toFixed(1) : "0";
+          displayValue = `${value} (${percentage}%)`;
+        }
+
+        return (
+          <p key={index} style={{ color: entry.color }}>
+            {entry.name}: {displayValue}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
