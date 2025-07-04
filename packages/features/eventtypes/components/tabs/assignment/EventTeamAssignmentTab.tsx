@@ -605,7 +605,7 @@ export const EventTeamAssignmentTab = ({
     },
   ];
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
-    !!eventType.team?.parentId || !!member.username;
+    (!!eventType.team?.parentId || !!member.username) && member.membership === MembershipRole.MEMBER;
   const teamMembersOptions = teamMembers
     .filter(pendingMembers)
     .map((member) => mapUserToValue(member, t("pending")));
