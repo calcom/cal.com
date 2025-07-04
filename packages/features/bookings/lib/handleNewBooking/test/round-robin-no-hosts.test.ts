@@ -111,7 +111,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
           id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
         },
-        busySlots: [], // No calendar busy slots
+        busySlots: [],
       });
 
       const mockBookingData = getMockRequestDataForBooking({
@@ -206,13 +206,12 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
 
       await createBookingScenario(scenarioData);
 
-      // Use no busy slots since we're creating an actual booking to make the round robin host busy
       mockCalendar("googlecalendar", {
         create: {
           id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
         },
-        busySlots: [], // No calendar busy slots
+        busySlots: [],
       });
 
       const mockBookingData = getMockRequestDataForBooking({
