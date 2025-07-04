@@ -762,7 +762,7 @@ async function handler(
       }
 
       // ALL fixed users must be available
-      if (fixedUserPool.length !== fixedUsers.length) {
+      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
 
