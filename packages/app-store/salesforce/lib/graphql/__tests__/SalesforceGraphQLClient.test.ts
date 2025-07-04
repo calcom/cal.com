@@ -8,14 +8,12 @@ import {
   mockValueOfAccountOwnershipQueryMatchingRelatedContacts,
 } from "./urqlMock";
 
-const mockUrqlQuery = vi.fn();
+const mockGraphQLRequest = vi.fn();
 
-vi.mock("@urql/core", () => ({
-  Client: class {
-    query = mockUrqlQuery;
+vi.mock("graphql-request", () => ({
+  GraphQLClient: class {
+    request = mockGraphQLRequest;
   },
-  cacheExchange: vi.fn(),
-  fetchExchange: vi.fn(),
 }));
 
 describe("SalesforceGraphQLClient", () => {
@@ -24,7 +22,7 @@ describe("SalesforceGraphQLClient", () => {
   });
 
   it("should return the account owner if a contact exists", async () => {
-    mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingContact());
+    mockGraphQLRequest.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingContact());
 
     const client = new SalesforceGraphQLClient({ accessToken: "", instanceUrl: "" });
 
@@ -42,7 +40,7 @@ describe("SalesforceGraphQLClient", () => {
   });
 
   it("should return the account owner if email domain matches account website", async () => {
-    mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingAccountWebsite());
+    mockGraphQLRequest.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingAccountWebsite());
 
     const client = new SalesforceGraphQLClient({ accessToken: "", instanceUrl: "" });
 
@@ -60,7 +58,7 @@ describe("SalesforceGraphQLClient", () => {
   });
 
   it("should return the account owner based on related contacts", async () => {
-    mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingRelatedContacts());
+    mockGraphQLRequest.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingRelatedContacts());
 
     const client = new SalesforceGraphQLClient({ accessToken: "", instanceUrl: "" });
 
