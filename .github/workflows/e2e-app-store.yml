@@ -9,8 +9,8 @@ env:
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
   CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
   DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
-  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
-  DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/calendso
+  DATABASE_DIRECT_URL: postgresql://postgres:postgres@localhost:5432/calendso
   DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
   E2E_TEST_APPLE_CALENDAR_EMAIL: ${{ secrets.E2E_TEST_APPLE_CALENDAR_EMAIL }}
   E2E_TEST_APPLE_CALENDAR_PASSWORD: ${{ secrets.E2E_TEST_APPLE_CALENDAR_PASSWORD }}
@@ -85,8 +85,8 @@ jobs:
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
         env:
-          DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
-          DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/calendso
+          DATABASE_DIRECT_URL: postgresql://postgres:postgres@localhost:5432/calendso
           E2E_TEST_CALCOM_QA_EMAIL: ${{ secrets.E2E_TEST_CALCOM_QA_EMAIL }}
           E2E_TEST_CALCOM_QA_PASSWORD: ${{ secrets.E2E_TEST_CALCOM_QA_PASSWORD }}
           E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ secrets.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
