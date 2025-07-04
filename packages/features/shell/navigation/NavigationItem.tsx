@@ -4,13 +4,6 @@ import React, { Fragment, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import {
-  Dropdown,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownItem,
-} from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
@@ -57,54 +50,49 @@ export const NavigationItem: React.FC<{
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   if (!shouldDisplayNavigationItem) return null;
 
+  const hasChildren = item.child && item.child.length > 0;
+
   return (
     <Fragment>
-      {item.child && item.child.length > 0 && !isChild ? (
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <button
-              data-test-id={item.name}
-              aria-label={t(item.name)}
-              className={classNames(
-                "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-                "[&[aria-current='page']]:!bg-transparent",
-                "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
-                isLocaleReady
-                  ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
-                  : ""
-              )}>
-              {item.icon && (
-                <Icon
-                  name={item.isLoading ? "rotate-cw" : item.icon}
-                  className={classNames(
-                    "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
-                    item.isLoading && "animate-spin"
-                  )}
-                  aria-hidden="true"
-                />
-              )}
-              {isLocaleReady ? (
-                <span className="hidden w-full justify-between truncate text-ellipsis lg:flex">
-                  {t(item.name)}
-                  {item.badge && item.badge}
-                </span>
-              ) : (
-                <SkeletonText className="h-[20px] w-full" />
-              )}
-              <Icon name="chevron-down" className="ml-auto h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            {item.child.map((childItem) => (
-              <DropdownMenuItem key={childItem.name}>
-                <DropdownItem href={childItem.href}>{t(childItem.name)}</DropdownItem>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </Dropdown>
+      {hasChildren && !isChild ? (
+        <Tooltip side="right" content={t(item.name)} className="lg:hidden">
+          <button
+            data-test-id={item.name}
+            aria-label={t(item.name)}
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={classNames(
+              "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+              "[&[aria-current='page']]:!bg-transparent",
+              "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+              isLocaleReady
+                ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
+                : ""
+            )}>
+            {item.icon && (
+              <Icon
+                name={item.isLoading ? "rotate-cw" : item.icon}
+                className={classNames(
+                  "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
+                  item.isLoading && "animate-spin"
+                )}
+                aria-hidden="true"
+              />
+            )}
+            {isLocaleReady ? (
+              <span className="hidden w-full justify-between truncate text-ellipsis lg:flex">
+                {t(item.name)}
+                {item.badge && item.badge}
+              </span>
+            ) : (
+              <SkeletonText className="h-[20px] w-full" />
+            )}
+            <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="ml-auto h-4 w-4" />
+          </button>
+        </Tooltip>
       ) : (
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
           <Link
@@ -152,7 +140,7 @@ export const NavigationItem: React.FC<{
         </Tooltip>
       )}
       {item.child &&
-        isCurrent({ pathname, isChild, item }) &&
+        (isExpanded || isCurrent({ pathname, isChild, item })) &&
         item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
     </Fragment>
   );
