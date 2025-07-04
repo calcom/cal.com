@@ -49,7 +49,8 @@ export function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
+// We have fetchCrm as configurable temporarily to allow us to test the CRM logic in the APIV2. Soon after we would hardcode it to true
+const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">, fetchCrm = false) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
@@ -152,6 +153,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       chosenRouteId: matchingRoute.id,
       isPreview: isBookingDryRun,
       queueFormResponse: shouldQueueFormResponse,
+      fetchCrm,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse?.id;

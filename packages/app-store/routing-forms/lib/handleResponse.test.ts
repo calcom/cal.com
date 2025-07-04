@@ -285,6 +285,7 @@ describe("handleResponse", () => {
         name: "John Doe",
         email: "john.doe@example.com",
       },
+      fetchCrm: true,
     });
 
     expect(routerGetCrmContactOwnerEmail).toHaveBeenCalled();

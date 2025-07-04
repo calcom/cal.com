@@ -180,6 +180,24 @@ class Routing {
   @IsBoolean()
   @IsOptional()
   skipContactOwner?: boolean;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "The CRM application slug for integration.",
+    example: "salesforce",
+  })
+  @IsString()
+  @IsOptional()
+  crmAppSlug?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "The CRM owner record type for contact assignment.",
+    example: "Account",
+  })
+  @IsString()
+  @IsOptional()
+  crmOwnerRecordType?: string;
 }
 
 @ApiExtraModels(

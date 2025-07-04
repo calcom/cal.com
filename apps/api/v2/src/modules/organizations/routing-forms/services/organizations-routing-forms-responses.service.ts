@@ -2,7 +2,7 @@ import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/rou
 import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses-output.service";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, InternalServerErrorException } from "@nestjs/common";
 import { Request } from "express";
 
 import { getRoutedUrl } from "@calcom/platform-libraries";
@@ -71,6 +71,17 @@ export class OrganizationsRoutingFormsResponsesService {
     request: Request
   ): Promise<CreateRoutingFormResponseOutputData> {
     const { queueResponse, ...slotsQuery } = query;
+    
+    // Validate date range
+    if (slotsQuery.start && slotsQuery.end) {
+      const startDate = new Date(slotsQuery.start);
+      const endDate = new Date(slotsQuery.end);
+      
+      if (endDate < startDate) {
+        throw new BadRequestException("End date cannot be before start date.");
+      }
+    }
+    
     const { redirectUrl, message } = await this.getRoutingUrl(request, routingFormId, queueResponse ?? false);
 
     if (!redirectUrl) {
@@ -96,6 +107,8 @@ export class OrganizationsRoutingFormsResponsesService {
     const skipContactOwner = crmParams.skipContactOwner ?? undefined;
     const queuedResponseId = crmParams.queuedFormResponseId ?? null;
     const responseId = crmParams.routingFormResponseId ?? null;
+    const crmAppSlug = crmParams.crmAppSlug ?? undefined;
+    const crmOwnerRecordType = crmParams.crmOwnerRecordType ?? undefined;
 
     if (responseId) {
       return {
@@ -104,6 +117,8 @@ export class OrganizationsRoutingFormsResponsesService {
           teamMemberEmail,
           teamMemberIds,
           skipContactOwner,
+          crmAppSlug,
+          crmOwnerRecordType,
         },
         eventTypeId,
         slots,
@@ -111,7 +126,7 @@ export class OrganizationsRoutingFormsResponsesService {
     }
     
     if (!queuedResponseId) {
-      throw new NotFoundException("No routing form response ID or queued form response ID could be found.");
+      throw new InternalServerErrorException("No routing form response ID or queued form response ID could be found.");
     }
 
     return {
@@ -120,6 +135,8 @@ export class OrganizationsRoutingFormsResponsesService {
         teamMemberEmail,
         teamMemberIds,
         skipContactOwner,
+        crmAppSlug,
+        crmOwnerRecordType,
       },
       eventTypeId,
       slots,
@@ -131,7 +148,7 @@ export class OrganizationsRoutingFormsResponsesService {
     const routedUrlData = await getRoutedUrl({
       req: request,
       query: { ...params, form: formId, ...(queueResponse && { "cal.queueFormResponse": "true" }) },
-    });
+    }, true);
 
     const destination = routedUrlData?.redirect?.destination;
 
@@ -186,6 +203,8 @@ export class OrganizationsRoutingFormsResponsesService {
         ? (urlParams.get("cal.queuedFormResponseId") as string)
         : undefined,
       skipContactOwner: urlParams.get("cal.skipContactOwner") === "true" ? true : false,
+      crmAppSlug: urlParams.get("cal.crmAppSlug") || undefined,
+      crmOwnerRecordType: urlParams.get("cal.crmContactOwnerRecordType") || undefined,
     };
 
     return {

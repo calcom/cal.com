@@ -26,6 +26,7 @@ const _handleResponse = async ({
   chosenRouteId,
   isPreview,
   queueFormResponse,
+  fetchCrm,
 }: {
   response: z.infer<typeof ZResponseInputSchema>["response"];
   identifierKeyedResponse: Record<string, string | string[]> | null;
@@ -34,6 +35,7 @@ const _handleResponse = async ({
   chosenRouteId: string | null;
   isPreview: boolean;
   queueFormResponse?: boolean;
+  fetchCrm?: boolean;
 }) => {
   try {
     if (!form.fields) {
@@ -105,13 +107,14 @@ const _handleResponse = async ({
       const getRoutedMembers = async () =>
         await Promise.all([
           (async () => {
-            const contactOwnerQuery = identifierKeyedResponse
-              ? await routerGetCrmContactOwnerEmail({
-                  attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
-                  identifierKeyedResponse,
-                  action: chosenRoute.action,
-                })
-              : null;
+            const contactOwnerQuery =
+              identifierKeyedResponse && fetchCrm
+                ? await routerGetCrmContactOwnerEmail({
+                    attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
+                    identifierKeyedResponse,
+                    action: chosenRoute.action,
+                  })
+                : null;
             crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
             crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
             crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;

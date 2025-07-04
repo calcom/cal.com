@@ -192,6 +192,8 @@ export class InputBookingsService_2024_08_13 {
         routingFormResponseId: inputBooking.routing.responseId,
         teamMemberEmail: inputBooking.routing.teamMemberEmail,
         skipContactOwner: inputBooking.routing.skipContactOwner,
+        crmAppSlug: inputBooking.routing.crmAppSlug,
+        crmOwnerRecordType: inputBooking.routing.crmOwnerRecordType,
       }),
     };
   }
@@ -466,6 +468,8 @@ export class InputBookingsService_2024_08_13 {
           routingFormResponseId: inputBooking.routing.responseId,
           teamMemberEmail: inputBooking.routing.teamMemberEmail,
           skipContactOwner: inputBooking.routing.skipContactOwner,
+          crmAppSlug: inputBooking.routing.crmAppSlug,
+          crmOwnerRecordType: inputBooking.routing.crmOwnerRecordType,
         }),
       });
 
