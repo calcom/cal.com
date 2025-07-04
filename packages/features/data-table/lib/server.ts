@@ -15,12 +15,6 @@ type MakeWhereClauseProps = {
   json?: true | { path: string[] };
 };
 
-type MakeSqlWhereClauseProps = {
-  columnName: string;
-  filterValue: FilterValue;
-  tableAlias?: string;
-};
-
 export function makeOrderBy(sorting: SortingState) {
   if (!sorting || !sorting.length) return undefined;
 
@@ -186,34 +180,30 @@ export function makeWhereClause(props: MakeWhereClauseProps) {
 /**
  * Builds a SQL where clause for use with raw SQL queries
  */
-export function makeSqlWhereClause(props: MakeSqlWhereClauseProps): Prisma.Sql | null {
-  const { columnName, filterValue, tableAlias } = props;
-  const prefix = tableAlias ? `${tableAlias}."` : `"`;
-  const suffix = `"`;
-
+export function makeSqlCondition(filterValue: FilterValue): Prisma.Sql | null {
   if (isMultiSelectFilterValue(filterValue)) {
-    return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} = ANY(${filterValue.data})`;
+    return Prisma.sql` = ANY(${filterValue.data})`;
   } else if (isSingleSelectFilterValue(filterValue)) {
-    return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} = ${filterValue.data}`;
+    return Prisma.sql` = ${filterValue.data}`;
   } else if (isTextFilterValue(filterValue)) {
     const { operator, operand } = filterValue.data;
     switch (operator) {
       case "equals":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} = ${operand}`;
+        return Prisma.sql` = ${operand}`;
       case "notEquals":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} != ${operand}`;
+        return Prisma.sql` != ${operand}`;
       case "contains":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} ILIKE ${`%${operand}%`}`;
+        return Prisma.sql` ILIKE ${`%${operand}%`}`;
       case "notContains":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} NOT ILIKE ${`%${operand}%`}`;
+        return Prisma.sql` NOT ILIKE ${`%${operand}%`}`;
       case "startsWith":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} ILIKE ${`${operand}%`}`;
+        return Prisma.sql` ILIKE ${`${operand}%`}`;
       case "endsWith":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} ILIKE ${`%${operand}`}`;
+        return Prisma.sql` ILIKE ${`%${operand}`}`;
       case "isEmpty":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} = ''`;
+        return Prisma.sql` = ''`;
       case "isNotEmpty":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} != ''`;
+        return Prisma.sql` != ''`;
       default:
         return null;
     }
@@ -221,28 +211,20 @@ export function makeSqlWhereClause(props: MakeSqlWhereClauseProps): Prisma.Sql |
     const { operator, operand } = filterValue.data;
     switch (operator) {
       case "eq":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} = ${operand}`;
+        return Prisma.sql` = ${operand}`;
       case "neq":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} != ${operand}`;
+        return Prisma.sql` != ${operand}`;
       case "gt":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} > ${operand}`;
+        return Prisma.sql` > ${operand}`;
       case "gte":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} >= ${operand}`;
+        return Prisma.sql` >= ${operand}`;
       case "lt":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} < ${operand}`;
+        return Prisma.sql` < ${operand}`;
       case "lte":
-        return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} <= ${operand}`;
+        return Prisma.sql` <= ${operand}`;
       default:
         return null;
     }
-  } else if (isDateRangeFilterValue(filterValue)) {
-    const { startDate, endDate } = filterValue.data;
-    if (!startDate || !endDate) {
-      return null;
-    }
-    return Prisma.sql`${Prisma.raw(prefix + columnName + suffix)} >= ${startDate}::timestamp AND ${Prisma.raw(
-      prefix + columnName + suffix
-    )} <= ${endDate}::timestamp`;
   }
 
   return null;

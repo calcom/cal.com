@@ -1,17 +1,16 @@
 import { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 
-import { makeSqlWhereClause } from "../server";
+import { makeSqlCondition } from "../server";
 import { ColumnFilterType } from "../types";
 import type {
   MultiSelectFilterValue,
   SingleSelectFilterValue,
   TextFilterValue,
   NumberFilterValue,
-  DateRangeFilterValue,
 } from "../types";
 
-describe("makeSqlWhereClause", () => {
+describe("makeSqlCondition", () => {
   describe("Multi-select filter values", () => {
     it("should create ANY condition for multi-select values", () => {
       const filterValue: MultiSelectFilterValue = {
@@ -19,12 +18,9 @@ describe("makeSqlWhereClause", () => {
         data: ["option1", "option2", "option3"],
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "status",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"status" = ANY(${["option1", "option2", "option3"]})`);
+      expect(result).toEqual(Prisma.sql` = ANY(${["option1", "option2", "option3"]})`);
     });
 
     it("should work with table alias", () => {
@@ -33,13 +29,9 @@ describe("makeSqlWhereClause", () => {
         data: [1, 2, 3],
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "userId",
-        filterValue,
-        tableAlias: "u",
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`u."userId" = ANY(${[1, 2, 3]})`);
+      expect(result).toEqual(Prisma.sql` = ANY(${[1, 2, 3]})`);
     });
   });
 
@@ -50,12 +42,9 @@ describe("makeSqlWhereClause", () => {
         data: "option1",
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "status",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"status" = ${"option1"}`);
+      expect(result).toEqual(Prisma.sql` = ${"option1"}`);
     });
 
     it("should work with numeric values", () => {
@@ -64,12 +53,9 @@ describe("makeSqlWhereClause", () => {
         data: 123,
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "id",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"id" = ${123}`);
+      expect(result).toEqual(Prisma.sql` = ${123}`);
     });
   });
 
@@ -80,12 +66,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "equals", operand: "test" },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "name",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"name" = ${"test"}`);
+      expect(result).toEqual(Prisma.sql` = ${"test"}`);
     });
 
     it("should create not equals condition", () => {
@@ -94,12 +77,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "notEquals", operand: "test" },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "name",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"name" != ${"test"}`);
+      expect(result).toEqual(Prisma.sql` != ${"test"}`);
     });
 
     it("should create contains condition", () => {
@@ -108,12 +88,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "contains", operand: "test" },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "name",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"name" ILIKE ${`%test%`}`);
+      expect(result).toEqual(Prisma.sql` ILIKE ${`%test%`}`);
     });
 
     it("should create not contains condition", () => {
@@ -122,12 +99,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "notContains", operand: "test" },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "name",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"name" NOT ILIKE ${`%test%`}`);
+      expect(result).toEqual(Prisma.sql` NOT ILIKE ${`%test%`}`);
     });
 
     it("should create starts with condition", () => {
@@ -136,12 +110,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "startsWith", operand: "test" },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "name",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"name" ILIKE ${`test%`}`);
+      expect(result).toEqual(Prisma.sql` ILIKE ${`test%`}`);
     });
 
     it("should create ends with condition", () => {
@@ -150,12 +121,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "endsWith", operand: "test" },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "name",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"name" ILIKE ${`%test`}`);
+      expect(result).toEqual(Prisma.sql` ILIKE ${`%test`}`);
     });
 
     it("should create is empty condition", () => {
@@ -164,12 +132,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "isEmpty", operand: "" },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "name",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"name" = ''`);
+      expect(result).toEqual(Prisma.sql` = ''`);
     });
 
     it("should create is not empty condition", () => {
@@ -178,12 +143,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "isNotEmpty", operand: "" },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "name",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"name" != ''`);
+      expect(result).toEqual(Prisma.sql` != ''`);
     });
 
     it("should return null for unknown text operator", () => {
@@ -192,7 +154,7 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "unknown" as any, operand: "test" },
       };
 
-      const result = makeSqlWhereClause({
+      const result = makeSqlCondition({
         columnName: "name",
         filterValue,
       });
@@ -208,12 +170,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "eq", operand: 42 },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "count",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"count" = ${42}`);
+      expect(result).toEqual(Prisma.sql` = ${42}`);
     });
 
     it("should create not equals condition", () => {
@@ -222,12 +181,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "neq", operand: 42 },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "count",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"count" != ${42}`);
+      expect(result).toEqual(Prisma.sql` != ${42}`);
     });
 
     it("should create greater than condition", () => {
@@ -236,12 +192,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "gt", operand: 42 },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "count",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"count" > ${42}`);
+      expect(result).toEqual(Prisma.sql` > ${42}`);
     });
 
     it("should create greater than or equal condition", () => {
@@ -250,12 +203,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "gte", operand: 42 },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "count",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"count" >= ${42}`);
+      expect(result).toEqual(Prisma.sql` >= ${42}`);
     });
 
     it("should create less than condition", () => {
@@ -264,12 +214,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "lt", operand: 42 },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "count",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"count" < ${42}`);
+      expect(result).toEqual(Prisma.sql` < ${42}`);
     });
 
     it("should create less than or equal condition", () => {
@@ -278,12 +225,9 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "lte", operand: 42 },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "count",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"count" <= ${42}`);
+      expect(result).toEqual(Prisma.sql` <= ${42}`);
     });
 
     it("should return null for unknown number operator", () => {
@@ -292,68 +236,7 @@ describe("makeSqlWhereClause", () => {
         data: { operator: "unknown" as any, operand: 42 },
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "count",
-        filterValue,
-      });
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("Date range filter values", () => {
-    it("should create date range condition", () => {
-      const filterValue: DateRangeFilterValue = {
-        type: ColumnFilterType.DATE_RANGE,
-        data: {
-          startDate: "2023-01-01",
-          endDate: "2023-01-31",
-          preset: "custom",
-        },
-      };
-
-      const result = makeSqlWhereClause({
-        columnName: "createdAt",
-        filterValue,
-      });
-
-      expect(result).toEqual(
-        Prisma.sql`"createdAt" >= ${"2023-01-01"}::timestamp AND "createdAt" <= ${"2023-01-31"}::timestamp`
-      );
-    });
-
-    it("should return null when startDate is missing", () => {
-      const filterValue: DateRangeFilterValue = {
-        type: ColumnFilterType.DATE_RANGE,
-        data: {
-          startDate: null,
-          endDate: "2023-01-31",
-          preset: "custom",
-        },
-      };
-
-      const result = makeSqlWhereClause({
-        columnName: "createdAt",
-        filterValue,
-      });
-
-      expect(result).toBeNull();
-    });
-
-    it("should return null when endDate is missing", () => {
-      const filterValue: DateRangeFilterValue = {
-        type: ColumnFilterType.DATE_RANGE,
-        data: {
-          startDate: "2023-01-01",
-          endDate: null,
-          preset: "custom",
-        },
-      };
-
-      const result = makeSqlWhereClause({
-        columnName: "createdAt",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
       expect(result).toBeNull();
     });
@@ -366,10 +249,7 @@ describe("makeSqlWhereClause", () => {
         data: "test",
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "test",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
       expect(result).toBeNull();
     });
@@ -380,12 +260,9 @@ describe("makeSqlWhereClause", () => {
         data: [],
       };
 
-      const result = makeSqlWhereClause({
-        columnName: "status",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql`"status" = ANY(${[]})`);
+      expect(result).toEqual(Prisma.sql` = ANY(${[]})`);
     });
   });
 });
