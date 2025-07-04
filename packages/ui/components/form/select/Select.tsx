@@ -67,12 +67,7 @@ export const Select = <
             innerClassNames?.option
           ),
         placeholder: (state) => cx("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
-        dropdownIndicator: () =>
-          cx(
-            "text-default",
-            "w-4 h-4",
-            "flex items-center justify-center " // crucial for centering
-          ),
+        dropdownIndicator: () => cx("text-default", "w-4 h-4", "flex items-center justify-center "),
         control: (state) =>
           cx(
             inputStyles({ size }),
