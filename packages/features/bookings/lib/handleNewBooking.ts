@@ -45,6 +45,7 @@ import {
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
+import { groupHostsByGroupId } from "@calcom/lib/bookings/groupHostsByGroupId";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
@@ -800,31 +801,21 @@ async function handler(
         }
       }
 
-      const luckyUserPools: Record<string, IsFixedAwareUser[]> = {};
       const fixedUserPool: IsFixedAwareUser[] = [];
-
-      const hostGroups = eventType.hostGroups;
-      const defaultGroupId = "default_group_id";
-
-      const hasGroups = hostGroups?.length > 0;
-
-      if (hasGroups) {
-        hostGroups.forEach((group) => {
-          luckyUserPools[group.id] = [];
-        });
-      } else {
-        luckyUserPools[defaultGroupId] = [];
-      }
+      const nonFixedUsers: IsFixedAwareUser[] = [];
 
       availableUsers.forEach((user) => {
         if (user.isFixed) {
           fixedUserPool.push(user);
         } else {
-          const groupId = hasGroups ? user.groupId : defaultGroupId;
-          if (luckyUserPools[groupId]) {
-            luckyUserPools[groupId].push(user);
-          }
+          nonFixedUsers.push(user);
         }
+      });
+
+      // Group non-fixed users by their group IDs
+      const luckyUserPools = groupHostsByGroupId({
+        hosts: nonFixedUsers,
+        hostGroups: eventType.hostGroups,
       });
 
       const notAvailableLuckyUsers: typeof users = [];
