@@ -3,10 +3,14 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { checkBookingLimits } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { checkDurationLimits } from "@calcom/lib/intervalLimits/server/checkDurationLimits";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import prisma from "@calcom/prisma";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 
-type EventType = Pick<NewBookingEventType, "bookingLimits" | "durationLimits" | "id" | "schedule">;
+type EventType = Pick<
+  NewBookingEventType,
+  "bookingLimits" | "durationLimits" | "id" | "schedule" | "userId" | "schedulingType"
+>;
 
 type InputProps = {
   eventType: EventType;
@@ -19,11 +23,11 @@ const _checkBookingAndDurationLimits = async ({
   reqBodyStart,
   reqBodyRescheduleUid,
 }: InputProps) => {
+  const startAsDate = dayjs(reqBodyStart).toDate();
   if (
     Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
     Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
   ) {
-    const startAsDate = dayjs(reqBodyStart).toDate();
     if (eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
       await checkBookingLimits(
         eventType.bookingLimits as IntervalLimit,
@@ -39,6 +43,31 @@ const _checkBookingAndDurationLimits = async ({
         startAsDate,
         eventType.id,
         reqBodyRescheduleUid
+      );
+    }
+  }
+
+  // We are only interested in global booking limits for individual and managed events for which schedulingType is null
+  if (eventType.userId && !eventType.schedulingType) {
+    const eventTypeUser = await prisma.user.findUnique({
+      where: {
+        id: eventType.userId,
+      },
+      select: {
+        id: true,
+        email: true,
+        bookingLimits: true,
+      },
+    });
+    if (eventTypeUser?.bookingLimits && Object.keys(eventTypeUser.bookingLimits).length > 0) {
+      await checkBookingLimits(
+        eventTypeUser.bookingLimits as IntervalLimit,
+        startAsDate,
+        eventType.id,
+        reqBodyRescheduleUid,
+        eventType.schedule?.timeZone,
+        { id: eventTypeUser.id, email: eventTypeUser.email },
+        /* isGlobalBookingLimits */ true
       );
     }
   }

@@ -20,6 +20,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import {
+  getBusyTimesFromGlobalBookingLimits,
   getBusyTimesFromLimits,
   getBusyTimesFromTeamLimits,
 } from "@calcom/lib/intervalLimits/server/getBusyTimesFromLimits";
@@ -30,8 +31,8 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
+import { EventTypeMetaDataSchema, intervalLimitsType } from "@calcom/prisma/zod-utils";
+import type { EventBusyDetails, IntervalLimit, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
 import { getBusyTimes } from "./getBusyTimes";
@@ -50,6 +51,7 @@ const availabilitySchema = z
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
+    userBookingLimits: intervalLimitsType.optional(),
     bypassBusyCalendarTimes: z.boolean().optional(),
     shouldServeCache: z.boolean().optional(),
   })
@@ -205,6 +207,7 @@ type GetUserAvailabilityQuery = {
   returnDateOverrides: boolean;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
+  userBookingLimits?: IntervalLimit | null;
 };
 
 const _getCurrentSeats = async (
@@ -285,6 +288,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     returnDateOverrides,
     bypassBusyCalendarTimes = false,
     shouldServeCache,
+    userBookingLimits,
   } = availabilitySchema.parse(query);
 
   log.debug(
@@ -392,6 +396,23 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     );
   }
 
+  let busyTimesFromGlobalBookingLimits: EventBusyDetails[] = [];
+  // We are only interested in global booking limits for individual and managed events for which schedulingType is null
+  if (eventType && !eventType.schedulingType) {
+    const globalBookingLimits = parseBookingLimit(userBookingLimits);
+    if (globalBookingLimits) {
+      busyTimesFromGlobalBookingLimits = await getBusyTimesFromGlobalBookingLimits(
+        user.id,
+        user.email,
+        globalBookingLimits,
+        dateFrom.tz(timeZone),
+        dateTo.tz(timeZone),
+        timeZone,
+        initialData?.rescheduleUid ?? undefined
+      );
+    }
+  }
+
   // TODO: only query what we need after applying limits (shrink date range)
   const getBusyTimesStart = dateFrom.toISOString();
   const getBusyTimesEnd = dateTo.toISOString();
@@ -429,6 +450,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })),
     ...busyTimesFromLimits,
     ...busyTimesFromTeamLimits,
+    ...busyTimesFromGlobalBookingLimits,
   ];
 
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
@@ -692,6 +714,7 @@ const calculateOutOfOfficeRanges = (
 type GetUsersAvailabilityProps = {
   users: (GetAvailabilityUser & {
     currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
+    bookingLimits?: IntervalLimit | null;
     outOfOfficeDays?: GetUserAvailabilityInitialData["outOfOfficeDays"];
   })[];
   query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
@@ -706,6 +729,7 @@ const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvai
           ...query,
           userId: user.id,
           username: user.username || "",
+          userBookingLimits: user.bookingLimits,
         },
         initialData
           ? {
