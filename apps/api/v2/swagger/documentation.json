@@ -1123,7 +1123,7 @@
     "/v2/organizations/{orgId}/attributes/{attributeId}/options/assigned": {
       "get": {
         "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptions",
-        "summary": "Get by attribute id all of the attribute options that are assigned to users",
+        "summary": "Get all assigned attribute options by attribute ID",
         "parameters": [
           {
             "name": "Authorization",
@@ -1215,7 +1215,7 @@
     "/v2/organizations/{orgId}/attributes/slugs/{attributeSlug}/options/assigned": {
       "get": {
         "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptionsBySlug",
-        "summary": "Get by attribute slug all of the attribute options that are assigned to users",
+        "summary": "Get all assigned attribute options by attribute slug",
         "parameters": [
           {
             "name": "Authorization",
@@ -1467,7 +1467,7 @@
     "/v2/organizations/{orgId}/bookings": {
       "get": {
         "operationId": "OrganizationsBookingsController_getAllOrgTeamBookings",
-        "summary": "Get Organization Bookings",
+        "summary": "Get organization bookings",
         "parameters": [
           {
             "name": "Authorization",
@@ -1763,7 +1763,7 @@
     "/v2/organizations/{orgId}/delegation-credentials": {
       "post": {
         "operationId": "OrganizationsDelegationCredentialController_createDelegationCredential",
-        "summary": "Save delegation credentials for your organization.",
+        "summary": "Save delegation credentials for your organization",
         "parameters": [
           {
             "name": "Authorization",
@@ -1831,7 +1831,7 @@
     "/v2/organizations/{orgId}/delegation-credentials/{credentialId}": {
       "patch": {
         "operationId": "OrganizationsDelegationCredentialController_updateDelegationCredential",
-        "summary": "Update delegation credentials of your organization.",
+        "summary": "Update delegation credentials of your organization",
         "parameters": [
           {
             "name": "Authorization",
@@ -3400,10 +3400,61 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect": {
+      "post": {
+        "operationId": "OrganizationsConferencingController_connectTeamApp",
+        "summary": "Connect your conferencing application to a team",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": [
+                "google-meet"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Conferencing"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url": {
       "get": {
-        "operationId": "OrganizationsTeamsConferencingController_getTeamOAuthUrl",
-        "summary": "Get OAuth conferencing app's auth url for a team",
+        "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
+        "summary": "Get OAuth conferencing app's auth URL for a team",
         "parameters": [
           {
             "name": "Authorization",
@@ -3478,7 +3529,7 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing": {
       "get": {
-        "operationId": "OrganizationsTeamsConferencingController_listTeamConferencingApps",
+        "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
         "summary": "List team conferencing applications",
         "parameters": [
           {
@@ -3509,7 +3560,7 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default": {
       "post": {
-        "operationId": "OrganizationsTeamsConferencingController_setTeamDefaultApp",
+        "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
         "summary": "Set team default conferencing application",
         "parameters": [
           {
@@ -3555,7 +3606,7 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/default": {
       "get": {
-        "operationId": "OrganizationsTeamsConferencingController_getTeamDefaultApp",
+        "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
         "summary": "Get team default conferencing application",
         "parameters": [
           {
@@ -3601,7 +3652,7 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect": {
       "delete": {
-        "operationId": "OrganizationsTeamsConferencingController_disconnectTeamApp",
+        "operationId": "OrganizationsConferencingController_disconnectTeamApp",
         "summary": "Disconnect team conferencing application",
         "parameters": [
           {
@@ -3646,7 +3697,7 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/callback": {
       "get": {
-        "operationId": "OrganizationsTeamsConferencingController_saveTeamOauthCredentials",
+        "operationId": "OrganizationsConferencingController_saveTeamOauthCredentials",
         "summary": "Save conferencing app OAuth credentials",
         "parameters": [
           {
@@ -5710,7 +5761,7 @@
     "/v2/organizations/{orgId}/users/{userId}/bookings": {
       "get": {
         "operationId": "OrganizationsUsersBookingsController_getOrganizationUserBookings",
-        "summary": "Get all bookings of an organization user",
+        "summary": "Get all bookings for an organization user",
         "parameters": [
           {
             "name": "Authorization",
@@ -5997,7 +6048,7 @@
     "/v2/organizations/{orgId}/users/{userId}/ooo": {
       "get": {
         "operationId": "OrganizationsUsersOOOController_getOrganizationUserOOO",
-        "summary": "Get all ooo entries of a user",
+        "summary": "Get all out-of-office entries for a user",
         "parameters": [
           {
             "name": "Authorization",
@@ -6099,7 +6150,7 @@
       },
       "post": {
         "operationId": "OrganizationsUsersOOOController_createOrganizationUserOOO",
-        "summary": "Create an ooo entry for user",
+        "summary": "Create an out-of-office entry for a user",
         "parameters": [
           {
             "name": "Authorization",
@@ -6160,7 +6211,7 @@
     "/v2/organizations/{orgId}/users/{userId}/ooo/{oooId}": {
       "patch": {
         "operationId": "OrganizationsUsersOOOController_updateOrganizationUserOOO",
-        "summary": "Update ooo entry of a user",
+        "summary": "Update an out-of-office entry for a user",
         "parameters": [
           {
             "name": "Authorization",
@@ -6227,7 +6278,7 @@
       },
       "delete": {
         "operationId": "OrganizationsUsersOOOController_deleteOrganizationUserOOO",
-        "summary": "Delete ooo entry of a user",
+        "summary": "Delete an out-of-office entry for a user",
         "parameters": [
           {
             "name": "Authorization",
@@ -6278,7 +6329,7 @@
     "/v2/organizations/{orgId}/ooo": {
       "get": {
         "operationId": "OrganizationsUsersOOOController_getOrganizationUsersOOO",
-        "summary": "Get all OOO entries of org users",
+        "summary": "Get all out-of-office entries for organization users",
         "parameters": [
           {
             "name": "Authorization",
@@ -8311,7 +8362,7 @@
     "/v2/calendars/{calendar}/connect": {
       "get": {
         "operationId": "CalendarsController_redirect",
-        "summary": "Get oAuth connect URL",
+        "summary": "Get OAuth connect URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -8606,7 +8657,7 @@
     "/v2/conferencing/{app}/oauth/auth-url": {
       "get": {
         "operationId": "ConferencingController_redirect",
-        "summary": "Get OAuth conferencing app auth url",
+        "summary": "Get OAuth conferencing app auth URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -8667,7 +8718,7 @@
     "/v2/conferencing/{app}/oauth/callback": {
       "get": {
         "operationId": "ConferencingController_save",
-        "summary": "conferencing apps oauths callback",
+        "summary": "Conferencing app OAuth callback",
         "parameters": [
           {
             "name": "state",
@@ -10434,294 +10485,10 @@
         ]
       }
     },
-    "/v2/organizations/{orgId}/conferencing/{app}/oauth/auth-url": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
-        "summary": "Get OAuth conferencing app's auth url for a team",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "zoom",
-                "msteams"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "returnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "onErrorReturnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations / Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
-        "summary": "List team conferencing applications",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations / Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing/{app}/default": {
-      "post": {
-        "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
-        "summary": "Set team default conferencing application",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet",
-                "zoom",
-                "msteams",
-                "daily-video"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations / Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing/default": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
-        "summary": "Get team default conferencing application",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet",
-                "zoom",
-                "msteams",
-                "daily-video"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations / Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing/{app}/disconnect": {
-      "delete": {
-        "operationId": "OrganizationsConferencingController_disconnectTeamApp",
-        "summary": "Disconnect team conferencing application",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": [
-                "google-meet",
-                "zoom",
-                "msteams"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DisconnectConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations / Conferencing"
-        ]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing/{app}/oauth/callback": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_saveTeamOauthCredentials",
-        "summary": "Save conferencing app OAuth credentials",
-        "parameters": [
-          {
-            "name": "state",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "code",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Organizations / Conferencing"
-        ]
-      }
-    },
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
       "get": {
         "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
-        "summary": "Get stripe connect URL for a team",
+        "summary": "Get Stripe connect URL for a team",
         "parameters": [
           {
             "name": "Authorization",
@@ -10784,7 +10551,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/check": {
       "get": {
         "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
-        "summary": "Check team stripe connection",
+        "summary": "Check team Stripe connection",
         "parameters": [
           {
             "name": "teamId",
@@ -10815,7 +10582,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/stripe/save": {
       "get": {
         "operationId": "OrganizationsStripeController_save",
-        "summary": "Save stripe credentials",
+        "summary": "Save Stripe credentials",
         "parameters": [
           {
             "name": "state",
@@ -11364,7 +11131,7 @@
     "/v2/slots": {
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
-        "summary": "Find out when is an event type ready to be booked.",
+        "summary": "Get available time slots for an event type",
         "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      - bookingUidToReschedule: When rescheduling an existing booking, provide the booking's unique identifier to exclude its time slot from busy time calculations. This ensures the original booking time appears as available for rescheduling.\n      ",
         "parameters": [
           {
@@ -11670,7 +11437,7 @@
       },
       "patch": {
         "operationId": "SlotsController_2024_09_04_updateReservedSlot",
-        "summary": "Updated reserved a slot",
+        "summary": "Update a reserved slot",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -11763,7 +11530,7 @@
     "/v2/stripe/connect": {
       "get": {
         "operationId": "StripeController_redirect",
-        "summary": "Get stripe connect URL",
+        "summary": "Get Stripe connect URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -11795,7 +11562,7 @@
     "/v2/stripe/save": {
       "get": {
         "operationId": "StripeController_save",
-        "summary": "Save stripe credentials",
+        "summary": "Save Stripe credentials",
         "parameters": [
           {
             "name": "state",
@@ -11834,7 +11601,7 @@
     "/v2/stripe/check": {
       "get": {
         "operationId": "StripeController_check",
-        "summary": "Check stripe connection",
+        "summary": "Check Stripe connection",
         "parameters": [
           {
             "name": "Authorization",
@@ -13452,7 +13219,7 @@
       },
       "get": {
         "operationId": "WebhooksController_getWebhooks",
-        "summary": "Get all webooks",
+        "summary": "Get all webhooks",
         "description": "Gets a paginated list of webhooks for the authenticated user.",
         "parameters": [
           {
@@ -22430,22 +22197,6 @@
           "data"
         ]
       },
-      "GetConferencingAppsOauthUrlResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
       "ConferencingAppsOutputDto": {
         "type": "object",
         "properties": {
@@ -22473,6 +22224,41 @@
           "id",
           "type",
           "userId"
+        ]
+      },
+      "ConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetConferencingAppsOauthUrlResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
         ]
       },
       "ConferencingAppsOutputResponseDto": {
@@ -22557,25 +22343,6 @@
         },
         "required": [
           "status"
-        ]
-      },
-      "ConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
-          }
-        },
-        "required": [
-          "status",
-          "data"
         ]
       },
       "GoogleServiceAccountKeyInput": {
