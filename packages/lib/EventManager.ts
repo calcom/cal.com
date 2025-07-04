@@ -566,10 +566,8 @@ export default class EventManager {
                     password: "",
                     url: dailyVideoUrl,
                   };
-                  evt.location = dailyVideoUrl;
                 } else {
                   evt.videoCallData = updatedEvent as VideoCallData;
-                  evt.location = updatedEvent.url || "";
                 }
               }
               results.push(result);
@@ -578,18 +576,17 @@ export default class EventManager {
               log.debug("No valid video reference found, creating new video meeting");
               const createdVideoEvent = await this.createVideoEvent(evt);
               if (createdVideoEvent && createdVideoEvent.success && createdVideoEvent.createdEvent) {
+                const videoEvent = createdVideoEvent.createdEvent;
                 if (createdVideoEvent.type === "daily_video") {
                   const dailyVideoUrl = `http://app.cal.local:3000/video/${evt.uid}`;
                   evt.videoCallData = {
                     type: "daily_video",
-                    id: createdVideoEvent.createdEvent?.id || "MOCK_ID",
-                    password: createdVideoEvent.createdEvent?.password || "",
+                    id: videoEvent.id || "MOCK_ID",
+                    password: videoEvent.password || "",
                     url: dailyVideoUrl,
                   };
-                  evt.location = dailyVideoUrl;
-                } else if (createdVideoEvent.createdEvent) {
-                  evt.videoCallData = createdVideoEvent.createdEvent;
-                  evt.location = createdVideoEvent.createdEvent.url || "";
+                } else {
+                  evt.videoCallData = videoEvent;
                 }
 
                 results.push(createdVideoEvent);
@@ -598,7 +595,7 @@ export default class EventManager {
                 const videoReference = {
                   type: createdVideoEvent.type,
                   uid: createdVideoEvent.uid,
-                  meetingId: createdVideoEvent.createdEvent?.id || "MOCK_ID",
+                  meetingId: videoEvent.id || "MOCK_ID",
                   externalCalendarId: null,
                   credentialId: this.getVideoCredential(evt)?.id || 0,
                 };

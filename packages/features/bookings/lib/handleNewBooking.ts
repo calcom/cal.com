@@ -1527,18 +1527,10 @@ async function handler(
               password: videoEvent.password || "",
               url: dailyVideoUrl,
             };
-            evt.location = dailyVideoUrl;
           } else if (videoEvent) {
             evt.videoCallData = videoEvent;
-            evt.location = videoEvent.url;
           }
         }
-      }
-
-      // Ensure evt.location is set for daily video calls after reschedule
-      if (evt.videoCallData && evt.videoCallData.type === "daily_video" && evt.uid) {
-        const dailyVideoUrl = `http://app.cal.local:3000/video/${evt.uid}`;
-        evt.location = dailyVideoUrl;
       }
     } catch (error) {
       throw error;
@@ -1778,12 +1770,6 @@ async function handler(
     // Use EventManager to conditionally use all needed integrations.
     const createManager = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
 
-    // Handle daily video URL generation for new bookings
-    if (evt.videoCallData && evt.videoCallData.type === "daily_video" && evt.uid) {
-      const dailyVideoUrl = `http://app.cal.local:3000/video/${evt.uid}`;
-      evt.location = dailyVideoUrl;
-    }
-
     if (evt.location) {
       booking.location = evt.location;
     }
@@ -1953,10 +1939,7 @@ async function handler(
     }
   }
 
-  if (evt.location && evt.location.startsWith("http")) {
-    booking.location = evt.location;
-    videoCallUrl = evt.location;
-  } else if (booking.location?.startsWith("http")) {
+  if (booking.location?.startsWith("http")) {
     videoCallUrl = booking.location;
   }
 

@@ -33,7 +33,7 @@ export function getVideoCallDetails({
   const updatedVideoEvent = extractUpdatedVideoEvent(firstVideoResult);
   const metadata = updatedVideoEvent ? extractMetadata(updatedVideoEvent) : {};
 
-  let videoCallUrl = metadata.hangoutLink || updatedVideoEvent?.url;
+  let videoCallUrl = updatedVideoEvent?.hangoutLink || updatedVideoEvent?.url;
 
   if (firstVideoResult?.type === "daily_video" && bookingUid) {
     videoCallUrl = `http://app.cal.local:3000/video/${bookingUid}`;
