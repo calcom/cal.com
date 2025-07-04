@@ -99,6 +99,3 @@ const CustomTooltip = ({
     </div>
   );
 };
-
-// Default export for dynamic imports
-export default RoutingFunnelContent;

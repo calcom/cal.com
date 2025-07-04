@@ -1,6 +1,4 @@
-"use client";
-
-import { RoutingFunnelContent } from "@calcom/features/insights/components/RoutingFunnel";
+import { RoutingFunnelContent } from "@calcom/features/insights/components/RoutingFunnelContent";
 
 // Random sample data for playground testing
 const sampleRoutingFunnelData = [
