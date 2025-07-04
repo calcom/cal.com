@@ -95,7 +95,9 @@ export class EventTypesAtomService {
     }
 
     // note (Lauris): don't show platform owner as one of the people that can be assigned to managed team event type
-    const onlyManagedTeamMembers = eventType.teamMembers.filter((user) => user.isPlatformManaged);
+    const onlyManagedTeamMembers = eventType.teamMembers.filter(
+      (user) => user.isPlatformManaged && user.membership === "MEMBER"
+    );
     eventType.teamMembers = onlyManagedTeamMembers;
 
     return eventType;
@@ -424,10 +426,7 @@ export class EventTypesAtomService {
         isTeamEvent,
         orgSlug,
         this.dbRead.prisma as unknown as PrismaClient,
-        true,
-        undefined,
-        false,
-        orgId
+        true
       );
 
       if (!event) {
