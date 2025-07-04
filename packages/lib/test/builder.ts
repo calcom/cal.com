@@ -134,6 +134,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     scheduleId: null,
     bookingLimits: null,
     maxActiveBookingsPerBooker: null,
+    maxActiveBookingPerBookerOfferReschedule: false,
     durationLimits: null,
     assignAllTeamMembers: false,
     rescheduleWithSameRoundRobinHost: false,
@@ -156,6 +157,8 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     allowReschedulingPastBookings: false,
     hideOrganizerEmail: false,
     customReplyToEmail: null,
+    restrictionScheduleId: null,
+    useBookerTimezone: false,
     ...eventType,
   };
 };

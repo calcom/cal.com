@@ -94,7 +94,7 @@ export default function EventType({ id }: { id: number }) {
 
 The useCreateEventType hook allows you to create a new event type. This hook returns a mutation function that handles the event type creation process. The mutation function accepts an object with the following properties: ***lengthInMinutes*** which is the length of the event in minutes, ***title*** which is the title of the event, ***slug*** which is the slug of the event, and ***description*** which is the description of the event.
 
-Below code snippet shows how to use the useCreateEventType hook to setup an event type.
+Below code snippet shows how to use the useCreateEventType hook to set up an event type.
 
 ```js
 import { useCreateEventType } from "@calcom/atoms";
@@ -132,7 +132,7 @@ export default function CreateEventType() {
 
 The useCreateTeamEventType hook allows you to create a new team event type. This hook returns a mutation function that handles the event type creation process. The mutation function accepts an object with the following properties: ***lengthInMinutes*** which is the length of the event in minutes, ***title*** which is the title of the event, ***slug*** which is the slug of the event, ***description*** which is the description of the event, schedulingType which can be either ***COLLECTIVE***, ***ROUND_ROBIN*** or ***MANAGED***, ***hosts*** which is an array of hosts for the event and the ***teamId*** which is the id of the team.
 
-Below code snippet shows how to use the useCreateTeamEventType hook to setup a team event type.
+Below code snippet shows how to use the useCreateTeamEventType hook to set up a team event type.
 
 ```js
 import { useCreateTeamEventType } from "@calcom/atoms";

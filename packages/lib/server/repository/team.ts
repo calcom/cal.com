@@ -2,17 +2,10 @@ import { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
-import { TeamBilling } from "@calcom/features/ee/billing/teams";
-import removeMember from "@calcom/features/ee/teams/lib/removeMember";
-import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { TRPCError } from "@trpc/server";
-
-import { WorkflowService } from "../service/workflows";
 import { getParsedTeam } from "./teamUtils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
@@ -186,13 +179,40 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
-  static async deleteById({ id }: { id: number }) {
-    try {
-      await WorkflowService.deleteWorkflowRemindersOfRemovedTeam(id);
-    } catch (e) {
-      console.error(e);
-    }
+  static async findAllByParentId({
+    parentId,
+    select = teamSelect,
+  }: {
+    parentId: number;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await prisma.team.findMany({
+      where: {
+        parentId,
+      },
+      select,
+    });
+  }
 
+  static async findByIdAndParentId({
+    id,
+    parentId,
+    select = teamSelect,
+  }: {
+    id: number;
+    parentId: number;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await prisma.team.findFirst({
+      where: {
+        id,
+        parentId,
+      },
+      select,
+    });
+  }
+
+  static async deleteById({ id }: { id: number }) {
     const deletedTeam = await prisma.$transaction(async (tx) => {
       await tx.eventType.deleteMany({
         where: {
@@ -214,92 +234,10 @@ export class TeamRepository {
         },
       });
 
-      const teamBilling = await TeamBilling.findAndInit(id);
-      await teamBilling.cancel();
       return deletedTeam;
     });
 
-    if (deletedTeam?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
-
     return deletedTeam;
-  }
-
-  // TODO: Move errors away from TRPC error to make it more generic
-  static async inviteMemberByToken(token: string, userId: number) {
-    const verificationToken = await prisma.verificationToken.findFirst({
-      where: {
-        token,
-        OR: [{ expiresInDays: null }, { expires: { gte: new Date() } }],
-      },
-      include: {
-        team: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-
-    if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
-    if (!verificationToken.teamId || !verificationToken.team)
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Invite token is not associated with any team",
-      });
-
-    try {
-      await prisma.membership.create({
-        data: {
-          createdAt: new Date(),
-          teamId: verificationToken.teamId,
-          userId: userId,
-          role: MembershipRole.MEMBER,
-          accepted: false,
-        },
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === "P2002") {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "This user is a member of this team / has a pending invitation.",
-          });
-        }
-      } else throw e;
-    }
-
-    const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
-    await teamBilling.updateQuantity();
-
-    return verificationToken.team.name;
-  }
-
-  static async publish(teamId: number) {
-    const teamBilling = await TeamBilling.findAndInit(teamId);
-    return teamBilling.publish();
-  }
-
-  static async removeMembers(teamIds: number[], memberIds: number[], isOrg = false) {
-    const deleteMembershipPromises = [];
-
-    for (const memberId of memberIds) {
-      for (const teamId of teamIds) {
-        deleteMembershipPromises.push(
-          // This removeMember function is from @calcom/features/ee/teams/lib/removeMember.ts we should probably move it to this repository.
-          removeMember({
-            teamId,
-            memberId,
-            isOrg,
-          })
-        );
-      }
-    }
-
-    await Promise.all(deleteMembershipPromises);
-
-    const teamsBilling = await TeamBilling.findAndInitMany(teamIds);
-    const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
-    await Promise.allSettled(teamBillingPromises);
   }
 
   static async findTeamWithMembers(teamId: number) {
@@ -359,5 +297,19 @@ export class TeamRepository {
         /** To prevent breaking we only return non-email attached token here, if we have one */
         inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
       }));
+  }
+
+  static async findTeamWithOrganizationSettings(teamId: number) {
+    return await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        parent: {
+          select: {
+            isOrganization: true,
+            organizationSettings: true,
+          },
+        },
+      },
+    });
   }
 }
