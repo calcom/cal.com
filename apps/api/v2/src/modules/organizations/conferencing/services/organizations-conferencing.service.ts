@@ -2,14 +2,11 @@ import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferenc
 import { DefaultConferencingAppsOutputDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
-import { GOOGLE_MEET } from "@calcom/platform-constants";
 import { CONFERENCING_APPS, CAL_VIDEO } from "@calcom/platform-constants";
 import { teamMetadataSchema } from "@calcom/platform-libraries";
 import { handleDeleteCredential } from "@calcom/platform-libraries/app-store";
@@ -21,19 +18,8 @@ export class OrganizationsConferencingService {
   constructor(
     private readonly conferencingRepository: ConferencingRepository,
     private teamsRepository: TeamsRepository,
-    private usersRepository: UsersRepository,
-    private readonly googleMeetService: GoogleMeetService,
     private readonly conferencingService: ConferencingService
   ) {}
-
-  async connectTeamNonOauthApps({ teamId, app }: { teamId: number; app: string }): Promise<any> {
-    switch (app) {
-      case GOOGLE_MEET:
-        return this.googleMeetService.connectGoogleMeetToTeam(teamId);
-      default:
-        throw new BadRequestException("Invalid conferencing app. Available apps: GOOGLE_MEET.");
-    }
-  }
 
   async connectTeamOauthApps({
     decodedCallbackState,

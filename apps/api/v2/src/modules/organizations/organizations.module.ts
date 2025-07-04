@@ -18,7 +18,6 @@ import { OrganizationAttributesService } from "@/modules/organizations/attribute
 import { OrganizationAttributeOptionRepository } from "@/modules/organizations/attributes/options/organization-attribute-options.repository";
 import { OrganizationsAttributesOptionsController } from "@/modules/organizations/attributes/options/organizations-attributes-options.controller";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
-import { OrganizationsConferencingController } from "@/modules/organizations/conferencing/organizations-conferencing.controller";
 import { OrganizationsConferencingModule } from "@/modules/organizations/conferencing/organizations-conferencing.module";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { OrganizationsDelegationCredentialModule } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.module";

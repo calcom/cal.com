@@ -420,6 +420,40 @@ export class UserRepository {
     };
   }
 
+  /**
+   * Similar to enrichUserWithItsProfile but skips the platform org check.
+   * This function directly returns the profile without checking if it's a platform organization.
+   */
+  static async enrichUserWithItsProfileSkipPlatformCheck<T extends { id: number; username: string | null }>({
+    user,
+  }: {
+    user: T;
+  }): Promise<
+    T & {
+      nonProfileUsername: string | null;
+      profile: UserProfile;
+    }
+  > {
+    const profiles = await ProfileRepository.findManyForUser({ id: user.id });
+    if (profiles.length) {
+      const profile = profiles[0];
+      // Directly return the profile without checking if it's a platform organization
+      return {
+        ...user,
+        username: profile.username,
+        nonProfileUsername: user.username,
+        profile,
+      };
+    }
+
+    // If no organization profile exists, use the personal profile so that the returned user is normalized to have a profile always
+    return {
+      ...user,
+      nonProfileUsername: user.username,
+      profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+    };
+  }
+
   static async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
     users: T[]
   ): Promise<
