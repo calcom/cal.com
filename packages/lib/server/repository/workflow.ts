@@ -3,7 +3,6 @@ import { z } from "zod";
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import prisma from "@calcom/prisma";
@@ -21,6 +20,8 @@ export const ZGetInputSchema = z.object({
 });
 
 export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
+
+const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
 
 const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>()({
   include: {
