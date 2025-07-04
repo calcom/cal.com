@@ -152,54 +152,48 @@ describe("scheduleNoShowTriggers Integration", () => {
     const hostTask = createdTasks.find((task) => task.type === "triggerHostNoShowWebhook");
     expect(hostTask).toBeDefined();
 
-    // eslint-disable-next-line playwright/no-conditional-in-test
-    if (hostTask) {
-      let hostPayload;
-      try {
-        hostPayload = JSON.parse(hostTask.payload);
-      } catch (e) {
-        console.error("Failed to parse host task payload:", hostTask.payload);
-        throw e;
-      }
-
-      expect(hostPayload).toEqual({
-        triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-        bookingId: bookingData.id,
-        webhook: expect.objectContaining({
-          id: hostWebhook.id,
-          subscriberUrl: "https://example.com/host-webhook",
-          eventTriggers: [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
-          time: 5,
-          timeUnit: TimeUnit.MINUTE,
-        }),
-      });
+    let hostPayload;
+    try {
+      hostPayload = JSON.parse(hostTask?.payload ?? "");
+    } catch (e) {
+      console.error("Failed to parse host task payload:", hostTask?.payload);
+      throw e;
     }
+
+    expect(hostPayload).toEqual({
+      triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+      bookingId: bookingData.id,
+      webhook: expect.objectContaining({
+        id: hostWebhook.id,
+        subscriberUrl: "https://example.com/host-webhook",
+        eventTriggers: [WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
+        time: 5,
+        timeUnit: TimeUnit.MINUTE,
+      }),
+    });
 
     const guestTask = createdTasks.find((task) => task.type === "triggerGuestNoShowWebhook");
     expect(guestTask).toBeDefined();
 
-    // eslint-disable-next-line playwright/no-conditional-in-test
-    if (guestTask) {
-      let guestPayload;
-      try {
-        guestPayload = JSON.parse(guestTask.payload);
-      } catch (e) {
-        console.error("Failed to parse guest task payload:", guestTask.payload);
-        throw e;
-      }
-
-      expect(guestPayload).toEqual({
-        triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-        bookingId: bookingData.id,
-        webhook: expect.objectContaining({
-          id: guestWebhook.id,
-          subscriberUrl: "https://example.com/guest-webhook",
-          eventTriggers: [WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW],
-          time: 10,
-          timeUnit: TimeUnit.MINUTE,
-        }),
-      });
+    let guestPayload;
+    try {
+      guestPayload = JSON.parse(guestTask?.payload ?? "");
+    } catch (e) {
+      console.error("Failed to parse guest task payload:", guestTask?.payload);
+      throw e;
     }
+
+    expect(guestPayload).toEqual({
+      triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+      bookingId: bookingData.id,
+      webhook: expect.objectContaining({
+        id: guestWebhook.id,
+        subscriberUrl: "https://example.com/guest-webhook",
+        eventTriggers: [WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW],
+        time: 10,
+        timeUnit: TimeUnit.MINUTE,
+      }),
+    });
   });
 
   test("task handler processes payload correctly and triggers webhook", async () => {
