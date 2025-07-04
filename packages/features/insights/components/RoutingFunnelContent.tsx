@@ -81,7 +81,7 @@ const CustomTooltip = ({
   return (
     <div className="bg-inverted text-inverted border-subtle rounded-lg border p-3 shadow-lg">
       <p className="font-medium">{payload[0].payload.formattedDateFull}</p>
-      {payload.toReversed().map((entry, index: number) => {
+      {[...payload].reverse().map((entry, index: number) => {
         const value = entry.value;
         let displayValue = value.toString();
 
