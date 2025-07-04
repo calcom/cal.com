@@ -65,6 +65,7 @@ export interface DateRange {
   startDate: string;
   endDate: string;
   formattedDate: string;
+  formattedDateFull: string;
 }
 
 export interface GetDateRangesParams {
@@ -330,6 +331,13 @@ class EventsInsights {
             wholeStart: startDate,
             wholeEnd: endDate,
           }),
+          formattedDateFull: this.formatPeriodFull({
+            start: currentStartDate,
+            end: currentEndDate,
+            timeView,
+            wholeStart: startDate,
+            wholeEnd: endDate,
+          }),
         });
         break;
       }
@@ -338,6 +346,13 @@ class EventsInsights {
         startDate: currentStartDate.toISOString(),
         endDate: currentEndDate.toISOString(),
         formattedDate: this.formatPeriod({
+          start: currentStartDate,
+          end: currentEndDate,
+          timeView,
+          wholeStart: startDate,
+          wholeEnd: endDate,
+        }),
+        formattedDateFull: this.formatPeriodFull({
           start: currentStartDate,
           end: currentEndDate,
           timeView,
@@ -385,6 +400,46 @@ class EventsInsights {
 
         if (start.format("YYYY") !== end.format("YYYY")) {
           return `${start.format(`${startFormat} , YYYY`)} - ${end.format(`${endFormat}, YYYY`)}`;
+        }
+
+        if (omitYear) {
+          return `${start.format(startFormat)} - ${end.format(endFormat)}`;
+        } else {
+          return `${start.format(startFormat)} - ${end.format(endFormat)}, ${end.format("YYYY")}`;
+        }
+      case "month":
+        return omitYear ? start.format("MMM") : start.format("MMM YYYY");
+      case "year":
+        return start.format("YYYY");
+      default:
+        return "";
+    }
+  }
+
+  static formatPeriodFull({
+    start,
+    end,
+    timeView,
+    wholeStart,
+    wholeEnd,
+  }: {
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+    timeView: TimeViewType;
+    wholeStart: dayjs.Dayjs;
+    wholeEnd: dayjs.Dayjs;
+  }): string {
+    const omitYear = wholeStart.year() === wholeEnd.year();
+
+    switch (timeView) {
+      case "day":
+        return omitYear ? start.format("MMM D") : start.format("MMM D, YYYY");
+      case "week":
+        const startFormat = "MMM D";
+        const endFormat = "MMM D";
+
+        if (start.format("YYYY") !== end.format("YYYY")) {
+          return `${start.format(`${startFormat}, YYYY`)} - ${end.format(`${endFormat}, YYYY`)}`;
         }
 
         if (omitYear) {
