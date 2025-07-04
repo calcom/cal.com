@@ -12,15 +12,15 @@ export async function GET(request: Request) {
     return new Response("Missing token", { status: 401 });
   }
 
+  await checkRateLimitAndThrowError({
+    identifier: `cal-video-recording:${token}`,
+    rateLimitingType: "common",
+  });
+
   const verification = verifyVideoToken(token);
   if (!verification.valid || !verification.recordingId) {
     return new Response("Invalid or expired token", { status: 401 });
   }
-
-  await checkRateLimitAndThrowError({
-    identifier: `cal-video-recording:${verification.recordingId}`,
-    rateLimitingType: "common",
-  });
 
   try {
     const recordingLink = await getDownloadLinkOfCalVideoByRecordingId(verification.recordingId);
