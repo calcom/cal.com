@@ -1,8 +1,12 @@
-import { PrismockClient } from "prismock";
+import { createPrismock } from "prismock";
 import { beforeEach, vi } from "vitest";
 
 import logger from "@calcom/lib/logger";
 import * as selects from "@calcom/prisma/selects";
+
+import { Prisma } from "../../../packages/prisma/client";
+
+vi.stubEnv("DATABASE_URL", "postgresql://user:password@localhost:5432/testdb");
 
 vi.mock("@calcom/prisma", () => ({
   default: prisma,
@@ -27,6 +31,11 @@ const handlePrismockBugs = () => {
   };
 };
 
+const PrismockClientConstructor = createPrismock(Prisma);
+const prismock = new PrismockClientConstructor();
+
+const prisma = prismock;
+
 beforeEach(() => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -34,7 +43,4 @@ beforeEach(() => {
   handlePrismockBugs();
 });
 
-const prismock = new PrismockClient();
-
-const prisma = prismock;
 export default prisma;

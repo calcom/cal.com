@@ -1,19 +1,22 @@
-import { Prisma } from "@prisma/client";
+import { z } from "zod";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma, { baseEventTypeSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { _EventTypeModel } from "@calcom/prisma/zod";
+import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,
   unlockedManagedEventTypeProps,
+  eventTypeLocations,
 } from "@calcom/prisma/zod-utils";
+import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
@@ -37,7 +40,7 @@ export async function getTeamWithMembers(args: {
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  const userSelect = {
     username: true,
     email: true,
     name: true,
@@ -69,7 +72,7 @@ export async function getTeamWithMembers(args: {
         },
       },
     },
-  });
+  } satisfies Prisma.UserSelect;
   let lookupBy;
 
   if (id) {
@@ -432,13 +435,19 @@ export function generateNewChildEventTypeDataForDB({
   includeWorkflow = true,
   includeUserConnect = true,
 }: {
-  eventType: Prisma.EventTypeGetPayload<{ select: typeof allManagedEventTypeProps & { id: true } }>;
+  eventType: Omit<
+    Prisma.EventTypeGetPayload<{ select: typeof allManagedEventTypeProps & { id: true } }>,
+    "locations"
+  > & { locations: Prisma.JsonValue | null };
   userId: number;
   includeWorkflow?: boolean;
   includeUserConnect?: boolean;
 }) {
-  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps).extend({
-    bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+  const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypeProps).extend({
+    bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
+    locations: z
+      .preprocess((val: unknown) => (val === null ? undefined : val), eventTypeLocations)
+      .optional(),
   });
 
   const managedEventTypeValues = allManagedEventTypePropsZod

@@ -1,9 +1,9 @@
-import { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getParsedTeam } from "./teamUtils";
@@ -153,7 +153,7 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
   });
 }
 
-const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+const teamSelect = {
   id: true,
   name: true,
   slug: true,
@@ -163,7 +163,7 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   isOrganization: true,
   organizationSettings: true,
   isPlatform: true,
-});
+} satisfies Prisma.TeamSelect;
 
 export class TeamRepository {
   static async findById({ id }: { id: number }) {

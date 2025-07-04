@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
-import type { Team } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const getRandomSlug = () => `org-${Math.random().toString(36).substring(7)}`;

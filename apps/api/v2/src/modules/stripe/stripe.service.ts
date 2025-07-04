@@ -13,11 +13,11 @@ import {
   InternalServerErrorException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { Prisma, Credential, User } from "@prisma/client";
 import Stripe from "stripe";
 import { z } from "zod";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { Prisma, Credential, User } from "@calcom/prisma/client";
 
 import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
 

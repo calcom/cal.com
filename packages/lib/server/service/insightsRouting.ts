@@ -1,7 +1,7 @@
-import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import type { readonlyPrisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { MembershipRepository } from "../repository/membership";

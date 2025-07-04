@@ -1,7 +1,7 @@
-import type { Team, User, Membership } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 
 import prisma from "@calcom/prisma";
+import type { Team, User, Membership } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import { InsightsBookingService } from "../../service/insightsBooking";

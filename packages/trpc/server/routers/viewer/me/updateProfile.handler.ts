@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
@@ -18,6 +17,7 @@ import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -221,7 +221,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
+  const updatedUserSelect = {
     select: {
       id: true,
       username: true,
@@ -239,7 +239,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         },
       },
     },
-  });
+  } satisfies Prisma.UserDefaultArgs;
 
   let updatedUser: Prisma.UserGetPayload<typeof updatedUserSelect>;
 

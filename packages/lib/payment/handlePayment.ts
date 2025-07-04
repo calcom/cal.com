@@ -1,9 +1,7 @@
-import type { AppCategories, Prisma } from "@prisma/client";
-
 import appStore from "@calcom/app-store";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import type { CompleteEventType } from "@calcom/prisma/zod";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import type { AppCategories, Prisma, EventType } from "@calcom/prisma/client";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
@@ -29,7 +27,7 @@ const handlePayment = async ({
   isDryRun = false,
 }: {
   evt: CalendarEvent;
-  selectedEventType: Pick<CompleteEventType, "metadata" | "title">;
+  selectedEventType: Pick<EventType, "metadata" | "title">;
   paymentAppCredentials: {
     key: Prisma.JsonValue;
     appId: EventTypeAppsList;
@@ -64,7 +62,8 @@ const handlePayment = async ({
   const PaymentService = paymentApp.lib.PaymentService;
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
-  const apps = eventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
+  const apps = eventTypeMetaDataSchemaWithTypedApps.parse(selectedEventType?.metadata)?.apps;
+
   const paymentOption = apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
 
   let paymentData;
