@@ -3,6 +3,7 @@ import { stringify } from "querystring";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { prisma } from "@calcom/prisma";
 import type { RedirectType } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["lib", "getTemporaryOrgRedirect"] });
@@ -17,7 +18,6 @@ export const getTemporaryOrgRedirect = async ({
   eventTypeSlug: string | null;
   currentQuery: ParsedUrlQuery;
 }) => {
-  const prisma = (await import("@calcom/prisma")).default;
   slugs = slugs instanceof Array ? slugs : [slugs];
   log.debug(
     `Looking for redirect for`,
