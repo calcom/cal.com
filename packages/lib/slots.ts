@@ -15,6 +15,7 @@ export type GetSlots = {
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
 };
+
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
@@ -36,14 +37,12 @@ function buildSlotsWithDateRanges({
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
 }) {
-  // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
 
   const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
 
-  // there can only ever be one slot at a given start time, and based on duration also only a single length.
   const slots = new Map<
     string,
     {
@@ -57,68 +56,26 @@ function buildSlotsWithDateRanges({
     }
   >();
 
-  let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
-  const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
-
-  for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
-    if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
-      interval = intervalsWithDefinedStartTimes[i];
-      break;
-    }
-  }
-
-  const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
-
-  const slotBoundaries = new Map<string, true>();
+  // Convert UTC minimum notice to local timezone for correct comparison
+  const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute").tz(timeZone);
 
   orderedDateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
-    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
-      ? range.start
-      : startTimeWithMinNotice;
+    let slotStartTime = range.start.tz(timeZone).add(offsetStart, "minute");
 
-    slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
-        : slotStartTime;
-
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
-
-    // Find the nearest appropriate slot boundary if this time falls within an existing slot
-    const slotBoundariesArray = Array.from(slotBoundaries.keys()).map((t) => dayjs(t));
-    if (slotBoundariesArray.length > 0) {
-      slotBoundariesArray.sort((a, b) => a.valueOf() - b.valueOf());
-
-      let prevBoundary = null;
-      for (let i = slotBoundariesArray.length - 1; i >= 0; i--) {
-        if (slotBoundariesArray[i].isBefore(slotStartTime)) {
-          prevBoundary = slotBoundariesArray[i];
-          break;
-        }
-      }
-
-      if (prevBoundary) {
-        const prevBoundaryEnd = prevBoundary.add(frequency + (offsetStart ?? 0), "minutes");
-        if (prevBoundaryEnd.isAfter(slotStartTime)) {
-          if (!prevBoundary.isBefore(range.start)) {
-            slotStartTime = prevBoundary;
-          } else {
-            slotStartTime = prevBoundaryEnd;
-          }
-          slotStartTime = slotStartTime.tz(timeZone);
-        }
-      }
-    }
-
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(range.end)) {
-      const slotKey = slotStartTime.toISOString();
-      if (slots.has(slotKey)) {
-        slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+    while (!slotStartTime.add(eventLength, "minute").isAfter(range.end.tz(timeZone))) {
+      // Only allow slot if it's after minimum booking time in same timezone
+      if (slotStartTime.isBefore(startTimeWithMinNotice)) {
+        slotStartTime = slotStartTime.add(frequency, "minute");
         continue;
       }
 
-      slotBoundaries.set(slotKey, true);
+      const slotKey = slotStartTime.toISOString();
+      if (slots.has(slotKey)) {
+        slotStartTime = slotStartTime.add(frequency, "minute");
+        continue;
+      }
 
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
       let slotData: {
@@ -135,7 +92,6 @@ function buildSlotsWithDateRanges({
 
       if (dateOutOfOfficeExists) {
         const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
-
         slotData = {
           time: slotStartTime,
           away: true,
@@ -147,7 +103,7 @@ function buildSlotsWithDateRanges({
       }
 
       slots.set(slotKey, slotData);
-      slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+      slotStartTime = slotStartTime.add(frequency, "minute");
     }
   });
 
