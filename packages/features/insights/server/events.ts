@@ -545,12 +545,13 @@ class EventsInsights {
             .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
             .filter(Boolean) // remove null values
             .join("; ") || null;
+        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
 
         const formattedAttendees = attendeeList
           .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
           .filter(Boolean);
 
-        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests }];
+        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
       })
     );
 
@@ -571,6 +572,7 @@ class EventsInsights {
           uid,
           {
             noShowGuests: data.noShowGuests,
+            noShowGuestsCount: data.noShowGuestsCount,
             ...attendeeFields,
           },
         ];
@@ -610,6 +612,7 @@ class EventsInsights {
       return {
         ...bookingTimeStatus,
         noShowGuests: attendeeData.noShowGuests,
+        noShowGuestsCount: attendeeData.noShowGuestsCount,
         ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
       };
     });
