@@ -14,3 +14,4 @@ export { RoutedToPerPeriod } from "./RoutedToPerPeriod";
 export { RoutingFunnel } from "./RoutingFunnel";
 export { RoutingFormResponsesTable, type RoutingFormTableType } from "./RoutingFormResponsesTable";
 export { RoutingKPICards } from "./RoutingKPICards";
+export { TimezoneBadge } from "./TimezoneBadge";
