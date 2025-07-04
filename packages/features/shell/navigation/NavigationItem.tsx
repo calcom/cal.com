@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -10,6 +10,32 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";
+
+const usePersistedExpansionState = (itemName: string) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`nav-expansion-${itemName}`);
+      if (stored !== null) {
+        setIsExpanded(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.warn("Failed to load navigation expansion state:", error);
+    }
+  }, [itemName]);
+
+  const setPersistedExpansion = (expanded: boolean) => {
+    setIsExpanded(expanded);
+    try {
+      localStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
+    } catch (error) {
+      console.warn("Failed to save navigation expansion state:", error);
+    }
+  };
+
+  return [isExpanded, setPersistedExpansion] as const;
+};
 
 export type NavigationItemType = {
   name: string;
@@ -50,7 +76,7 @@ export const NavigationItem: React.FC<{
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
 
   if (!shouldDisplayNavigationItem) return null;
 
@@ -192,7 +218,7 @@ export const MobileNavigationMoreItem: React.FC<{
   const { item } = props;
   const { t, isLocaleReady } = useLocale();
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
 
   if (!shouldDisplayNavigationItem) return null;
 
