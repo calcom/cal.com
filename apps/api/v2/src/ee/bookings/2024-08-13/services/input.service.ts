@@ -191,6 +191,7 @@ export class InputBookingsService_2024_08_13 {
         routedTeamMemberIds: inputBooking.routing.teamMemberIds,
         routingFormResponseId: inputBooking.routing.responseId,
         teamMemberEmail: inputBooking.routing.teamMemberEmail,
+        skipContactOwner: inputBooking.routing.skipContactOwner,
       }),
     };
   }
@@ -464,6 +465,7 @@ export class InputBookingsService_2024_08_13 {
           routedTeamMemberIds: inputBooking.routing.teamMemberIds,
           routingFormResponseId: inputBooking.routing.responseId,
           teamMemberEmail: inputBooking.routing.teamMemberEmail,
+          skipContactOwner: inputBooking.routing.skipContactOwner,
         }),
       });
 

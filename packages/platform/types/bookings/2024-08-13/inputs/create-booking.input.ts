@@ -171,6 +171,15 @@ class Routing {
   @IsString()
   @IsOptional()
   teamMemberEmail?: string;
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    description: "Whether to skip contact owner assignment from CRM integration.",
+    example: true,
+  })
+  @IsBoolean()
+  @IsOptional()
+  skipContactOwner?: boolean;
 }
 
 @ApiExtraModels(

@@ -2,7 +2,7 @@ import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/rou
 import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses-output.service";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Request } from "express";
 
 import { getRoutedUrl } from "@calcom/platform-libraries";
@@ -71,10 +71,16 @@ export class OrganizationsRoutingFormsResponsesService {
     request: Request
   ): Promise<CreateRoutingFormResponseOutputData> {
     const { queueResponse, ...slotsQuery } = query;
-    const routingUrlData = await this.getRoutingUrl(request, routingFormId, queueResponse ?? false);
+    const { redirectUrl, message } = await this.getRoutingUrl(request, routingFormId, queueResponse ?? false);
+
+    if (!redirectUrl) {
+      return {
+        routingCustomMessage: message,
+      };
+    }
 
     // Extract event type information from the routed URL
-    const { eventTypeId, crmParams } = await this.extractEventTypeAndCrmParams(routingUrlData);
+    const { eventTypeId, crmParams } = await this.extractEventTypeAndCrmParams(redirectUrl);
 
     const paramsForGetAvailableSlots = {
       type: ById_2024_09_04_type,
@@ -87,6 +93,7 @@ export class OrganizationsRoutingFormsResponsesService {
     const slots = await this.slotsService.getAvailableSlots(paramsForGetAvailableSlots);
     const teamMemberIds = crmParams.routedTeamMemberIds ?? [];
     const teamMemberEmail = crmParams.teamMemberEmail ?? undefined;
+    const skipContactOwner = crmParams.skipContactOwner ?? undefined;
     const queuedResponseId = crmParams.queuedFormResponseId ?? null;
     const responseId = crmParams.routingFormResponseId ?? null;
 
@@ -96,6 +103,7 @@ export class OrganizationsRoutingFormsResponsesService {
           responseId,
           teamMemberEmail,
           teamMemberIds,
+          skipContactOwner,
         },
         eventTypeId,
         slots,
@@ -111,6 +119,7 @@ export class OrganizationsRoutingFormsResponsesService {
         queuedResponseId,
         teamMemberEmail,
         teamMemberIds,
+        skipContactOwner,
       },
       eventTypeId,
       slots,
@@ -126,11 +135,24 @@ export class OrganizationsRoutingFormsResponsesService {
 
     const destination = routedUrlData?.redirect?.destination;
 
+    if (routedUrlData?.props?.errorMessage) {
+      throw new BadRequestException(routedUrlData.props.errorMessage);
+    }
+
     if (!destination) {
+      if (routedUrlData?.props?.message) {
+        return {
+          redirectUrl: null,
+          message: routedUrlData.props.message,
+        };
+      }
       throw new NotFoundException("Route to which the form response should be redirected not found.");
     }
 
-    return new URL(destination);
+    return {
+      redirectUrl: new URL(destination),
+      message: null,
+    };
   }
 
   private async extractEventTypeAndCrmParams(routingUrl: URL) {
@@ -163,6 +185,7 @@ export class OrganizationsRoutingFormsResponsesService {
       queuedFormResponseId: urlParams.get("cal.queuedFormResponseId")
         ? (urlParams.get("cal.queuedFormResponseId") as string)
         : undefined,
+      skipContactOwner: urlParams.get("cal.skipContactOwner") === "true" ? true : false,
     };
 
     return {

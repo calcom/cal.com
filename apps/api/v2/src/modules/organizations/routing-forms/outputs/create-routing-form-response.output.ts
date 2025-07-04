@@ -1,6 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { ApiResponseWithoutData, SlotsOutput_2024_09_04, RangeSlotsOutput_2024_09_04 } from "@calcom/platform-types";
 class Routing {
@@ -41,27 +41,64 @@ class Routing {
   @IsString()
   @IsOptional()
   teamMemberEmail?: string;
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    description: "Whether to skip contact owner assignment from CRM integration.",
+    example: true,
+  })
+  @IsBoolean()
+  @IsOptional()
+  skipContactOwner?: boolean;
 }
 
 export class CreateRoutingFormResponseOutputData {
+  @ApiPropertyOptional({
+    type: Number,
+    description: "The ID of the event type that was routed to.",
+    example: 123,
+  })
   @IsNumber()
-  @ApiProperty()
-  eventTypeId!: number;
+  @IsOptional()
+  eventTypeId?: number;
 
   @ValidateNested()
   @ApiProperty({ type: Routing })
   @Type(() => Routing)
-  routing!: Routing;
+  @ApiPropertyOptional({
+    type: Routing,
+    description: "The routing information.",
+    example: {
+      eventTypeId: 123,
+      routing: {
+        teamMemberIds: [101, 102],
+        teamMemberEmail: "john.doe@example.com",
+        skipContactOwner: true,
+      },
+    },
+  })
+  @ValidateNested()
+  @Type(() => Routing)
+  routing?: Routing;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: String,
+    description: "A custom message to be displayed to the user in case of routing to a custom page.",
+    example: "This is a custom message.",
+  })
+  routingCustomMessage?: string;
 
   @ValidateNested()
   @ApiProperty({
     oneOf: [
-      { type: 'object', description: 'Time slots' },
-      { type: 'object', description: 'Range slots' },
+      { $ref: getSchemaPath(SlotsOutput_2024_09_04) },
+      { $ref: getSchemaPath(RangeSlotsOutput_2024_09_04) },
     ],
   })
   @Type(() => Object)
-  slots!: SlotsOutput_2024_09_04 | RangeSlotsOutput_2024_09_04;
+  slots?: SlotsOutput_2024_09_04 | RangeSlotsOutput_2024_09_04;
 }
 
 export class CreateRoutingFormResponseOutput extends ApiResponseWithoutData {
