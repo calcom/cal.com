@@ -22,6 +22,7 @@ const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true }
 type CalVideoSettings = {
   disableRecordingForGuests: boolean;
   disableRecordingForOrganizer: boolean;
+  disableRecordingDownloadEmailForGuests: boolean;
   enableAutomaticTranscription: boolean;
   disableTranscriptionForGuests: boolean;
   disableTranscriptionForOrganizer: boolean;
