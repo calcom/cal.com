@@ -10,8 +10,9 @@ import {
 } from "@/modules/organizations/delegation-credentials/inputs/service-account-key.input";
 import { UpdateDelegationCredentialInput } from "@/modules/organizations/delegation-credentials/inputs/update-delegation-credential.input";
 import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
+import { QueueMockService } from "@/serverless/queue-mock.service";
 import { InjectQueue } from "@nestjs/bull";
-import { Injectable, NotFoundException, Logger } from "@nestjs/common";
+import { Injectable, NotFoundException, Logger, Optional } from "@nestjs/common";
 import { User } from "@prisma/client";
 import { Queue } from "bull";
 
@@ -28,7 +29,8 @@ export class OrganizationsDelegationCredentialService {
 
   constructor(
     private readonly organizationsDelegationCredentialRepository: OrganizationsDelegationCredentialRepository,
-    @InjectQueue(CALENDARS_QUEUE) private readonly calendarsQueue: Queue
+    @Optional() @InjectQueue(CALENDARS_QUEUE) private readonly calendarsQueue?: Queue,
+    private readonly queueMockService?: QueueMockService
   ) {}
   async createDelegationCredential(
     orgId: number,
@@ -89,19 +91,22 @@ export class OrganizationsDelegationCredentialService {
 
       delegatedUserProfiles.forEach(async (profile) => {
         if (profile.userId) {
-          const job = await this.calendarsQueue.getJob(`${DEFAULT_CALENDARS_JOB}_${profile.userId}`);
-          if (job) {
-            await job.remove();
-            this.logger.log(`Removed default calendar job for user with id: ${profile.userId}`);
+          const queue = this.calendarsQueue || this.queueMockService;
+          if (queue) {
+            const job = await queue.getJob(`${DEFAULT_CALENDARS_JOB}_${profile.userId}`);
+            if (job) {
+              await job.remove();
+              this.logger.log(`Removed default calendar job for user with id: ${profile.userId}`);
+            }
+            this.logger.log(`Adding default calendar job for user with id: ${profile.userId}`);
+            await queue.add(
+              DEFAULT_CALENDARS_JOB,
+              {
+                userId: profile.userId,
+              } satisfies DefaultCalendarsJobDataType,
+              { jobId: `${DEFAULT_CALENDARS_JOB}_${profile.userId}`, removeOnComplete: true }
+            );
           }
-          this.logger.log(`Adding default calendar job for user with id: ${profile.userId}`);
-          await this.calendarsQueue.add(
-            DEFAULT_CALENDARS_JOB,
-            {
-              userId: profile.userId,
-            } satisfies DefaultCalendarsJobDataType,
-            { jobId: `${DEFAULT_CALENDARS_JOB}_${profile.userId}`, removeOnComplete: true }
-          );
         }
       });
     } catch (err) {

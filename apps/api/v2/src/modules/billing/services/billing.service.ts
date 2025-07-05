@@ -8,6 +8,7 @@ import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repo
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { UsersRepository } from "@/modules/users/users.repository";
+import { QueueMockService } from "@/serverless/queue-mock.service";
 import { InjectQueue } from "@nestjs/bull";
 import {
   BadRequestException,
@@ -16,6 +17,7 @@ import {
   Logger,
   NotFoundException,
   OnModuleDestroy,
+  Optional,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Queue } from "bull";
@@ -36,7 +38,8 @@ export class BillingService implements OnModuleDestroy {
     private readonly usersRepository: UsersRepository,
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
-    @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue
+    @Optional() @InjectQueue(BILLING_QUEUE) private readonly billingQueue?: Queue,
+    private readonly queueMockService?: QueueMockService
   ) {
     this.webAppUrl = this.configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
   }
@@ -411,13 +414,16 @@ export class BillingService implements OnModuleDestroy {
       await this.cancelUsageByBookingUid(fromReschedule);
       this.logger.log(`Cancelled usage increment job for rescheduled booking uid: ${fromReschedule}`);
     }
-    await this.billingQueue.add(
-      INCREMENT_JOB,
-      {
-        userId,
-      } satisfies IncrementJobDataType,
-      { delay: delay > 0 ? delay : 0, jobId: `increment-${uid}`, removeOnComplete: true }
-    );
+    const queue = this.billingQueue || this.queueMockService;
+    if (queue) {
+      await queue.add(
+        INCREMENT_JOB,
+        {
+          userId,
+        } satisfies IncrementJobDataType,
+        { delay: delay > 0 ? delay : 0, jobId: `increment-${uid}`, removeOnComplete: true }
+      );
+    }
     this.logger.log(`Added stripe usage increment job for booking ${uid} and user ${userId}`);
   }
 
@@ -427,10 +433,13 @@ export class BillingService implements OnModuleDestroy {
    * Removing an attendee from a booking does not cancel the usage increment job.
    */
   async cancelUsageByBookingUid(bookingUid: string) {
-    const job = await this.billingQueue.getJob(`increment-${bookingUid}`);
-    if (job) {
-      await job.remove();
-      this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
+    const queue = this.billingQueue || this.queueMockService;
+    if (queue) {
+      const job = await queue.getJob(`increment-${bookingUid}`);
+      if (job) {
+        await job.remove();
+        this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
+      }
     }
   }
 
@@ -458,7 +467,9 @@ export class BillingService implements OnModuleDestroy {
 
   async onModuleDestroy() {
     try {
-      await this.billingQueue.close();
+      if (this.billingQueue) {
+        await this.billingQueue.close();
+      }
     } catch (err) {
       this.logger.error(err);
     }
