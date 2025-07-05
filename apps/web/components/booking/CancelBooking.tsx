@@ -78,6 +78,8 @@ type Props = {
     title?: string;
     uid?: string;
     id?: number;
+    userEmail?: string;
+    attendees?: { email: string }[];
   };
   profile: {
     name: string | null;
@@ -176,13 +178,8 @@ export default function CancelBooking(props: Props) {
   const verifyAndCancel = () => {
     const emailFromParams = searchParams?.get("email");
 
-    if (!emailFromParams) {
+    if (!emailFromParams && !currentUserEmail) {
       setShowVerificationDialog(true);
-      return;
-    }
-
-    if (emailFromParams.toLowerCase() !== currentUserEmail?.toLowerCase()) {
-      setError(t("email_verification_error"));
       return;
     }
 
@@ -196,7 +193,12 @@ export default function CancelBooking(props: Props) {
       return;
     }
 
-    if (verificationEmail.toLowerCase() === currentUserEmail?.toLowerCase()) {
+    if (
+      booking.attendees?.some(
+        (attendee) => attendee.email.toLowerCase() === verificationEmail.toLowerCase()
+      ) ||
+      verificationEmail.toLowerCase() === booking?.userEmail?.toLowerCase()
+    ) {
       setShowVerificationDialog(false);
       handleCancellation();
     } else {
