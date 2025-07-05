@@ -41,4 +41,6 @@ export const ENDPOINTS = [
   "routingForms",
   "credits",
   "filterSegments",
+  "ai",
+  "phoneNumbers",
 ] as const;

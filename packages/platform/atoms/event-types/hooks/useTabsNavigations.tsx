@@ -230,5 +230,12 @@ function getNavigation({
       info: `${enabledWorkflowsNumber} ${t("active")}`,
       "data-testid": "workflows",
     },
+    {
+      name: t("ai_self_serve_tab_title"),
+      href: `/event-types/${id}?tabName=aiSelfServe`,
+      icon: "sparkles",
+      info: t("ai_self_serve_tab_description"),
+      "data-testid": "ai_self_serve_tab_title",
+    },
   ] satisfies VerticalTabItemProps[];
 }
