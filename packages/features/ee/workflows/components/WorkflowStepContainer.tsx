@@ -63,6 +63,8 @@ import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 type User = RouterOutputs["viewer"]["me"]["get"];
 
 type WorkflowStepProps = {
+  verifiedNumbers?: RouterOutputs["viewer"]["workflows"]["getVerifiedNumbers"] | undefined;
+  verifiedEmails?: RouterOutputs["viewer"]["workflows"]["getVerifiedEmails"] | undefined;
   step?: WorkflowStep;
   form: UseFormReturn<FormValues>;
   user: User;
@@ -70,6 +72,7 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
   teamId?: number;
   readOnly: boolean;
+  actionOptions?: RouterOutputs["viewer"]["workflows"]["getWorkflowActionOptions"];
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -87,11 +90,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useUtils();
 
-  const { step, form, reload, setReload, teamId } = props;
-  const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
-    { teamId },
-    { enabled: !!teamId }
-  );
+  const {
+    verifiedNumbers: _verifiedNumbers,
+    verifiedEmails,
+    step,
+    form,
+    reload,
+    setReload,
+    teamId,
+    actionOptions,
+  } = props;
 
   const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
 
@@ -101,12 +109,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const { hasActiveTeamPlan } = useHasActiveTeamPlan();
 
-  const { data: _verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({ teamId });
-
   const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
 
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
-  const verifiedEmails = _verifiedEmails || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
@@ -138,7 +143,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
 
-  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
@@ -178,13 +182,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const getEmailVerificationStatus = () =>
     !!step &&
-    !!verifiedEmails.find((email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`));
+    !!verifiedEmails?.find(
+      (email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+    );
 
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
+  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails?.length]);
 
   const addVariableEmailSubject = (variable: string) => {
     if (step) {
