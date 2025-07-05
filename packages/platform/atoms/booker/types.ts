@@ -83,6 +83,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   isBookingDryRun?: boolean;
   eventMetaChildren?: React.ReactNode;
   onTimeslotsLoaded?: (slots: Record<string, Slot[]>) => void;
+  startDate?: Date;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
