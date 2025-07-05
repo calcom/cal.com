@@ -60,6 +60,7 @@ export const DatePicker = ({
 }: {
   event: {
     data?: {
+      id: number;
       subsetOfUsers: Pick<User, "weekStart">[];
       periodType?: PeriodData["periodType"];
       periodStartDate?: PeriodData["periodStartDate"];
@@ -116,6 +117,7 @@ export const DatePicker = ({
   };
   return (
     <DatePickerComponent
+      eventTypeId={event?.data?.id}
       customClassNames={{
         datePickerTitle: classNames?.datePickerTitle,
         datePickerDays: classNames?.datePickerDays,

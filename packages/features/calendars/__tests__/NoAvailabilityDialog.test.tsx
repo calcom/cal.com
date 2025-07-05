@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import React from "react";
 import { vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
@@ -17,13 +18,28 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
       if (key === "close") return "Close";
       if (key === "view_next_month") return "View next month";
       if (key === "calendar_days") return "calendar days";
+      if (key === "cancel") return "Cancel";
+      if (key === "add_host") return "Add Host";
+      if (key === "admin_no_hosts_assigned") return "No Hosts Assigned";
+      if (key === "admin_no_hosts_assigned_description") return "Please assign hosts to this event type";
       return key;
     },
   }),
 }));
 
+const mockUseMeQuery = vi.fn();
+vi.mock("@calcom/trpc/react/hooks/useMeQuery", () => ({
+  default: () => mockUseMeQuery(),
+}));
+
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default to non-admin user
+  mockUseMeQuery.mockReturnValue({
+    data: {
+      isTeamAdminOrOwner: false,
+    },
+  });
 });
 
 describe("NoAvailabilityOverlay", () => {
@@ -38,6 +54,7 @@ describe("NoAvailabilityOverlay", () => {
       periodStartDate: null,
       periodEndDate: null,
     },
+    eventTypeId: 123,
   };
 
   test("Displays rolling period description and close button, when period type is ROLLING, and period ends before next month.", () => {
@@ -58,10 +75,10 @@ describe("NoAvailabilityOverlay", () => {
     expect(screen.getByRole("dialog")).toHaveTextContent(
       `Scheduling is only available up to ${periodDays} calendar days in advance. Please check again soon.`
     );
-    const nextMonthButton = screen.queryAllByTestId("view_next_month");
-    const closeButton = screen.getAllByTestId("close_dialog_button");
-    expect(nextMonthButton).toHaveLength(0);
-    expect(closeButton).toHaveLength(1);
+    const nextMonthButton = screen.queryByTestId("view_next_month");
+    const closeButton = screen.getByTestId("close_dialog_button");
+    expect(nextMonthButton).not.toBeInTheDocument();
+    expect(closeButton).toBeInTheDocument();
   });
 
   test("Displays range period description when period type is RANGE and range ends before the next month", () => {
@@ -82,10 +99,10 @@ describe("NoAvailabilityOverlay", () => {
     expect(screen.getByRole("dialog")).toHaveTextContent(
       `Scheduling ended on ${endDate.format("MMMM D YYYY")}. Please check again soon.`
     );
-    const nextMonthButton = screen.queryAllByTestId("view_next_month");
-    const closeButton = screen.getAllByTestId("close_dialog_button");
-    expect(nextMonthButton).toHaveLength(0);
-    expect(closeButton).toHaveLength(1);
+    const nextMonthButton = screen.queryByTestId("view_next_month");
+    const closeButton = screen.getByTestId("close_dialog_button");
+    expect(nextMonthButton).not.toBeInTheDocument();
+    expect(closeButton).toBeInTheDocument();
   });
 
   test("calls nextMonthButton when 'View next month' is clicked", () => {
@@ -108,12 +125,12 @@ describe("NoAvailabilityOverlay", () => {
         }}
       />
     );
-    const description = screen.queryByTestId("dialog-subtitle");
-    const nextMonthButton = screen.getAllByTestId("view_next_month");
-    const closeButton = screen.getAllByTestId("close_dialog_button");
-    expect(description).not.toBeInTheDocument();
-    expect(nextMonthButton).toHaveLength(1);
-    expect(closeButton).toHaveLength(1);
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).not.toHaveTextContent("Scheduling is only available");
+    const nextMonthButton = screen.getByTestId("view_next_month");
+    const closeButton = screen.getByTestId("close_dialog_button");
+    expect(nextMonthButton).toBeInTheDocument();
+    expect(closeButton).toBeInTheDocument();
   });
 
   test("Displays 'View next month' and 'close' button when browsing current date with range periodType starting 10 days in past and ending in a future month", () => {
@@ -129,11 +146,40 @@ describe("NoAvailabilityOverlay", () => {
         }}
       />
     );
-    const description = screen.queryByTestId("dialog-subtitle");
-    const nextMonthButton = screen.getAllByTestId("view_next_month");
-    const closeButton = screen.getAllByTestId("close_dialog_button");
-    expect(description).not.toBeInTheDocument();
-    expect(nextMonthButton).toHaveLength(1);
-    expect(closeButton).toHaveLength(1);
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).not.toHaveTextContent("Scheduling ended on");
+    const nextMonthButton = screen.getByTestId("view_next_month");
+    const closeButton = screen.getByTestId("close_dialog_button");
+    expect(nextMonthButton).toBeInTheDocument();
+    expect(closeButton).toBeInTheDocument();
+  });
+
+  test("Displays admin view with correct buttons when user is admin", async () => {
+    // Set user as admin for this test
+    mockUseMeQuery.mockReturnValue({
+      data: {
+        isTeamAdminOrOwner: true,
+      },
+    });
+
+    render(
+      <NoAvailabilityDialog
+        {...defaultProps}
+        browsingDate={dayjs()}
+        periodData={{
+          ...defaultProps.periodData,
+          periodType: "ROLLING",
+          periodDays: 32,
+        }}
+      />
+    );
+
+    expect(screen.getByText("No Hosts Assigned")).toBeInTheDocument();
+    expect(screen.getByText("Please assign hosts to this event type")).toBeInTheDocument();
+    const cancelButton = screen.getByTestId("cancel_dialog_button");
+    const addHostButton = screen.getByTestId("view_event_type_settings_team");
+    expect(cancelButton).toBeInTheDocument();
+    expect(addHostButton).toBeInTheDocument();
+    await expect(addHostButton).toHaveAttribute("href", "/event-types/123?tabName=team");
   });
 });
