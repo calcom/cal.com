@@ -13522,6 +13522,12 @@
   "tags": [],
   "servers": [],
   "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
     "schemas": {
       "ManagedUserOutput": {
         "type": "object",
