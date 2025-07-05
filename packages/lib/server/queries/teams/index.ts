@@ -320,6 +320,7 @@ export async function getTeamWithoutMembers(args: {
       rrResetInterval: true,
       rrTimestampBasis: true,
       includeManagedEventsInLimits: true,
+      lockDefaultAvailability: true,
       parent: {
         select: {
           id: true,
