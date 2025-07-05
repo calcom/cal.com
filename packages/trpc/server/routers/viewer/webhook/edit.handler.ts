@@ -3,6 +3,7 @@ import {
   deleteWebhookScheduledTriggers,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -44,6 +45,11 @@ export const editHandler = async ({ input, ctx }: EditOptions) => {
       ...data,
       time: data.time ?? null,
       timeUnit: data.timeUnit ?? null,
+      delayMinutes: Array.isArray(data.eventTriggers)
+        ? data.eventTriggers.includes(WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT)
+          ? data.delayMinutes ?? webhook.delayMinutes ?? 10
+          : null
+        : webhook.delayMinutes,
     },
   });
 
