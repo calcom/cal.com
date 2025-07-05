@@ -1,8 +1,12 @@
-import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
+import { getCachedCurrentOrg, getCachedOrgTeams } from "app/cache/organization";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import PlatformMembersView from "@calcom/features/ee/platform/pages/settings/members";
-import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -14,8 +18,17 @@ export const generateMetadata = async () =>
   );
 
 const ServerPageWrapper = async () => {
-  const [orgCaller] = await Promise.all([createRouterCaller(viewerOrganizationsRouter)]);
-  const [org, teams] = await Promise.all([orgCaller.listCurrent(), orgCaller.getTeams()]);
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const orgId = session?.user?.profile?.organizationId ?? session?.user?.org?.id;
+  const userId = session?.user?.id;
+  if (!userId) {
+    return redirect("/auth/login?callbackUrl=/settings/platform/members");
+  }
+  if (!orgId) {
+    return redirect("/settings/my-account/profile");
+  }
+
+  const [org, teams] = await Promise.all([getCachedCurrentOrg(userId, orgId), getCachedOrgTeams(orgId)]);
 
   return <PlatformMembersView org={org} teams={teams} />;
 };

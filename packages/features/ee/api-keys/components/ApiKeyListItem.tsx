@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
+import { revalidateApiKeysList } from "@calcom/web/app/cache/apiKey";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 
