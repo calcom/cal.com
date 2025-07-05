@@ -1,11 +1,22 @@
 import type { Team, User, Membership } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { describe, expect, it } from "vitest";
 
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import { InsightsRoutingService } from "../../service/insightsRouting";
+
+// SQL condition constants for testing
+const NOTHING_CONDITION = Prisma.sql`1=0`;
+
+// Helper function to create default filters for testing
+const createDefaultFilters = () => ({
+  startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  endDate: new Date().toISOString(),
+});
 
 // Helper function to create unique test data
 async function createTestData({
@@ -240,10 +251,11 @@ describe("InsightsRoutingService Integration Tests", () => {
       const service = new InsightsRoutingService({
         prisma,
         options: null as any,
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ id: -1 });
+      expect(conditions).toEqual(NOTHING_CONDITION);
     });
 
     it("should return NOTHING for non-owner/admin user", async () => {
@@ -274,11 +286,13 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "org",
           userId: regularUser.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ id: -1 });
+      expect(conditions).toEqual(NOTHING_CONDITION);
 
       // Clean up
       await prisma.membership.delete({
@@ -302,17 +316,13 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            formUserId: testData.user.id,
-          },
-        ],
-      });
+      expect(conditions).toEqual(Prisma.sql`"formUserId" = ${testData.user.id}`);
 
       await testData.cleanup();
     });
@@ -331,16 +341,11 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
           teamId: testData.team.id,
         },
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            formTeamId: testData.team.id,
-          },
-        ],
-      });
+      expect(conditions).toEqual(Prisma.sql`"formTeamId" = ${testData.team.id}`);
 
       // Clean up
       await testData.cleanup();
@@ -366,20 +371,16 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "org",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
 
-      expect(conditions).toEqual({
-        AND: [
-          {
-            formTeamId: {
-              in: [testData.org.id, testData.team.id, team2.id, team3.id],
-            },
-          },
-        ],
-      });
+      expect(conditions).toEqual(
+        Prisma.sql`"formTeamId" = ANY(${[testData.org.id, testData.team.id, team2.id, team3.id]})`
+      );
 
       await testData.cleanup();
     });
@@ -408,10 +409,11 @@ describe("InsightsRoutingService Integration Tests", () => {
           orgId: testData.org.id,
           teamId: unrelatedTeam.id,
         },
+        filters: createDefaultFilters(),
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ AND: [{ id: -1 }] });
+      expect(conditions).toEqual(NOTHING_CONDITION);
 
       // Clean up
       await prisma.team.delete({
@@ -422,7 +424,7 @@ describe("InsightsRoutingService Integration Tests", () => {
   });
 
   describe("Filter Conditions", () => {
-    it("should return null when no filters are provided", async () => {
+    it("should build filter conditions when dates are provided", async () => {
       const testData = await createTestData();
 
       const service = new InsightsRoutingService({
@@ -431,11 +433,18 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          startDate: "2024-01-01",
+          endDate: "2024-12-31",
         },
       });
 
       const conditions = await service.getFilterConditions();
-      expect(conditions).toBeNull();
+      expect(conditions).toEqual(
+        Prisma.sql`"createdAt" >= ${"2024-01-01"}::timestamp AND "createdAt" <= ${"2024-12-31"}::timestamp`
+      );
 
       await testData.cleanup();
     });
@@ -454,18 +463,14 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       // First call should build conditions
       const conditions1 = await service.getAuthorizationConditions();
-      expect(conditions1).toEqual({
-        AND: [
-          {
-            formUserId: testData.user.id,
-          },
-        ],
-      });
+      expect(conditions1).toEqual(Prisma.sql`"formUserId" = ${testData.user.id}`);
 
       // Second call should use cached conditions
       const conditions2 = await service.getAuthorizationConditions();
@@ -484,12 +489,14 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
       // First call should build conditions
       const conditions1 = await service.getFilterConditions();
-      expect(conditions1).toBeNull();
+      expect(conditions1).toBeDefined();
 
       // Second call should use cached conditions
       const conditions2 = await service.getFilterConditions();
@@ -499,12 +506,15 @@ describe("InsightsRoutingService Integration Tests", () => {
     });
   });
 
-  describe("findMany", () => {
+  describe("getBaseConditions", () => {
     it("should combine authorization and filter conditions", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
         orgRole: MembershipRole.OWNER,
       });
+
+      const filters = createDefaultFilters();
+      const dateCondition = Prisma.sql`"createdAt" >= ${filters.startDate}::timestamp AND "createdAt" <= ${filters.endDate}::timestamp`;
 
       const service = new InsightsRoutingService({
         prisma,
@@ -512,19 +522,13 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters,
       });
 
-      const results = await service.findMany({
-        select: {
-          id: true,
-          formName: true,
-        },
-      });
-
-      // Should return the user form response since it matches the authorization conditions
-      expect(results).toHaveLength(1);
-      expect(results[0]?.id).toBe(testData.formResponse.id);
+      const results = await service.getBaseConditions();
+      expect(results).toEqual(Prisma.sql`("formUserId" = ${testData.user.id}) AND (${dateCondition})`);
 
       await testData.cleanup();
     });
@@ -579,15 +583,15 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
-      const results = await service.findMany({
-        select: {
-          id: true,
-          formName: true,
-        },
-      });
+      const baseConditions = await service.getBaseConditions();
+      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+        SELECT id FROM "RoutingFormResponseDenormalized" WHERE ${baseConditions}
+      `;
 
       // Should only return the authorized user's form response
       expect(results).toHaveLength(1);
@@ -669,15 +673,15 @@ describe("InsightsRoutingService Integration Tests", () => {
           scope: "org",
           userId: testData.user.id,
           orgId: testData.org.id,
+          teamId: undefined,
         },
+        filters: createDefaultFilters(),
       });
 
-      const results = await service.findMany({
-        select: {
-          id: true,
-          formName: true,
-        },
-      });
+      const baseConditions = await service.getBaseConditions();
+      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+        SELECT id FROM "RoutingFormResponseDenormalized" WHERE ${baseConditions}
+      `;
 
       // Should return both form responses (original user's and team member's)
       expect(results).toHaveLength(2);
@@ -699,6 +703,576 @@ describe("InsightsRoutingService Integration Tests", () => {
       await prisma.user.delete({
         where: { id: teamMember.id },
       });
+      await testData.cleanup();
+    });
+  });
+
+  describe("columnFilters", () => {
+    it("should handle empty columnFilters", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`"createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${defaultFilters.endDate}::timestamp`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should handle undefined columnFilters", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: undefined,
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`"createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${defaultFilters.endDate}::timestamp`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should filter by booking status order (multi-select)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "bookingStatusOrder",
+              value: {
+                type: ColumnFilterType.MULTI_SELECT,
+                data: ["pending", "accepted"],
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND ("bookingStatusOrder" = ANY(${["pending", "accepted"]}))`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should filter by booking assignment reason (text)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "bookingAssignmentReason",
+              value: {
+                type: ColumnFilterType.TEXT,
+                data: { operator: "contains", operand: "manual" },
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND ("bookingAssignmentReason" ILIKE ${`%manual%`})`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should filter by booking UID (text)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "bookingUid",
+              value: {
+                type: ColumnFilterType.TEXT,
+                data: { operator: "equals", operand: "test-booking-123" },
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND ("bookingUid" = ${"test-booking-123"})`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should filter by member user IDs (multi-select)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "bookingUserId",
+              value: {
+                type: ColumnFilterType.MULTI_SELECT,
+                data: [testData.user.id, 999],
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND ("bookingUserId" = ANY(${[testData.user.id, 999]}))`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should filter by booking attendees (text)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "bookingAttendees",
+              value: {
+                type: ColumnFilterType.TEXT,
+                data: { operator: "contains", operand: "john@example.com" },
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND (EXISTS (
+      SELECT 1 FROM "Booking" b
+      INNER JOIN "Attendee" a ON a."bookingId" = b."id"
+      WHERE b."uid" = "RoutingFormResponseDenormalized"."bookingUid"
+      AND (${Prisma.sql`(a."name" ILIKE ${`%john@example.com%`}) OR (a."email" ILIKE ${`%john@example.com%`})`})
+    ))`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should filter by custom form fields (text)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "custom-field-id",
+              value: {
+                type: ColumnFilterType.TEXT,
+                data: { operator: "equals", operand: "test value" },
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND (EXISTS (
+      SELECT 1 FROM "RoutingFormResponseField" rrf
+      WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+      AND rrf."fieldId" = ${"custom-field-id"}
+      AND rrf."valueString" = ${"test value"}
+    ))`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should filter by custom form fields (multi-select)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "custom-multi-field-id",
+              value: {
+                type: ColumnFilterType.MULTI_SELECT,
+                data: ["option1", "option2"],
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND (EXISTS (
+        SELECT 1 FROM "RoutingFormResponseField" rrf
+        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        AND rrf."fieldId" = ${"custom-multi-field-id"}
+        AND rrf."valueStringArray" && ${["option1", "option2"]}
+      ))`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should combine multiple filters with AND", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "bookingStatusOrder",
+              value: {
+                type: ColumnFilterType.MULTI_SELECT,
+                data: ["pending"],
+              },
+            },
+            {
+              id: "bookingAssignmentReason",
+              value: {
+                type: ColumnFilterType.TEXT,
+                data: { operator: "contains", operand: "manual" },
+              },
+            },
+            {
+              id: "custom-field-id",
+              value: {
+                type: ColumnFilterType.TEXT,
+                data: { operator: "equals", operand: "test" },
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`((("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND ("bookingStatusOrder" = ANY(${[
+          "pending",
+        ]}))) AND ("bookingAssignmentReason" ILIKE ${`%manual%`})) AND (EXISTS (
+      SELECT 1 FROM "RoutingFormResponseField" rrf
+      WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+      AND rrf."fieldId" = ${"custom-field-id"}
+      AND rrf."valueString" = ${"test"}
+    ))`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should filter by form ID (single-select)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "formId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: "form-123",
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND ("formId" = ${"form-123"})`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should filter by form ID with other filters", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "formId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: "form-456",
+              },
+            },
+            {
+              id: "bookingStatusOrder",
+              value: {
+                type: ColumnFilterType.MULTI_SELECT,
+                data: ["pending", "accepted"],
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`(("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND ("bookingStatusOrder" = ANY(${[
+          "pending",
+          "accepted",
+        ]}))) AND ("formId" = ${"form-456"})`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should exclude system filters from form field processing", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const defaultFilters = createDefaultFilters();
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {
+          ...defaultFilters,
+          columnFilters: [
+            {
+              id: "bookingStatusOrder", // System filter
+              value: {
+                type: ColumnFilterType.MULTI_SELECT,
+                data: ["pending"],
+              },
+            },
+            {
+              id: "custom-field-id", // Custom field filter
+              value: {
+                type: ColumnFilterType.TEXT,
+                data: { operator: "equals", operand: "test" },
+              },
+            },
+          ],
+        },
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toEqual(
+        Prisma.sql`(("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
+          defaultFilters.endDate
+        }::timestamp) AND ("bookingStatusOrder" = ANY(${["pending"]}))) AND (EXISTS (
+      SELECT 1 FROM "RoutingFormResponseField" rrf
+      WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+      AND rrf."fieldId" = ${"custom-field-id"}
+      AND rrf."valueString" = ${"test"}
+    ))`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should return null when no filters are applied", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: {},
+      });
+
+      const filterConditions = await service.getFilterConditions();
+      expect(filterConditions).toBeNull();
+
       await testData.cleanup();
     });
   });

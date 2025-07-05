@@ -6,6 +6,7 @@ import {
   RoutingFormResponsesTable,
   FailedBookingsByField,
   RoutedToPerPeriod,
+  RoutingFunnel,
 } from "@calcom/features/insights/components";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +19,8 @@ export default function InsightsRoutingFormResponsesPage() {
       <InsightsOrgTeamsProvider>
         <div className="mb-4 space-y-4">
           <RoutingFormResponsesTable />
+
+          <RoutingFunnel />
 
           <RoutedToPerPeriod />
 
