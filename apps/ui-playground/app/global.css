@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 /**
 * Add css variables here as well for light mode in addition to tailwind.config to avoid FOUC
 */
