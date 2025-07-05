@@ -59,7 +59,7 @@ async function getAttributeRoutingConfig(
   }
   const { routingFormResponseId, eventTypeId } = data;
 
-  const routingFormResponseQuery = await prisma.app_RoutingForms_FormResponse.findFirst({
+  const routingFormResponseQuery = await prisma.app_RoutingForms_FormResponse.findUnique({
     where: {
       id: routingFormResponseId,
     },
@@ -123,7 +123,12 @@ async function getOwnerEmailFromCrm(
   if (!crmContactOwner?.email) return returnNullValue;
   log.info(
     "[getOwnerEmailFromCrm] crmContactOwner",
-    safeStringify({ contactOwnerEmail: crmContactOwner.email, email, eventTypeId: eventData.id })
+    safeStringify({
+      contactOwnerEmail: crmContactOwner.email,
+      recordType: crmContactOwner.recordType,
+      email,
+      eventTypeId: eventData.id,
+    })
   );
   // Determine if the contactOwner is a part of the event type
   const contactOwnerQuery = await findUserByEmailWhoIsAHostOfEventType({

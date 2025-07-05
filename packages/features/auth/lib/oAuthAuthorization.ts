@@ -1,11 +1,9 @@
 import jwt from "jsonwebtoken";
-import type { NextApiRequest } from "next";
 
 import prisma from "@calcom/prisma";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
-export default async function isAuthorized(req: NextApiRequest, requiredScopes: string[] = []) {
-  const token = req.headers.authorization?.split(" ")[1] || "";
+export default async function isAuthorized(token: string, requiredScopes: string[] = []) {
   let decodedToken: OAuthTokenPayload;
   try {
     decodedToken = jwt.verify(token, process.env.CALENDSO_ENCRYPTION_KEY || "") as OAuthTokenPayload;
@@ -21,7 +19,7 @@ export default async function isAuthorized(req: NextApiRequest, requiredScopes: 
   }
 
   if (decodedToken.userId) {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: decodedToken.userId,
       },
@@ -37,7 +35,7 @@ export default async function isAuthorized(req: NextApiRequest, requiredScopes: 
   }
 
   if (decodedToken.teamId) {
-    const team = await prisma.team.findFirst({
+    const team = await prisma.team.findUnique({
       where: {
         id: decodedToken.teamId,
       },

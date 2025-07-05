@@ -1,3 +1,4 @@
+import { setUser as SentrySetUser } from "@sentry/nextjs";
 import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -153,6 +154,8 @@ export const isAuthed = middleware(async ({ ctx, next }) => {
   if (!user || !session) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
+
+  SentrySetUser({ id: user.id });
 
   return next({
     ctx: { user, session },

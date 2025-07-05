@@ -4,8 +4,8 @@ import { useId } from "@radix-ui/react-id";
 import { Root as ToggleGroupPrimitive, Item as ToggleGroupItemPrimitive } from "@radix-ui/react-toggle-group";
 import { useState } from "react";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 
 import { Label } from "../../../components/form/inputs/Label";
 
@@ -54,21 +54,29 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
     onValueChange(defaultValue);
     return null;
   }
+
   const commonClass = classNames(
     getVariantStyles(variant).commonClass,
-    "inline-flex items-center justify-center rounded text-sm font-medium leading-4 transition",
+    "inline-flex items-center justify-center rounded-lg text-sm leading-none transition",
     disabled && "cursor-not-allowed"
   );
 
-  const selectedClass = classNames(commonClass, "bg-emphasis  text-emphasis");
-  const unselectedClass = classNames(commonClass, "text-default hover:bg-subtle hover:text-emphasis");
+  const selectedClass = classNames(
+    commonClass,
+    "bg-default border-subtle text-emphasis shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]"
+  );
+  const unselectedClass = classNames(
+    commonClass,
+    "text-default border-transparent [&[aria-checked='false']]:hover:text-emphasis"
+  );
+
   return (
     <ToggleGroupPrimitive
       value={yesNoValue}
       type="single"
       disabled={disabled}
       className={classNames(
-        "border-subtle flex h-9 space-x-2 rounded-md border p-1 rtl:space-x-reverse",
+        "bg-subtle border-subtle inline-flex gap-0.5 rounded-[10px] border p-0.5 rtl:flex-row-reverse",
         getVariantStyles(variant).toggleGroupPrimitiveClass
       )}
       onValueChange={(yesNoValue: "yes" | "no") => {

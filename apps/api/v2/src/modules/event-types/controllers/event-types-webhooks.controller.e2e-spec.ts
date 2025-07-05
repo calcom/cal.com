@@ -282,13 +282,13 @@ describe("EventTypes WebhooksController (e2e)", () => {
       });
   });
 
-  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not exist", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not exist", () => {
     return request(app.getHttpServer())
       .delete(`/v2/event-types/${eventType.id}/webhooks/1234453`)
       .expect(404);
   });
 
-  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not belong to user", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not belong to user", () => {
     return request(app.getHttpServer())
       .delete(`/v2/event-types/${otherEventType.id}/webhooks/${otherWebhook.id}`)
       .expect(403);

@@ -1,8 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import qs from "qs";
+import { z } from "zod";
 
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
+
+const PaymentDataSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  defaultLink: z.string(),
+  email: z.string(),
+});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { reference, status } = req.query;
@@ -18,6 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: true,
       amount: true,
       bookingId: true,
+      data: true,
       booking: {
         select: {
           uid: true,
@@ -51,19 +60,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     throw new HttpCode({ statusCode: 204, message: "Credential not found" });
   }
 
-  if (!payment.booking || !payment.booking.user || !payment.booking.eventType || !payment.booking.responses) {
+  if (!payment.booking || !payment.booking.user || !payment.booking.eventType) {
     throw new HttpCode({ statusCode: 204, message: "Booking not correct" });
   }
 
   if (status !== "completed") {
+    await prisma.booking.update({
+      where: {
+        id: payment.bookingId,
+      },
+      data: {
+        status: "CANCELLED",
+      },
+    });
     const url = `/${payment.booking.user.username}/${payment.booking.eventType.slug}`;
     return res.redirect(url);
   }
 
+  const parsedData = PaymentDataSchema.parse(payment.data);
   const queryParams = {
     "flag.coep": false,
     isSuccessBookingPage: true,
-    email: (payment.booking.responses as { email: string }).email,
+    email: parsedData.email,
     eventTypeSlug: payment.booking.eventType.slug,
   };
 

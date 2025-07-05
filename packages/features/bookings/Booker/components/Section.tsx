@@ -2,7 +2,7 @@ import type { MotionProps } from "framer-motion";
 import { m } from "framer-motion";
 import { forwardRef } from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { useBookerStore } from "../store";
 import type { BookerAreas, BookerLayout } from "../types";

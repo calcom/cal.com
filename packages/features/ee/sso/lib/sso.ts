@@ -3,7 +3,8 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import type { PrismaClient } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { TRPCError } from "@calcom/trpc/server";
+
+import { TRPCError } from "@trpc/server";
 
 import jackson from "./jackson";
 import { tenantPrefix, samlProductID } from "./saml";

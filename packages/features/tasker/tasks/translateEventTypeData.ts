@@ -42,7 +42,7 @@ async function processTranslations({
   text: string;
   field: EventTypeAutoTranslatedField;
 } & z.infer<typeof ZTranslateEventDataPayloadSchema>) {
-  const { ReplexicaService } = await import("@calcom/lib/server/service/replexica");
+  const { LingoDotDevService } = await import("@calcom/lib/server/service/lingoDotDev");
 
   try {
     const targetLocales = SUPPORTED_LOCALES.filter(
@@ -50,7 +50,7 @@ async function processTranslations({
     );
 
     const translations = await Promise.all(
-      targetLocales.map((targetLocale) => ReplexicaService.localizeText(text, userLocale, targetLocale))
+      targetLocales.map((targetLocale) => LingoDotDevService.localizeText(text, userLocale, targetLocale))
     );
 
     // Filter out null translations and their corresponding locales

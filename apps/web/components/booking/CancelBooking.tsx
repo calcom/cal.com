@@ -1,22 +1,18 @@
+"use client";
+
 import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
+import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import {
-  Button,
-  Icon,
-  TextArea,
-  Dialog,
-  Label,
-  DialogContent,
-  DialogHeader,
-  Input,
-  Select,
-} from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogHeader } from "@calcom/ui/components/dialog";
+import { Input, Label, Select, TextArea } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];

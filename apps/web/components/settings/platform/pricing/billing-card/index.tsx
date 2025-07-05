@@ -1,4 +1,5 @@
-import { Button } from "@calcom/ui";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
 
 type PlatformBillingCardProps = {
   plan: string;
@@ -19,6 +20,7 @@ export const PlatformBillingCard = ({
   handleSubscribe,
   currentPlan,
 }: PlatformBillingCardProps) => {
+  const { t } = useLocale();
   return (
     <div className="border-subtle max-w-[450px] rounded-2xl border p-5 md:mx-4">
       <div className="pb-5">
@@ -30,7 +32,7 @@ export const PlatformBillingCard = ({
                 type="button"
                 StartIcon="circle-check"
                 className="bg-default hover:bg-default cursor-none text-green-500 hover:cursor-pointer"
-                tooltip="This is your current plan"
+                tooltip={t("this_is_your_current_plan")}
               />
             </>
           )}
@@ -39,7 +41,7 @@ export const PlatformBillingCard = ({
         <h1 className="text-3xl font-semibold">
           {pricing !== undefined && (
             <>
-              US${pricing} <span className="text-sm">per month</span>
+              US${pricing} <span className="text-sm">{t("per_month")}</span>
             </>
           )}
         </h1>
@@ -50,12 +52,12 @@ export const PlatformBillingCard = ({
             loading={isLoading}
             onClick={handleSubscribe}
             className="flex w-[100%] items-center justify-center">
-            {pricing !== undefined ? "Subscribe" : "Schedule a time"}
+            {pricing !== undefined ? t("subscribe") : t("schedule_a_time")}
           </Button>
         </div>
       )}
       <div className="mt-5">
-        <p>This includes:</p>
+        <p>{t("this_includes")}</p>
         {includes.map((feature) => {
           return (
             <div key={feature} className="my-2 flex">

@@ -1,3 +1,5 @@
+import { IS_PRODUCTION } from "@calcom/lib/constants";
+
 import type { TaskHandler, TaskTypes } from "../tasker";
 
 /**
@@ -20,6 +22,16 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   translateEventTypeData: () =>
     import("./translateEventTypeData").then((module) => module.translateEventTypeData),
   createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
+  sendWorkflowEmails: () => import("./sendWorkflowEmails").then((module) => module.sendWorkflowEmails),
+  scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
+  sendAnalyticsEvent: () =>
+    import("./analytics/sendAnalyticsEvent").then((module) => module.sendAnalyticsEvent),
 };
 
+export const tasksConfig = {
+  createCRMEvent: {
+    minRetryIntervalMins: IS_PRODUCTION ? 10 : 1,
+    maxAttempts: 10,
+  },
+};
 export default tasks;

@@ -3,7 +3,7 @@ import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TGetUserInput } from "./getUser.schema";
 
 type AdminVerifyOptions = {
@@ -24,7 +24,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
 
   // get requested user from database and ensure they are in the same organization
   const [requestedUser, membership, teams] = await prisma.$transaction([
-    prisma.user.findFirst({
+    prisma.user.findUnique({
       where: { id: input.userId },
       select: {
         id: true,
@@ -38,6 +38,11 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
           select: {
             id: true,
             name: true,
+          },
+        },
+        profiles: {
+          select: {
+            username: true,
           },
         },
       },
@@ -77,6 +82,8 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
 
   const foundUser = {
     ...requestedUser,
+    // Enrich with the users profile for the username or fall back to the username their account was created with.
+    username: requestedUser.profiles[0]?.username || requestedUser.username,
     teams: teams.map((team) => ({
       ...team.team,
       accepted: team.accepted,

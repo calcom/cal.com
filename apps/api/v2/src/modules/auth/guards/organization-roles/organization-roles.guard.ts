@@ -1,6 +1,6 @@
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
+import { OrganizationsService } from "@/modules/organizations/index/organizations.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
@@ -20,10 +20,10 @@ export class OrganizationRolesGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user: UserWithProfile = request.user;
-    const organizationId = user ? this.usersService.getUserMainOrgId(user) : null;
+    const organizationId = this.getOrganizationId(context);
 
     if (!user || !organizationId) {
-      throw new ForbiddenException("No organization associated with the user.");
+      throw new ForbiddenException("OrganizationRolesGuard - No organization associated with the user.");
     }
 
     await this.isPlatform(organizationId);
@@ -40,13 +40,25 @@ export class OrganizationRolesGuard implements CanActivate {
   async isPlatform(organizationId: number) {
     const isPlatform = await this.organizationsService.isPlatform(organizationId);
     if (!isPlatform) {
-      throw new ForbiddenException("Organization is not a platform (SHP).");
+      throw new ForbiddenException("OrganizationRolesGuard - Organization is not a platform (SHP).");
     }
+  }
+
+  getOrganizationId(context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest();
+    const user: UserWithProfile = request.user;
+    const authMethodOrganizationId = request.organizationId;
+    if (authMethodOrganizationId) return authMethodOrganizationId;
+
+    const userOrganizationId = user ? this.usersService.getUserMainOrgId(user) : null;
+    return userOrganizationId;
   }
 
   isMembershipAccepted(accepted: boolean) {
     if (!accepted) {
-      throw new ForbiddenException(`User has not accepted membership in the organization.`);
+      throw new ForbiddenException(
+        `OrganizationRolesGuard - User has not accepted membership in the organization.`
+      );
     }
   }
 
@@ -57,7 +69,9 @@ export class OrganizationRolesGuard implements CanActivate {
 
     const hasRequiredRole = allowedRoles.includes(membershipRole);
     if (!hasRequiredRole) {
-      throw new ForbiddenException(`User must have one of the roles: ${allowedRoles.join(", ")}.`);
+      throw new ForbiddenException(
+        `OrganizationRolesGuard - User must have one of the roles: ${allowedRoles.join(", ")}.`
+      );
     }
   }
 }

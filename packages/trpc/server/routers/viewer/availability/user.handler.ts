@@ -1,6 +1,6 @@
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TUserInputSchema } from "./user.schema";
 
 type UserOptions = {

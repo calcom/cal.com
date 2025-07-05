@@ -14,7 +14,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
@@ -22,6 +22,7 @@ import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
 import {
   getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
   getBusyCalendarTimes,
+  type EventBusyDate,
 } from "@calcom/platform-libraries";
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
@@ -38,6 +39,17 @@ export class CalendarsService {
     private readonly dbWrite: PrismaWriteService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
+
+  private buildNonDelegationCredentials<TCredential>(credentials: TCredential[]) {
+    return credentials
+      .map((credential) => ({
+        ...credential,
+        delegatedTo: null,
+        delegatedToId: null,
+        delegationCredentialId: null,
+      }))
+      .filter((credential) => !!credential);
+  }
 
   async getCalendars(userId: number) {
     const userWithCalendars = await this.usersRepository.findByIdWithCalendars(userId);
@@ -73,22 +85,24 @@ export class CalendarsService {
     );
     try {
       const calendarBusyTimes = await getBusyCalendarTimes(
-        credentials,
+        this.buildNonDelegationCredentials(credentials),
         dateFrom,
         dateTo,
         composedSelectedCalendars
       );
-      const calendarBusyTimesConverted = calendarBusyTimes.map((busyTime) => {
-        const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
-        const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);
-        const busyTimeStartDate = busyTimeStart.toJSDate();
-        const busyTimeEndDate = busyTimeEnd.toJSDate();
-        return {
-          ...busyTime,
-          start: busyTimeStartDate,
-          end: busyTimeEndDate,
-        };
-      });
+      const calendarBusyTimesConverted = calendarBusyTimes.map(
+        (busyTime: EventBusyDate & { timeZone?: string }) => {
+          const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
+          const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);
+          const busyTimeStartDate = busyTimeStart.toJSDate();
+          const busyTimeEndDate = busyTimeEnd.toJSDate();
+          return {
+            ...busyTime,
+            start: busyTimeStartDate,
+            end: busyTimeEndDate,
+          };
+        }
+      );
       return calendarBusyTimesConverted;
     } catch (error) {
       throw new InternalServerErrorException(
@@ -161,7 +175,7 @@ export class CalendarsService {
     calendarType: keyof typeof APPS_TYPE_ID_MAPPING,
     credentialId?: number | null
   ) {
-    const credential = await this.credentialsRepository.upsertAppCredential(
+    const credential = await this.credentialsRepository.upsertUserAppCredential(
       calendarType,
       key,
       userId,

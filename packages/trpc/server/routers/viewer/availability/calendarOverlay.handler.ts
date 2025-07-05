@@ -1,11 +1,12 @@
-import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
+import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { prisma } from "@calcom/prisma";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TCalendarOverlayInputSchema } from "./calendarOverlay.schema";
 
 type ListOptions = {
@@ -29,7 +30,7 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
   // To call getCalendar we need
 
   // Ensure that the user has access to all of the credentialIds
-  const credentials = await prisma.credential.findMany({
+  const nonDelegationCredentials = await prisma.credential.findMany({
     where: {
       id: {
         in: uniqueCredentialIds,
@@ -44,11 +45,19 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
       teamId: true,
       appId: true,
       invalid: true,
+      delegationCredentialId: true,
       user: {
         select: {
           email: true,
         },
       },
+    },
+  });
+
+  const { credentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+    user: {
+      ...user,
+      credentials: nonDelegationCredentials,
     },
   });
 

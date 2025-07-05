@@ -3,6 +3,7 @@ import { type Prisma } from "@prisma/client";
 import db from "@calcom/prisma";
 
 import { type TaskTypes } from "./tasker";
+import { scanWorkflowBodySchema } from "./tasks/scanWorkflowBody";
 
 const whereSucceeded: Prisma.TaskWhereInput = {
   succeededAt: { not: null },
@@ -40,9 +41,9 @@ export class Task {
   static async create(
     type: TaskTypes,
     payload: string,
-    options: { scheduledAt?: Date; maxAttempts?: number } = {}
+    options: { scheduledAt?: Date; maxAttempts?: number; referenceUid?: string } = {}
   ) {
-    const { scheduledAt, maxAttempts } = options;
+    const { scheduledAt, maxAttempts, referenceUid } = options;
     console.info("Creating task", { type, payload, scheduledAt, maxAttempts });
     const newTask = await db.task.create({
       data: {
@@ -50,6 +51,7 @@ export class Task {
         type,
         scheduledAt,
         maxAttempts,
+        referenceUid,
       },
     });
     return newTask.id;
@@ -104,7 +106,20 @@ export class Task {
     });
   }
 
-  static async retry(taskId: string, lastError?: string) {
+  static async retry({
+    taskId,
+    lastError,
+    minRetryIntervalMins,
+  }: {
+    taskId: string;
+    lastError?: string;
+    minRetryIntervalMins?: number | null;
+  }) {
+    const failedAttemptTime = new Date();
+    const updatedScheduledAt = minRetryIntervalMins
+      ? new Date(failedAttemptTime.getTime() + 1000 * 60 * minRetryIntervalMins)
+      : undefined;
+
     return db.task.update({
       where: {
         id: taskId,
@@ -112,6 +127,10 @@ export class Task {
       data: {
         attempts: { increment: 1 },
         lastError,
+        lastFailedAttemptAt: failedAttemptTime,
+        ...(updatedScheduledAt && {
+          scheduledAt: updatedScheduledAt,
+        }),
       },
     });
   }
@@ -136,6 +155,26 @@ export class Task {
     });
   }
 
+  static async cancelWithReference(referenceUid: string, type: TaskTypes) {
+    const task = await db.task.findFirst({
+      where: {
+        referenceUid,
+        type,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!task) return null;
+
+    return await db.task.delete({
+      where: {
+        id: task.id,
+      },
+    });
+  }
+
   static async cleanup() {
     // TODO: Uncomment this later
     // return db.task.deleteMany({
@@ -148,5 +187,25 @@ export class Task {
     //     ],
     //   },
     // });
+  }
+
+  static async hasNewerScanTaskForStepId(workflowStepId: number, createdAt: string) {
+    const tasks = await db.$queryRaw<{ payload: string }[]>`
+      SELECT "payload"
+      FROM "Task"
+      WHERE "type" = 'scanWorkflowBody'
+        AND "succeededAt" IS NULL
+        AND (payload::jsonb ->> 'workflowStepId')::int = ${workflowStepId}
+        `;
+
+    return tasks.some((task) => {
+      try {
+        const parsed = scanWorkflowBodySchema.parse(JSON.parse(task.payload));
+        if (!parsed.createdAt) return false;
+        return new Date(parsed.createdAt) > new Date(createdAt);
+      } catch {
+        return false;
+      }
+    });
   }
 }

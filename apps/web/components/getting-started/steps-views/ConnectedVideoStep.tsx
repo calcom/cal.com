@@ -1,23 +1,34 @@
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Icon, List } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { List } from "@calcom/ui/components/list";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
 
 interface ConnectedAppStepProps {
   nextStep: () => void;
+  isPageLoading: boolean;
 }
 
 const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
-  const { nextStep } = props;
-  const { data: queryConnectedVideoApps, isPending } = trpc.viewer.integrations.useQuery({
+  const { nextStep, isPageLoading } = props;
+  const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
+
+    /**
+     * Both props together sort by most popular first, then by installed first.
+     * So, installed apps are always shown at the top, followed by remaining apps sorted by descending popularity.
+     *
+     * This is done because there could be not so popular app already installed by the admin(e.g. through Delegation Credential)
+     * and we want to show it at the top so that user can set it as default if he wants to.
+     */
     sortByMostPopular: true,
+    sortByInstalledFirst: true,
   });
   const { data } = useMeQuery();
   const { t } = useLocale();
@@ -60,18 +71,18 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
       )}
 
       {isPending && <StepConnectionLoader />}
-      <button
-        type="button"
+      <Button
+        EndIcon="arrow-right"
         data-testid="save-video-button"
         className={classNames(
           "text-inverted border-inverted bg-inverted mt-8 flex w-full flex-row justify-center rounded-md border p-2 text-center text-sm",
           !hasAnyInstalledVideoApps ? "cursor-not-allowed opacity-20" : ""
         )}
         disabled={!hasAnyInstalledVideoApps}
+        loading={isPageLoading}
         onClick={() => nextStep()}>
         {t("next_step_text")}
-        <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
-      </button>
+      </Button>
     </>
   );
 };

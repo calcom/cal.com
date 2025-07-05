@@ -3,23 +3,29 @@ export interface CanvasComponent {
   disabled?: boolean;
 }
 
+export interface IsValid {
+  isValid: boolean;
+  error?: TextComponent;
+}
+
 export interface InputComponent extends CanvasComponent {
   type: "input";
   id: string;
   label: string;
   placeholder: string;
-  save_state: "unsaved" | "saved";
-  action: {
+  value?: string;
+  save_state?: "unsaved" | "saved";
+  action?: {
     type: "submit";
   };
   aria_label: string;
 }
 
-interface ButtonComponent extends CanvasComponent {
+export interface ButtonComponent extends CanvasComponent {
   type: "button";
   id: string;
   label: string;
-  style: "primary" | "secondary" | "link";
+  style?: "primary" | "secondary" | "link";
   action: {
     type: "submit" | "sheet" | "url";
     url?: string;
@@ -62,5 +68,7 @@ export interface CanvasContent {
 export interface NewCanvas {
   canvas: {
     content: CanvasContent;
+    content_url?: string;
+    stored_data?: Record<string, unknown>;
   };
 }

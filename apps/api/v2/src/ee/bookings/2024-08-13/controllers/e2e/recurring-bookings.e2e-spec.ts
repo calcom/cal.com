@@ -21,7 +21,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import { AttendeeCancelledEmail, OrganizerCancelledEmail } from "@calcom/platform-libraries";
+import { AttendeeCancelledEmail, OrganizerCancelledEmail } from "@calcom/platform-libraries/emails";
 import {
   CreateRecurringBookingInput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
@@ -684,7 +684,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
-    it("should cancel all remaning recurrences", async () => {
+    it("should cancel all remaining recurrences", async () => {
       const recurringBookingUid = recurringBooking[0].recurringBookingUid;
 
       return request(app.getHttpServer())

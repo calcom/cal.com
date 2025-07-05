@@ -8,6 +8,7 @@ import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
@@ -19,23 +20,34 @@ import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
-import { getLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
+import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-type BookerWebWrapperAtomProps = BookerProps;
+type BookerWebWrapperAtomProps = BookerProps & {
+  eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
+};
 
 export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const event = useEvent({
+  const clientFetchedEvent = useEvent({
+    disabled: !!props.eventData,
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
   });
-  const bookerLayout = useBookerLayout(event.data);
+  const event = props.eventData
+    ? {
+        data: props.eventData,
+        isSuccess: true,
+        isError: false,
+        isPending: false,
+      }
+    : clientFetchedEvent;
 
+  const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
   const selectedDate = searchParams?.get("date");
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
@@ -59,7 +71,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     rescheduleUid,
     rescheduledBy,
     bookingUid: bookingUid,
-    layout: bookerLayout.defaultLayout,
+    layout: bookerLayout.isMobile ? "mobile" : bookerLayout.defaultLayout,
     org: props.entity.orgSlug,
     timezone,
   });
@@ -90,8 +102,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     };
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
-  const lastBookingResponse = getLastBookingResponse();
-
   const bookerForm = useBookingForm({
     event: event.data,
     sessionEmail: session?.user.email,
@@ -100,7 +110,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
-    lastBookingResponse,
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
@@ -109,7 +118,9 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
     onVerifyEmail: bookerForm.beforeVerifyEmail,
   });
-  const slots = useSlots(event);
+  const slots = useSlots(event?.data ? { id: event.data.id, length: event.data.length } : null);
+
+  const isEmbed = useIsEmbed();
 
   const prefetchNextMonth =
     (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
@@ -142,6 +153,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     teamMemberEmail: props.teamMemberEmail,
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
     isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
+    useApiV2: props.useApiV2,
   });
   const bookings = useBookings({
     event,
@@ -193,6 +205,10 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       )
   );
 
+  useEffect(() => {
+    if (hasSession) onOverlaySwitchStateChange(true);
+  }, [hasSession]);
+
   return (
     <BookerComponent
       {...props}
@@ -201,7 +217,13 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       }}
       onConnectNowInstantMeeting={() => {
         const newPath = `${pathname}?isInstantMeeting=true`;
-        router.push(newPath);
+
+        if (isEmbed) {
+          const fullUrl = `${new URL(document.URL).origin}/${newPath}`;
+          window.open(fullUrl, "_blank", "noopener,noreferrer");
+        } else {
+          router.push(newPath);
+        }
       }}
       onOverlayClickNoCalendar={() => {
         router.push("/apps/categories/calendar");

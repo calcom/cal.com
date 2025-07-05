@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { deleteUser } from "@calcom/features/users/lib/userDeletionService";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
@@ -31,7 +31,7 @@ import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
  *     - users
  *     responses:
  *       201:
- *         description: OK, user removed successfuly
+ *         description: OK, user removed successfully
  *       400:
  *        description: Bad request. User id is invalid.
  *       401:

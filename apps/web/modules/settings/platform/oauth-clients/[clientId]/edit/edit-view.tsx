@@ -7,28 +7,15 @@ import Shell from "@calcom/features/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
-import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
-import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
+import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClient";
+import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useUpdateOAuthClient";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm as EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
-
-import {
-  hasAppsReadPermission,
-  hasAppsWritePermission,
-  hasBookingReadPermission,
-  hasBookingWritePermission,
-  hasEventTypeReadPermission,
-  hasEventTypeWritePermission,
-  hasProfileReadPermission,
-  hasProfileWritePermission,
-  hasScheduleReadPermission,
-  hasScheduleWritePermission,
-} from "../../../../../../../../packages/platform/utils/permissions";
 
 export default function EditOAuthClient() {
   const { t } = useLocale();
@@ -41,7 +28,7 @@ export default function EditOAuthClient() {
   const { data, isFetched, isFetching, isError, refetch } = useOAuthClient(clientId);
   const { mutateAsync: update, isPending: isUpdating } = useUpdateOAuthClient({
     onSuccess: () => {
-      showToast("OAuth client updated successfully", "success");
+      showToast(t("oauth_client_updated_successfully"), "success");
       refetch();
       router.push("/settings/platform/");
     },
@@ -72,15 +59,17 @@ export default function EditOAuthClient() {
       bookingCancelRedirectUri: data.bookingCancelRedirectUri,
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
+      areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled,
+      areCalendarEventsEnabled: data.areCalendarEventsEnabled,
     });
   };
 
-  if (isUserLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading) return <div className="m-5">{t("loading")}</div>;
 
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell withoutSeo={true} title={t("oAuth_client_updation_form")} isPlatformUser={true}>
+        <Shell title={t("oAuth_client_updation_form")} isPlatformUser={true}>
           <div className="m-2 md:mx-14 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
@@ -92,33 +81,35 @@ export default function EditOAuthClient() {
                 </p>
               </div>
             </div>
-            {(!Boolean(clientId) || (isFetched && !data)) && <p>OAuth Client not found.</p>}
+            {(!Boolean(clientId) || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
             {isFetched && !!data && (
               <EditOAuthClientForm
                 defaultValues={{
                   name: data?.name ?? "",
                   areEmailsEnabled: data.areEmailsEnabled ?? false,
+                  areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled ?? false,
+                  areCalendarEventsEnabled: data.areCalendarEventsEnabled,
                   redirectUris: data?.redirectUris?.map((uri) => ({ uri })) ?? [{ uri: "" }],
                   bookingRedirectUri: data?.bookingRedirectUri ?? "",
                   bookingCancelRedirectUri: data?.bookingCancelRedirectUri ?? "",
                   bookingRescheduleRedirectUri: data?.bookingRescheduleRedirectUri ?? "",
-                  appsRead: hasAppsReadPermission(data?.permissions),
-                  appsWrite: hasAppsWritePermission(data?.permissions),
-                  bookingRead: hasBookingReadPermission(data?.permissions),
-                  bookingWrite: hasBookingWritePermission(data?.permissions),
-                  eventTypeRead: hasEventTypeReadPermission(data?.permissions),
-                  eventTypeWrite: hasEventTypeWritePermission(data?.permissions),
-                  profileRead: hasProfileReadPermission(data?.permissions),
-                  profileWrite: hasProfileWritePermission(data?.permissions),
-                  scheduleRead: hasScheduleReadPermission(data?.permissions),
-                  scheduleWrite: hasScheduleWritePermission(data?.permissions),
+                  appsRead: data?.permissions.includes("APPS_READ"),
+                  appsWrite: data?.permissions.includes("APPS_WRITE"),
+                  bookingRead: data?.permissions.includes("BOOKING_READ"),
+                  bookingWrite: data?.permissions.includes("BOOKING_WRITE"),
+                  eventTypeRead: data?.permissions.includes("EVENT_TYPE_READ"),
+                  eventTypeWrite: data?.permissions.includes("EVENT_TYPE_WRITE"),
+                  profileRead: data?.permissions.includes("PROFILE_READ"),
+                  profileWrite: data?.permissions.includes("PROFILE_WRITE"),
+                  scheduleRead: data?.permissions.includes("SCHEDULE_READ"),
+                  scheduleWrite: data?.permissions.includes("SCHEDULE_WRITE"),
                 }}
                 onSubmit={onSubmit}
                 isPending={isUpdating}
               />
             )}
-            {isFetching && <p>Loading...</p>}
-            {isError && <p>Something went wrong.</p>}
+            {isFetching && <p>{t("loading")}</p>}
+            {isError && <p>{t("something_went_wrong")}</p>}
           </div>
         </Shell>
       </div>
@@ -127,7 +118,7 @@ export default function EditOAuthClient() {
 
   return (
     <div>
-      <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
+      <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

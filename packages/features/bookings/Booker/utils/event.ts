@@ -1,6 +1,6 @@
 import { shallow } from "zustand/shallow";
 
-import { useSchedule } from "@calcom/features/schedules";
+import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
@@ -18,7 +18,7 @@ export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEven
  * Using this hook means you only need to use one hook, instead
  * of combining multiple conditional hooks.
  */
-export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean }) => {
+export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean; disabled?: boolean }) => {
   const [username, eventSlug, isTeamEvent, org] = useBookerStore(
     (state) => [state.username, state.eventSlug, state.isTeamEvent, state.org],
     shallow
@@ -34,7 +34,7 @@ export const useEvent = (props?: { fromRedirectOfNonOrgLink?: boolean }) => {
     },
     {
       refetchOnWindowFocus: false,
-      enabled: Boolean(username) && Boolean(eventSlug),
+      enabled: !props?.disabled && Boolean(username) && Boolean(eventSlug),
     }
   );
 
@@ -70,8 +70,8 @@ export const useScheduleForEvent = ({
   selectedDate,
   orgSlug,
   teamMemberEmail,
-  fromRedirectOfNonOrgLink,
   isTeamEvent,
+  useApiV2 = true,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -86,6 +86,7 @@ export const useScheduleForEvent = ({
   teamMemberEmail?: string | null;
   fromRedirectOfNonOrgLink?: boolean;
   isTeamEvent?: boolean;
+  useApiV2?: boolean;
 } = {}) => {
   const { timezone } = useBookerTime();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
@@ -111,6 +112,7 @@ export const useScheduleForEvent = ({
     isTeamEvent,
     orgSlug,
     teamMemberEmail,
+    useApiV2: useApiV2,
   });
 
   return {
@@ -119,5 +121,6 @@ export const useScheduleForEvent = ({
     isError: schedule?.isError,
     isSuccess: schedule?.isSuccess,
     isLoading: schedule?.isLoading,
+    invalidate: schedule?.invalidate,
   };
 };

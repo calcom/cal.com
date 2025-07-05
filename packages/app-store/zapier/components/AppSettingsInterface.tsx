@@ -1,13 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import TemplateCard from "./TemplateCard";
-
-export type Template = {
-  icon: string;
-  app: string;
-  text: string;
-  link: string;
-};
+import type { Template } from "./types";
 
 const templates: Template[] = [
   {
