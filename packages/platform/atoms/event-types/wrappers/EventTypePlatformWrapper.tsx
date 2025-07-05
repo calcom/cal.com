@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
@@ -14,7 +14,7 @@ import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventty
 import type { EventSetupTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
 import { useDeleteTeamEventTypeById } from "../../hooks/event-types/private/useDeleteTeamEventTypeById";
@@ -85,9 +85,21 @@ const EventType = ({
   const leaveWithoutAssigningHosts = useRef(false);
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
-  const { eventType, locationOptions, team, teamMembers, destinationCalendar } = props;
+  const { eventType, locationOptions, team, teamMembers: allTeamMembers, destinationCalendar } = props;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: user, isLoading: isUserLoading } = useMe();
+
+  // Filter team members to only include those with MEMBER role
+  const teamMembers = useMemo(() => {
+    if (!allTeamMembers) return [];
+    return allTeamMembers.filter((member) => {
+      // For managed event types, only allow members with MEMBER role
+      if (eventType.schedulingType === SchedulingType.MANAGED) {
+        return member.membership === MembershipRole.MEMBER;
+      }
+      return true;
+    });
+  }, [allTeamMembers, eventType.schedulingType]);
 
   const handleDeleteSuccess = () => {
     showToast(t("event_type_deleted_successfully"), "success");
@@ -285,6 +297,7 @@ const EventType = ({
     <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <EventTypeComponent
         {...props}
+        teamMembers={teamMembers}
         tabMap={tabMap}
         onDelete={onDelete}
         onConflict={onConflict}
