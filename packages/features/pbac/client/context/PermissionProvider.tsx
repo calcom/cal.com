@@ -12,9 +12,9 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
   //   }
   // }, [permissions, setTeamPermissions]);
 
-  if (isLoading) {
-    return null;
-  }
+  // if (true) {
+  //   return null;
+  // }
 
   return <>{children}</>;
 }
