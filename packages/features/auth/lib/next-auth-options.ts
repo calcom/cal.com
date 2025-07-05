@@ -980,26 +980,26 @@ export const getOptions = ({
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         try {
-          const newUser = await prisma.user.create({
-            data: {
-              // Slugify the incoming name and append a few random characters to
-              // prevent conflicts for users with the same name.
-              username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
-              emailVerified: new Date(Date.now()),
-              name: user.name,
-              ...(user.image && { avatarUrl: user.image }),
-              email: user.email,
-              identityProvider: idP,
-              identityProviderId: account.providerAccountId,
-              ...(orgId && {
-                verified: true,
-                organization: { connect: { id: orgId } },
-                teams: {
-                  create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
+          const newUser = await UserRepository.create({
+            username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
+            emailVerified: new Date(Date.now()),
+            name: user.name,
+            locked: false,
+            // image: user.image,  TODO: uncomment this when we update the UserRepository.create method to handle image
+            email: user.email,
+            identityProvider: idP,
+            identityProviderId: account.providerAccountId,
+            organizationId: orgId ?? null,
+            creationSource: CreationSource.WEBAPP,
+            ...(orgId && {
+              teams: {
+                create: {
+                  role: MembershipRole.MEMBER,
+                  accepted: true,
+                  team: { connect: { id: orgId } },
                 },
-              }),
-              creationSource: CreationSource.WEBAPP,
-            },
+              },
+            }),
           });
           const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
           await calcomAdapter.linkAccount(linkAccountNewUserData);
