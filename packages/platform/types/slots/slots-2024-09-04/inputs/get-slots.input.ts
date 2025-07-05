@@ -89,7 +89,9 @@ export class GetAvailableSlotsInput_2024_09_04 {
     example: "abc123def456",
   })
   bookingUidToReschedule?: string;
+}
 
+export class GetAvailableSlotsInputWithRouting_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   @IsString()
   @IsOptional()
   @ApiHideProperty()
@@ -117,6 +119,16 @@ export class ById_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   type: typeof ById_2024_09_04_type = ById_2024_09_04_type;
 
   @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @ApiProperty({
+    type: Number,
+    description: "The ID of the event type for which available slots should be checked.",
+    example: "100",
+  })
+  eventTypeId!: number;
+}
+
+export class ByIdWithRouting_2024_09_04 extends GetAvailableSlotsInputWithRouting_2024_09_04 {
   @IsNumber()
   @ApiProperty({
     type: Number,

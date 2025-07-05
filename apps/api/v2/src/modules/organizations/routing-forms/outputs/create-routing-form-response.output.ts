@@ -81,7 +81,6 @@ export class CreateRoutingFormResponseOutputData {
   eventTypeId?: number;
 
   @ValidateNested()
-  @ApiProperty({ type: Routing })
   @Type(() => Routing)
   @ApiPropertyOptional({
     type: Routing,
@@ -95,8 +94,6 @@ export class CreateRoutingFormResponseOutputData {
       },
     },
   })
-  @ValidateNested()
-  @Type(() => Routing)
   routing?: Routing;
 
   @IsString()

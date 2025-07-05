@@ -61,7 +61,6 @@ export class RouterController {
     ) {
       return this.handleRedirectWithContactOwner(routingUrl, routingSearchParams);
     }
-    console.log("handleRedirect Regular called", { destination });
 
     return { status: "success", data: destination, redirect: true };
   }
