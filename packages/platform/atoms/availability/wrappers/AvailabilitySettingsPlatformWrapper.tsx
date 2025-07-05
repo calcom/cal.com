@@ -15,7 +15,12 @@ import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues } from "../types";
 
-type AvailabilitySettingsPlatformWrapperProps = {
+export type AvailabilitySettingsScheduleType =
+  | import("@calcom/lib/server/repository/schedule").FindDetailedScheduleByIdReturnType
+  | null
+  | undefined;
+
+export type AvailabilitySettingsPlatformWrapperProps = {
   id?: string;
   labels?: {
     tooltips: Partial<ScheduleLabelsType>;
