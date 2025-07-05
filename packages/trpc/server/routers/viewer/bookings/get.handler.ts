@@ -489,7 +489,7 @@ export async function getBookings({
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
                 eb
-                  .cast<SchedulingType>(
+                  .cast<SchedulingType | null>(
                     eb
                       .case()
                       .when("EventType.schedulingType", "=", "roundRobin")
@@ -498,7 +498,7 @@ export async function getBookings({
                       .then(SchedulingType["COLLECTIVE"])
                       .when("EventType.schedulingType", "=", "managed")
                       .then(SchedulingType["MANAGED"])
-                      .else(SchedulingType["ROUND_ROBIN"]) // Ensure ELSE provides a value within SchedulingTypeLiteral for cast safety
+                      .else(null)
                       .end(),
                     "varchar" // Or 'text' - use the actual SQL data type
                   )
