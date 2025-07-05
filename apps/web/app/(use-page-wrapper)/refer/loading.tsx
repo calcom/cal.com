@@ -22,7 +22,7 @@ export default function Loading() {
 
         <div className="mb-6">
           <SkeletonText className="mb-2 h-5 w-24" />
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <SkeletonText className="h-10 w-full rounded-md" />
             <SkeletonButton className="h-10 w-28 rounded-md" />
           </div>

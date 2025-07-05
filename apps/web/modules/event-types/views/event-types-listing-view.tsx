@@ -502,7 +502,7 @@ export const InfiniteEventTypeList = ({
                     )}
                     <MemoizedItem type={type} group={group} readOnly={readOnly} />
                     <div className="mt-4 hidden sm:mt-0 sm:flex">
-                      <div className="flex justify-between space-x-2 rtl:space-x-reverse">
+                      <div className="flex justify-between gap-2">
                         {!!type.teamId && !isManagedEventType && (
                           <UserAvatarGroup
                             className="relative right-3"
@@ -521,7 +521,7 @@ export const InfiniteEventTypeList = ({
                             users={type?.children.flatMap((ch) => ch.users) ?? []}
                           />
                         )}
-                        <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
+                        <div className="flex items-center justify-between gap-2">
                           {!isManagedEventType && (
                             <>
                               {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}

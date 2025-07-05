@@ -24,7 +24,7 @@ export function AvailabilityScheduleSkeleton() {
               </div>
 
               {/* Action buttons */}
-              <div className="relative flex-shrink-0 md:relative md:bottom-auto md:right-auto">
+              <div className="relative shrink-0 md:relative md:bottom-auto md:right-auto">
                 {/* Desktop buttons - Set to Default, Delete, and Save */}
                 <div className="flex items-center justify-end">
                   {/* Set to Default - desktop only */}
@@ -46,7 +46,7 @@ export function AvailabilityScheduleSkeleton() {
 
           {/* Main content */}
           <div className="mt-4 w-full md:mt-0">
-            <div className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
+            <div className="flex flex-col sm:mx-0 xl:flex-row xl:gap-6">
               <div className="flex-1 flex-row xl:mr-0 xl:w-[75%]">
                 {/* Schedule container */}
                 <div className="border-subtle mb-6 rounded-md border">
@@ -61,7 +61,7 @@ export function AvailabilityScheduleSkeleton() {
                           {/* Day toggle and name */}
                           <div className="flex h-[36px] items-center justify-between sm:w-32">
                             <div>
-                              <div className="text-default flex flex-row items-center space-x-2 rtl:space-x-reverse">
+                              <div className="text-default rtl:gap-x-reverse flex flex-row items-center gap-2">
                                 <div className="mr-2 h-6 w-11 rounded-full bg-gray-200" /> {/* Toggle */}
                                 <SkeletonText className="h-5 w-16 text-sm" /> {/* Day name */}
                               </div>

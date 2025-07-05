@@ -129,7 +129,7 @@ export const AddNewTeamMembersForm = () => {
 
   if (isLoading) {
     return (
-      <SkeletonContainer as="div" className="space-y-6">
+      <SkeletonContainer as="div" className="flex flex-col gap-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
@@ -144,9 +144,9 @@ export const AddNewTeamMembersForm = () => {
           <Alert severity="error" message={orgCreation.errorMessage} />
         </div>
       )}
-      <div className="space-y-6">
-        <div className="flex space-x-3">
-          <form onSubmit={onSubmit} className="flex w-full items-end space-x-2">
+      <div className="flex flex-col gap-6">
+        <div className="flex gap-3">
+          <form onSubmit={onSubmit} className="flex w-full items-end gap-2">
             <div className="flex-grow">
               <TextField
                 label={t("email")}
@@ -167,7 +167,7 @@ export const AddNewTeamMembersForm = () => {
             data-testid="pending-member-list">
             {invitedMembers.map((member) => (
               <li key={member.email} className="flex items-center justify-between px-5 py-2">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center gap-3">
                   <Avatar size="sm" alt={member.email} />
                   <div className="flex gap-1">
                     <Tooltip content={member.email}>
@@ -187,7 +187,7 @@ export const AddNewTeamMembersForm = () => {
             ))}
             {uniqueMembers?.map((member) => (
               <li key={member.email} className="flex items-center justify-between px-5 py-2">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center gap-3">
                   <Avatar size="sm" alt={member.email} imageSrc={member.avatarUrl} />
                   <div className="flex gap-1">
                     <Tooltip content={member.email}>
