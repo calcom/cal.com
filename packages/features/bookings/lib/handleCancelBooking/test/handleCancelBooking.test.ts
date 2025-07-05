@@ -335,13 +335,8 @@ describe("Cancel Booking", () => {
             teamId: 1,
             trigger: "EVENT_CANCELLED",
             action: "EMAIL_ATTENDEE",
-            template: "CANCELLED",
-            sendTo: "ALL_ATTENDEES",
-            activeOn: [
-              {
-                eventTypeId: 2,
-              },
-            ],
+            template: "REMINDER",
+            activeOn: [2],
           },
         ],
         bookings: [
@@ -360,7 +355,6 @@ describe("Cancel Booking", () => {
             endTime: `${plus1DateString}T05:30:00.000Z`,
             attendees: [
               {
-                name: hostAttendee.name,
                 email: hostAttendee.email,
                 timeZone: "Asia/Kolkata",
                 locale: "en",
