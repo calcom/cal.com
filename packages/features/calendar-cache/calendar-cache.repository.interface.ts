@@ -1,5 +1,6 @@
 import type { CalendarCache, Prisma } from "@prisma/client";
 
+import type { PrismaTransaction } from "@calcom/prisma";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 export type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
@@ -27,4 +28,6 @@ export interface ICalendarCacheRepository {
     userId: number | null;
     args: FreeBusyArgs;
   }): Promise<CalendarCache | null>;
+  invalidateCacheForCredential(credentialId: number): Promise<void>;
+  invalidateCacheForUsers(userIds: number[], prismaClient?: PrismaTransaction): Promise<void>;
 }

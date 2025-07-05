@@ -4,7 +4,7 @@ import { uniqueBy } from "@calcom/lib/array";
 import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import prisma, { type PrismaTransaction } from "@calcom/prisma";
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
@@ -103,6 +103,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       // Security/Privacy wise, it is fine to query solely based on userId as userId and key(which has external email Ids in there) together can be used to uniquely identify the cache
       // A user could have multiple third party calendars connected, but they key would still be different for each case in calendar-cache because of the presence of emails in there.
       // Sample key: {"timeMin":"2025-04-01T00:00:00.000Z","timeMax":"2025-08-01T00:00:00.000Z","items":[{"id":"owner@example.com"}]} <- Notice it has emailId in there for which busytimes are fetched, we could assume that these emailIds would be unique across different calendars like Google/Outlook
+
       cached = await prisma.calendarCache.findFirst({
         // We have index on userId and key, so this should be fast
         // TODO: Should we consider index on all three - userId, key and expiresAt?
@@ -128,9 +129,26 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         },
       });
     }
+
+    if (!cached) {
+      log.info(
+        "Skipping availability - no cache hit",
+        safeStringify({ key, credentialId, usedInMemoryDelegationCredential })
+      );
+      return null;
+    }
+
+    if (cached.stale) {
+      log.info(
+        "Serving stale cache - not returning as valid cache",
+        safeStringify({ key, credentialId, usedInMemoryDelegationCredential, cachedId: cached.id })
+      );
+      return null;
+    }
+
     log.info(
-      "Got cached availability",
-      safeStringify({ key, cached, credentialId, usedInMemoryDelegationCredential })
+      "Serving fresh cache hit",
+      safeStringify({ key, credentialId, usedInMemoryDelegationCredential, cachedId: cached.id })
     );
     return cached;
   }
@@ -159,6 +177,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         userId,
         value,
         expiresAt: new Date(Date.now() + CACHING_TIME),
+        stale: false,
       },
       create: {
         value,
@@ -166,7 +185,52 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         userId,
         key,
         expiresAt: new Date(Date.now() + CACHING_TIME),
+        stale: false,
       },
     });
+  }
+
+  async invalidateCacheForCredential(credentialId: number) {
+    declareCanWorkWithInMemoryCredential();
+    log.debug("Invalidating cache for credential", safeStringify({ credentialId }));
+    await prisma.calendarCache.updateMany({
+      where: { credentialId },
+      data: { stale: true },
+    });
+  }
+
+  async invalidateCacheForUsers(userIds: number[], prismaClient?: PrismaTransaction) {
+    declareCanWorkWithInMemoryCredential();
+    const prismaToUse = prismaClient || prisma;
+
+    log.debug("Invalidating cache for users", safeStringify({ userIds }));
+
+    const credentials = await prismaToUse.credential.findMany({
+      where: {
+        OR: [
+          { userId: { in: userIds } },
+          {
+            team: {
+              members: {
+                some: {
+                  userId: { in: userIds },
+                },
+              },
+            },
+          },
+        ],
+      },
+      select: { id: true },
+    });
+
+    const credentialIds = credentials.map((c: { id: number }) => c.id);
+
+    if (credentialIds.length > 0) {
+      await prismaToUse.calendarCache.updateMany({
+        where: { credentialId: { in: credentialIds } },
+        data: { stale: true },
+      });
+      log.debug("Invalidated cache for credentials", safeStringify({ credentialIds }));
+    }
   }
 }

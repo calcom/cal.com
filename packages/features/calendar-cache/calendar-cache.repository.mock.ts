@@ -23,4 +23,12 @@ export class CalendarCacheRepositoryMock implements ICalendarCacheRepository {
   async deleteManyByCredential() {
     log.info(`Skipping deleteManyByCredential due to calendar-cache being disabled`);
   }
+
+  async invalidateCacheForCredential() {
+    log.info(`Skipping invalidateCacheForCredential due to calendar-cache being disabled`);
+  }
+
+  async invalidateCacheForUsers() {
+    log.info(`Skipping invalidateCacheForUsers due to calendar-cache being disabled`);
+  }
 }
