@@ -16,9 +16,25 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import logger from "../logger";
+import { DistributedTracing, type TraceContext } from "../tracing";
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
-export async function handlePaymentSuccess(paymentId: number, bookingId: number) {
+export async function handlePaymentSuccess(
+  paymentId: number,
+  bookingId: number,
+  traceContext?: TraceContext
+) {
+  const spanContext = traceContext
+    ? DistributedTracing.createSpan(traceContext, "payment_success_processing")
+    : DistributedTracing.createTrace("payment_success_processing", { bookingUid: bookingId.toString() });
+  const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
+
+  tracingLogger.info("Processing payment success", {
+    paymentId,
+    bookingId,
+    originalTraceId: traceContext?.traceId,
+  });
+
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
 
@@ -45,7 +61,11 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
 
   if (isConfirmed) {
     const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
-    const eventManager = new EventManager({ ...userWithCredentials, credentials: allCredentials }, apps);
+    const eventManager = new EventManager(
+      { ...userWithCredentials, credentials: allCredentials },
+      apps,
+      spanContext
+    );
     const scheduleResult = areCalendarEventsEnabled
       ? await eventManager.create(evt)
       : placeholderCreatedEvent;
