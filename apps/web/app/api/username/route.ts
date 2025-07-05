@@ -5,6 +5,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -15,6 +17,12 @@ const bodySchema = z.object({
 });
 
 async function postHandler(request: NextRequest) {
+  const userIp = getIP(request);
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "common",
+    identifier: `username-check-${userIp}`,
+  });
   try {
     const body = await request.json();
     const { username, orgSlug } = bodySchema.parse(body);

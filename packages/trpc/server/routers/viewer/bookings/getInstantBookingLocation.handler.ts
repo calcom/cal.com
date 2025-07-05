@@ -1,3 +1,4 @@
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -13,6 +14,11 @@ type GetOptions = {
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   const { prisma } = ctx;
   const { bookingId } = input;
+
+  await checkRateLimitAndThrowError({
+    identifier: `instant-booking:${bookingId}`,
+    rateLimitingType: "common",
+  });
 
   const booking = await prisma.booking.findUnique({
     where: {
