@@ -180,6 +180,18 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   rescheduledFromUid?: string;
 
+  @ApiPropertyOptional({ type: String, example: "new_uid_456" })
+  @IsString()
+  @IsOptional()
+  @Expose()
+  rescheduledToUid?: string;
+
+  @ApiPropertyOptional({ type: Boolean, example: true })
+  @IsBoolean()
+  @IsOptional()
+  @Expose()
+  rescheduled?: boolean;
+
   @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
   @IsDateString()
   @Expose()
