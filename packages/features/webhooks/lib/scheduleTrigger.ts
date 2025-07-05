@@ -279,6 +279,7 @@ export async function scheduleTrigger({
   isDryRun?: boolean;
 }) {
   if (isDryRun) return;
+
   try {
     const payload = JSON.stringify({ triggerEvent, ...booking });
 

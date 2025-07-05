@@ -79,6 +79,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
   });
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
+
   if (!isConfirmed) {
     if (!requiresConfirmation) {
       await handleConfirmation({
