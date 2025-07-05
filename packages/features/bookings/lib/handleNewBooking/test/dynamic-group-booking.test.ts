@@ -15,6 +15,7 @@ import {
   getOrganizer,
   getBooker,
   getScenarioData,
+  mockSuccessfulVideoMeetingCreation,
   mockCalendar,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
@@ -89,6 +90,15 @@ describe("handleNewBooking", () => {
           })
         );
 
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
         const _calendarMock = mockCalendar("googlecalendar", {
           create: {
             uid: "MOCK_ID",
@@ -112,7 +122,6 @@ describe("handleNewBooking", () => {
             responses: {
               email: booker.email,
               name: booker.name,
-              location: { optionValue: "", value: "New York" },
             },
           },
         });
