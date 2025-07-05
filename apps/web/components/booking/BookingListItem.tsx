@@ -208,10 +208,33 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const getSeatReferenceUid = () => {
-    if (!booking.seatsReferences[0]) {
+    const attendeeSeatReference = booking.seatsReferences.find((reference) => reference.attendee);
+    if (!attendeeSeatReference) {
       return undefined;
     }
-    return booking.seatsReferences[0].referenceUid;
+    return attendeeSeatReference.referenceUid;
+  };
+
+  const getBookingTitle = () => {
+    if (booking.seatsReferences.length > 0) {
+      const attendeeSeatReferenceData = booking.seatsReferences.find(
+        (reference) => reference.attendee
+      )?.attendee;
+
+      const attendee = booking.attendees.find(
+        (attendee) => attendee.email === attendeeSeatReferenceData?.email
+      );
+
+      if (!attendee) {
+        return booking.title;
+      }
+
+      return `${booking.eventType.title} ${t("between")} ${booking?.user?.name ?? "Nameless"} ${t("and")} ${
+        attendee.name ?? attendee.email ?? "Nameless"
+      }`;
+    }
+
+    return booking.title;
   };
 
   const pendingActions: ActionType[] = [
@@ -452,13 +475,15 @@ function BookingListItem(booking: BookingItemProps) {
     const urlSearchParams = new URLSearchParams({
       allRemainingBookings: isTabRecurring.toString(),
     });
+    const seatReference = getSeatReferenceUid();
     if (booking.attendees?.[0]?.email) urlSearchParams.set("email", booking.attendees[0].email);
+    if (seatReference) urlSearchParams.set("seatReferenceUid", seatReference);
     return `/booking/${booking.uid}?${urlSearchParams.toString()}`;
   };
 
   const bookingLink = buildBookingLink();
 
-  const title = booking.title;
+  const title = getBookingTitle();
 
   const showViewRecordingsButton = !!(booking.isRecorded && isBookingInPast && isConfirmed);
   const showCheckRecordingButton =
