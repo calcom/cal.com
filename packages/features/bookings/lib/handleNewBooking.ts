@@ -892,10 +892,17 @@ async function handler(
           luckyUsers.push(newLuckyUser);
         }
       }
+
       // ALL fixed users must be available
       if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
+
+      // If there are RR hosts, we need to find a lucky user
+      if ([...qualifiedRRUsers, ...additionalFallbackRRUsers].length > 0 && luckyUsers.length === 0) {
+        throw new Error(ErrorCode.HostsUnavailableForBooking);
+      }
+
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
       users = [...fixedUserPool, ...luckyUsers];
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
