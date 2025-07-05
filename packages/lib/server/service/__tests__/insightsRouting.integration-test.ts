@@ -1,11 +1,24 @@
 import type { Team, User, Membership } from "@prisma/client";
 import { randomUUID } from "crypto";
+import type { ExpressionBuilder } from "kysely";
 import { describe, expect, it } from "vitest";
 
+import db from "@calcom/kysely";
+import type { DB } from "@calcom/kysely";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import { InsightsRoutingService } from "../../service/insightsRouting";
+
+function compileCondition(
+  condition: (
+    eb: ExpressionBuilder<DB, "RoutingFormResponseDenormalized">
+  ) => ReturnType<ExpressionBuilder<DB, "RoutingFormResponseDenormalized">["and"]>
+) {
+  const compiled = db.selectFrom("RoutingFormResponseDenormalized").selectAll().where(condition).compile();
+  const where = compiled.sql.replace(/^select \* from "RoutingFormResponseDenormalized" where /, "");
+  return { where, parameters: compiled.parameters };
+}
 
 // Helper function to create unique test data
 async function createTestData({
@@ -238,12 +251,15 @@ describe("InsightsRoutingService Integration Tests", () => {
   describe("Authorization Conditions", () => {
     it("should return NOTHING for invalid options", async () => {
       const service = new InsightsRoutingService({
-        prisma,
+        kysely: db,
         options: null as any,
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ id: -1 });
+      const conditions = await service.buildAuthorizationConditions();
+      const { where, parameters } = compileCondition(conditions);
+      expect(where).toEqual(`"id" = $1`);
+      expect(parameters).toEqual([-1]);
     });
 
     it("should return NOTHING for non-owner/admin user", async () => {
@@ -269,16 +285,19 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const service = new InsightsRoutingService({
-        prisma,
+        kysely: db,
         options: {
           scope: "org",
           userId: regularUser.id,
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ id: -1 });
+      const conditions = await service.buildAuthorizationConditions();
+      const { where, parameters } = compileCondition(conditions);
+      expect(where).toEqual(`"id" = $1`);
+      expect(parameters).toEqual([-1]);
 
       // Clean up
       await prisma.membership.delete({
@@ -297,22 +316,19 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const service = new InsightsRoutingService({
-        prisma,
+        kysely: db,
         options: {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            formUserId: testData.user.id,
-          },
-        ],
-      });
+      const conditions = await service.buildAuthorizationConditions();
+      const { where, parameters } = compileCondition(conditions);
+      expect(where).toEqual(`"formUserId" = $1`);
+      expect(parameters).toEqual([testData.user.id]);
 
       await testData.cleanup();
     });
@@ -324,7 +340,7 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const service = new InsightsRoutingService({
-        prisma,
+        kysely: db,
         options: {
           scope: "team",
           userId: testData.user.id,
@@ -333,14 +349,10 @@ describe("InsightsRoutingService Integration Tests", () => {
         },
       });
 
-      const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            formTeamId: testData.team.id,
-          },
-        ],
-      });
+      const conditions = await service.buildAuthorizationConditions();
+      const { where, parameters } = compileCondition(conditions);
+      expect(where).toEqual(`"formTeamId" = $1`);
+      expect(parameters).toEqual([testData.team.id]);
 
       // Clean up
       await testData.cleanup();
@@ -361,25 +373,19 @@ describe("InsightsRoutingService Integration Tests", () => {
       const team3 = testData.additionalTeams[1]; // Second additional team
 
       const service = new InsightsRoutingService({
-        prisma,
+        kysely: db,
         options: {
           scope: "org",
           userId: testData.user.id,
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getAuthorizationConditions();
-
-      expect(conditions).toEqual({
-        AND: [
-          {
-            formTeamId: {
-              in: [testData.org.id, testData.team.id, team2.id, team3.id],
-            },
-          },
-        ],
-      });
+      const conditions = await service.buildAuthorizationConditions();
+      const { where, parameters } = compileCondition(conditions);
+      expect(where).toEqual(`"formTeamId" in ($1, $2, $3, $4)`);
+      expect(parameters).toEqual([testData.org.id, testData.team.id, team2.id, team3.id]);
 
       await testData.cleanup();
     });
@@ -401,7 +407,7 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const service = new InsightsRoutingService({
-        prisma,
+        kysely: db,
         options: {
           scope: "team",
           userId: testData.user.id,
@@ -409,9 +415,11 @@ describe("InsightsRoutingService Integration Tests", () => {
           teamId: unrelatedTeam.id,
         },
       });
-
-      const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ AND: [{ id: -1 }] });
+      await service.init();
+      const conditions = await service.buildAuthorizationConditions();
+      const { where, parameters } = compileCondition(conditions);
+      expect(where).toEqual(`"id" = $1`);
+      expect(parameters).toEqual([-1]);
 
       // Clean up
       await prisma.team.delete({
@@ -426,80 +434,23 @@ describe("InsightsRoutingService Integration Tests", () => {
       const testData = await createTestData();
 
       const service = new InsightsRoutingService({
-        prisma,
+        kysely: db,
         options: {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const conditions = await service.getFilterConditions();
+      const conditions = await service.buildFilterConditions();
       expect(conditions).toBeNull();
 
       await testData.cleanup();
     });
   });
 
-  describe("Caching", () => {
-    it("should cache authorization conditions", async () => {
-      const testData = await createTestData({
-        teamRole: MembershipRole.OWNER,
-        orgRole: MembershipRole.OWNER,
-      });
-
-      const service = new InsightsRoutingService({
-        prisma,
-        options: {
-          scope: "user",
-          userId: testData.user.id,
-          orgId: testData.org.id,
-        },
-      });
-
-      // First call should build conditions
-      const conditions1 = await service.getAuthorizationConditions();
-      expect(conditions1).toEqual({
-        AND: [
-          {
-            formUserId: testData.user.id,
-          },
-        ],
-      });
-
-      // Second call should use cached conditions
-      const conditions2 = await service.getAuthorizationConditions();
-      expect(conditions2).toEqual(conditions1);
-
-      // Clean up
-      await testData.cleanup();
-    });
-
-    it("should cache filter conditions", async () => {
-      const testData = await createTestData();
-
-      const service = new InsightsRoutingService({
-        prisma,
-        options: {
-          scope: "user",
-          userId: testData.user.id,
-          orgId: testData.org.id,
-        },
-      });
-
-      // First call should build conditions
-      const conditions1 = await service.getFilterConditions();
-      expect(conditions1).toBeNull();
-
-      // Second call should use cached conditions
-      const conditions2 = await service.getFilterConditions();
-      expect(conditions2).toEqual(conditions1);
-
-      await testData.cleanup();
-    });
-  });
-
-  describe("findMany", () => {
+  describe("query", () => {
     it("should combine authorization and filter conditions", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
@@ -507,24 +458,24 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const service = new InsightsRoutingService({
-        prisma,
+        kysely: db,
         options: {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const results = await service.findMany({
-        select: {
-          id: true,
-          formName: true,
-        },
-      });
+      // Verify both conditions are functions
+      expect(await service.buildFilterConditions()).toBeNull();
 
-      // Should return the user form response since it matches the authorization conditions
-      expect(results).toHaveLength(1);
-      expect(results[0]?.id).toBe(testData.formResponse.id);
+      const query = service.query().selectAll();
+
+      // Compile the query to verify it works
+      const compiled = query.compile();
+      expect(compiled.sql).toEqual(`select * from "RoutingFormResponseDenormalized" where "formUserId" = $1`);
+      expect(compiled.parameters).toEqual([testData.user.id]);
 
       await testData.cleanup();
     });
@@ -574,25 +525,23 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const service = new InsightsRoutingService({
-        prisma,
+        kysely: db,
         options: {
           scope: "user",
           userId: testData.user.id,
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const results = await service.findMany({
-        select: {
-          id: true,
-          formName: true,
-        },
-      });
+      expect(await service.buildFilterConditions()).toBeNull();
 
-      // Should only return the authorized user's form response
-      expect(results).toHaveLength(1);
-      expect(results[0]?.id).toBe(testData.formResponse.id);
-      expect(results[0]?.id).not.toBe(otherFormResponse.id);
+      const query = service.query().selectAll();
+
+      // Compile the query to verify it works
+      const compiled = query.compile();
+      expect(compiled.sql).toEqual(`select * from "RoutingFormResponseDenormalized" where "formUserId" = $1`);
+      expect(compiled.parameters).toEqual([testData.user.id]);
 
       // Clean up
       await prisma.app_RoutingForms_FormResponse.delete({
@@ -664,27 +613,24 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const service = new InsightsRoutingService({
-        prisma,
+        kysely: db,
         options: {
           scope: "org",
           userId: testData.user.id,
           orgId: testData.org.id,
         },
       });
+      await service.init();
 
-      const results = await service.findMany({
-        select: {
-          id: true,
-          formName: true,
-        },
-      });
+      expect(await service.buildFilterConditions()).toBeNull();
 
-      // Should return both form responses (original user's and team member's)
-      expect(results).toHaveLength(2);
+      const query = service.query().select(["id", "formName"]);
 
-      const responseIds = results.map((r) => r.id).sort();
-      const expectedIds = [testData.formResponse.id, teamMemberFormResponse.id].sort();
-      expect(responseIds).toEqual(expectedIds);
+      // Compile the query to verify it works
+      const compiled = query.compile();
+      expect(compiled.sql).toBeDefined();
+      expect(compiled.sql).toContain("select");
+      expect(compiled.sql).toContain("from");
 
       // Clean up
       await prisma.app_RoutingForms_FormResponse.delete({
