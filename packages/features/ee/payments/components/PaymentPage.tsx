@@ -51,6 +51,14 @@ const HitpayPaymentComponent = dynamic(
   }
 );
 
+const AdyenPaymentComponent = dynamic(
+  () =>
+    import("@calcom/app-store/adyen/components/AdyenPaymentComponent").then((m) => m.AdyenPaymentComponent),
+  {
+    ssr: false,
+  }
+);
+
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
@@ -165,6 +173,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "hitpay" && !props.payment.success && (
                     <HitpayPaymentComponent payment={props.payment} />
+                  )}
+                  {props.payment.appId === "adyen" && !props.payment.success && (
+                    <AdyenPaymentComponent payment={props.payment} paymentPageProps={props} />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>
