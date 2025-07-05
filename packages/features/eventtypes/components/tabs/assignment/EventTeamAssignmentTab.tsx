@@ -368,6 +368,7 @@ const RoundRobinHosts = ({
             )}
           />
         </>
+
         <AddMembersWithSwitch
           placeholder={t("add_a_member")}
           teamId={teamId}
