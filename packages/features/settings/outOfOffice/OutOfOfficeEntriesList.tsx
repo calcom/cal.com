@@ -41,6 +41,8 @@ import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModa
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
+const MAX_QUERY_RETRIES = 3;
+
 interface OutOfOfficeEntry {
   id: number;
   uuid: string;
@@ -100,6 +102,9 @@ function OutOfOfficeEntriesListContent() {
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         placeholderData: keepPreviousData,
+        retry: (failureCount, error) => {
+          return error.data?.httpStatus !== 404 && failureCount < MAX_QUERY_RETRIES;
+        },
       }
     );
 
