@@ -20,14 +20,12 @@ import {
 } from "../graphql/__tests__/urqlMock";
 import { createSalesforceMock } from "./salesforceMock";
 
-const mockUrqlQuery = vi.fn();
+const mockGraphQLRequest = vi.fn();
 
-vi.mock("@urql/core", () => ({
-  Client: class {
-    query = mockUrqlQuery;
+vi.mock("graphql-request", () => ({
+  GraphQLClient: class {
+    request = mockGraphQLRequest;
   },
-  cacheExchange: vi.fn(),
-  fetchExchange: vi.fn(),
 }));
 
 vi.mock("@calcom/lib/constants", () => {
@@ -132,7 +130,7 @@ describe("SalesforceCRMService", () => {
     describe("getContacts: forRoundRobinSkip=true", () => {
       const forRoundRobinSkip = true;
       it("(Lookup-1) should return contact's account owner's email as ownerEmail if the contact is found directly by email", async () => {
-        mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingContact());
+        mockGraphQLRequest.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingContact());
         const crmService = new SalesforceCRMService(credential, appOptions);
         const contactAccountOwnerEmail = "owner@test.com";
         const lookingForEmail = "contact@email.com";
@@ -150,7 +148,7 @@ describe("SalesforceCRMService", () => {
       });
 
       it("(Lookup-2) should fallback to account(and use the account owner email as ownerEmail) matched by emailDomain if the contact is not found(i.e Lookup-1 fails)", async () => {
-        mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingAccountWebsite());
+        mockGraphQLRequest.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingAccountWebsite());
         const crmService = new SalesforceCRMService(credential, appOptions);
         const contactAccountOwnerEmail = "owner@test.com";
         const emailDomain = "example.com";
@@ -171,7 +169,7 @@ describe("SalesforceCRMService", () => {
       });
 
       it("(Lookup-3) should fallback to account having most number of contacts matched by emailDomain when Lookup-1 and Lookup-2 fails", async () => {
-        mockUrqlQuery.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingRelatedContacts());
+        mockGraphQLRequest.mockResolvedValue(mockValueOfAccountOwnershipQueryMatchingRelatedContacts());
         const crmService = new SalesforceCRMService(credential, appOptions);
         const accountOwnerEmail = "owner1@test.com";
         const emailDomain = "example.com";

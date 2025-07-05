@@ -1,10 +1,8 @@
 export const generateMockResponse = (children: any) => {
   return {
-    data: {
-      uiapi: {
-        query: {
-          ...children,
-        },
+    uiapi: {
+      query: {
+        ...children,
       },
     },
   };
