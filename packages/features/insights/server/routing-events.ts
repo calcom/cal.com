@@ -131,11 +131,11 @@ class RoutingEventsInsights {
       return null;
     }
 
-    const totalPromise = prisma.routingFormResponse.count({
+    const totalPromise = prisma.routingFormResponseDenormalized.count({
       where: whereClause,
     });
 
-    const totalWithoutBookingPromise = prisma.routingFormResponse.count({
+    const totalWithoutBookingPromise = prisma.routingFormResponseDenormalized.count({
       where: {
         ...whereClause,
         bookingUid: null,
@@ -193,7 +193,7 @@ class RoutingEventsInsights {
     userId,
     memberUserIds,
     columnFilters,
-  }: RoutingFormResponsesFilter) {
+  }: RoutingFormResponsesFilter): Promise<Prisma.RoutingFormResponseDenormalizedWhereInput> {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       userId,
       teamId,
@@ -219,9 +219,6 @@ class RoutingEventsInsights {
     const bookingAssignmentReason = columnFilters.find(
       (filter) => filter.id === "bookingAssignmentReason"
     ) as TypedColumnFilter<ColumnFilterType.TEXT> | undefined;
-    const assignmentReasonValue = bookingAssignmentReason
-      ? getLowercasedFilterValue(bookingAssignmentReason)
-      : undefined;
     const bookingUid = columnFilters.find((filter) => filter.id === "bookingUid") as
       | TypedColumnFilter<ColumnFilterType.TEXT>
       | undefined;
@@ -233,27 +230,32 @@ class RoutingEventsInsights {
         filter.id !== "bookingUid"
     );
 
-    const whereClause: Prisma.RoutingFormResponseWhereInput = {
+    const whereClause: Prisma.RoutingFormResponseDenormalizedWhereInput = {
       ...(formsTeamWhereCondition.id !== undefined && {
-        formId: formsTeamWhereCondition.id as string | Prisma.StringFilter<"RoutingFormResponse">,
+        formId: formsTeamWhereCondition.id as string | Prisma.StringFilter<"RoutingFormResponseDenormalized">,
       }),
       ...(formsTeamWhereCondition.teamId !== undefined && {
-        formTeamId: formsTeamWhereCondition.teamId as number | Prisma.IntFilter<"RoutingFormResponse">,
+        formTeamId: formsTeamWhereCondition.teamId as
+          | number
+          | Prisma.IntFilter<"RoutingFormResponseDenormalized">,
       }),
       ...(formsTeamWhereCondition.userId !== undefined && {
-        formUserId: formsTeamWhereCondition.userId as number | Prisma.IntFilter<"RoutingFormResponse">,
+        formUserId: formsTeamWhereCondition.userId as
+          | number
+          | Prisma.IntFilter<"RoutingFormResponseDenormalized">,
       }),
 
       // bookingStatus
       ...(bookingStatusOrder &&
         makeWhereClause({ columnName: "bookingStatusOrder", filterValue: bookingStatusOrder.value })),
 
-      // bookingAssignmentReason
-      ...(assignmentReasonValue &&
-        makeWhereClause({
-          columnName: "bookingAssignmentReasonLowercase",
-          filterValue: assignmentReasonValue,
-        })),
+      // bookingAssignmentReason - use case insensitive search
+      ...(bookingAssignmentReason && {
+        bookingAssignmentReason: {
+          contains: bookingAssignmentReason.value.data.operand,
+          mode: "insensitive",
+        },
+      }),
 
       // memberUserId
       ...(memberUserIds && memberUserIds.length > 0 && { bookingUserId: { in: memberUserIds } }),
@@ -268,20 +270,54 @@ class RoutingEventsInsights {
         }),
 
       // bookingUid
-      ...(bookingUid &&
-        makeWhereClause({
-          columnName: "bookingUid",
-          filterValue: bookingUid.value,
-        })),
+      ...(bookingUid && {
+        bookingUid: {
+          contains: bookingUid.value.data.operand,
+          mode: "insensitive",
+        },
+      }),
 
-      // AND clause
+      // Response field filters using the fields relation
       ...(responseFilters.length > 0 && {
         AND: responseFilters.map((fieldFilter) => {
-          return makeWhereClause({
-            columnName: "responseLowercase",
-            filterValue: getLowercasedFilterValue(fieldFilter),
-            json: { path: [fieldFilter.id, "value"] },
-          });
+          const filterValue = getLowercasedFilterValue(fieldFilter);
+
+          if (filterValue.type === ColumnFilterType.TEXT) {
+            return {
+              fields: {
+                some: {
+                  fieldId: fieldFilter.id,
+                  valueString: {
+                    contains: filterValue.data.operand,
+                    mode: "insensitive",
+                  },
+                },
+              },
+            };
+          } else if (filterValue.type === ColumnFilterType.NUMBER) {
+            const whereCondition = makeWhereClause({
+              columnName: "valueNumber",
+              filterValue: filterValue,
+            });
+            return {
+              fields: {
+                some: {
+                  fieldId: fieldFilter.id,
+                  ...whereCondition,
+                },
+              },
+            };
+          } else {
+            // For other types, fallback to JSON path in the response relation
+            const whereCondition = makeWhereClause({
+              columnName: "response",
+              filterValue: filterValue,
+              json: { path: [fieldFilter.id, "value"] },
+            });
+            return {
+              response: whereCondition,
+            };
+          }
         }),
       }),
     };
@@ -316,21 +352,19 @@ class RoutingEventsInsights {
       sorting,
     });
 
-    const totalResponsePromise = prisma.routingFormResponse.count({
+    const totalResponsePromise = prisma.routingFormResponseDenormalized.count({
       where: whereClause,
     });
 
-    const responsesPromise = prisma.routingFormResponse.findMany({
+    const responsesPromise = prisma.routingFormResponseDenormalized.findMany({
       select: {
         id: true,
-        response: true,
         formId: true,
         formName: true,
         bookingUid: true,
         bookingStatus: true,
         bookingStatusOrder: true,
         bookingCreatedAt: true,
-        bookingAttendees: true,
         bookingUserId: true,
         bookingUserName: true,
         bookingUserEmail: true,
@@ -344,6 +378,22 @@ class RoutingEventsInsights {
         utm_campaign: true,
         utm_term: true,
         utm_content: true,
+        response: {
+          select: {
+            response: true,
+          },
+        },
+        booking: {
+          select: {
+            attendees: {
+              select: {
+                name: true,
+                email: true,
+                timeZone: true,
+              },
+            },
+          },
+        },
       },
       where: whereClause,
       orderBy: sorting && sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
@@ -353,18 +403,37 @@ class RoutingEventsInsights {
 
     const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
 
-    type Response = Omit<
-      (typeof responses)[number],
-      "response" | "responseLowercase" | "bookingAttendees"
-    > & {
+    type Response = Omit<(typeof responses)[number], "response" | "booking"> & {
       response: Record<string, ResponseValue>;
       responseLowercase: Record<string, ResponseValue>;
       bookingAttendees?: { name: string; email: string; timeZone: string }[];
     };
 
+    const transformedResponses: Response[] = responses.map((resp) => {
+      const response = (resp.response?.response as Record<string, ResponseValue>) || {};
+      const responseLowercase = Object.keys(response).reduce((acc, key) => {
+        const val = response[key];
+        if (typeof val.value === "string") {
+          acc[key] = { ...val, value: val.value.toLowerCase() };
+        } else {
+          acc[key] = val;
+        }
+        return acc;
+      }, {} as Record<string, ResponseValue>);
+
+      const { response: originalResponse, booking, ...restResp } = resp;
+
+      return {
+        ...restResp,
+        response,
+        responseLowercase,
+        bookingAttendees: booking?.attendees || undefined,
+      };
+    });
+
     return {
       total: totalResponses,
-      data: responses as Response[],
+      data: transformedResponses,
     };
   }
 
