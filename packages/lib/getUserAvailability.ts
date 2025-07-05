@@ -192,19 +192,20 @@ export type GetUserAvailabilityInitialData = {
 
 export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
 
-type GetUserAvailabilityQuery = {
-  withSource?: boolean;
-  username?: string;
-  userId?: number;
+export type GetUserAvailabilityQuery = {
   dateFrom: string;
   dateTo: string;
   eventTypeId?: number;
   afterEventBuffer?: number;
   beforeEventBuffer?: number;
   duration?: number;
-  returnDateOverrides: boolean;
-  bypassBusyCalendarTimes: boolean;
+  returnDateOverrides?: boolean;
+  userId?: number;
+  username?: string;
+  bypassBusyCalendarTimes?: boolean;
   shouldServeCache?: boolean;
+  additionalBusyTimes?: EventBusyDetails[];
+  withSource?: boolean;
 };
 
 const _getCurrentSeats = async (
@@ -429,6 +430,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })),
     ...busyTimesFromLimits,
     ...busyTimesFromTeamLimits,
+    ...(query.additionalBusyTimes || []),
   ];
 
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
