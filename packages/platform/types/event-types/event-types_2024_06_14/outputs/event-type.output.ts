@@ -305,6 +305,14 @@ class BaseEventTypeOutput_2024_06_14 {
   metadata!: Record<string, unknown>;
 
   @IsInt()
+  @DocsProperty({ example: 0 })
+  position!: number;
+
+  @IsBoolean()
+  @DocsProperty({ example: false })
+  hidden!: boolean;
+
+  @IsInt()
   @DocsProperty()
   price!: number;
 
