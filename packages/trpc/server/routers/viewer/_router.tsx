@@ -32,7 +32,7 @@ import { oAuthRouter } from "./oAuth/_router";
 import { oooRouter } from "./ooo/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
-import { permissionsRouter } from "./pbac/_router";
+import { pbacRouter } from "./pbac/_router";
 import { routingFormsRouter } from "./routing-forms/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
@@ -68,7 +68,7 @@ export const viewerRouter = router({
   insights: insightsRouter,
   payments: paymentsRouter,
   filterSegments: filterSegmentsRouter,
-  pbac: permissionsRouter,
+  pbac: pbacRouter,
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.
   appRoutingForms: app_RoutingForms,

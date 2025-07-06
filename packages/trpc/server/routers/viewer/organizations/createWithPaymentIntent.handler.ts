@@ -1,7 +1,9 @@
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -17,7 +19,13 @@ type CreateOptions = {
 const log = logger.getSubLogger({ prefix: ["viewer", "organizations", "createWithPaymentIntent"] });
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const paymentService = new OrganizationPaymentService(ctx.user);
-  const isAdmin = ctx.user.role === "ADMIN";
+  const permissionCheckService = new PermissionCheckService();
+  const isAdmin = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId: 0, // System-wide admin check
+    permission: "organization.create",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
   // Regular user can send onboardingId if the onboarding was started by ADMIN/someone else and they shared the link with them.
   // ADMIN flow doesn't send onboardingId
   const organizationOnboarding = await OrganizationOnboardingRepository.findById(input.onboardingId);

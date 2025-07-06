@@ -5,7 +5,6 @@ import type { Role, RolePermission, RoleType as DomainRoleType } from "../models
 type KyselyRole = {
   id: string;
   name: string;
-  color: string | null;
   description: string | null;
   teamId: number | null;
   type: RoleType;
@@ -24,7 +23,6 @@ export class RoleMapper {
       id: kyselyRole.id,
       name: kyselyRole.name,
       description: kyselyRole.description || undefined,
-      color: kyselyRole.color || undefined,
       teamId: kyselyRole.teamId || undefined,
       type: kyselyRole.type as DomainRoleType,
       permissions: kyselyRole.permissions.map((p) => ({
@@ -42,7 +40,6 @@ export class RoleMapper {
       id: role.id,
       name: role.name,
       description: role.description || null,
-      color: role.color || null,
       teamId: role.teamId || null,
       type: role.type as DomainRoleType,
       createdAt: role.createdAt,

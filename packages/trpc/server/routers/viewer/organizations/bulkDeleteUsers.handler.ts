@@ -1,7 +1,8 @@
 import { TeamBilling } from "@calcom/ee/billing/teams";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -22,7 +23,15 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
   if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
-  if (!(await isOrganisationAdmin(currentUser?.id, currentUserOrgId)))
+  const permissionCheckService = new PermissionCheckService();
+  if (
+    !(await permissionCheckService.checkPermission({
+      userId: currentUser?.id,
+      teamId: currentUserOrgId,
+      permission: "organization.listMembers",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }))
+  )
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // Loop over all users in input.userIds and remove all memberships for the organization including child teams

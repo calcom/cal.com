@@ -29,6 +29,7 @@ import {
   useColumnFilters,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { usePermissionCheck } from "@calcom/features/pbac/hooks/usePermissionCheck";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -166,6 +167,18 @@ function MemberListContent(props: Props) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
+
+  const { data: canUpdateTeam } = usePermissionCheck({
+    teamId: props.team.id,
+    permission: "team.update",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
+
+  const { data: canChangeMemberRole } = usePermissionCheck({
+    teamId: props.team.id,
+    permission: "team.changeMemberRole",
+    fallbackRoles: [MembershipRole.OWNER],
+  });
 
   const utils = trpc.useUtils();
   const orgBranding = useOrgBranding();
@@ -413,9 +426,8 @@ function MemberListContent(props: Props) {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
           const editMode =
-            (props.team.membership?.role === MembershipRole.OWNER &&
-              (user.role !== MembershipRole.OWNER || !isSelf)) ||
-            (props.team.membership?.role === MembershipRole.ADMIN && user.role !== MembershipRole.OWNER) ||
+            (canChangeMemberRole && (user.role !== MembershipRole.OWNER || !isSelf)) ||
+            (canUpdateTeam && user.role !== MembershipRole.OWNER) ||
             props.isOrgAdminOrOwner;
           const impersonationMode =
             editMode &&

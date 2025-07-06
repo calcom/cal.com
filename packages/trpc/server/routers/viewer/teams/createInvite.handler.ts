@@ -1,8 +1,9 @@
 import { randomBytes } from "crypto";
 
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -18,9 +19,21 @@ type CreateInviteOptions = {
 
 export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) => {
   const { teamId } = input;
-  const membership = await isTeamAdmin(ctx.user.id, teamId);
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId,
+    permission: "team.update",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
 
-  if (!membership || !membership?.team) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!hasPermission) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  const membership = await prisma.membership.findFirst({
+    where: { userId: ctx.user.id, teamId },
+    include: { team: true },
+  });
+  if (!membership?.team) throw new TRPCError({ code: "UNAUTHORIZED" });
   const isOrganizationOrATeamInOrganization = !!(membership.team?.parentId || membership.team.isOrganization);
 
   if (input.token) {

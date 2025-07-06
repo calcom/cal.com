@@ -11,11 +11,13 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import type { BillingPeriod } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import { PermissionCheckService } from "../../../pbac/services/permission-check.service";
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 
 type OrganizationOnboardingId = string;
@@ -169,7 +171,7 @@ export class OrganizationPaymentService {
   async createOrganizationOnboarding(input: CreateOnboardingInput) {
     if (
       this.permissionService.hasModifiedDefaultPayment(input) &&
-      !this.permissionService.hasPermissionToModifyDefaultPayment()
+      !(await this.permissionService.hasPermissionToModifyDefaultPayment())
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -294,7 +296,15 @@ export class OrganizationPaymentService {
 
     const { orgOwnerEmail, pricePerSeat, slug, billingPeriod, seats } = organizationOnboarding;
 
-    if (this.user.role === "ADMIN") {
+    const permissionCheckService = new PermissionCheckService();
+    const isAdmin = await permissionCheckService.checkPermission({
+      userId: this.user.id,
+      teamId: 0, // System-wide admin check
+      permission: "organization.create",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (isAdmin) {
       log.debug("Admin flow, skipping checkout", safeStringify({ organizationOnboarding }));
       return {
         organizationOnboarding,

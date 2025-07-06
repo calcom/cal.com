@@ -1,5 +1,6 @@
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -15,8 +16,13 @@ type RemoveHostsFromEventTypes = {
 
 export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHostsFromEventTypes) {
   const { userIds, eventTypeIds, teamId } = input;
-  const isTeamAdminOrOwner =
-    (await isTeamAdmin(ctx.user.id, teamId)) || (await isTeamOwner(ctx.user.id, teamId));
+  const permissionCheckService = new PermissionCheckService();
+  const isTeamAdminOrOwner = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId,
+    permission: "team.update",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
 
   // check if user is admin or owner of team
   if (!isTeamAdminOrOwner) throw new TRPCError({ code: "UNAUTHORIZED" });

@@ -1,3 +1,4 @@
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -6,9 +7,6 @@ export const isAdminForUser = async (adminUserId: number, memberUserId: number) 
     where: {
       userId: adminUserId,
       accepted: true,
-      role: {
-        in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      },
     },
     select: {
       teamId: true,
@@ -30,5 +28,18 @@ export const isAdminForUser = async (adminUserId: number, memberUserId: number) 
     },
   });
 
-  return !!member?.id;
+  if (!member?.id) return false;
+
+  for (const teamId of adminTeamIds) {
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
+      userId: adminUserId,
+      teamId,
+      permission: "team.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+    if (hasPermission) return true;
+  }
+
+  return false;
 };

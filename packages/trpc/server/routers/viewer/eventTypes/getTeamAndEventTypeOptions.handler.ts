@@ -1,3 +1,4 @@
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
@@ -141,6 +142,14 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
             metadata: teamMetadataSchema.parse(membership.team.metadata),
           };
 
+          const permissionCheckService = new PermissionCheckService();
+          const canManageEventTypes = await permissionCheckService.checkPermission({
+            userId: user.id,
+            teamId: team.id,
+            permission: "eventType.update",
+            fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          });
+
           const eventTypes = team.eventTypes;
           return {
             teamId: team.id,
@@ -154,9 +163,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
                 return res;
               })
               ?.filter((evType) =>
-                membership.role === MembershipRole.MEMBER
-                  ? evType.schedulingType !== SchedulingType.MANAGED
-                  : true
+                !canManageEventTypes ? evType.schedulingType !== SchedulingType.MANAGED : true
               ),
           };
         })

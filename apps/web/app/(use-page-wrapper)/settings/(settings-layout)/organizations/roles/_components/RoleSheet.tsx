@@ -149,14 +149,12 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
         roleId: role.id,
         name: values.name,
         permissions: values.permissions as any,
-        color: values.color,
       });
     } else {
       createMutation.mutate({
         teamId,
         name: values.name,
         description: values.description,
-        color: values.color,
         permissions: values.permissions as any,
       });
     }

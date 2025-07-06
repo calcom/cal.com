@@ -1,8 +1,8 @@
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../types";
-import { checkPermissions } from "./_auth-middleware";
 import type { TFindKeyOfTypeInputSchema } from "./findKeyOfType.schema";
 
 type FindKeyOfTypeOptions = {
@@ -16,7 +16,18 @@ export const findKeyOfTypeHandler = async ({ ctx, input }: FindKeyOfTypeOptions)
   const { teamId, appId } = input;
   const userId = ctx.user.id;
   /** Only admin or owner can create apiKeys of team (if teamId is passed) */
-  await checkPermissions({ userId, teamId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } });
+  if (teamId) {
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
+      userId,
+      teamId,
+      permission: "team.update",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+    if (!hasPermission) {
+      throw new Error("Unauthorized");
+    }
+  }
 
   return await prisma.apiKey.findMany({
     where: {

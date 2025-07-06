@@ -14,7 +14,6 @@ import type { PermissionString } from "../../domain/types/permission-registry";
 type KyselyRole = {
   id: string;
   name: string;
-  color: string | null;
   description: string | null;
   teamId: number | null;
   type: RoleType;
@@ -35,7 +34,6 @@ export class RoleRepository implements IRoleRepository {
       "Role.description",
       "Role.teamId",
       "Role.type",
-      "Role.color",
       "Role.createdAt",
       "Role.updatedAt",
       (eb: any) =>
@@ -92,7 +90,6 @@ export class RoleRepository implements IRoleRepository {
           description: data.description || null,
           teamId: data.teamId || null,
           type: data.type || RoleType.CUSTOM,
-          color: data.color || null,
           createdAt: new Date(),
           updatedAt: new Date(),
         })
@@ -136,7 +133,6 @@ export class RoleRepository implements IRoleRepository {
     roleId: string,
     permissions: PermissionString[],
     updates?: {
-      color?: string;
       name?: string;
       description?: string;
     }
@@ -144,11 +140,8 @@ export class RoleRepository implements IRoleRepository {
     await kysely.transaction().execute(async (trx) => {
       // Update role metadata if provided
       if (updates) {
-        const updateData: Partial<Pick<KyselyRole, "name" | "color" | "description">> = {};
+        const updateData: Partial<Pick<KyselyRole, "name" | "description">> = {};
 
-        if (updates.color !== undefined) {
-          updateData.color = updates.color || null;
-        }
         if (updates.name !== undefined) {
           updateData.name = updates.name;
         }
