@@ -113,7 +113,7 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
-  if (!platformClientId && !cancellationReason && bookingToDelete.userId == userId) {
+  if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
