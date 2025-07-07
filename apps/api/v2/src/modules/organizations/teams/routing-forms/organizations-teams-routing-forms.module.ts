@@ -20,7 +20,14 @@ import { OrganizationsTeamsRoutingFormsResponsesService } from "./services/organ
 import { OrganizationsTeamsRoutingFormsService } from "./services/organizations-teams-routing-forms.service";
 
 @Module({
-  imports: [PrismaModule, StripeModule, RedisModule, RoutingFormsModule, SlotsModule_2024_09_04, TeamsEventTypesModule],
+  imports: [
+    PrismaModule,
+    StripeModule,
+    RedisModule,
+    RoutingFormsModule,
+    SlotsModule_2024_09_04,
+    TeamsEventTypesModule,
+  ],
   providers: [
     OrganizationsTeamsRoutingFormsService,
     OrganizationsTeamsRoutingFormsResponsesService,

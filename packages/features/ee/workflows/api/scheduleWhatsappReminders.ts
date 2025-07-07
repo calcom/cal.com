@@ -4,13 +4,12 @@ import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowReminderRepository } from "@calcom/lib/server/repository/workflowReminder";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 
 import { getWhatsappTemplateFunction, isAttendeeAction } from "../lib/actionHelperFunctions";
-import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
-import { select } from "../lib/getWorkflowReminders";
 import { scheduleSmsOrFallbackEmail } from "../lib/reminders/messageDispatcher";
 import {
   getContentSidForTemplate,
@@ -24,27 +23,13 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
+  const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+
   //delete all scheduled whatsapp reminders where scheduled date is past current date
-  await prisma.workflowReminder.deleteMany({
-    where: {
-      method: WorkflowMethods.WHATSAPP,
-      scheduledDate: {
-        lte: dayjs().toISOString(),
-      },
-    },
-  });
+  await workflowReminderRepository.deletePastWhatsappReminders();
 
   //find all unscheduled WHATSAPP reminders
-  const unscheduledReminders = (await prisma.workflowReminder.findMany({
-    where: {
-      method: WorkflowMethods.WHATSAPP,
-      scheduled: false,
-      scheduledDate: {
-        lte: dayjs().add(2, "hour").toISOString(),
-      },
-    },
-    select,
-  })) as PartialWorkflowReminder[];
+  const unscheduledReminders = await workflowReminderRepository.getUnscheduledWhatsappReminders();
 
   if (!unscheduledReminders.length) {
     return NextResponse.json({ ok: true });
@@ -134,28 +119,14 @@ export async function handler(req: NextRequest) {
 
         if (scheduledNotification) {
           if (scheduledNotification.sid) {
-            await prisma.workflowReminder.update({
-              where: {
-                id: reminder.id,
-              },
-              data: {
-                scheduled: true,
-                referenceId: scheduledNotification.sid,
-              },
+            await workflowReminderRepository.updateReminderAsScheduled(reminder.id, {
+              referenceId: scheduledNotification.sid,
             });
           } else if (scheduledNotification.emailReminderId) {
-            await prisma.workflowReminder.delete({
-              where: {
-                id: reminder.id,
-              },
-            });
+            await workflowReminderRepository.deleteReminder(reminder.id);
           }
         } else {
-          await prisma.workflowReminder.delete({
-            where: {
-              id: reminder.id,
-            },
-          });
+          await workflowReminderRepository.deleteReminder(reminder.id);
         }
       }
     } catch (error) {
