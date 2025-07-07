@@ -85,6 +85,14 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       }
 
       if (bearerToken) {
+        if (!apiKeyAllowed && !accessTokenAllowed && thirdPartyAccessTokenAllowed) {
+          request.authMethod = AuthMethods["THIRD_PARTY_ACCESS_TOKEN"];
+          const result = await this.authenticateThirdPartyAccessToken(bearerToken, request);
+          if (result.success) {
+            return this.success(this.getSuccessUser(result.data));
+          }
+        }
+
         if (apiKeyAllowed || accessTokenAllowed) {
           try {
             const requestOrigin = request.get("Origin");
