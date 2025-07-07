@@ -270,6 +270,8 @@ model DestinationCalendar {
   eventTypeId                      Int?                  @unique
   credentialId                     Int?
   credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  createdAt                        DateTime?             @default(now())
+  updatedAt                        DateTime?             @updatedAt
   delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId           String?
   domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
@@ -854,6 +856,8 @@ model SelectedCalendar {
   externalId               String
   credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId             Int?
+  createdAt                DateTime?   @default(now())
+  updatedAt                DateTime?   @updatedAt
   // Used to identify a watched calendar channel in Google Calendar
   googleChannelId          String?
   googleChannelKind        String?
