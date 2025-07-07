@@ -87,7 +87,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       if (bearerToken) {
         if (!apiKeyAllowed && !accessTokenAllowed && thirdPartyAccessTokenAllowed) {
           request.authMethod = AuthMethods["THIRD_PARTY_ACCESS_TOKEN"];
-          const result = await this.authenticateThirdPartyAccessToken(bearerToken, request);
+          const result = await this.validateThirdPartyAccessToken(bearerToken, request);
           if (result.success) {
             return this.success(this.getSuccessUser(result.data));
           }
@@ -104,7 +104,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
             // failed to validate access token, try to validate third party token
             if (thirdPartyAccessTokenAllowed && request.authMethod === AuthMethods["ACCESS_TOKEN"]) {
               request.authMethod = AuthMethods["THIRD_PARTY_ACCESS_TOKEN"];
-              const result = await this.authenticateThirdPartyAccessToken(bearerToken, request);
+              const result = await this.validateThirdPartyAccessToken(bearerToken, request);
               if (result.success) {
                 return this.success(this.getSuccessUser(result.data));
               }
@@ -322,7 +322,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     return user;
   }
 
-  async authenticateThirdPartyAccessToken(
+  async validateThirdPartyAccessToken(
     token: string,
     request: ApiAuthGuardRequest
   ): Promise<{ success: true; data: UserWithProfile } | { success: false }> {
