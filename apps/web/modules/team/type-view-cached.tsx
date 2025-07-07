@@ -5,7 +5,8 @@ import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/
 
 import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
 
-export type TeamBookingPageProps = BookerWebWrapperAtomProps & { isEmbed?: boolean };
+export type TeamBookingPageProps = Omit<BookerWebWrapperAtomProps, "eventData"> &
+  Required<Pick<BookerWebWrapperAtomProps, "eventData">> & { isEmbed?: boolean };
 
 export default function TeamBookingPage(props: TeamBookingPageProps) {
   return (

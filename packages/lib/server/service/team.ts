@@ -175,6 +175,9 @@ export class TeamService {
             allowReschedulingCancelledBookings: true,
             interfaceLanguage: true,
             instantMeetingParameters: true,
+            aiPhoneCallConfig: true,
+            disableGuests: true,
+            assignAllTeamMembers: true,
             bookingFields: true,
             customInputs: true,
             locations: true,
@@ -191,6 +194,12 @@ export class TeamService {
             forwardParamsSuccessRedirect: true,
             lockTimeZoneToggleOnBookingPage: true,
             autoTranslateDescriptionEnabled: true,
+            periodType: true,
+            periodDays: true,
+            periodEndDate: true,
+            periodStartDate: true,
+            periodCountCalendarDays: true,
+            rescheduleWithSameRoundRobinHost: true,
             fieldTranslations: {
               select: {
                 translatedText: true,
@@ -204,6 +213,21 @@ export class TeamService {
                 timeZone: true,
               },
             },
+            instantMeetingSchedule: {
+              select: {
+                id: true,
+                timeZone: true,
+              },
+            },
+            workflows: {
+              include: {
+                workflow: {
+                  include: {
+                    steps: true,
+                  },
+                },
+              },
+            },
             hosts: {
               take: 3,
               select: {
@@ -212,6 +236,7 @@ export class TeamService {
                     name: true,
                     username: true,
                     email: true,
+                    weekStart: true,
                   },
                 },
               },
