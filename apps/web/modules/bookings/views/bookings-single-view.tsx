@@ -376,11 +376,11 @@ export default function Success(props: PageProps) {
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
 
-  const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
+  const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling || isHost;
+  const canCancelAndReschedule = (!eventType?.disableCancelling && !eventType?.disableRescheduling) || isHost;
 
-  const canCancel = !eventType?.disableCancelling;
-  const canReschedule = !eventType?.disableRescheduling;
+  const canCancel = !eventType?.disableCancelling || isHost;
+  const canReschedule = !eventType?.disableRescheduling || isHost;
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {

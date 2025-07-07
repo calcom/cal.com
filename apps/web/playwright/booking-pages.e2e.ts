@@ -626,9 +626,23 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     bookingId = pathSegments[pathSegments.length - 1];
   });
 
-  test("Reschedule and cancel buttons should be hidden on success page", async ({ page }) => {
+  test("Reschedule and cancel buttons should be hidden on success page for attendees", async ({ page }) => {
+    // For attendees, the buttons should be hidden when cancellation/rescheduling is disabled
     await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
     await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
+  });
+
+  test("Host should be able to see cancel and reschedule buttons even when disabled", async ({
+    page,
+    users,
+  }) => {
+    const [user] = users.get();
+    await user.apiLogin();
+
+    await page.goto(`/booking/${bookingId}`);
+    // Host should be able to see the cancel and reschedule buttons even when disabled
+    await expect(page.locator('[data-testid="reschedule-link"]')).toBeVisible();
+    await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
   });
 
   test("Direct access to reschedule/{bookingId} should redirect to success page", async ({ page }) => {
@@ -661,7 +675,31 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     const responseBody = await response.json();
     expect(responseBody.message).toBe("This event type does not allow cancellations");
   });
+
+  test("Host should be able to cancel even when cancellation is disabled", async ({ page, users }) => {
+    const [user] = users.get();
+    await user.apiLogin();
+
+    await page.goto(`/booking/${bookingId}`);
+    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="cancel_reason"]').fill("Host cancellation test");
+    await page.locator('[data-testid="confirm_cancel"]').click();
+    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+  });
+
+  test("Host should be able to reschedule even when rescheduling is disabled", async ({ page, users }) => {
+    const [user] = users.get();
+    await user.apiLogin();
+
+    await page.goto(`/booking/${bookingId}`);
+    await page.locator('[data-testid="reschedule-link"]').click();
+    await page.waitForURL((url) => url.searchParams.has("rescheduleUid"));
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
+  });
 });
+
 test("Should throw error when both seatsPerTimeSlot and recurringEvent are set", async ({ page, users }) => {
   const user = await users.create({
     name: `Test-user-${randomString(4)}`,

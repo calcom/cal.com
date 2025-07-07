@@ -121,7 +121,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const isNonRescheduleableBooking =
     booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
 
-  if (isDisabledRescheduling) {
+  // Check if user is a host or owner of the event type
+  const userId = session?.user?.id;
+  const userIsHost = booking?.eventType?.hosts?.find((host) => host.user.id === userId);
+  const userIsOwnerOfEventType = booking?.eventType?.owner?.id === userId;
+  const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
+
+  if (isDisabledRescheduling && !isHostOrOwner) {
     return {
       redirect: {
         destination: `/booking/${uid}`,
