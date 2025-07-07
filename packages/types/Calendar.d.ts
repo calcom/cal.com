@@ -256,17 +256,21 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
  */
 export type SelectedCalendarEventTypeIds = (number | null)[];
 
+export interface CalendarServiceEvent extends CalendarEvent {
+  calendarDescription: string;
+}
+
 export interface Calendar {
   getCredentialId?(): number;
   createEvent(
-    event: CalendarEvent,
+    event: CalendarServiceEvent,
     credentialId: number,
     externalCalendarId?: string
   ): Promise<NewCalendarEventType>;
 
   updateEvent(
     uid: string,
-    event: CalendarEvent,
+    event: CalendarServiceEvent,
     externalCalendarId?: string | null
   ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 

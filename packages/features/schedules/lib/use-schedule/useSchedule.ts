@@ -66,6 +66,7 @@ export const useSchedule = ({
   const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
+  const queuedFormResponseId = searchParams?.get("cal.queuedFormResponseId");
   const email = searchParams?.get("email");
   // We allow skipping the schedule fetch as a requirement for prerendering in iframe through embed as when the pre-rendered iframe is connected, then we would fetch the availability, which would be upto-date
   // Also, a reuse through Headless Router could completely change the availability as different team members are selected and thus it is unnecessary to fetch the schedule
@@ -73,7 +74,7 @@ export const useSchedule = ({
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
-  const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "";
+  const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "0";
   const input = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
@@ -94,7 +95,7 @@ export const useSchedule = ({
     routedTeamMemberIds,
     skipContactOwner,
     _shouldServeCache,
-    routingFormResponseId,
+    ...(queuedFormResponseId ? { queuedFormResponseId } : { routingFormResponseId }),
     email,
     // Ensures that connectVersion causes a refresh of the data
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
@@ -138,8 +139,8 @@ export const useSchedule = ({
   const schedule = isTeamEvent
     ? trpc.viewer.highPerf.getTeamSchedule.useQuery(input, {
         ...options,
-        // Only enable if we're not using API V2 or if API V2 failed
-        enabled: options.enabled && (!isCallingApiV2Slots || !!teamScheduleV2.failureReason),
+        // Only enable if we're not using API V2
+        enabled: options.enabled && !isCallingApiV2Slots,
       })
     : trpc.viewer.slots.getSchedule.useQuery(input, options);
 

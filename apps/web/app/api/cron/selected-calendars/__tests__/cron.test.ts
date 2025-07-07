@@ -5,14 +5,14 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/CalendarAppError";
 
-import { handleCreateSelectedCalendars } from "../route";
+import { handleCreateSelectedCalendars, isSameEmail } from "../route";
 
 // Mock GoogleCalendarService
-const fetchPrimaryCalendarMock = vi.fn();
+const getPrimaryCalendarMock = vi.fn();
 vi.mock("@calcom/app-store/googlecalendar/lib/CalendarService", () => {
   return {
     default: vi.fn().mockImplementation(() => ({
-      fetchPrimaryCalendar: fetchPrimaryCalendarMock,
+      getPrimaryCalendar: getPrimaryCalendarMock,
     })),
   };
 });
@@ -116,7 +116,7 @@ describe("handleCreateSelectedCalendars integration", () => {
     prismock.user.deleteMany();
     prismock.team.deleteMany();
     prismock.workspacePlatform.deleteMany();
-    fetchPrimaryCalendarMock.mockReset();
+    getPrimaryCalendarMock.mockReset();
   });
 
   it("shows a helpful message when no Delegation Credentials are set up in the system", async () => {
@@ -138,7 +138,7 @@ describe("handleCreateSelectedCalendars integration", () => {
       domain: "example.com",
     });
     await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
-    fetchPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
+    getPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
 
     const result = await handleCreateSelectedCalendars();
     expect(result.success).toBe(1);
@@ -148,23 +148,50 @@ describe("handleCreateSelectedCalendars integration", () => {
     ]);
   });
 
-  it("creates a Selected Calendar even if the user's primary calendar ID does not match their email address", async () => {
-    await createOrg({ id: 1 });
-    await createWorkspacePlatform({ id: 1 });
-    const user = await createUser({ id: 1, email: "user1@example.com" });
-    const delegationCredential = await createDelegationCredential({
-      id: "delegation-credential-1",
-      orgId: 1,
-      domain: "example.com",
-    });
-    await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
-    fetchPrimaryCalendarMock.mockResolvedValue({ id: "notuser@example.com" });
+  describe("when the user's primary calendar ID does not match their email address", () => {
+    it("creates a Selected Calendar with the primaryCalendarId as the externalId if user's email is not a plus based variant of primaryCalendarId", async () => {
+      await createOrg({ id: 1 });
+      await createWorkspacePlatform({ id: 1 });
+      const user = await createUser({ id: 1, email: "user1@example.com" });
+      const delegationCredential = await createDelegationCredential({
+        id: "delegation-credential-1",
+        orgId: 1,
+        domain: "example.com",
+      });
+      await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
+      getPrimaryCalendarMock.mockResolvedValue({ id: "notuser@example.com" });
 
-    const result = await handleCreateSelectedCalendars();
-    expect(result.success).toBe(1);
-    await expectSelectedCalendars([
-      { userId: user.id, externalId: "notuser@example.com", delegationCredentialId: delegationCredential.id },
-    ]);
+      const result = await handleCreateSelectedCalendars();
+      expect(result.success).toBe(1);
+      expect(result.failures).toBe(0);
+      await expectSelectedCalendars([
+        {
+          userId: user.id,
+          externalId: "notuser@example.com",
+          delegationCredentialId: delegationCredential.id,
+        },
+      ]);
+    });
+
+    it("creates a Selected Calendar with the user's email as the externalId if user's email is a plus based variant of primaryCalendarId", async () => {
+      await createOrg({ id: 1 });
+      await createWorkspacePlatform({ id: 1 });
+      const user = await createUser({ id: 1, email: "user1+test@example.com" });
+      const delegationCredential = await createDelegationCredential({
+        id: "delegation-credential-1",
+        orgId: 1,
+        domain: "example.com",
+      });
+      await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
+      getPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
+
+      const result = await handleCreateSelectedCalendars();
+      expect(result.success).toBe(1);
+      expect(result.failures).toBe(0);
+      await expectSelectedCalendars([
+        { userId: user.id, externalId: user.email, delegationCredentialId: delegationCredential.id },
+      ]);
+    });
   });
 
   it("does not create duplicate Selected Calendars for users who already have a valid one", async () => {
@@ -183,7 +210,7 @@ describe("handleCreateSelectedCalendars integration", () => {
       delegationCredentialId: delegationCredential.id,
       credentialId: 1,
     });
-    fetchPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
+    getPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
 
     const result = await handleCreateSelectedCalendars();
     expect(result.success).toBe(0);
@@ -220,7 +247,7 @@ describe("handleCreateSelectedCalendars integration", () => {
       error: "some error" as unknown as null,
       credentialId: regularCredential.id,
     });
-    fetchPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
+    getPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
 
     const result = await handleCreateSelectedCalendars();
     expect(result.success).toBe(1);
@@ -245,7 +272,7 @@ describe("handleCreateSelectedCalendars integration", () => {
         domain: "example.com",
       });
       await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
-      fetchPrimaryCalendarMock.mockRejectedValue(
+      getPrimaryCalendarMock.mockRejectedValue(
         new CalendarAppDelegationCredentialInvalidGrantError("some error")
       );
 
@@ -266,11 +293,43 @@ describe("handleCreateSelectedCalendars integration", () => {
         domain: "example.com",
       });
       await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
-      fetchPrimaryCalendarMock.mockRejectedValue(new Error("some error"));
+      getPrimaryCalendarMock.mockRejectedValue(new Error("some error"));
 
       const result = await handleCreateSelectedCalendars();
       expect(result.success).toBe(0);
       await expectSelectedCalendars([]);
     });
+  });
+});
+
+describe("isSameEmail", () => {
+  it("returns true if variant email is a plus based variant of main email", () => {
+    expect(
+      isSameEmail({
+        mainEmail: "user1@example.com",
+        variantEmail: "user1+test@example.com",
+        emailProvider: "google",
+      })
+    ).toBe(true);
+  });
+
+  it("returns false if variant email is different from main email", () => {
+    expect(
+      isSameEmail({
+        mainEmail: "user1@example.com",
+        variantEmail: "user1@domain.com",
+        emailProvider: "google",
+      })
+    ).toBe(false);
+  });
+
+  it("returns true if variant email is same as main email but with different casing", () => {
+    expect(
+      isSameEmail({
+        mainEmail: "User1@example.com",
+        variantEmail: "user1+test@Example.com",
+        emailProvider: "google",
+      })
+    ).toBe(true);
   });
 });

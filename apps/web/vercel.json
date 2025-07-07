@@ -26,6 +26,15 @@
     }
   ],
   "functions": {
+    "app/api/cron/workflows/scheduleEmailReminders/route.ts": {
+      "maxDuration": 800
+    },
+    "app/api/cron/workflows/scheduleSMSReminders/route.ts": {
+      "maxDuration": 800
+    },
+    "app/api/cron/workflows/scheduleWhatsappReminders/route.ts": {
+      "maxDuration": 800
+    },
     "pages/api/trpc/workflows/[trpc].ts": {
       "maxDuration": 800
     },

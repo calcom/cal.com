@@ -11,6 +11,7 @@ import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShou
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
@@ -29,22 +30,25 @@ import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
 import { checkBookingLimit } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
-import { getUnitFromBusyTime, isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
+import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { PeriodType, Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
+import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
@@ -63,7 +67,7 @@ type GetAvailabilityUserWithoutDelegationCredentials = Omit<GetAvailabilityUser,
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
-const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
+const selectSelectedSlots = {
   select: {
     id: true,
     slotUtcStartDate: true,
@@ -73,7 +77,7 @@ const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()(
     eventTypeId: true,
     uid: true,
   },
-});
+} satisfies Prisma.SelectedSlotsDefaultArgs;
 
 type SelectedSlots = Prisma.SelectedSlotsGetPayload<typeof selectSelectedSlots>;
 
@@ -302,12 +306,14 @@ const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingN
   return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
 };
 
+export type GetAvailableSlotsResponse = Awaited<ReturnType<typeof _getAvailableSlots>>;
 const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> => {
   const {
     _enableTroubleshooter: enableTroubleshooter = false,
     _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
     _shouldServeCache,
     routingFormResponseId,
+    queuedFormResponseId,
   } = input;
   const orgDetails = input?.orgSlug
     ? {
@@ -374,20 +380,12 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   let routingFormResponse = null;
   if (routingFormResponseId) {
-    routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
-      where: {
-        id: routingFormResponseId,
-      },
-      select: {
-        response: true,
-        form: {
-          select: {
-            routes: true,
-            fields: true,
-          },
-        },
-        chosenRouteId: true,
-      },
+    routingFormResponse = await RoutingFormResponseRepository.findFormResponseIncludeForm({
+      routingFormResponseId,
+    });
+  } else if (queuedFormResponseId) {
+    routingFormResponse = await RoutingFormResponseRepository.findQueuedFormResponseIncludeForm({
+      queuedFormResponseId,
     });
   }
 
@@ -502,14 +500,100 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
+  const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
+  if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
+    const restrictionSchedule = await prisma.schedule.findUnique({
+      where: { id: eventType.restrictionScheduleId },
+      select: {
+        id: true,
+        timeZone: true,
+        userId: true,
+        availability: {
+          select: {
+            days: true,
+            startTime: true,
+            endTime: true,
+            date: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            defaultScheduleId: true,
+            travelSchedules: {
+              select: {
+                id: true,
+                timeZone: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (restrictionSchedule) {
+      if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
+        throw new TRPCError({
+          message: "No timezone is set for the restricted schedule",
+          code: "BAD_REQUEST",
+        });
+      }
+
+      const restrictionTimezone = eventType.useBookerTimezone
+        ? input.timeZone
+        : restrictionSchedule.timeZone!;
+      const eventLength = input.duration || eventType.length;
+
+      const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
+        days: rule.days,
+        startTime: rule.startTime,
+        endTime: rule.endTime,
+        date: rule.date,
+      }));
+
+      // Include travel schedules if restriction schedule is the user's default schedule
+      const isDefaultSchedule = restrictionSchedule.user.defaultScheduleId === restrictionSchedule.id;
+      const travelSchedules =
+        isDefaultSchedule && !eventType.useBookerTimezone
+          ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
+              startDate: dayjs(schedule.startDate),
+              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+              timeZone: schedule.timeZone,
+            }))
+          : [];
+
+      const { dateRanges: restrictionRanges } = buildDateRanges({
+        availability: restrictionAvailability,
+        timeZone: restrictionTimezone || "UTC",
+        dateFrom: startTime,
+        dateTo: endTime,
+        travelSchedules,
+      });
+
+      availableTimeSlots = timeSlots.filter((slot) => {
+        const slotStart = slot.time;
+        const slotEnd = slot.time.add(eventLength, "minute");
+
+        return restrictionRanges.some(
+          (range) =>
+            (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
+            (slotEnd.isBefore(range.end) || slotEnd.isSame(range.end))
+        );
+      });
+    } else {
+      availableTimeSlots = timeSlots;
+    }
+  } else {
+    availableTimeSlots = timeSlots;
+  }
 
   const reservedSlots = await _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
     eventTypeId: eventType.id,
     usersWithCredentials,
   });
-
-  availableTimeSlots = timeSlots;
 
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,
@@ -948,13 +1032,7 @@ const _getBusyTimesFromLimitsForUsers = async (
     const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
     const limitManager = new LimitManager();
 
-    for (const busyTime of globalLimitManager.getBusyTimes()) {
-      const start = dayjs(busyTime.start);
-      const end = dayjs(busyTime.end);
-      const unit = getUnitFromBusyTime(start, end);
-
-      limitManager.addBusyTime(start, unit, timeZone);
-    }
+    limitManager.mergeBusyTimes(globalLimitManager);
 
     if (bookingLimits) {
       for (const key of descendingLimitKeys) {
@@ -1139,13 +1217,8 @@ const _getBusyTimesFromTeamLimitsForUsers = async (
     const userBusyTimes = busyTimes.filter((busyTime) => busyTime.userId === user.id);
     const limitManager = new LimitManager();
 
-    for (const busyTime of globalLimitManager.getBusyTimes()) {
-      const start = dayjs(busyTime.start);
-      const end = dayjs(busyTime.end);
-      const unit = getUnitFromBusyTime(start, end);
+    limitManager.mergeBusyTimes(globalLimitManager);
 
-      limitManager.addBusyTime(start, unit, timeZone);
-    }
     const bookingLimitsParams = {
       bookings: userBusyTimes,
       bookingLimits,
