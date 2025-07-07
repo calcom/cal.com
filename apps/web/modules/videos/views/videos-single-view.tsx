@@ -7,6 +7,7 @@ import { useDailyEvent } from "@daily-co/daily-react";
 import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { FlappyBirdGame } from "@calcom/features/games/FlappyBirdGame";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
@@ -41,6 +42,9 @@ export default function JoinCall(props: PageProps) {
     rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
+  const [showFlappyBird, setShowFlappyBird] = useState(
+    !!booking?.eventType?.calVideoSettings?.enableFlappyBirdGame
+  );
 
   useEffect(() => {
     let callFrame: DailyCall | undefined;
@@ -98,18 +102,31 @@ export default function JoinCall(props: PageProps) {
       if (overrideName) {
         callFrame.setUserName(overrideName);
       }
-    } catch (err) {
-      callFrame = DailyIframe.getCallInstance();
-    } finally {
-      setDaily(callFrame ?? null);
-      callFrame?.join();
-    }
 
-    return () => {
-      callFrame?.destroy();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      setDaily(callFrame);
+
+      // Hiding Flappy Bird game when participants join
+      callFrame.on("participant-joined", () => {
+        setShowFlappyBird(false);
+      });
+
+      return () => {
+        if (callFrame) {
+          callFrame.destroy();
+        }
+      };
+    } catch (e) {
+      console.error(e);
+    }
+  }, [
+    meetingUrl,
+    meetingPassword,
+    overrideName,
+    loggedInUserName,
+    hasTeamPlan,
+    showRecordingButton,
+    showTranscriptionButton,
+  ]);
 
   return (
     <DailyProvider callObject={daily}>
@@ -122,6 +139,7 @@ export default function JoinCall(props: PageProps) {
           showTranscriptionButton={showTranscriptionButton}
         />
       </div>
+      {showFlappyBird && <FlappyBirdGame onClose={() => setShowFlappyBird(false)} />}
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
           <img

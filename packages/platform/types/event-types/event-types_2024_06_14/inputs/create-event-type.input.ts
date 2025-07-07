@@ -145,6 +145,13 @@ export class CalVideoSettings {
     description: "URL to which participants are redirected when they exit the call",
   })
   redirectUrlOnExit?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the Flappy Bird game in the waiting room",
+  })
+  enableFlappyBirdGame?: boolean;
 }
 
 class BaseCreateEventTypeInput {

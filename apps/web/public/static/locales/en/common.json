@@ -795,7 +795,6 @@
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
   "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
-  "minutes": "Minutes",
   "use_cal_ai_to_make_call_description": "Use Cal.ai to get an AI powered phone number or make calls to guests.",
   "round_robin": "Round Robin",
   "round_robin_description": "Cycle meetings between multiple team members.",
@@ -3262,5 +3261,9 @@
   "restriction_schedule_not_found_error": "Restriction schedule not found",
   "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
+  "enable_flappy_bird_game": "Enable Flappy Bird Game",
+  "enable_flappy_bird_game_description": "Add a fun Flappy Bird game to keep users entertained while waiting for others to join",
+  "flappy_bird_game": "Flappy Bird Game",
+  "game_load_error": "Failed to load the game",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
