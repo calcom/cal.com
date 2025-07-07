@@ -12,6 +12,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
+export type TeamWithEventTypes = Awaited<ReturnType<typeof TeamService.getTeamWithEventTypes>>;
 export class TeamService {
   /**
    * Deletes a team and all its associated data in a safe, transactional order.
