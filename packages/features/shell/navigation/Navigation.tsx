@@ -26,7 +26,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "bookings",
     href: "/bookings/upcoming",
     icon: "calendar",
-    badge: <UnconfirmedBookingBadge asLink={false} />,
+    badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
   },
   {

@@ -1,19 +1,13 @@
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 
-interface UnconfirmedBookingBadgeProps {
-  asLink?: boolean;
-}
-
-export default function UnconfirmedBookingBadge({ asLink = true }: UnconfirmedBookingBadgeProps) {
+export default function UnconfirmedBookingBadge() {
   const { t } = useLocale();
   const { data: unconfirmedBookingCount } = trpc.viewer.me.bookingUnconfirmedCount.useQuery();
   if (!unconfirmedBookingCount) return null;
 
-  const badge = (
+  return (
     <Badge
       rounded
       title={t("unconfirmed_bookings_tooltip")}
@@ -22,10 +16,4 @@ export default function UnconfirmedBookingBadge({ asLink = true }: UnconfirmedBo
       {unconfirmedBookingCount}
     </Badge>
   );
-
-  if (!asLink) {
-    return badge;
-  }
-
-  return <Link href="/bookings/unconfirmed">{badge}</Link>;
 }
