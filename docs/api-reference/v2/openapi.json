@@ -24522,66 +24522,6 @@
         },
         "required": ["status", "data"]
       },
-      "CreateRoutingFormResponseOutputData": {
-        "type": "object",
-        "properties": {
-          "eventTypeId": {
-            "type": "number",
-            "description": "The ID of the event type that was routed to.",
-            "example": 123
-          },
-          "routing": {
-            "description": "The routing information.",
-            "example": {
-              "eventTypeId": 123,
-              "routing": {
-                "teamMemberIds": [101, 102],
-                "teamMemberEmail": "john.doe@example.com",
-                "skipContactOwner": true
-              }
-            },
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Routing"
-              }
-            ]
-          },
-          "routingCustomMessage": {
-            "type": "string",
-            "description": "A custom message to be displayed to the user in case of routing to a custom page.",
-            "example": "This is a custom message."
-          },
-          "routingExternalRedirectUrl": {
-            "type": "string",
-            "description": "The external redirect URL to be used in case of routing to a non cal.com event type URL.",
-            "example": "https://example.com/"
-          },
-          "slots": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/SlotsOutput_2024_09_04"
-              },
-              {
-                "$ref": "#/components/schemas/RangeSlotsOutput_2024_09_04"
-              }
-            ]
-          }
-        }
-      },
-      "CreateRoutingFormResponseOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/CreateRoutingFormResponseOutputData"
-          }
-        },
-        "required": ["status", "data"]
-      },
       "RequestEmailVerificationInput": {
         "type": "object",
         "properties": {
