@@ -16,7 +16,7 @@ const usePersistedExpansionState = (itemName: string) => {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(`nav-expansion-${itemName}`);
+      const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
       if (stored !== null) {
         setIsExpanded(JSON.parse(stored));
       }
@@ -28,7 +28,7 @@ const usePersistedExpansionState = (itemName: string) => {
   const setPersistedExpansion = (expanded: boolean) => {
     setIsExpanded(expanded);
     try {
-      localStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
+      sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
     } catch (error) {
       console.warn("Failed to save navigation expansion state:", error);
     }
