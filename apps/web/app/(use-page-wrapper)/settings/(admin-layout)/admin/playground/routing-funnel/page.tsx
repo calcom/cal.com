@@ -4,36 +4,42 @@ import { RoutingFunnelContent } from "@calcom/features/insights/components/Routi
 const sampleRoutingFunnelData = [
   {
     name: "Week 1",
+    formattedDateFull: "Week 1",
     totalSubmissions: 150,
     successfulRoutings: 120,
     acceptedBookings: 95,
   },
   {
     name: "Week 2",
+    formattedDateFull: "Week 2",
     totalSubmissions: 180,
     successfulRoutings: 145,
     acceptedBookings: 110,
   },
   {
     name: "Week 3",
+    formattedDateFull: "Week 3",
     totalSubmissions: 200,
     successfulRoutings: 160,
     acceptedBookings: 125,
   },
   {
     name: "Week 4",
+    formattedDateFull: "Week 4",
     totalSubmissions: 170,
     successfulRoutings: 135,
     acceptedBookings: 105,
   },
   {
     name: "Week 5",
+    formattedDateFull: "Week 5",
     totalSubmissions: 220,
     successfulRoutings: 175,
     acceptedBookings: 140,
   },
   {
     name: "Week 6",
+    formattedDateFull: "Week 6",
     totalSubmissions: 190,
     successfulRoutings: 155,
     acceptedBookings: 120,
