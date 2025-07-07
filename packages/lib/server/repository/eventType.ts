@@ -28,7 +28,7 @@ const hashedLinkSelect = {
     maxUsageCount: true,
     usageCount: true,
   },
-} satisfies Prisma.HashedLinkSelect;
+};
 
 type NotSupportedProps = "locations";
 type IEventType = Ensure<

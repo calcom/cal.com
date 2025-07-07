@@ -80,7 +80,9 @@ export const MultiplePrivateLinksController = ({
     }
 
     // Update the form value and trigger form change
-    formMethods.setValue("multiplePrivateLinks", convertedValue, {
+    // Convert back to string array for form compatibility
+    const stringValue = convertedValue.map((val) => val.link);
+    formMethods.setValue("multiplePrivateLinks", stringValue, {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true,
