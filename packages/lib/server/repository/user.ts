@@ -4,7 +4,7 @@ import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizatio
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma from "@calcom/prisma";
+import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -963,6 +963,31 @@ export class UserRepository {
     return prisma.user.update({
       where: { id },
       data: { whitelistWorkflows },
+    });
+  }
+
+  static async findManyUsersForDynamicEventType({
+    currentOrgDomain,
+    usernameList,
+  }: {
+    currentOrgDomain: string | null;
+    usernameList: string[];
+  }) {
+    const { where } = await UserRepository._getWhereClauseForFindingUsersByUsername({
+      orgSlug: currentOrgDomain,
+      usernameList,
+    });
+
+    // TODO: Should be moved to UserRepository
+    return prisma.user.findMany({
+      where,
+      select: {
+        allowDynamicBooking: true,
+        ...availabilityUserSelect,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+      },
     });
   }
 }
