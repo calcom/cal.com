@@ -1,6 +1,9 @@
+console.log("PostCSS config loaded");
+
 module.exports = {
   plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
+    "@tailwindcss/postcss": {
+      config: "./tailwind.config.js",
+    },
   },
 };

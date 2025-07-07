@@ -95,18 +95,13 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
               data-testid="event-type-link"
               className="flex justify-between">
               <div className="flex-shrink">
-                <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
+                <div className="rtl:gap-x-reverse flex flex-wrap items-center gap-2">
                   <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
                 </div>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1 self-center">
-                <UserAvatarGroup
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size="sm"
-                  users={type.users}
-                />
+                <UserAvatarGroup truncateAfter={4} className="flex shrink-0" size="sm" users={type.users} />
               </div>
             </Link>
           </div>
@@ -147,7 +142,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         })}
       </ul>
     ) : (
-      <div className="space-y-6" data-testid="event-types">
+      <div className="flex flex-col gap-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted p-8 text-center">
             <h2 className="font-cal text-emphasis mb-2 text-3xl">{` ${t("org_no_teams_yet")}`}</h2>

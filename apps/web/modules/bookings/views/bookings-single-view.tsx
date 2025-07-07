@@ -718,7 +718,7 @@ export default function Success(props: PageProps) {
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
                                         .map(([key, value]) => (
-                                          <li key={key} className="text-muted space-x-1 text-sm">
+                                          <li key={key} className="text-muted flex gap-1 text-sm">
                                             <span>{key}</span>: <span>{value}</span>
                                           </li>
                                         ))}
@@ -1017,7 +1017,7 @@ export default function Success(props: PageProps) {
                     </>
                   ) : (
                     <>
-                      <div className="my-3 flex justify-center space-x-1">
+                      <div className="my-3 flex justify-center gap-1">
                         <button
                           className={classNames(
                             "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",

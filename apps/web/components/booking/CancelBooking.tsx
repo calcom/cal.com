@@ -188,7 +188,7 @@ export default function CancelBooking(props: Props) {
             </div>
           ) : null}
           <div className="flex flex-col-reverse rtl:space-x-reverse ">
-            <div className="ml-auto flex w-full space-x-4 ">
+            <div className="ml-auto flex w-full gap-4 ">
               <Button
                 className="ml-auto"
                 color="secondary"

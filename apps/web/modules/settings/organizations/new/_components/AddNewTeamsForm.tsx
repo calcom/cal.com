@@ -37,21 +37,21 @@ export const AddNewTeamsForm = () => {
 
   if (isLoading) {
     return (
-      <SkeletonContainer as="div" className="space-y-6">
-        <div className="space-y-4">
+      <SkeletonContainer as="div" className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           <SkeletonText className="h-4 w-32" />
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex items-center space-x-2">
+              <div key={i} className="flex items-center gap-2">
                 <SkeletonText className="h-5 w-5" />
                 <SkeletonText className="h-8 w-full" />
               </div>
             ))}
           </div>
         </div>
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <SkeletonText className="h-4 w-32" />
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             {[...Array(3)].map((_, i) => (
               <SkeletonText key={i} className="h-10 w-full" />
             ))}
@@ -158,7 +158,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
             <label className="text-emphasis mb-2 block text-sm font-medium leading-none">
               Move existing teams
             </label>
-            <ul className="mb-8 space-y-4">
+            <ul className="mb-8 flex flex-col gap-4">
               {moveTeams.map((team, index) => {
                 return (
                   <li key={team.id}>

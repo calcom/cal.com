@@ -84,7 +84,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="relative bottom-[6px] me-2 ms-2 flex flex-row space-x-2">
+      <div className="relative bottom-[6px] me-2 ms-2 flex flex-row gap-2">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
