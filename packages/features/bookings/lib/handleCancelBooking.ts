@@ -106,7 +106,14 @@ async function handler(input: CancelBookingInput) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (bookingToDelete.eventType?.disableCancelling) {
+  // Check if user is host or owner
+  const userIsHost = bookingToDelete.eventType?.hosts?.find((host) => host.user.id === userId);
+  const userIsOwnerOfEventType = bookingToDelete.eventType?.owner?.id === userId;
+  const userIsBookingOwner = bookingToDelete.userId === userId;
+  const isHostOrOwner = userIsHost || userIsOwnerOfEventType || userIsBookingOwner;
+
+  // Only block cancellation for attendees (not hosts/owners) when disableCancelling is enabled
+  if (bookingToDelete.eventType?.disableCancelling && !isHostOrOwner) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
