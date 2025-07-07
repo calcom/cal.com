@@ -204,16 +204,11 @@ async function handler(input: CancelBookingInput) {
     if (index === 0) {
       attendeesListPromises.push(attendeeObject);
     } else {
-      // Check for the presence of hosts to determine if it is a team event type
-      if (hostEmails.size > 0) {
-        // If the attendee is a host then they are a team member
-        const teamMember = hostEmails.has(attendee.email);
-        if (teamMember) {
-          teamMembersPromises.push(attendeeObject);
-          // If not then they are an attendee
-        } else {
-          attendeesListPromises.push(attendeeObject);
-        }
+      const isTeamEvent = hostEmails.size > 0;
+      const isTeamMember = isTeamEvent && hostEmails.has(attendee.email);
+
+      if (isTeamMember) {
+        teamMembersPromises.push(attendeeObject);
       } else {
         attendeesListPromises.push(attendeeObject);
       }
