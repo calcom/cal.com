@@ -4,9 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
+import { Form, Select, Input } from "@calcom/ui/components/form";
 
 import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
@@ -33,7 +31,7 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
   });
 
   return (
-    <div className="mx-3 my-2">
+    <div className="mx-3 my-2" data-testid={`text-filter-options-${column.id}`}>
       <Form
         form={form}
         handleSubmit={({ operatorOption, operand }) => {
@@ -54,6 +52,7 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
             render={({ field: { value } }) => (
               <>
                 <Select
+                  data-testid={`text-filter-options-select-${column.id}`}
                   options={textFilterOperatorOptions}
                   value={value}
                   isSearchable={false}

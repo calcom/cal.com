@@ -40,6 +40,32 @@ export class StripeBillingService implements BillingService {
     };
   }
 
+  async createOneTimeCheckout(args: {
+    priceId: string;
+    quantity: number;
+    successUrl: string;
+    cancelUrl: string;
+    metadata?: Record<string, string>;
+  }) {
+    const { priceId, quantity, successUrl, cancelUrl, metadata } = args;
+
+    const session = await this.stripe.checkout.sessions.create({
+      line_items: [{ price: priceId, quantity }],
+      mode: "payment",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: metadata,
+      invoice_creation: {
+        enabled: true,
+      },
+    } as any);
+
+    return {
+      checkoutUrl: session.url,
+      sessionId: session.id,
+    };
+  }
+
   async createSubscriptionCheckout(args: Parameters<BillingService["createSubscriptionCheckout"]>[0]) {
     const {
       customerId,
@@ -50,6 +76,10 @@ export class StripeBillingService implements BillingService {
       metadata,
       mode = "subscription",
       allowPromotionCodes = true,
+      customerUpdate,
+      automaticTax,
+      discounts,
+      subscriptionData,
     } = args;
 
     const session = await this.stripe.checkout.sessions.create({
@@ -65,6 +95,10 @@ export class StripeBillingService implements BillingService {
         },
       ],
       allow_promotion_codes: allowPromotionCodes,
+      customer_update: customerUpdate,
+      automatic_tax: automaticTax,
+      discounts,
+      subscription_data: subscriptionData,
     });
 
     return {
@@ -112,6 +146,18 @@ export class StripeBillingService implements BillingService {
     });
   }
 
+  async handleEndTrial(subscriptionId: string) {
+    const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+
+    if (subscription.status !== "trialing") {
+      return; // Do nothing if not in trial
+    }
+
+    await this.stripe.subscriptions.update(subscriptionId, {
+      trial_end: "now",
+    });
+  }
+
   async checkoutSessionIsPaid(paymentId: string) {
     const checkoutSession = await this.stripe.checkout.sessions.retrieve(paymentId);
     return checkoutSession.payment_status === "paid";
@@ -121,5 +167,33 @@ export class StripeBillingService implements BillingService {
     if (!subscription || !subscription.status) return null;
 
     return subscription.status;
+  }
+
+  async getCheckoutSession(checkoutSessionId: string) {
+    const checkoutSession = await this.stripe.checkout.sessions.retrieve(checkoutSessionId);
+    return checkoutSession;
+  }
+
+  async getCustomer(customerId: string) {
+    const customer = await this.stripe.customers.retrieve(customerId);
+    return customer;
+  }
+
+  async getSubscriptions(customerId: string) {
+    const subscriptions = await this.stripe.subscriptions.list({ customer: customerId });
+    return subscriptions.data;
+  }
+
+  async updateCustomer(args: Parameters<BillingService["updateCustomer"]>[0]) {
+    const { customerId, email, userId } = args;
+    const metadata: { email?: string; userId?: number } = {};
+    if (email) metadata.email = email;
+    if (userId) metadata.userId = userId;
+    await this.stripe.customers.update(customerId, { metadata });
+  }
+
+  async getPrice(priceId: string) {
+    const price = await this.stripe.prices.retrieve(priceId);
+    return price;
   }
 }

@@ -58,7 +58,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     await utils.viewer.me.invalidate();
     nextStep();
   };
-  const mutation = trpc.viewer.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
 

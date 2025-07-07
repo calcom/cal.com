@@ -7,7 +7,10 @@ import LegacyPage from "~/settings/admin/oauth-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("oAuth"),
-    (t) => t("admin_oAuth_description")
+    (t) => t("admin_oAuth_description"),
+    undefined,
+    undefined,
+    "/settings/admin/oAuth"
   );
 
 const Page = async () => {

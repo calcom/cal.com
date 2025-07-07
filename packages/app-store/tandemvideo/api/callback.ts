@@ -8,10 +8,6 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 
-let client_id = "";
-let client_secret = "";
-let base_url = "https://tandem.chat";
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.query.code) {
     res.status(401).json({ message: "Missing code" });
@@ -21,20 +17,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const code = req.query.code as string;
   const state = decodeOAuthState(req);
 
+  let clientId = "";
+  let clientSecret = "";
+  let baseUrl = "https://tandem.chat";
   const appKeys = await getAppKeysFromSlug("tandem");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
-  if (typeof appKeys.base_url === "string") base_url = appKeys.base_url;
-  if (!client_id) return res.status(400).json({ message: "Tandem client_id missing." });
-  if (!client_secret) return res.status(400).json({ message: "Tandem client_secret missing." });
-  if (!base_url) return res.status(400).json({ message: "Tandem base_url missing." });
+  if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
+  if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
+  if (typeof appKeys.base_url === "string") baseUrl = appKeys.base_url;
+  if (!clientId) return res.status(400).json({ message: "Tandem client_id missing." });
+  if (!clientSecret) return res.status(400).json({ message: "Tandem client_secret missing." });
+  if (!baseUrl) return res.status(400).json({ message: "Tandem base_url missing." });
 
-  const result = await fetch(`${base_url}/api/v1/oauth/v2/token`, {
+  const result = await fetch(`${baseUrl}/api/v1/oauth/v2/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ code, client_id, client_secret }),
+    body: JSON.stringify({ code, client_id: clientId, client_secret: clientSecret }),
   });
 
   const responseBody = await result.json();

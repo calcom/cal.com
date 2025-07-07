@@ -11,7 +11,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import type { LocationObject } from "@calcom/lib/location";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
 import { STEPS } from "~/apps/installation/[[...step]]/constants";
@@ -24,17 +24,13 @@ const getUser = async (userId: number) => {
     return null;
   }
 
-  let teams = userAdminTeams.teams.map(({ team }) => ({
+  const teams = userAdminTeams.teams.map(({ team }) => ({
     ...team,
     logoUrl: team.parent
       ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
       : getPlaceholderAvatar(team.logoUrl, team.name),
   }));
 
-  const orgTeam = teams.find((team) => team.isOrganization === true);
-  if (orgTeam?.id) {
-    teams = teams.filter((team) => team?.parent?.id !== orgTeam.id);
-  }
   return {
     ...userAdminTeams,
     teams,
@@ -77,7 +73,7 @@ const getAppBySlug = async (appSlug: string) => {
 };
 
 const getEventTypes = async (userId: number, teamIds?: number[]) => {
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  const eventTypeSelect = {
     id: true,
     description: true,
     durationLimits: true,
@@ -98,7 +94,8 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     userId: true,
     destinationCalendar: true,
     bookingFields: true,
-  });
+    calVideoSettings: true,
+  } satisfies Prisma.EventTypeSelect;
   let eventTypeGroups: TEventTypeGroup[] | null = [];
 
   if (teamIds && teamIds.length > 0) {
@@ -137,7 +134,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
         .sort((eventTypeA, eventTypeB) => eventTypeB.position - eventTypeA.position),
     }));
   } else {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },

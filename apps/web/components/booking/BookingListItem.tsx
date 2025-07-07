@@ -9,8 +9,9 @@ import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
-import { formatTime } from "@calcom/lib/date-fns";
+import { formatTime } from "@calcom/lib/dayjs";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -87,7 +88,9 @@ function buildParsedBooking(booking: BookingItemProps) {
       >)
     : null;
 
-  const bookingMetadata = bookingMetadataSchema.parse(booking.metadata ?? null);
+  const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
+  const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
+
   return {
     ...booking,
     eventType: bookingEventType,
@@ -116,6 +119,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
+  const [meetingSessionDetailsDialogIsOpen, setMeetingSessionDetailsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
 
@@ -129,7 +133,7 @@ function BookingListItem(booking: BookingItemProps) {
     };
   });
 
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
       // Invalidate and refetch the bookings query to update the UI
@@ -163,6 +167,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
   const isPending = booking.status === BookingStatus.PENDING;
+  const isRescheduled = booking.fromReschedule !== null;
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
@@ -357,12 +362,25 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  const isDisabledCancelling = booking.eventType.disableCancelling;
+  const isDisabledRescheduling = booking.eventType.disableRescheduling;
+
   if (isTabRecurring && isRecurring) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
-  if (isBookingInPast && isPending && !isConfirmed) {
+  if (isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed)) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
+  if (isDisabledRescheduling) {
+    bookedActions.forEach((action) => {
+      if (action.id === "edit_booking") {
+        action.actions = action.actions?.filter(
+          ({ id }) => id !== "reschedule" && id !== "reschedule_request"
+        );
+      }
+    });
   }
 
   const RequestSentMessage = () => {
@@ -373,10 +391,14 @@ function BookingListItem(booking: BookingItemProps) {
     );
   };
 
+  const bookingYear = dayjs(booking.startTime).year();
+  const currentYear = dayjs().year();
+  const isDifferentYear = bookingYear !== currentYear;
+
   const startTime = dayjs(booking.startTime)
     .tz(userTimeZone)
     .locale(language)
-    .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
+    .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
@@ -445,7 +467,10 @@ function BookingListItem(booking: BookingItemProps) {
     !booking.isRecorded &&
     (!booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "");
 
-  const showRecordingActions: ActionType[] = [
+  const isCalVideoLocation =
+    !booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "";
+
+  const videoOptionsActions: ActionType[] = [
     {
       id: "view_recordings",
       label: showCheckRecordingButton ? t("check_for_recordings") : t("view_recordings"),
@@ -453,6 +478,14 @@ function BookingListItem(booking: BookingItemProps) {
         setViewRecordingsDialogIsOpen(true);
       },
       color: showCheckRecordingButton ? "secondary" : "primary",
+      disabled: mutation.isPending,
+    },
+    {
+      id: "meeting_session_details",
+      label: t("get_meeting_session_details"),
+      onClick: () => {
+        setMeetingSessionDetailsDialogIsOpen(true);
+      },
       disabled: mutation.isPending,
     },
   ];
@@ -496,11 +529,19 @@ function BookingListItem(booking: BookingItemProps) {
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {(showViewRecordingsButton || showCheckRecordingButton) && (
+      {isCalVideoLocation && (
         <ViewRecordingsDialog
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
           setIsOpenDialog={setViewRecordingsDialogIsOpen}
+          timeFormat={userTimeFormat ?? null}
+        />
+      )}
+      {isCalVideoLocation && meetingSessionDetailsDialogIsOpen && (
+        <MeetingSessionDetailsDialog
+          booking={booking}
+          isOpenDialog={meetingSessionDetailsDialogIsOpen}
+          setIsOpenDialog={setMeetingSessionDetailsDialogIsOpen}
           timeFormat={userTimeFormat ?? null}
         />
       )}
@@ -694,8 +735,10 @@ function BookingListItem(booking: BookingItemProps) {
             ) : null}
             {isBookingInPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
             {isBookingInPast && isConfirmed ? <TableActions actions={bookedActions} /> : null}
-            {(showViewRecordingsButton || showCheckRecordingButton) && (
-              <TableActions actions={showRecordingActions} />
+            {isCalVideoLocation && (
+              <TableActions
+                actions={[{ id: "video_options", label: t("video_options"), actions: videoOptionsActions }]}
+              />
             )}
             {isCancelled && booking.rescheduled && (
               <div className="hidden h-full items-center md:flex">
@@ -717,6 +760,7 @@ function BookingListItem(booking: BookingItemProps) {
           recurringDates={recurringDates}
           userTimeFormat={userTimeFormat}
           userTimeZone={userTimeZone}
+          isRescheduled={isRescheduled}
         />
       </div>
 
@@ -737,12 +781,14 @@ const BookingItemBadges = ({
   recurringDates,
   userTimeFormat,
   userTimeZone,
+  isRescheduled,
 }: {
   booking: BookingItemProps;
   isPending: boolean;
   recurringDates: Date[] | undefined;
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
+  isRescheduled: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -752,6 +798,13 @@ const BookingItemBadges = ({
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
           {t("unconfirmed")}
         </Badge>
+      )}
+      {isRescheduled && (
+        <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
+          <Badge variant="orange" className="ltr:mr-2 rtl:ml-2">
+            {t("rescheduled")}
+          </Badge>
+        </Tooltip>
       )}
       {booking.eventType?.team && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
@@ -908,10 +961,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
 
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(data.message, "success");
-      utils.viewer.bookings.invalidate();
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1000,9 +1053,11 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     };
   });
   const { t } = useLocale();
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+  const utils = trpc.useUtils();
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       showToast(t(data.message), "success");
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1103,7 +1158,8 @@ const NoShowAttendeesDialog = ({
     }))
   );
 
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+  const utils = trpc.useUtils();
+  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
     onSuccess: async (data) => {
       const newValue = data.attendees[0];
       setNoShowAttendees((old) =>
@@ -1112,6 +1168,7 @@ const NoShowAttendeesDialog = ({
         )
       );
       showToast(t(data.message), "success");
+      await utils.viewer.bookings.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -1142,7 +1199,7 @@ const NoShowAttendeesDialog = ({
             </div>
           </form>
         ))}
-        <DialogFooter>
+        <DialogFooter noSticky>
           <DialogClose>{t("done")}</DialogClose>
         </DialogFooter>
       </DialogContent>

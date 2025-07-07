@@ -6,7 +6,6 @@ import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/rea
 import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
 // eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
-import { usePathname } from "next/navigation";
 import { useEffect, useState, memo, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,7 +23,7 @@ import {
 } from "@calcom/ui/components/table";
 
 import { useColumnSizingVars } from "../hooks";
-import { usePersistentColumnResizing } from "../lib/resizing";
+import { useColumnResizing } from "../hooks/useColumnResizing";
 
 export type DataTablePropsFromWrapper<TData> = {
   table: ReactTableType<TData>;
@@ -34,18 +33,19 @@ export type DataTablePropsFromWrapper<TData> = {
   testId?: string;
   bodyTestId?: string;
   children?: React.ReactNode;
+  enableColumnResizing?: boolean;
   className?: string;
   containerClassName?: string;
   headerClassName?: string;
   rowClassName?: string;
   paginationMode?: "infinite" | "standard";
+  hasWrapperContext?: boolean;
 };
 
 export type DataTableProps<TData> = DataTablePropsFromWrapper<TData> & {
   onRowMouseclick?: (row: Row<TData>) => void;
   onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
   tableOverlay?: React.ReactNode;
-  identifier?: string;
   enableColumnResizing?: boolean;
 };
 
@@ -57,7 +57,6 @@ export function DataTable<TData>({
   onRowMouseclick,
   onScroll,
   children,
-  identifier: _identifier,
   enableColumnResizing,
   testId,
   bodyTestId,
@@ -66,11 +65,9 @@ export function DataTable<TData>({
   headerClassName,
   rowClassName,
   paginationMode = "infinite",
+  hasWrapperContext = false,
   ...rest
 }: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
-  const pathname = usePathname() as string | null;
-  const identifier = _identifier ?? pathname ?? undefined;
-
   const { rows } = table.getRowModel();
 
   const rowVirtualizer = useVirtualizer({
@@ -101,16 +98,18 @@ export function DataTable<TData>({
 
   const columnSizingVars = useColumnSizingVars({ table });
 
-  usePersistentColumnResizing({
-    enabled: Boolean(enableColumnResizing && identifier),
+  useColumnResizing({
+    enabled: Boolean(enableColumnResizing),
     table,
     tableContainerRef,
-    identifier,
   });
 
   return (
     <div
-      className={classNames("grid", className)}
+      className={classNames(
+        !hasWrapperContext ? "grid" : "bg-muted grid rounded-xl px-0.5 pb-0.5",
+        className
+      )}
       style={{
         gridTemplateRows: "auto 1fr auto",
         gridTemplateAreas: "'header' 'body' 'footer'",
@@ -135,20 +134,23 @@ export function DataTable<TData>({
         onScroll={onScroll}
         className={classNames(
           "relative overflow-auto",
-          "scrollbar-thin border-subtle relative rounded-md border",
+          "scrollbar-thin relative rounded-md ",
           paginationMode === "infinite" && "h-[80dvh]", // Set a fixed height for the container
           containerClassName
         )}
         style={{ gridArea: "body" }}>
         <TableNew
-          className="data-table grid border-0"
+          className={classNames(
+            "data-table grid border-0",
+            !hasWrapperContext && "bg-muted rounded-xl px-0.5 pb-0.5"
+          )}
           style={{
             ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
           }}>
           <TableHeader className={classNames("sticky top-0 z-10", headerClassName)}>
             {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
-              <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
+              <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full border-none">
                 {headerGroup.headers.map((header: Header<TData, unknown>) => {
                   const { column } = header;
                   return (
@@ -161,7 +163,7 @@ export function DataTable<TData>({
                       }}
                       className={classNames(
                         "relative flex shrink-0 items-center",
-                        "bg-subtle",
+                        "bg-muted",
                         column.getIsPinned() && "top-0 z-20 sm:sticky"
                       )}>
                       <TableHeadLabel header={header} />
@@ -170,7 +172,7 @@ export function DataTable<TData>({
                           onMouseDown={header.getResizeHandler()}
                           onTouchStart={header.getResizeHandler()}
                           className={classNames(
-                            "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-[0.1] hover:opacity-50",
+                            "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
                             header.column.getIsResizing() && "!opacity-75"
                           )}>
                           <div className="bg-inverted mx-auto h-full w-[1px]" />
@@ -285,7 +287,10 @@ function DataTableBody<TData>({
   }
 
   return (
-    <TableBody className="relative grid" data-testid={testId} style={{ height: tableHeight }}>
+    <TableBody
+      className="border-subtle relative grid border-t"
+      data-testid={testId}
+      style={{ height: tableHeight }}>
       {rowsToRender.map(({ row, virtualItem }) => (
         <TableRow
           ref={virtualItem ? (node) => rowVirtualizer.measureElement(node) : undefined}
@@ -307,13 +312,14 @@ function DataTableBody<TData>({
             return (
               <TableCell
                 key={cell.id}
+                data-testid={`data-table-td-${cell.column.id}`}
                 style={{
                   ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
                   ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
                   width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                 }}
                 className={classNames(
-                  "flex shrink-0 items-center overflow-hidden",
+                  "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
                   variant === "compact" && "p-0",
                   column.getIsPinned() &&
                     "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
@@ -357,7 +363,7 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
             open && "bg-muted"
           )}>
           <div
-            className="truncate"
+            className="text-default truncate text-sm leading-none"
             title={
               typeof header.column.columnDef.header === "string" ? header.column.columnDef.header : undefined
             }>
