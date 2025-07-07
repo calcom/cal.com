@@ -89,6 +89,19 @@ async function handler(input: CancelBookingInput) {
     arePlatformEmailsEnabled,
   } = input;
 
+  /**
+   * Important: We prevent cancelling an already cancelled booking.
+   * A booking could have been CANCELLED due to a reschedule,
+   * in which case we simply update the existing calendar event and meeting.
+   * We want to avoid deleting them by a subsequent cancellation attempt.
+   */
+  if (bookingToDelete.status === BookingStatus.CANCELLED) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "This booking has already been cancelled.",
+    });
+  }
+
   if (!bookingToDelete.userId || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
@@ -154,7 +167,7 @@ async function handler(input: CancelBookingInput) {
 
   const webhooks = await getWebhooks(subscriberOptions);
 
-  const organizer = await prisma.user.findFirstOrThrow({
+  const organizer = await prisma.user.findUniqueOrThrow({
     where: {
       id: bookingToDelete.userId,
     },

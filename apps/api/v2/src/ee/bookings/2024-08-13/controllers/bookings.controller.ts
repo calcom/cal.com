@@ -9,6 +9,7 @@ import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outpu
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
@@ -54,6 +55,8 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleBookingInputPipe,
   RescheduleSeatedBookingInput_2024_08_13,
+  GetBookingRecordingsOutput,
+  GetBookingTranscriptsOutput,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -88,7 +91,8 @@ export class BookingsController_2024_08_13 {
   constructor(
     private readonly bookingsService: BookingsService_2024_08_13,
     private readonly usersService: UsersService,
-    private readonly bookingReferencesService: BookingReferencesService_2024_08_13
+    private readonly bookingReferencesService: BookingReferencesService_2024_08_13,
+    private readonly calVideoService: CalVideoService
   ) {}
 
   @Post("/")
@@ -171,6 +175,36 @@ export class BookingsController_2024_08_13 {
     };
   }
 
+  @Get("/:bookingUid/recordings")
+  @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get all the recordings for the booking",
+    description: `Fetches all the recordings for the booking \`:bookingUid\``,
+  })
+  async getBookingRecordings(@Param("bookingUid") bookingUid: string): Promise<GetBookingRecordingsOutput> {
+    const recordings = await this.calVideoService.getRecordings(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: recordings,
+    };
+  }
+
+  @Get("/:bookingUid/transcripts")
+  @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get all the transcripts download links for the booking",
+    description: `Fetches all the transcripts download links for the booking \`:bookingUid\``,
+  })
+  async getBookingTranscripts(@Param("bookingUid") bookingUid: string): Promise<GetBookingTranscriptsOutput> {
+    const transcripts = await this.calVideoService.getTranscripts(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: transcripts ?? [],
+    };
+  }
+
   @Get("/")
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
@@ -233,7 +267,14 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Cancel a booking",
     description: `:bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.
-    For seated bookings to cancel one individual booking provide :bookingUid and :seatUid in the request body. For recurring seated bookings it is not possible to cancel all of them with 1 call
+    
+    \nCancelling seated bookings:
+    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.
+    \n1. As an attendee - provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and seatUid in the request body \`{"seatUid": "123-123-123"}\` . This will remove this particular attendance from the booking.
+    \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and cancellationReason in the request body \`{"cancellationReason": "Will travel"}\` and \`Authorization: Bearer token\` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.
+    
+    \nCancelling recurring seated bookings:
+    For recurring seated bookings it is not possible to cancel all of them with 1 call
     like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.`,
   })
   @ApiBody({
@@ -290,7 +331,8 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to auto-selected host",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
@@ -311,7 +353,8 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to a specific host",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description:
+      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
   })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,

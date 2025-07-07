@@ -19,7 +19,7 @@ import { z } from "zod";
 
 import { getAvailableSlots } from "@calcom/platform-libraries/slots";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+import { Booking, EventType } from "@calcom/prisma/client";
 
 const eventTypeMetadataSchema = z
   .object({
@@ -47,6 +47,7 @@ export class SlotsService_2024_09_04 {
       const availableSlots: TimeSlots = await getAvailableSlots({
         input: {
           ...queryTransformed,
+          routingFormResponseId: queryTransformed.routingFormResponseId ?? undefined,
         },
         ctx: {},
       });
@@ -109,9 +110,10 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid end date");
     }
 
-    const booking = await this.slotsRepository.getBookingWithAttendeesByEventTypeIdAndStart(
+    const booking = await this.slotsRepository.findActiveOverlappingBooking(
       input.eventTypeId,
-      startDate.toJSDate()
+      startDate.toJSDate(),
+      endDate.toJSDate()
     );
 
     if (eventType.seatsPerTimeSlot) {
@@ -258,9 +260,10 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid end date");
     }
 
-    const booking = await this.slotsRepository.getBookingWithAttendeesByEventTypeIdAndStart(
+    const booking = await this.slotsRepository.findActiveOverlappingBooking(
       input.eventTypeId,
-      startDate.toJSDate()
+      startDate.toJSDate(),
+      endDate.toJSDate()
     );
 
     if (eventType.seatsPerTimeSlot) {

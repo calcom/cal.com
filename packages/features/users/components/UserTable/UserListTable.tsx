@@ -30,7 +30,9 @@ import {
 } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -105,15 +107,32 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
   }
 }
 
-export function UserListTable() {
+export type UserListTableProps = {
+  org: RouterOutputs["viewer"]["organizations"]["listCurrent"];
+  teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+  attributes?: RouterOutputs["viewer"]["attributes"]["list"];
+  facetedTeamValues?: {
+    roles: MembershipRole[];
+    teams: RouterOutputs["viewer"]["organizations"]["getTeams"];
+    attributes: {
+      id: string;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
+};
+
+export function UserListTable(props: UserListTableProps) {
   return (
     <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
-      <UserListTableContent />
+      <UserListTableContent {...props} />
     </DataTableProvider>
   );
 }
 
-function UserListTableContent() {
+function UserListTableContent({ org, attributes, teams, facetedTeamValues }: UserListTableProps) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -121,22 +140,6 @@ function UserListTableContent() {
 
   const { data: session } = useSession();
   const { isPlatformUser } = useGetUserAttributes();
-  const { data: org } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-  const { data: attributes, isSuccess: isSuccessAttributes } = trpc.viewer.attributes.list.useQuery(
-    undefined,
-    {
-      refetchOnWindowFocus: false,
-    }
-  );
-  const { data: teams } = trpc.viewer.organizations.getTeams.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-  const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isDownloading, setIsDownloading] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
@@ -274,7 +277,7 @@ function UserListTableContent() {
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
-        header: "Members",
+        header: t("members"),
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -305,7 +308,7 @@ function UserListTableContent() {
       {
         id: "role",
         accessorFn: (data) => data.role,
-        header: "Role",
+        header: t("role"),
         size: 100,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
@@ -327,7 +330,7 @@ function UserListTableContent() {
       {
         id: "teams",
         accessorFn: (data) => data.teams.map((team) => team.name),
-        header: "Teams",
+        header: t("teams"),
         size: 140,
         meta: {
           filter: { type: ColumnFilterType.MULTI_SELECT },
@@ -346,7 +349,7 @@ function UserListTableContent() {
                   onClick={() => {
                     table.getColumn("role")?.setFilterValue(["PENDING"]);
                   }}>
-                  Pending
+                  {t("pending")}
                 </Badge>
               )}
 
@@ -560,11 +563,6 @@ function UserListTableContent() {
       setIsDownloading(false);
     }
   };
-
-  if (!isPlatformUser && !isSuccessAttributes) {
-    // do not render the table until the attributes are fetched
-    return null;
-  }
 
   return (
     <>

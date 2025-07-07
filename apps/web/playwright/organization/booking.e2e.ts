@@ -333,7 +333,7 @@ test.describe("Bookings", () => {
           // Second booking - should get a different host
           await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
           await selectFirstAvailableTimeSlotNextMonth(page);
-          await bookTimeSlot(page);
+          await bookTimeSlot(page, { email: "attendee1@test.com" });
           await expect(page.getByTestId("success-page")).toBeVisible();
           const secondHost = await page.getByTestId("booking-host-name").textContent();
           expect(secondHost).not.toBeNull();
@@ -342,7 +342,7 @@ test.describe("Bookings", () => {
           // Third booking - should get a different host
           await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
           await selectFirstAvailableTimeSlotNextMonth(page);
-          await bookTimeSlot(page);
+          await bookTimeSlot(page, { email: "attendee2@test.com" });
           await expect(page.getByTestId("success-page")).toBeVisible();
           const thirdHost = await page.getByTestId("booking-host-name").textContent();
           expect(thirdHost).not.toBeNull();
@@ -352,7 +352,7 @@ test.describe("Bookings", () => {
           // Fourth booking - should get a different host
           await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
           await selectFirstAvailableTimeSlotNextMonth(page);
-          await bookTimeSlot(page);
+          await bookTimeSlot(page, { email: "attendee3@test.com" });
           await expect(page.getByTestId("success-page")).toBeVisible();
           const fourthHost = await page.getByTestId("booking-host-name").textContent();
           expect(fourthHost).not.toBeNull();
@@ -368,10 +368,11 @@ test.describe("Bookings", () => {
       );
     });
 
-    test("Round robin event type with confirmation required handles cancellation and rebooking correctly with the same details and slot", async ({
+    test("Round robin event type with confirmation required handles rejection and rebooking correctly with the same details and slot", async ({
       page,
       users,
       orgs,
+      browser,
     }) => {
       const org = await orgs.create({
         name: "TestOrg",
@@ -421,38 +422,41 @@ test.describe("Bookings", () => {
           const bookingUid = page.url().split("/booking/")[1];
           expect(bookingUid).not.toBeNull();
 
-          // Login as the host to cancel the booking
           await page.goto("/auth/logout");
-          const allUsers = await users.get();
+
+          const allUsers = users.get();
           const hostUser = allUsers.find((mate) => mate.name === firstHost);
           if (!hostUser) throw new Error("Host not found");
 
           await hostUser.apiLogin();
+          const [secondContext, secondPage] = await hostUser.apiLoginOnNewBrowser(browser);
 
-          // Cancel the booking
-          await page.goto(`/booking/${bookingUid}`);
-          await page.getByTestId("cancel").click();
-          await page.getByTestId("confirm_cancel").click();
-          await page.waitForResponse((response) => response.url().includes("/api/cancel"));
+          // Reject the booking
+          await secondPage.goto("/bookings/upcoming");
+          await secondPage.click('[data-testid="reject"]');
+          await submitAndWaitForResponse(secondPage, "/api/trpc/bookings/confirm?batch=1", {
+            action: () => secondPage.click('[data-testid="rejection-confirm"]'),
+          });
 
           // Logout and go back to booking page
-          await page.goto("/auth/logout");
-          await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
+          await secondPage.goto("/auth/logout");
+          await secondPage.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
 
           // Rebook with the same details
-          await selectFirstAvailableTimeSlotNextMonth(page);
-          await bookTimeSlot(page);
-          await expect(page.getByTestId("success-page")).toBeVisible();
+          await selectFirstAvailableTimeSlotNextMonth(secondPage);
+          await bookTimeSlot(secondPage);
+          await expect(secondPage.getByTestId("success-page")).toBeVisible();
 
           // Verify a new host is assigned
-          const newHost = await page.getByTestId("booking-host-name").textContent();
+          const newHost = await secondPage.getByTestId("booking-host-name").textContent();
           expect(newHost).not.toBeNull();
           expect(newHost).toBe(firstHost);
 
           // Verify the booking was successful by checking the new booking UID
-          const newBookingUid = page.url().split("/booking/")[1];
+          const newBookingUid = secondPage.url().split("/booking/")[1];
           expect(newBookingUid).not.toBeNull();
           expect(newBookingUid).not.toBe(bookingUid);
+          await secondContext.close();
         }
       );
     });

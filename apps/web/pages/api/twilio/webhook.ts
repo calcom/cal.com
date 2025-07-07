@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getPublishedOrgIdFromMemberOrTeamId } from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
 
@@ -76,7 +76,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const creditService = new CreditService();
 
   if (countryCode === "US" || countryCode === "CA") {
-    // SMS to US and CA are free
+    // SMS to US and CA are free for teams
     let teamIdToCharge = parsedTeamId;
 
     if (!teamIdToCharge && parsedUserId) {
@@ -92,15 +92,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       teamIdToCharge = teamMembership?.teamId;
     }
 
-    await creditService.chargeCredits({
-      teamId: teamIdToCharge,
-      userId: !teamIdToCharge ? parsedUserId : undefined,
-      bookingUid: parsedBookingUid,
-      smsSid,
-      credits: 0,
-    });
+    if (teamIdToCharge) {
+      await creditService.chargeCredits({
+        teamId: teamIdToCharge,
+        bookingUid: parsedBookingUid,
+        smsSid,
+        credits: 0,
+      });
 
-    return res.status(200).send(`SMS to US and CA are free. Credits set to 0`);
+      return res.status(200).send(`SMS to US and CA are free for teams. Credits set to 0`);
+    }
   }
 
   let orgId;
@@ -119,8 +120,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (!orgId) {
-    orgId = await getOrgIdFromMemberOrTeamId({
-      memberId: parsedUserId,
+    orgId = await getPublishedOrgIdFromMemberOrTeamId({
+      ...(!parsedTeamId ? { memberId: parsedUserId } : {}),
       teamId: parsedTeamId,
     });
   }
@@ -136,7 +137,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).send(`SMS are free for organizations. Credits set to 0`);
   }
 
-  const price = await twilio.getPriceForSMS(smsSid);
+  const { price, numSegments } = await twilio.getMessageInfo(smsSid);
 
   const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
 
@@ -146,6 +147,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     userId: parsedUserId,
     smsSid,
     bookingUid: parsedBookingUid,
+    smsSegments: numSegments ?? undefined,
   });
 
   if (chargedUserOrTeamId) {

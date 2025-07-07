@@ -2,11 +2,13 @@ import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 
 import { router } from "../../../trpc";
 import { ZBuyCreditsSchema } from "./buyCredits.schema";
+import { ZDownloadExpenseLogSchema } from "./downloadExpenseLog.schema";
 import { ZGetAllCreditsSchema } from "./getAllCredits.schema";
 
 type CreditsCache = {
   getAllCredits?: typeof import("./getAllCredits.handler").getAllCreditsHandler;
   buyCredits?: typeof import("./buyCredits.handler").buyCreditsHandler;
+  downloadExpenseLog?: typeof import("./downloadExpenseLog.handler").downloadExpenseLogHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: CreditsCache = {};
@@ -42,6 +44,23 @@ export const creditsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.buyCredits({
+      ctx,
+      input,
+    });
+  }),
+  downloadExpenseLog: authedProcedure.input(ZDownloadExpenseLogSchema).query(async ({ input, ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.downloadExpenseLog) {
+      UNSTABLE_HANDLER_CACHE.downloadExpenseLog = await import("./downloadExpenseLog.handler").then(
+        (mod) => mod.downloadExpenseLogHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.downloadExpenseLog) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.downloadExpenseLog({
       ctx,
       input,
     });
