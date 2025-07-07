@@ -160,7 +160,6 @@ const _handleResponse = async ({
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
     let dbFormResponse, queuedFormResponse;
-
     if (!isPreview) {
       if (queueFormResponse) {
         queuedFormResponse = await RoutingFormResponseRepository.recordQueuedFormResponse({

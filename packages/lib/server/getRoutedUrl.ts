@@ -57,8 +57,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     isEmbed,
   };
 
-  console.log("getRoutedUrl called", { context });
-
   if (!queryParsed.success) {
     log.warn("Error parsing query", { issues: queryParsed.error.issues });
     return {
@@ -147,7 +145,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let crmAppSlug: string | null = null;
   let queuedFormResponseId;
   try {
-    console.log("calling handleResponse");
     const result = await handleResponse({
       form: serializableForm,
       formFillerId: uuidv4(),
@@ -158,7 +155,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       queueFormResponse: shouldQueueFormResponse,
       fetchCrm,
     });
-    console.log("handleResponse result", { result });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse?.id;
     queuedFormResponseId = result.queuedFormResponse?.id;
@@ -171,9 +167,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     crmContactOwnerRecordType = result.crmContactOwnerRecordType;
     crmAppSlug = result.crmAppSlug;
   } catch (e) {
-    // FIXME: An error here that isn't TRPCError is silently ignored.
-    // We must return early from here.
-    console.log("handleResponse error", e);
     if (e instanceof TRPCError) {
       return {
         props: {
@@ -184,6 +177,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         },
       };
     }
+
+    throw e;
   }
 
   // TODO: To be done using sentry tracing
