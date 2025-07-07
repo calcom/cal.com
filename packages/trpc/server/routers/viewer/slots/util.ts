@@ -44,7 +44,7 @@ import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import { OOORepository } from "@calcom/lib/server/repository/ooo";
+import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
@@ -805,7 +805,7 @@ async function getTeamIdFromSlug(
 }
 
 const _getOOODates = async (startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) => {
-  const oooRepo = new OOORepository(prisma);
+  const oooRepo = new PrismaOOORepository(prisma);
   return oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
 };
 

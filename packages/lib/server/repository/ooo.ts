@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-export class OOORepository {
+export class PrismaOOORepository {
   constructor(private prismaClient: PrismaClient) {}
 
   async findManyOOO({
