@@ -640,6 +640,7 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     await user.apiLogin();
 
     await page.goto(`/booking/${bookingId}`);
+    await expect(page).toHaveURL(`/booking/${bookingId}`);
     // Host should be able to see the cancel and reschedule buttons even when disabled
     await expect(page.locator('[data-testid="reschedule-link"]')).toBeVisible();
     await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
