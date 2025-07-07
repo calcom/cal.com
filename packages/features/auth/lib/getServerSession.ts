@@ -7,6 +7,7 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
@@ -64,7 +65,8 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const licenseKeyService = await LicenseKeySingleton.getInstance();
+  const deploymentRepo = new DeploymentRepository(prisma);
+  const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
   const hasValidLicense = await licenseKeyService.checkLicense();
 
   let upId = token.upId;

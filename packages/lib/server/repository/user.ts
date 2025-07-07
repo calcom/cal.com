@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -27,7 +27,7 @@ const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
 
-const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+const teamSelect = {
   id: true,
   name: true,
   slug: true,
@@ -36,9 +36,9 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   organizationSettings: true,
   isOrganization: true,
   isPlatform: true,
-});
+} satisfies Prisma.TeamSelect;
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   id: true,
   username: true,
   name: true,
@@ -77,7 +77,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   lastActiveAt: true,
   identityProvider: true,
   teams: true,
-});
+} satisfies Prisma.UserSelect;
 
 export class UserRepository {
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
@@ -636,7 +636,7 @@ export class UserRepository {
     return user;
   }
   static async getUserAdminTeams(userId: number) {
-    return prisma.user.findFirst({
+    return prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -713,10 +713,12 @@ export class UserRepository {
     return !!teams.length;
   }
   static async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
-    const isAdminOrOwnerOfTeam = await prisma.membership.findFirst({
+    const isAdminOrOwnerOfTeam = await prisma.membership.findUnique({
       where: {
-        userId,
-        teamId,
+        userId_teamId: {
+          userId,
+          teamId,
+        },
         role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
         accepted: true,
       },
@@ -876,7 +878,7 @@ export class UserRepository {
   }
 
   static async getUserStats({ userId }: { userId: number }) {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },

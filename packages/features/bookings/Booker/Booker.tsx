@@ -78,6 +78,7 @@ const BookerComponent = ({
   hashedLink,
   confirmButtonDisabled,
   timeZones,
+  eventMetaChildren,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -236,7 +237,6 @@ const BookerComponent = ({
         bookingForm={bookingForm}
         eventQuery={event}
         extraOptions={extraOptions}
-        rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
         confirmButtonDisabled={confirmButtonDisabled}
         classNames={{
@@ -277,7 +277,6 @@ const BookerComponent = ({
     loadingStates,
     onGoBackInstantMeeting,
     renderConfirmNotVerifyEmailButtonCond,
-    rescheduleUid,
     seatedEventData,
     setSeatedEventData,
     setSelectedTimeslot,
@@ -402,12 +401,14 @@ const BookerComponent = ({
                   isPlatform={isPlatform}
                   isPrivateLink={!!hashedLink}
                   locale={userLocale}
-                  timeZones={timeZones}
-                />
+                  timeZones={timeZones}>
+                  {eventMetaChildren}
+                </EventMeta>
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
                       <DatePicker
+                        classNames={customClassNames?.datePickerCustomClassNames}
                         event={event}
                         slots={schedule?.data?.slots}
                         isLoading={schedule.isPending}
@@ -435,14 +436,7 @@ const BookerComponent = ({
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
               <DatePicker
-                classNames={{
-                  datePickerContainer: customClassNames?.datePickerCustomClassNames?.datePickerContainer,
-                  datePickerTitle: customClassNames?.datePickerCustomClassNames?.datePickerTitle,
-                  datePickerDays: customClassNames?.datePickerCustomClassNames?.datePickerDays,
-                  datePickerDate: customClassNames?.datePickerCustomClassNames?.datePickerDate,
-                  datePickerDatesActive: customClassNames?.datePickerCustomClassNames?.datePickerDatesActive,
-                  datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
-                }}
+                classNames={customClassNames?.datePickerCustomClassNames}
                 event={event}
                 slots={schedule?.data?.slots}
                 isLoading={schedule.isPending}

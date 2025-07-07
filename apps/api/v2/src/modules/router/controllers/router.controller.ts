@@ -25,9 +25,9 @@ export class RouterController {
     @Param("formId") formId: string,
     @Body() body?: Record<string, string>
   ): Promise<void | (ApiResponse<unknown> & { redirect: boolean })> {
+
     const params = Object.fromEntries(new URLSearchParams(body ?? {}));
     const routedUrlData = await getRoutedUrl({ req: request, query: { ...params, form: formId } });
-
     if (routedUrlData?.notFound) {
       throw new NotFoundException("Route not found. Please check the provided form parameter.");
     }
@@ -37,6 +37,13 @@ export class RouterController {
     }
 
     if (routedUrlData?.props) {
+      if (routedUrlData.props.errorMessage) {
+        return {
+          status: "error",
+          error: { code: "ROUTING_ERROR", message: routedUrlData.props.errorMessage },
+          redirect: false,
+        };
+      }
       return { status: "success", data: { message: routedUrlData.props.message ?? "" }, redirect: false };
     }
 
@@ -54,6 +61,7 @@ export class RouterController {
     ) {
       return this.handleRedirectWithContactOwner(routingUrl, routingSearchParams);
     }
+    console.log("handleRedirect Regular called", { destination });
 
     return { status: "success", data: destination, redirect: true };
   }
@@ -62,6 +70,7 @@ export class RouterController {
     routingUrl: URL,
     routingSearchParams: URLSearchParams
   ): Promise<ApiResponse<unknown> & { redirect: boolean }> {
+    console.log("handleRedirectWithContactOwner called", { routingUrl, routingSearchParams });
     const pathNameParams = routingUrl.pathname.split("/");
     const eventTypeSlug = pathNameParams[pathNameParams.length - 1];
     const teamId = Number(routingSearchParams.get("cal.teamId"));
@@ -70,6 +79,10 @@ export class RouterController {
       eventTypeSlug,
       3
     );
+
+    if (!eventTypeData) {
+      throw new NotFoundException("Event type not found.");
+    }
 
     // get the salesforce record owner email for the email given as a form response.
     const {
@@ -81,9 +94,9 @@ export class RouterController {
       eventData: eventTypeData,
     });
 
-    Boolean(teamMemberEmail) && routingUrl.searchParams.set("cal.teamMemberEmail", teamMemberEmail);
-    Boolean(crmOwnerRecordType) && routingUrl.searchParams.set("cal.crmOwnerRecordType", crmOwnerRecordType);
-    Boolean(crmAppSlug) && routingUrl.searchParams.set("cal.crmAppSlug", crmAppSlug);
+    teamMemberEmail && routingUrl.searchParams.set("cal.teamMemberEmail", teamMemberEmail);
+    crmOwnerRecordType && routingUrl.searchParams.set("cal.crmOwnerRecordType", crmOwnerRecordType);
+    crmAppSlug && routingUrl.searchParams.set("cal.crmAppSlug", crmAppSlug);
 
     return { status: "success", data: routingUrl.toString(), redirect: true };
   }

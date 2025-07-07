@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
@@ -14,7 +14,7 @@ type GetUserConnectedAppsOptions = {
   input: TGetUserConnectedAppsInputSchema;
 };
 
-const credentialSelect = Prisma.validator<Prisma.CredentialSelect>()({
+const credentialSelect = {
   userId: true,
   app: {
     select: {
@@ -27,7 +27,7 @@ const credentialSelect = Prisma.validator<Prisma.CredentialSelect>()({
       externalId: true,
     },
   },
-});
+} satisfies Prisma.CredentialSelect;
 
 type Credential = Prisma.CredentialGetPayload<{ select: typeof credentialSelect }>;
 
@@ -63,10 +63,12 @@ const checkCanUserAccessConnectedApps = async (
     throw new Error("Team not found");
   }
 
-  const isMember = await prisma.membership.findFirst({
+  const isMember = await prisma.membership.findUnique({
     where: {
-      userId: user.id,
-      teamId: teamId,
+      userId_teamId: {
+        userId: user.id,
+        teamId: teamId,
+      },
     },
   });
 

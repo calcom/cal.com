@@ -1,5 +1,5 @@
 import type { User as UserType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
@@ -29,7 +29,7 @@ import {
 } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   id: true,
   avatarUrl: true,
   username: true,
@@ -48,10 +48,10 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
     },
   },
   defaultScheduleId: true,
-});
+} satisfies Prisma.UserSelect;
 
 const getPublicEventSelect = (fetchAllUsers: boolean) => {
-  return Prisma.validator<Prisma.EventTypeSelect>()({
+  return {
     id: true,
     title: true,
     description: true,
@@ -84,6 +84,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     seatsPerTimeSlot: true,
     disableCancelling: true,
     disableRescheduling: true,
+    allowReschedulingCancelledBookings: true,
     seatsShowAvailabilityCount: true,
     bookingFields: true,
     teamId: true,
@@ -151,7 +152,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
-  });
+  } satisfies Prisma.EventTypeSelect;
 };
 
 export async function isCurrentlyAvailable({
@@ -220,6 +221,7 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
+export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
@@ -528,13 +530,14 @@ export const getPublicEvent = async (
     assignAllTeamMembers: event.assignAllTeamMembers,
     disableCancelling: event.disableCancelling,
     disableRescheduling: event.disableRescheduling,
+    allowReschedulingCancelledBookings: event.allowReschedulingCancelledBookings,
     interfaceLanguage: event.interfaceLanguage,
   };
 };
 
-const eventData = Prisma.validator<Prisma.EventTypeArgs>()({
+const eventData = {
   select: getPublicEventSelect(true),
-});
+} satisfies Prisma.EventTypeArgs;
 
 type Event = Prisma.EventTypeGetPayload<typeof eventData>;
 
