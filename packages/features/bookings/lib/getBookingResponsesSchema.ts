@@ -276,7 +276,6 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "phone") {
-          // Only validate phone number if field is not hidden AND (field is required OR value is not empty)
           if (!bookingField.hidden && (isRequired || (value && value.trim() !== ""))) {
             if (!(await phoneSchema.safeParseAsync(value)).success) {
               ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
