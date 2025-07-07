@@ -186,6 +186,20 @@ export class InputBookingsService_2024_08_13 {
         guests,
         location,
       },
+      ...this.getRoutingFormData(inputBooking.routing),
+    };
+  }
+
+  private getRoutingFormData(routing: { teamMemberIds?: number[]; responseId?: number; teamMemberEmail?: string; skipContactOwner?: boolean; crmAppSlug?: string; crmOwnerRecordType?: string } | undefined) {
+    if (!routing) return null;
+    
+    return {
+      routedTeamMemberIds: routing.teamMemberIds,
+      routingFormResponseId: routing.responseId,
+      teamMemberEmail: routing.teamMemberEmail,
+      skipContactOwner: routing.skipContactOwner,
+      crmAppSlug: routing.crmAppSlug,
+      crmOwnerRecordType: routing.crmOwnerRecordType,
     };
   }
 
@@ -453,6 +467,7 @@ export class InputBookingsService_2024_08_13 {
           location,
         },
         schedulingType: eventType.schedulingType,
+        ...this.getRoutingFormData(inputBooking.routing),
       });
 
       switch (timeBetween) {
@@ -709,6 +724,12 @@ export class InputBookingsService_2024_08_13 {
     const booking = await this.bookingsRepository.getByUid(bodyTransformed.uid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
+    }
+
+    if (booking.status === "CANCELLED") {
+      throw new BadRequestException(
+        `Can't cancel booking with uid=${bookingUid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
+      );
     }
 
     const oAuthClientParams = booking.eventTypeId
