@@ -155,28 +155,5 @@ describe("Private Link Expiration", () => {
         reqBody: { hashedLink: "test-link" },
       });
     });
-
-    it("should delete link when final usage is reached", async () => {
-      const validLink = {
-        id: 1,
-        link: "test-link",
-        eventTypeId: 1,
-        expiresAt: null,
-        maxUsageCount: 5,
-        usageCount: 4,
-      };
-
-      (handleNewBooking as any).mockResolvedValue({ success: true });
-
-      await handleNewBooking({
-        hasHashedBookingLink: true,
-        reqBody: { hashedLink: "test-link" },
-      } as any);
-
-      expect(handleNewBooking).toHaveBeenCalledWith({
-        hasHashedBookingLink: true,
-        reqBody: { hashedLink: "test-link" },
-      });
-    });
   });
 });
