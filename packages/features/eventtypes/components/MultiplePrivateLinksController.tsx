@@ -221,6 +221,7 @@ export const MultiplePrivateLinksController = ({
                         containerClassName={classNames("w-full")}
                         disabled={isExpired}
                         value={singleUseURL}
+                        readOnly
                         className={classNames(isExpired ? "bg-red-50 text-gray-400" : "bg-gray-50")}
                         data-testid="private-link-url"
                         addOnSuffix={
