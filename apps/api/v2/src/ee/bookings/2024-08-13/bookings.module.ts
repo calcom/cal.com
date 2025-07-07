@@ -25,7 +25,7 @@ import { KyselyModule } from "@/modules/kysely/kysely.module";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
@@ -74,7 +74,7 @@ import { Module } from "@nestjs/common";
     CalendarsRepository,
     SelectedCalendarsRepository,
     OrganizationsTeamsRepository,
-    OrganizationsRepository,
+    PrismaOrganizationsRepository,
     ErrorsBookingsService_2024_08_13,
     BookingReferencesService_2024_08_13,
     BookingReferencesRepository_2024_08_13,

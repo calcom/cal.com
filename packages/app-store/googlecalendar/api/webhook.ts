@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
 
@@ -28,7 +28,7 @@ async function postHandler(req: NextApiRequest) {
   // Every such record has their googleChannel related fields set which are same
   // So, it is enough to get the first selected calendar for this googleChannelId
   // Further code gets all the selected calendars for this calendar's credential
-  const selectedCalendar = await SelectedCalendarRepository.findFirstByGoogleChannelId(channelId);
+  const selectedCalendar = await PrismaSelectedCalendarRepository.findFirstByGoogleChannelId(channelId);
 
   if (!selectedCalendar) {
     log.info("postHandler", `No selected calendar found for googleChannelId: ${channelId}`);

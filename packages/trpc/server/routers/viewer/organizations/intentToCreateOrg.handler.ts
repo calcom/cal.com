@@ -7,8 +7,8 @@ import {
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { PrismaDeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -34,7 +34,7 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
   );
 
   if (IS_SELF_HOSTED) {
-    const deploymentRepo = new DeploymentRepository(prisma);
+    const deploymentRepo = new PrismaDeploymentRepository(prisma);
     const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
     const hasValidLicense = await licenseKeyService.checkLicense();
 
@@ -75,7 +75,9 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
   }
   log.debug("Found organization owner", safeStringify({ orgOwnerId: orgOwner.id, email: orgOwner.email }));
 
-  let organizationOnboarding = await OrganizationOnboardingRepository.findByOrgOwnerEmail(orgOwner.email);
+  let organizationOnboarding = await PrismaOrganizationOnboardingRepository.findByOrgOwnerEmail(
+    orgOwner.email
+  );
   if (organizationOnboarding) {
     throw new Error("organization_onboarding_already_exists");
   }

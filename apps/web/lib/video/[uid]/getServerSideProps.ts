@@ -7,14 +7,14 @@ import {
   updateMeetingTokenIfExpired,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaBookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
@@ -94,7 +94,7 @@ const checkIfUserIsHost = async ({
     return booking.user?.id === sessionUserId;
   }
 
-  const eventType = await EventTypeRepository.findByIdWithUserAccess({
+  const eventType = await PrismaEventTypeRepository.findByIdWithUserAccess({
     id: booking.eventTypeId,
     userId: sessionUserId,
   });
@@ -106,7 +106,7 @@ const checkIfUserIsHost = async ({
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
 
-  const booking = await BookingRepository.findBookingForMeetingPage({
+  const booking = await PrismaBookingRepository.findBookingForMeetingPage({
     bookingUid: context.query.uid as string,
   });
 
@@ -142,14 +142,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const profile = booking.user
     ? (
-        await UserRepository.enrichUserWithItsProfile({
+        await PrismaUserRepository.enrichUserWithItsProfile({
           user: booking.user,
         })
       ).profile
     : null;
 
   const calVideoLogo = profile?.organization
-    ? await OrganizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })
+    ? await PrismaOrganizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })
     : null;
 
   //daily.co calls have a 14 days exit buffer when a user enters a call when it's not available it will trigger the modals
@@ -228,7 +228,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const videoReference = getCalVideoReference(bookingObj.references);
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new PrismaFeaturesRepository();
   const displayLogInOverlay = profile?.organizationId
     ? await featureRepo.checkIfTeamHasFeature(profile.organizationId, "cal-video-log-in-overlay")
     : false;

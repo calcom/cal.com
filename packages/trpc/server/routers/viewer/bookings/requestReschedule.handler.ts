@@ -19,7 +19,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { deleteMeeting } from "@calcom/lib/videoClient";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -160,7 +160,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   //cancel workflow reminders of previous booking
-  await WorkflowRepository.deleteAllWorkflowReminders(bookingToReschedule.workflowReminders);
+  await PrismaWorkflowRepository.deleteAllWorkflowReminders(bookingToReschedule.workflowReminders);
 
   const [mainAttendee] = bookingToReschedule.attendees;
   // @NOTE: Should we assume attendees language?

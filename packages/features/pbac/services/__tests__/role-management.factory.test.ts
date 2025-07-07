@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -64,7 +64,7 @@ describe("RoleManagementFactory", () => {
       writable: true,
     });
 
-    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockImplementation(
+    vi.spyOn(PrismaFeaturesRepository.prototype, "checkIfTeamHasFeature").mockImplementation(
       mockFeaturesRepository.checkIfTeamHasFeature
     );
     vi.spyOn(RoleService.prototype, "assignRoleToMember").mockImplementation(

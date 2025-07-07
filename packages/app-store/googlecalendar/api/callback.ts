@@ -14,7 +14,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
 import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -71,7 +71,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     oAuth2Client.setCredentials(key);
 
-    const gcalCredential = await CredentialRepository.create({
+    const gcalCredential = await PrismaCredentialRepository.create({
       userId: req.session.user.id,
       key,
       appId: "google-calendar",
@@ -134,7 +134,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         // else
         errorMessage = "account_already_linked";
       }
-      await CredentialRepository.deleteById({ id: gcalCredential.id });
+      await PrismaCredentialRepository.deleteById({ id: gcalCredential.id });
       res.redirect(
         `${
           getSafeRedirectUrl(state?.onErrorReturnTo) ??
@@ -154,7 +154,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const existingGoogleMeetCredential = await CredentialRepository.findFirstByUserIdAndType({
+  const existingGoogleMeetCredential = await PrismaCredentialRepository.findFirstByUserIdAndType({
     userId: req.session.user.id,
     type: "google_video",
   });
@@ -169,7 +169,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Create a new google meet credential
-  await CredentialRepository.create({
+  await PrismaCredentialRepository.create({
     userId: req.session.user.id,
     type: "google_video",
     key: {},

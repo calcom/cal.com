@@ -1,6 +1,6 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -27,7 +27,7 @@ type Option = {
 };
 
 type res = Awaited<
-  ReturnType<typeof MembershipRepository.findAllByUpIdIncludeMinimalEventTypes>
+  ReturnType<typeof PrismaMembershipRepository.findAllByUpIdIncludeMinimalEventTypes>
 >[number]["team"]["eventTypes"][number];
 
 type EventType = Omit<res, "forwardParamsSuccessRedirect"> & {
@@ -54,7 +54,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
 
   const [profileMemberships, profileEventTypes] = await Promise.all([
-    MembershipRepository.findAllByUpIdIncludeMinimalEventTypes(
+    PrismaMembershipRepository.findAllByUpIdIncludeMinimalEventTypes(
       {
         upId: userProfile.upId,
       },
@@ -67,7 +67,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
     ),
     teamId
       ? []
-      : EventTypeRepository.findAllByUpIdWithMinimalData(
+      : PrismaEventTypeRepository.findAllByUpIdWithMinimalData(
           {
             upId: userProfile.upId,
             userId: user.id,

@@ -1,10 +1,10 @@
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { transformTeamLocationsApiToInternal } from "@/ee/event-types/event-types_2024_06_14/transformers/api-to-internal/locations";
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
+import { PrismaConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import {
@@ -26,10 +26,10 @@ export class InputOrganizationsEventTypesService {
   constructor(
     private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
     private readonly teamsRepository: TeamsRepository,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
     private readonly conferencingService: OrganizationsConferencingService,
-    private readonly conferencingRepository: ConferencingRepository
+    private readonly conferencingRepository: PrismaConferencingRepository
   ) {}
   async transformAndValidateCreateTeamEventTypeInput(
     userId: number,

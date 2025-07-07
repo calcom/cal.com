@@ -4,11 +4,11 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 
-import { DelegationCredentialRepository } from "../delegationCredential";
-import { OrganizationRepository } from "../organization";
+import { PrismaDelegationCredentialRepository } from "../delegationCredential";
+import { PrismaOrganizationRepository } from "../organization";
 
 vi.mock("../organization", () => ({
-  OrganizationRepository: {
+  PrismaOrganizationRepository: {
     findByMemberEmail: vi.fn(),
   },
 }));
@@ -93,10 +93,10 @@ const createTestDelegationCredential = async (overrides = {}) => {
 };
 
 const setupOrganizationMock = (returnValue: any) => {
-  vi.mocked(OrganizationRepository.findByMemberEmail).mockResolvedValue(returnValue);
+  vi.mocked(PrismaOrganizationRepository.findByMemberEmail).mockResolvedValue(returnValue);
 };
 
-describe("DelegationCredentialRepository", () => {
+describe("PrismaDelegationCredentialRepository", () => {
   beforeEach(() => {
     prismock.delegationCredential.deleteMany();
     prismock.workspacePlatform.deleteMany();
@@ -112,7 +112,7 @@ describe("DelegationCredentialRepository", () => {
     describe("Regular Find Methods (No Service Account Key)", () => {
       describe("findById", () => {
         it("should not expose service account key in response", async () => {
-          const result = await DelegationCredentialRepository.findById({ id: "test-id" });
+          const result = await PrismaDelegationCredentialRepository.findById({ id: "test-id" });
 
           expect(result).not.toHaveProperty("serviceAccountKey");
           expect(result).toEqual(
@@ -127,7 +127,9 @@ describe("DelegationCredentialRepository", () => {
 
       describe("findAllByDomain", () => {
         it("should not expose service account key in any of the results", async () => {
-          const results = await DelegationCredentialRepository.findAllByDomain({ domain: "example.com" });
+          const results = await PrismaDelegationCredentialRepository.findAllByDomain({
+            domain: "example.com",
+          });
 
           expect(results.length).toBeGreaterThan(0);
           results.forEach((result) => {
@@ -145,9 +147,11 @@ describe("DelegationCredentialRepository", () => {
     describe("Sensitive Methods (With Service Account Key)", () => {
       describe("findByIdIncludeSensitiveServiceAccountKey", () => {
         it("should expose valid service account key", async () => {
-          const result = await DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({
-            id: "test-id",
-          });
+          const result = await PrismaDelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey(
+            {
+              id: "test-id",
+            }
+          );
 
           expect(result).toHaveProperty("serviceAccountKey");
           expect(result?.serviceAccountKey).toEqual(buildMockServiceAccountKey());
@@ -156,9 +160,10 @@ describe("DelegationCredentialRepository", () => {
 
       describe("findByOrgIdIncludeSensitiveServiceAccountKey", () => {
         it("should expose validated service account keys", async () => {
-          const results = await DelegationCredentialRepository.findByOrgIdIncludeSensitiveServiceAccountKey({
-            organizationId: 1,
-          });
+          const results =
+            await PrismaDelegationCredentialRepository.findByOrgIdIncludeSensitiveServiceAccountKey({
+              organizationId: 1,
+            });
 
           expect(results.length).toEqual(1);
           const result = results[0];
@@ -170,7 +175,7 @@ describe("DelegationCredentialRepository", () => {
       describe("findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey", () => {
         it("should expose validated service account key", async () => {
           const result =
-            await DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey(
+            await PrismaDelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey(
               {
                 organizationId: 1,
                 domain: "example.com",
@@ -187,9 +192,11 @@ describe("DelegationCredentialRepository", () => {
           setupOrganizationMock({ id: 1 });
 
           const result =
-            await DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey({
-              email: "user@example.com",
-            });
+            await PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey(
+              {
+                email: "user@example.com",
+              }
+            );
 
           expect(result).toHaveProperty("serviceAccountKey");
           expect(result?.serviceAccountKey).toEqual(buildMockServiceAccountKey());
@@ -200,9 +207,11 @@ describe("DelegationCredentialRepository", () => {
           setupOrganizationMock(null);
 
           const result =
-            await DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey({
-              email: "nonexistent@example.com",
-            });
+            await PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey(
+              {
+                email: "nonexistent@example.com",
+              }
+            );
 
           expect(result).toBeNull();
         });
@@ -227,7 +236,7 @@ describe("DelegationCredentialRepository", () => {
         delete data.id; // ID is auto-generated
         delete data.workspacePlatform; // Don't include the relation in create
 
-        const result = await DelegationCredentialRepository.create(data);
+        const result = await PrismaDelegationCredentialRepository.create(data);
 
         expect(result).toEqual({
           id: expect.any(String),
@@ -259,7 +268,7 @@ describe("DelegationCredentialRepository", () => {
           },
         });
 
-        const result = await DelegationCredentialRepository.updateById({
+        const result = await PrismaDelegationCredentialRepository.updateById({
           id: created.id,
           data: { workspacePlatformId: newWorkspacePlatform.id },
         });
@@ -292,7 +301,7 @@ describe("DelegationCredentialRepository", () => {
           },
         });
 
-        const result = await DelegationCredentialRepository.updateById({
+        const result = await PrismaDelegationCredentialRepository.updateById({
           id: created.id,
           data: { organizationId: newOrganization.id },
         });
@@ -316,7 +325,7 @@ describe("DelegationCredentialRepository", () => {
       it("should modify specified fields while preserving others", async () => {
         const created = await createTestDelegationCredential();
 
-        const result = await DelegationCredentialRepository.updateById({
+        const result = await PrismaDelegationCredentialRepository.updateById({
           id: created.id,
           data: { enabled: false },
         });
@@ -335,7 +344,7 @@ describe("DelegationCredentialRepository", () => {
       it("should remove the delegation credential completely", async () => {
         const created = await createTestDelegationCredential();
 
-        await DelegationCredentialRepository.deleteById({ id: created.id });
+        await PrismaDelegationCredentialRepository.deleteById({ id: created.id });
 
         const result = await prismock.delegationCredential.findUnique({
           where: { id: created.id },

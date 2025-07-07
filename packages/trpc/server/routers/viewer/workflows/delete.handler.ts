@@ -1,4 +1,4 @@
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -51,7 +51,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   });
 
   //cancel workflow reminders of deleted workflow
-  await WorkflowRepository.deleteAllWorkflowReminders(scheduledReminders);
+  await PrismaWorkflowRepository.deleteAllWorkflowReminders(scheduledReminders);
 
   const isOrg = workflowToDelete.team?.isOrganization ?? false;
 

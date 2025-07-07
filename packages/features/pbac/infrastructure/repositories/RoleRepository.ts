@@ -27,7 +27,7 @@ type KyselyRole = {
   }>;
 };
 
-export class RoleRepository implements IRoleRepository {
+export class KyselyRoleRepository implements IRoleRepository {
   private getRoleSelect() {
     return [
       "Role.id",
@@ -195,7 +195,7 @@ export class RoleRepository implements IRoleRepository {
   ): Promise<T> {
     return kysely.transaction().execute(async (trx) => {
       // Create a new repository instance with the transaction connection
-      const transactionRepo = new RoleRepository();
+      const transactionRepo = new KyselyRoleRepository();
       // Pass both the repository and the transaction connection
       return callback(transactionRepo, trx);
     });

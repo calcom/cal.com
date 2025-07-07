@@ -9,7 +9,7 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import type { LocationObject } from "@calcom/lib/location";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -18,7 +18,7 @@ import { STEPS } from "~/apps/installation/[[...step]]/constants";
 import type { OnboardingPageProps, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
 
 const getUser = async (userId: number) => {
-  const userAdminTeams = await UserRepository.getUserAdminTeams(userId);
+  const userAdminTeams = await PrismaUserRepository.getUserAdminTeams(userId);
 
   if (!userAdminTeams?.id) {
     return null;

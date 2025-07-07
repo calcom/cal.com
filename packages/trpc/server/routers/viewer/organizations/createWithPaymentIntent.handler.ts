@@ -1,7 +1,7 @@
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,7 +20,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const isAdmin = ctx.user.role === "ADMIN";
   // Regular user can send onboardingId if the onboarding was started by ADMIN/someone else and they shared the link with them.
   // ADMIN flow doesn't send onboardingId
-  const organizationOnboarding = await OrganizationOnboardingRepository.findById(input.onboardingId);
+  const organizationOnboarding = await PrismaOrganizationOnboardingRepository.findById(input.onboardingId);
 
   if (!organizationOnboarding) {
     throw new TRPCError({

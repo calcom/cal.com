@@ -4,7 +4,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -75,7 +75,7 @@ async function getTeamMembers({
   for (const membership of memberships) {
     membershipWithUserProfile.push({
       ...membership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await PrismaUserRepository.enrichUserWithItsProfile({
         user: membership.user,
       }),
     });

@@ -9,7 +9,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { updateMeeting } from "@calcom/lib/videoClient";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -172,7 +172,7 @@ async function cancelAttendeeSeat(
     bookingToDelete?.workflowReminders.filter((reminder) => reminder.seatReferenceId === seatReferenceUid) ??
     null;
 
-  await WorkflowRepository.deleteAllWorkflowReminders(workflowRemindersForAttendee);
+  await PrismaWorkflowRepository.deleteAllWorkflowReminders(workflowRemindersForAttendee);
 
   return { success: true };
 }

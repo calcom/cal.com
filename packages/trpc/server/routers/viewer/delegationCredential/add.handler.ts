@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { PrismaWorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
 
 import { TRPCError } from "@trpc/server";
 
@@ -31,7 +31,7 @@ export default async function handler({
   }
 
   try {
-    const workspacePlatform = await WorkspacePlatformRepository.findBySlug({
+    const workspacePlatform = await PrismaWorkspacePlatformRepository.findBySlug({
       slug: workspacePlatformSlug,
     });
 
@@ -48,7 +48,7 @@ export default async function handler({
       delegationCredentialBeingUpdatedId: null,
     });
 
-    const createdDelegation = await DelegationCredentialRepository.create({
+    const createdDelegation = await PrismaDelegationCredentialRepository.create({
       workspacePlatformId: workspacePlatform.id,
       domain,
       // We don't want to enable by default because enabling requires some checks to be completed and it has a separate flow.

@@ -7,7 +7,7 @@ import type { Booking } from "@calcom/prisma/client";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { UserRepository } from "./user";
+import { PrismaUserRepository } from "./user";
 
 type TeamBookingsParamsBase = {
   user: { id: number; email: string };
@@ -112,7 +112,7 @@ const buildWhereClauseForActiveBookings = ({
     : {}),
 });
 
-export class BookingRepository {
+export class PrismaBookingRepository {
   static async getBookingAttendees(bookingId: number) {
     return await prisma.attendee.findMany({
       where: {
@@ -145,7 +145,7 @@ export class BookingRepository {
     if (!booking.eventType || !booking.eventType.teamId) return false;
 
     // TODO add checks for team and org
-    const isAdminOrUser = await UserRepository.isAdminOfTeamOrParentOrg({
+    const isAdminOrUser = await PrismaUserRepository.isAdminOfTeamOrParentOrg({
       userId,
       teamId: booking.eventType.teamId,
     });
@@ -289,7 +289,7 @@ export class BookingRepository {
   }
 
   static findAllExistingBookingsForEventTypeBetween = withReporting(
-    BookingRepository._findAllExistingBookingsForEventTypeBetween,
+    PrismaBookingRepository._findAllExistingBookingsForEventTypeBetween,
     "findAllExistingBookingsForEventTypeBetween"
   );
 

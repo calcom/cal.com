@@ -8,7 +8,7 @@ import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -125,7 +125,7 @@ export class InternalTeamBilling implements TeamBilling {
       const { id: teamId, metadata, isOrganization } = this.team;
 
       const { url } = await this.checkIfTeamPaymentRequired();
-      const organizationOnboarding = await OrganizationOnboardingRepository.findByOrganizationId(
+      const organizationOnboarding = await PrismaOrganizationOnboardingRepository.findByOrganizationId(
         this.team.id
       );
       log.debug("updateQuantity", safeStringify({ url, team: this.team }));

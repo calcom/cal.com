@@ -12,7 +12,7 @@ import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
-import { MembershipRepository } from "./membership";
+import { PrismaMembershipRepository } from "./membership";
 import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
@@ -67,7 +67,7 @@ function usersWithSelectedCalendars<
   return users.map((user) => withSelectedCalendars(user));
 }
 
-export class EventTypeRepository {
+export class PrismaEventTypeRepository {
   private static generateCreateEventTypeData = (eventTypeCreateData: IEventType) => {
     const {
       userId,
@@ -714,7 +714,7 @@ export class EventTypeRepository {
     } satisfies Prisma.EventTypeSelect;
 
     // This is more efficient than using a complex join with team.members in the query
-    const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });
+    const userTeamIds = await PrismaMembershipRepository.findUserTeamIds({ userId });
 
     return await prisma.eventType.findFirst({
       where: {

@@ -2,7 +2,7 @@ import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminde
 import { scheduleSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { scheduleWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -182,7 +182,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       },
     });
 
-    await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
+    await PrismaWorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
 
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {

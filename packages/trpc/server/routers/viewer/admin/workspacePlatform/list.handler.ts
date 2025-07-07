@@ -1,4 +1,4 @@
-import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
+import { PrismaWorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
 
 import { TRPCError } from "@trpc/server";
 
@@ -6,7 +6,7 @@ import { ensureNoServiceAccountKey } from "./utils";
 
 export default async function listHandler() {
   try {
-    const workspacePlatforms = await WorkspacePlatformRepository.findAll();
+    const workspacePlatforms = await PrismaWorkspacePlatformRepository.findAll();
     return workspacePlatforms.map(ensureNoServiceAccountKey);
   } catch (error) {
     console.error(error);

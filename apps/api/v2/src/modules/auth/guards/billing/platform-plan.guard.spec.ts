@@ -1,5 +1,5 @@
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { createMock } from "@golevelup/ts-jest";
 import { ForbiddenException } from "@nestjs/common";
@@ -9,7 +9,7 @@ import { Reflector } from "@nestjs/core";
 describe("PlatformPlanGuard", () => {
   let guard: PlatformPlanGuard;
   let reflector: Reflector;
-  let organizationsRepository: OrganizationsRepository;
+  let organizationsRepository: PrismaOrganizationsRepository;
   let redisService: RedisService;
 
   const mockContext = createMockExecutionContext({
@@ -19,7 +19,7 @@ describe("PlatformPlanGuard", () => {
 
   beforeEach(async () => {
     reflector = new Reflector();
-    organizationsRepository = createMock<OrganizationsRepository>();
+    organizationsRepository = createMock<PrismaOrganizationsRepository>();
     redisService = createMock<RedisService>({
       redis: {
         get: jest.fn().mockResolvedValue(null),

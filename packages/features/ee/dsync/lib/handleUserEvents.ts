@@ -4,7 +4,7 @@ import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import { assignValueToUserInOrgBulk } from "@calcom/lib/service/attribute/server/assignValueToUser";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -79,7 +79,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
 
   if (user) {
     if (eventData.active) {
-      if (UserRepository.isAMemberOfOrganization({ user, organizationId })) {
+      if (PrismaUserRepository.isAMemberOfOrganization({ user, organizationId })) {
         await syncCustomAttributesToUser({
           event,
           userEmail,

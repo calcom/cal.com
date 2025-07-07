@@ -1,4 +1,4 @@
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import type { Availability, Schedule } from "@prisma/client";
 
@@ -6,7 +6,7 @@ import { WeekDay } from "@calcom/platform-types";
 
 @Injectable()
 export class OutputSchedulesService_2024_06_11 {
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(private readonly usersRepository: PrismaUsersRepository) {}
 
   async getResponseSchedule(databaseSchedule: Schedule & { availability: Availability[] }) {
     if (!databaseSchedule.timeZone) {

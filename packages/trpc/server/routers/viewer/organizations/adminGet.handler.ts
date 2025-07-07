@@ -1,4 +1,4 @@
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminGet } from "./adminGet.schema";
@@ -11,7 +11,7 @@ type AdminGetOptions = {
 };
 
 export const adminGetHandler = async ({ input }: AdminGetOptions) => {
-  return await OrganizationRepository.adminFindById({ id: input.id });
+  return await PrismaOrganizationRepository.adminFindById({ id: input.id });
 };
 
 export default adminGetHandler;

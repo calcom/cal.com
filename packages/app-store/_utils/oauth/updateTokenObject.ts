@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type z from "zod";
 
 import logger from "@calcom/lib/logger";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import type { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "./universalSchema";
@@ -62,7 +62,7 @@ export const updateTokenObjectInDb = async (
       return;
     }
 
-    const updated = await CredentialRepository.updateWhereUserIdAndDelegationCredentialId({
+    const updated = await PrismaCredentialRepository.updateWhereUserIdAndDelegationCredentialId({
       userId,
       delegationCredentialId: delegatedToId,
       data: {
@@ -73,7 +73,7 @@ export const updateTokenObjectInDb = async (
     // If no delegation-credential is updated, create one
     if (updated.count === 0) {
       log.debug("No delegation-credential found. Creating one");
-      await CredentialRepository.createDelegationCredential({
+      await PrismaCredentialRepository.createDelegationCredential({
         userId,
         delegationCredentialId: delegatedToId,
         type: credentialType,
@@ -83,7 +83,7 @@ export const updateTokenObjectInDb = async (
     }
   } else {
     const { credentialId } = args;
-    await CredentialRepository.updateWhereId({
+    await PrismaCredentialRepository.updateWhereId({
       id: credentialId,
       data: {
         key: tokenObject as Prisma.InputJsonValue,

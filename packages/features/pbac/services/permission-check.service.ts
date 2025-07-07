@@ -1,6 +1,6 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
@@ -13,12 +13,12 @@ import { PermissionService } from "./permission.service";
 export class PermissionCheckService {
   private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private readonly logger = logger.getSubLogger({ prefix: ["PermissionCheckService"] });
-  private readonly featuresRepository: FeaturesRepository;
+  private readonly featuresRepository: PrismaFeaturesRepository;
   private readonly permissionService: PermissionService;
 
   constructor(
     private readonly repository: IPermissionRepository = new PermissionRepository(),
-    featuresRepository: FeaturesRepository = new FeaturesRepository(),
+    featuresRepository: PrismaFeaturesRepository = new PrismaFeaturesRepository(),
     permissionService: PermissionService = new PermissionService()
   ) {
     this.featuresRepository = featuresRepository;
@@ -82,7 +82,7 @@ export class PermissionCheckService {
         return false;
       }
 
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      const membership = await PrismaMembershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
@@ -131,7 +131,7 @@ export class PermissionCheckService {
         return false;
       }
 
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      const membership = await PrismaMembershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });

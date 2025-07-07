@@ -1,4 +1,4 @@
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -16,7 +16,7 @@ export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions)
   const { teamId } = input;
 
   if (teamId) {
-    const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
+    const adminMembership = await PrismaMembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
 
     if (!adminMembership) {
       throw new TRPCError({
@@ -25,7 +25,7 @@ export const getAllCreditsHandler = async ({ ctx, input }: GetAllCreditsOptions)
     }
   } else {
     //if user is part of team, don't return any credits if teamId is not given
-    const memberships = await MembershipRepository.findAllAcceptedMemberships(ctx.user.id);
+    const memberships = await PrismaMembershipRepository.findAllAcceptedMemberships(ctx.user.id);
 
     if (memberships.length > 0) {
       return null;

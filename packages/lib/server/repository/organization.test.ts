@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import type { Prisma } from "@calcom/prisma/client";
 
-import { OrganizationRepository } from "./organization";
+import { PrismaOrganizationRepository } from "./organization";
 
 vi.mock("./teamUtils", () => ({
   getParsedTeam: (org: any) => org,
@@ -73,7 +73,7 @@ beforeEach(async () => {
 
 describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () => {
   it("should return null if no organization matches the email domain", async () => {
-    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+    const result = await PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
@@ -85,7 +85,9 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
     await createReviewedOrganization({ name: "Test Org 2", orgAutoAcceptEmail: "example.com" });
 
     await expect(
-      OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email: "test@example.com" })
+      PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+        email: "test@example.com",
+      })
     ).rejects.toThrow("Multiple organizations found with the same auto accept email domain");
   });
 
@@ -95,7 +97,7 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
       orgAutoAcceptEmail: "example.com",
     });
 
-    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+    const result = await PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
@@ -105,7 +107,7 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
   it("should not confuse a team with organization", async () => {
     await createTeam({ name: "Test Team", orgAutoAcceptEmail: "example.com" });
 
-    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+    const result = await PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
@@ -115,7 +117,7 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
   it("should correctly match orgAutoAcceptEmail", async () => {
     await createReviewedOrganization({ name: "Test Org", orgAutoAcceptEmail: "noexample.com" });
 
-    const result = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+    const result = await PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
       email: "test@example.com",
     });
 
@@ -130,7 +132,9 @@ describe("Organization.getVerifiedOrganizationByAutoAcceptEmailDomain", () => {
       organizationSettings: { create: { orgAutoAcceptEmail: "cal.com", isOrganizationVerified: true } },
     });
 
-    const result = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain("cal.com");
+    const result = await PrismaOrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(
+      "cal.com"
+    );
 
     expect(result).toEqual({
       id: verifiedOrganization.id,
@@ -146,7 +150,9 @@ describe("Organization.getVerifiedOrganizationByAutoAcceptEmailDomain", () => {
       organizationSettings: { create: { orgAutoAcceptEmail: "cal.com", isOrganizationVerified: false } },
     });
 
-    const result = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain("cal.com");
+    const result = await PrismaOrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(
+      "cal.com"
+    );
 
     expect(result).toEqual(null);
   });

@@ -14,8 +14,8 @@ import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.serve
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
@@ -54,7 +54,7 @@ async function getEnrichedSerializableForm<
 >(form: TForm) {
   const formWithUserInfoProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await PrismaUserRepository.enrichUserWithItsProfile({ user: form.user }),
   };
 
   const serializableForm = await getSerializableForm({
@@ -176,7 +176,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     });
   }
 
-  const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId });
+  const eventType = await PrismaEventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId });
 
   if (!eventType) {
     throw new TRPCError({

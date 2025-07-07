@@ -4,7 +4,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 // import { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 import type { PrismaClient } from "@calcom/prisma";
@@ -46,7 +46,7 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     shouldListUserEvents = true;
   }
 
-  const profileMemberships = await MembershipRepository.findAllByUpIdIncludeTeam(
+  const profileMemberships = await PrismaMembershipRepository.findAllByUpIdIncludeTeam(
     {
       upId: userProfile.upId,
     },

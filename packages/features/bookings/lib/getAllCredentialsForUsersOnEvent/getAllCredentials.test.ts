@@ -7,7 +7,7 @@ import {
 
 import { describe, test, expect, vi } from "vitest";
 
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 
 // vi.mock("@calcom/lib/server/repository/user", () => {
 //   return {
@@ -17,7 +17,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 
 describe("getAllCredentialsIncludeServiceAccountKey", () => {
   test("Get an individual's credentials", async () => {
-    vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
+    vi.spyOn(PrismaUserRepository, "enrichUserWithItsProfile").mockReturnValue({
       profile: null,
     });
 
@@ -62,7 +62,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
     describe("If CRM is enabled on the event type", () => {
       describe("With _crm credentials", () => {
         test("For users", async () => {
-          vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
+          vi.spyOn(PrismaUserRepository, "enrichUserWithItsProfile").mockReturnValue({
             profile: null,
           });
 
@@ -136,7 +136,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
           expect(credentials).toContainEqual(expect.objectContaining({ userId: 1, type: "salesforce_crm" }));
         });
         test("For teams", async () => {
-          vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
+          vi.spyOn(PrismaUserRepository, "enrichUserWithItsProfile").mockReturnValue({
             profile: null,
           });
 
@@ -203,7 +203,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
           expect(credentials).toContainEqual(expect.objectContaining({ teamId: 1, type: "salesforce_crm" }));
         });
         test("For child of managed event type", async () => {
-          vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
+          vi.spyOn(PrismaUserRepository, "enrichUserWithItsProfile").mockReturnValue({
             profile: null,
           });
 
@@ -298,7 +298,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
           const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
             .getAllCredentialsIncludeServiceAccountKey;
           const orgId = 3;
-          vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
+          vi.spyOn(PrismaUserRepository, "enrichUserWithItsProfile").mockReturnValue({
             profile: { organizationId: orgId },
           });
 
@@ -611,7 +611,7 @@ describe("getAllCredentialsIncludeServiceAccountKey", () => {
           const getAllCredentialsIncludeServiceAccountKey = (await import("./getAllCredentials"))
             .getAllCredentialsIncludeServiceAccountKey;
           const orgId = 3;
-          vi.spyOn(UserRepository, "enrichUserWithItsProfile").mockReturnValue({
+          vi.spyOn(PrismaUserRepository, "enrichUserWithItsProfile").mockReturnValue({
             profile: { organizationId: orgId },
           });
 

@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { PrismaRoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import { TRPCError } from "@trpc/server";
@@ -162,14 +162,14 @@ const _handleResponse = async ({
     let dbFormResponse, queuedFormResponse;
     if (!isPreview) {
       if (queueFormResponse) {
-        queuedFormResponse = await RoutingFormResponseRepository.recordQueuedFormResponse({
+        queuedFormResponse = await PrismaRoutingFormResponseRepository.recordQueuedFormResponse({
           formId: form.id,
           response,
           chosenRouteId,
         });
         dbFormResponse = null;
       } else {
-        dbFormResponse = await RoutingFormResponseRepository.recordFormResponse({
+        dbFormResponse = await PrismaRoutingFormResponseRepository.recordFormResponse({
           formId: form.id,
           response,
           chosenRouteId,

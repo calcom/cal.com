@@ -22,7 +22,7 @@ import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import CalendarService from "../CalendarService";
 import {
@@ -222,13 +222,13 @@ async function expectSelectedCalendarToHaveGoogleChannelProps(
     googleChannelExpiration: string;
   }
 ) {
-  const selectedCalendar = await SelectedCalendarRepository.findById(id);
+  const selectedCalendar = await PrismaSelectedCalendarRepository.findById(id);
 
   expect(selectedCalendar).toEqual(expect.objectContaining(googleChannelProps));
 }
 
 async function expectSelectedCalendarToNotHaveGoogleChannelProps(selectedCalendarId: string) {
-  const selectedCalendar = await SelectedCalendarRepository.findFirst({
+  const selectedCalendar = await PrismaSelectedCalendarRepository.findFirst({
     where: {
       id: selectedCalendarId,
     },
@@ -946,7 +946,7 @@ describe("Watching and unwatching calendar", () => {
   test("watchCalendar should not do google subscription if already subscribed for the same calendarId", async () => {
     const credentialInDb1 = await createCredentialForCalendarService();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
-    const userLevelCalendar = await SelectedCalendarRepository.create({
+    const userLevelCalendar = await PrismaSelectedCalendarRepository.create({
       userId: credentialInDb1.userId!,
       externalId: "externalId@cal.com",
       integration: "google_calendar",
@@ -954,7 +954,7 @@ describe("Watching and unwatching calendar", () => {
       credentialId: credentialInDb1.id,
     });
 
-    const eventTypeLevelCalendar = await SelectedCalendarRepository.create({
+    const eventTypeLevelCalendar = await PrismaSelectedCalendarRepository.create({
       userId: credentialInDb1.userId!,
       externalId: "externalId@cal.com",
       integration: "google_calendar",
@@ -999,7 +999,7 @@ describe("Watching and unwatching calendar", () => {
   test("watchCalendar should do google subscription if already subscribed but for different calendarId", async () => {
     const credentialInDb1 = await createCredentialForCalendarService();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
-    const userLevelCalendar = await SelectedCalendarRepository.create({
+    const userLevelCalendar = await PrismaSelectedCalendarRepository.create({
       userId: credentialInDb1.userId!,
       externalId: "externalId@cal.com",
       integration: "google_calendar",
@@ -1007,7 +1007,7 @@ describe("Watching and unwatching calendar", () => {
       credentialId: credentialInDb1.id,
     });
 
-    const eventTypeLevelCalendar = await SelectedCalendarRepository.create({
+    const eventTypeLevelCalendar = await PrismaSelectedCalendarRepository.create({
       userId: credentialInDb1.userId!,
       externalId: "externalId2@cal.com",
       integration: "google_calendar",
@@ -1092,18 +1092,18 @@ describe("Watching and unwatching calendar", () => {
       ...googleChannelProps,
     };
 
-    const userLevelCalendar = await SelectedCalendarRepository.create({
+    const userLevelCalendar = await PrismaSelectedCalendarRepository.create({
       ...commonProps,
       eventTypeId: null,
     });
 
-    const eventTypeLevelCalendar = await SelectedCalendarRepository.create({
+    const eventTypeLevelCalendar = await PrismaSelectedCalendarRepository.create({
       ...commonProps,
       eventTypeId: 1,
     });
 
     const eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId =
-      await SelectedCalendarRepository.create({
+      await PrismaSelectedCalendarRepository.create({
         ...commonProps,
         externalId: "externalId2@cal.com",
         eventTypeId: 2,

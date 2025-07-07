@@ -1,4 +1,4 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizations-webhooks.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
@@ -14,7 +14,7 @@ type CachedData = {
 @Injectable()
 export class IsWebhookInOrg implements CanActivate {
   constructor(
-    private organizationsRepository: OrganizationsRepository,
+    private organizationsRepository: PrismaOrganizationsRepository,
     private organizationsWebhooksRepository: OrganizationsWebhooksRepository,
     private readonly redisService: RedisService
   ) {}

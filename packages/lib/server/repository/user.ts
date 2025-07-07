@@ -79,7 +79,7 @@ const userSelect = {
   teams: true,
 } satisfies Prisma.UserSelect;
 
-export class UserRepository {
+export class PrismaUserRepository {
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await prisma.membership.findMany({
       where: {
@@ -104,7 +104,7 @@ export class UserRepository {
   }
 
   static async findOrganizations({ userId }: { userId: UserType["id"] }) {
-    const { acceptedTeamMemberships } = await UserRepository.findTeamsByUserId({
+    const { acceptedTeamMemberships } = await PrismaUserRepository.findTeamsByUserId({
       userId,
     });
 
@@ -129,7 +129,7 @@ export class UserRepository {
     orgSlug: string | null;
     usernameList: string[];
   }) {
-    const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
+    const { where, profiles } = await PrismaUserRepository._getWhereClauseForFindingUsersByUsername({
       orgSlug,
       usernameList,
     });
@@ -309,7 +309,7 @@ export class UserRepository {
   }
 
   static async findByIdOrThrow({ id }: { id: number }) {
-    const user = await UserRepository.findById({ id });
+    const user = await PrismaUserRepository.findById({ id });
     if (!user) {
       throw new Error(`User with id ${id} not found`);
     }

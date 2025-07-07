@@ -15,7 +15,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, vi, expect } from "vitest";
 
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaBookingRepository } from "@calcom/lib/server/repository/booking";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -286,7 +286,7 @@ describe("roundRobinReassignment test", () => {
       userId: 1,
     });
 
-    const attendees = await BookingRepository.getBookingAttendees(123);
+    const attendees = await PrismaBookingRepository.getBookingAttendees(123);
 
     expect(attendees.some((attendee) => attendee.email === currentRRHost.email)).toBe(false);
 

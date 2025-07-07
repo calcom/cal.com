@@ -1,6 +1,6 @@
 import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/schedules/organizations-schedules.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 import { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
@@ -10,7 +10,7 @@ export class OrganizationsSchedulesService {
   constructor(
     private readonly organizationSchedulesService: OrganizationSchedulesRepository,
     private readonly outputSchedulesService: OutputSchedulesService_2024_06_11,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: PrismaUsersRepository
   ) {}
 
   async getOrganizationSchedules(organizationId: number, skip = 0, take = 250) {

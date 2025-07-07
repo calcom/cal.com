@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
+import { PrismaWorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
 
 import type { workspacePlatformToggleEnabledSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";
@@ -10,7 +10,7 @@ export default async function toggleEnabledHandler({
 }: {
   input: z.infer<typeof workspacePlatformToggleEnabledSchema>;
 }) {
-  const updatedWorkspacePlatform = await WorkspacePlatformRepository.updateById({
+  const updatedWorkspacePlatform = await PrismaWorkspacePlatformRepository.updateById({
     id: input.id,
     data: {
       enabled: input.enabled,

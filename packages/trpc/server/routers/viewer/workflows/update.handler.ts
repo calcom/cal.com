@@ -2,7 +2,7 @@ import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFun
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -324,7 +324,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     //step was deleted
     if (!newStep) {
       // cancel all workflow reminders from deleted steps
-      await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
+      await PrismaWorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
 
       await ctx.prisma.workflowStep.delete({
         where: {
@@ -412,7 +412,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       }
 
       // cancel all notifications of edited step
-      await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
+      await PrismaWorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
     }
   });
 

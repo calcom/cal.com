@@ -11,13 +11,13 @@ import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repos
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
+import { PrismaUsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
@@ -88,11 +88,11 @@ export class BookingsService_2024_08_13 {
     private readonly kyselyReadService: KyselyReadService,
     private readonly billingService: BillingService,
     private readonly usersService: UsersService,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly platformBookingsService: PlatformBookingsService,
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
-    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly organizationsRepository: PrismaOrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
     private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13

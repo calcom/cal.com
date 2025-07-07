@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
@@ -21,7 +21,7 @@ type GetByViewerOptions = {
   input: TGetEventTypesFromGroupSchema;
 };
 
-type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
+type EventType = Awaited<ReturnType<typeof PrismaEventTypeRepository.findAllByUpId>>[number];
 type MappedEventType = Awaited<ReturnType<typeof mapEventType>>;
 
 export const getEventTypesFromGroup = async ({
@@ -56,7 +56,7 @@ export const getEventTypesFromGroup = async ({
     };
 
     const [nonChildEventTypes, childEventTypes] = await Promise.all([
-      EventTypeRepository.findAllByUpId(
+      PrismaEventTypeRepository.findAllByUpId(
         {
           upId: userProfile.upId,
           userId: ctx.user.id,
@@ -78,7 +78,7 @@ export const getEventTypesFromGroup = async ({
           cursor,
         }
       ),
-      EventTypeRepository.findAllByUpId(
+      PrismaEventTypeRepository.findAllByUpId(
         {
           upId: userProfile.upId,
           userId: ctx.user.id,
@@ -117,7 +117,7 @@ export const getEventTypesFromGroup = async ({
 
   if (teamId) {
     const teamEventTypes =
-      (await EventTypeRepository.findTeamEventTypes({
+      (await PrismaEventTypeRepository.findTeamEventTypes({
         teamId,
         parentId,
         userId: ctx.user.id,

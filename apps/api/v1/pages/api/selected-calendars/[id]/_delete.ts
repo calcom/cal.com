@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
 
@@ -49,7 +49,7 @@ import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
 export async function deleteHandler(req: NextApiRequest) {
   const { query } = req;
   const userId_integration_externalId = selectedCalendarIdSchema.parse(query);
-  await SelectedCalendarRepository.deleteUserLevel({
+  await PrismaSelectedCalendarRepository.deleteUserLevel({
     where: userId_integration_externalId,
   });
   return { message: `Selected Calendar with id: ${query.id} deleted successfully` };

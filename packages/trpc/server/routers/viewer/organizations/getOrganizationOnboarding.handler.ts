@@ -1,4 +1,4 @@
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
 import type { TrpcSessionUser } from "../../../types";
 
@@ -11,7 +11,7 @@ type OrganizationOnboarding = {
 export async function getOrganizationOnboardingHandler({ ctx }: OrganizationOnboarding) {
   const { user: loggedInUser } = ctx;
 
-  const organizationOnboarding = await OrganizationOnboardingRepository.findByOrgOwnerEmail(
+  const organizationOnboarding = await PrismaOrganizationOnboardingRepository.findByOrgOwnerEmail(
     loggedInUser.email
   );
 

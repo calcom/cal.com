@@ -10,7 +10,7 @@ import {
 } from "@calcom/lib/server/serviceAccountKey";
 import { prisma } from "@calcom/prisma";
 
-import { OrganizationRepository } from "./organization";
+import { PrismaOrganizationRepository } from "./organization";
 
 export type { ServiceAccountKey };
 const repositoryLogger = logger.getSubLogger({ prefix: ["DelegationCredentialRepository"] });
@@ -48,7 +48,7 @@ function doesEmailMatchDelegationCredentialDomain({
   return memberEmailDomain === delegationCredentialEmailDomain;
 }
 
-export class DelegationCredentialRepository {
+export class PrismaDelegationCredentialRepository {
   private static encryptServiceAccountKey(serviceAccountKey: ServiceAccountKey): EncryptedServiceAccountKey {
     return encryptServiceAccountKey(serviceAccountKey);
   }
@@ -121,7 +121,7 @@ export class DelegationCredentialRepository {
       where: { organizationId_domain: { organizationId, domain } },
       select: delegationCredentialSelectIncludesServiceAccountKey,
     });
-    return DelegationCredentialRepository.withParsedServiceAccountKey(delegationCredential);
+    return PrismaDelegationCredentialRepository.withParsedServiceAccountKey(delegationCredential);
   }
 
   static async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
@@ -130,7 +130,7 @@ export class DelegationCredentialRepository {
       select: delegationCredentialSelectIncludesServiceAccountKey,
     });
     if (!delegationCredential) return null;
-    return DelegationCredentialRepository.withParsedServiceAccountKey(delegationCredential);
+    return PrismaDelegationCredentialRepository.withParsedServiceAccountKey(delegationCredential);
   }
 
   static async findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey({ email }: { email: string }) {
@@ -138,7 +138,7 @@ export class DelegationCredentialRepository {
       prefix: ["findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey"],
     });
     log.debug("called with", { email });
-    const organization = await OrganizationRepository.findByMemberEmail({ email });
+    const organization = await PrismaOrganizationRepository.findByMemberEmail({ email });
     if (!organization) {
       log.debug("Email not found in any organization:", email);
       return null;
@@ -155,7 +155,7 @@ export class DelegationCredentialRepository {
       select: delegationCredentialSelectIncludesServiceAccountKey,
     });
 
-    return DelegationCredentialRepository.withParsedServiceAccountKey(delegationCredential);
+    return PrismaDelegationCredentialRepository.withParsedServiceAccountKey(delegationCredential);
   }
 
   static async findAllByDomain({ domain }: { domain: string }) {

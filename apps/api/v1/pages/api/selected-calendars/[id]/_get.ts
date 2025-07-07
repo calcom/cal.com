@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { schemaSelectedCalendarPublic, selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
 
@@ -49,7 +49,7 @@ import { schemaSelectedCalendarPublic, selectedCalendarIdSchema } from "~/lib/va
 export async function getHandler(req: NextApiRequest) {
   const { query } = req;
   const userId_integration_externalId = selectedCalendarIdSchema.parse(query);
-  const data = await SelectedCalendarRepository.findUserLevelUniqueOrThrow({
+  const data = await PrismaSelectedCalendarRepository.findUserLevelUniqueOrThrow({
     where: userId_integration_externalId,
   });
   return { selected_calendar: schemaSelectedCalendarPublic.parse(data) };

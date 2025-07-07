@@ -13,8 +13,8 @@ import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-gu
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { OAuthClientsService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients.service";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import {
   Body,
   Controller,
@@ -55,8 +55,8 @@ export class OAuthClientsController {
   constructor(
     private readonly oAuthClientUsersOutputService: OAuthClientUsersOutputService,
     private readonly oAuthClientsService: OAuthClientsService,
-    private readonly userRepository: UsersRepository,
-    private readonly teamsRepository: OrganizationsRepository
+    private readonly userRepository: PrismaUsersRepository,
+    private readonly teamsRepository: PrismaOrganizationsRepository
   ) {}
 
   @Post("/")

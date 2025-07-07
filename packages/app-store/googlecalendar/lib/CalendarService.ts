@@ -12,7 +12,7 @@ import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type {
@@ -677,7 +677,7 @@ export default class GoogleCalendarService implements Calendar {
     const fromDate = new Date(dateFrom);
     const toDate = new Date(dateTo);
     const oneDayMs = 1000 * 60 * 60 * 24;
-    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / (oneDayMs));
+    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / oneDayMs);
 
     // Google API only allows a date range of 90 days for /freebusy
     if (diff <= 90) {
@@ -835,7 +835,7 @@ export default class GoogleCalendarService implements Calendar {
       return;
     }
 
-    const allCalendarsWithSubscription = await SelectedCalendarRepository.findMany({
+    const allCalendarsWithSubscription = await PrismaSelectedCalendarRepository.findMany({
       where: {
         credentialId: this.credential.id,
         externalId: calendarId,
@@ -902,7 +902,7 @@ export default class GoogleCalendarService implements Calendar {
     const credentialId = this.credential.id;
     const eventTypeIdsToBeUnwatched = eventTypeIds;
 
-    const calendarsWithSameCredentialId = await SelectedCalendarRepository.findMany({
+    const calendarsWithSameCredentialId = await PrismaSelectedCalendarRepository.findMany({
       where: {
         credentialId,
       },
@@ -1024,7 +1024,7 @@ export default class GoogleCalendarService implements Calendar {
   async createSelectedCalendar(
     data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
   ) {
-    return await SelectedCalendarRepository.create({
+    return await PrismaSelectedCalendarRepository.create({
       ...data,
       integration: this.integrationName,
       credentialId: this.credential.id,
@@ -1038,7 +1038,7 @@ export default class GoogleCalendarService implements Calendar {
       logger.error("upsertSelectedCalendar failed. userId is missing.");
       return;
     }
-    return await SelectedCalendarRepository.upsert({
+    return await PrismaSelectedCalendarRepository.upsert({
       ...data,
       eventTypeId: data.eventTypeId ?? null,
       integration: this.integrationName,
@@ -1060,7 +1060,7 @@ export default class GoogleCalendarService implements Calendar {
       return;
     }
 
-    await SelectedCalendarRepository.upsertManyForEventTypeIds({
+    await PrismaSelectedCalendarRepository.upsertManyForEventTypeIds({
       data: {
         ...data,
         integration: this.integrationName,

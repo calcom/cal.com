@@ -9,8 +9,8 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
-import { EventRepository } from "@calcom/lib/server/repository/event";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaEventRepository } from "@calcom/lib/server/repository/event";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
@@ -135,7 +135,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
+  const usersInOrgContext = await PrismaUserRepository.findUsersByUsername({
     usernameList: usernames,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
@@ -151,7 +151,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
 
-  const eventData = await EventRepository.getPublicEvent(
+  const eventData = await PrismaEventRepository.getPublicEvent(
     {
       username: usernames.join("+"),
       eventSlug: slug,
@@ -245,7 +245,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
-  const eventData = await EventRepository.getPublicEvent(
+  const eventData = await PrismaEventRepository.getPublicEvent(
     {
       username,
       eventSlug: slug,

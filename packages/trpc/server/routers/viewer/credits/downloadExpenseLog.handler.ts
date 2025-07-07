@@ -1,5 +1,5 @@
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 
 import { TRPCError } from "@trpc/server";
 
@@ -18,7 +18,7 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
   const { teamId, startDate, endDate } = input;
 
   if (teamId) {
-    const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
+    const adminMembership = await PrismaMembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
 
     if (!adminMembership) {
       throw new TRPCError({

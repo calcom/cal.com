@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import type { FindManyArgs } from "@calcom/lib/server/repository/selectedCalendar";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { schemaSelectedCalendarPublic } from "~/lib/validations/selected-calendar";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
@@ -46,7 +46,7 @@ async function getHandler(req: NextApiRequest) {
     if (Array.isArray(query.userId)) args.orderBy = { userId: "asc" };
   }
 
-  const data = await SelectedCalendarRepository.findManyUserLevel(args);
+  const data = await PrismaSelectedCalendarRepository.findManyUserLevel(args);
   return { selected_calendars: data.map((v) => schemaSelectedCalendarPublic.parse(v)) };
 }
 

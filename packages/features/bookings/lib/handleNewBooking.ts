@@ -35,7 +35,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import { UsersRepository } from "@calcom/features/users/users.repository";
+import { PrismaUsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -66,8 +66,8 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaBookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
@@ -506,7 +506,7 @@ async function handler(
     (!isConfirmedByDefault && !userReschedulingIsOwner) ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
-    const existingBooking = await BookingRepository.getValidBookingFromEventTypeForAttendee({
+    const existingBooking = await PrismaBookingRepository.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
@@ -1376,7 +1376,7 @@ async function handler(
       });
 
       if (booking?.userId) {
-        const usersRepository = new UsersRepository();
+        const usersRepository = new PrismaUsersRepository();
         await usersRepository.updateLastActiveAt(booking.userId);
       }
 
@@ -1487,7 +1487,7 @@ async function handler(
   if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     // cancel workflow reminders from previous rescheduled booking
-    await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
+    await PrismaWorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
     evt.rescheduledBy = reqBody.rescheduledBy;

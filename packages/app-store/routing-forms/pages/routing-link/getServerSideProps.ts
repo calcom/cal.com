@@ -66,10 +66,10 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const { PrismaUserRepository } = await import("@calcom/lib/server/repository/user");
   const formWithUserProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await PrismaUserRepository.enrichUserWithItsProfile({ user: form.user }),
   };
 
   if (

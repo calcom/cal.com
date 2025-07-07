@@ -4,9 +4,9 @@ import { describe, expect, it, beforeEach } from "vitest";
 
 import prisma from "@calcom/prisma";
 
-import { SelectedCalendarRepository } from "./selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "./selectedCalendar";
 
-describe("SelectedCalendarRepository", () => {
+describe("PrismaSelectedCalendarRepository", () => {
   beforeEach(() => {
     prismock.selectedCalendar.deleteMany();
   });
@@ -20,7 +20,7 @@ describe("SelectedCalendarRepository", () => {
         credentialId: 1,
       };
 
-      const result = await SelectedCalendarRepository.create(data);
+      const result = await PrismaSelectedCalendarRepository.create(data);
 
       expect(result).toEqual(expect.objectContaining(data));
     });
@@ -34,10 +34,10 @@ describe("SelectedCalendarRepository", () => {
         eventTypeId: null,
       };
 
-      await SelectedCalendarRepository.create(data);
+      await PrismaSelectedCalendarRepository.create(data);
 
       await expect(
-        SelectedCalendarRepository.create({
+        PrismaSelectedCalendarRepository.create({
           ...data,
           credentialId: 2,
         })
@@ -53,13 +53,13 @@ describe("SelectedCalendarRepository", () => {
         eventTypeId: 1,
       };
 
-      await SelectedCalendarRepository.create(data);
+      await PrismaSelectedCalendarRepository.create(data);
 
       const userLevelCalendarData = {
         ...data,
         eventTypeId: null,
       };
-      const created = await SelectedCalendarRepository.create(userLevelCalendarData);
+      const created = await PrismaSelectedCalendarRepository.create(userLevelCalendarData);
 
       expect(created).toEqual(expect.objectContaining(userLevelCalendarData));
     });
@@ -67,14 +67,14 @@ describe("SelectedCalendarRepository", () => {
 
   describe("update", () => {
     it("should update a selected calendar and return it", async () => {
-      const calendarToUpdate = await SelectedCalendarRepository.create({
+      const calendarToUpdate = await PrismaSelectedCalendarRepository.create({
         userId: 1,
         integration: "google_calendar",
         externalId: "test@gmail.com",
         credentialId: 1,
       });
 
-      const updatedCalendar = await SelectedCalendarRepository.update({
+      const updatedCalendar = await PrismaSelectedCalendarRepository.update({
         where: { userId: 1, externalId: "test@gmail.com" },
         data: { integration: "office365_calendar" },
       });
@@ -84,14 +84,14 @@ describe("SelectedCalendarRepository", () => {
     });
 
     it("should throw error when trying to update multiple calendars", async () => {
-      await SelectedCalendarRepository.create({
+      await PrismaSelectedCalendarRepository.create({
         userId: 1,
         integration: "google_calendar",
         externalId: "test1@gmail.com",
         credentialId: 1,
       });
 
-      await SelectedCalendarRepository.create({
+      await PrismaSelectedCalendarRepository.create({
         userId: 1,
         integration: "google_calendar2",
         externalId: "test1@gmail.com",
@@ -99,7 +99,7 @@ describe("SelectedCalendarRepository", () => {
       });
 
       await expect(
-        SelectedCalendarRepository.update({
+        PrismaSelectedCalendarRepository.update({
           where: { userId: 1, externalId: "test1@gmail.com" },
           data: { integration: "office365_calendar" },
         })
@@ -111,14 +111,14 @@ describe("SelectedCalendarRepository", () => {
 
   describe("delete", () => {
     it("should delete a selected calendar and return it", async () => {
-      const calendar = await SelectedCalendarRepository.create({
+      const calendar = await PrismaSelectedCalendarRepository.create({
         userId: 1,
         integration: "google_calendar",
         externalId: "test@gmail.com",
         credentialId: 1,
       });
 
-      const deleted = await SelectedCalendarRepository.delete({
+      const deleted = await PrismaSelectedCalendarRepository.delete({
         where: {
           userId: 1,
           integration: "google_calendar",
@@ -128,7 +128,7 @@ describe("SelectedCalendarRepository", () => {
       });
 
       expect(deleted).toEqual(calendar);
-      const result = await SelectedCalendarRepository.findFirst({
+      const result = await PrismaSelectedCalendarRepository.findFirst({
         where: { id: calendar.id },
       });
 
@@ -137,7 +137,7 @@ describe("SelectedCalendarRepository", () => {
 
     it("should throw error when trying to delete non-existent calendar", async () => {
       await expect(
-        SelectedCalendarRepository.delete({
+        PrismaSelectedCalendarRepository.delete({
           where: {
             userId: 999,
             integration: "google_calendar",
@@ -151,7 +151,7 @@ describe("SelectedCalendarRepository", () => {
 
   describe("findUserLevelUniqueOrThrow", () => {
     it("should find user level calendar", async () => {
-      const calendar = await SelectedCalendarRepository.create({
+      const calendar = await PrismaSelectedCalendarRepository.create({
         userId: 1,
         integration: "google_calendar",
         externalId: "test@gmail.com",
@@ -159,7 +159,7 @@ describe("SelectedCalendarRepository", () => {
         eventTypeId: null, // User level calendar
       });
 
-      const result = await SelectedCalendarRepository.findUserLevelUniqueOrThrow({
+      const result = await PrismaSelectedCalendarRepository.findUserLevelUniqueOrThrow({
         where: { userId: 1, externalId: "test@gmail.com" },
       });
 
@@ -172,7 +172,7 @@ describe("SelectedCalendarRepository", () => {
     });
 
     it("should not find event type level calendar", async () => {
-      await SelectedCalendarRepository.create({
+      await PrismaSelectedCalendarRepository.create({
         userId: 1,
         integration: "google_calendar",
         externalId: "test@gmail.com",
@@ -181,7 +181,7 @@ describe("SelectedCalendarRepository", () => {
       });
 
       await expect(
-        SelectedCalendarRepository.findUserLevelUniqueOrThrow({
+        PrismaSelectedCalendarRepository.findUserLevelUniqueOrThrow({
           where: { userId: 1, externalId: "test@gmail.com" },
         })
       ).rejects.toThrow("SelectedCalendar not found");
@@ -200,7 +200,7 @@ describe("SelectedCalendarRepository", () => {
           eventTypeId,
         };
 
-        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+        const existingCalendar = await PrismaSelectedCalendarRepository.create(initialData);
 
         const updatedData = {
           ...initialData,
@@ -208,7 +208,7 @@ describe("SelectedCalendarRepository", () => {
           eventTypeId,
         };
 
-        const result = await SelectedCalendarRepository.upsert(updatedData);
+        const result = await PrismaSelectedCalendarRepository.upsert(updatedData);
 
         expect(result.credentialId).toBe(2);
         expect(existingCalendar.id).toBe(result.id);
@@ -223,7 +223,7 @@ describe("SelectedCalendarRepository", () => {
           eventTypeId,
         };
 
-        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+        const existingCalendar = await PrismaSelectedCalendarRepository.create(initialData);
 
         const updatedData = {
           ...initialData,
@@ -232,7 +232,7 @@ describe("SelectedCalendarRepository", () => {
           eventTypeId,
         };
 
-        const result = await SelectedCalendarRepository.upsert(updatedData);
+        const result = await PrismaSelectedCalendarRepository.upsert(updatedData);
         expect(await prisma.selectedCalendar.count()).toBe(2);
         expect(result).toEqual(expect.objectContaining(updatedData));
         expect(existingCalendar.id).not.toBe(result.id);
@@ -250,7 +250,7 @@ describe("SelectedCalendarRepository", () => {
           eventTypeId,
         };
 
-        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+        const existingCalendar = await PrismaSelectedCalendarRepository.create(initialData);
 
         const updatedData = {
           ...initialData,
@@ -258,7 +258,7 @@ describe("SelectedCalendarRepository", () => {
           eventTypeId,
         };
 
-        const result = await SelectedCalendarRepository.upsert(updatedData);
+        const result = await PrismaSelectedCalendarRepository.upsert(updatedData);
 
         expect(result.credentialId).toBe(2);
         expect(existingCalendar.id).toBe(result.id);
@@ -273,7 +273,7 @@ describe("SelectedCalendarRepository", () => {
           eventTypeId,
         };
 
-        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+        const existingCalendar = await PrismaSelectedCalendarRepository.create(initialData);
 
         const updatedData = {
           ...initialData,
@@ -282,7 +282,7 @@ describe("SelectedCalendarRepository", () => {
           eventTypeId,
         };
 
-        const result = await SelectedCalendarRepository.upsert(updatedData);
+        const result = await PrismaSelectedCalendarRepository.upsert(updatedData);
         expect(await prisma.selectedCalendar.count()).toBe(2);
         expect(result).toEqual(expect.objectContaining(updatedData));
         expect(existingCalendar.id).not.toBe(result.id);
@@ -299,7 +299,7 @@ describe("SelectedCalendarRepository", () => {
         delegationCredentialId: "delegationCredential-123",
       };
 
-      const result = await SelectedCalendarRepository.create(data);
+      const result = await PrismaSelectedCalendarRepository.create(data);
 
       expect(result).toEqual(expect.objectContaining(data));
     });
@@ -315,7 +315,7 @@ describe("SelectedCalendarRepository", () => {
             eventTypeId: null,
           };
 
-          const existingCalendar = await SelectedCalendarRepository.create(initialData);
+          const existingCalendar = await PrismaSelectedCalendarRepository.create(initialData);
 
           const data = {
             userId: 1,
@@ -325,7 +325,7 @@ describe("SelectedCalendarRepository", () => {
             delegationCredentialId: "delegationCredential-123",
           };
 
-          const result = await SelectedCalendarRepository.upsert(data);
+          const result = await PrismaSelectedCalendarRepository.upsert(data);
           expect(result.id).not.toBe(null);
           expect(result.id).toBe(existingCalendar.id);
           expect(result.credentialId).toBe(null);
@@ -341,7 +341,7 @@ describe("SelectedCalendarRepository", () => {
             eventTypeId: null,
           };
 
-          const existingCalendar = await SelectedCalendarRepository.create(initialData);
+          const existingCalendar = await PrismaSelectedCalendarRepository.create(initialData);
 
           const data = {
             userId: 1,
@@ -352,7 +352,7 @@ describe("SelectedCalendarRepository", () => {
           };
           const beforeDelegationCredentialId = data.delegationCredentialId;
 
-          const result = await SelectedCalendarRepository.upsert(data);
+          const result = await PrismaSelectedCalendarRepository.upsert(data);
           expect(result.id).not.toBe(null);
           expect(result.id).toBe(existingCalendar.id);
           expect(result.credentialId).toBe(data.credentialId);
@@ -370,7 +370,7 @@ describe("SelectedCalendarRepository", () => {
             eventTypeId: null,
           };
 
-          const existingCalendar = await SelectedCalendarRepository.create(initialData);
+          const existingCalendar = await PrismaSelectedCalendarRepository.create(initialData);
 
           const data = {
             userId: 1,
@@ -381,7 +381,7 @@ describe("SelectedCalendarRepository", () => {
           };
 
           // It will create a new record because of unique constraint violation
-          const result = await SelectedCalendarRepository.upsert(data);
+          const result = await PrismaSelectedCalendarRepository.upsert(data);
           expect(result.id).not.toBe(null);
           expect(result.id).not.toBe(existingCalendar.id);
           expect(result.credentialId).toBe(null);
@@ -400,7 +400,7 @@ describe("SelectedCalendarRepository", () => {
         };
 
         const beforeDelegationCredentialId = initialData.delegationCredentialId;
-        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+        const existingCalendar = await PrismaSelectedCalendarRepository.create(initialData);
 
         const data = {
           userId: 1,
@@ -409,7 +409,7 @@ describe("SelectedCalendarRepository", () => {
           credentialId: 1,
         };
 
-        const result = await SelectedCalendarRepository.upsert(data);
+        const result = await PrismaSelectedCalendarRepository.upsert(data);
         expect(result.id).toBe(existingCalendar.id);
         expect(result.credentialId).toBe(existingCalendar.credentialId);
         expect(result.delegationCredentialId).toBe(beforeDelegationCredentialId);
@@ -424,7 +424,7 @@ describe("SelectedCalendarRepository", () => {
           delegationCredentialId: "delegationCredential-123",
         };
 
-        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+        const existingCalendar = await PrismaSelectedCalendarRepository.create(initialData);
 
         const data = {
           userId: 1,
@@ -432,7 +432,7 @@ describe("SelectedCalendarRepository", () => {
           externalId: "test@gmail.com",
         };
 
-        const result = await SelectedCalendarRepository.upsert(data);
+        const result = await PrismaSelectedCalendarRepository.upsert(data);
         expect(result.id).toBe(existingCalendar.id);
         expect(result.credentialId).toBe(existingCalendar.credentialId);
         expect(result.delegationCredentialId).toBe(existingCalendar.delegationCredentialId);

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { OtherTeamsListing } from "@calcom/features/ee/organizations/pages/components/OtherTeamsListing";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -27,7 +27,7 @@ const Page = async () => {
   }
   const organizationId = session?.user?.org?.id;
   const otherTeams = organizationId
-    ? await OrganizationRepository.findTeamsInOrgIamNotPartOf({
+    ? await PrismaOrganizationRepository.findTeamsInOrgIamNotPartOf({
         userId: session?.user.id,
         parentId: organizationId,
       })

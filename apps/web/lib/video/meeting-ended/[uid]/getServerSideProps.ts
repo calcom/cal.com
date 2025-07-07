@@ -1,12 +1,12 @@
 import type { GetServerSidePropsContext } from "next";
 
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaBookingRepository } from "@calcom/lib/server/repository/booking";
 
 import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const booking = await BookingRepository.findBookingForMeetingEndedPage({
+  const booking = await PrismaBookingRepository.findBookingForMeetingEndedPage({
     bookingUid: context.query.uid as string,
   });
 

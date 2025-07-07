@@ -1,7 +1,7 @@
 import type z from "zod";
 
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
@@ -57,7 +57,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
     }
   }
 
-  const { profile } = await UserRepository.enrichUserWithItsProfile({
+  const { profile } = await PrismaUserRepository.enrichUserWithItsProfile({
     user: user,
   });
 

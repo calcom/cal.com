@@ -1,7 +1,7 @@
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiAuthGuardRequest } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 
@@ -9,7 +9,7 @@ import { PassportStrategy } from "@nestjs/passport";
 export class ApiAuthMockStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
   constructor(
     private readonly email: string,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly usersService: UsersService
   ) {
     super();

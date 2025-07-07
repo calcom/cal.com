@@ -1,6 +1,6 @@
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
 import { TRPCError } from "@trpc/server";
 
@@ -29,7 +29,7 @@ export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOp
     });
   }
 
-  const organizationOnboarding = await OrganizationOnboardingRepository.findById(input.onboardingId);
+  const organizationOnboarding = await PrismaOrganizationOnboardingRepository.findById(input.onboardingId);
 
   if (!organizationOnboarding) {
     throw new TRPCError({
@@ -65,7 +65,7 @@ export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOp
     },
   });
 
-  await OrganizationOnboardingRepository.markAsComplete(organizationOnboarding.id);
+  await PrismaOrganizationOnboardingRepository.markAsComplete(organizationOnboarding.id);
 
   return {
     organization,

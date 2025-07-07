@@ -31,11 +31,11 @@ import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaDeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -116,7 +116,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+      const user = await PrismaUserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: credentials.email,
       });
       // Don't leak information about it being username or password that is invalid
@@ -291,7 +291,7 @@ if (isSAMLLoginEnabled) {
       locale?: string;
     }) => {
       log.debug("BoxyHQ:profile", safeStringify({ profile }));
-      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+      const user = await PrismaUserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
       return {
@@ -357,12 +357,14 @@ if (isSAMLLoginEnabled) {
         const email = userInfo.email.toLowerCase();
         let user = !email
           ? undefined
-          : await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
+          : await PrismaUserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
         if (!user) {
           const hostedCal = Boolean(HOSTED_CAL_FEATURES);
           if (hostedCal && email) {
             const domain = getDomainFromEmail(email);
-            const org = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
+            const org = await PrismaOrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(
+              domain
+            );
             if (org) {
               const createUsersAndConnectToOrgProps = {
                 emailsToCreate: [email],
@@ -373,7 +375,7 @@ if (isSAMLLoginEnabled) {
                 createUsersAndConnectToOrgProps,
                 org,
               });
-              user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+              user = await PrismaUserRepository.findByEmailAndIncludeProfilesAndPassword({
                 email: email,
               });
             }
@@ -628,7 +630,7 @@ export const getOptions = ({
         const grantedScopes = account.scope?.split(" ") ?? [];
         if (
           account.provider === "google" &&
-          !(await CredentialRepository.findFirstByAppIdAndUserId({
+          !(await PrismaCredentialRepository.findFirstByAppIdAndUserId({
             userId: user.id as number,
             appId: "google-calendar",
           })) &&
@@ -642,7 +644,7 @@ export const getOptions = ({
             token_type: account.token_type,
             expires_at: account.expires_at,
           };
-          const gcalCredential = await CredentialRepository.create({
+          const gcalCredential = await PrismaCredentialRepository.create({
             userId: user.id as number,
             key: credentialkey,
             appId: "google-calendar",
@@ -655,12 +657,12 @@ export const getOptions = ({
           });
 
           if (
-            !(await CredentialRepository.findFirstByUserIdAndType({
+            !(await PrismaCredentialRepository.findFirstByUserIdAndType({
               userId: user.id as number,
               type: "google_video",
             }))
           ) {
-            await CredentialRepository.create({
+            await PrismaCredentialRepository.create({
               type: "google_video",
               key: {},
               userId: user.id as number,
@@ -713,7 +715,7 @@ export const getOptions = ({
     },
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
-      const deploymentRepo = new DeploymentRepository(prisma);
+      const deploymentRepo = new PrismaDeploymentRepository(prisma);
       const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
       const hasValidLicense = await licenseKeyService.checkLicense();
       const profileId = token.profileId;

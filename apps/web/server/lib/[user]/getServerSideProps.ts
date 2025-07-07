@@ -11,7 +11,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -199,7 +199,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 };
 
 export async function getUsersInOrgContext(usernameList: string[], orgSlug: string | null) {
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
+  const usersInOrgContext = await PrismaUserRepository.findUsersByUsername({
     usernameList,
     orgSlug,
   });
@@ -210,9 +210,9 @@ export async function getUsersInOrgContext(usernameList: string[], orgSlug: stri
 
   // note(Lauris): platform members (people who run platform) are part of platform organization while
   // the platform organization does not have a domain. In this case there is no org domain but also platform member
-  // "User.organization" is not null so "UserRepository.findUsersByUsername" returns empty array and we do this as a last resort
+  // "User.organization" is not null so "PrismaUserRepository.findUsersByUsername" returns empty array and we do this as a last resort
   // call to find platform member.
-  return await UserRepository.findPlatformMembersByUsernames({
+  return await PrismaUserRepository.findPlatformMembersByUsernames({
     usernameList,
   });
 }

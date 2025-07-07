@@ -7,8 +7,8 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaDeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
@@ -65,7 +65,7 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const deploymentRepo = new DeploymentRepository(prisma);
+  const deploymentRepo = new PrismaDeploymentRepository(prisma);
   const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
   const hasValidLicense = await licenseKeyService.checkLicense();
 
@@ -80,7 +80,7 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const user = await UserRepository.enrichUserWithTheProfile({
+  const user = await PrismaUserRepository.enrichUserWithTheProfile({
     user: userFromDb,
     upId,
   });

@@ -23,7 +23,7 @@ import logger from "@calcom/lib/logger";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -510,7 +510,9 @@ async function handler(input: CancelBookingInput) {
       webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
 
       //Workflows - cancel all reminders for cancelled bookings
-      workflowReminderPromises.push(WorkflowRepository.deleteAllWorkflowReminders(booking.workflowReminders));
+      workflowReminderPromises.push(
+        PrismaWorkflowRepository.deleteAllWorkflowReminders(booking.workflowReminders)
+      );
     }
 
     await Promise.allSettled([...webhookTriggerPromises, ...workflowReminderPromises]).then((results) => {

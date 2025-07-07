@@ -1,7 +1,7 @@
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import type { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
@@ -46,12 +46,12 @@ describe("PermissionCheckService", () => {
 
     service = new PermissionCheckService(
       mockRepository,
-      mockFeaturesRepository as unknown as FeaturesRepository,
+      mockFeaturesRepository as unknown as PrismaFeaturesRepository,
       mockPermissionService as unknown as PermissionService
     );
 
-    // Mock MembershipRepository static method
-    (MembershipRepository.findUniqueByUserIdAndTeamId as Mock) = vi.fn();
+    // Mock PrismaMembershipRepository static method
+    (PrismaMembershipRepository.findUniqueByUserIdAndTeamId as Mock) = vi.fn();
   });
 
   describe("checkPermission", () => {
@@ -68,7 +68,7 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      (PrismaMembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
         id: membership.id,
@@ -87,7 +87,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(PrismaMembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -109,7 +109,7 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      (PrismaMembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
 
       const result = await service.checkPermission({
@@ -120,7 +120,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(PrismaMembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -129,7 +129,7 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return false if membership not found", async () => {
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(null);
+      (PrismaMembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(null);
 
       const result = await service.checkPermission({
         userId: 1,
@@ -154,7 +154,7 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      (PrismaMembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
 
       const result = await service.checkPermission({
@@ -182,7 +182,7 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      (PrismaMembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
         id: membership.id,
@@ -201,7 +201,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(PrismaMembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -226,7 +226,7 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      (PrismaMembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
 
       const result = await service.checkPermissions({
@@ -237,7 +237,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(PrismaMembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });

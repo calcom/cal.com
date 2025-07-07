@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { PrismaDeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -19,7 +19,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     } as const;
   }
   // direct access is intentional.
-  const deploymentRepo = new DeploymentRepository(prisma);
+  const deploymentRepo = new PrismaDeploymentRepository(prisma);
   const licenseKey = await deploymentRepo.getLicenseKeyWithId(1);
 
   // Check existent CALCOM_LICENSE_KEY env var and account for it

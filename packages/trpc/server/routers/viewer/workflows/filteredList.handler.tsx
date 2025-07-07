@@ -1,4 +1,4 @@
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -56,5 +56,5 @@ const { include: includedFields } = {
 } satisfies Prisma.WorkflowDefaultArgs;
 
 export const filteredListHandler = async ({ ctx, input }: FilteredListOptions) => {
-  return await WorkflowRepository.getFilteredList({ userId: ctx.user.id, input });
+  return await PrismaWorkflowRepository.getFilteredList({ userId: ctx.user.id, input });
 };

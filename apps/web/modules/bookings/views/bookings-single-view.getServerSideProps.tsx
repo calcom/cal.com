@@ -10,7 +10,7 @@ import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaBookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
@@ -77,7 +77,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let rescheduledToUid: string | null = null;
   if (bookingInfo.rescheduled) {
-    const rescheduledTo = await BookingRepository.findFirstBookingByReschedule({
+    const rescheduledTo = await PrismaBookingRepository.findFirstBookingByReschedule({
       originalBookingUid: bookingInfo.uid,
     });
     rescheduledToUid = rescheduledTo?.uid ?? null;
@@ -89,7 +89,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   } | null = null;
 
   if (bookingInfo.fromReschedule) {
-    previousBooking = await BookingRepository.findReschedulerByUid({
+    previousBooking = await PrismaBookingRepository.findReschedulerByUid({
       uid: bookingInfo.fromReschedule,
     });
   }

@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 
 import {
@@ -68,7 +68,7 @@ async function postHandler(req: NextApiRequest) {
     args.data.userId = bodyUserId;
   }
 
-  const data = await SelectedCalendarRepository.create(args.data);
+  const data = await PrismaSelectedCalendarRepository.create(args.data);
 
   return {
     selected_calendar: schemaSelectedCalendarPublic.parse(data),

@@ -1,4 +1,4 @@
-import { CredentialRepository } from "../../../lib/server/repository/credential";
+import { PrismaCredentialRepository } from "../../../lib/server/repository/credential";
 import { EventTypeService } from "../../../lib/server/service/eventType";
 import type { AttributeRoutingConfig } from "../../routing-forms/types/types";
 import SalesforceCRMService from "./CrmService";
@@ -22,7 +22,7 @@ const routingFormBookingFormHandler = async (
 
   const credentialId = appData.credentialId;
 
-  const credential = await CredentialRepository.findFirstByIdWithKeyAndUser({ id: credentialId });
+  const credential = await PrismaCredentialRepository.findFirstByIdWithKeyAndUser({ id: credentialId });
 
   if (!credential) return { email: null, recordType: null };
 

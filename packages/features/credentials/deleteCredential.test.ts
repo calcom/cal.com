@@ -6,10 +6,10 @@ import {
 import { describe, test, expect, beforeEach } from "vitest";
 
 import { AppRepository } from "@calcom/lib/server/repository/app";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 
 const testUser = {
   email: "test@test.com",
@@ -26,7 +26,7 @@ const setupCredential = async (credentialInput) => {
     teamId: null,
   };
 
-  return await CredentialRepository.create({ ...exampleCredential, ...credentialInput });
+  return await PrismaCredentialRepository.create({ ...exampleCredential, ...credentialInput });
 };
 
 describe("deleteCredential", () => {
@@ -38,7 +38,7 @@ describe("deleteCredential", () => {
     test("Delete video credential", async () => {
       const handleDeleteCredential = (await import("./handleDeleteCredential")).default;
 
-      const user = await UserRepository.create({
+      const user = await PrismaUserRepository.create({
         ...testUser,
       });
 
@@ -60,7 +60,7 @@ describe("deleteCredential", () => {
       await setupCredential({ userId: user.id, type: "zoom_video", appId: "zoom" });
 
       await handleDeleteCredential({ userId: user.id, userMetadata: user.metadata, credentialId: 123 });
-      const eventTypeQuery = await EventTypeRepository.findAllByUserId({ userId: user.id });
+      const eventTypeQuery = await PrismaEventTypeRepository.findAllByUserId({ userId: user.id });
 
       // Ensure that the event type with the deleted app was converted back to daily
       const changedEventType = eventTypeQuery.find((eventType) => eventType.id === 1)?.locations;
@@ -74,7 +74,7 @@ describe("deleteCredential", () => {
     test("Delete calendar credential", async () => {
       const handleDeleteCredential = (await import("./handleDeleteCredential")).default;
 
-      const user = await UserRepository.create({
+      const user = await PrismaUserRepository.create({
         ...testUser,
       });
 

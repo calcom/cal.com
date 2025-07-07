@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -193,7 +193,7 @@ export const permissionsRouter = router({
         throw new Error("Unauthorized");
       }
 
-      const featureRepo = new FeaturesRepository();
+      const featureRepo = new PrismaFeaturesRepository();
       const teamHasPBACFeature = await featureRepo.checkIfTeamHasFeature(input.teamId, "pbac");
 
       if (!teamHasPBACFeature) {

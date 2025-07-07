@@ -5,7 +5,7 @@ import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
@@ -72,7 +72,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
 
   const organizationId = me.organization?.id ?? me.profiles[0]?.organizationId;
   const isOrgPrivate = organizationId
-    ? await OrganizationRepository.checkIfPrivate({
+    ? await PrismaOrganizationRepository.checkIfPrivate({
         orgId: organizationId,
       })
     : false;

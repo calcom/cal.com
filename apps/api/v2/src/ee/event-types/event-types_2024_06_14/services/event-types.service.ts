@@ -7,7 +7,7 @@ import { MembershipsRepository } from "@/modules/memberships/memberships.reposit
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { UserWithProfile, PrismaUsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { dynamicEvent } from "@calcom/platform-libraries";
@@ -25,7 +25,7 @@ export class EventTypesService_2024_06_14 {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly usersService: UsersService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly dbWrite: PrismaWriteService,

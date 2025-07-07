@@ -4,7 +4,7 @@ import db from "@calcom/prisma";
 
 import type { IUsersRepository } from "./users.repository.interface";
 
-export class UsersRepository implements IUsersRepository {
+export class PrismaUsersRepository implements IUsersRepository {
   async updateLastActiveAt(userId: number) {
     try {
       const user = await db.user.update({

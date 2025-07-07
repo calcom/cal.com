@@ -4,7 +4,7 @@ import { sendDelegationCredentialDisabledEmail } from "@calcom/emails/email-mana
 import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 
 import { getAffectedMembersForDisable } from "./getAffectedMembersForDisable.handler";
@@ -45,7 +45,7 @@ export async function toggleDelegationCredentialEnabled(
   input: z.infer<typeof DelegationCredentialToggleEnabledSchema>
 ) {
   // Fetch the current credential to check the current enabled state
-  const currentDelegationCredential = await DelegationCredentialRepository.findById({
+  const currentDelegationCredential = await PrismaDelegationCredentialRepository.findById({
     id: input.id,
   });
 
@@ -99,7 +99,7 @@ export async function toggleDelegationCredentialEnabled(
     }
   }
 
-  const updatedDelegationCredential = await DelegationCredentialRepository.updateById({
+  const updatedDelegationCredential = await PrismaDelegationCredentialRepository.updateById({
     id: input.id,
     data: {
       enabled: shouldBeEnabled,
@@ -120,11 +120,10 @@ const assertWorkspaceConfigured = async ({
   delegationCredentialId: string;
   user: { id: number; email: string; organizationId: number | null };
 }) => {
-  const delegationCredential = await DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey(
-    {
+  const delegationCredential =
+    await PrismaDelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({
       id: delegationCredentialId,
-    }
-  );
+    });
 
   if (!delegationCredential) {
     throw new Error("Domain wide delegation not found");

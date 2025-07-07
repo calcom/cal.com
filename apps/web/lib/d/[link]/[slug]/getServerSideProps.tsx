@@ -7,8 +7,8 @@ import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/featu
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
-import { EventRepository } from "@calcom/lib/server/repository/event";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaEventRepository } from "@calcom/lib/server/repository/event";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
@@ -101,7 +101,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
     name = profileUsername || username;
 
-    const [user] = await UserRepository.findUsersByUsername({
+    const [user] = await PrismaUserRepository.findUsersByUsername({
       usernameList: [name],
       orgSlug: org,
     });
@@ -123,7 +123,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
 
-  const eventData = await EventRepository.getPublicEvent(
+  const eventData = await PrismaEventRepository.getPublicEvent(
     {
       username: name,
       eventSlug: slug,

@@ -1,5 +1,5 @@
 import { HttpError } from "@calcom/lib/http-error";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 
 export const throwIfNotHaveAdminAccessToTeam = async ({
   teamId,
@@ -11,7 +11,7 @@ export const throwIfNotHaveAdminAccessToTeam = async ({
   if (!teamId) {
     return;
   }
-  const userAdminTeams = await UserRepository.getUserAdminTeams(userId);
+  const userAdminTeams = await PrismaUserRepository.getUserAdminTeams(userId);
   const teamsUserHasAdminAccessFor = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
   const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.some((id) => id === teamId);
 

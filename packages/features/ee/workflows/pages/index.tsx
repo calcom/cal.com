@@ -11,7 +11,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import type { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -27,7 +27,7 @@ import SkeletonLoader from "../components/SkeletonLoaderList";
 import WorkflowList from "../components/WorkflowListPage";
 
 type PageProps = {
-  filteredList?: Awaited<ReturnType<typeof WorkflowRepository.getFilteredList>>;
+  filteredList?: Awaited<ReturnType<typeof PrismaWorkflowRepository.getFilteredList>>;
 };
 
 function WorkflowsPage({ filteredList }: PageProps) {

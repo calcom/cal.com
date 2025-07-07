@@ -15,7 +15,7 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisService } from "@/modules/redis/redis.service";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -26,7 +26,7 @@ import { Module } from "@nestjs/common";
     AttributesAtomsService,
     MembershipsRepository,
     CredentialsRepository,
-    UsersRepository,
+    PrismaUsersRepository,
     AtomsRepository,
     UsersService,
     SchedulesAtomsService,

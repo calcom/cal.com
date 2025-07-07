@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
 
-import { CredentialRepository } from "../../../../lib/server/repository/credential";
+import { PrismaCredentialRepository } from "../../../../lib/server/repository/credential";
 import { routingFormIncompleteBookingDataSchema } from "../../zod";
 import SalesforceCRMService from "../CrmService";
 
@@ -16,7 +16,9 @@ export const incompleteBookingAction = async (action: any, email: string) => {
 
   const { writeToRecordObject } = dataParse.data;
 
-  const credential = await CredentialRepository.findFirstByIdWithKeyAndUser({ id: action.credentialId });
+  const credential = await PrismaCredentialRepository.findFirstByIdWithKeyAndUser({
+    id: action.credentialId,
+  });
 
   if (!credential) {
     log.error(`Credential with id ${action.credentialId} not found`);

@@ -5,7 +5,7 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaBookingRepository } from "@calcom/lib/server/repository/booking";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
@@ -22,7 +22,7 @@ export const generateMetadata = async ({ params }: ServerPageProps) => {
   if (!parsed.success) {
     notFound();
   }
-  const booking = await BookingRepository.findBookingByUid({
+  const booking = await PrismaBookingRepository.findBookingByUid({
     bookingUid: parsed.data.uid,
   });
 

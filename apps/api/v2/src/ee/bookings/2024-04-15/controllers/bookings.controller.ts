@@ -19,7 +19,7 @@ import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
+import { PrismaUsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   Post,
@@ -108,7 +108,7 @@ export class BookingsController_2024_04_15 {
     private readonly config: ConfigService,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly platformBookingsService: PlatformBookingsService,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly usersService: UsersService
   ) {}
 

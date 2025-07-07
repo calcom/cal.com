@@ -15,10 +15,10 @@ import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaDeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -98,7 +98,7 @@ async function createOrganizationWithExistingUserAsOwner({
 }) {
   const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
   // We prefer ID which would be available if it is a retry of createOrganizationFromOnboarding and earlier organization was created and connected with Onboarding
-  let organization = orgData.id ? await OrganizationRepository.findById({ id: orgData.id }) : null;
+  let organization = orgData.id ? await PrismaOrganizationRepository.findById({ id: orgData.id }) : null;
 
   if (organization) {
     log.info(
@@ -131,7 +131,7 @@ async function createOrganizationWithExistingUserAsOwner({
 
   try {
     const nonOrgUsername = owner.username || "";
-    const orgCreationResult = await OrganizationRepository.createWithExistingUserAsOwner({
+    const orgCreationResult = await PrismaOrganizationRepository.createWithExistingUserAsOwner({
       orgData: {
         ...orgData,
         ...(canSetSlug ? { slug: orgData.slug } : { slug: null, requestedSlug: orgData.slug }),
@@ -190,8 +190,8 @@ async function createOrganizationWithNonExistentUserAsOwner({
   orgData: OrganizationData;
 }) {
   let organization = orgData.id
-    ? await OrganizationRepository.findById({ id: orgData.id })
-    : await OrganizationRepository.findBySlug({ slug: orgData.slug });
+    ? await PrismaOrganizationRepository.findById({ id: orgData.id })
+    : await PrismaOrganizationRepository.findBySlug({ slug: orgData.slug });
 
   if (organization) {
     log.info(
@@ -208,7 +208,7 @@ async function createOrganizationWithNonExistentUserAsOwner({
     return { organization, owner };
   }
 
-  const orgCreationResult = await OrganizationRepository.createWithNonExistentOwner({
+  const orgCreationResult = await PrismaOrganizationRepository.createWithNonExistentOwner({
     orgData,
     owner: {
       email: email,
@@ -317,7 +317,7 @@ async function ensureStripeCustomerIdIsUpdated({
 }) {
   const parsedMetadata = userMetadata.parse(owner.metadata);
 
-  await UserRepository.updateStripeCustomerId({
+  await PrismaUserRepository.updateStripeCustomerId({
     id: owner.id,
     stripeCustomerId: stripeCustomerId,
     existingMetadata: parsedMetadata,
@@ -344,7 +344,7 @@ async function backwardCompatibilityForSubscriptionDetails({
   }
 
   const existingMetadata = teamMetadataSchema.parse(organization.metadata);
-  const updatedOrganization = await OrganizationRepository.updateStripeSubscriptionDetails({
+  const updatedOrganization = await PrismaOrganizationRepository.updateStripeSubscriptionDetails({
     id: organization.id,
     stripeSubscriptionId: paymentSubscriptionId,
     stripeSubscriptionItemId: paymentSubscriptionItemId,
@@ -354,7 +354,7 @@ async function backwardCompatibilityForSubscriptionDetails({
 }
 
 async function hasConflictingOrganization({ slug, onboardingId }: { slug: string; onboardingId: string }) {
-  const organization = await OrganizationRepository.findBySlugIncludeOnboarding({ slug });
+  const organization = await PrismaOrganizationRepository.findBySlugIncludeOnboarding({ slug });
   if (!organization?.organizationOnboarding) {
     // Old organizations created without onboarding,
     return false;
@@ -381,7 +381,7 @@ async function handleDomainSetup({
     });
   }
 
-  await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+  await PrismaOrganizationOnboardingRepository.update(organizationOnboarding.id, {
     isDomainConfigured: true,
   });
 }
@@ -398,7 +398,7 @@ async function handleOrganizationCreation({
   paymentSubscriptionItemId?: string;
 }) {
   if (IS_SELF_HOSTED) {
-    const deploymentRepo = new DeploymentRepository(prisma);
+    const deploymentRepo = new PrismaDeploymentRepository(prisma);
     const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
     const hasValidLicense = await licenseKeyService.checkLicense();
 
@@ -456,7 +456,7 @@ async function handleOrganizationCreation({
   }
 
   // Connect the organization to the onboarding
-  await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+  await PrismaOrganizationOnboardingRepository.update(organizationOnboarding.id, {
     organizationId: organization.id,
   });
 
@@ -540,7 +540,7 @@ export const createOrganizationFromOnboarding = async ({
   // If the team wasn't owned by the orgOwner, then org creation would have failed and we wouldn't be here
   if (!organization.slug) {
     try {
-      const { slug } = await OrganizationRepository.setSlug({
+      const { slug } = await PrismaOrganizationRepository.setSlug({
         id: organization.id,
         slug: organizationOnboarding.slug,
       });

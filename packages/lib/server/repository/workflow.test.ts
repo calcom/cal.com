@@ -3,15 +3,15 @@ import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { describe, it, expect } from "vitest";
 
-import { WorkflowRepository } from "./workflow";
+import { PrismaWorkflowRepository } from "./workflow";
 
-describe("WorkflowRepository", () => {
+describe("PrismaWorkflowRepository", () => {
   describe("getVerifiedEmails", () => {
     it("should return the email of the user", async () => {
       prismaMock.secondaryEmail.findMany.mockResolvedValue([]);
       prismaMock.verifiedEmail.findMany.mockResolvedValue([]);
 
-      const emails = await WorkflowRepository.getVerifiedEmails({
+      const emails = await PrismaWorkflowRepository.getVerifiedEmails({
         userEmail: "user@example.com",
         userId: 1,
       });
@@ -28,7 +28,7 @@ describe("WorkflowRepository", () => {
         },
       ]);
 
-      const emails = await WorkflowRepository.getVerifiedEmails({
+      const emails = await PrismaWorkflowRepository.getVerifiedEmails({
         userEmail: "user@example.com",
         userId: 1,
       });
@@ -67,7 +67,7 @@ describe("WorkflowRepository", () => {
         },
       ]);
 
-      const emails = await WorkflowRepository.getVerifiedEmails({
+      const emails = await PrismaWorkflowRepository.getVerifiedEmails({
         userEmail: "user@example.com",
         userId: 1,
         teamId: 1,

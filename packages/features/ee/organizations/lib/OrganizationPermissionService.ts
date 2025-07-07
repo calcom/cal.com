@@ -1,7 +1,7 @@
 import { ORGANIZATION_SELF_SERVE_MIN_SEATS, ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -36,7 +36,7 @@ export class OrganizationPermissionService {
    * If an onboarding is complete then it also means that org is created already.
    */
   async hasConflictingOrganization({ slug }: { slug: string }): Promise<boolean> {
-    return !!(await OrganizationRepository.findBySlug({ slug }));
+    return !!(await PrismaOrganizationRepository.findBySlug({ slug }));
   }
 
   async hasCompletedOnboarding(email: string): Promise<boolean> {

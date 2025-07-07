@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import dayjs from "@calcom/dayjs";
 import * as EmailManager from "@calcom/emails/email-manager";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
@@ -143,7 +143,7 @@ describe("CreditService", () => {
 
     describe("getTeamWithAvailableCredits", () => {
       it("should return team with available credits", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
+        vi.mocked(PrismaMembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -169,7 +169,7 @@ describe("CreditService", () => {
       });
 
       it("should return first team if no team has available credits", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
+        vi.mocked(PrismaMembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -357,7 +357,7 @@ describe("CreditService", () => {
       });
 
       it("should return team with available credits when userId is provided", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([{ teamId: 1 }]);
+        vi.mocked(PrismaMembershipRepository.findAllAcceptedMemberships).mockResolvedValue([{ teamId: 1 }]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
           id: "1",

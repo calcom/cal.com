@@ -10,8 +10,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
@@ -133,7 +133,7 @@ async function getAllCredentialsIncludeServiceAccountKey({
   let conferenceCredential;
 
   if (conferenceCredentialId) {
-    conferenceCredential = await CredentialRepository.findFirstByIdWithKeyAndUser({
+    conferenceCredential = await PrismaCredentialRepository.findFirstByIdWithKeyAndUser({
       id: conferenceCredentialId,
     });
   }
@@ -248,7 +248,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 
-  const organizer = await UserRepository.findByIdOrThrow({ id: booking.userId || 0 });
+  const organizer = await PrismaUserRepository.findByIdOrThrow({ id: booking.userId || 0 });
 
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
     location: newLocation,

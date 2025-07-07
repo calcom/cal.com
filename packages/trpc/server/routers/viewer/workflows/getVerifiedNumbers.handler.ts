@@ -1,4 +1,4 @@
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetVerifiedNumbersInputSchema } from "./getVerifiedNumbers.schema";
@@ -11,7 +11,7 @@ type GetVerifiedNumbersOptions = {
 };
 
 export const getVerifiedNumbersHandler = async ({ ctx, input }: GetVerifiedNumbersOptions) => {
-  return await WorkflowRepository.getVerifiedNumbers({
+  return await PrismaWorkflowRepository.getVerifiedNumbers({
     userId: ctx.user.id,
     teamId: input.teamId,
   });

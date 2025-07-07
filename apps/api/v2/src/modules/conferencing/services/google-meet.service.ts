@@ -1,4 +1,4 @@
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
+import { PrismaConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { BadRequestException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
@@ -10,7 +10,7 @@ export class GoogleMeetService {
   private logger = new Logger("GoogleMeetService");
 
   constructor(
-    private readonly conferencingRepository: ConferencingRepository,
+    private readonly conferencingRepository: PrismaConferencingRepository,
     private readonly credentialsRepository: CredentialsRepository
   ) {}
 

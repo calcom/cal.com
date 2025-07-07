@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import logger from "@calcom/lib/logger";
-import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
+import { PrismaWorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,7 +14,7 @@ export default async function addHandler({
   input: z.infer<typeof workspacePlatformCreateSchema>;
 }) {
   try {
-    const workspacePlatform = await WorkspacePlatformRepository.create(input);
+    const workspacePlatform = await PrismaWorkspacePlatformRepository.create(input);
     return ensureNoServiceAccountKey(workspacePlatform);
   } catch (error) {
     logger.error(error);

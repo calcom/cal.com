@@ -1,5 +1,5 @@
 import { getTeamWithoutMembers } from "@calcom/lib/server/queries/teams";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,7 +14,7 @@ type GetDataOptions = {
 };
 
 export const get = async ({ ctx, input }: GetDataOptions) => {
-  const teamMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+  const teamMembership = await PrismaMembershipRepository.findUniqueByUserIdAndTeamId({
     userId: ctx.user.id,
     teamId: input.teamId,
   });

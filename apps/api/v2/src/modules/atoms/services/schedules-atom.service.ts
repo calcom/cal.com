@@ -1,5 +1,5 @@
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
@@ -14,7 +14,7 @@ export class SchedulesAtomsService {
   private logger = new Logger("SchedulesAtomService");
 
   constructor(
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly dbWrite: PrismaWriteService
   ) {}
 

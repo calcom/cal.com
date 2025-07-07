@@ -1,4 +1,4 @@
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import prisma from "@calcom/prisma";
 
 // cancel/delete all workflowReminders of the removed member that come from that team (org teams only)
@@ -31,7 +31,7 @@ export async function deleteWorkfowRemindersOfRemovedMember(
         method: true,
       },
     });
-    await WorkflowRepository.deleteAllWorkflowReminders(workflowRemindersToDelete);
+    await PrismaWorkflowRepository.deleteAllWorkflowReminders(workflowRemindersToDelete);
   } else {
     if (!team.parentId) return;
 
@@ -89,6 +89,6 @@ export async function deleteWorkfowRemindersOfRemovedMember(
         method: true,
       },
     });
-    await WorkflowRepository.deleteAllWorkflowReminders(workflowRemindersToDelete);
+    await PrismaWorkflowRepository.deleteAllWorkflowReminders(workflowRemindersToDelete);
   }
 }

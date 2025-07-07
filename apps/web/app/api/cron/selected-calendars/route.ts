@@ -12,8 +12,8 @@ import { findUniqueDelegationCalendarCredential } from "@calcom/lib/delegationCr
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -49,7 +49,7 @@ export function isSameEmail({
 }
 
 type DelegationUserCredential = Awaited<
-  ReturnType<typeof CredentialRepository.findAllDelegationByTypeIncludeUserAndTake>
+  ReturnType<typeof PrismaCredentialRepository.findAllDelegationByTypeIncludeUserAndTake>
 >[number];
 
 type DelegationUserCredentialWithEnsuredUser = Ensure<DelegationUserCredential, "user">;
@@ -65,7 +65,7 @@ async function getDelegationUserCredentialsToProcess(delegationUserCredentials: 
         const userEmail = delegationUserCredential.user.email;
         // Consider existing SelectedCalendars for this user, regardless of credentialId as we want to reuse the existing SelectedCalendar(which has their googleChannel related column set) after Delegation Credential has been enabled
         // It is also important because SelectedCalendar has composite unique constraint on userId, externalId and integration and thus we couldn't have the same values for different credentialId
-        const selectedCalendar = await SelectedCalendarRepository.findFirst({
+        const selectedCalendar = await PrismaSelectedCalendarRepository.findFirst({
           where: {
             userId: delegationUserCredential.user.id,
             externalId: userEmail,
@@ -93,7 +93,7 @@ async function getDelegationUserCredentialsToProcess(delegationUserCredentials: 
             // So, we delete it so that SelectedCalendarRepository allow creating a similar one with Delegation Credential
             // Also, we don't delete the possibly invalid credential due to false alarm and we would need that intact in case we disable Delegation Credential
             // Because credential isn't deleted, the corresponding CalendarCache entry would still exist and thus we will end up having two CalendarCache entries for same key and userId with different credentialId
-            await SelectedCalendarRepository.deleteById({ id: selectedCalendar.id });
+            await PrismaSelectedCalendarRepository.deleteById({ id: selectedCalendar.id });
             return delegationUserCredential;
           }
         }
@@ -229,7 +229,7 @@ async function processDelegationUserCredential(
     }
 
     // This creation call isn't expected to fail as we have already checked for the existence of the SelectedCalendar by userEmail
-    await SelectedCalendarRepository.create({
+    await PrismaSelectedCalendarRepository.create({
       integration: "google_calendar",
       externalId: externalCalendarId,
       userId: delegationUserCredential.user.id,
@@ -246,10 +246,11 @@ async function processDelegationUserCredential(
 
 export async function handleCreateSelectedCalendars() {
   // These are in DB delegation user credentials in contrast to in-memory delegation user credentials that are used elsewhere
-  const allDelegationUserCredentials = await CredentialRepository.findAllDelegationByTypeIncludeUserAndTake({
-    type: "google_calendar",
-    take: limitOnQueryingGoogleCalendar,
-  });
+  const allDelegationUserCredentials =
+    await PrismaCredentialRepository.findAllDelegationByTypeIncludeUserAndTake({
+      type: "google_calendar",
+      take: limitOnQueryingGoogleCalendar,
+    });
 
   log.info(`Found ${allDelegationUserCredentials.length} delegation user credentials to process`);
 

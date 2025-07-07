@@ -9,7 +9,7 @@ import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFrom
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 
@@ -102,7 +102,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
 
   const enrichedBookingUser = booking.user
-    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
+    ? await PrismaUserRepository.enrichUserWithItsProfile({ user: booking.user })
     : null;
 
   const eventUrl = await buildEventUrlFromBooking({

@@ -5,7 +5,7 @@ import { describe, test, vi, expect, beforeEach } from "vitest";
 
 import { CreationSource } from "@calcom/prisma/enums";
 
-import { UserRepository } from "./user";
+import { PrismaUserRepository } from "./user";
 
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
@@ -15,14 +15,14 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
-describe("UserRepository", () => {
+describe("PrismaUserRepository", () => {
   beforeEach(() => {
     prismock;
   });
 
   describe("create", () => {
     test("Should create a user without a password", async () => {
-      const user = await UserRepository.create({
+      const user = await PrismaUserRepository.create({
         username: "test",
         email: "test@example.com",
         organizationId: null,
@@ -50,7 +50,7 @@ describe("UserRepository", () => {
     });
 
     test("If locked param is passed, user should be locked", async () => {
-      const user = await UserRepository.create({
+      const user = await PrismaUserRepository.create({
         username: "test",
         email: "test@example.com",
         organizationId: null,
@@ -78,7 +78,7 @@ describe("UserRepository", () => {
       const organizationId = 123;
       const username = "test";
 
-      const user = await UserRepository.create({
+      const user = await PrismaUserRepository.create({
         username,
         email: "test@example.com",
         organizationId,

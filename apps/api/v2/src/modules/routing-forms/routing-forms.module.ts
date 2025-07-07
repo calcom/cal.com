@@ -1,4 +1,4 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RoutingFormsController } from "@/modules/routing-forms/controllers/routing-forms.controller";
 import { RoutingFormsRepository } from "@/modules/routing-forms/routing-forms.repository";
@@ -10,7 +10,7 @@ import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, TeamsEventTypesModule, SlotsModule_2024_09_04, StripeModule],
-  providers: [RoutingFormsRepository, RoutingFormsService, OrganizationsRepository],
+  providers: [RoutingFormsRepository, RoutingFormsService, PrismaOrganizationsRepository],
   controllers: [RoutingFormsController],
   exports: [RoutingFormsRepository],
 })

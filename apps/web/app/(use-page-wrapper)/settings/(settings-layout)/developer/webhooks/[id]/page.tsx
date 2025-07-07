@@ -4,7 +4,7 @@ import { getTranslate, _generateMetadata } from "app/_utils";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { EditWebhookView } from "@calcom/features/webhooks/pages/webhook-edit-view";
 import { APP_NAME } from "@calcom/lib/constants";
-import { WebhookRepository } from "@calcom/lib/server/repository/webhook";
+import { PrismaWebhookRepository } from "@calcom/lib/server/repository/webhook";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
@@ -20,7 +20,7 @@ const Page = async ({ params: _params }: PageProps) => {
   const params = await _params;
   const id = typeof params?.id === "string" ? params.id : undefined;
 
-  const webhook = await WebhookRepository.findByWebhookId(id);
+  const webhook = await PrismaWebhookRepository.findByWebhookId(id);
 
   return (
     <SettingsHeader

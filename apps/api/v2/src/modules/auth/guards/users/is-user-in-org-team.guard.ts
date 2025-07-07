@@ -1,4 +1,4 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 
@@ -6,7 +6,7 @@ import { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class IsUserInOrgTeam implements CanActivate {
-  constructor(private organizationsRepository: OrganizationsRepository) {}
+  constructor(private organizationsRepository: PrismaOrganizationsRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request & { team: Team }>();

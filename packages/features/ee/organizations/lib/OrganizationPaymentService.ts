@@ -6,8 +6,8 @@ import {
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import type { BillingPeriod } from "@calcom/prisma/enums";
@@ -105,7 +105,7 @@ export class OrganizationPaymentService {
 
     const stripeCustomerId = customer.stripeCustomerId;
     if (existingCustomer && parsedMetadata) {
-      await UserRepository.updateStripeCustomerId({
+      await PrismaUserRepository.updateStripeCustomerId({
         id: existingCustomer.id,
         stripeCustomerId,
         existingMetadata: parsedMetadata,
@@ -183,7 +183,7 @@ export class OrganizationPaymentService {
     const config = this.normalizePaymentConfig(input);
 
     // Create new onboarding record if none exists
-    return await OrganizationOnboardingRepository.create({
+    return await PrismaOrganizationOnboardingRepository.create({
       name: input.name,
       slug: input.slug,
       orgOwnerEmail: input.orgOwnerEmail,
@@ -364,7 +364,7 @@ export class OrganizationPaymentService {
 
     log.debug("Updating onboarding");
 
-    await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+    await PrismaOrganizationOnboardingRepository.update(organizationOnboarding.id, {
       bio: bio ?? null,
       logo: logo ?? null,
       invitedMembers: invitedMembers,

@@ -6,7 +6,7 @@ import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-book
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
-import { EventRepository } from "@calcom/lib/server/repository/event";
+import { PrismaEventRepository } from "@calcom/lib/server/repository/event";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -50,7 +50,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
   const session = await getServerSession({ req: context.req });
-  const eventData = await EventRepository.getPublicEvent(
+  const eventData = await PrismaEventRepository.getPublicEvent(
     {
       username: teamSlug,
       eventSlug: meetingSlug,

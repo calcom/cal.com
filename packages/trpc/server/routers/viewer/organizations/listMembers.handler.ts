@@ -1,7 +1,7 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -39,7 +39,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const expand = input.expand;
   const filters = input.filters || [];
 
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new PrismaFeaturesRepository();
   const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
 
   const allAttributeOptions = await prisma.attributeOption.findMany({
@@ -250,7 +250,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
-      const user = await UserRepository.enrichUserWithItsProfile({ user: membership.user });
+      const user = await PrismaUserRepository.enrichUserWithItsProfile({ user: membership.user });
       let attributes;
 
       if (expand?.includes("attributes")) {

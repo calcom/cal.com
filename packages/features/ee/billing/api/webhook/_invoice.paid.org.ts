@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
 import type { SWHMap } from "./__handler";
 
@@ -30,7 +30,7 @@ async function handlePaymentReceivedForOnboarding({
   paymentSubscriptionId: string;
   paymentSubscriptionItemId: string;
 }) {
-  await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+  await PrismaOrganizationOnboardingRepository.update(organizationOnboarding.id, {
     stripeSubscriptionId: paymentSubscriptionId,
     stripeSubscriptionItemId: paymentSubscriptionItemId,
   });
@@ -44,7 +44,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     `Processing invoice paid webhook for customer ${invoice.customer} and subscription ${invoice.subscription}`
   );
 
-  const organizationOnboarding = await OrganizationOnboardingRepository.findByStripeCustomerId(
+  const organizationOnboarding = await PrismaOrganizationOnboardingRepository.findByStripeCustomerId(
     invoice.customer
   );
 
@@ -95,11 +95,11 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     });
 
     logger.debug(`Marking onboarding as complete for organization ${organization.id}`);
-    await OrganizationOnboardingRepository.markAsComplete(organizationOnboarding.id);
+    await PrismaOrganizationOnboardingRepository.markAsComplete(organizationOnboarding.id);
     return { success: true };
   } catch (error) {
     if (error instanceof Error) {
-      await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+      await PrismaOrganizationOnboardingRepository.update(organizationOnboarding.id, {
         error: error.message,
       });
     }

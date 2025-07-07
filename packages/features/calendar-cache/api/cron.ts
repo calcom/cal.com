@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { CalendarCache } from "../calendar-cache";
@@ -59,7 +59,7 @@ function getUniqueCalendarsByExternalId<
 }
 
 const handleCalendarsToUnwatch = async () => {
-  const calendarsToUnwatch = await SelectedCalendarRepository.getNextBatchToUnwatch(500);
+  const calendarsToUnwatch = await PrismaSelectedCalendarRepository.getNextBatchToUnwatch(500);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
@@ -68,7 +68,7 @@ const handleCalendarsToUnwatch = async () => {
           // So we don't retry on next cron run
 
           // FIXME: There could actually be multiple calendars with the same externalId and thus we need to technically update error for all of them
-          await SelectedCalendarRepository.setErrorInUnwatching({
+          await PrismaSelectedCalendarRepository.setErrorInUnwatching({
             id,
             error: "Missing credentialId",
           });
@@ -79,7 +79,7 @@ const handleCalendarsToUnwatch = async () => {
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
           await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
-          await SelectedCalendarRepository.removeUnwatchingError({ id });
+          await PrismaSelectedCalendarRepository.removeUnwatchingError({ id });
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {
@@ -92,7 +92,7 @@ const handleCalendarsToUnwatch = async () => {
               error: errorMessage,
             })
           );
-          await SelectedCalendarRepository.setErrorInUnwatching({
+          await PrismaSelectedCalendarRepository.setErrorInUnwatching({
             id,
             error: `${errorMessage}`,
           });
@@ -108,14 +108,14 @@ const handleCalendarsToUnwatch = async () => {
 };
 
 const handleCalendarsToWatch = async () => {
-  const calendarsToWatch = await SelectedCalendarRepository.getNextBatchToWatch(500);
+  const calendarsToWatch = await PrismaSelectedCalendarRepository.getNextBatchToWatch(500);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
       async ([externalId, { credentialId, eventTypeIds, id }]) => {
         if (!credentialId) {
           // So we don't retry on next cron run
-          await SelectedCalendarRepository.setErrorInWatching({ id, error: "Missing credentialId" });
+          await PrismaSelectedCalendarRepository.setErrorInWatching({ id, error: "Missing credentialId" });
           log.error("no credentialId for SelectedCalendar: ", id);
           return;
         }
@@ -123,7 +123,7 @@ const handleCalendarsToWatch = async () => {
         try {
           const cc = await CalendarCache.initFromCredentialId(credentialId);
           await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
-          await SelectedCalendarRepository.removeWatchingError({ id });
+          await PrismaSelectedCalendarRepository.removeWatchingError({ id });
         } catch (error) {
           let errorMessage = "Unknown error";
           if (error instanceof Error) {
@@ -136,7 +136,7 @@ const handleCalendarsToWatch = async () => {
               error: errorMessage,
             })
           );
-          await SelectedCalendarRepository.setErrorInWatching({
+          await PrismaSelectedCalendarRepository.setErrorInWatching({
             id,
             error: `${errorMessage}`,
           });

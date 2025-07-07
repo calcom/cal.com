@@ -1,6 +1,6 @@
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -25,7 +25,7 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
   const { quantity, teamId } = input;
 
   if (teamId) {
-    const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
+    const adminMembership = await PrismaMembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
 
     if (!adminMembership) {
       throw new TRPCError({
@@ -34,7 +34,7 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     }
   } else {
     // if user id is part of a team, user can't buy credits for themselves
-    const memberships = await MembershipRepository.findAllAcceptedMemberships(ctx.user.id);
+    const memberships = await PrismaMembershipRepository.findAllAcceptedMemberships(ctx.user.id);
 
     if (memberships.length > 0) {
       throw new TRPCError({

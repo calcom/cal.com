@@ -1,7 +1,7 @@
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 import { isTeamMember } from "@calcom/lib/server/queries/teams";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -20,7 +20,7 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
   if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // verify member is in team
-  const members = await MembershipRepository.findByTeamIdForAvailability({ teamId: input.teamId });
+  const members = await PrismaMembershipRepository.findByTeamIdForAvailability({ teamId: input.teamId });
 
   const member = members?.find((m) => m.userId === input.memberId);
   if (!member) throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });

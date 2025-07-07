@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -106,7 +106,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
 
   const enrichedMembers = await Promise.all(
     memberships.map(async (membership) =>
-      UserRepository.enrichUserWithItsProfile({
+      PrismaUserRepository.enrichUserWithItsProfile({
         user: {
           ...membership.user,
           accepted: membership.accepted,

@@ -12,7 +12,7 @@ import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
@@ -191,7 +191,7 @@ export class CreditService {
     If user has memberships, it always returns a team, even if all have limit reached. In that case, limitReached: true is returned
   */
   protected async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
-    const memberships = await MembershipRepository.findAllAcceptedMemberships(userId, tx);
+    const memberships = await PrismaMembershipRepository.findAllAcceptedMemberships(userId, tx);
 
     if (memberships.length === 0) {
       return null;

@@ -18,7 +18,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -59,7 +59,7 @@ export class EventTypesController_2024_04_15 {
   constructor(
     private readonly eventTypesService: EventTypesService_2024_04_15,
     private readonly prismaReadService: PrismaReadService,
-    private readonly organizationsRepository: OrganizationsRepository
+    private readonly organizationsRepository: PrismaOrganizationsRepository
   ) {}
 
   @Post("/")
@@ -124,7 +124,9 @@ export class EventTypesController_2024_04_15 {
       let orgSlug = queryParams.org;
 
       if (clientId && !orgSlug && username.includes(`-${clientId}`)) {
-        const org = await this.organizationsRepository.findTeamIdAndSlugFromClientId(clientId).catch(() => null);
+        const org = await this.organizationsRepository
+          .findTeamIdAndSlugFromClientId(clientId)
+          .catch(() => null);
         if (org) {
           orgSlug = org.slug;
         }

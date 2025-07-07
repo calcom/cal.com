@@ -1,4 +1,4 @@
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { IdentityProvider } from "@calcom/prisma/enums";
@@ -69,7 +69,7 @@ export const createUsersAndConnectToOrg = async ({
   });
 
   // Create memberships for new members
-  await MembershipRepository.createMany(
+  await PrismaMembershipRepository.createMany(
     users.map((user) => ({
       userId: user.id,
       teamId: org.id,

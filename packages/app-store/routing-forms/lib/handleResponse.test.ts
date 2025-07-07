@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { z } from "zod";
 
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { PrismaRoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import isRouter from "../lib/isRouter";
@@ -18,7 +18,7 @@ vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
 }));
 
 vi.mock("@calcom/lib/server/repository/formResponse", () => ({
-  RoutingFormResponseRepository: {
+  PrismaRoutingFormResponseRepository: {
     recordQueuedFormResponse: vi.fn(),
     recordFormResponse: vi.fn(),
   },
@@ -150,7 +150,7 @@ describe("handleResponse", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    vi.mocked(RoutingFormResponseRepository.recordFormResponse).mockResolvedValue(dbFormResponse);
+    vi.mocked(PrismaRoutingFormResponseRepository.recordFormResponse).mockResolvedValue(dbFormResponse);
 
     const result = await handleResponse({
       response: mockResponse,
@@ -161,7 +161,7 @@ describe("handleResponse", () => {
       isPreview: false,
     });
 
-    expect(RoutingFormResponseRepository.recordFormResponse).toHaveBeenCalledWith({
+    expect(PrismaRoutingFormResponseRepository.recordFormResponse).toHaveBeenCalledWith({
       formId: mockForm.id,
       response: mockResponse,
       chosenRouteId: null,
@@ -185,7 +185,7 @@ describe("handleResponse", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    vi.mocked(RoutingFormResponseRepository.recordQueuedFormResponse).mockResolvedValue(queuedResponse);
+    vi.mocked(PrismaRoutingFormResponseRepository.recordQueuedFormResponse).mockResolvedValue(queuedResponse);
 
     const result = await handleResponse({
       response: mockResponse,
@@ -197,12 +197,12 @@ describe("handleResponse", () => {
       queueFormResponse: true,
     });
 
-    expect(RoutingFormResponseRepository.recordQueuedFormResponse).toHaveBeenCalledWith({
+    expect(PrismaRoutingFormResponseRepository.recordQueuedFormResponse).toHaveBeenCalledWith({
       formId: mockForm.id,
       response: mockResponse,
       chosenRouteId: null,
     });
-    expect(RoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
+    expect(PrismaRoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
     expect(onSubmissionOfFormResponse).not.toHaveBeenCalled();
     expect(result.queuedFormResponse).toEqual(queuedResponse);
     expect(result.formResponse).toBeNull();
@@ -219,7 +219,7 @@ describe("handleResponse", () => {
         isPreview: true,
       });
 
-      expect(RoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
+      expect(PrismaRoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
       expect(onSubmissionOfFormResponse).not.toHaveBeenCalled();
       expect(result.isPreview).toBe(true);
       expect(result.formResponse).toBeDefined();
@@ -237,7 +237,7 @@ describe("handleResponse", () => {
         queueFormResponse: true,
       });
 
-      expect(RoutingFormResponseRepository.recordQueuedFormResponse).not.toHaveBeenCalled();
+      expect(PrismaRoutingFormResponseRepository.recordQueuedFormResponse).not.toHaveBeenCalled();
       expect(result.isPreview).toBe(true);
       expect(result.queuedFormResponse).toBeDefined();
       expect(result.queuedFormResponse?.id).toBe("00000000-0000-0000-0000-000000000000");

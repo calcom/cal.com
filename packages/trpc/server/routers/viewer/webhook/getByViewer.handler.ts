@@ -1,4 +1,4 @@
-import { WebhookRepository } from "@calcom/lib/server/repository/webhook";
+import { PrismaWebhookRepository } from "@calcom/lib/server/repository/webhook";
 import type { Webhook } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -33,7 +33,7 @@ export type WebhooksByViewer = {
 };
 
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
-  return await WebhookRepository.getAllWebhooksByUserId({
+  return await PrismaWebhookRepository.getAllWebhooksByUserId({
     userId: ctx.user.id,
     userRole: ctx.user.role,
   });

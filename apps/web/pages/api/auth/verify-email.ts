@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -20,7 +20,9 @@ const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
 
 // TODO: To be unit tested
 export async function moveUserToMatchingOrg({ email }: { email: string }) {
-  const org = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email });
+  const org = await PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({
+    email,
+  });
 
   if (!org) {
     return;

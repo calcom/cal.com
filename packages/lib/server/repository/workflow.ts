@@ -65,7 +65,7 @@ const { include: includedFields } = {
   },
 } satisfies Prisma.WorkflowDefaultArgs;
 
-export class WorkflowRepository {
+export class PrismaWorkflowRepository {
   private static log = logger.getSubLogger({ prefix: ["workflow"] });
 
   static async getById({ id }: TGetInputSchema) {

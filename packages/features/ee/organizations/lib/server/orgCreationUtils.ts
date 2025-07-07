@@ -11,7 +11,7 @@ import {
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -279,7 +279,7 @@ export const findUserToBeOrgOwner = async (email: string) => {
     return null;
   }
 
-  return await UserRepository.enrichUserWithItsProfile({
+  return await PrismaUserRepository.enrichUserWithItsProfile({
     user,
   });
 };

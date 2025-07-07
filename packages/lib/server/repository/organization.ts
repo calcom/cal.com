@@ -10,7 +10,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 import { getParsedTeam } from "./teamUtils";
-import { UserRepository } from "./user";
+import { PrismaUserRepository } from "./user";
 
 const orgSelect = {
   id: true,
@@ -19,7 +19,7 @@ const orgSelect = {
   logoUrl: true,
 };
 
-export class OrganizationRepository {
+export class PrismaOrganizationRepository {
   static async createWithExistingUserAsOwner({
     orgData,
     owner,
@@ -93,7 +93,7 @@ export class OrganizationRepository {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
     const organization = await this.create(orgData);
     const ownerUsernameInOrg = getOrgUsernameFromEmail(owner.email, orgData.autoAcceptEmail);
-    const ownerInDb = await UserRepository.create({
+    const ownerInDb = await PrismaUserRepository.create({
       email: owner.email,
       username: ownerUsernameInOrg,
       organizationId: organization.id,

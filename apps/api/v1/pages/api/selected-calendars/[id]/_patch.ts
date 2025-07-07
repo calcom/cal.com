@@ -4,7 +4,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import type { UpdateArguments } from "@calcom/lib/server/repository/selectedCalendar";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 
 import {
@@ -69,7 +69,7 @@ export async function patchHandler(req: NextApiRequest) {
     args.data.userId = bodyUserId;
   }
 
-  const result = await SelectedCalendarRepository.updateUserLevel(args);
+  const result = await PrismaSelectedCalendarRepository.updateUserLevel(args);
   return { selected_calendar: schemaSelectedCalendarPublic.parse(result) };
 }
 

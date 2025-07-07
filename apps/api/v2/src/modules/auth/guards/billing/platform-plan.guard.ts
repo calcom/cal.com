@@ -1,7 +1,7 @@
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { PlatformPlanType, orderedPlans } from "@/modules/billing/types";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
@@ -11,7 +11,7 @@ import { Request } from "express";
 export class PlatformPlanGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly organizationsRepository: PrismaOrganizationsRepository,
     private readonly redisService: RedisService
   ) {}
 

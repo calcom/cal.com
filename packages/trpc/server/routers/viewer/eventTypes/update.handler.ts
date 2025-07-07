@@ -13,7 +13,7 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
@@ -343,7 +343,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
-  const membershipRepo = new MembershipRepository(ctx.prisma);
+  const membershipRepo = new PrismaMembershipRepository(ctx.prisma);
 
   if (restrictionScheduleId) {
     // Verify that the user owns the restriction schedule or is a team member

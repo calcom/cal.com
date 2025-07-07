@@ -1,4 +1,4 @@
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
@@ -10,7 +10,7 @@ import { FindTeamMembersMatchingAttributeQueryDto } from "../inputs/find-team-me
 export class AttributesAtomsService {
   private logger = new Logger("AttributesAtomService");
 
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(private readonly usersRepository: PrismaUsersRepository) {}
 
   async findTeamMembersMatchingAttribute(
     teamId: number,

@@ -13,7 +13,7 @@ import {
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { SelectedCalendarRepository } from "@calcom/platform-libraries";
+import { PrismaSelectedCalendarRepository } from "@calcom/platform-libraries";
 
 type SelectedCalendarsInputDelegationCredential = SelectedCalendarsInputDto & {
   delegationCredentialId: string;
@@ -68,7 +68,7 @@ export class SelectedCalendarsService {
     }
 
     const { integration, externalId, credentialId, delegationCredentialId } = selectedCalendar;
-    const delegationCredentialSelectedCalendar = await SelectedCalendarRepository.upsert({
+    const delegationCredentialSelectedCalendar = await PrismaSelectedCalendarRepository.upsert({
       userId: user.id,
       integration,
       externalId,

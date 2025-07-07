@@ -39,7 +39,7 @@ const ensureUserLevelWhere = {
   eventTypeId: null,
 };
 
-export class SelectedCalendarRepository {
+export class PrismaSelectedCalendarRepository {
   private static async findConflicting(data: {
     userId: number;
     integration: string;
@@ -49,7 +49,7 @@ export class SelectedCalendarRepository {
     // Because userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable,
     // it allows for multiple entries with the same (userId, integration, externalId) with eventTypeId=null in DB.
     // We restrict it at app level by ensuring that an entry doesn't exist already before creating a new one
-    return await SelectedCalendarRepository.findFirst({
+    return await PrismaSelectedCalendarRepository.findFirst({
       where: {
         userId: data.userId,
         integration: data.integration,
@@ -64,7 +64,7 @@ export class SelectedCalendarRepository {
   }
 
   static async create(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-    const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
+    const conflictingCalendar = await PrismaSelectedCalendarRepository.findConflicting(data);
 
     if (conflictingCalendar) {
       throw new Error(
@@ -92,7 +92,7 @@ export class SelectedCalendarRepository {
       ...credentialPayload,
     };
 
-    const conflictingCalendar = await SelectedCalendarRepository.findConflicting(newData);
+    const conflictingCalendar = await PrismaSelectedCalendarRepository.findConflicting(newData);
     if (conflictingCalendar) {
       return await prisma.selectedCalendar.update({
         where: {
@@ -108,7 +108,7 @@ export class SelectedCalendarRepository {
   }
 
   static async delete({ where }: { where: Prisma.SelectedCalendarUncheckedCreateInput }) {
-    const calendarsToDelete = await SelectedCalendarRepository.findMany({ where });
+    const calendarsToDelete = await PrismaSelectedCalendarRepository.findMany({ where });
 
     if (calendarsToDelete.length === 0) {
       // Same behaviour as Prisma.delete as it throws error if no record is found
@@ -136,7 +136,7 @@ export class SelectedCalendarRepository {
   }
 
   static async createIfNotExists(data: Prisma.SelectedCalendarUncheckedCreateInput) {
-    const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
+    const conflictingCalendar = await PrismaSelectedCalendarRepository.findConflicting(data);
 
     if (conflictingCalendar) return conflictingCalendar;
     return await prisma.selectedCalendar.create({
@@ -296,7 +296,7 @@ export class SelectedCalendarRepository {
   }
 
   static async findFirstOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
-    const calendar = await SelectedCalendarRepository.findFirst({ where });
+    const calendar = await PrismaSelectedCalendarRepository.findFirst({ where });
     if (!calendar) {
       throw new Error("SelectedCalendar not found");
     }
@@ -304,7 +304,7 @@ export class SelectedCalendarRepository {
   }
 
   static async update(args: UpdateArguments) {
-    const calendarsToUpdate = await SelectedCalendarRepository.findMany({ where: args.where });
+    const calendarsToUpdate = await PrismaSelectedCalendarRepository.findMany({ where: args.where });
 
     if (calendarsToUpdate.length === 0) {
       throw new Error("SelectedCalendar not found");
@@ -328,7 +328,7 @@ export class SelectedCalendarRepository {
    * Following methods ensure that they operate on user level calendars only
    */
   static async findUserLevelUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {
-    const calendars = await SelectedCalendarRepository.findUniqueOrThrow({
+    const calendars = await PrismaSelectedCalendarRepository.findUniqueOrThrow({
       where: {
         ...where,
         ...ensureUserLevelWhere,
@@ -342,7 +342,7 @@ export class SelectedCalendarRepository {
   }
 
   static async findManyUserLevel(args: FindManyArgs) {
-    return SelectedCalendarRepository.findMany({
+    return PrismaSelectedCalendarRepository.findMany({
       ...args,
       where: {
         ...args.where,
@@ -352,7 +352,7 @@ export class SelectedCalendarRepository {
   }
 
   static async updateUserLevel(args: UpdateArguments) {
-    return SelectedCalendarRepository.update({
+    return PrismaSelectedCalendarRepository.update({
       where: {
         ...args.where,
         ...ensureUserLevelWhere,
@@ -362,7 +362,7 @@ export class SelectedCalendarRepository {
   }
 
   static async deleteUserLevel({ where }: { where: Prisma.SelectedCalendarUncheckedCreateInput }) {
-    return await SelectedCalendarRepository.delete({
+    return await PrismaSelectedCalendarRepository.delete({
       where: {
         ...where,
         ...ensureUserLevelWhere,
@@ -380,7 +380,7 @@ export class SelectedCalendarRepository {
     const userId = data.userId;
     return await Promise.all(
       eventTypeIds.map((eventTypeId) =>
-        SelectedCalendarRepository.upsert({
+        PrismaSelectedCalendarRepository.upsert({
           ...data,
           eventTypeId,
           userId,
@@ -399,7 +399,7 @@ export class SelectedCalendarRepository {
   }
 
   static async setErrorInWatching({ id, error }: { id: string; error: string }) {
-    await SelectedCalendarRepository.updateById(id, {
+    await PrismaSelectedCalendarRepository.updateById(id, {
       error,
       lastErrorAt: new Date(),
       watchAttempts: { increment: 1 },
@@ -407,7 +407,7 @@ export class SelectedCalendarRepository {
   }
 
   static async setErrorInUnwatching({ id, error }: { id: string; error: string }) {
-    await SelectedCalendarRepository.updateById(id, {
+    await PrismaSelectedCalendarRepository.updateById(id, {
       error,
       lastErrorAt: new Date(),
       unwatchAttempts: { increment: 1 },
@@ -415,7 +415,7 @@ export class SelectedCalendarRepository {
   }
 
   static async removeWatchingError({ id }: { id: string }) {
-    await SelectedCalendarRepository.updateById(id, {
+    await PrismaSelectedCalendarRepository.updateById(id, {
       error: null,
       lastErrorAt: null,
       watchAttempts: 0,
@@ -423,7 +423,7 @@ export class SelectedCalendarRepository {
   }
 
   static async removeUnwatchingError({ id }: { id: string }) {
-    await SelectedCalendarRepository.updateById(id, {
+    await PrismaSelectedCalendarRepository.updateById(id, {
       error: null,
       lastErrorAt: null,
       unwatchAttempts: 0,

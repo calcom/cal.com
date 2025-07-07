@@ -1,4 +1,4 @@
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -14,7 +14,7 @@ type GetOptions = {
 };
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
-  const workflow = await WorkflowRepository.getById({ id: input.id });
+  const workflow = await PrismaWorkflowRepository.getById({ id: input.id });
 
   const isUserAuthorized = await isAuthorized(workflow, ctx.user.id);
 

@@ -9,7 +9,7 @@ import {
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars, PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -105,8 +105,8 @@ const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: str
 };
 
 /**
- * This method is mostly same as the one in UserRepository but it includes a lot more relations which are specific requirement here
- * TODO: Figure out how to keep it in UserRepository and use it here
+ * This method is mostly same as the one in PrismaUserRepository but it includes a lot more relations which are specific requirement here
+ * TODO: Figure out how to keep it in PrismaUserRepository and use it here
  */
 export const findUsersByUsername = async ({
   usernameList,
@@ -116,7 +116,7 @@ export const findUsersByUsername = async ({
   usernameList: string[];
 }) => {
   log.debug("findUsersByUsername", { usernameList, orgSlug });
-  const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
+  const { where, profiles } = await PrismaUserRepository._getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,
   });

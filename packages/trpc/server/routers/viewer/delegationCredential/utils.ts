@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
@@ -24,7 +24,7 @@ export async function ensureDelegationCredentialNotAlreadyConfigured({
   currentOrganizationId: number;
   delegationCredentialBeingUpdatedId: string | null;
 }) {
-  const allDelegationsForDomain = await DelegationCredentialRepository.findAllByDomain({
+  const allDelegationsForDomain = await PrismaDelegationCredentialRepository.findAllByDomain({
     domain,
   });
 

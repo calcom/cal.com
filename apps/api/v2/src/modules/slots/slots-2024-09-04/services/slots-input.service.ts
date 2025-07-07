@@ -1,10 +1,10 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DateTime } from "luxon";
 
@@ -22,10 +22,10 @@ import {
 export class SlotsInputService_2024_09_04 {
   constructor(
     private readonly eventTypeRepository: EventTypesRepository_2024_06_14,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly organizationsUsersRepository: OrganizationsUsersRepository,
     private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
-    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly organizationsRepository: PrismaOrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}

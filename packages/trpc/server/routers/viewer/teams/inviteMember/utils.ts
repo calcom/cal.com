@@ -15,7 +15,7 @@ import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams"
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
@@ -150,7 +150,7 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
   // If he is invited to a sub-team and is already part of the organization.
   if (
     team.parentId &&
-    UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+    PrismaUserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
   ) {
     return INVITE_STATUS.CAN_BE_INVITED;
   }
@@ -565,7 +565,7 @@ export function getAutoJoinStatus({
 
   const isAutoAcceptEmail = connectionInfoMap[invitee.email].autoAccept;
   const isUserMemberOfTheTeamsParentOrganization = team.parentId
-    ? UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+    ? PrismaUserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
     : null;
 
   if (isUserMemberOfTheTeamsParentOrganization) {

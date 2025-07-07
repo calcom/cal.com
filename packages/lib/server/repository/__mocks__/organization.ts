@@ -10,10 +10,10 @@ beforeEach(() => {
 });
 
 const organizationMock = mockDeep<OrganizationModule>();
-const OrganizationRepository = organizationMock.OrganizationRepository;
+const OrganizationRepository = organizationMock.PrismaOrganizationRepository;
 
 export const organizationScenarios = {
-  OrganizationRepository: {
+  PrismaOrganizationRepository: {
     findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fakeReturnOrganization: (org: any, forInput: any) => {
@@ -32,7 +32,7 @@ export const organizationScenarios = {
         OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockResolvedValue(null);
       },
     },
-  } satisfies Partial<Record<keyof OrganizationModule["OrganizationRepository"], unknown>>,
+  } satisfies Partial<Record<keyof OrganizationModule["PrismaOrganizationRepository"], unknown>>,
 } satisfies Partial<Record<keyof OrganizationModule, unknown>>;
 
 export default organizationMock;

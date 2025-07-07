@@ -6,7 +6,7 @@ import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
 import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
 
@@ -17,7 +17,7 @@ export class OAuthClientUsersService {
   private readonly logger = new Logger("OAuthClientUsersService");
 
   constructor(
-    private readonly userRepository: UsersRepository,
+    private readonly userRepository: PrismaUsersRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly eventTypesService: EventTypesService_2024_04_15,
     private readonly schedulesService: SchedulesService_2024_04_15,

@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -15,7 +15,7 @@ export default async function handler({
 
   // We might want to consider allowing this in the future. Right now, toggling off DelegationCredential achieves similar but non-destructive effect
   throw new TRPCError({ code: "BAD_REQUEST", message: "Not allowed" });
-  await DelegationCredentialRepository.deleteById({ id });
+  await PrismaDelegationCredentialRepository.deleteById({ id });
 
   return { id };
 }

@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
+import { PrismaWorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
 
 import { TRPCError } from "@trpc/server";
 
@@ -13,7 +13,7 @@ export default async function updateServiceAccountHandler({
   input: z.infer<typeof workspacePlatformUpdateServiceAccountSchema>;
 }) {
   try {
-    const updatedWorkspacePlatform = await WorkspacePlatformRepository.updateById({
+    const updatedWorkspacePlatform = await PrismaWorkspacePlatformRepository.updateById({
       id: input.id,
       data: {
         defaultServiceAccountKey: input.defaultServiceAccountKey,

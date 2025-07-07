@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { PrismaWorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
 
 import { TRPCError } from "@trpc/server";
 
@@ -37,9 +37,10 @@ export default async function handler({
   });
 
   try {
-    const workspacePlatform = await WorkspacePlatformRepository.findBySlugIncludeSensitiveServiceAccountKey({
-      slug: workspacePlatformSlug,
-    });
+    const workspacePlatform =
+      await PrismaWorkspacePlatformRepository.findBySlugIncludeSensitiveServiceAccountKey({
+        slug: workspacePlatformSlug,
+      });
 
     if (!workspacePlatform) {
       throw new TRPCError({
@@ -48,7 +49,7 @@ export default async function handler({
       });
     }
 
-    const updatedDelegation = await DelegationCredentialRepository.updateById({
+    const updatedDelegation = await PrismaDelegationCredentialRepository.updateById({
       id,
       data: {
         workspacePlatformId: workspacePlatform.id,

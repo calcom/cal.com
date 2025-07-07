@@ -5,7 +5,7 @@ import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { TeamFeatures } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -14,7 +14,7 @@ import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
 
 const getTeamFeatures = unstable_cache(
   async (teamId: number) => {
-    const featuresRepository = new FeaturesRepository();
+    const featuresRepository = new PrismaFeaturesRepository();
     return await featuresRepository.getTeamFeatures(teamId);
   },
   ["team-features"],

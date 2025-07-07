@@ -3,7 +3,7 @@ import type { NextMiddleware } from "next-api-middleware";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { PrismaDeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import prisma from "@calcom/prisma";
 
 import { isAdminGuard } from "../utils/isAdmin";
@@ -20,7 +20,7 @@ export const dateNotInPast = function (date: Date) {
 
 // This verifies the apiKey and sets the user if it is valid.
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
-  const deploymentRepo = new DeploymentRepository(prisma);
+  const deploymentRepo = new PrismaDeploymentRepository(prisma);
   const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
   const hasValidLicense = await licenseKeyService.checkLicense();
 

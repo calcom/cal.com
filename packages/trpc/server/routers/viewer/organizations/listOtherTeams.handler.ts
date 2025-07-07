@@ -1,4 +1,4 @@
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 import type { TrpcSessionUser } from "../../../types";
 
@@ -13,7 +13,7 @@ export const listOtherTeamHandler = async ({ ctx: { user } }: ListOptions) => {
     return [];
   }
 
-  return await OrganizationRepository.findTeamsInOrgIamNotPartOf({
+  return await PrismaOrganizationRepository.findTeamsInOrgIamNotPartOf({
     userId: user.id,
     parentId: user?.organization?.id ?? null,
   });

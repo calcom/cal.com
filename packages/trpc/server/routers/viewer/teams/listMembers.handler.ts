@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -78,7 +78,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
 
   const membersWithApps = await Promise.all(
     teamMembers.map(async (member) => {
-      const user = await UserRepository.enrichUserWithItsProfile({
+      const user = await PrismaUserRepository.enrichUserWithItsProfile({
         user: member.user,
       });
       const { profile, ...restUser } = user;

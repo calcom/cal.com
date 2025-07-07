@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 
 import type { TDelegationCredentialGetAffectedMembersForDisableSchema } from "./schema";
 
@@ -10,7 +10,9 @@ export async function getAffectedMembersForDisable({
 }: {
   delegationCredentialId: string;
 }) {
-  const delegationCredential = await DelegationCredentialRepository.findById({ id: delegationCredentialId });
+  const delegationCredential = await PrismaDelegationCredentialRepository.findById({
+    id: delegationCredentialId,
+  });
   if (!delegationCredential) {
     // If we cant find the delegation credential, we assume no members were affected
     return [];
@@ -25,7 +27,7 @@ export async function getAffectedMembersForDisable({
 
   // Find members who joined after the delegation credential was last enabled
   const membershipsThatCouldPotentiallyBeAffected =
-    await MembershipRepository.findMembershipsCreatedAfterTimeIncludeUser({
+    await PrismaMembershipRepository.findMembershipsCreatedAfterTimeIncludeUser({
       organizationId: delegationCredential.organizationId,
       time: lastEnabledAt,
     });

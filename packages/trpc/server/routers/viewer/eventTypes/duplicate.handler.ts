@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -151,7 +151,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       }
     }
 
-    const newEventType = await EventTypeRepository.create(data);
+    const newEventType = await PrismaEventTypeRepository.create(data);
 
     // Create custom inputs
     if (customInputs) {

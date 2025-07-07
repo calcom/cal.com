@@ -1,7 +1,7 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { AppsRepository } from "@/modules/apps/apps.repository";
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
+import { PrismaConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
 import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
@@ -28,7 +28,7 @@ import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
 import { OrganizationsEventTypesService } from "@/modules/organizations/event-types/services/organizations-event-types.service";
 import { OutputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/output.service";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsService } from "@/modules/organizations/index/organizations.service";
 import { OrganizationsMembershipsController } from "@/modules/organizations/memberships/organizations-membership.controller";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
@@ -93,7 +93,7 @@ import { Module } from "@nestjs/common";
     OrganizationsConferencingModule,
   ],
   providers: [
-    OrganizationsRepository,
+    PrismaOrganizationsRepository,
     OrganizationsTeamsRepository,
     OrganizationsService,
     OrganizationsTeamsService,
@@ -130,7 +130,7 @@ import { Module } from "@nestjs/common";
     CredentialsRepository,
     AppsRepository,
     RedisService,
-    ConferencingRepository,
+    PrismaConferencingRepository,
     GoogleMeetService,
     ConferencingService,
     ZoomVideoService,
@@ -144,7 +144,7 @@ import { Module } from "@nestjs/common";
   ],
   exports: [
     OrganizationsService,
-    OrganizationsRepository,
+    PrismaOrganizationsRepository,
     OrganizationsTeamsRepository,
     OrganizationsUsersRepository,
     OrganizationsUsersService,

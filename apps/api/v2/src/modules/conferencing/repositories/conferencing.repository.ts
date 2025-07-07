@@ -6,7 +6,7 @@ import type { Prisma } from "@prisma/client";
 import { GOOGLE_MEET_TYPE } from "@calcom/platform-constants";
 
 @Injectable()
-export class ConferencingRepository {
+export class PrismaConferencingRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   private readonly credentialSelect = {

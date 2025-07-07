@@ -15,11 +15,11 @@ interface CacheOptions {
  * Implements the IFeaturesRepository interface to provide feature flag functionality
  * for users, teams, and global application features.
  */
-export class FeaturesRepository implements IFeaturesRepository {
+export class PrismaFeaturesRepository implements IFeaturesRepository {
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
   private clearCache() {
-    FeaturesRepository.featuresCache = null;
+    PrismaFeaturesRepository.featuresCache = null;
   }
 
   /**
@@ -28,8 +28,11 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<Feature[]> - Array of all features
    */
   public async getAllFeatures() {
-    if (FeaturesRepository.featuresCache && Date.now() < FeaturesRepository.featuresCache.expiry) {
-      return FeaturesRepository.featuresCache.data;
+    if (
+      PrismaFeaturesRepository.featuresCache &&
+      Date.now() < PrismaFeaturesRepository.featuresCache.expiry
+    ) {
+      return PrismaFeaturesRepository.featuresCache.data;
     }
 
     const features = await db.feature.findMany({
@@ -37,7 +40,7 @@ export class FeaturesRepository implements IFeaturesRepository {
       cacheStrategy: { swr: 300, ttl: 300 },
     });
 
-    FeaturesRepository.featuresCache = {
+    PrismaFeaturesRepository.featuresCache = {
       data: features,
       expiry: Date.now() + 5 * 60 * 1000, // 5 minutes cache
     };

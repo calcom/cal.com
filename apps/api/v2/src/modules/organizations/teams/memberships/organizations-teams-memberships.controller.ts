@@ -12,7 +12,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
 import {
@@ -60,7 +60,7 @@ export class OrganizationsTeamsMembershipsController {
   constructor(
     private organizationsTeamsMembershipsService: OrganizationsTeamsMembershipsService,
     private teamsEventTypesService: TeamsEventTypesService,
-    private readonly organizationsRepository: OrganizationsRepository
+    private readonly organizationsRepository: PrismaOrganizationsRepository
   ) {}
 
   @Get("/")

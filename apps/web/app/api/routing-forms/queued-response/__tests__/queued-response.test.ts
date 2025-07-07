@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { PrismaRoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 
 import { queuedResponseHandler } from "../route";
 
@@ -44,7 +44,7 @@ const mockQueuedFormResponse = {
 
 describe("queuedResponseHandler", () => {
   it("should process a queued form response", async () => {
-    vi.mocked(RoutingFormResponseRepository.getQueuedFormResponseFromId).mockResolvedValue(
+    vi.mocked(PrismaRoutingFormResponseRepository.getQueuedFormResponseFromId).mockResolvedValue(
       mockQueuedFormResponse
     );
 
@@ -90,7 +90,7 @@ describe("queuedResponseHandler", () => {
       team: null,
     } as unknown as Awaited<ReturnType<typeof onSubmissionOfFormResponse>>);
 
-    vi.mocked(RoutingFormResponseRepository.recordFormResponse).mockResolvedValue({
+    vi.mocked(PrismaRoutingFormResponseRepository.recordFormResponse).mockResolvedValue({
       id: "mock-form-id",
       name: "Test Form",
       description: "Test Form Description",
@@ -102,7 +102,7 @@ describe("queuedResponseHandler", () => {
       },
       team: null,
       chosenRouteId: "mock-chosen-route-id",
-    } as unknown as Awaited<ReturnType<typeof RoutingFormResponseRepository.recordFormResponse>>);
+    } as unknown as Awaited<ReturnType<typeof PrismaRoutingFormResponseRepository.recordFormResponse>>);
 
     const response = await queuedResponseHandler({
       queuedFormResponseId: "1",
@@ -115,7 +115,7 @@ describe("queuedResponseHandler", () => {
   });
 
   it("if no queued form response is found, should return early", async () => {
-    vi.mocked(RoutingFormResponseRepository.getQueuedFormResponseFromId).mockResolvedValue(null);
+    vi.mocked(PrismaRoutingFormResponseRepository.getQueuedFormResponseFromId).mockResolvedValue(null);
     const response = await queuedResponseHandler({
       queuedFormResponseId: "1",
       params: {},
@@ -127,7 +127,7 @@ describe("queuedResponseHandler", () => {
   });
 
   it("should throw if form has no fields", async () => {
-    vi.mocked(RoutingFormResponseRepository.getQueuedFormResponseFromId).mockResolvedValue(
+    vi.mocked(PrismaRoutingFormResponseRepository.getQueuedFormResponseFromId).mockResolvedValue(
       mockQueuedFormResponse
     );
     vi.mocked(getSerializableForm).mockResolvedValue({

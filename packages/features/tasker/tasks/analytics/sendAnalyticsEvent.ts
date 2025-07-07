@@ -1,7 +1,7 @@
 import AnalyticsManager from "@calcom/lib/analyticsManager/analyticsManager";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
 
 import { sendAnalyticsEventSchema } from "./schema";
 
@@ -15,7 +15,7 @@ export async function sendAnalyticsEvent(payload: string): Promise<void> {
     }
 
     const { credentialId, info } = parsedPayload.data;
-    const credential = await CredentialRepository.findFirstByIdWithKeyAndUser({ id: credentialId });
+    const credential = await PrismaCredentialRepository.findFirstByIdWithKeyAndUser({ id: credentialId });
 
     if (!credential) {
       throw new Error("Invalid credential");

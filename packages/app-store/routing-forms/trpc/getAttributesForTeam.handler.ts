@@ -1,4 +1,4 @@
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import { getAttributesForTeam } from "@calcom/lib/service/attribute/server/getAttributes";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -19,7 +19,10 @@ export default async function getAttributesForTeamHandler({
 }: GetAttributesForTeamHandlerOptions) {
   const { teamId } = input;
   const { user } = ctx;
-  const isMemberOfTeam = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId: user.id, teamId });
+  const isMemberOfTeam = await PrismaMembershipRepository.findUniqueByUserIdAndTeamId({
+    userId: user.id,
+    teamId,
+  });
 
   if (!isMemberOfTeam) {
     throw new TRPCError({

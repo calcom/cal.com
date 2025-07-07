@@ -1,6 +1,6 @@
 import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getTokenObjectFromCredential } from "./getTokenObjectFromCredential";
@@ -30,7 +30,7 @@ export async function getCurrentTokenObject(
     } else {
       log.debug("Getting current token object for delegation credential");
       const delegationUserCredentialInDb =
-        await CredentialRepository.findUniqueByUserIdAndDelegationCredentialId({
+        await PrismaCredentialRepository.findUniqueByUserIdAndDelegationCredentialId({
           userId: credential.userId,
           delegationCredentialId: credential.delegatedToId,
         });

@@ -5,7 +5,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaBookingRepository } from "@calcom/lib/server/repository/booking";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
@@ -223,7 +223,7 @@ const getWebhooksService = async (bookingUid: string, platformClientId?: string)
 const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
-  const booking = await BookingRepository.findBookingByUidAndUserId({ bookingUid, userId });
+  const booking = await PrismaBookingRepository.findBookingByUidAndUserId({ bookingUid, userId });
 
   if (!booking)
     throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });

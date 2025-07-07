@@ -1,4 +1,4 @@
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 /**
  * It assumes that a user can only impersonate the members of the organization he is logged in to.
@@ -6,7 +6,7 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
  */
 export async function ensureOrganizationIsReviewed(loggedInUserOrgId: number | undefined) {
   if (loggedInUserOrgId) {
-    const org = await OrganizationRepository.findByIdIncludeOrganizationSettings({
+    const org = await PrismaOrganizationRepository.findByIdIncludeOrganizationSettings({
       id: loggedInUserOrgId,
     });
 
