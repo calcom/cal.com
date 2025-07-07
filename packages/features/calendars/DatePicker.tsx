@@ -240,7 +240,9 @@ const Days = ({
   return (
     <>
       {daysToRenderForTheMonth.map(({ day, disabled, away, emoji }, idx) => (
-        <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
+        <div
+          key={day === null ? `e-${idx}` : `day-${day.format()}`}
+          className="relative aspect-square min-h-[40px] w-full">
           {day === null ? (
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
