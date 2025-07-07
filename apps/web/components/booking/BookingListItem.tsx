@@ -173,6 +173,11 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
 
+  // show "confirm" & "reject" buttons if loggedInUser is not the booker
+  // TODO: currently not handling the case when there are multiple attendees
+  const isLoggedInUserIsBooker =
+    attendeeList.length === 1 && attendeeList[0].email === booking.loggedInUser.userEmail;
+
   const paymentAppData = getPaymentAppData(booking.eventType);
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
@@ -214,33 +219,36 @@ function BookingListItem(booking: BookingItemProps) {
     return booking.seatsReferences[0].referenceUid;
   };
 
-  const pendingActions: ActionType[] = [
-    {
-      id: "reject",
-      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
-      onClick: () => {
-        setRejectionDialogIsOpen(true);
-      },
-      icon: "ban",
-      disabled: mutation.isPending,
-    },
-    // For bookings with payment, only confirm if the booking is paid for
-    ...((isPending && !paymentAppData.enabled) ||
-    (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
-      ? [
-          {
-            id: "confirm",
-            bookingId: booking.id,
-            label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
-            onClick: () => {
-              bookingConfirm(true);
-            },
-            icon: "check" as const,
-            disabled: mutation.isPending,
+  // if loggedInUser is Booker then don't show reject and confirm buttons
+  const pendingActions: ActionType[] = !isLoggedInUserIsBooker
+    ? [
+        {
+          id: "reject",
+          label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
+          onClick: () => {
+            setRejectionDialogIsOpen(true);
           },
-        ]
-      : []),
-  ];
+          icon: "ban",
+          disabled: mutation.isPending,
+        },
+        // For bookings with payment, only confirm if the booking is paid for
+        ...((isPending && !paymentAppData.enabled) ||
+        (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
+          ? [
+              {
+                id: "confirm",
+                bookingId: booking.id,
+                label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
+                onClick: () => {
+                  bookingConfirm(true);
+                },
+                icon: "check" as const,
+                disabled: mutation.isPending,
+              },
+            ]
+          : []),
+      ]
+    : [];
 
   const editBookingActions: ActionType[] = [
     ...(isBookingInPast && !booking.eventType.allowReschedulingPastBookings
