@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
+import { processEventDataShared } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import {
@@ -108,49 +109,58 @@ export class EventTypeService {
 
     const eventMetaData = EventTypeMetaDataSchema.parse(eventData.metadata);
 
-    return {
-      ...eventData,
-      eventTypeId,
-      entity: {
-        eventTypeId,
-        fromRedirectOfNonOrgLink,
-        considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
-        orgSlug,
-        teamSlug: team.slug ?? null,
-        name,
-      },
-      length: eventData.length,
+    // Use shared processing logic
+    const processedData = await processEventDataShared({
+      eventData,
       metadata: eventMetaData,
+    });
+
+    // Add team-specific profile and entity data
+    return {
+      ...processedData,
       profile: {
+        username: team.slug,
+        name,
+        weekStart: eventData.hosts?.[0]?.user?.weekStart || "Monday",
         image: team.parent
           ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
           : getPlaceholderAvatar(team.logoUrl, team.name),
-        name,
-        username: orgSlug ?? null,
         brandColor: team.brandColor,
         darkBrandColor: team.darkBrandColor,
         theme: team.theme,
         bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
       },
-      title: eventData.title,
       subsetOfUsers: eventHostsUserData ?? [],
+      entity: {
+        fromRedirectOfNonOrgLink,
+        considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
+        orgSlug,
+        teamSlug: team.slug ?? null,
+        name,
+        hideProfileLink: false,
+        logoUrl: team.parent
+          ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+          : getPlaceholderAvatar(team.logoUrl, team.name),
+      },
+
+      // Legacy fields for backward compatibility
+      eventTypeId,
+      length: eventData.length,
+      title: eventData.title,
       hidden: eventData.hidden ?? false,
-      interfaceLanguage: eventData.interfaceLanguage,
       slug: eventData.slug,
-      disableRescheduling: eventData.disableRescheduling ?? false,
-      allowReschedulingCancelledBookings: eventData.allowReschedulingCancelledBookings ?? false,
       team: {
         id: team.id,
         name: team.name,
         slug: team.slug,
       },
       subsetOfHosts: eventData.hosts ?? [],
-      isDynamic: false,
       forwardParamsSuccessRedirect: eventData.forwardParamsSuccessRedirect,
       lockTimeZoneToggleOnBookingPage: eventData.lockTimeZoneToggleOnBookingPage,
       autoTranslateDescriptionEnabled: eventData.autoTranslateDescriptionEnabled,
       fieldTranslations: eventData.fieldTranslations ?? [],
       schedule: eventData.schedule,
+      interfaceLanguage: eventData.interfaceLanguage,
     };
   }
 }
