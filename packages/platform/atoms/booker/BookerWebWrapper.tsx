@@ -21,13 +21,13 @@ import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hook
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
+import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { type EventTypeService } from "@calcom/lib/server/service/eventType";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-export type BookerWebWrapperAtomProps = BookerProps & {
-  eventData?: NonNullable<Awaited<ReturnType<typeof EventTypeService.processEventDataForBooking>>>;
+type BookerWebWrapperAtomProps = BookerProps & {
+  eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
 export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
