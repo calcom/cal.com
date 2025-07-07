@@ -20,18 +20,14 @@ const usePersistedExpansionState = (itemName: string) => {
       if (stored !== null) {
         setIsExpanded(JSON.parse(stored));
       }
-    } catch (error) {
-      console.warn("Failed to load navigation expansion state:", error);
-    }
+    } catch (_error) {}
   }, [itemName]);
 
   const setPersistedExpansion = (expanded: boolean) => {
     setIsExpanded(expanded);
     try {
       sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
-    } catch (error) {
-      console.warn("Failed to save navigation expansion state:", error);
-    }
+    } catch (_error) {}
   };
 
   return [isExpanded, setPersistedExpansion] as const;
@@ -85,10 +81,11 @@ export const NavigationItem: React.FC<{
     hasChildren && item.child?.some((child) => isCurrent({ isChild: true, item: child, pathname }));
   const shouldShowChildren = isExpanded || hasActiveChild || isCurrent({ pathname, isChild, item });
   const shouldShowChevron = hasChildren && !hasActiveChild;
+  const isParentNavigationItem = hasChildren && !isChild;
 
   return (
     <Fragment>
-      {hasChildren && !isChild ? (
+      {isParentNavigationItem ? (
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
           <button
             data-test-id={item.name}
