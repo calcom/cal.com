@@ -859,6 +859,7 @@ export const EventAdvancedTab = ({
                       team={team}
                       bookerUrl={eventType.bookerUrl}
                       setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
+                      userTimeZone={user?.timeZone}
                     />
                   </div>
                 )}

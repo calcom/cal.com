@@ -2140,14 +2140,6 @@ async function handler(
           // If update fails, it might be because another concurrent request used the link
           throw new HttpError({ statusCode: 410, message: "Link usage limit reached" });
         }
-
-        if (hashedLink.usageCount + 1 >= hashedLink.maxUsageCount) {
-          await prisma.hashedLink.delete({
-            where: {
-              id: hashedLink.id,
-            },
-          });
-        }
       }
     }
   } catch (error) {

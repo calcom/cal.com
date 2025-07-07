@@ -45,15 +45,15 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
               },
             },
           },
-          team: {
-            select: {
-              id: true,
-              slug: true,
-              hideBranding: true,
-              parent: {
-                select: {
-                  hideBranding: true,
-                },
+        },
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            hideBranding: true,
+            parent: {
+              select: {
+                hideBranding: true,
               },
             },
           },

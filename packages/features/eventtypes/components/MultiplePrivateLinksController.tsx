@@ -2,12 +2,14 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
+import dayjs from "@calcom/dayjs";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, PrivateLinkWithOptions } from "@calcom/features/eventtypes/lib/types";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
@@ -22,8 +24,10 @@ export const MultiplePrivateLinksController = ({
   team,
   bookerUrl,
   setMultiplePrivateLinksVisible,
+  userTimeZone,
 }: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl"> & {
   setMultiplePrivateLinksVisible?: (isVisible: boolean) => void;
+  userTimeZone?: string;
 }): JSX.Element => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
@@ -50,9 +54,21 @@ export const MultiplePrivateLinksController = ({
     );
 
     if (type === "time") {
+      // Convert the selected date to end of day in user's timezone, then to UTC for storage
+      const selectedDate = date || expiryDate;
+      const userTz = userTimeZone || dayjs.tz.guess();
+
+      // Create a dayjs object in the user's timezone with the selected date
+      // This ensures we're working with the date as intended in the user's timezone
+      const endOfDayInUserTz = dayjs
+        .tz(dayjs(selectedDate).format("YYYY-MM-DD"), userTz)
+        .endOf("day")
+        .utc()
+        .toDate();
+
       convertedValue[index] = {
         ...convertedValue[index],
-        expiresAt: date || expiryDate,
+        expiresAt: endOfDayInUserTz,
         maxUsageCount: null,
       };
     } else if (type === "usage") {
@@ -73,20 +89,14 @@ export const MultiplePrivateLinksController = ({
 
   const openSettingsDialog = (index: number, currentLink: PrivateLinkWithOptions) => {
     setCurrentLinkIndex(index);
-
     // Set initial values based on current link
     if (currentLink.expiresAt) {
       setSelectedType("time");
       setExpiryDate(new Date(currentLink.expiresAt));
-    } else if (currentLink.maxUsageCount !== null && currentLink.maxUsageCount !== undefined) {
-      setSelectedType("usage");
-      setMaxUsageCount(currentLink.maxUsageCount);
     } else {
       setSelectedType("usage");
-      setExpiryDate(new Date(new Date().setDate(new Date().getDate() + 7))); // Default: 7 days from now
-      setMaxUsageCount(1);
+      setMaxUsageCount(currentLink.maxUsageCount ?? 1);
     }
-
     setIsDialogOpen(true);
   };
 
@@ -136,21 +146,9 @@ export const MultiplePrivateLinksController = ({
               usageCount: 0,
             };
 
-            // Copy all existing links WITH their current usage data
-            const newValue = convertedValue.map((link) => {
-              // Preserve any server-side usage data we have
-              const serverData = linkDataMap.get(link.link);
-              if (serverData) {
-                return {
-                  ...link,
-                  usageCount: serverData.usageCount ?? (link as PrivateLinkWithOptions).usageCount ?? 0,
-                };
-              }
-              return { ...link };
-            });
-
-            // Add the new link to the preserved collection
-            newValue.push(newPrivateLink);
+            // Simply add the new link without syncing existing data
+            // Server data is used for display only, not for form updates
+            const newValue = [...convertedValue, newPrivateLink];
             onChange(newValue);
           };
 
@@ -176,16 +174,18 @@ export const MultiplePrivateLinksController = ({
                 const latestUsageCount =
                   latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
 
-                // Determine link type description
+                // Determine if link is expired and create description
                 let linkDescription = t("single_use_link");
+                let isExpired = false;
+
                 if (val.expiresAt) {
-                  const expiryDate = new Date(val.expiresAt).toLocaleDateString(undefined, {
-                    dateStyle: "medium",
-                  });
-                  const now = new Date();
-                  const expiryDateTime = new Date(val.expiresAt);
-                  expiryDateTime.setHours(23, 59, 59);
-                  const isExpired = expiryDateTime < now;
+                  // Convert stored UTC date to user's timezone for display and comparison
+                  const expiryInUserTz = dayjs.utc(val.expiresAt).tz(userTimeZone || dayjs.tz.guess());
+                  const expiryDate = expiryInUserTz.format("MMM DD, YYYY");
+
+                  // Compare current time in user's timezone with expiry time
+                  const nowInUserTz = dayjs().tz(userTimeZone || dayjs.tz.guess());
+                  isExpired = nowInUserTz.isAfter(expiryInUserTz);
 
                   linkDescription = isExpired
                     ? t("link_expired_on_date", { date: expiryDate })
@@ -195,16 +195,17 @@ export const MultiplePrivateLinksController = ({
                   val.maxUsageCount !== null &&
                   !isNaN(Number(val.maxUsageCount))
                 ) {
-                  // Calculate uses - if link is still active, there must be at least 1 use remaining
+                  // Calculate uses and determine if expired
                   const maxUses = val.maxUsageCount;
                   const usedCount = latestUsageCount;
                   const remainingUses = maxUses - usedCount;
 
-                  // Only show limit reached if we've EXCEEDED the limit (used more than max)
-                  if (usedCount > maxUses) {
+                  // Link is expired if usage count has reached or exceeded the limit
+                  isExpired = usedCount >= maxUses;
+
+                  if (isExpired) {
                     linkDescription = t("usage_limit_reached");
                   } else {
-                    // Show remaining uses - if usedCount equals maxUses, we still have that last use
                     linkDescription = `${remainingUses} of ${maxUses} ${
                       remainingUses === 1 ? "use" : "uses"
                     } remaining`;
@@ -216,33 +217,39 @@ export const MultiplePrivateLinksController = ({
                     <div className="flex items-center">
                       <TextField
                         containerClassName={classNames("w-full")}
-                        disabled
+                        disabled={isExpired}
                         value={singleUseURL}
-                        className="bg-gray-50"
+                        className={classNames(isExpired ? "bg-red-50 text-gray-400" : "bg-gray-50")}
                         data-testid="private-link-url"
                         addOnSuffix={
-                          <Tooltip content={t("copy_link")}>
-                            <Button
-                              type="button"
-                              color="minimal"
-                              size="sm"
-                              StartIcon="copy"
-                              onClick={() => {
-                                navigator.clipboard.writeText(singleUseURL);
-                                showToast(t("link_copied"), "success");
-                              }}
-                            />
-                          </Tooltip>
+                          !isExpired ? (
+                            <Tooltip content={t("copy_link")}>
+                              <Button
+                                type="button"
+                                color="minimal"
+                                size="sm"
+                                StartIcon="copy"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(singleUseURL);
+                                  showToast(t("link_copied"), "success");
+                                }}
+                              />
+                            </Tooltip>
+                          ) : (
+                            <Badge variant="red">{t("expired")}</Badge>
+                          )
                         }
                       />
                       <div className="ml-2 flex items-center">
-                        <Button
-                          type="button"
-                          color="minimal"
-                          variant="icon"
-                          StartIcon="settings"
-                          onClick={() => openSettingsDialog(key, val)}
-                        />
+                        {!isExpired && (
+                          <Button
+                            type="button"
+                            color="minimal"
+                            variant="icon"
+                            StartIcon="settings"
+                            onClick={() => openSettingsDialog(key, val)}
+                          />
+                        )}
                         <Button
                           data-testid={`remove-single-use-link-${key}`}
                           variant="icon"
