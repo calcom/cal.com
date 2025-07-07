@@ -20,8 +20,8 @@ import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-form
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import { RoutingFormRepository } from "@calcom/lib/server/repository/prismaRoutingForm";
 import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
-import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 
 import { TRPCError } from "@trpc/server";
 
