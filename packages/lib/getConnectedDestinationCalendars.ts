@@ -135,7 +135,7 @@ async function handleNoDestinationCalendar({
     }
   }
 
-  user.destinationCalendar = await DestinationCalendarRepository.createIfNotExists({
+  user.destinationCalendar = await DestinationCalendarRepository.createIfNotExistsForUser({
     userId: user.id,
     integration,
     externalId,
