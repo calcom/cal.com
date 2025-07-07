@@ -25,6 +25,7 @@ import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
@@ -355,6 +356,7 @@ const Locations: React.FC<LocationsProps> = ({
                               labelClassName="text-sm"
                               checked={value}
                               onCheckedChange={onChange}
+                              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                             />
                           );
                         }}
@@ -370,58 +372,11 @@ const Locations: React.FC<LocationsProps> = ({
                               labelClassName="text-sm"
                               checked={value}
                               onCheckedChange={onChange}
+                              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                             />
                           );
                         }}
                       />
-
-                      <Controller
-                        name="calVideoSettings.enableAutomaticTranscription"
-                        defaultValue={!!eventType.calVideoSettings?.enableAutomaticTranscription}
-                        render={({ field: { onChange, value } }) => {
-                          return (
-                            <SettingsToggle
-                              title={t("enable_automatic_transcription")}
-                              labelClassName="text-sm"
-                              checked={value}
-                              onCheckedChange={onChange}
-                            />
-                          );
-                        }}
-                      />
-
-                      {!isPlatform && (
-                        <Controller
-                          name="calVideoSettings.disableTranscriptionForGuests"
-                          defaultValue={!!eventType.calVideoSettings?.disableTranscriptionForGuests}
-                          render={({ field: { onChange, value } }) => {
-                            return (
-                              <SettingsToggle
-                                title={t("disable_transcription_for_guests")}
-                                labelClassName="text-sm"
-                                checked={value}
-                                onCheckedChange={onChange}
-                              />
-                            );
-                          }}
-                        />
-                      )}
-                      {!isPlatform && (
-                        <Controller
-                          name="calVideoSettings.disableTranscriptionForOrganizer"
-                          defaultValue={!!eventType.calVideoSettings?.disableTranscriptionForOrganizer}
-                          render={({ field: { onChange, value } }) => {
-                            return (
-                              <SettingsToggle
-                                title={t("disable_transcription_for_organizer")}
-                                labelClassName="text-sm"
-                                checked={value}
-                                onCheckedChange={onChange}
-                              />
-                            );
-                          }}
-                        />
-                      )}
 
                       {!isPlatform && (
                         <Controller
@@ -434,11 +389,28 @@ const Locations: React.FC<LocationsProps> = ({
                                 labelClassName="text-sm"
                                 checked={value}
                                 onCheckedChange={onChange}
+                                Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                               />
                             );
                           }}
                         />
                       )}
+
+                      <Controller
+                        name="calVideoSettings.enableAutomaticTranscription"
+                        defaultValue={!!eventType.calVideoSettings?.enableAutomaticTranscription}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("enable_automatic_transcription")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                            />
+                          );
+                        }}
+                      />
 
                       {!isPlatform && (
                         <Controller
@@ -451,6 +423,7 @@ const Locations: React.FC<LocationsProps> = ({
                                 labelClassName="text-sm"
                                 checked={value}
                                 onCheckedChange={onChange}
+                                Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                               />
                             );
                           }}
@@ -467,6 +440,7 @@ const Locations: React.FC<LocationsProps> = ({
                                 labelClassName="text-sm"
                                 checked={value}
                                 onCheckedChange={onChange}
+                                Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                               />
                             );
                           }}
