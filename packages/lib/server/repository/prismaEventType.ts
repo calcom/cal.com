@@ -12,10 +12,10 @@ import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
-import { PrismaMembershipRepository } from "./membership";
+import { PrismaMembershipRepository } from "./prismaMembership";
+import type { UserWithLegacySelectedCalendars } from "./prismaUser";
+import { withSelectedCalendars } from "./prismaUser";
 import { LookupTarget, ProfileRepository } from "./profile";
-import type { UserWithLegacySelectedCalendars } from "./user";
-import { withSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 type NotSupportedProps = "locations";

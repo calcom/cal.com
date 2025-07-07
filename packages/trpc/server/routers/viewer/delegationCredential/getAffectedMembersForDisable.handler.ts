@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
-import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/prismaDelegationCredential";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/prismaMembership";
 
 import type { TDelegationCredentialGetAffectedMembersForDisableSchema } from "./schema";
 

@@ -9,7 +9,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
-import { PrismaEventRepository } from "@calcom/lib/server/repository/event";
+import { PrismaEventRepository } from "@calcom/lib/server/repository/prismaEvent";
 import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";

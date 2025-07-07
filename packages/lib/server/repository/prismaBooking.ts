@@ -7,7 +7,7 @@ import type { Booking } from "@calcom/prisma/client";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { PrismaUserRepository } from "./user";
+import { PrismaUserRepository } from "./prismaUser";
 
 type TeamBookingsParamsBase = {
   user: { id: number; email: string };

@@ -6,9 +6,9 @@ import {
 import { describe, test, expect, beforeEach } from "vitest";
 
 import { AppRepository } from "@calcom/lib/server/repository/app";
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
-import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { PrismaCredentialRepository } from "@calcom/lib/server/repository/prismaCredential";
+import { DestinationCalendarRepository } from "@calcom/lib/server/repository/prismaDestinationCalendar";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/prismaEventType";
 import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 
 const testUser = {

@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { PrismaWorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
+import { PrismaWorkspacePlatformRepository } from "@calcom/lib/server/repository/prismaWorkspacePlatform";
 
 import type { workspacePlatformToggleEnabledSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";

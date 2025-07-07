@@ -7,8 +7,8 @@ import {
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { PrismaDeploymentRepository } from "@calcom/lib/server/repository/prismaDeployment";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/prismaOrganizationOnboarding";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 

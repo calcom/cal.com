@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { z } from "zod";
 
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
-import { PrismaRoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { PrismaRoutingFormResponseRepository } from "@calcom/lib/server/repository/prismaFormResponse";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import isRouter from "../lib/isRouter";
@@ -17,7 +17,7 @@ vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
   findTeamMembersMatchingAttributeLogic: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/server/repository/formResponse", () => ({
+vi.mock("@calcom/lib/server/repository/prismaFormResponse", () => ({
   PrismaRoutingFormResponseRepository: {
     recordQueuedFormResponse: vi.fn(),
     recordFormResponse: vi.fn(),

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
-import { ApiKeyRepository } from "@calcom/lib/server/repository/apiKey";
+import { ApiKeyRepository } from "@calcom/lib/server/repository/prismaApiKey";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

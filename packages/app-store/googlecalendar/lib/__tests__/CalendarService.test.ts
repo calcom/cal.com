@@ -22,7 +22,7 @@ import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/prismaSelectedCalendar";
 
 import CalendarService from "../CalendarService";
 import {

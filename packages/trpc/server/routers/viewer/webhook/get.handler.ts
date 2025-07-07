@@ -1,4 +1,4 @@
-import { PrismaWebhookRepository } from "@calcom/lib/server/repository/webhook";
+import { PrismaWebhookRepository } from "@calcom/lib/server/repository/prismaWebhook";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetInputSchema } from "./get.schema";

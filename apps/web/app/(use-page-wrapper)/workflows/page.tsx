@@ -2,7 +2,7 @@
 // import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 // import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 // import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-// import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
+// import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/prismaWorkflow";
 import LegacyPage from "@calcom/features/ee/workflows/pages/index";
 
 const Page = async () => {

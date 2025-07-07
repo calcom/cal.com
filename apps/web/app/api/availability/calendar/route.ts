@@ -9,8 +9,8 @@ import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import notEmpty from "@calcom/lib/notEmpty";
+import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/prismaSelectedCalendar";
 import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
-import { PrismaSelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

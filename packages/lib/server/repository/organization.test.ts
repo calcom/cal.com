@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import type { Prisma } from "@calcom/prisma/client";
 
-import { PrismaOrganizationRepository } from "./organization";
+import { PrismaOrganizationRepository } from "./prismaOrganization";
 
 vi.mock("./teamUtils", () => ({
   getParsedTeam: (org: any) => org,

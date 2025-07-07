@@ -1,4 +1,4 @@
-import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/prismaWorkflow";
 import prisma from "@calcom/prisma";
 
 // cancel/delete all workflowReminders of the removed member that come from that team (org teams only)

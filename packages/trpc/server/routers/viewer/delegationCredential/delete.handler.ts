@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/prismaDelegationCredential";
 
 import { TRPCError } from "@trpc/server";
 

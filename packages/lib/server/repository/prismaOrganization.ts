@@ -9,8 +9,8 @@ import type { CreationSource } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
-import { getParsedTeam } from "./teamUtils";
-import { PrismaUserRepository } from "./user";
+import { getParsedTeam } from "./prismaTeamUtils";
+import { PrismaUserRepository } from "./prismaUser";
 
 const orgSelect = {
   id: true,

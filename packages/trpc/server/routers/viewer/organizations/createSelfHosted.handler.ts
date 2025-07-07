@@ -1,6 +1,6 @@
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/prismaOrganizationOnboarding";
 
 import { TRPCError } from "@trpc/server";
 

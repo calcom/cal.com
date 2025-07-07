@@ -1,4 +1,4 @@
-import { PrismaCredentialRepository } from "../../../lib/server/repository/credential";
+import { PrismaCredentialRepository } from "../../../lib/server/repository/prismaCredential";
 import { EventTypeService } from "../../../lib/server/service/eventType";
 import type { AttributeRoutingConfig } from "../../routing-forms/types/types";
 import SalesforceCRMService from "./CrmService";

@@ -1,4 +1,4 @@
-import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { PrismaWorkflowRepository } from "@calcom/lib/server/repository/prismaWorkflow";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetVerifiedNumbersInputSchema } from "./getVerifiedNumbers.schema";

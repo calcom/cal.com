@@ -9,8 +9,8 @@ import { NextResponse } from "next/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import { PrismaCredentialRepository } from "@calcom/lib/server/repository/prismaCredential";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/prismaDelegationCredential";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 

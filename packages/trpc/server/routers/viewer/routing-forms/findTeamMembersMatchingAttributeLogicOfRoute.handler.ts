@@ -14,7 +14,7 @@ import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.serve
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
-import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/prismaEventType";
 import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import type { PrismaClient } from "@calcom/prisma";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";

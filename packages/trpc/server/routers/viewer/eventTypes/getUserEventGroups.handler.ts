@@ -4,7 +4,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/prismaMembership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 // import { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 import type { PrismaClient } from "@calcom/prisma";

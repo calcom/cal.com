@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
 
-import { PrismaCredentialRepository } from "../../../../lib/server/repository/credential";
+import { PrismaCredentialRepository } from "../../../../lib/server/repository/prismaCredential";
 import { routingFormIncompleteBookingDataSchema } from "../../zod";
 import SalesforceCRMService from "../CrmService";
 

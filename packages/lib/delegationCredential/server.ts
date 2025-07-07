@@ -5,12 +5,12 @@ import { metadata as office365CalendarMetaData } from "@calcom/app-store/office3
 import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
-import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import { PrismaCredentialRepository } from "@calcom/lib/server/repository/prismaCredential";
+import type { ServiceAccountKey } from "@calcom/lib/server/repository/prismaDelegationCredential";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/prismaDelegationCredential";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
-import { PrismaUserRepository } from "../server/repository/user";
+import { PrismaUserRepository } from "../server/repository/prismaUser";
 import {
   buildNonDelegationCredential,
   buildNonDelegationCredentials,

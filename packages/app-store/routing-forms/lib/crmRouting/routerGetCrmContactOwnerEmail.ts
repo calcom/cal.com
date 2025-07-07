@@ -1,5 +1,5 @@
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
-import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/prismaEventType";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import type { LocalRoute } from "../../types/types";

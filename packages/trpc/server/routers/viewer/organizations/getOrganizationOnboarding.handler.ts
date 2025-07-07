@@ -1,4 +1,4 @@
-import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { PrismaOrganizationOnboardingRepository } from "@calcom/lib/server/repository/prismaOrganizationOnboarding";
 
 import type { TrpcSessionUser } from "../../../types";
 

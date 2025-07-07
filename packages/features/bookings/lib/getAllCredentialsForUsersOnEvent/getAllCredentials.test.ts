@@ -9,7 +9,7 @@ import { describe, test, expect, vi } from "vitest";
 
 import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 
-// vi.mock("@calcom/lib/server/repository/user", () => {
+// vi.mock("@calcom/lib/server/repository/prismaUser", () => {
 //   return {
 //     enrichUserWithItsProfile
 //   }

@@ -18,7 +18,7 @@ import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
-import { PrismaBookingRepository as BookingRepo } from "./server/repository/booking";
+import { PrismaBookingRepository as BookingRepo } from "./server/repository/prismaBooking";
 
 const _getBusyTimes = async (params: {
   credentials: CredentialForCalendarService[];

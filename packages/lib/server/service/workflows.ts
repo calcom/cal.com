@@ -1,6 +1,6 @@
 import { prisma } from "@calcom/prisma";
 
-import { PrismaWorkflowRepository } from "../repository/workflow";
+import { PrismaWorkflowRepository } from "../repository/prismaWorkflow";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {

@@ -7,7 +7,7 @@ import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/featu
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
-import { PrismaEventRepository } from "@calcom/lib/server/repository/event";
+import { PrismaEventRepository } from "@calcom/lib/server/repository/prismaEvent";
 import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";

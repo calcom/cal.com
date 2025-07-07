@@ -5,7 +5,7 @@ import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { PrismaMembershipRepository } from "../repository/membership";
-import { TeamRepository } from "../repository/team";
+import { TeamRepository } from "../repository/prismaTeam";
 
 export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({

@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
-import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/prismaEventType";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";

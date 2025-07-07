@@ -1,5 +1,5 @@
 import { getTeamWithoutMembers } from "@calcom/lib/server/queries/teams";
-import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/prismaMembership";
 
 import { TRPCError } from "@trpc/server";
 

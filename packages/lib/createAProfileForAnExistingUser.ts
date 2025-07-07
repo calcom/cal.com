@@ -1,7 +1,7 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { TeamRepository } from "@calcom/lib/server/repository/prismaTeam";
 import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 

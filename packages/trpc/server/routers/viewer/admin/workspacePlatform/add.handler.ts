@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import logger from "@calcom/lib/logger";
-import { PrismaWorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
+import { PrismaWorkspacePlatformRepository } from "@calcom/lib/server/repository/prismaWorkspacePlatform";
 
 import { TRPCError } from "@trpc/server";
 

@@ -23,7 +23,7 @@ import { getRoutedUrl } from "./getRoutedUrl";
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
 vi.mock("@calcom/lib/server/repository/routingForm");
-vi.mock("@calcom/lib/server/repository/user");
+vi.mock("@calcom/lib/server/repository/prismaUser");
 vi.mock("@calcom/features/ee/organizations/lib/orgDomains");
 vi.mock("@calcom/features/routing-forms/lib/isAuthorizedToViewForm");
 vi.mock("@calcom/app-store/routing-forms/lib/getSerializableForm");

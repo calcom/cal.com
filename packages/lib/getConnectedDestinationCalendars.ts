@@ -8,8 +8,8 @@ import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import { PrismaEventTypeRepository } from "./server/repository/eventType";
-import { PrismaSelectedCalendarRepository } from "./server/repository/selectedCalendar";
+import { PrismaEventTypeRepository } from "./server/repository/prismaEventType";
+import { PrismaSelectedCalendarRepository } from "./server/repository/prismaSelectedCalendar";
 
 const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndEnsureDefaultsInDb"] });
 

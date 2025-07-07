@@ -1,7 +1,7 @@
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
 import type { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
-import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/prismaMembership";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
@@ -10,7 +10,7 @@ import type { PermissionService } from "../permission.service";
 
 vi.mock("../../infrastructure/repositories/PermissionRepository");
 vi.mock("@calcom/features/flags/features.repository");
-vi.mock("@calcom/lib/server/repository/membership");
+vi.mock("@calcom/lib/server/repository/prismaMembership");
 vi.mock("../permission.service");
 
 type MockRepository = {

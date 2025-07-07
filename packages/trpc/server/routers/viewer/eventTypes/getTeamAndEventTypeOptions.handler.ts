@@ -1,6 +1,6 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/prismaEventType";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/prismaMembership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";

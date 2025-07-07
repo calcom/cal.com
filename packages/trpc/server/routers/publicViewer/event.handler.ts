@@ -1,4 +1,4 @@
-import { PrismaEventRepository } from "@calcom/lib/server/repository/event";
+import { PrismaEventRepository } from "@calcom/lib/server/repository/prismaEvent";
 
 import type { TEventInputSchema } from "./event.schema";
 

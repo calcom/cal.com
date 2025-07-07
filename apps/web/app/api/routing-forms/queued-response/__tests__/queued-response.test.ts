@@ -3,11 +3,11 @@ import { describe, it, expect, vi } from "vitest";
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { PrismaRoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { PrismaRoutingFormResponseRepository } from "@calcom/lib/server/repository/prismaFormResponse";
 
 import { queuedResponseHandler } from "../route";
 
-vi.mock("@calcom/lib/server/repository/formResponse");
+vi.mock("@calcom/lib/server/repository/prismaFormResponse");
 vi.mock("@calcom/app-store/routing-forms/lib/getSerializableForm");
 vi.mock("@calcom/app-store/routing-forms/lib/getResponseToStore");
 vi.mock("@calcom/app-store/routing-forms/lib/formSubmissionUtils");
