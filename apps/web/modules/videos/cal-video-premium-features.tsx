@@ -26,6 +26,13 @@ export const CalVideoPremiumFeatures = ({
 }) => {
   const daily = useDaily();
 
+  const startRecording = () => {
+    daily?.startRecording({
+      // 480p
+      videoBitrate: 2000,
+    });
+  };
+
   const [transcript, setTranscript] = useState("");
 
   const [transcriptHeight, setTranscriptHeight] = useState(0);
@@ -73,10 +80,7 @@ export const CalVideoPremiumFeatures = ({
       daily?.startTranscription();
     }
     if (enableAutomaticRecordingForOrganizer && !recording?.isRecording) {
-      daily?.startRecording({
-        // 480p
-        videoBitrate: 2000,
-      });
+      startRecording();
     }
   });
 
@@ -115,10 +119,7 @@ export const CalVideoPremiumFeatures = ({
         recording: BUTTONS.WAIT_FOR_RECORDING_TO_START,
       });
 
-      daily?.startRecording({
-        // 480p
-        videoBitrate: 2000,
-      });
+      startRecording();
     }
   };
 

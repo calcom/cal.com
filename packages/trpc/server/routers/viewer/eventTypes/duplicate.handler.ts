@@ -192,7 +192,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     }
 
     if (calVideoSettings) {
-      await CalVideoSettingsRepository.createOrUpdateCalVideoSettings({
+      await CalVideoSettingsRepository.createCalVideoSettings({
         eventTypeId: newEventType.id,
         calVideoSettings,
       });
