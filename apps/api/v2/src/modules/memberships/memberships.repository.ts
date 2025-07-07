@@ -73,4 +73,25 @@ export class MembershipsRepository {
 
     return membership;
   }
+
+  async findOwnerByTeamId(teamId: number) {
+    const ownerMembership = await this.dbRead.prisma.membership.findFirst({
+      where: {
+        teamId,
+        accepted: true,
+        role: "OWNER",
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return ownerMembership;
+  }
 }
