@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
-import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/prismaOrganization";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { CreationSource } from "@calcom/prisma/enums";

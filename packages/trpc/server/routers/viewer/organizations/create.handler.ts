@@ -12,8 +12,8 @@ import {
 } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/prismaOrganization";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 

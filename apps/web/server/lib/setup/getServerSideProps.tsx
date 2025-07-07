@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
-import { PrismaDeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { PrismaDeploymentRepository } from "@calcom/lib/server/repository/prismaDeployment";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 

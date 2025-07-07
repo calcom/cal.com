@@ -4,7 +4,7 @@ import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBo
 import { enrichUsersWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars } from "@calcom/lib/server/repository/prismaUser";
 import type { PrismaClient } from "@calcom/prisma";
 import { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";

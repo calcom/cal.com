@@ -1,5 +1,5 @@
 import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
-import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/prismaOrganization";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";

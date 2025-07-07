@@ -5,7 +5,7 @@ import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
-import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/prismaOrganization";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 

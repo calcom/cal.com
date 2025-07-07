@@ -1,9 +1,9 @@
 import { vi, beforeEach } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
-import type * as organization from "@calcom/lib/server/repository/organization";
+import type * as organization from "@calcom/lib/server/repository/prismaOrganization";
 
-vi.mock("@calcom/lib/server/repository/organization", () => organizationMock);
+vi.mock("@calcom/lib/server/repository/prismaOrganization", () => organizationMock);
 type OrganizationModule = typeof organization;
 beforeEach(() => {
   mockReset(organizationMock);

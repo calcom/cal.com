@@ -4,7 +4,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
-import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";

@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
-import type { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
+import type { PrismaOrganizationRepository } from "@calcom/lib/server/repository/prismaOrganization";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 

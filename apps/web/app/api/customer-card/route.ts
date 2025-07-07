@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { CardComponent } from "@lib/plain/card-components";

@@ -1,4 +1,4 @@
-import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/prismaOrganization";
 
 /**
  * It assumes that a user can only impersonate the members of the organization he is logged in to.

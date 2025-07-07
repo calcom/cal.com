@@ -15,7 +15,7 @@ import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplica
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
 import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import type { PrismaClient } from "@calcom/prisma";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";

@@ -11,10 +11,10 @@ import { PrismaFeaturesRepository } from "@calcom/features/flags/features.reposi
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
-import { PrismaBookingRepository } from "@calcom/lib/server/repository/booking";
 import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaBookingRepository } from "@calcom/lib/server/repository/prismaBooking";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/prismaOrganization";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import prisma from "@calcom/prisma";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });

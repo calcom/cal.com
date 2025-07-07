@@ -12,7 +12,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import type { LocationObject } from "@calcom/lib/location";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";

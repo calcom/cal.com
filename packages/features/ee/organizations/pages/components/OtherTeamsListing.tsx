@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
+import type { PrismaOrganizationRepository } from "@calcom/lib/server/repository/prismaOrganization";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import OtherTeamList from "./OtherTeamList";

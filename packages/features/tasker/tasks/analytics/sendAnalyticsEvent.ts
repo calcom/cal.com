@@ -1,7 +1,7 @@
 import AnalyticsManager from "@calcom/lib/analyticsManager/analyticsManager";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/prismaCredential";
 
 import { sendAnalyticsEventSchema } from "./schema";
 

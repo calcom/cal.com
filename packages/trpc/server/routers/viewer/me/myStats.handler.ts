@@ -1,6 +1,6 @@
 import type { Session } from "next-auth";
 
-import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type MyStatsOptions = {

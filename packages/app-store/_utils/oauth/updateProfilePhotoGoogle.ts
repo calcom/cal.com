@@ -3,7 +3,7 @@ import type { OAuth2Client } from "googleapis-common";
 
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
-import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 
 export async function updateProfilePhotoGoogle(oAuth2Client: OAuth2Client, userId: number) {

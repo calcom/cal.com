@@ -1,5 +1,5 @@
 import { HttpError } from "@calcom/lib/http-error";
-import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 
 export const throwIfNotHaveAdminAccessToTeam = async ({
   teamId,

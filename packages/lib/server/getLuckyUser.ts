@@ -8,7 +8,7 @@ import logger from "@calcom/lib/logger";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaBookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaBookingRepository } from "@calcom/lib/server/repository/prismaBooking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";

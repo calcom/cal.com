@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/prismaCredential";
 import prisma from "@calcom/prisma";
 import type { UserProfile } from "@calcom/types/UserProfile";
 

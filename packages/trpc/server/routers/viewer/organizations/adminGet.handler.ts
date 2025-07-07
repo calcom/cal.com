@@ -1,4 +1,4 @@
-import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/prismaOrganization";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminGet } from "./adminGet.schema";
