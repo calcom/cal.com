@@ -35,6 +35,13 @@ import {
 } from "./util";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
+
+type HashedLinkInputType = {
+  link: string;
+  expiresAt?: Date;
+  maxUsageCount?: number;
+};
+
 type User = {
   id: SessionUser["id"];
   username: SessionUser["username"];
@@ -503,34 +510,67 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
 
   if (multiplePrivateLinks && multiplePrivateLinks.length > 0) {
-    const multiplePrivateLinksToBeInserted = multiplePrivateLinks.filter(
-      (link) => !connectedMultiplePrivateLinks.includes(link)
+    // First, delete any links that are no longer in the array
+    const currentLinks = multiplePrivateLinks.map((link) =>
+      typeof link === "string" ? link : (link as HashedLinkInputType).link
     );
-    const singleLinksToBeDeleted = connectedMultiplePrivateLinks.filter(
-      (link) => !multiplePrivateLinks.includes(link)
-    );
-    if (singleLinksToBeDeleted.length > 0) {
+    const linksToBeDeleted = connectedMultiplePrivateLinks.filter((link) => !currentLinks.includes(link));
+
+    if (linksToBeDeleted.length > 0) {
       await ctx.prisma.hashedLink.deleteMany({
         where: {
           eventTypeId: input.id,
           link: {
-            in: singleLinksToBeDeleted,
+            in: linksToBeDeleted,
           },
         },
       });
     }
-    if (multiplePrivateLinksToBeInserted.length > 0) {
-      await ctx.prisma.hashedLink.createMany({
-        data: multiplePrivateLinksToBeInserted.map((link) => {
-          return {
-            link: link,
+
+    // Then, handle each link that needs to be created or updated
+    for (const privateLink of multiplePrivateLinks) {
+      const linkValue =
+        typeof privateLink === "string" ? privateLink : (privateLink as HashedLinkInputType).link;
+      const existingLink = connectedMultiplePrivateLinks.includes(linkValue);
+
+      if (!existingLink) {
+        // Link needs to be created
+        const createData: Prisma.HashedLinkCreateManyInput = {
+          link: linkValue,
+          eventTypeId: input.id,
+          expiresAt:
+            typeof privateLink !== "string" ? (privateLink as HashedLinkInputType).expiresAt ?? null : null,
+        };
+        // Only add maxUsageCount to createData if it's explicitly provided
+        if (
+          typeof privateLink !== "string" &&
+          typeof (privateLink as HashedLinkInputType).maxUsageCount === "number"
+        ) {
+          createData.maxUsageCount = (privateLink as HashedLinkInputType).maxUsageCount;
+        }
+        await ctx.prisma.hashedLink.create({
+          data: createData,
+        });
+      } else if (typeof privateLink !== "string") {
+        // Link exists but may need to be updated with new expiresAt or maxUsageCount
+        const updateData: Prisma.HashedLinkUpdateManyMutationInput = {
+          expiresAt: (privateLink as HashedLinkInputType).expiresAt ?? null,
+        };
+        // Only add maxUsageCount to updateData if it's explicitly provided
+        if (typeof (privateLink as HashedLinkInputType).maxUsageCount === "number") {
+          updateData.maxUsageCount = (privateLink as HashedLinkInputType).maxUsageCount;
+        }
+        await ctx.prisma.hashedLink.updateMany({
+          where: {
             eventTypeId: input.id,
-          };
-        }),
-      });
+            link: linkValue,
+          },
+          data: updateData,
+        });
+      }
     }
   } else {
-    // Delete all the single-use links for this event.
+    // Delete all the private links for this event.
     if (connectedMultiplePrivateLinks.length > 0) {
       await ctx.prisma.hashedLink.deleteMany({
         where: {

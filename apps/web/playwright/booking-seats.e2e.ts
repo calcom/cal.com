@@ -195,7 +195,9 @@ test.describe("Reschedule for booking with seats", () => {
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await user.apiLogin();
+
+    // Don't log in as the host when testing attendee cancellation
+    // await user.apiLogin();
 
     const bookingAttendees = await prisma.attendee.findMany({
       where: { bookingId: booking.id },
@@ -233,19 +235,37 @@ test.describe("Reschedule for booking with seats", () => {
 
     await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
 
+    // Click the cancel button and wait for the network request to complete
+    const cancelPromise = page.waitForResponse((response) => response.url().includes("/api/cancel"));
     await page.locator('[data-testid="confirm_cancel"]').click();
+    const response = await cancelPromise;
 
+    const responseData = await response.json();
+
+    // Check if the cancellation was successful
+    expect(responseData.success).toBe(true);
+
+    // Now wait for the success message
     await expect(page.locator("text=You are no longer attending this event")).toBeVisible();
 
+    // Try cancelling the second seat
     await page.goto(
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
     );
 
     await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
 
-    // Page should not be 404
+    // Click the cancel button and wait for the network request to complete
+    const cancel2Promise = page.waitForResponse((response) => response.url().includes("/api/cancel"));
     await page.locator('[data-testid="confirm_cancel"]').click();
+    const response2 = await cancel2Promise;
 
+    const responseData2 = await response2.json();
+
+    // Check if the cancellation was successful
+    expect(responseData2.success).toBe(true);
+
+    // Now wait for the success message
     await expect(page.locator("text=You are no longer attending this event")).toBeVisible();
   });
 

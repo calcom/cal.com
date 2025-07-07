@@ -855,7 +855,12 @@ export const EventAdvancedTab = ({
                 }}>
                 {!isManagedEventType && (
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                    <MultiplePrivateLinksController team={team} bookerUrl={eventType.bookerUrl} />
+                    <MultiplePrivateLinksController
+                      team={team}
+                      bookerUrl={eventType.bookerUrl}
+                      setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
+                      userTimeZone={user?.timeZone}
+                    />
                   </div>
                 )}
               </SettingsToggle>

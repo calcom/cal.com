@@ -25,41 +25,48 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const hashedLink = await prisma.hashedLink.findUnique({
-    where: {
-      link,
-    },
-    select: {
-      eventTypeId: true,
-      eventType: {
-        select: {
-          users: {
-            select: {
-              username: true,
-              profiles: {
-                select: {
-                  id: true,
-                  organizationId: true,
-                  username: true,
-                },
+  const hashedLinkSelect = {
+    id: true,
+    link: true,
+    eventTypeId: true,
+    expiresAt: true,
+    maxUsageCount: true,
+    usageCount: true,
+    eventType: {
+      select: {
+        users: {
+          select: {
+            username: true,
+            profiles: {
+              select: {
+                id: true,
+                organizationId: true,
+                username: true,
               },
             },
           },
-          team: {
-            select: {
-              id: true,
-              slug: true,
-              hideBranding: true,
-              parent: {
-                select: {
-                  hideBranding: true,
-                },
+        },
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            hideBranding: true,
+            parent: {
+              select: {
+                hideBranding: true,
               },
             },
           },
         },
       },
     },
+  } as const;
+
+  const hashedLink = await prisma.hashedLink.findUnique({
+    where: {
+      link,
+    },
+    select: hashedLinkSelect,
   });
 
   let name: string;
@@ -72,6 +79,19 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   if (!hashedLink) {
     return notFound;
   }
+
+  const isExpired = hashedLink.expiresAt
+    ? new Date(hashedLink.expiresAt).setHours(23, 59, 59) < Date.now()
+    : false;
+  const isUsageExceeded = hashedLink.maxUsageCount
+    ? hashedLink.usageCount >= hashedLink.maxUsageCount
+    : false;
+
+  // Block access if the link is expired or has exceeded its usage limit
+  if (isExpired || isUsageExceeded) {
+    return notFound;
+  }
+
   const username = hashedLink.eventType.users[0]?.username;
   const profileUsername = hashedLink.eventType.users[0]?.profiles[0]?.username;
 
@@ -156,7 +176,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.
       isTeamEvent,
-      hashedLink: link,
+      hashedLink: hashedLink?.link,
     },
   };
 }

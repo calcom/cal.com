@@ -2113,14 +2113,51 @@ async function handler(
 
   try {
     if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      await prisma.hashedLink.delete({
+      const hashedLink = await prisma.hashedLink.findUnique({
         where: {
           link: reqBody.hashedLink as string,
         },
       });
+      if (!hashedLink) {
+        throw new HttpError({ statusCode: 410, message: "Link has expired" });
+      }
+
+      const now = new Date();
+      if (hashedLink.expiresAt && hashedLink.expiresAt < now) {
+        throw new HttpError({ statusCode: 410, message: "Link has expired" });
+      }
+
+      if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
+        if (hashedLink.usageCount >= hashedLink.maxUsageCount) {
+          throw new HttpError({ statusCode: 410, message: "Link has expired" });
+        }
+
+        try {
+          await prisma.hashedLink.update({
+            where: {
+              id: hashedLink.id,
+              usageCount: { lt: hashedLink.maxUsageCount },
+            },
+            data: {
+              usageCount: { increment: 1 },
+            },
+          });
+        } catch (updateError) {
+          // If update fails, it might be because another concurrent request used the link
+          throw new HttpError({ statusCode: 410, message: "Link usage limit reached" });
+        }
+      }
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
+
+    // Rethrow HttpErrors (our custom errors) but handle/convert other errors
+    if (error instanceof HttpError) {
+      throw error;
+    }
+
+    // For database errors or other unexpected errors, provide a generic message
+    throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
