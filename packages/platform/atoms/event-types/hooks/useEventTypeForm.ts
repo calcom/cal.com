@@ -337,7 +337,10 @@ export const useEventTypeForm = ({
     const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? values.seatsPerTimeSlot;
     const finalRecurringEvent = recurringEvent ?? values.recurringEvent;
 
-    if (finalSeatsPerTimeSlot && finalRecurringEvent) {
+    const isTransitioningFromSeatsToRecurring = values.seatsPerTimeSlot && !finalSeatsPerTimeSlot && finalRecurringEvent;
+    const isTransitioningFromRecurringToSeats = values.recurringEvent && !finalRecurringEvent && finalSeatsPerTimeSlot;
+
+    if (finalSeatsPerTimeSlot && finalRecurringEvent && !isTransitioningFromSeatsToRecurring && !isTransitioningFromRecurringToSeats) {
       throw new Error(t("recurring_event_seats_error"));
     }
 

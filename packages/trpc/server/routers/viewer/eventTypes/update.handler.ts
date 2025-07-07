@@ -184,11 +184,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const finalSeatsPerTimeSlot =
-    seatsPerTimeSlot === undefined ? eventType.seatsPerTimeSlot : seatsPerTimeSlot;
-  const finalRecurringEvent = recurringEvent === undefined ? eventType.recurringEvent : recurringEvent;
+  const finalSeatsPerTimeSlot = seatsPerTimeSlot ?? eventType.seatsPerTimeSlot;
+  const finalRecurringEvent = recurringEvent ?? eventType.recurringEvent;
 
-  if (finalSeatsPerTimeSlot && finalRecurringEvent) {
+  const isTransitioningFromSeatsToRecurring = eventType.seatsPerTimeSlot && !finalSeatsPerTimeSlot && finalRecurringEvent;
+  const isTransitioningFromRecurringToSeats = eventType.recurringEvent && !finalRecurringEvent && finalSeatsPerTimeSlot;
+
+  if (finalSeatsPerTimeSlot && finalRecurringEvent && !isTransitioningFromSeatsToRecurring && !isTransitioningFromRecurringToSeats) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Recurring Events and Offer Seats cannot be active at the same time.",
