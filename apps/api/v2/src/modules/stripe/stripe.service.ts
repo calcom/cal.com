@@ -170,7 +170,11 @@ export class StripeService {
 
   async generateTeamCheckoutSession(pendingPaymentTeamId: number, ownerId: number) {
     const stripe = this.getStripe();
-    const customer = await this.getStripeCustomerIdFromUserId(ownerId);
+
+    const team = await this.usersRepository.findTeamById(pendingPaymentTeamId);
+    const customer = team?.isOrganization
+      ? await this.getStripeCustomerIdFromOrganizationId(pendingPaymentTeamId)
+      : await this.getStripeCustomerIdFromUserId(ownerId);
 
     if (!customer) {
       throw new BadRequestException("Failed to create a customer on Stripe.");
@@ -225,6 +229,27 @@ export class StripeService {
     return customerId;
   }
 
+  async getStripeCustomerIdFromOrganizationId(organizationId: number) {
+    const organization = await this.usersRepository.findTeamById(organizationId);
+
+    if (!organization?.isOrganization) {
+      throw new BadRequestException("Team is not an organization");
+    }
+
+    if (organization.stripeCustomerId) {
+      return organization.stripeCustomerId;
+    }
+
+    const owner = await this.membershipRepository.findOwnerByTeamId(organizationId);
+    if (!owner?.user?.email) {
+      throw new BadRequestException("Organization owner not found");
+    }
+
+    const customerId = await this.createStripeCustomerIdForOrganization(organization, owner.user);
+
+    return customerId;
+  }
+
   async getStripeCustomerId(user: Pick<User, "email" | "name" | "metadata">) {
     if (user?.metadata && typeof user.metadata === "object" && "stripeCustomerId" in user.metadata) {
       return (user?.metadata as Prisma.JsonObject).stripeCustomerId as string;
@@ -254,6 +279,34 @@ export class StripeService {
         stripeCustomerId: customerId,
       },
     });
+
+    return customerId;
+  }
+
+  async createStripeCustomerIdForOrganization(
+    organization: { id: number; name: string | null },
+    owner: Pick<User, "email" | "name">
+  ) {
+    let customerId: string;
+
+    const stripe = this.getStripe();
+    try {
+      const customersResponse = await stripe.customers.list({
+        email: owner.email,
+        limit: 1,
+      });
+
+      customerId = customersResponse.data[0].id;
+    } catch (error) {
+      const customer = await stripe.customers.create({
+        email: owner.email,
+        name: organization.name || owner.name || undefined,
+        description: `Organization: ${organization.name}`,
+      });
+      customerId = customer.id;
+    }
+
+    await this.usersRepository.updateTeamStripeCustomerId(organization.id, customerId);
 
     return customerId;
   }
