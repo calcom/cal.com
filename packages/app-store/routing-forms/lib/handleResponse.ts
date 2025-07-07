@@ -19,19 +19,23 @@ const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleRes
 
 const _handleResponse = async ({
   response,
+  identifierKeyedResponse,
   form,
   // Unused but probably should be used
   // formFillerId,
   chosenRouteId,
   isPreview,
   queueFormResponse,
+  fetchCrm,
 }: {
   response: z.infer<typeof ZResponseInputSchema>["response"];
+  identifierKeyedResponse: Record<string, string | string[]> | null;
   form: TargetRoutingFormForResponse;
   formFillerId: string;
   chosenRouteId: string | null;
   isPreview: boolean;
   queueFormResponse?: boolean;
+  fetchCrm?: boolean;
 }) => {
   try {
     if (!form.fields) {
@@ -103,11 +107,14 @@ const _handleResponse = async ({
       const getRoutedMembers = async () =>
         await Promise.all([
           (async () => {
-            const contactOwnerQuery = await routerGetCrmContactOwnerEmail({
-              attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
-              response,
-              action: chosenRoute.action,
-            });
+            const contactOwnerQuery =
+              identifierKeyedResponse && fetchCrm
+                ? await routerGetCrmContactOwnerEmail({
+                    attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
+                    identifierKeyedResponse,
+                    action: chosenRoute.action,
+                  })
+                : null;
             crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
             crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
             crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;

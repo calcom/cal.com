@@ -37,6 +37,9 @@ export async function handler(req: NextRequest) {
       scheduledDate: {
         lte: dayjs().add(2, "hour").toISOString(),
       },
+      retryCount: {
+        lt: 3, // Don't continue retrying if it's already failed 3 times
+      },
     },
     select: {
       ...select,

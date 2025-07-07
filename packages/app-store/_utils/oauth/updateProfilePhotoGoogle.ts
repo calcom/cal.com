@@ -1,7 +1,6 @@
 import { oauth2_v2 } from "@googleapis/oauth2";
 import type { OAuth2Client } from "googleapis-common";
 
-import { isBase64Image } from "@calcom/lib/isBase64Image";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -17,7 +16,11 @@ export async function updateProfilePhotoGoogle(oAuth2Client: OAuth2Client, userI
     }
 
     // Handle base64 data
-    if (isBase64Image(avatarUrl)) {
+    if (
+      avatarUrl.startsWith("data:image/png;base64,") ||
+      avatarUrl.startsWith("data:image/jpeg;base64,") ||
+      avatarUrl.startsWith("data:image/jpg;base64,")
+    ) {
       const resizedAvatarUrl = await uploadAvatar({
         avatar: await resizeBase64Image(avatarUrl),
         userId,

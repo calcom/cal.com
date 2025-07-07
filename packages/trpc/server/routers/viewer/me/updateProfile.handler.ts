@@ -9,7 +9,6 @@ import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billlin
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
-import { isBase64Image } from "@calcom/lib/isBase64Image";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
@@ -153,7 +152,12 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   // if defined AND a base 64 string, upload and update the avatar URL
-  if (input.avatarUrl && isBase64Image(input.avatarUrl)) {
+  if (
+    input.avatarUrl &&
+    (input.avatarUrl.startsWith("data:image/png;base64,") ||
+      input.avatarUrl.startsWith("data:image/jpeg;base64,") ||
+      input.avatarUrl.startsWith("data:image/jpg;base64,"))
+  ) {
     data.avatarUrl = await uploadAvatar({
       avatar: await resizeBase64Image(input.avatarUrl),
       userId: user.id,
@@ -217,7 +221,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
+  const updatedUserSelect = {
     select: {
       id: true,
       username: true,
@@ -235,7 +239,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         },
       },
     },
-  });
+  } satisfies Prisma.UserDefaultArgs;
 
   let updatedUser: Prisma.UserGetPayload<typeof updatedUserSelect>;
 
