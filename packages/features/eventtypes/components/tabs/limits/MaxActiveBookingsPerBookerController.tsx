@@ -1,18 +1,23 @@
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { TextField, CheckboxField } from "@calcom/ui/components/form";
 
-import type { EventLimitsTabProps } from "./EventLimitsTab";
+type maxActiveBookingsPerBookerLockedProps = {
+  disabled: boolean;
+  LockedIcon: false | JSX.Element;
+  isLocked: boolean;
+};
 
 export default function MaxActiveBookingsPerBookerController({
-  eventType,
-}: Pick<EventLimitsTabProps, "eventType">) {
+  maxActiveBookingsPerBookerLocked,
+}: {
+  maxActiveBookingsPerBookerLocked: maxActiveBookingsPerBookerLockedProps;
+}) {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
@@ -24,14 +29,6 @@ export default function MaxActiveBookingsPerBookerController({
   const maxActiveBookingPerBookerOfferReschedule = formMethods.watch(
     "maxActiveBookingPerBookerOfferReschedule"
   );
-
-  const { shouldLockDisableProps } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
-
-  const maxActiveBookingsPerBookerLocked = shouldLockDisableProps("maxActiveBookingsPerBooker");
 
   return (
     <Controller
