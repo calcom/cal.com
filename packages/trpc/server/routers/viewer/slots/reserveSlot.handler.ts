@@ -7,6 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import type { PrismaClient } from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -23,7 +24,8 @@ interface ReserveSlotOptions {
 export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => {
   const { prisma, req, res } = ctx;
   const uid = req?.cookies?.uid || uuid();
-  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingUid, _isDryRun } = input;
+
+  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, _isDryRun } = input;
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
@@ -43,7 +45,12 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   if (eventType.seatsPerTimeSlot) {
     // Check to see if this is the last attendee
     const bookingWithAttendees = await prisma.booking.findFirst({
-      where: { uid: bookingUid },
+      where: {
+        eventTypeId,
+        startTime: slotUtcStartDate,
+        endTime: slotUtcEndDate,
+        status: BookingStatus.ACCEPTED,
+      },
       select: { attendees: true },
     });
     const bookingAttendeesLength = bookingWithAttendees?.attendees?.length;

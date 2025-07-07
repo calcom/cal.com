@@ -4,13 +4,14 @@ import { v4 as uuid } from "uuid";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
@@ -29,26 +30,31 @@ import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
 import { checkBookingLimit } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
-import { getUnitFromBusyTime, isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
+import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
-import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { PeriodType, Prisma } from "@calcom/prisma/client";
+import prisma from "@calcom/prisma";
+import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
-import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -57,25 +63,10 @@ import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
-type GetAvailabilityUserWithoutDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
-  credentials: CredentialPayload[];
-};
+
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
-const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
-  select: {
-    id: true,
-    slotUtcStartDate: true,
-    slotUtcEndDate: true,
-    userId: true,
-    isSeat: true,
-    eventTypeId: true,
-    uid: true,
-  },
-});
-
-type SelectedSlots = Prisma.SelectedSlotsGetPayload<typeof selectSelectedSlots>;
 
 async function getEventTypeId({
   slug,
@@ -103,16 +94,7 @@ async function getEventTypeId({
       organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
     );
   }
-  const eventType = await prisma.eventType.findFirst({
-    where: {
-      slug: eventTypeSlug,
-      ...(teamId ? { teamId } : {}),
-      ...(userId ? { userId } : {}),
-    },
-    select: {
-      id: true,
-    },
-  });
+  const eventType = await EventTypeRepository.findFirstEventTypeId({ slug: eventTypeSlug, teamId, userId });
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
@@ -131,12 +113,9 @@ async function _getReservedSlotsAndCleanupExpired({
   const currentTimeInUtc = dayjs.utc().format();
 
   const unexpiredSelectedSlots =
-    (await prisma.selectedSlots.findMany({
-      where: {
-        userId: { in: usersWithCredentials.map((user) => user.id) },
-        releaseAt: { gt: currentTimeInUtc },
-      },
-      ...selectSelectedSlots,
+    (await SelectedSlotsRepository.findManyUnexpiredSlots({
+      userIds: usersWithCredentials.map((user) => user.id),
+      currentTimeInUtc,
     })) || [];
 
   const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter((slot) => slot.uid !== bookerClientUid);
@@ -148,12 +127,7 @@ async function _getReservedSlotsAndCleanupExpired({
   return reservedSlots;
 
   async function _cleanupExpiredSlots({ eventTypeId }: { eventTypeId: number }) {
-    await prisma.selectedSlots.deleteMany({
-      where: {
-        eventTypeId: { equals: eventTypeId },
-        releaseAt: { lt: currentTimeInUtc },
-      },
-    });
+    await SelectedSlotsRepository.deleteManyExpiredSlots({ eventTypeId, currentTimeInUtc });
   }
 }
 
@@ -195,8 +169,9 @@ const _getDynamicEventType = async (
     });
   }
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
-  const { where } = await UserRepository._getWhereClauseForFindingUsersByUsername({
-    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+
+  const usersForDynamicEventType = await UserRepository.findManyUsersForDynamicEventType({
+    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
     usernameList: Array.isArray(input.usernameList)
       ? input.usernameList
       : input.usernameList
@@ -204,20 +179,9 @@ const _getDynamicEventType = async (
       : [],
   });
 
-  // TODO: Should be moved to UserRepository
-  const usersWithOldSelectedCalendars = await prisma.user.findMany({
-    where,
-    select: {
-      allowDynamicBooking: true,
-      ...availabilityUserSelect,
-      credentials: {
-        select: credentialForCalendarServiceSelect,
-      },
-    },
-  });
-  const users = usersWithOldSelectedCalendars.map((user) => withSelectedCalendars(user));
+  const usersWithOldSelectedCalendars = usersForDynamicEventType.map((user) => withSelectedCalendars(user));
 
-  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
+  const isDynamicAllowed = !usersWithOldSelectedCalendars.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed) {
     throw new TRPCError({
       message: "Some of the users in this group do not allow dynamic booking",
@@ -225,7 +189,7 @@ const _getDynamicEventType = async (
     });
   }
   return Object.assign({}, dynamicEventType, {
-    users,
+    users: usersWithOldSelectedCalendars,
   });
 };
 
@@ -246,7 +210,10 @@ export const getRegularOrDynamicEventType = withReporting(
   "getRegularOrDynamicEventType"
 );
 
-function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSeats: SelectedSlots[]) {
+function applyOccupiedSeatsToCurrentSeats(
+  currentSeats: CurrentSeats,
+  occupiedSeats: { slotUtcStartDate: Date }[]
+) {
   const occupiedSeatsMap = new Map<string, number>();
 
   occupiedSeats.forEach((item) => {
@@ -309,6 +276,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
     _shouldServeCache,
     routingFormResponseId,
+    queuedFormResponseId,
   } = input;
   const orgDetails = input?.orgSlug
     ? {
@@ -375,20 +343,12 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   let routingFormResponse = null;
   if (routingFormResponseId) {
-    routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
-      where: {
-        id: routingFormResponseId,
-      },
-      select: {
-        response: true,
-        form: {
-          select: {
-            routes: true,
-            fields: true,
-          },
-        },
-        chosenRouteId: true,
-      },
+    routingFormResponse = await RoutingFormResponseRepository.findFormResponseIncludeForm({
+      routingFormResponseId,
+    });
+  } else if (queuedFormResponseId) {
+    routingFormResponse = await RoutingFormResponseRepository.findQueuedFormResponseIncludeForm({
+      queuedFormResponseId,
     });
   }
 
@@ -503,14 +463,73 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
+  const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
+  if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
+    const scheduleRepo = new ScheduleRepository(prisma);
+    const restrictionSchedule = await scheduleRepo.findScheduleByIdForBuildDateRanges({
+      scheduleId: eventType.restrictionScheduleId,
+    });
+    if (restrictionSchedule) {
+      if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
+        throw new TRPCError({
+          message: "No timezone is set for the restricted schedule",
+          code: "BAD_REQUEST",
+        });
+      }
+
+      const restrictionTimezone = eventType.useBookerTimezone
+        ? input.timeZone
+        : restrictionSchedule.timeZone!;
+      const eventLength = input.duration || eventType.length;
+
+      const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
+        days: rule.days,
+        startTime: rule.startTime,
+        endTime: rule.endTime,
+        date: rule.date,
+      }));
+
+      // Include travel schedules if restriction schedule is the user's default schedule
+      const isDefaultSchedule = restrictionSchedule.user.defaultScheduleId === restrictionSchedule.id;
+      const travelSchedules =
+        isDefaultSchedule && !eventType.useBookerTimezone
+          ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
+              startDate: dayjs(schedule.startDate),
+              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+              timeZone: schedule.timeZone,
+            }))
+          : [];
+
+      const { dateRanges: restrictionRanges } = buildDateRanges({
+        availability: restrictionAvailability,
+        timeZone: restrictionTimezone || "UTC",
+        dateFrom: startTime,
+        dateTo: endTime,
+        travelSchedules,
+      });
+
+      availableTimeSlots = timeSlots.filter((slot) => {
+        const slotStart = slot.time;
+        const slotEnd = slot.time.add(eventLength, "minute");
+
+        return restrictionRanges.some(
+          (range) =>
+            (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
+            (slotEnd.isBefore(range.end) || slotEnd.isSame(range.end))
+        );
+      });
+    } else {
+      availableTimeSlots = timeSlots;
+    }
+  } else {
+    availableTimeSlots = timeSlots;
+  }
 
   const reservedSlots = await _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
     eventTypeId: eventType.id,
     usersWithCredentials,
   });
-
-  availableTimeSlots = timeSlots;
 
   const availabilityCheckProps = {
     eventLength: input.duration || eventType.length,
@@ -776,85 +795,18 @@ async function getTeamIdFromSlug(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-  const team = await prisma.team.findFirst({
-    where: {
-      slug,
-      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
-    },
-    select: {
-      id: true,
-    },
+  const team = await TeamRepository.findFirstBySlugAndParentSlug({
+    slug,
+    parentSlug: isValidOrgDomain && currentOrgDomain ? currentOrgDomain : null,
+    select: { id: true },
   });
+
   return team?.id;
 }
 
 const _getOOODates = async (startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) => {
-  return await prisma.outOfOfficeEntry.findMany({
-    where: {
-      userId: {
-        in: allUserIds,
-      },
-      OR: [
-        // outside of range
-        // (start <= 'dateTo' AND end >= 'dateFrom')
-        {
-          start: {
-            lte: endTimeDate,
-          },
-          end: {
-            gte: startTimeDate,
-          },
-        },
-        // start is between dateFrom and dateTo but end is outside of range
-        // (start <= 'dateTo' AND end >= 'dateTo')
-        {
-          start: {
-            lte: endTimeDate,
-          },
-
-          end: {
-            gte: endTimeDate,
-          },
-        },
-        // end is between dateFrom and dateTo but start is outside of range
-        // (start <= 'dateFrom' OR end <= 'dateTo')
-        {
-          start: {
-            lte: startTimeDate,
-          },
-
-          end: {
-            lte: endTimeDate,
-          },
-        },
-      ],
-    },
-    select: {
-      id: true,
-      start: true,
-      end: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      toUser: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
-        },
-      },
-      reason: {
-        select: {
-          id: true,
-          emoji: true,
-          reason: true,
-        },
-      },
-    },
-  });
+  const oooRepo = new PrismaOOORepository(prisma);
+  return oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
 };
 
 export const getOOODates = withReporting(_getOOODates, "getOOODates");
@@ -949,13 +901,7 @@ const _getBusyTimesFromLimitsForUsers = async (
     const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
     const limitManager = new LimitManager();
 
-    for (const busyTime of globalLimitManager.getBusyTimes()) {
-      const start = dayjs(busyTime.start);
-      const end = dayjs(busyTime.end);
-      const unit = getUnitFromBusyTime(start, end);
-
-      limitManager.addBusyTime(start, unit, timeZone);
-    }
+    limitManager.mergeBusyTimes(globalLimitManager);
 
     if (bookingLimits) {
       for (const key of descendingLimitKeys) {
@@ -1140,13 +1086,8 @@ const _getBusyTimesFromTeamLimitsForUsers = async (
     const userBusyTimes = busyTimes.filter((busyTime) => busyTime.userId === user.id);
     const limitManager = new LimitManager();
 
-    for (const busyTime of globalLimitManager.getBusyTimes()) {
-      const start = dayjs(busyTime.start);
-      const end = dayjs(busyTime.end);
-      const unit = getUnitFromBusyTime(start, end);
+    limitManager.mergeBusyTimes(globalLimitManager);
 
-      limitManager.addBusyTime(start, unit, timeZone);
-    }
     const bookingLimitsParams = {
       bookings: userBusyTimes,
       bookingLimits,
