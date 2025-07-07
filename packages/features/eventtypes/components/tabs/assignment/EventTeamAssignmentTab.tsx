@@ -436,6 +436,7 @@ const RoundRobinHosts = ({
                       automaticAddAllEnabled={true}
                       isRRWeightsEnabled={isRRWeightsEnabled}
                       isFixed={false}
+                      groupId={null}
                       containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
                       onActive={() => {
                         const currentHosts = getValues("hosts");
@@ -450,8 +451,9 @@ const RoundRobinHosts = ({
                               userId: parseInt(teamMember.value, 10),
                               priority: host?.priority ?? 2,
                               weight: host?.weight ?? 100,
-                              // if host was already added, retain scheduleId
+                              // if host was already added, retain scheduleId and groupId
                               scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                              groupId: host?.groupId || null,
                             };
                           }),
                           { shouldDirty: true }
@@ -484,6 +486,7 @@ const RoundRobinHosts = ({
                     automaticAddAllEnabled={true}
                     isRRWeightsEnabled={isRRWeightsEnabled}
                     isFixed={false}
+                    groupId={group.id}
                     containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
                     onActive={() => {
                       const currentHosts = getValues("hosts");
@@ -498,8 +501,9 @@ const RoundRobinHosts = ({
                             userId: parseInt(teamMember.value, 10),
                             priority: host?.priority ?? 2,
                             weight: host?.weight ?? 100,
-                            // if host was already added, retain scheduleId
+                            // if host was already added, retain scheduleId and groupId
                             scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                            groupId: host?.groupId || null,
                           };
                         }),
                         { shouldDirty: true }
@@ -623,16 +627,19 @@ const Hosts = ({
     );
   }, [schedulingType, setValue, getValues, submitCount]);
 
-  // To ensure existing host do not loose its scheduleId property, whenever a new host of same type is added.
+  // To ensure existing host do not loose its scheduleId and groupId properties, whenever a new host of same type is added.
   // This is because the host is created from list option in CheckedHostField component.
   const updatedHosts = (changedHosts: Host[]) => {
     const existingHosts = getValues("hosts");
+    console.log("existingHosts", JSON.stringify(existingHosts));
     return changedHosts.map((newValue) => {
       const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
+
       return existingHost
         ? {
             ...newValue,
             scheduleId: existingHost.scheduleId,
+            groupId: existingHost.groupId,
           }
         : newValue;
     });
@@ -676,7 +683,18 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  const hosts = [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
+                  // Get the groupId from the first changed host to determine which group is being updated
+                  const targetGroupId = changeValue.length > 0 ? changeValue[0].groupId : null;
+
+                  const preservedHosts = value.filter(
+                    (host: Host) => host.isFixed || host.groupId !== targetGroupId
+                  );
+
+                  // Add the updated hosts for the current group
+                  const updatedHostsForGroup = updatedHosts(changeValue);
+
+                  const hosts = [...preservedHosts, ...updatedHostsForGroup];
+
                   onChange(hosts);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}

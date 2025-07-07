@@ -61,6 +61,7 @@ const CheckedHostField = ({
   onChange,
   helperText,
   isRRWeightsEnabled,
+  groupId,
   customClassNames,
   ...rest
 }: {
@@ -72,6 +73,7 @@ const CheckedHostField = ({
   options?: Options<CheckedSelectOption>;
   helperText?: React.ReactNode | string;
   isRRWeightsEnabled?: boolean;
+  groupId?: string | null;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col rounded-md">
@@ -88,6 +90,7 @@ const CheckedHostField = ({
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
+                  groupId,
                 }))
               );
           }}
@@ -178,6 +181,7 @@ export type AddMembersWithSwitchProps = {
   isRRWeightsEnabled?: boolean;
   teamId: number;
   isSegmentApplicable?: boolean;
+  groupId?: string | null;
   "data-testid"?: string;
   customClassNames?: AddMembersWithSwitchCustomClassNames;
 };
@@ -244,6 +248,7 @@ export function AddMembersWithSwitch({
   isRRWeightsEnabled,
   teamId,
   isSegmentApplicable,
+  groupId,
   customClassNames,
   ...rest
 }: AddMembersWithSwitchProps) {
@@ -320,6 +325,7 @@ export function AddMembersWithSwitch({
               options={teamMembers.sort(sortByLabel)}
               placeholder={placeholder ?? t("add_attendees")}
               isRRWeightsEnabled={isRRWeightsEnabled}
+              groupId={groupId}
               customClassNames={customClassNames?.teamMemberSelect}
             />
           </div>
@@ -340,7 +346,7 @@ const AddMembersWithSwitchWrapper = ({
     [isPlatform]
   );
   return (
-    <div className="rounded-md ">
+    <div className="rounded-md">
       <div className={`flex flex-col rounded-md pb-2 pt-6 ${containerClassName}`}>
         <AddMembersWithSwitchWrapped {...props} />
       </div>
