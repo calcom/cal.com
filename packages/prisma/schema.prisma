@@ -2368,6 +2368,7 @@ enum RoleType {
 model Role {
   id          String           @id @default(cuid())
   name        String
+  color       String?
   description String?
   teamId      Int? // null for global roles
   team        Team?            @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -2382,7 +2383,7 @@ model Role {
 }
 
 model RolePermission {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   roleId    String
   role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
   resource  String
