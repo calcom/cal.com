@@ -185,8 +185,10 @@ async function handler(input: CancelBookingInput) {
   const teamMembersPromises = [];
   const attendeesListPromises = [];
   const hostsPresent = !!bookingToDelete.eventType?.hosts;
+  const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
-  for (const attendee of bookingToDelete.attendees) {
+  for (let index = 0; index < bookingToDelete.attendees.length; index++) {
+    const attendee = bookingToDelete.attendees[index];
     const attendeeObject = {
       name: attendee.name,
       email: attendee.email,
@@ -198,18 +200,18 @@ async function handler(input: CancelBookingInput) {
       },
     };
 
-    // Check for the presence of hosts to determine if it is a team event type
-    if (hostsPresent) {
-      // If the attendee is a host then they are a team member
-      const teamMember = bookingToDelete.eventType?.hosts.some((host) => host.user.email === attendee.email);
-      if (teamMember) {
+    // The first attendee is the booker in all cases, so always consider them as an attendee.
+    if (index === 0) {
+      attendeesListPromises.push(attendeeObject);
+    } else {
+      const isTeamEvent = hostEmails.size > 0;
+      const isTeamMember = isTeamEvent && hostEmails.has(attendee.email);
+
+      if (isTeamMember) {
         teamMembersPromises.push(attendeeObject);
-        // If not then they are an attendee
       } else {
         attendeesListPromises.push(attendeeObject);
       }
-    } else {
-      attendeesListPromises.push(attendeeObject);
     }
   }
 
