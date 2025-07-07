@@ -291,10 +291,11 @@ const _getUsersWithCredentials = ({
 }: {
   hosts: {
     isFixed?: boolean;
+    groupId?: string;
     user: GetAvailabilityUserWithDelegationCredentials;
   }[];
 }) => {
-  return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  return hosts.map(({ isFixed, groupId, user }) => ({ isFixed, groupId, ...user }));
 };
 
 export const getUsersWithCredentials = withReporting(_getUsersWithCredentials, "getUsersWithCredentials");
@@ -1309,6 +1310,7 @@ const calculateHostsAndAvailabilities = async ({
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
   hosts: {
     isFixed?: boolean;
+    groupId?: string | null;
     user: GetAvailabilityUserWithDelegationCredentials;
   }[];
   loggerWithEventDetails: Logger<unknown>;

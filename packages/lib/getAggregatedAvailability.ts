@@ -25,7 +25,7 @@ export const getAggregatedAvailability = (
   userAvailability: {
     dateRanges: DateRange[];
     oooExcludedDateRanges: DateRange[];
-    user?: { isFixed?: boolean };
+    user?: { isFixed?: boolean; groupId?: string };
   }[],
   schedulingType: SchedulingType | null
 ): DateRange[] => {
@@ -44,10 +44,30 @@ export const getAggregatedAvailability = (
   const dateRangesToIntersect = !!fixedDateRanges.length ? [fixedDateRanges] : [];
   const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
   if (roundRobinHosts.length) {
-    dateRangesToIntersect.push(
-      roundRobinHosts.flatMap((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges))
-    );
+    // Group round robin hosts by their groupId
+    const hostsByGroup: Record<string, typeof roundRobinHosts> = {};
+
+    roundRobinHosts.forEach((host) => {
+      const groupId = host.user?.groupId || "default_group_id";
+      if (!hostsByGroup[groupId]) {
+        hostsByGroup[groupId] = [];
+      }
+      hostsByGroup[groupId].push(host);
+    });
+
+    // at least one host from each group needs to be available
+    Object.values(hostsByGroup).forEach((groupHosts) => {
+      if (groupHosts.length > 0) {
+        const groupDateRanges = groupHosts.flatMap((s) =>
+          !isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges
+        );
+        if (groupDateRanges.length > 0) {
+          dateRangesToIntersect.push(groupDateRanges);
+        }
+      }
+    });
   }
+
   const availability = intersect(dateRangesToIntersect);
 
   const uniqueRanges = uniqueAndSortedDateRanges(availability);
