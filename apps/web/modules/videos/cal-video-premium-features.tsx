@@ -1,3 +1,4 @@
+import type { DailyCall } from "@daily-co/daily-js";
 import { useTranscription, useRecording } from "@daily-co/daily-react";
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import React, { Fragment, useCallback, useRef, useState, useLayoutEffect, useEffect } from "react";
@@ -13,18 +14,35 @@ export interface DailyCustomTrayButton {
   tooltip: string;
   visualState?: DailyCustomTrayButtonVisualState;
 }
-export const CalVideoPremiumFeatures = ({
-  showRecordingButton,
-  enableAutomaticTranscription,
-  enableAutomaticRecordingForOrganizer,
-  showTranscriptionButton,
-}: {
+
+type RecordingState = {
+  isRecording: boolean;
+};
+
+type TranscriptionState = {
+  isTranscribing: boolean;
+};
+
+type CalVideoCallbacksParams = {
+  daily: DailyCall | null;
+  recording: RecordingState | null;
+  transcription: TranscriptionState | null;
   showRecordingButton: boolean;
+  showTranscriptionButton: boolean;
   enableAutomaticTranscription: boolean;
   enableAutomaticRecordingForOrganizer: boolean;
-  showTranscriptionButton: boolean;
-}) => {
-  const daily = useDaily();
+};
+
+export const createCalVideoCallbacks = (params: CalVideoCallbacksParams) => {
+  const {
+    daily,
+    recording,
+    transcription,
+    showRecordingButton,
+    showTranscriptionButton,
+    enableAutomaticTranscription,
+    enableAutomaticRecordingForOrganizer,
+  } = params;
 
   const startRecording = () => {
     daily?.startRecording({
@@ -32,14 +50,6 @@ export const CalVideoPremiumFeatures = ({
       videoBitrate: 2000,
     });
   };
-
-  const [transcript, setTranscript] = useState("");
-
-  const [transcriptHeight, setTranscriptHeight] = useState(0);
-  const transcriptRef = useRef<HTMLDivElement | null>(null);
-
-  const transcription = useTranscription();
-  const recording = useRecording();
 
   const updateCustomTrayButtons = ({
     recording: overrideRecording,
@@ -67,46 +77,38 @@ export const CalVideoPremiumFeatures = ({
     });
   };
 
-  useDailyEvent(
-    "app-message",
-    useCallback((ev) => {
-      const data = ev?.data;
-      if (data.user_name && data.text) setTranscript(`${data.user_name}: ${data.text}`);
-    }, [])
-  );
-
-  useDailyEvent("joined-meeting", () => {
+  const onMeetingJoined = () => {
     if (enableAutomaticTranscription && !transcription?.isTranscribing) {
       daily?.startTranscription();
     }
     if (enableAutomaticRecordingForOrganizer && !recording?.isRecording) {
       startRecording();
     }
-  });
+  };
 
-  useDailyEvent("transcription-started", () => {
-    updateCustomTrayButtons({
-      transcription: BUTTONS.STOP_TRANSCRIPTION,
-    });
-  });
-
-  useDailyEvent("recording-started", () => {
+  const onRecordingStarted = () => {
     updateCustomTrayButtons({
       recording: BUTTONS.STOP_RECORDING,
     });
-  });
+  };
 
-  useDailyEvent("transcription-stopped", () => {
-    updateCustomTrayButtons({
-      transcription: BUTTONS.START_TRANSCRIPTION,
-    });
-  });
-
-  useDailyEvent("recording-stopped", () => {
+  const onRecordingStopped = () => {
     updateCustomTrayButtons({
       recording: BUTTONS.START_RECORDING,
     });
-  });
+  };
+
+  const onTranscriptionStarted = () => {
+    updateCustomTrayButtons({
+      transcription: BUTTONS.STOP_TRANSCRIPTION,
+    });
+  };
+
+  const onTranscriptionStopped = () => {
+    updateCustomTrayButtons({
+      transcription: BUTTONS.START_TRANSCRIPTION,
+    });
+  };
 
   const toggleRecording = async () => {
     if (recording?.isRecording) {
@@ -118,7 +120,6 @@ export const CalVideoPremiumFeatures = ({
       updateCustomTrayButtons({
         recording: BUTTONS.WAIT_FOR_RECORDING_TO_START,
       });
-
       startRecording();
     }
   };
@@ -137,13 +138,71 @@ export const CalVideoPremiumFeatures = ({
     }
   };
 
-  useDailyEvent("custom-button-click", async (ev) => {
+  const onCustomButtonClick = async (ev: { button_id: string }) => {
     if (ev?.button_id === "recording") {
       toggleRecording();
     } else if (ev?.button_id === "transcription") {
       toggleTranscription();
     }
+  };
+
+  return {
+    onMeetingJoined,
+    onRecordingStarted,
+    onRecordingStopped,
+    onTranscriptionStarted,
+    onTranscriptionStopped,
+    onCustomButtonClick,
+    toggleRecording,
+    toggleTranscription,
+    updateCustomTrayButtons,
+    startRecording,
+  };
+};
+
+export const CalVideoPremiumFeatures = ({
+  showRecordingButton,
+  enableAutomaticTranscription,
+  enableAutomaticRecordingForOrganizer,
+  showTranscriptionButton,
+}: {
+  showRecordingButton: boolean;
+  enableAutomaticTranscription: boolean;
+  enableAutomaticRecordingForOrganizer: boolean;
+  showTranscriptionButton: boolean;
+}) => {
+  const daily = useDaily();
+  const [transcript, setTranscript] = useState("");
+  const [transcriptHeight, setTranscriptHeight] = useState(0);
+  const transcriptRef = useRef<HTMLDivElement | null>(null);
+
+  const transcription = useTranscription();
+  const recording = useRecording();
+
+  const callbacks = createCalVideoCallbacks({
+    daily,
+    recording,
+    transcription,
+    showRecordingButton,
+    showTranscriptionButton,
+    enableAutomaticTranscription,
+    enableAutomaticRecordingForOrganizer,
   });
+
+  useDailyEvent(
+    "app-message",
+    useCallback((ev) => {
+      const data = ev?.data;
+      if (data.user_name && data.text) setTranscript(`${data.user_name}: ${data.text}`);
+    }, [])
+  );
+
+  useDailyEvent("joined-meeting", callbacks.onMeetingJoined);
+  useDailyEvent("transcription-started", callbacks.onTranscriptionStarted);
+  useDailyEvent("recording-started", callbacks.onRecordingStarted);
+  useDailyEvent("transcription-stopped", callbacks.onTranscriptionStopped);
+  useDailyEvent("recording-stopped", callbacks.onRecordingStopped);
+  useDailyEvent("custom-button-click", callbacks.onCustomButtonClick);
 
   useLayoutEffect(() => {
     const observer = new ResizeObserver((entries) => {
