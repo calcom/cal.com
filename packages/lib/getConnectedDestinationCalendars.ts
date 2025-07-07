@@ -8,6 +8,7 @@ import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import { DestinationCalendarRepository } from "./server/repository/destinationCalendar";
 import { EventTypeRepository } from "./server/repository/eventType";
 import { SelectedCalendarRepository } from "./server/repository/selectedCalendar";
 
@@ -134,20 +135,18 @@ async function handleNoDestinationCalendar({
     }
   }
 
-  user.destinationCalendar = await prisma.destinationCalendar.create({
-    data: {
-      userId: user.id,
-      integration,
-      externalId,
-      primaryEmail,
-      ...(!isDelegationCredential({ credentialId })
-        ? {
-            credentialId,
-          }
-        : {
-            delegationCredentialId,
-          }),
-    },
+  user.destinationCalendar = await DestinationCalendarRepository.createIfNotExists({
+    userId: user.id,
+    integration,
+    externalId,
+    primaryEmail,
+    ...(!isDelegationCredential({ credentialId })
+      ? {
+          credentialId,
+        }
+      : {
+          delegationCredentialId,
+        }),
   });
 
   return {

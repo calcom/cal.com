@@ -14,6 +14,16 @@ export class DestinationCalendarRepository {
     });
   }
 
+  static async createIfNotExists(data: Prisma.DestinationCalendarUncheckedCreateInput) {
+    const conflictingCalendar = await DestinationCalendarRepository.findConflicting(data);
+    if (conflictingCalendar) {
+      return conflictingCalendar;
+    }
+    return await prisma.destinationCalendar.create({
+      data,
+    });
+  }
+
   static async getByUserId(userId: number) {
     return await prisma.destinationCalendar.findFirst({
       where: {
@@ -33,6 +43,57 @@ export class DestinationCalendarRepository {
   static async find({ where }: { where: Prisma.DestinationCalendarWhereInput }) {
     return await prisma.destinationCalendar.findFirst({
       where,
+    });
+  }
+
+  private static async findConflicting(data: {
+    integration: string;
+    externalId: string;
+    userId?: number | null;
+    eventTypeId?: number | null;
+  }) {
+    if (data.userId) {
+      return this.findConflictingForUser({
+        userId: data.userId,
+        integration: data.integration,
+        externalId: data.externalId,
+      });
+    }
+    if (data.eventTypeId) {
+      return this.findConflictingForEventType({
+        eventTypeId: data.eventTypeId,
+        integration: data.integration,
+        externalId: data.externalId,
+      });
+    }
+    return null;
+  }
+
+  private static async findConflictingForUser(data: {
+    userId: number;
+    integration: string;
+    externalId: string;
+  }) {
+    return await DestinationCalendarRepository.find({
+      where: {
+        userId: data.userId,
+        integration: data.integration,
+        externalId: data.externalId,
+      },
+    });
+  }
+
+  private static async findConflictingForEventType(data: {
+    eventTypeId: number;
+    integration: string;
+    externalId: string;
+  }) {
+    return await DestinationCalendarRepository.find({
+      where: {
+        eventTypeId: data.eventTypeId,
+        integration: data.integration,
+        externalId: data.externalId,
+      },
     });
   }
 
