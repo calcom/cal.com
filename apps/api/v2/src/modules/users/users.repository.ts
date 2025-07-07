@@ -386,4 +386,29 @@ export class UsersRepository {
       },
     });
   }
+
+  async findTeamById(teamId: number) {
+    return this.dbRead.prisma.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        id: true,
+        name: true,
+        isOrganization: true,
+        stripeCustomerId: true,
+      },
+    });
+  }
+
+  async updateTeamStripeCustomerId(teamId: number, stripeCustomerId: string) {
+    return this.dbWrite.prisma.team.update({
+      where: {
+        id: teamId,
+      },
+      data: {
+        stripeCustomerId,
+      },
+    });
+  }
 }

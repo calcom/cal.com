@@ -13,7 +13,6 @@ export class OrganizationBillingRepository implements IOrganizationBillingReposi
         id: true,
         slug: true,
         name: true,
-        billingPeriod: true,
       },
     });
   }
@@ -50,9 +49,13 @@ export class OrganizationBillingRepository implements IOrganizationBillingReposi
         isOrganization: true,
       },
       select: {
-        stripeSubscriptionId: true,
+        platformBilling: {
+          select: {
+            subscriptionId: true,
+          },
+        },
       },
     });
-    return organization?.stripeSubscriptionId ?? null;
+    return organization?.platformBilling?.subscriptionId ?? null;
   }
 }
