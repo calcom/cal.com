@@ -24590,7 +24590,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -24747,7 +24753,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -25007,7 +25019,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -25151,7 +25169,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -25340,7 +25364,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -25479,7 +25509,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
