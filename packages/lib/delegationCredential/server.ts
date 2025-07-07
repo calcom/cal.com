@@ -5,12 +5,12 @@ import { metadata as office365CalendarMetaData } from "@calcom/app-store/office3
 import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
-import { UserRepository } from "../server/repository/user";
+import { PrismaUserRepository } from "../server/repository/user";
 import {
   buildNonDelegationCredential,
   buildNonDelegationCredentials,
@@ -198,7 +198,7 @@ export async function getAllDelegationCredentialsForUserIncludeServiceAccountKey
   // In case we need to disable the effects of DelegationCredential on credential we need to toggle DelegationCredential off from organization settings.
   // We could think of the teamFeatures flag to just disable the UI. The actual effect of DelegationCredential on credentials is disabled by toggling DelegationCredential off from UI
   const delegationCredential =
-    await DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey({
+    await PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey({
       email: user.email,
     });
 
@@ -263,7 +263,7 @@ async function _getDelegationCredentialsMapPerUser({
   const domain = userThatDeterminesDomain.email.split("@")[1];
   log.debug("called with", safeStringify({ users }));
   const delegationCredential =
-    await DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey(
+    await PrismaDelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey(
       {
         organizationId,
         domain,
@@ -530,7 +530,7 @@ export async function getDelegationCredentialOrFindRegularCredential<
   return id.delegationCredentialId
     ? delegationCredentials.find((cred) => cred.delegatedToId === id.delegationCredentialId)
     : id.credentialId
-    ? await CredentialRepository.findCredentialForCalendarServiceById({
+    ? await PrismaCredentialRepository.findCredentialForCalendarServiceById({
         id: id.credentialId,
       })
     : null;
@@ -592,8 +592,10 @@ export async function findUniqueDelegationCalendarCredential({
   delegationCredentialId: string;
 }) {
   const [delegationCredential, user] = await Promise.all([
-    DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({ id: delegationCredentialId }),
-    UserRepository.findById({ id: userId }),
+    PrismaDelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({
+      id: delegationCredentialId,
+    }),
+    PrismaUserRepository.findById({ id: userId }),
   ]);
 
   if (!delegationCredential) {
@@ -620,7 +622,7 @@ export async function findUniqueDelegationCalendarCredential({
  * Thus it is a Credential from DB and and also a Delegation User Credential(when CredentialForCalendarCache.delegatedTo is not null)
  */
 export async function getCredentialForCalendarCache({ credentialId }: { credentialId: number }) {
-  const credential = await CredentialRepository.findByIdIncludeDelegationCredential({
+  const credential = await PrismaCredentialRepository.findByIdIncludeDelegationCredential({
     id: credentialId,
   });
 

@@ -9,7 +9,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
 import logger from "@calcom/lib/logger";
@@ -20,7 +20,7 @@ import {
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaCredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -419,7 +419,7 @@ export default class EventManager {
     } else {
       const credential =
         typeof credentialId === "number" && credentialId > 0
-          ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
+          ? await PrismaCredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
           : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
             this.videoCredentials.find((cred) => cred.type === type) ||
             this.calendarCredentials.find((cred) => cred.type === type) ||
@@ -735,7 +735,7 @@ export default class EventManager {
           if (!credential) {
             if (destination.credentialId) {
               // Fetch credential from DB
-              const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+              const credentialFromDB = await PrismaCredentialRepository.findCredentialForCalendarServiceById({
                 id: destination.credentialId,
               });
 
@@ -937,7 +937,7 @@ export default class EventManager {
           )[0];
           if (!credential) {
             // Fetch credential from DB
-            const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+            const credentialFromDB = await PrismaCredentialRepository.findCredentialForCalendarServiceById({
               id: reference.credentialId,
             });
             if (credentialFromDB && credentialFromDB.appId) {
@@ -972,7 +972,7 @@ export default class EventManager {
         const oldCalendarEvent = booking.references.find((reference) => reference.type.includes("_calendar"));
 
         if (oldCalendarEvent?.credentialId) {
-          const calendarCredential = await CredentialRepository.findCredentialForCalendarServiceById({
+          const calendarCredential = await PrismaCredentialRepository.findCredentialForCalendarServiceById({
             id: oldCalendarEvent.credentialId,
           });
           const calendar = await getCalendar(calendarCredential);
@@ -1048,7 +1048,7 @@ export default class EventManager {
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
 
-    const featureRepo = new FeaturesRepository();
+    const featureRepo = new PrismaFeaturesRepository();
     const isTaskerEnabledForSalesforceCrm = event.team?.id
       ? await featureRepo.checkIfTeamHasFeature(event.team.id, "salesforce-crm-tasker")
       : false;

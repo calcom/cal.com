@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { MembershipRepository } from "../repository/membership";
+import { PrismaMembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
 
 export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope", [
@@ -153,7 +153,7 @@ export class InsightsBookingService {
     // Get all users from the organization
     const userIdsFromOrg =
       teamsFromOrg.length > 0
-        ? (await MembershipRepository.findAllByTeamIds({ teamIds, select: { userId: true } })).map(
+        ? (await PrismaMembershipRepository.findAllByTeamIds({ teamIds, select: { userId: true } })).map(
             (m) => m.userId
           )
         : [];
@@ -192,7 +192,7 @@ export class InsightsBookingService {
       return NOTHING;
     }
 
-    const usersFromTeam = await MembershipRepository.findAllByTeamIds({
+    const usersFromTeam = await PrismaMembershipRepository.findAllByTeamIds({
       teamIds: [options.teamId],
       select: { userId: true },
     });
@@ -216,7 +216,10 @@ export class InsightsBookingService {
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
+    const membership = await PrismaMembershipRepository.findUniqueByUserIdAndTeamId({
+      userId,
+      teamId: orgId,
+    });
     return Boolean(
       membership &&
         membership.accepted &&

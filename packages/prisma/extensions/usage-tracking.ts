@@ -3,10 +3,10 @@ import type { PrismaClient as PrismaClientWithoutExtensions } from "@prisma/clie
 import { waitUntil } from "@vercel/functions";
 
 import { UsageEvent, LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { PrismaDeploymentRepository } from "@calcom/lib/server/repository/deployment";
 
 async function incrementUsage(prismaClient: PrismaClientWithoutExtensions, event?: UsageEvent) {
-  const deploymentRepo = new DeploymentRepository(prismaClient);
+  const deploymentRepo = new PrismaDeploymentRepository(prismaClient);
   try {
     const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
     await licenseKeyService.incrementUsage(event);

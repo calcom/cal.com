@@ -17,7 +17,7 @@ import {
 
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
-import { UserRepository } from "../../repository/user";
+import { PrismaUserRepository } from "../../repository/user";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
@@ -186,7 +186,7 @@ export async function getTeamWithMembers(args: {
   for (const membership of teamOrOrg.members) {
     teamOrOrgMemberships.push({
       ...membership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await PrismaUserRepository.enrichUserWithItsProfile({
         user: membership.user,
       }),
     });
@@ -236,7 +236,7 @@ export async function getTeamWithMembers(args: {
     const usersWithUserProfile = [];
     for (const { user } of eventType.hosts) {
       usersWithUserProfile.push(
-        await UserRepository.enrichUserWithItsProfile({
+        await PrismaUserRepository.enrichUserWithItsProfile({
           user,
         })
       );

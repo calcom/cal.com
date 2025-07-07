@@ -5,8 +5,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaDelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { SMSLockState } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -22,14 +22,14 @@ import {
 
 // Mock OrganizationRepository
 vi.mock("@calcom/lib/server/repository/organization", () => ({
-  OrganizationRepository: {
+  PrismaOrganizationRepository: {
     findByMemberEmail: vi.fn(),
   },
 }));
 
-// Mock DelegationCredentialRepository
+// Mock PrismaDelegationCredentialRepository
 vi.mock("@calcom/lib/server/repository/delegationCredential", () => ({
-  DelegationCredentialRepository: {
+  PrismaDelegationCredentialRepository: {
     findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey: vi.fn(),
     findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey: vi.fn(),
   },
@@ -182,12 +182,12 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(OrganizationRepository.findByMemberEmail).mockResolvedValue(mockOrganization);
+    vi.mocked(PrismaOrganizationRepository.findByMemberEmail).mockResolvedValue(mockOrganization);
   });
 
   it("should return empty array when no DelegationCredential found", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(null);
     const result = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({ user: mockUser });
     expect(result).toEqual([]);
@@ -195,7 +195,7 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
 
   it("should return empty array when DelegationCredential is disabled", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));
     const result = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({ user: mockUser });
     expect(result).toEqual([]);
@@ -203,7 +203,7 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
 
   it("should return credentials for enabled Google DelegationCredential", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
     const result = await getAllDelegationCredentialsForUserIncludeServiceAccountKey({ user: mockUser });
 
@@ -216,7 +216,7 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
 
   it("should return empty array for non-Google platforms(as they are not supported yet)", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(
       buildMockDelegationCredential({
         workspacePlatform: {
@@ -356,7 +356,7 @@ describe("enrichUsersWithDelegationCredentials", () => {
 
   it("should enrich users with DelegationCredential credentials when available", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
 
     const result = await enrichUsersWithDelegationCredentials({
@@ -384,7 +384,7 @@ describe("enrichUsersWithDelegationCredentials", () => {
 
   it("should not add DelegationCredential credentials when DelegationCredential is disabled", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));
 
     const result = await enrichUsersWithDelegationCredentials({
@@ -459,7 +459,7 @@ describe("enrichHostsWithDelegationCredentials", () => {
 
   it("should enrich hosts with DelegationCredential credentials when available", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
 
     const result = await enrichHostsWithDelegationCredentials({
@@ -488,7 +488,7 @@ describe("enrichHostsWithDelegationCredentials", () => {
 
   it("should not add DelegationCredential credentials when DelegationCredential is disabled", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));
 
     const result = await enrichHostsWithDelegationCredentials({
@@ -532,7 +532,7 @@ describe("enrichUserWithDelegationCredentialsIncludeServiceAccountKey", () => {
 
   it("should enrich user with DelegationCredential credentials when available", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
 
     const result = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
@@ -556,7 +556,7 @@ describe("enrichUserWithDelegationCredentialsIncludeServiceAccountKey", () => {
 
   it("should not add DelegationCredential credentials when DelegationCredential is not found", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(null);
 
     const result = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
@@ -575,7 +575,7 @@ describe("enrichUserWithDelegationCredentialsIncludeServiceAccountKey", () => {
 
   it("should not add DelegationCredential credentials when DelegationCredential is disabled", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential({ enabled: false }));
 
     const result = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
@@ -605,7 +605,7 @@ describe("enrichUserWithDelegationConferencingCredentialsWithoutOrgId", () => {
 
   it("should only return conferencing credentials", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(buildMockDelegationCredential());
 
     const result = await enrichUserWithDelegationConferencingCredentialsWithoutOrgId({
@@ -623,7 +623,7 @@ describe("enrichUserWithDelegationConferencingCredentialsWithoutOrgId", () => {
 
   it("should return empty credentials array when no conferencing credentials found", async () => {
     vi.mocked(
-      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+      PrismaDelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
     ).mockResolvedValue(null);
 
     const result = await enrichUserWithDelegationConferencingCredentialsWithoutOrgId({

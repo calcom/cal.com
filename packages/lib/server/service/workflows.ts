@@ -1,6 +1,6 @@
 import { prisma } from "@calcom/prisma";
 
-import { WorkflowRepository } from "../repository/workflow";
+import { PrismaWorkflowRepository } from "../repository/workflow";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
@@ -54,12 +54,12 @@ export class WorkflowService {
             .filter((activeOn) => activeOn.teamId !== team.id)
             .map((activeOn) => activeOn.teamId);
         }
-        const remindersToDelete = await WorkflowRepository.getRemindersFromRemovedTeams(
+        const remindersToDelete = await PrismaWorkflowRepository.getRemindersFromRemovedTeams(
           [team.id],
           workflowSteps,
           remainingActiveOnIds
         );
-        await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
+        await PrismaWorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
       }
     }
   }

@@ -21,7 +21,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 
 import { TRPCError } from "@trpc/server";
 
@@ -104,7 +104,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   const profileEnrichmentStart = performance.now();
   const formWithUserProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await PrismaUserRepository.enrichUserWithItsProfile({ user: form.user }),
   };
   timeTaken.profileEnrichment = performance.now() - profileEnrichmentStart;
 

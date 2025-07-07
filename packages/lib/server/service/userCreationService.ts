@@ -4,7 +4,7 @@ import logger from "@calcom/lib/logger";
 import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
 
 import slugify from "../../slugify";
-import { UserRepository } from "../repository/user";
+import { PrismaUserRepository } from "../repository/user";
 
 interface CreateUserInput {
   email: string;
@@ -37,7 +37,7 @@ export class UserCreationService {
 
     const hashedPassword = password ? await hashPassword(password) : null;
 
-    const user = await UserRepository.create({
+    const user = await PrismaUserRepository.create({
       ...data,
       username: slugify(username),
       ...(hashedPassword && { hashedPassword }),

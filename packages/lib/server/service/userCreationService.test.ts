@@ -6,7 +6,7 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { CreationSource } from "@calcom/prisma/enums";
 
-import { UserRepository } from "../repository/user";
+import { PrismaUserRepository } from "../repository/user";
 import { UserCreationService } from "./userCreationService";
 
 vi.mock("@calcom/lib/server/i18n", () => {
@@ -23,7 +23,7 @@ vi.mock("@calcom/features/auth/lib/hashPassword", () => ({
 
 vi.mock("../repository/user", async () => {
   return {
-    UserRepository: {
+    PrismaUserRepository: {
       create: vi.fn(),
     },
   };
@@ -48,7 +48,7 @@ describe("UserCreationService", () => {
   });
 
   test("should create user", async () => {
-    vi.spyOn(UserRepository, "create").mockResolvedValue({
+    vi.spyOn(PrismaUserRepository, "create").mockResolvedValue({
       username: "test",
       locked: false,
       organizationId: null,
@@ -56,7 +56,7 @@ describe("UserCreationService", () => {
 
     const user = await UserCreationService.createUser({ data: mockUserData });
 
-    expect(UserRepository.create).toHaveBeenCalledWith(
+    expect(PrismaUserRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
         username: "test",
         locked: false,
@@ -72,7 +72,7 @@ describe("UserCreationService", () => {
 
     const user = await UserCreationService.createUser({ data: mockUserData });
 
-    expect(UserRepository.create).toHaveBeenCalledWith(
+    expect(PrismaUserRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
         locked: true,
       })
@@ -90,7 +90,7 @@ describe("UserCreationService", () => {
     });
 
     expect(hashPassword).toHaveBeenCalledWith(mockPassword);
-    expect(UserRepository.create).toHaveBeenCalledWith(
+    expect(PrismaUserRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
         hashedPassword: "hashed_password",
       })

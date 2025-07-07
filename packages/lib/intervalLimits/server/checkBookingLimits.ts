@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaBookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -77,7 +77,7 @@ async function _checkBookingLimit({
     let bookingsInPeriod;
 
     if (teamId && user) {
-      bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
+      bookingsInPeriod = await PrismaBookingRepository.getAllAcceptedTeamBookingsOfUser({
         user: { id: user.id, email: user.email },
         teamId,
         startDate: startDate,

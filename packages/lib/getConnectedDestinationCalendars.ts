@@ -8,8 +8,8 @@ import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import { EventTypeRepository } from "./server/repository/eventType";
-import { SelectedCalendarRepository } from "./server/repository/selectedCalendar";
+import { PrismaEventTypeRepository } from "./server/repository/eventType";
+import { PrismaSelectedCalendarRepository } from "./server/repository/selectedCalendar";
 
 const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndEnsureDefaultsInDb"] });
 
@@ -234,7 +234,7 @@ async function ensureSelectedCalendarIsInDb({
     )}`
   );
 
-  await SelectedCalendarRepository.createIfNotExists({
+  await PrismaSelectedCalendarRepository.createIfNotExists({
     userId: user.id,
     integration: selectedCalendar.integration,
     externalId: selectedCalendar.externalId,
@@ -250,7 +250,7 @@ function getSelectedCalendars({
   eventTypeId: number | null;
 }) {
   if (eventTypeId) {
-    return EventTypeRepository.getSelectedCalendarsFromUser({
+    return PrismaEventTypeRepository.getSelectedCalendarsFromUser({
       user,
       eventTypeId: eventTypeId ?? null,
     });

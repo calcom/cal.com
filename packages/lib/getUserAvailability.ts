@@ -26,7 +26,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAvailabilityCheck";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -397,7 +397,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const getBusyTimesEnd = dateTo.toISOString();
 
   const selectedCalendars = eventType?.useEventLevelSelectedCalendars
-    ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
+    ? PrismaEventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
     : user.userLevelSelectedCalendars;
 
   const busyTimes = await getBusyTimes({

@@ -11,8 +11,8 @@ import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import type { LocationObject } from "@calcom/lib/location";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
@@ -52,7 +52,7 @@ export const getEventTypeById = async ({
     isPlatformManaged: true,
   } satisfies Prisma.UserSelect;
 
-  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
+  const rawEventType = await PrismaEventTypeRepository.findById({ id: eventTypeId, userId });
 
   if (!rawEventType) {
     if (isTrpcCall) {
@@ -70,7 +70,7 @@ export const getEventTypeById = async ({
   for (const eventTeamMembership of rawEventType.team?.members || []) {
     eventTeamMembershipsWithUserProfile.push({
       ...eventTeamMembership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await PrismaUserRepository.enrichUserWithItsProfile({
         user: eventTeamMembership.user,
       }),
     });
@@ -81,7 +81,7 @@ export const getEventTypeById = async ({
     childrenWithUserProfile.push({
       ...child,
       owner: child.owner
-        ? await UserRepository.enrichUserWithItsProfile({
+        ? await PrismaUserRepository.enrichUserWithItsProfile({
             user: child.owner,
           })
         : null,
@@ -91,7 +91,7 @@ export const getEventTypeById = async ({
   const eventTypeUsersWithUserProfile = [];
   for (const eventTypeUser of rawEventType.users) {
     eventTypeUsersWithUserProfile.push(
-      await UserRepository.enrichUserWithItsProfile({
+      await PrismaUserRepository.enrichUserWithItsProfile({
         user: eventTypeUser,
       })
     );

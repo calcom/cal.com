@@ -9,10 +9,10 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
@@ -51,7 +51,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     shouldListUserEvents = true;
   }
   const [profileMemberships, profileEventTypes] = await Promise.all([
-    MembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
+    PrismaMembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
       {
         upId: userProfile.upId,
       },
@@ -62,7 +62,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
       }
     ),
     shouldListUserEvents
-      ? EventTypeRepository.findAllByUpId(
+      ? PrismaEventTypeRepository.findAllByUpId(
           {
             upId: userProfile.upId,
             userId: user.id,
@@ -111,7 +111,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     users: await Promise.all(
       (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
         async (u) =>
-          await UserRepository.enrichUserWithItsProfile({
+          await PrismaUserRepository.enrichUserWithItsProfile({
             user: u,
           })
       )
@@ -123,7 +123,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
         users: await Promise.all(
           c.users.map(
             async (u) =>
-              await UserRepository.enrichUserWithItsProfile({
+              await PrismaUserRepository.enrichUserWithItsProfile({
                 user: u,
               })
           )
