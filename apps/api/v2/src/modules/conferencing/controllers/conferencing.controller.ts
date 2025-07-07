@@ -169,6 +169,21 @@ export class ConferencingController {
           const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
           return { url: fallbackUrl };
         }
+      } else if (decodedCallbackState.orgId) {
+        const apiUrl = this.config.get("api.url");
+        const url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/conferencing/${app}/oauth/callback`;
+        const params: Record<string, string | undefined> = { state, code, error, error_description };
+        const headers = {
+          Authorization: `Bearer ${decodedCallbackState.accessToken}`,
+        };
+        try {
+          const response = await this.httpService.axiosRef.get(url, { params, headers });
+          const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
+          return { url: redirectUrl };
+        } catch (err) {
+          const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
+          return { url: fallbackUrl };
+        }
       }
 
       return this.conferencingService.connectOauthApps(app, code, decodedCallbackState);
