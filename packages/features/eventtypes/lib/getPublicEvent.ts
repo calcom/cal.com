@@ -1,6 +1,5 @@
 import type { User as UserType } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
-import type { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
@@ -18,7 +17,6 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
-import type { EventTypeCustomInput } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   BookerLayouts,
@@ -475,14 +473,13 @@ export const getPublicEvent = async (
     users = [];
   }
 
-  const processedEventData = await processEventDataShared({
+  const eventDataShared = await processEventDataShared({
     eventData: eventWithUserProfiles,
     metadata: eventMetaData,
   });
 
   return {
-    ...processedEventData,
-    // getPublicEvent-specific overrides
+    ...eventDataShared,
     profile: getProfileFromEvent(eventWithUserProfiles),
     subsetOfUsers: users,
     users: fetchAllUsers ? users : undefined,
@@ -650,41 +647,7 @@ function mapHostsToUsers(host: {
   };
 }
 
-export const processEventDataShared = async ({
-  eventData,
-  metadata,
-}: {
-  eventData: {
-    id: number;
-    title: string;
-    description: string | null;
-    length: number;
-    isInstantEvent?: boolean | null;
-    instantMeetingSchedule?: { id: number; timeZone: string | null } | null;
-    customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
-    locations: LocationObject[];
-    bookingFields: Prisma.JsonValue;
-    recurringEvent: Prisma.JsonValue | null;
-    disableGuests?: boolean | null;
-    metadata: Prisma.JsonValue | null;
-    workflows?: { workflow: { id: number; steps: any[] } }[];
-    instantMeetingParameters?: Prisma.JsonValue[];
-    aiPhoneCallConfig?: Prisma.JsonValue | null;
-    assignAllTeamMembers?: boolean | null;
-    disableCancelling?: boolean | null;
-    disableRescheduling?: boolean | null;
-    allowReschedulingCancelledBookings?: boolean | null;
-    periodType?: string | null;
-    periodDays?: number | null;
-    periodEndDate?: Date | null;
-    periodStartDate?: Date | null;
-    periodCountCalendarDays?: boolean | null;
-    rescheduleWithSameRoundRobinHost?: boolean | null;
-    [key: string]: any; // For spread operator compatibility
-  };
-  metadata: ReturnType<typeof eventTypeMetaDataSchemaWithTypedApps.parse>;
-}) => {
-  // Calculate showInstantEventConnectNowModal
+export const processEventDataShared = async ({ eventData, metadata }) => {
   let showInstantEventConnectNowModal = eventData.isInstantEvent ?? false;
   if (eventData.isInstantEvent && eventData.instantMeetingSchedule?.id) {
     const { id, timeZone } = eventData.instantMeetingSchedule;
@@ -703,37 +666,19 @@ export const processEventDataShared = async ({
     metadata,
     customInputs: customInputSchema.array().parse(eventData.customInputs || []),
     locations: privacyFilteredLocations((eventData.locations || []) as LocationObject[]),
-    bookingFields: getBookingFieldsWithSystemFields({
-      bookingFields: eventData.bookingFields,
-      disableGuests: eventData.disableGuests ?? false,
-      customInputs: eventData.customInputs || [],
-      metadata: eventData.metadata,
-      workflows: eventData.workflows || [],
-    }),
+    bookingFields: getBookingFieldsWithSystemFields(eventData),
     recurringEvent: isRecurringEvent(eventData.recurringEvent)
       ? parseRecurringEvent(eventData.recurringEvent)
       : null,
-
-    // Instant event data
     isDynamic: false,
-    isInstantEvent: eventData.isInstantEvent ?? false,
+    isInstantEvent: eventData.isInstantEvent,
     showInstantEventConnectNowModal,
-    instantMeetingParameters: eventData.instantMeetingParameters || [],
+    instantMeetingParameters: eventData.instantMeetingParameters,
     aiPhoneCallConfig: eventData.aiPhoneCallConfig,
-
-    // Team and assignment data
-    assignAllTeamMembers: eventData.assignAllTeamMembers ?? false,
-    disableCancelling: eventData.disableCancelling ?? false,
-    disableRescheduling: eventData.disableRescheduling ?? false,
-    allowReschedulingCancelledBookings: eventData.allowReschedulingCancelledBookings ?? false,
-
-    // Period and scheduling data
-    periodType: eventData.periodType,
-    periodDays: eventData.periodDays,
-    periodEndDate: eventData.periodEndDate,
-    periodStartDate: eventData.periodStartDate,
-    periodCountCalendarDays: eventData.periodCountCalendarDays,
-    rescheduleWithSameRoundRobinHost: eventData.rescheduleWithSameRoundRobinHost,
-    instantMeetingSchedule: eventData.instantMeetingSchedule,
+    assignAllTeamMembers: eventData.assignAllTeamMembers,
+    disableCancelling: eventData.disableCancelling,
+    disableRescheduling: eventData.disableRescheduling,
+    allowReschedulingCancelledBookings: eventData.allowReschedulingCancelledBookings,
+    interfaceLanguage: eventData.interfaceLanguage,
   };
 };
