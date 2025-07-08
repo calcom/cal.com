@@ -49,7 +49,8 @@ function getCorrectedSlotStartTime(
       // so slotStartTime is pushed to next 15Min slot 09:15, instead of showing slots like 9:05,10:05 now slots will be 9:15,10:15
       correctedSlotStartTime = slotStartTime.add(minutesRequiredToMoveTo15MinSlot, "minute");
     } else if (dayjs.utc().startOf("day").isSame(dayjs.utc(slotStartTime).startOf("day"), "day")) {
-      // For current date booking cases, if current time is like 4:54, slotStartTime will be 5:00
+      // For current date booking cases and extraMinutesAvailable is not enough to move to next slot,
+      // and if current time is like 11:22, slotStartTime will be updated to 11:30
       correctedSlotStartTime = slotStartTime
         .startOf("hour")
         .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute");
