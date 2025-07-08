@@ -657,6 +657,17 @@ export class EventTypeRepository {
           eventTypeId: true,
         },
       },
+      calVideoSettings: {
+        select: {
+          disableRecordingForGuests: true,
+          disableRecordingForOrganizer: true,
+          enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
+          redirectUrlOnExit: true,
+          enableFlappyBirdGame: true,
+        },
+      },
       workflows: {
         include: {
           workflow: {
@@ -709,6 +720,7 @@ export class EventTypeRepository {
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
+          enableFlappyBirdGame: true,
         },
       },
     } satisfies Prisma.EventTypeSelect;
