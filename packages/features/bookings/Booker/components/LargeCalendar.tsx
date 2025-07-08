@@ -40,14 +40,16 @@ export const LargeCalendar = ({
     if (!schedule.slots) return availableTimeslots;
 
     for (const day in schedule.slots) {
-      availableTimeslots[day] = schedule.slots[day].map((slot) => {
-        const { time, ...rest } = slot;
-        return {
-          start: dayjs(time).toDate(),
-          end: dayjs(time).add(eventDuration, "minutes").toDate(),
-          ...rest,
-        };
-      });
+      availableTimeslots[day] = (schedule.slots as Record<string, unknown[]>)[day]?.map(
+        (slot: { time: string }) => {
+          const { time, ...rest } = slot;
+          return {
+            start: dayjs(time).toDate(),
+            end: dayjs(time).add(eventDuration, "minutes").toDate(),
+            ...rest,
+          };
+        }
+      );
     }
 
     return availableTimeslots;

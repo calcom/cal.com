@@ -217,6 +217,10 @@ export const AvailableTimeSlots = ({
         )}>
         {isLoading && // Shows exact amount of days as skeleton.
           Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
+        {(schedule as any)?.weekLoadingStates?.map(
+          (weekState: { isPending: boolean; isLoading: boolean }, index: number) =>
+            weekState.isPending ? <AvailableTimesSkeleton key={`week-${index}`} /> : null
+        )}
         {!isLoading &&
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (

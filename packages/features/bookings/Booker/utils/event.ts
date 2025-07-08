@@ -97,7 +97,7 @@ export const useScheduleForEvent = ({
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
 
-  const schedule = useSchedule({
+  const scheduleArgs = {
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId,
@@ -113,7 +113,9 @@ export const useScheduleForEvent = ({
     orgSlug,
     teamMemberEmail,
     useApiV2: useApiV2,
-  });
+  };
+
+  const schedule = useSchedule(scheduleArgs);
 
   return {
     data: schedule?.data,
