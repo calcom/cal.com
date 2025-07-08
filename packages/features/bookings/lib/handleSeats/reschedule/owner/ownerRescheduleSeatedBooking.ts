@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import type EventManager from "@calcom/lib/EventManager";
+import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
 
-import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type {
   NewTimeSlotBooking,
   SeatedBooking,
@@ -17,8 +17,9 @@ const ownerRescheduleSeatedBooking = async (
   seatedBooking: SeatedBooking,
   resultBooking: HandleSeatsResultBooking | null,
   eventManager: EventManager,
-  loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>
+  traceContext?: TraceContext
 ) => {
+  const loggerWithEventDetails = traceContext ? DistributedTracing.getTracingLogger(traceContext) : undefined;
   const { originalRescheduledBooking, tAttendees } = rescheduleSeatedBookingObject;
   const { evt } = rescheduleSeatedBookingObject;
 
@@ -38,7 +39,7 @@ const ownerRescheduleSeatedBooking = async (
       rescheduleSeatedBookingObject,
       seatedBooking,
       eventManager,
-      loggerWithEventDetails
+      traceContext
     );
   } else {
     // If a booking already exists during the new time slot then merge the two bookings together
@@ -47,7 +48,7 @@ const ownerRescheduleSeatedBooking = async (
       seatedBooking,
       newTimeSlotBooking,
       eventManager,
-      loggerWithEventDetails
+      traceContext
     );
   }
   return resultBooking;

@@ -1,5 +1,3 @@
-import type { Logger } from "tslog";
-
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
@@ -12,6 +10,7 @@ import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits"
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
 import prisma from "@calcom/prisma";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
@@ -58,10 +57,11 @@ const _ensureAvailableUsers = async (
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
-  loggerWithEventDetails: Logger<unknown>,
+  traceContext: TraceContext,
   shouldServeCache?: boolean
   // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
 ): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> => {
+  const loggerWithEventDetails = DistributedTracing.getTracingLogger(traceContext);
   const availableUsers: IsFixedAwareUser[] = [];
 
   const startDateTimeUtc = getDateTimeInUtc(input.dateFrom, input.timeZone);

@@ -6,12 +6,12 @@ import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
-import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
 
 const combineTwoSeatedBookings = async (
@@ -19,8 +19,9 @@ const combineTwoSeatedBookings = async (
   seatedBooking: SeatedBooking,
   newTimeSlotBooking: NewTimeSlotBooking,
   eventManager: EventManager,
-  loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>
+  traceContext?: TraceContext
 ) => {
+  const loggerWithEventDetails = traceContext ? DistributedTracing.getTracingLogger(traceContext) : undefined;
   const {
     eventType,
     tAttendees,
@@ -135,7 +136,7 @@ const combineTwoSeatedBookings = async (
 
   if (noEmail !== true && isConfirmedByDefault) {
     // TODO send reschedule emails to attendees of the old booking
-    loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
+    loggerWithEventDetails?.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
       {
         ...copyEvent,
