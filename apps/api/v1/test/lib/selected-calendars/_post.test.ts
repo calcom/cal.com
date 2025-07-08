@@ -93,6 +93,8 @@ describe("POST /api/selected-calendars", () => {
         watchAttempts: 0,
         maxAttempts: 3,
         unwatchAttempts: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         outlookSubscriptionId: null,
         outlookSubscriptionExpiration: null,
       });
@@ -138,6 +140,8 @@ describe("POST /api/selected-calendars", () => {
         watchAttempts: 0,
         maxAttempts: 3,
         unwatchAttempts: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         outlookSubscriptionId: null,
         outlookSubscriptionExpiration: null,
       });
