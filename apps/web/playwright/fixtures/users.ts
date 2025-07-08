@@ -17,7 +17,7 @@ import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from 
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 
-import { createRoutingForm } from "../lib/routingFormHelpers";
+import { createRoutingForm } from "../lib/test-helpers/routingFormHelpers";
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import type { createEmailsFixture } from "./emails";
 import { TimeZoneEnum } from "./types";

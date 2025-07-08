@@ -52,6 +52,9 @@ interface TeamEventConfig {
 interface CreateRoutingFormConfig {
   userId: number;
   teamId: number;
+  /**
+   * Whether to setup with attribute routing or not
+   */
   formType: "default" | "attributeRouting";
 
   // Basic form settings
@@ -80,6 +83,16 @@ interface CreateRoutingFormConfig {
 
 /**
  * Creates a test routing form with configurable options
+ *
+ * The routes are not configurable at the moment
+ * The hardcoded routes are:
+ * - Route-1: Skills:Javascript routes to team/team-javascript selecting only those team members who have JavaScript in their skills
+ * - Route-2: Skills:Sales routes to team/team-sales selecting only those team members who have Sales in their skills
+ * - Route-3: Fallback Message
+ *
+ * The hardcoded attributes are:
+ * - Location
+ * - Skills
  * @param config - Configuration object containing all routing form settings
  * @returns The created routing form
  */

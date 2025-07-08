@@ -2,7 +2,6 @@ import type { Frame } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 export async function expectHostsToBe({ hosts, frame }: { hosts: { email: string }[]; frame: Frame }) {
-  // Wait for the element to be visible first, with better error handling
   try {
     await frame.waitForSelector(`[data-testid="booking-host-email"]`, { timeout: 5000 });
   } catch (error) {

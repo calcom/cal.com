@@ -148,7 +148,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   await frame.waitForTimeout(1000);
   // expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
   // Remove /embed from the end if present.
-  await bookEvent({ frame, page });
+  return bookEvent({ frame, page });
 }
 
 export async function bookEvent({ frame, page }: { frame: Frame; page: Page }) {
@@ -226,6 +226,9 @@ export async function expectActualFormResponseConnectedToQueuedFormResponse({
   expect(responseFromDb).toBeDefined();
   const valuesFromResponse = Object.values(responseFromDb).map((item) => item.value);
   const valuesSetInResponse = valuesFromResponse.filter((value) => !!value);
+  // We are unable to verify the exact response values because we don't directly have the form field identifiers in responseFromDB and would require correlating that with the actual Form from DB
+  // So, for now we just verify the number of values set
   // There are 5 values that are submitted when CTA is clicked.
+  // TODO: We should be able to verify the exact response values by correlating the form field identifiers with the actual Form from DB
   expect(valuesSetInResponse.length).toBe(numberOfExpectedSetFieldValues);
 }

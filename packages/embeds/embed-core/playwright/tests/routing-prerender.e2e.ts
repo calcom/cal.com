@@ -46,12 +46,12 @@ async function fillRestOfTheFormAndSubmit(page: Page) {
 }
 
 //TODO: Change these tests to use a user/eventType per embed type atleast. This is so that we can test different themes,layouts configured in App or per EventType
-test.describe("Popup Tests", () => {
+test.describe("Prerender Headless Router", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 
-  test("should open embed iframe on click - Configured with hide eventType details", async ({
+  test("should prerender when routing-required fields are filled and route to Javascript team as Javascript skills is selected and then doing the actual booking should show the routed team members as hosts", async ({
     page,
     embeds,
     users,

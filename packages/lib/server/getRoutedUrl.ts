@@ -19,6 +19,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -178,7 +179,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       };
     }
 
-    throw e;
+    log.error("Error handling the response", safeStringify(e));
+    throw new Error("Error handling the response");
   }
 
   // TODO: To be done using sentry tracing
