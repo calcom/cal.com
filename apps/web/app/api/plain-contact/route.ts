@@ -1,4 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -15,7 +14,7 @@ const contactFormSchema = z.object({
   message: z.string().min(1, "Message is required"),
 });
 
-async function handler(req: Request) {
+export async function POST(req: Request) {
   if (!IS_PLAIN_CHAT_ENABLED) {
     return NextResponse.json({ error: "Plain Chat is not enabled" }, { status: 404 });
   }
@@ -146,5 +145,3 @@ async function handler(req: Request) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
-export const POST = defaultResponderForAppDir(handler);

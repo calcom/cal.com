@@ -3,7 +3,9 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
+import { Input, Label, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 interface ContactFormData {
@@ -19,6 +21,7 @@ const PlainContactForm = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
+  const { t } = useLocale();
 
   const [formData, setFormData] = useState<ContactFormData>({
     name: session?.user?.name || "",
@@ -92,7 +95,7 @@ const PlainContactForm = () => {
     <div className="fixed bottom-5 right-5 z-50">
       <div className="w-80 rounded-lg border border-gray-200 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-200 p-4">
-          <h3 className="text-lg font-semibold text-gray-900">Contact Support</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t("contact_support")}</h3>
           <Button variant="icon" size="sm" onClick={() => setIsOpen(false)} className="h-8 w-8 p-0">
             <Icon name="x" className="h-4 w-4" />
           </Button>
@@ -106,73 +109,59 @@ const PlainContactForm = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h4 className="mb-2 text-lg font-medium text-gray-900">Message Sent!</h4>
-              <p className="mb-4 text-sm text-gray-600">
-                Thank you for contacting us. We&apos;ll get back to you as soon as possible.
-              </p>
+              <h4 className="mb-2 text-lg font-medium text-gray-900">{t("message_sent")}</h4>
+              <p className="mb-4 text-sm text-gray-600">{t("contact_form_success_message")}</p>
               <Button onClick={resetForm} variant="button" size="sm">
-                Send Another Message
+                {t("send_another_message")}
               </Button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
-                  Name
-                </label>
-                <input
+                <Label htmlFor="name">{t("name")}</Label>
+                <Input
                   type="text"
                   id="name"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
                 />
               </div>
 
               <div>
-                <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <input
+                <Label htmlFor="email">{t("email")}</Label>
+                <Input
                   type="email"
                   id="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
                 />
               </div>
 
               <div>
-                <label htmlFor="subject" className="mb-1 block text-sm font-medium text-gray-700">
-                  Subject
-                </label>
-                <input
+                <Label htmlFor="subject">{t("subject")}</Label>
+                <Input
                   type="text"
                   id="subject"
                   name="subject"
                   value={formData.subject}
                   onChange={handleInputChange}
                   required
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
                 />
               </div>
 
               <div>
-                <label htmlFor="message" className="mb-1 block text-sm font-medium text-gray-700">
-                  Message
-                </label>
-                <textarea
+                <Label htmlFor="message">{t("message")}</Label>
+                <TextArea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleInputChange}
                   required
                   rows={4}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
                 />
               </div>
 
@@ -186,12 +175,12 @@ const PlainContactForm = () => {
                 {isSubmitting ? (
                   <>
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Sending...
+                    {t("sending")}
                   </>
                 ) : (
                   <>
                     <Icon name="send" className="mr-2 h-4 w-4" />
-                    Send Message
+                    {t("send_message")}
                   </>
                 )}
               </Button>
