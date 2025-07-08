@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -44,7 +45,12 @@ export async function handleReservationExpiry() {
           },
         });
 
-        // Get webhooks for this reservation
+        // Get organization ID for webhook queries
+        const orgId = await getOrgIdFromMemberOrTeamId({
+          memberId: eventType?.userId,
+          teamId: eventType?.teamId,
+        });
+
         const webhooks = await prisma.webhook.findMany({
           where: {
             active: true,
@@ -56,10 +62,8 @@ export async function handleReservationExpiry() {
               { userId: eventType?.userId },
               // Team specific webhooks
               { teamId: eventType?.teamId },
-              // Global webhooks (no specific eventTypeId, userId, or teamId)
-              {
-                AND: [{ eventTypeId: null }, { userId: null }, { teamId: null }],
-              },
+              // Organization webhooks
+              ...(orgId && orgId !== eventType?.teamId ? [{ teamId: orgId }] : []),
             ],
           },
         });
@@ -76,7 +80,6 @@ export async function handleReservationExpiry() {
             userName: user?.name,
             userEmail: user?.email,
             expiredAt: reservation.releaseAt.toISOString(),
-            createdAt: new Date().toISOString(),
           };
 
           // Send webhooks
