@@ -21,7 +21,7 @@ import {
 } from "./server";
 
 // Mock OrganizationRepository
-vi.mock("@calcom/lib/server/repository/organization", () => ({
+vi.mock("@calcom/lib/server/repository/prismaOrganization", () => ({
   PrismaOrganizationRepository: {
     findByMemberEmail: vi.fn(),
   },

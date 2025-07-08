@@ -6,7 +6,7 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { CreationSource } from "@calcom/prisma/enums";
 
-import { PrismaUserRepository } from "../repository/user";
+import { PrismaUserRepository } from "../repository/prismaUser";
 import { UserCreationService } from "./userCreationService";
 
 vi.mock("@calcom/lib/server/i18n", () => {
@@ -21,7 +21,7 @@ vi.mock("@calcom/features/auth/lib/hashPassword", () => ({
   hashPassword: vi.fn().mockResolvedValue("hashed-password"),
 }));
 
-vi.mock("../repository/user", async () => {
+vi.mock("../repository/prismaUser", async () => {
   return {
     PrismaUserRepository: {
       create: vi.fn(),
