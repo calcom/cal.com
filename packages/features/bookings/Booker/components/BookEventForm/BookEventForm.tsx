@@ -94,21 +94,29 @@ export const BookEventForm = ({
 
     if (!timeslot || !minimumBookingNoticeInSeconds) return;
 
-    const now = dayjs();
-    const meeting = dayjs(timeslot);
+    const currentTime = dayjs();
+    const meetingTime = dayjs(timeslot);
 
-    const secondsTillMeeting = meeting.diff(now, "second");
-    const secondsTillBooking = Math.min(
-      secondsTillMeeting - minimumBookingNoticeInSeconds,
-      60 * 60 * 12 * 10
+    // how many seconds are left to the meeting
+    const secondsLeftTillMeeting = meetingTime.diff(currentTime, "second");
+
+    // how many seconds are left to the booking (minimumBookingNotice)
+    const secondsLeftToMakeBooking = Math.min(
+      secondsLeftTillMeeting - minimumBookingNoticeInSeconds,
+      dayjs.duration(10, "days").asSeconds() // we limit it to 10 days because of setTimout don't allow more.
     );
 
-    if (secondsTillBooking <= 0) {
+    // disable if minimumBookingNotice already passed
+    if (secondsLeftToMakeBooking <= 0) {
       setIsMinimumBookingNoticePassed(true);
       return;
     }
 
-    const timeoutId = setTimeout(() => setIsMinimumBookingNoticePassed(true), secondsTillBooking * 1000);
+    // disable when minimumBookingNotice is passed
+    const timeoutId = setTimeout(
+      () => setIsMinimumBookingNoticePassed(true),
+      secondsLeftToMakeBooking * 1000
+    );
 
     return () => {
       clearTimeout(timeoutId);
