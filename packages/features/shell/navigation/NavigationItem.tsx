@@ -90,6 +90,8 @@ export const NavigationItem: React.FC<{
           <button
             data-test-id={item.name}
             aria-label={t(item.name)}
+            aria-expanded={isExpanded}
+            aria-current={current ? "page" : undefined}
             onClick={() => setIsExpanded(!isExpanded)}
             className={classNames(
               "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
