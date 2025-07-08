@@ -5,10 +5,29 @@ import { DateTime } from "luxon";
 import { SlotFormat } from "@calcom/platform-enums";
 
 export type TimeSlots = {
-  slots: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>;
+  slots: Record<
+    string,
+    {
+      time: string;
+      attendees?: number;
+      bookingUid?: string;
+      availableCount?: number;
+      totalHosts?: number;
+    }[]
+  >;
 };
 export type RangeSlots = {
-  slots: Record<string, { startTime: string; endTime: string; attendees?: number; bookingUid?: string }[]>;
+  slots: Record<
+    string,
+    {
+      startTime: string;
+      endTime: string;
+      attendees?: number;
+      bookingUid?: string;
+      availableCount?: number;
+      totalHosts?: number;
+    }[]
+  >;
 };
 
 @Injectable()
@@ -36,6 +55,8 @@ export class SlotsOutputService_2024_04_15 {
         time: DateTime.fromISO(slot.time).setZone(timeZone).toISO() || "unknown-time",
         ...(slot.attendees ? { attendees: slot.attendees } : {}),
         ...(slot.bookingUid ? { bookingUid: slot.bookingUid } : {}),
+        ...(slot.availableCount !== undefined ? { availableCount: slot.availableCount } : {}),
+        ...(slot.totalHosts !== undefined ? { totalHosts: slot.totalHosts } : {}),
       }));
       return acc;
     }, {} as Record<string, { time: string }[]>);
@@ -50,6 +71,8 @@ export class SlotsOutputService_2024_04_15 {
         endTime: DateTime.fromISO(slot.endTime).setZone(timeZone).toISO() || "unknown-end-time",
         ...(slot.attendees ? { attendees: slot.attendees } : {}),
         ...(slot.bookingUid ? { bookingUid: slot.bookingUid } : {}),
+        ...(slot.availableCount !== undefined ? { availableCount: slot.availableCount } : {}),
+        ...(slot.totalHosts !== undefined ? { totalHosts: slot.totalHosts } : {}),
       }));
       return acc;
     }, {} as Record<string, { startTime: string; endTime: string }[]>);
@@ -70,9 +93,27 @@ export class SlotsOutputService_2024_04_15 {
     const slotDuration = await this.getDuration(duration, eventTypeId);
 
     const slots = Object.entries(availableSlots.slots).reduce<
-      Record<string, { startTime: string; endTime: string; attendees?: number; bookingUid?: string }[]>
+      Record<
+        string,
+        {
+          startTime: string;
+          endTime: string;
+          attendees?: number;
+          bookingUid?: string;
+          availableCount?: number;
+          totalHosts?: number;
+        }[]
+      >
     >((acc, [date, slots]) => {
-      acc[date] = (slots as { time: string; attendees?: number; bookingUid?: string }[]).map((slot) => {
+      acc[date] = (
+        slots as {
+          time: string;
+          attendees?: number;
+          bookingUid?: string;
+          availableCount?: number;
+          totalHosts?: number;
+        }[]
+      ).map((slot) => {
         const startTime = new Date(slot.time);
         const endTime = new Date(startTime.getTime() + slotDuration * 60000);
         return {
@@ -80,6 +121,8 @@ export class SlotsOutputService_2024_04_15 {
           endTime: endTime.toISOString(),
           ...(slot.attendees ? { attendees: slot.attendees } : {}),
           ...(slot.bookingUid ? { bookingUid: slot.bookingUid } : {}),
+          ...(slot.availableCount !== undefined ? { availableCount: slot.availableCount } : {}),
+          ...(slot.totalHosts !== undefined ? { totalHosts: slot.totalHosts } : {}),
         };
       });
       return acc;

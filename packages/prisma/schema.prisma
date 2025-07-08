@@ -1717,9 +1717,16 @@ model CalendarCache {
   userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
+  // New fields for slot-level caching
+  eventTypeId    Int?
+  availableCount Int?
+  totalSlots     Int?
+  cacheType      String? @default("calendar") // "calendar" or "slots"
+
   @@id([credentialId, key])
   @@unique([credentialId, key])
   @@index([userId, key])
+  @@index([eventTypeId, cacheType])
 }
 
 enum RedirectType {
