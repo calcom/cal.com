@@ -560,7 +560,7 @@ export const getPublicEvent = async (
   };
 };
 
-// A cleaner version of `getPublicEvent` that uses various helper functions
+// A cleaner version of `getPublicEvent` that uses various helper functions like `processEventDataShared` and `getEventTypeHosts`
 // Not to be used until it's battle-tested
 const getPublicEventRefactored = async (
   username: string,
