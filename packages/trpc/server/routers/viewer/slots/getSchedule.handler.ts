@@ -1,7 +1,6 @@
 import type { GetScheduleOptions } from "./types";
-import { AvailableSlotsService } from "./util";
+import { getAvailableSlots } from "./util";
 
 export const getScheduleHandler = async ({ ctx, input }: GetScheduleOptions) => {
-  const availableSlotsService = new AvailableSlotsService();
-  return await availableSlotsService.getAvailableSlots({ ctx, input });
+  return await getAvailableSlots({ ctx, input });
 };
