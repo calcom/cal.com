@@ -1717,16 +1717,27 @@ model CalendarCache {
   userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
-  // New fields for slot-level caching
-  eventTypeId    Int?
-  availableCount Int?
-  totalSlots     Int?
-  cacheType      String? @default("calendar") // "calendar" or "slots"
-
   @@id([credentialId, key])
   @@unique([credentialId, key])
   @@index([userId, key])
-  @@index([eventTypeId, cacheType])
+}
+
+model SlotsCache {
+  id             String   @id @default(uuid())
+  eventTypeId    Int
+  slotTime       DateTime
+  date           String // YYYY-MM-DD format for easy querying
+  month          String // YYYY-MM format for monthly cache management
+  availableCount Int
+  totalHosts     Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expiresAt      DateTime
+
+  @@unique([eventTypeId, slotTime])
+  @@index([eventTypeId, date])
+  @@index([eventTypeId, month])
+  @@index([expiresAt])
 }
 
 enum RedirectType {
