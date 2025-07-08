@@ -109,15 +109,13 @@ export class EventTypeService {
 
     const eventMetaData = EventTypeMetaDataSchema.parse(eventData.metadata);
 
-    // Use shared processing logic
-    const processedData = await processEventDataShared({
+    const eventDataShared = await processEventDataShared({
       eventData,
       metadata: eventMetaData,
     });
 
-    // Add team-specific profile and entity data
     return {
-      ...processedData,
+      ...eventDataShared,
       profile: {
         username: team.slug,
         name,
@@ -142,25 +140,6 @@ export class EventTypeService {
           ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
           : getPlaceholderAvatar(team.logoUrl, team.name),
       },
-
-      // Legacy fields for backward compatibility
-      eventTypeId,
-      length: eventData.length,
-      title: eventData.title,
-      hidden: eventData.hidden ?? false,
-      slug: eventData.slug,
-      team: {
-        id: team.id,
-        name: team.name,
-        slug: team.slug,
-      },
-      subsetOfHosts: eventData.hosts ?? [],
-      forwardParamsSuccessRedirect: eventData.forwardParamsSuccessRedirect,
-      lockTimeZoneToggleOnBookingPage: eventData.lockTimeZoneToggleOnBookingPage,
-      autoTranslateDescriptionEnabled: eventData.autoTranslateDescriptionEnabled,
-      fieldTranslations: eventData.fieldTranslations ?? [],
-      schedule: eventData.schedule,
-      interfaceLanguage: eventData.interfaceLanguage,
     };
   }
 }
