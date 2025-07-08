@@ -43,6 +43,8 @@ export type VideoApiAdapter =
       ): Promise<TGetTranscriptAccessLink["transcription"] | { message: string }>;
 
       checkIfRoomNameMatchesInRecording?(roomName: string, recordingId: string): Promise<boolean>;
+
+      getMeetingInformation?(roomName: string): Promise<any>;
     }
   | undefined;
 
