@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import type { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -142,8 +144,23 @@ export default function ApiKeyDialogForm({
             <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>
-            <p className="text-subtle mb-5 mt-1 text-sm">{t("api_key_modal_subtitle")}</p>
+            {IS_CALCOM ? (
+              <div className="mt-4 block gap-2 sm:flex">
+                <div className="border-emphasis relative flex w-full items-start rounded-[10px] border p-4 text-sm">
+                  {t("api_key_modal_subtitle")}
+                </div>
+                <Link
+                  target="_blank" rel="noopener noreferrer"
+                  href="https://cal.com/platform"
+                  className="border-subtle relative flex w-full items-start rounded-[10px] border p-4 text-sm">
+                  {t("api_key_modal_subtitle_platform")}
+                </Link>
+              </div>
+            ) : (
+              <p className="text-subtle mb-5 mt-1 text-sm">{t("api_key_modal_subtitle")}</p>
+            )}
           </div>
+
           <div>
             <Controller
               name="note"
