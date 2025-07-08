@@ -754,6 +754,27 @@ export class EventTypeRepository {
     });
   }
 
+  static async findFirstEventTypeId({
+    slug,
+    teamId,
+    userId,
+  }: {
+    slug: string;
+    teamId?: number;
+    userId?: number;
+  }) {
+    return prisma.eventType.findFirst({
+      where: {
+        slug,
+        ...(teamId ? { teamId } : {}),
+        ...(userId ? { userId } : {}),
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
   static async findByIdIncludeHostsAndTeam({ id }: { id: number }) {
     const eventType = await prisma.eventType.findUnique({
       where: {
