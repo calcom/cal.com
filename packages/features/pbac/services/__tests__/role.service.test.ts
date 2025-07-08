@@ -1,6 +1,5 @@
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
-import * as prismaModule from "@calcom/prisma";
 import { RoleType } from "@calcom/prisma/enums";
 
 import type { Role } from "../../domain/models/Role";
@@ -25,7 +24,6 @@ type MockRepository = {
 describe("RoleService", () => {
   let service: RoleService;
   let mockRepository: MockRepository;
-  let mockTrx: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -36,34 +34,9 @@ describe("RoleService", () => {
       create: vi.fn(),
       delete: vi.fn(),
       update: vi.fn(),
-      setTransaction: vi.fn(),
       roleBelongsToTeam: vi.fn(),
     };
     service = new RoleService(mockRepository);
-
-    // Default mockTrx for assignRoleToMember
-    mockTrx = {
-      membership: {
-        update: vi.fn(),
-      },
-      selectFrom: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      executeTakeFirst: vi.fn(),
-      updateTable: vi.fn().mockReturnThis(),
-      set: vi.fn().mockReturnThis(),
-      execute: vi.fn(),
-    };
-
-    // Properly mock db.$transaction to accept a callback and call it with mockTrx
-    if (prismaModule && prismaModule.default && prismaModule.default.$transaction) {
-      (prismaModule.default.$transaction as Mock).mockImplementation(async (cb) => cb(mockTrx));
-    }
-
-    // setTransaction should just accept the trx object
-    mockRepository.setTransaction.mockImplementation((trx) => {
-      // Optionally store trx for assertions
-    });
   });
 
   describe("createRole", () => {

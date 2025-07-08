@@ -1,5 +1,3 @@
-import type { PrismaTransaction, PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
-
 import type { Role, CreateRoleData } from "../models/Role";
 import type { PermissionString } from "../types/permission-registry";
 
@@ -19,5 +17,4 @@ export interface IRoleRepository {
       description?: string;
     }
   ): Promise<Role>;
-  setTransaction(trx: PrismaClientWithExtensions | PrismaTransaction): void;
 }
