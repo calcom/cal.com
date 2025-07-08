@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import type { Page, Browser, Route, Response } from "@playwright/test";
 import type { Team, EventType, User } from "@prisma/client";
+import type { z } from "zod";
 
 import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getTimeMin, getTimeMax } from "@calcom/features/calendar-cache/lib/datesForCache";
@@ -315,7 +316,7 @@ async function mockGoogleCalendarAPI(page: Page) {
 }
 
 // Local type for org/team with parsed metadata
-export type TeamWithMetadata = Team & { metadata: ReturnType<typeof teamMetadataSchema.parse> };
+export type TeamWithMetadata = Team & { metadata: z.infer<typeof teamMetadataSchema> };
 
 async function performConcurrentBookings(
   page: Page,
