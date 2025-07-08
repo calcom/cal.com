@@ -1,6 +1,4 @@
-import type { Transaction } from "kysely";
-
-import type { DB } from "@calcom/kysely";
+import type { PrismaTransaction, PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
 
 import type { Role, CreateRoleData } from "../models/Role";
 import type { PermissionString } from "../types/permission-registry";
@@ -21,5 +19,5 @@ export interface IRoleRepository {
       description?: string;
     }
   ): Promise<Role>;
-  transaction<T>(callback: (repository: IRoleRepository, trx: Transaction<DB>) => Promise<T>): Promise<T>;
+  setTransaction(trx: PrismaClientWithExtensions | PrismaTransaction): void;
 }

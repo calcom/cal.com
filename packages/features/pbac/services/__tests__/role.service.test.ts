@@ -9,6 +9,14 @@ import { RoleService } from "../role.service";
 
 vi.mock("../../infrastructure/repositories/RoleRepository");
 
+// Mock db.$transaction
+vi.mock("@calcom/prisma", () => ({
+  default: {
+    $transaction: vi.fn((cb) => cb({ membership: { update: vi.fn() } })),
+    membership: { update: vi.fn() },
+  },
+}));
+
 type MockRepository = {
   [K in keyof IRoleRepository]: Mock;
 };
@@ -26,7 +34,7 @@ describe("RoleService", () => {
       create: vi.fn(),
       delete: vi.fn(),
       update: vi.fn(),
-      transaction: vi.fn(),
+      setTransaction: vi.fn(),
       roleBelongsToTeam: vi.fn(),
     };
     service = new RoleService(mockRepository);
@@ -287,7 +295,7 @@ describe("RoleService", () => {
         execute: vi.fn().mockResolvedValue(undefined),
       };
 
-      mockRepository.transaction.mockImplementationOnce((callback) => callback(mockRepository, mockTrx));
+      mockRepository.setTransaction.mockImplementationOnce((callback) => callback(mockTrx));
 
       const result = await service.assignRoleToMember(roleId, membershipId);
       expect(result).toEqual({ id: roleId });
@@ -309,7 +317,7 @@ describe("RoleService", () => {
         executeTakeFirst: vi.fn().mockResolvedValue(null),
       };
 
-      mockRepository.transaction.mockImplementationOnce((callback) => callback(mockRepository, mockTrx));
+      mockRepository.setTransaction.mockImplementationOnce((callback) => callback(mockTrx));
 
       await expect(service.assignRoleToMember(roleId, membershipId)).rejects.toThrow("Role not found");
       expect(mockTrx.selectFrom).toHaveBeenCalledWith("Role");

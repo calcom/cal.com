@@ -1,3 +1,5 @@
+import type { PrismaTransaction, PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
+
 import type { TeamPermissions } from "../models/Permission";
 import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
 
@@ -44,4 +46,6 @@ export interface IPermissionRepository {
     teamId: number,
     resource: Resource
   ): Promise<(CrudAction | CustomAction)[]>;
+
+  setTransaction(trx: PrismaClientWithExtensions | PrismaTransaction): void;
 }
