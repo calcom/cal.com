@@ -906,6 +906,49 @@ export async function handleExistingUsersInvites({
   }
 }
 
+export async function handleExistingMemberUpdates({
+  existingUsersToUpdate,
+  team,
+  teamId,
+  language,
+  isOrg,
+}: {
+  existingUsersToUpdate: (UserWithMembership & { newRole: MembershipRole })[];
+  team: TeamWithParent;
+  teamId: number;
+  language: string;
+  isOrg: boolean;
+}) {
+  const myLog = log.getSubLogger({ prefix: ["handleExistingMemberUpdates"] });
+
+  myLog.debug(
+    "Updating existing members",
+    safeStringify({
+      existingUsersToUpdate,
+      teamId,
+    })
+  );
+
+  await Promise.all(
+    existingUsersToUpdate.map(async (user) => {
+      const existingMembership = user.teams?.find((membership) => membership.teamId === teamId);
+
+      if (existingMembership && existingMembership.role !== user.newRole) {
+        await prisma.membership.update({
+          where: {
+            userId_teamId: { userId: user.id, teamId: teamId },
+          },
+          data: {
+            role: user.newRole,
+          },
+        });
+
+        myLog.debug(`Updated role for user ${user.id} to ${user.newRole}`);
+      }
+    })
+  );
+}
+
 export async function handleNewUsersInvites({
   invitationsForNewUsers,
   team,

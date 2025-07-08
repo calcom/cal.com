@@ -24,6 +24,7 @@ import {
   getTeamOrThrow,
   getUniqueInvitationsOrThrowIfEmpty,
   handleExistingUsersInvites,
+  handleExistingMemberUpdates,
   handleNewUsersInvites,
   INVITE_STATUS,
 } from "./utils";
@@ -203,6 +204,10 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     (invitee) => invitee.canBeInvited === INVITE_STATUS.CAN_BE_INVITED
   );
 
+  const existingUsersToUpdate = existingUsersToBeInvited.filter(
+    (invitee) => invitee.canBeInvited === INVITE_STATUS.USER_ALREADY_INVITED_OR_MEMBER
+  );
+
   myLog.debug(
     "Notable variables:",
     safeStringify({
@@ -210,6 +215,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
       orgConnectInfoByUsernameOrEmail,
       invitableExistingUsers,
       existingUsersToBeInvited,
+      existingUsersToUpdate,
       invitationsForNewUsers,
     })
   );
@@ -227,6 +233,16 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     });
   }
 
+  if (existingUsersToUpdate.length) {
+    await handleExistingMemberUpdates({
+      existingUsersToUpdate,
+      team,
+      teamId: team.id,
+      language,
+      isOrg: isTeamAnOrg,
+    });
+  }
+
   const teamBilling = TeamBilling.init(team);
   await teamBilling.updateQuantity();
 
@@ -236,7 +252,8 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
       invitations.length == 1
         ? invitations[0].usernameOrEmail
         : invitations.map((invitation) => invitation.usernameOrEmail),
-    numUsersInvited: invitableExistingUsers.length + invitationsForNewUsers.length,
+    numUsersInvited:
+      invitableExistingUsers.length + invitationsForNewUsers.length + (existingUsersToUpdate?.length || 0),
   };
 };
 
