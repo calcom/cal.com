@@ -1,0 +1,12 @@
+{
+  "name": "@calcom/kysely",
+  "private": true,
+  "main": "index.ts",
+  "dependencies": {
+    "kysely": "^0.28.2",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.7"
+  }
+}

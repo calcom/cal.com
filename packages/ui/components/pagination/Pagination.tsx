@@ -68,7 +68,7 @@ export const Pagination = ({
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div className="flex items-center justify-between space-x-2 py-4">
+    <div className="flex items-center justify-between space-x-2">
       <div className="flex items-center space-x-2">
         <Select
           options={pageSizeSelectOptions}

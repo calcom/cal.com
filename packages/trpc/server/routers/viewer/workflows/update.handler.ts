@@ -1,7 +1,4 @@
-import {
-  isEmailAction,
-  isSMSOrWhatsappAction,
-} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -29,7 +26,7 @@ import {
 
 type UpdateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat">;
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
@@ -336,13 +333,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     } else if (isStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt })) {
       // check if step that require team plan already existed before
-      if (!hasPaidPlan) {
-        const isChangingToSMSOrWhatsapp =
-          !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action);
+      if (!hasPaidPlan && isEmailAction(newStep.action)) {
         const isChangingToCustomTemplate =
           newStep.template === WorkflowTemplates.CUSTOM && oldStep.template !== WorkflowTemplates.CUSTOM;
 
-        if (isChangingToSMSOrWhatsapp || isChangingToCustomTemplate) {
+        if (isChangingToCustomTemplate) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
         }
 
@@ -353,16 +348,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
           }
 
-          if (isEmailAction(newStep.action)) {
-            // on free plans always use predefined templates
-            const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
-              locale: ctx.user.locale,
-              action: newStep.action,
-              timeFormat: ctx.user.timeFormat,
-            });
+          // on free plans always use predefined templates
+          const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
+            locale: ctx.user.locale,
+            action: newStep.action,
+            timeFormat: ctx.user.timeFormat,
+          });
 
-            newStep = { ...newStep, reminderBody: emailBody, emailSubject };
-          }
+          newStep = { ...newStep, reminderBody: emailBody, emailSubject };
         }
       }
 
@@ -399,7 +392,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
 
       if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
-        await tasker.create("scanWorkflowBody", { workflowStepIds: [oldStep.id], userId: ctx.user.id });
+        await tasker.create("scanWorkflowBody", {
+          workflowStepId: oldStep.id,
+          userId: ctx.user.id,
+          createdAt: new Date().toISOString(),
+        });
       } else {
         // schedule notifications for edited steps
         await scheduleWorkflowNotifications({
@@ -424,11 +421,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     steps
       .filter((step) => step.id <= 0)
       .map(async (newStep) => {
-        if (!hasPaidPlan) {
-          if (isSMSOrWhatsappAction(newStep.action) || newStep.template === WorkflowTemplates.CUSTOM) {
+        if (!hasPaidPlan && isEmailAction(newStep.action)) {
+          if (newStep.template === WorkflowTemplates.CUSTOM) {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
           }
-
           // on free plans always use predefined templates
           const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
             locale: ctx.user.locale,
@@ -475,11 +471,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
 
     if (SCANNING_WORKFLOW_STEPS) {
-      // workflows are scanned then scheduled in the task
-      await tasker.create("scanWorkflowBody", {
-        workflowStepIds: createdSteps.map((step) => step.id),
-        userId: ctx.user.id,
-      });
+      await Promise.all(
+        createdSteps.map((step) =>
+          tasker.create("scanWorkflowBody", {
+            workflowStepId: step.id,
+            userId: ctx.user.id,
+            createdAt: new Date().toISOString(),
+          })
+        )
+      );
     } else {
       // schedule notification for new step
       await scheduleWorkflowNotifications({
@@ -509,7 +509,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
-  const workflow = await ctx.prisma.workflow.findFirst({
+  const workflow = await ctx.prisma.workflow.findUnique({
     where: {
       id,
     },
