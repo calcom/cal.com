@@ -46,12 +46,12 @@ async function fillRestOfTheFormAndSubmit(page: Page) {
 }
 
 //TODO: Change these tests to use a user/eventType per embed type atleast. This is so that we can test different themes,layouts configured in App or per EventType
-test.describe.only("Popup Tests", () => {
+test.describe("Popup Tests", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
 
-  test.only("should open embed iframe on click - Configured with hide eventType details", async ({
+  test("should open embed iframe on click - Configured with hide eventType details", async ({
     page,
     embeds,
     users,
