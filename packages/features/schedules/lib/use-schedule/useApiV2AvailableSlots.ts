@@ -32,12 +32,9 @@ export const useApiV2AvailableSlots = ({
     ],
     queryFn: () => {
       return axios
-        .get<ApiResponse<GetAvailableSlotsResponse>>(
-          `${process.env.NEXT_PUBLIC_API_V2_URL}/slots/available`,
-          {
-            params: rest,
-          }
-        )
+        .get<ApiResponse<GetAvailableSlotsResponse>>("/api/v2/slots/available", {
+          params: rest,
+        })
         .then((res) => {
           if (res.data.status === "success") {
             return (res.data as ApiSuccessResponse<GetAvailableSlotsResponse>).data;
