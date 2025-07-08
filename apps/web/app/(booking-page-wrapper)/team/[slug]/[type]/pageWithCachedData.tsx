@@ -21,7 +21,7 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import CachedClientView, { type TeamBookingPageProps } from "~/team/type-view-cached";
 
-import { getCachedTeamWithEventTypes, getCachedEventData } from "./actions";
+import { getCachedTeamWithEventTypes, getCachedEventData } from "./queries";
 
 const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),
