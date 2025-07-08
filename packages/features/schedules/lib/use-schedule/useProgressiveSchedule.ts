@@ -66,7 +66,7 @@ export const useProgressiveSchedule = (args: UseScheduleWithCacheArgs) => {
   const subsequentWeeks = [week2, week3, week4, week5].slice(0, weekRanges.length - 1);
 
   const combinedSlots = useMemo(() => {
-    const slots: Record<string, unknown[]> = {};
+    const slots: Record<string, { time: string; [key: string]: any }[]> = {};
 
     if (firstWeek.data?.slots) {
       Object.assign(slots, firstWeek.data.slots);
