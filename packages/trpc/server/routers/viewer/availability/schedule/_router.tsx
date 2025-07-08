@@ -1,4 +1,7 @@
+import { isAuthed } from "../../../../middlewares/sessionMiddleware";
+import validateCSRF from "../../../../middlewares/validateCSRF";
 import authedProcedure from "../../../../procedures/authedProcedure";
+import publicProcedure from "../../../../procedures/publicProcedure";
 import { router } from "../../../../trpc";
 import { ZBulkUpdateToDefaultAvailabilityInputSchema } from "./bulkUpdateDefaultAvailability.schema";
 import { ZCreateInputSchema } from "./create.schema";
@@ -10,17 +13,7 @@ import { ZGetByEventSlugInputSchema } from "./getScheduleByEventTypeSlug.schema"
 import { ZGetByUserIdInputSchema } from "./getScheduleByUserId.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
-type ScheduleRouterHandlerCache = {
-  get?: typeof import("./get.handler").getHandler;
-  create?: typeof import("./create.handler").createHandler;
-  delete?: typeof import("./delete.handler").deleteHandler;
-  update?: typeof import("./update.handler").updateHandler;
-  duplicate?: typeof import("./duplicate.handler").duplicateHandler;
-  getScheduleByUserId?: typeof import("./getScheduleByUserId.handler").getScheduleByUserIdHandler;
-  getAllSchedulesByUserId?: typeof import("./getAllSchedulesByUserId.handler").getAllSchedulesByUserIdHandler;
-  getScheduleByEventSlug?: typeof import("./getScheduleByEventTypeSlug.handler").getScheduleByEventSlugHandler;
-  bulkUpdateToDefaultAvailability?: typeof import("./bulkUpdateDefaultAvailability.handler").bulkUpdateToDefaultAvailabilityHandler;
-};
+const protectedMutationProcedure = publicProcedure.use(validateCSRF).use(isAuthed);
 
 export const scheduleRouter = router({
   get: authedProcedure.input(ZGetInputSchema).query(async ({ input, ctx }) => {
@@ -32,7 +25,7 @@ export const scheduleRouter = router({
     });
   }),
 
-  create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ input, ctx }) => {
+  create: protectedMutationProcedure.input(ZCreateInputSchema).mutation(async ({ input, ctx }) => {
     const { createHandler } = await import("./create.handler");
 
     return createHandler({
@@ -41,7 +34,7 @@ export const scheduleRouter = router({
     });
   }),
 
-  delete: authedProcedure.input(ZDeleteInputSchema).mutation(async ({ input, ctx }) => {
+  delete: protectedMutationProcedure.input(ZDeleteInputSchema).mutation(async ({ input, ctx }) => {
     const { deleteHandler } = await import("./delete.handler");
 
     return deleteHandler({
@@ -50,7 +43,7 @@ export const scheduleRouter = router({
     });
   }),
 
-  update: authedProcedure.input(ZUpdateInputSchema).mutation(async ({ input, ctx }) => {
+  update: protectedMutationProcedure.input(ZUpdateInputSchema).mutation(async ({ input, ctx }) => {
     const { updateHandler } = await import("./update.handler");
 
     return updateHandler({
@@ -59,7 +52,7 @@ export const scheduleRouter = router({
     });
   }),
 
-  duplicate: authedProcedure.input(ZScheduleDuplicateSchema).mutation(async ({ input, ctx }) => {
+  duplicate: protectedMutationProcedure.input(ZScheduleDuplicateSchema).mutation(async ({ input, ctx }) => {
     const { duplicateHandler } = await import("./duplicate.handler");
 
     return duplicateHandler({
@@ -94,7 +87,7 @@ export const scheduleRouter = router({
       input,
     });
   }),
-  bulkUpdateToDefaultAvailability: authedProcedure
+  bulkUpdateToDefaultAvailability: protectedMutationProcedure
     .input(ZBulkUpdateToDefaultAvailabilityInputSchema)
     .mutation(async ({ ctx, input }) => {
       const { bulkUpdateToDefaultAvailabilityHandler } = await import(

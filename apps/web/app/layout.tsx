@@ -98,6 +98,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const h = await headers();
   const nonce = h.get("x-csp") ?? "";
 
+  const cookieStore = await cookies();
+  let csrfToken = cookieStore.get("csrf-token")?.value;
+  if (!csrfToken) {
+    const res = await fetch("/api/csrf");
+    const data = await res.json();
+    csrfToken = data.csrfToken;
+  }
+
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
   const ns = "common";
@@ -113,6 +121,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
+        <meta name="csrf-token" content={csrfToken ?? ""} />
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
