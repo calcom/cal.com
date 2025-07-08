@@ -620,7 +620,7 @@ export async function getUsersFromEvent(
   ];
 }
 
-export async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number) {
+async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number) {
   const { users } = await prisma.eventType.findUniqueOrThrow({
     where: { id: eventTypeId },
     select: {
