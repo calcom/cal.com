@@ -95,7 +95,7 @@ export const getCachedEventData = unstable_cache(
     orgSlug: string | null;
     fromRedirectOfNonOrgLink: boolean;
   }) => {
-    return await processEventDataForBooking({
+    return await getEventDataForTeamBooking({
       team,
       orgSlug,
       fromRedirectOfNonOrgLink,
@@ -107,7 +107,7 @@ export const getCachedEventData = unstable_cache(
   }
 );
 
-export async function processEventDataForBooking({
+export async function getEventDataForTeamBooking({
   team,
   orgSlug,
   fromRedirectOfNonOrgLink,
