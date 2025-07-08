@@ -2,7 +2,6 @@ import { unstable_cache } from "next/cache";
 
 import {
   getEventTypeHosts,
-  getOwnerFromUsersArray,
   getProfileFromEvent,
   getUsersFromEvent,
   processEventDataShared,
@@ -65,20 +64,13 @@ export async function processEventDataForBooking({
     hosts: eventData.hosts,
   });
 
-  let users = null;
-  let enrichedOwner = null;
-  if (!team.isPrivate) {
-    if (eventData.owner) {
-      enrichedOwner = await UserRepository.enrichUserWithItsProfile({
+  const enrichedOwner = eventData.owner
+    ? await UserRepository.enrichUserWithItsProfile({
         user: eventData.owner,
-      });
-    }
-
-    users =
-      (await getUsersFromEvent({ ...eventData, owner: enrichedOwner, subsetOfHosts, hosts }, prisma)) ||
-      (await getOwnerFromUsersArray(prisma, eventData.id));
-  }
-
+      })
+    : null;
+  const users =
+    (await getUsersFromEvent({ ...eventData, owner: enrichedOwner, subsetOfHosts, hosts }, prisma)) ?? [];
   const name = team.parent?.name ?? team.name ?? null;
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
