@@ -13,7 +13,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
 
   const traceContext = DistributedTracing.createTrace("api_book_event", {
-    userIp,
+      userIp: "<redacted>",
     eventTypeId: req.body?.eventTypeId,
   });
   const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
