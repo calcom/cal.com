@@ -304,8 +304,10 @@ describe("Assign all team members", () => {
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
           expect(data.schedulingType).toEqual("collective");
-          evaluateHost({ userId: firstManagedUser.user.id }, data.hosts[0]);
-          evaluateHost({ userId: secondManagedUser.user.id }, data.hosts[1]);
+          const dataFirstHost = data.hosts.find((host) => host.userId === firstManagedUser.user.id);
+          const dataSecondHost = data.hosts.find((host) => host.userId === secondManagedUser.user.id);
+          evaluateHost({ userId: firstManagedUser.user.id }, dataFirstHost);
+          evaluateHost({ userId: secondManagedUser.user.id }, dataSecondHost);
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
           expect(eventTypeHosts.length).toEqual(2);
@@ -341,13 +343,15 @@ describe("Assign all team members", () => {
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
           expect(data.schedulingType).toEqual("roundRobin");
+          const dataFirstHost = data.hosts.find((host) => host.userId === firstManagedUser.user.id);
+          const dataSecondHost = data.hosts.find((host) => host.userId === secondManagedUser.user.id);
           evaluateHost(
             { userId: firstManagedUser.user.id, mandatory: false, priority: "medium" },
-            data.hosts[0]
+            dataFirstHost
           );
           evaluateHost(
             { userId: secondManagedUser.user.id, mandatory: false, priority: "medium" },
-            data.hosts[1]
+            dataSecondHost
           );
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
@@ -381,13 +385,15 @@ describe("Assign all team members", () => {
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
           expect(data.schedulingType).toEqual("roundRobin");
+          const dataFirstHost = data.hosts.find((host) => host.userId === firstManagedUser.user.id);
+          const dataSecondHost = data.hosts.find((host) => host.userId === secondManagedUser.user.id);
           evaluateHost(
             { userId: firstManagedUser.user.id, mandatory: false, priority: "medium" },
-            data.hosts[0]
+            dataFirstHost
           );
           evaluateHost(
             { userId: secondManagedUser.user.id, mandatory: false, priority: "medium" },
-            data.hosts[1]
+            dataSecondHost
           );
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);

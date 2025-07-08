@@ -212,6 +212,24 @@ export class TeamRepository {
     });
   }
 
+  static async findFirstBySlugAndParentSlug({
+    slug,
+    parentSlug,
+    select = teamSelect,
+  }: {
+    slug: string;
+    parentSlug: string | null;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await prisma.team.findFirst({
+      where: {
+        slug,
+        parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
+      },
+      select,
+    });
+  }
+
   static async deleteById({ id }: { id: number }) {
     const deletedTeam = await prisma.$transaction(async (tx) => {
       await tx.eventType.deleteMany({
