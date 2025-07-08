@@ -1,11 +1,7 @@
 /* @import rules must precede all rules aside from @charset and @layer statements. */
 @import "./raqb.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-
+@import "tailwindcss";
 /**
 * Add css variables here as well for light mode in addition to tailwind.config to avoid FOUC
 */
@@ -254,7 +250,7 @@
 
 @layer base {
   * {
-    border-color: #e5e7eb;
+    @apply border-default;
   }
 }
 
@@ -337,16 +333,14 @@ html.todesktop.dark {
     https://github.com/tailwindlabs/tailwindcss/discussions/2394
     https://github.com/tailwindlabs/tailwindcss/pull/5732
 */
-@layer utilities {
+@utility no-scrollbar {
   /* Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     display: none;
   }
 
-  .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /*
@@ -374,14 +368,8 @@ select:focus {
   border-color: var(--brand-color);
 }
 
-@layer components {
-  .scroll-bar {
-    scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
-  }
-  .dark .scroll-bar {
-    scrollbar-color: #6b7280 transparent;
-  }
+@utility scroll-bar {
+  @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
 }
 
 /* TODO: avoid global specific css */
@@ -389,49 +377,26 @@ select:focus {
   transform: translateX(16px);
 } */
 
-@layer components {
-  /* slider */
-  .slider {
-    position: relative;
-    display: flex;
-    height: 1rem;
-    width: 10rem;
-    user-select: none;
-    align-items: center;
+@utility slider {
+  @apply relative flex h-4 w-40 select-none items-center;
+
+  & > .slider-track {
+    @apply relative h-1 flex-grow rounded-md bg-gray-400;
   }
 
-  .slider > .slider-track {
-    position: relative;
-    height: 0.25rem;
-    flex-grow: 1;
-    border-radius: 0.375rem;
-    background-color: #9ca3af;
+  & .slider-range {
+    @apply absolute h-full rounded-full bg-gray-700;
   }
 
-  .slider .slider-range {
-    position: absolute;
-    height: 100%;
-    border-radius: 9999px;
-    background-color: #374151;
+  & .slider-thumb {
+    @apply block h-3 w-3 cursor-pointer rounded-full bg-gray-700 transition-all;
   }
 
-  .slider .slider-thumb {
-    display: block;
-    height: 0.75rem;
-    width: 0.75rem;
-    cursor: pointer;
-    border-radius: 9999px;
-    background-color: #374151;
-    transition-property: all;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
+  & .slider-thumb:hover {
+    @apply bg-gray-600;
   }
 
-  .slider .slider-thumb:hover {
-    background-color: #4b5563;
-  }
-
-  .slider .slider-thumb:focus {
+  & .slider-thumb:focus {
     box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2);
   }
 }
@@ -554,11 +519,9 @@ select:focus {
   color: white !important;
 }
 
-@layer utilities {
-  .transition-max-width {
-    -webkit-transition-property: max-width;
-    transition-property: max-width;
-  }
+@utility transition-max-width {
+  -webkit-transition-property: max-width;
+  transition-property: max-width;
 }
 
 #timeZone input:focus {
@@ -650,24 +613,20 @@ select:focus {
 
 .react-tel-input .country-list .country:hover,
 .react-tel-input .country-list .country.highlight {
-  background-color: #f3f4f6 !important;
+  @apply !bg-emphasis;
 }
 
 .react-tel-input .flag-dropdown .selected-flag,
 .react-tel-input .flag-dropdown.open .selected-flag {
-  background-color: #ffffff !important;
+  @apply !bg-default;
 }
 
 .react-tel-input .flag-dropdown {
-  border-right-color: #e5e7eb !important;
-  left: 0.125rem;
-  border-top-width: 0 !important;
-  border-bottom-width: 0 !important;
-  border-left-width: 0 !important;
+  @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
 
 .intercom-lightweight-app {
-  z-index: 40 !important;
+  @apply z-40 !important;
 }
 
 [data-radix-popper-content-wrapper] {
