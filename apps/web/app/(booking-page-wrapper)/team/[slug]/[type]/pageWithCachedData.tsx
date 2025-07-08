@@ -168,7 +168,7 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
 
   const [crmData, useApiV2] = await Promise.all([
     BookingService.getCRMData(legacyCtx.query, {
-      id: eventData.eventTypeId,
+      id: team.eventTypes[0].id,
       isInstantEvent: team.eventTypes[0].isInstantEvent,
       schedulingType: team.eventTypes[0].schedulingType,
       metadata: team.eventTypes[0].metadata,
