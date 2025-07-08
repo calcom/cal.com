@@ -297,9 +297,6 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  /**
-   * Try to get availability from cache first
-   */
   private async tryGetAvailabilityFromCache(
     dateFrom: string,
     dateTo: string,
@@ -348,9 +345,6 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  /**
-   * Fetch availability data and cache the results
-   */
   private async fetchAvailabilityData(
     dateFrom: string,
     dateTo: string,
