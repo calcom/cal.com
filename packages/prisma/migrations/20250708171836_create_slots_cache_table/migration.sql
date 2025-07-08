@@ -1,21 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `availableCount` on the `CalendarCache` table. All the data in the column will be lost.
-  - You are about to drop the column `cacheType` on the `CalendarCache` table. All the data in the column will be lost.
-  - You are about to drop the column `eventTypeId` on the `CalendarCache` table. All the data in the column will be lost.
-  - You are about to drop the column `totalSlots` on the `CalendarCache` table. All the data in the column will be lost.
-
-*/
--- DropIndex
-DROP INDEX "CalendarCache_eventTypeId_cacheType_idx";
-
--- AlterTable
-ALTER TABLE "CalendarCache" DROP COLUMN "availableCount",
-DROP COLUMN "cacheType",
-DROP COLUMN "eventTypeId",
-DROP COLUMN "totalSlots";
-
 -- CreateTable
 CREATE TABLE "SlotsCache" (
     "id" TEXT NOT NULL,
