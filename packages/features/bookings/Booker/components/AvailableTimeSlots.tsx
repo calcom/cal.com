@@ -17,10 +17,20 @@ import { useBookerStore } from "../store";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 
+interface WeekLoadingState {
+  isPending: boolean;
+  isLoading: boolean;
+}
+
+interface ProgressiveSchedule extends useScheduleForEventReturnType {
+  weekLoadingStates?: WeekLoadingState[];
+  isFirstWeekLoaded?: boolean;
+}
+
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
-  schedule?: useScheduleForEventReturnType;
+  schedule?: ProgressiveSchedule;
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
@@ -82,9 +92,8 @@ export const AvailableTimeSlots = ({
   const [layout] = useBookerStore((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStore((state) => ({
+  const { setTentativeSelectedTimeslots } = useBookerStore((state) => ({
     setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
-    tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
   }));
 
   const onTentativeTimeSelect = ({
@@ -215,11 +224,11 @@ export const AvailableTimeSlots = ({
           !limitHeight && "flex h-full w-full flex-row gap-4",
           `${customClassNames?.availableTimeSlotsContainer}`
         )}>
-        {isLoading && // Shows exact amount of days as skeleton.
+        {isLoading &&
+          !schedule?.isFirstWeekLoaded && // Shows exact amount of days as skeleton.
           Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
-        {(schedule as any)?.weekLoadingStates?.map(
-          (weekState: { isPending: boolean; isLoading: boolean }, index: number) =>
-            weekState.isPending ? <AvailableTimesSkeleton key={`week-${index}`} /> : null
+        {schedule?.weekLoadingStates?.map((weekState: WeekLoadingState, index: number) =>
+          weekState.isPending ? <AvailableTimesSkeleton key={`week-${index}`} /> : null
         )}
         {!isLoading &&
           slotsPerDay.length > 0 &&

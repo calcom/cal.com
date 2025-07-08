@@ -1,5 +1,6 @@
 import { shallow } from "zustand/shallow";
 
+import { useProgressiveSchedule } from "@calcom/features/schedules/lib/use-schedule/useProgressiveSchedule";
 import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
@@ -72,6 +73,7 @@ export const useScheduleForEvent = ({
   teamMemberEmail,
   isTeamEvent,
   useApiV2 = true,
+  useProgressiveLoading = false,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -87,6 +89,7 @@ export const useScheduleForEvent = ({
   fromRedirectOfNonOrgLink?: boolean;
   isTeamEvent?: boolean;
   useApiV2?: boolean;
+  useProgressiveLoading?: boolean;
 } = {}) => {
   const { timezone } = useBookerTime();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
@@ -115,7 +118,10 @@ export const useScheduleForEvent = ({
     useApiV2: useApiV2,
   };
 
-  const schedule = useSchedule(scheduleArgs);
+  const progressiveSchedule = useProgressiveSchedule(scheduleArgs);
+  const regularSchedule = useSchedule(scheduleArgs);
+
+  const schedule = useProgressiveLoading ? progressiveSchedule : regularSchedule;
 
   return {
     data: schedule?.data,
