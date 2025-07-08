@@ -222,6 +222,31 @@ function isAvailableInTimeSlot(
 }
 
 export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
+
+export async function getEventTypeHosts({
+  hosts,
+  fetchAllUsers = false,
+}: {
+  hosts: Prisma.EventTypeGetPayload<{ select: ReturnType<typeof getPublicEventSelect> }>["hosts"];
+  fetchAllUsers?: boolean;
+}) {
+  const usersAsHosts = hosts.map((host) => host.user);
+
+  // Enrich users in a single batch call
+  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(usersAsHosts);
+
+  // Map enriched users back to the hosts
+  const enrichedHosts = hosts.map((host, index) => ({
+    ...host,
+    user: enrichedUsers[index],
+  }));
+
+  return {
+    subsetOfHosts: enrichedHosts,
+    hosts: fetchAllUsers ? enrichedHosts : undefined,
+  };
+}
+
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
@@ -394,16 +419,10 @@ export const getPublicEvent = async (
 
   const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
   const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
-  const usersAsHosts = event.hosts.map((host) => host.user);
-
-  // Enrich users in a single batch call
-  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(usersAsHosts);
-
-  // Map enriched users back to the hosts
-  const hosts = event.hosts.map((host, index) => ({
-    ...host,
-    user: enrichedUsers[index],
-  }));
+  const { subsetOfHosts, hosts } = await getEventTypeHosts({
+    hosts: event.hosts,
+    fetchAllUsers,
+  });
 
   const eventWithUserProfiles = {
     ...event,
@@ -412,8 +431,8 @@ export const getPublicEvent = async (
           user: event.owner,
         })
       : null,
-    subsetOfHosts: hosts,
-    hosts: fetchAllUsers ? hosts : undefined,
+    subsetOfHosts,
+    hosts,
   };
 
   let users =
@@ -482,13 +501,9 @@ export const getPublicEvent = async (
   return {
     ...eventDataShared,
     // getPublicEvent-specific overrides
-    owner: event.owner
-      ? await UserRepository.enrichUserWithItsProfile({
-          user: event.owner,
-        })
-      : null,
-    subsetOfHosts: hosts,
-    hosts: fetchAllUsers ? hosts : undefined,
+    owner: eventWithUserProfiles.owner,
+    subsetOfHosts,
+    hosts,
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(eventWithUserProfiles),
     subsetOfUsers: users,
@@ -529,7 +544,7 @@ type GetProfileFromEventInput = Omit<Event, "hosts"> & {
   subsetOfHosts: Event["hosts"];
 };
 
-function getProfileFromEvent(event: GetProfileFromEventInput) {
+export function getProfileFromEvent(event: GetProfileFromEventInput) {
   const { team, subsetOfHosts: hosts, owner } = event;
   const nonTeamprofile = hosts?.[0]?.user || owner;
   const profile = team || nonTeamprofile;
@@ -559,7 +574,7 @@ function getProfileFromEvent(event: GetProfileFromEventInput) {
   };
 }
 
-async function getUsersFromEvent(
+export async function getUsersFromEvent(
   event: Omit<Event, "owner" | "hosts"> & {
     owner:
       | (Event["owner"] & {
@@ -605,7 +620,7 @@ async function getUsersFromEvent(
   ];
 }
 
-async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number) {
+export async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number) {
   const { users } = await prisma.eventType.findUniqueOrThrow({
     where: { id: eventTypeId },
     select: {

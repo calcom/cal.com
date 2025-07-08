@@ -1,15 +1,18 @@
 import { unstable_cache } from "next/cache";
 
-import { processEventDataShared } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import {
+  getEventTypeHosts,
+  getOwnerFromUsersArray,
+  getProfileFromEvent,
+  getUsersFromEvent,
+  processEventDataShared,
+} from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { TeamService, type TeamWithEventTypes } from "@calcom/lib/server/service/team";
 import { prisma } from "@calcom/prisma";
-import type { User } from "@calcom/prisma/client";
-import {
-  eventTypeMetaDataSchemaWithTypedApps,
-  bookerLayouts as bookerLayoutsSchema,
-} from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 export const getCachedTeamWithEventTypes = unstable_cache(
   async (teamSlug: string, meetingSlug: string, orgSlug: string | null) => {
@@ -43,47 +46,6 @@ export const getCachedEventData = unstable_cache(
   }
 );
 
-async function getEventTypeUsersData(
-  isPrivateTeam: boolean,
-  eventTypeId: number,
-  users: Pick<User, "username" | "name">[]
-): Promise<Array<{ username: string; name: string }>> {
-  if (!isPrivateTeam && users.length > 0) {
-    return users
-      .filter((user) => user.username)
-      .map((user) => ({
-        username: user.username ?? "",
-        name: user.name ?? "",
-      }));
-  }
-
-  if (!isPrivateTeam && users.length === 0) {
-    const { users: data } = await prisma.eventType.findUniqueOrThrow({
-      where: { id: eventTypeId },
-      select: {
-        users: {
-          take: 1,
-          select: {
-            username: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    return data.length > 0
-      ? [
-          {
-            username: data[0].username ?? "",
-            name: data[0].name ?? "",
-          },
-        ]
-      : [];
-  }
-
-  return [];
-}
-
 export async function processEventDataForBooking({
   team,
   orgSlug,
@@ -98,13 +60,24 @@ export async function processEventDataForBooking({
   }
 
   const eventData = team.eventTypes[0];
-  const eventTypeId = eventData.id;
 
-  const eventHostsUserData = await getEventTypeUsersData(
-    team.isPrivate,
-    eventTypeId,
-    eventData.hosts?.map((h) => h.user) ?? []
-  );
+  const { subsetOfHosts, hosts } = await getEventTypeHosts({
+    hosts: eventData.hosts,
+  });
+
+  let users = null;
+  let enrichedOwner = null;
+  if (!team.isPrivate) {
+    if (eventData.owner) {
+      enrichedOwner = await UserRepository.enrichUserWithItsProfile({
+        user: eventData.owner,
+      });
+    }
+
+    users =
+      (await getUsersFromEvent({ ...eventData, owner: enrichedOwner, subsetOfHosts, hosts }, prisma)) ||
+      (await getOwnerFromUsersArray(prisma, eventData.id));
+  }
 
   const name = team.parent?.name ?? team.name ?? null;
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
@@ -119,19 +92,12 @@ export async function processEventDataForBooking({
 
   return {
     ...eventDataShared,
-    profile: {
-      username: team.slug,
-      name,
-      weekStart: eventData.hosts?.[0]?.user?.weekStart || "Monday",
-      image: team.parent
-        ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-        : getPlaceholderAvatar(team.logoUrl, team.name),
-      brandColor: team.brandColor,
-      darkBrandColor: team.darkBrandColor,
-      theme: team.theme,
-      bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
-    },
-    subsetOfUsers: eventHostsUserData ?? [],
+    owner: enrichedOwner,
+    subsetOfHosts,
+    hosts,
+    profile: getProfileFromEvent({ ...eventData, owner: enrichedOwner, subsetOfHosts, hosts }),
+    subsetOfUsers: users,
+    users,
     entity: {
       fromRedirectOfNonOrgLink,
       considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
