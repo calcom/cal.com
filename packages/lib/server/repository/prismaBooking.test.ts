@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
 
-import { PrismaBookingRepository } from "./booking";
+import { PrismaBookingRepository } from "./prismaBooking";
 
 const createAttendeeNoShowTestBookings = async () => {
   await Promise.all([

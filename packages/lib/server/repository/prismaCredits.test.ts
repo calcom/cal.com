@@ -4,8 +4,6 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
 import { CreditType } from "@calcom/prisma/enums";
 
-import { CreditsRepository } from "./credits";
-
 describe("CreditsRepository", () => {
   beforeEach(() => {
     vi.clearAllMocks();

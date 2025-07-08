@@ -4,7 +4,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 
 import prisma from "@calcom/prisma";
 
-import { PrismaSelectedCalendarRepository } from "./selectedCalendar";
+import { PrismaSelectedCalendarRepository } from "./prismaSelectedCalendar";
 
 describe("PrismaSelectedCalendarRepository", () => {
   beforeEach(() => {

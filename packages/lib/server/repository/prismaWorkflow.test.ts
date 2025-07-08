@@ -3,7 +3,7 @@ import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { describe, it, expect } from "vitest";
 
-import { PrismaWorkflowRepository } from "./workflow";
+import { PrismaWorkflowRepository } from "./prismaWorkflow";
 
 describe("PrismaWorkflowRepository", () => {
   describe("getVerifiedEmails", () => {
