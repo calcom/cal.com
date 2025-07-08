@@ -689,14 +689,6 @@ export const processEventDataShared = async ({
       ? parseRecurringEvent(eventData.recurringEvent)
       : null,
     isDynamic: false,
-    isInstantEvent: eventData.isInstantEvent,
     showInstantEventConnectNowModal,
-    instantMeetingParameters: eventData.instantMeetingParameters,
-    aiPhoneCallConfig: eventData.aiPhoneCallConfig,
-    assignAllTeamMembers: eventData.assignAllTeamMembers,
-    disableCancelling: eventData.disableCancelling,
-    disableRescheduling: eventData.disableRescheduling,
-    allowReschedulingCancelledBookings: eventData.allowReschedulingCancelledBookings,
-    interfaceLanguage: eventData.interfaceLanguage,
   };
 };
