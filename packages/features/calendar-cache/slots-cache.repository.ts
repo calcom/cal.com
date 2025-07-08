@@ -8,7 +8,9 @@ const log = logger.getSubLogger({ prefix: ["SlotsCacheRepository"] });
 const ONE_MONTH_IN_MS = 30 * 24 * 60 * 60 * 1000;
 
 export interface SlotCacheEntry {
-  slotTime: string;
+  slotStartTime: string;
+  slotEndTime: string;
+  slotLength: number;
   availableCount: number;
   totalHosts: number;
 }
@@ -27,13 +29,15 @@ export class SlotsCacheRepository {
           month,
           expiresAt: { gte: new Date() },
         },
-        orderBy: { slotTime: "asc" },
+        orderBy: { slotStartTime: "asc" },
       });
 
       log.debug("Found cached slots", safeStringify({ eventTypeId, month, count: cached.length }));
 
       return cached.map((slot) => ({
-        slotTime: slot.slotTime.toISOString(),
+        slotStartTime: slot.slotStartTime.toISOString(),
+        slotEndTime: slot.slotEndTime.toISOString(),
+        slotLength: slot.slotLength,
         availableCount: slot.availableCount,
         totalHosts: slot.totalHosts,
       }));
@@ -51,11 +55,13 @@ export class SlotsCacheRepository {
           date,
           expiresAt: { gte: new Date() },
         },
-        orderBy: { slotTime: "asc" },
+        orderBy: { slotStartTime: "asc" },
       });
 
       return cached.map((slot) => ({
-        slotTime: slot.slotTime.toISOString(),
+        slotStartTime: slot.slotStartTime.toISOString(),
+        slotEndTime: slot.slotEndTime.toISOString(),
+        slotLength: slot.slotLength,
         availableCount: slot.availableCount,
         totalHosts: slot.totalHosts,
       }));
@@ -67,23 +73,28 @@ export class SlotsCacheRepository {
 
   async upsertSlotCache(
     eventTypeId: number,
-    slotTime: string,
+    slotStartTime: string,
+    slotEndTime: string,
+    slotLength: number,
     availableCount: number,
     totalHosts: number
   ): Promise<void> {
-    const slotDateTime = dayjs(slotTime);
-    const date = slotDateTime.format("YYYY-MM-DD");
-    const month = slotDateTime.format("YYYY-MM");
+    const slotStartDateTime = dayjs(slotStartTime);
+    const slotEndDateTime = dayjs(slotEndTime);
+    const date = slotStartDateTime.format("YYYY-MM-DD");
+    const month = slotStartDateTime.format("YYYY-MM");
 
     try {
       await prisma.slotsCache.upsert({
         where: {
-          eventTypeId_slotTime: {
+          eventTypeId_slotStartTime_slotLength: {
             eventTypeId,
-            slotTime: slotDateTime.toDate(),
+            slotStartTime: slotStartDateTime.toDate(),
+            slotLength,
           },
         },
         update: {
+          slotEndTime: slotEndDateTime.toDate(),
           availableCount,
           totalHosts,
           updatedAt: new Date(),
@@ -91,7 +102,9 @@ export class SlotsCacheRepository {
         },
         create: {
           eventTypeId,
-          slotTime: slotDateTime.toDate(),
+          slotStartTime: slotStartDateTime.toDate(),
+          slotEndTime: slotEndDateTime.toDate(),
+          slotLength,
           date,
           month,
           availableCount,
@@ -104,7 +117,9 @@ export class SlotsCacheRepository {
         "Upserted slot cache",
         safeStringify({
           eventTypeId,
-          slotTime,
+          slotStartTime,
+          slotEndTime,
+          slotLength,
           availableCount,
           totalHosts,
         })
@@ -115,7 +130,9 @@ export class SlotsCacheRepository {
         safeStringify({
           error,
           eventTypeId,
-          slotTime,
+          slotStartTime,
+          slotEndTime,
+          slotLength,
           availableCount,
           totalHosts,
         })
@@ -127,18 +144,21 @@ export class SlotsCacheRepository {
   async batchUpsertSlots(eventTypeId: number, slots: SlotCacheEntry[]): Promise<void> {
     try {
       const operations = slots.map((slot) => {
-        const slotDateTime = dayjs(slot.slotTime);
-        const date = slotDateTime.format("YYYY-MM-DD");
-        const month = slotDateTime.format("YYYY-MM");
+        const slotStartDateTime = dayjs(slot.slotStartTime);
+        const slotEndDateTime = dayjs(slot.slotEndTime);
+        const date = slotStartDateTime.format("YYYY-MM-DD");
+        const month = slotStartDateTime.format("YYYY-MM");
 
         return prisma.slotsCache.upsert({
           where: {
-            eventTypeId_slotTime: {
+            eventTypeId_slotStartTime_slotLength: {
               eventTypeId,
-              slotTime: slotDateTime.toDate(),
+              slotStartTime: slotStartDateTime.toDate(),
+              slotLength: slot.slotLength,
             },
           },
           update: {
+            slotEndTime: slotEndDateTime.toDate(),
             availableCount: slot.availableCount,
             totalHosts: slot.totalHosts,
             updatedAt: new Date(),
@@ -146,7 +166,9 @@ export class SlotsCacheRepository {
           },
           create: {
             eventTypeId,
-            slotTime: slotDateTime.toDate(),
+            slotStartTime: slotStartDateTime.toDate(),
+            slotEndTime: slotEndDateTime.toDate(),
+            slotLength: slot.slotLength,
             date,
             month,
             availableCount: slot.availableCount,
@@ -178,14 +200,20 @@ export class SlotsCacheRepository {
     }
   }
 
-  async updateSlotAvailability(eventTypeId: number, slotTime: string, availableCount: number): Promise<void> {
+  async updateSlotAvailability(
+    eventTypeId: number,
+    slotStartTime: string,
+    slotLength: number,
+    availableCount: number
+  ): Promise<void> {
     try {
-      const slotDateTime = dayjs(slotTime);
+      const slotStartDateTime = dayjs(slotStartTime);
 
       await prisma.slotsCache.updateMany({
         where: {
           eventTypeId,
-          slotTime: slotDateTime.toDate(),
+          slotStartTime: slotStartDateTime.toDate(),
+          slotLength,
           expiresAt: { gte: new Date() },
         },
         data: {
@@ -198,7 +226,8 @@ export class SlotsCacheRepository {
         "Updated slot availability",
         safeStringify({
           eventTypeId,
-          slotTime,
+          slotStartTime,
+          slotLength,
           availableCount,
         })
       );
@@ -208,11 +237,44 @@ export class SlotsCacheRepository {
         safeStringify({
           error,
           eventTypeId,
-          slotTime,
+          slotStartTime,
+          slotLength,
           availableCount,
         })
       );
       throw error;
+    }
+  }
+
+  async getCachedSlotsByLength(
+    eventTypeId: number,
+    month: string,
+    slotLength: number
+  ): Promise<SlotCacheEntry[]> {
+    try {
+      const cached = await prisma.slotsCache.findMany({
+        where: {
+          eventTypeId,
+          month,
+          slotLength,
+          expiresAt: { gte: new Date() },
+        },
+        orderBy: { slotStartTime: "asc" },
+      });
+
+      return cached.map((slot) => ({
+        slotStartTime: slot.slotStartTime.toISOString(),
+        slotEndTime: slot.slotEndTime.toISOString(),
+        slotLength: slot.slotLength,
+        availableCount: slot.availableCount,
+        totalHosts: slot.totalHosts,
+      }));
+    } catch (error) {
+      log.error(
+        "Error getting cached slots by length",
+        safeStringify({ error, eventTypeId, month, slotLength })
+      );
+      return [];
     }
   }
 

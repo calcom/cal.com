@@ -352,10 +352,10 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
       );
 
       const slotsByDate = cachedSlots.reduce((acc, slot) => {
-        const date = dayjs(slot.slotTime).format("YYYY-MM-DD");
+        const date = dayjs(slot.slotStartTime).format("YYYY-MM-DD");
         if (!acc[date]) acc[date] = [];
         acc[date].push({
-          time: slot.slotTime,
+          time: slot.slotStartTime,
           availableCount: slot.availableCount,
           totalHosts: slot.totalHosts,
         });
@@ -779,7 +779,11 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     try {
       const cacheEntries = Object.entries(withinBoundsSlotsMappedToDate).flatMap(([date, slots]) =>
         slots.map((slot: any) => ({
-          slotTime: slot.time,
+          slotStartTime: slot.time,
+          slotEndTime: dayjs(slot.time)
+            .add(input.duration || eventType.length, "minutes")
+            .toISOString(),
+          slotLength: input.duration || eventType.length,
           availableCount: slot.availableCount || 0,
           totalHosts: slot.totalHosts || 0,
         }))

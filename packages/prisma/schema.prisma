@@ -1725,7 +1725,9 @@ model CalendarCache {
 model SlotsCache {
   id             String   @id @default(uuid())
   eventTypeId    Int
-  slotTime       DateTime
+  slotStartTime  DateTime
+  slotEndTime    DateTime
+  slotLength     Int // Duration in minutes
   date           String // YYYY-MM-DD format for easy querying
   month          String // YYYY-MM format for monthly cache management
   availableCount Int
@@ -1734,9 +1736,10 @@ model SlotsCache {
   updatedAt      DateTime @updatedAt
   expiresAt      DateTime
 
-  @@unique([eventTypeId, slotTime])
+  @@unique([eventTypeId, slotStartTime, slotLength])
   @@index([eventTypeId, date])
   @@index([eventTypeId, month])
+  @@index([eventTypeId, slotLength])
   @@index([expiresAt])
 }
 
