@@ -81,6 +81,42 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
       expect(busyTimes).toHaveLength(0);
     });
 
+    it("should mark multiple days as busy when daily limit is reached on multiple days", async () => {
+      const bookings = [
+        createMockBooking("2024-01-15T10:00:00Z", "2024-01-15T11:00:00Z", "Booking 1"),
+        createMockBooking("2024-01-15T14:00:00Z", "2024-01-15T15:00:00Z", "Booking 2"),
+        createMockBooking("2024-01-16T09:00:00Z", "2024-01-16T10:00:00Z", "Booking 3"),
+        createMockBooking("2024-01-16T14:00:00Z", "2024-01-16T15:00:00Z", "Booking 4"),
+        createMockBooking("2024-01-17T10:00:00Z", "2024-01-17T11:00:00Z", "Booking 5"),
+      ];
+      const bookingLimits: IntervalLimit = { PER_DAY: 2 };
+      const dateFrom = dayjs("2024-01-01");
+      const dateTo = dayjs("2024-01-31");
+
+      await getBusyTimesFromBookingLimits({
+        bookings,
+        bookingLimits,
+        dateFrom,
+        dateTo,
+        limitManager,
+        timeZone: "UTC",
+      });
+
+      const busyTimes = limitManager.getBusyTimes();
+
+      expect(busyTimes).toHaveLength(2);
+
+      const jan15BusyTime = busyTimes.find((bt) => dayjs(bt.start).format("YYYY-MM-DD") === "2024-01-15");
+      expect(jan15BusyTime).toBeDefined();
+      expect(jan15BusyTime?.start).toBe("2024-01-15T00:00:00.000Z");
+      expect(jan15BusyTime?.end).toBe("2024-01-15T23:59:59.999Z");
+
+      const jan16BusyTime = busyTimes.find((bt) => dayjs(bt.start).format("YYYY-MM-DD") === "2024-01-16");
+      expect(jan16BusyTime).toBeDefined();
+      expect(jan16BusyTime?.start).toBe("2024-01-16T00:00:00.000Z");
+      expect(jan16BusyTime?.end).toBe("2024-01-16T23:59:59.999Z");
+    });
+
     it("should handle edge case with exactly limit number of bookings", async () => {
       const bookings = createMockBookings();
       const bookingLimits: IntervalLimit = { PER_DAY: 2 };
@@ -154,6 +190,49 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
 
       expect(busyTimes).toHaveLength(0);
     });
+
+    it("should mark specific weeks as busy with exact timestamps when weekly limit is exceeded", async () => {
+      const bookings = [
+        createMockBooking("2024-01-15T10:00:00Z", "2024-01-15T11:00:00Z", "Booking 1"),
+        createMockBooking("2024-01-16T09:00:00Z", "2024-01-16T10:00:00Z", "Booking 2"),
+        createMockBooking("2024-01-17T14:00:00Z", "2024-01-17T15:00:00Z", "Booking 3"),
+        createMockBooking("2024-01-29T10:00:00Z", "2024-01-29T11:00:00Z", "Booking 4"),
+        createMockBooking("2024-01-30T09:00:00Z", "2024-01-30T10:00:00Z", "Booking 5"),
+        createMockBooking("2024-01-31T14:00:00Z", "2024-01-31T15:00:00Z", "Booking 6"),
+      ];
+      const bookingLimits: IntervalLimit = { PER_WEEK: 2 };
+      const dateFrom = dayjs("2024-01-01");
+      const dateTo = dayjs("2024-01-31");
+
+      await getBusyTimesFromBookingLimits({
+        bookings,
+        bookingLimits,
+        dateFrom,
+        dateTo,
+        limitManager,
+        timeZone: "UTC",
+      });
+
+      const busyTimes = limitManager.getBusyTimes();
+
+      expect(busyTimes.length).toBeGreaterThan(0);
+
+      const weekBusyTimes = busyTimes.filter((bt) => {
+        const start = dayjs(bt.start);
+        const end = dayjs(bt.end);
+        return end.diff(start, "day") >= 6;
+      });
+
+      expect(weekBusyTimes.length).toBeGreaterThan(0);
+
+      const firstWeekBusy = weekBusyTimes.find((bt) => {
+        const start = dayjs(bt.start);
+        return start.format("YYYY-MM-DD") === "2024-01-14";
+      });
+      expect(firstWeekBusy).toBeDefined();
+      expect(firstWeekBusy?.start).toBe("2024-01-14T00:00:00.000Z");
+      expect(firstWeekBusy?.end).toBe("2024-01-20T23:59:59.999Z");
+    });
   });
 
   describe("monthly limits", () => {
@@ -204,6 +283,58 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
       const busyTimes = limitManager.getBusyTimes();
 
       expect(busyTimes).toHaveLength(0);
+    });
+
+    it("should mark specific months as busy with exact timestamps when monthly limit is exceeded", async () => {
+      const bookings = [
+        createMockBooking("2024-01-05T10:00:00Z", "2024-01-05T11:00:00Z", "Booking 1"),
+        createMockBooking("2024-01-15T10:00:00Z", "2024-01-15T11:00:00Z", "Booking 2"),
+        createMockBooking("2024-01-25T10:00:00Z", "2024-01-25T11:00:00Z", "Booking 3"),
+        createMockBooking("2024-02-05T10:00:00Z", "2024-02-05T11:00:00Z", "Booking 4"),
+        createMockBooking("2024-02-15T10:00:00Z", "2024-02-15T11:00:00Z", "Booking 5"),
+        createMockBooking("2024-02-25T10:00:00Z", "2024-02-25T11:00:00Z", "Booking 6"),
+        createMockBooking("2024-03-05T10:00:00Z", "2024-03-05T11:00:00Z", "Booking 7"),
+      ];
+      const bookingLimits: IntervalLimit = { PER_MONTH: 2 };
+      const dateFrom = dayjs("2024-01-01");
+      const dateTo = dayjs("2024-03-31");
+
+      await getBusyTimesFromBookingLimits({
+        bookings,
+        bookingLimits,
+        dateFrom,
+        dateTo,
+        limitManager,
+        timeZone: "UTC",
+      });
+
+      const busyTimes = limitManager.getBusyTimes();
+
+      expect(busyTimes.length).toBeGreaterThan(0);
+
+      const monthBusyTimes = busyTimes.filter((bt) => {
+        const start = dayjs(bt.start);
+        const end = dayjs(bt.end);
+        return end.diff(start, "day") >= 28;
+      });
+
+      expect(monthBusyTimes.length).toBeGreaterThan(0);
+
+      const januaryBusyTime = monthBusyTimes.find((bt) => {
+        const start = dayjs(bt.start);
+        return start.month() === 0 && start.year() === 2024;
+      });
+      expect(januaryBusyTime).toBeDefined();
+      expect(januaryBusyTime?.start).toBe("2024-01-01T00:00:00.000Z");
+      expect(januaryBusyTime?.end).toBe("2024-01-31T23:59:59.999Z");
+
+      const februaryBusyTime = monthBusyTimes.find((bt) => {
+        const start = dayjs(bt.start);
+        return start.month() === 1 && start.year() === 2024;
+      });
+      expect(februaryBusyTime).toBeDefined();
+      expect(februaryBusyTime?.start).toBe("2024-02-01T00:00:00.000Z");
+      expect(februaryBusyTime?.end).toBe("2024-02-29T23:59:59.999Z");
     });
   });
 
