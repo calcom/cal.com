@@ -27,10 +27,7 @@ export class RoleService {
       throw new Error(validationResult.error || "Invalid permissions provided");
     }
 
-    return db.$transaction(async (trx) => {
-      this.repository.setTransaction(trx);
-      return this.repository.create(data);
-    });
+    return this.repository.create(data);
   }
 
   async getDefaultRoleId(role: MembershipRole): Promise<string> {
@@ -38,18 +35,13 @@ export class RoleService {
   }
 
   async assignRoleToMember(roleId: string, membershipId: number) {
-    return db.$transaction(async (trx) => {
-      this.repository.setTransaction(trx);
-      // Check if role exists
-      const role = await this.repository.findById(roleId);
-      if (!role) throw new Error("Role not found");
-      // Update membership
-      await trx.membership.update({
-        where: { id: membershipId },
-        data: { customRoleId: roleId },
-      });
-      return role;
+    const role = await this.repository.findById(roleId);
+    if (!role) throw new Error("Role not found");
+    await db.membership.update({
+      where: { id: membershipId },
+      data: { customRoleId: roleId },
     });
+    return role;
   }
 
   async getRolePermissions(roleId: string) {
@@ -81,10 +73,7 @@ export class RoleService {
     if (role.type === DomainRoleType.SYSTEM) {
       throw new Error("Cannot delete default roles");
     }
-    return db.$transaction(async (trx) => {
-      this.repository.setTransaction(trx);
-      await this.repository.delete(roleId);
-    });
+    await this.repository.delete(roleId);
   }
 
   async update(data: UpdateRolePermissionsData) {
@@ -101,12 +90,9 @@ export class RoleService {
     if (!validationResult.isValid) {
       throw new Error(validationResult.error || "Invalid permissions provided");
     }
-    return db.$transaction(async (trx) => {
-      this.repository.setTransaction(trx);
-      return this.repository.update(data.roleId, data.permissions, {
-        color: data.updates?.color,
-        name: data.updates?.name,
-      });
+    return this.repository.update(data.roleId, data.permissions, {
+      color: data.updates?.color,
+      name: data.updates?.name,
     });
   }
 
