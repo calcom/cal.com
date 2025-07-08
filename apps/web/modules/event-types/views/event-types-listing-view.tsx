@@ -928,7 +928,10 @@ const InfiniteScrollMain = ({
 
 type Props = {
   userEventGroupsData: GetUserEventGroupsResponse;
-  user: RouterOutputs["viewer"]["me"]["get"];
+  user: {
+    completedOnboarding: boolean;
+    id: number;
+  } | null;
 };
 
 export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
