@@ -88,7 +88,6 @@ export enum CrudAction {
 ### Custom Actions
 ```typescript
 export enum CustomAction {
-  Manage = 'manage',      // Full control over a resource
   Invite = 'invite',      // Invite members to team/org
   Remove = 'remove',      // Remove members from team/org
   Override = 'override',  // Override availability
