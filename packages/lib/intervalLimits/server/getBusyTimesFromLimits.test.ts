@@ -11,21 +11,6 @@ vi.mock("./checkBookingLimits", () => ({
   checkBookingLimit: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/getUserAvailability", () => ({
-  getPeriodStartDatesBetween: vi.fn((dateFrom, dateTo, unit) => {
-    const periods = [];
-    let current = dateFrom.startOf(unit);
-    const end = dateTo.endOf(unit);
-
-    while (current.isBefore(end) || current.isSame(end, unit)) {
-      periods.push(current);
-      current = current.add(1, unit);
-    }
-
-    return periods;
-  }),
-}));
-
 const createMockBooking = (start: string, end: string, title = "Test Booking"): EventBusyDetails => ({
   start: new Date(start),
   end: new Date(end),
