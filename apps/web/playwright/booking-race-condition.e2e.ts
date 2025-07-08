@@ -9,6 +9,7 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { test } from "./lib/fixtures";
+import type { Fixtures } from "./lib/fixtures";
 import { bookTimeSlot, doOnOrgDomain } from "./lib/testUtils";
 
 /**
@@ -91,7 +92,7 @@ test.describe("Booking Race Condition Prevention", () => {
 
 // Helper Functions
 
-async function setupTeamWithRoundRobin(users: any, orgs: any) {
+async function setupTeamWithRoundRobin(users: Fixtures["users"], orgs: Fixtures["orgs"]) {
   const org = await orgs.create({ name: "TestOrg" });
   const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
 
