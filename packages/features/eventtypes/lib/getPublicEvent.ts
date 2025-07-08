@@ -481,6 +481,7 @@ export const getPublicEvent = async (
 
   return {
     ...eventDataShared,
+    // getPublicEvent-specific overrides
     owner: event.owner
       ? await UserRepository.enrichUserWithItsProfile({
           user: event.owner,
