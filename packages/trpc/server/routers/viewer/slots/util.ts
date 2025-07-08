@@ -377,6 +377,7 @@ export class AvailableSlotsService {
 
             if (unit === "year") {
               try {
+                // TODO: DI checkBookingLimit
                 await checkBookingLimit({
                   eventStartDate: periodStart.toDate(),
                   limitingNumber: limit,
@@ -434,6 +435,7 @@ export class AvailableSlotsService {
             }
 
             if (unit === "year") {
+              // TODO: DI getTotalBookingDuration
               const totalYearlyDuration = await getTotalBookingDuration({
                 eventId: eventType.id,
                 startDate: periodStart.toDate(),
@@ -574,6 +576,7 @@ export class AvailableSlotsService {
 
           if (unit === "year") {
             try {
+              // TODO: DI checkBookingLimit
               await checkBookingLimit({
                 eventStartDate: periodStart.toDate(),
                 limitingNumber: limit,
@@ -710,6 +713,7 @@ export class AvailableSlotsService {
     let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
 
     if (eventType && (bookingLimits || durationLimits)) {
+      // TODO: DI getBusyTimesForLimitChecks
       busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
         userIds: allUserIds,
         eventTypeId: eventType.id,
@@ -777,6 +781,7 @@ export class AvailableSlotsService {
     const enrichUsersWithData = withReporting(_enrichUsersWithData, "enrichUsersWithData");
     const users = enrichUsersWithData();
 
+    // TODO: DI getUsersAvailability
     const premappedUsersAvailability = await getUsersAvailability({
       users,
       query: {
@@ -869,6 +874,7 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
+    // TODO: DI getShouldServeCache
     const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
@@ -1042,6 +1048,7 @@ export class AvailableSlotsService {
 
     let availableTimeSlots: typeof timeSlots = [];
     const bookerClientUid = ctx?.req?.cookies?.uid;
+    // TODO: DI isRestrictionScheduleEnabled
     const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
     if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
       const scheduleRepo = new ScheduleRepository(prisma);
