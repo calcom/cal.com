@@ -12,7 +12,6 @@ import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/li
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { BookingService } from "@calcom/lib/server/service/booking";
-import { type TeamWithEventTypes } from "@calcom/lib/server/service/team";
 import slugify from "@calcom/lib/slugify";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 
@@ -21,7 +20,7 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import CachedClientView, { type TeamBookingPageProps } from "~/team/type-view-cached";
 
-import { getCachedTeamWithEventTypes, getCachedEventData } from "./queries";
+import { getCachedTeamWithEventTypes, getCachedEventData, type TeamWithEventTypes } from "./queries";
 
 const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),

@@ -1,9 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
-import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import removeMember from "@calcom/features/ee/teams/lib/removeMember";
-import { getPublicEventSelect } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
@@ -13,7 +11,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-export type TeamWithEventTypes = Awaited<ReturnType<typeof TeamService.getTeamWithEventTypes>>;
 export class TeamService {
   /**
    * Deletes a team and all its associated data in a safe, transactional order.
@@ -122,60 +119,5 @@ export class TeamService {
   static async publish(teamId: number) {
     const teamBilling = await TeamBilling.findAndInit(teamId);
     return teamBilling.publish();
-  }
-
-  static async getTeamWithEventTypes(teamSlug: string, meetingSlug: string, orgSlug: string | null) {
-    const team = await prisma.team.findFirst({
-      where: {
-        ...getSlugOrRequestedSlug(teamSlug),
-        parent: orgSlug ? getSlugOrRequestedSlug(orgSlug) : null,
-      },
-      orderBy: {
-        slug: { sort: "asc", nulls: "last" },
-      },
-      select: {
-        id: true,
-        isPrivate: true,
-        hideBranding: true,
-        parent: {
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            bannerUrl: true,
-            logoUrl: true,
-            hideBranding: true,
-            organizationSettings: {
-              select: {
-                allowSEOIndexing: true,
-              },
-            },
-          },
-        },
-        logoUrl: true,
-        name: true,
-        slug: true,
-        brandColor: true,
-        darkBrandColor: true,
-        theme: true,
-        eventTypes: {
-          where: {
-            OR: [{ slug: meetingSlug }, { slug: { startsWith: `${meetingSlug}-team-id-` } }],
-          },
-          // IMPORTANT:
-          // This is to ensure that `team.eventTypes[0]` (used for event data in team booking page)
-          // has everything expected in Booker (which used to rely on `getPublicEventSelect` trpc call)
-          select: getPublicEventSelect(false),
-        },
-        isOrganization: true,
-        organizationSettings: {
-          select: {
-            allowSEOIndexing: true,
-          },
-        },
-      },
-    });
-    if (!team) return null;
-    return team;
   }
 }
