@@ -104,6 +104,7 @@ export default function JoinCall(props: PageProps) {
       }
 
       setDaily(callFrame);
+      callFrame.join();
 
       // Hiding Flappy Bird game when participants join
       callFrame.on("participant-joined", () => {

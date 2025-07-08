@@ -95,6 +95,8 @@ export const FlappyBirdGame = ({ onClose }: FlappyBirdGameProps) => {
             className="h-full w-full rounded-b-lg border-none"
             title={t("flappy_bird_game")}
             onLoad={handleLoad}
+            sandbox="allow-scripts allow-same-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
           />
         )}
       </div>
