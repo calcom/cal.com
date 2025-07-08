@@ -10,6 +10,8 @@ export interface TraceContext {
   bookingUid?: string;
   eventTypeId?: number;
   userId?: number;
+  eventTypeSlug?: string;
+  userInfo?: string | string[];
 }
 
 export class DistributedTracing {
@@ -33,14 +35,18 @@ export class DistributedTracing {
   }
 
   static getTracingLogger(context: TraceContext) {
-    return logger.getSubLogger({
-      prefix: [
-        "distributed-trace",
-        `trace:${context.traceId}`,
-        `span:${context.spanId}`,
-        `op:${context.operation}`,
-      ],
-    });
+    const prefixes = [
+      "distributed-trace",
+      `trace:${context.traceId}`,
+      `span:${context.spanId}`,
+      `op:${context.operation}`,
+    ];
+
+    if (context.eventTypeId && context.userInfo && context.eventTypeSlug) {
+      prefixes.push(`event:${context.eventTypeId}:${context.userInfo}/${context.eventTypeSlug}`);
+    }
+
+    return logger.getSubLogger({ prefix: prefixes });
   }
 
   static extractTraceFromPayload(payload: string): TraceContext | null {

@@ -21,13 +21,13 @@ import {
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/lib/delegationCredential/server";
 import { getEventName } from "@calcom/lib/event";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import { DistributedTracing } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
@@ -132,6 +132,11 @@ export const roundRobinReassignment = async ({
     return availableUsers;
   }, [] as IsFixedAwareUser[]);
 
+  const traceContext = DistributedTracing.createTrace("round_robin_reassignment", {
+    bookingUid: booking.uid,
+    eventTypeId: eventType.id,
+  });
+
   const availableUsers = await ensureAvailableUsers(
     { ...eventType, users: availableEventTypeUsers },
     {
@@ -139,7 +144,7 @@ export const roundRobinReassignment = async ({
       dateTo: dayjs(booking.endTime).format(),
       timeZone: eventType.timeZone || originalOrganizer.timeZone,
     },
-    roundRobinReassignLogger
+    traceContext
   );
 
   const reassignedRRHost = await getLuckyUser({

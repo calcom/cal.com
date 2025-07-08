@@ -1,11 +1,14 @@
-import logger from "@calcom/lib/logger";
+import { DistributedTracing } from "@calcom/lib/tracing";
 
 export const createLoggerWithEventDetails = (
   eventTypeId: number,
   reqBodyUser: string | string[] | undefined,
   eventTypeSlug: string | undefined
 ) => {
-  return logger.getSubLogger({
-    prefix: ["book:user", `${eventTypeId}:${reqBodyUser}/${eventTypeSlug}`],
+  const traceContext = DistributedTracing.createTrace("booking_event", {
+    eventTypeId,
+    userInfo: reqBodyUser,
+    eventTypeSlug,
   });
+  return DistributedTracing.getTracingLogger(traceContext);
 };

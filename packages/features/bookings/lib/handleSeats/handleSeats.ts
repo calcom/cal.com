@@ -9,7 +9,6 @@ import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
 import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
@@ -54,7 +53,15 @@ const handleSeats = async (
     });
   }
 
-  const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
+  const loggerWithEventDetails =
+    tracingLogger ||
+    DistributedTracing.getTracingLogger(
+      DistributedTracing.createTrace("handle_seats_fallback", {
+        eventTypeId: eventType.id,
+        userInfo: reqBodyUser,
+        eventTypeSlug: eventType.slug,
+      })
+    );
 
   let resultBooking: HandleSeatsResultBooking = null;
 
@@ -112,7 +119,7 @@ const handleSeats = async (
       { ...newSeatedBookingObject, rescheduleUid },
       seatedBooking,
       resultBooking,
-      loggerWithEventDetails
+      spanContext
     );
   } else {
     resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
@@ -149,7 +156,7 @@ const handleSeats = async (
         traceContext: spanContext,
       });
     } catch (error) {
-      loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+      loggerWithEventDetails?.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
     const webhookData: EventPayloadType = {
