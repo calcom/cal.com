@@ -25,6 +25,13 @@ vi.mock("@calcom/features/flags/features.repository", () => ({
     getFeatureFlagMap: vi.fn().mockResolvedValue({}),
     checkIfUserHasFeature: vi.fn().mockResolvedValue(true),
   })),
+  PrismaFeaturesRepository: vi.fn().mockImplementation(() => ({
+    checkIfTeamHasFeature: vi.fn().mockResolvedValue(true),
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
+    getAllFeatures: vi.fn().mockResolvedValue([]),
+    getFeatureFlagMap: vi.fn().mockResolvedValue({}),
+    checkIfUserHasFeature: vi.fn().mockResolvedValue(true),
+  })),
 }));
 
 type ScheduleScenario = {
