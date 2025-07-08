@@ -284,15 +284,6 @@ describe("RoleService", () => {
         updatedAt: new Date(),
       };
 
-      // Set up mockTrx for this test
-      mockTrx.selectFrom.mockReturnThis();
-      mockTrx.select.mockReturnThis();
-      mockTrx.where.mockReturnThis();
-      mockTrx.executeTakeFirst.mockResolvedValue({ id: roleId });
-      mockTrx.updateTable.mockReturnThis();
-      mockTrx.set.mockReturnThis();
-      mockTrx.execute.mockResolvedValue(undefined);
-
       mockRepository.findById.mockResolvedValueOnce(role);
 
       const result = await service.assignRoleToMember(roleId, membershipId);
@@ -300,12 +291,6 @@ describe("RoleService", () => {
     });
 
     it("should throw error if role does not exist", async () => {
-      // Set up mockTrx for this test
-      mockTrx.selectFrom.mockReturnThis();
-      mockTrx.select.mockReturnThis();
-      mockTrx.where.mockReturnThis();
-      mockTrx.executeTakeFirst.mockResolvedValue(null);
-
       mockRepository.findById.mockResolvedValueOnce(null);
 
       await expect(service.assignRoleToMember(roleId, membershipId)).rejects.toThrow("Role not found");
