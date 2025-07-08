@@ -6,7 +6,9 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/inde
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RoutingFormsModule } from "@/modules/routing-forms/routing-forms.module";
+import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
+import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { Module } from "@nestjs/common";
 
 import { OrganizationsTeamsRoutingFormsResponsesController } from "./controllers/organizations-teams-routing-forms-responses.controller";
@@ -18,7 +20,7 @@ import { OrganizationsTeamsRoutingFormsResponsesService } from "./services/organ
 import { OrganizationsTeamsRoutingFormsService } from "./services/organizations-teams-routing-forms.service";
 
 @Module({
-  imports: [PrismaModule, StripeModule, RedisModule, RoutingFormsModule],
+  imports: [PrismaModule, StripeModule, RedisModule, RoutingFormsModule, SlotsModule_2024_09_04, TeamsEventTypesModule],
   providers: [
     OrganizationsTeamsRoutingFormsService,
     OrganizationsTeamsRoutingFormsResponsesService,
