@@ -81,7 +81,7 @@ describe("EventManager CalDAV credential validation", () => {
       expect(result).toBe("https://caldav.example.com");
       expect(mockedSymmetricDecrypt).toHaveBeenCalledWith(
         "encrypted_key",
-        "PqW5l/dvOFK9H4ZsGOuys1DPEWurKrJim+TGbZvrB7w="
+        process.env.CALENDSO_ENCRYPTION_KEY || ""
       );
     });
 
