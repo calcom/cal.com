@@ -31,27 +31,16 @@ export function defaultResponder<T>(
         console.error(error);
         captureException(error);
       }
-      const errorResponse: {
-        message: string;
-        url: string | undefined;
-        method: string | undefined;
-        data: Record<string, unknown> | null;
-        traceId?: string;
-      } = {
+      const errorResponse = {
         message: error.message,
         url: error.url,
         method: error.method,
         data: error?.data || null,
+        ...(error?.data &&
+          typeof error.data === "object" &&
+          "traceId" in error.data &&
+          typeof error.data.traceId === "string" && { traceId: error.data.traceId }),
       };
-
-      if (
-        error?.data &&
-        typeof error.data === "object" &&
-        "traceId" in error.data &&
-        typeof error.data.traceId === "string"
-      ) {
-        errorResponse.traceId = error.data.traceId;
-      }
 
       return res.status(error.statusCode).json(errorResponse);
     } finally {
