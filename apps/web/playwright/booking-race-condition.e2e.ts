@@ -1,9 +1,12 @@
 import { expect } from "@playwright/test";
+import type { Page, Browser, Route, Response } from "@playwright/test";
+import type { Team, EventType, User } from "@prisma/client";
 
 import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getTimeMin, getTimeMax } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { test } from "./lib/fixtures";
 import { bookTimeSlot, doOnOrgDomain } from "./lib/testUtils";
@@ -75,7 +78,6 @@ test.describe("Booking Race Condition Prevention", () => {
 
     // Validate race condition prevention
     expect(bookingResults.isRaceConditionPrevented).toBe(true);
-    expect(bookingResults.cacheWorking).toBe(true);
 
     // Log results for monitoring
     console.log("Race condition prevention test results:", {
@@ -120,7 +122,7 @@ async function setupTeamWithRoundRobin(users: any, orgs: any) {
   return { org, team, teamEvent, teamMembers };
 }
 
-async function setupGoogleCalendarCredentials(teamMembers: any[]) {
+async function setupGoogleCalendarCredentials(teamMembers: User[]) {
   // Ensure Google Calendar app exists
   const googleCalendarApp = await prisma.app.findFirst({
     where: { slug: "google-calendar" },
@@ -155,7 +157,7 @@ async function setupGoogleCalendarCredentials(teamMembers: any[]) {
   }
 }
 
-async function createIdenticalBookingHistories(teamMembers: any[], eventTypeId: number) {
+async function createIdenticalBookingHistories(teamMembers: User[], eventTypeId: number) {
   // Create identical booking histories to ensure deterministic round-robin behavior
   // This prevents random host selection from interfering with race condition testing
   const identicalTimestamp = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -187,7 +189,7 @@ async function createIdenticalBookingHistories(teamMembers: any[], eventTypeId: 
   }
 }
 
-async function setupCalendarCache(teamMembers: any[]) {
+async function setupCalendarCache(teamMembers: User[]) {
   // Set up calendar cache with stale data to test cache functionality
   // This simulates the production scenario where cache shows availability
   // but real calendar API might show different data
@@ -269,10 +271,10 @@ async function enableCalendarCacheFeatures(teamId: number) {
   });
 }
 
-async function mockGoogleCalendarAPI(page: any) {
+async function mockGoogleCalendarAPI(page: Page) {
   // Mock Google Calendar API to simulate real-world calendar data
   // This creates a mismatch with cache data to test cache functionality
-  await page.route("**/calendar/v3/freeBusy**", async (route: any) => {
+  await page.route("**/calendar/v3/freeBusy**", async (route: Route) => {
     const mockResponse = {
       kind: "calendar#freeBusy",
       calendars: {
@@ -311,9 +313,18 @@ async function mockGoogleCalendarAPI(page: any) {
   });
 }
 
-async function performConcurrentBookings(page: any, browser: any, org: any, team: any, teamEvent: any) {
-  let firstResponse: any;
-  let secondResponse: any;
+// Local type for org/team with parsed metadata
+export type TeamWithMetadata = Team & { metadata: ReturnType<typeof teamMetadataSchema.parse> };
+
+async function performConcurrentBookings(
+  page: Page,
+  browser: Browser,
+  org: TeamWithMetadata,
+  team: TeamWithMetadata,
+  teamEvent: EventType
+) {
+  let firstResponse: Response | undefined;
+  let secondResponse: Response | undefined;
 
   await doOnOrgDomain({ orgSlug: org.slug, page }, async () => {
     const context1 = await browser.newContext();
@@ -373,10 +384,10 @@ async function performConcurrentBookings(page: any, browser: any, org: any, team
     secondResponse = secondResponseLocal;
 
     // Verify success pages for successful bookings
-    if (firstResponse.status() === 200) {
+    if (firstResponse && firstResponse.status() === 200) {
       await expect(page1.getByTestId("success-page")).toBeVisible();
     }
-    if (secondResponse.status() === 200) {
+    if (secondResponse && secondResponse.status() === 200) {
       await expect(page2.getByTestId("success-page")).toBeVisible();
     }
 
@@ -387,7 +398,14 @@ async function performConcurrentBookings(page: any, browser: any, org: any, team
   return { firstResponse, secondResponse };
 }
 
-async function analyzeBookingResults(eventTypeId: number, firstResponse: any, secondResponse: any) {
+async function analyzeBookingResults(
+  eventTypeId: number,
+  firstResponse: Response | undefined,
+  secondResponse: Response | undefined
+) {
+  if (!firstResponse || !secondResponse) {
+    throw new Error("Booking response(s) missing");
+  }
   const bookings = await prisma.booking.findMany({
     where: {
       eventTypeId,
@@ -411,9 +429,8 @@ async function analyzeBookingResults(eventTypeId: number, firstResponse: any, se
   const hasConflict = responseStatuses.includes(200) && responseStatuses.includes(409);
   const sameHostSelected = bookings.length === 2 && bookings[0].userId === bookings[1].userId;
 
-  // Determine prevention mechanism and cache functionality
+  // Determine prevention mechanism
   const isRaceConditionPrevented = hasConflict || (bothSucceeded && !sameHostSelected);
-  const cacheWorking = true; // Cache is working if we get here (no API errors)
 
   let preventionMechanism = "unknown";
   if (hasConflict) {
@@ -431,7 +448,6 @@ async function analyzeBookingResults(eventTypeId: number, firstResponse: any, se
     hasConflict,
     sameHostSelected,
     isRaceConditionPrevented,
-    cacheWorking,
     preventionMechanism,
   };
 }
