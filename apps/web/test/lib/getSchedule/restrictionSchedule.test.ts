@@ -11,7 +11,7 @@ import { describe, test, vi } from "vitest";
 import type { z } from "zod";
 
 import type { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
-import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
@@ -89,7 +89,6 @@ async function setupTeamAndFeatures() {
 }
 
 describe("getSchedule", () => {
-  const availableSlotsService = new AvailableSlotsService();
   setupAndTeardown();
 
   describe("Restriction Schedule", () => {
@@ -157,7 +156,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const result = await availableSlotsService.getAvailableSlots({
+      const result = await getSchedule({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -253,7 +252,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const result = await availableSlotsService.getAvailableSlots({
+      const result = await getSchedule({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -354,7 +353,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const result = await availableSlotsService.getAvailableSlots({
+      const result = await getSchedule({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -439,7 +438,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const result = await availableSlotsService.getAvailableSlots({
+      const result = await getSchedule({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
