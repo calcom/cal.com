@@ -76,6 +76,12 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
       const busyTimes = limitManager.getBusyTimes();
 
       expect(busyTimes).toHaveLength(0);
+
+      const bookingsInRange = bookings.filter((booking) => {
+        const bookingDate = dayjs(booking.start);
+        return bookingDate.isBetween(dateFrom, dateTo, null, "[]");
+      });
+      expect(bookingsInRange.length).toBeGreaterThan(0);
     });
 
     it("should handle edge case with exactly limit number of bookings", async () => {
@@ -146,6 +152,12 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
       const busyTimes = limitManager.getBusyTimes();
 
       expect(busyTimes).toHaveLength(0);
+
+      const bookingsInRange = bookings.filter((booking) => {
+        const bookingDate = dayjs(booking.start);
+        return bookingDate.isBetween(dateFrom, dateTo, null, "[]");
+      });
+      expect(bookingsInRange.length).toBeGreaterThan(0);
     });
   });
 
@@ -192,6 +204,12 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
       const busyTimes = limitManager.getBusyTimes();
 
       expect(busyTimes).toHaveLength(0);
+
+      const bookingsInRange = bookings.filter((booking) => {
+        const bookingDate = dayjs(booking.start);
+        return bookingDate.isBetween(dateFrom, dateTo, null, "[]");
+      });
+      expect(bookingsInRange.length).toBeGreaterThan(0);
     });
   });
 
@@ -263,6 +281,12 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
       const busyTimes = limitManager.getBusyTimes();
 
       expect(busyTimes).toHaveLength(0);
+
+      const bookingsInRange = bookings.filter((booking) => {
+        const bookingDate = dayjs(booking.start);
+        return bookingDate.isBetween(dateFrom, dateTo, null, "[]");
+      });
+      expect(bookingsInRange.length).toBeGreaterThan(0);
 
       expect(mockCheckBookingLimit).toHaveBeenCalled();
     });
