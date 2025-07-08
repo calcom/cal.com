@@ -453,18 +453,6 @@ export const getPublicEvent = async (
     });
   }
 
-  let showInstantEventConnectNowModal = eventWithUserProfiles.isInstantEvent;
-
-  if (eventWithUserProfiles.isInstantEvent && eventWithUserProfiles.instantMeetingSchedule?.id) {
-    const { id, timeZone } = eventWithUserProfiles.instantMeetingSchedule;
-
-    showInstantEventConnectNowModal = await isCurrentlyAvailable({
-      prisma,
-      instantMeetingScheduleId: id,
-      availabilityTimezone: timeZone ?? "Europe/London",
-      length: eventWithUserProfiles.length,
-    });
-  }
   const isTeamAdminOrOwner = await prisma.membership.findFirst({
     where: {
       userId: currentUserId ?? -1,
@@ -487,7 +475,6 @@ export const getPublicEvent = async (
     users = [];
   }
 
-  // Use shared data processing logic
   const processedEventData = await processEventDataShared({
     eventData: eventWithUserProfiles,
     metadata: eventMetaData,
@@ -521,8 +508,6 @@ export const getPublicEvent = async (
           }
         : {}),
     },
-    // Ensure we use getPublicEvent's specific instant meeting logic
-    showInstantEventConnectNowModal,
   };
 };
 
@@ -711,9 +696,7 @@ export const processEventDataShared = async ({
     });
   }
 
-  // Build common processed data structure
   return {
-    // Core event data
     ...eventData,
     bookerLayouts: bookerLayoutsSchema.parse(metadata?.bookerLayouts || null),
     description: markdownToSafeHTML(eventData.description),
