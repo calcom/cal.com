@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
 import type { UpdateScheduleResponse } from "@calcom/lib/schedules/updateSchedule";
+import type { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
 import type { ApiErrorResponse, ApiResponse, UpdateScheduleInput_2024_06_11 } from "@calcom/platform-types";
 
 import { useAtomSchedule } from "../../hooks/schedules/useAtomSchedule";
@@ -15,10 +16,7 @@ import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues } from "../types";
 
-export type AvailabilitySettingsScheduleType =
-  | import("@calcom/lib/server/repository/schedule").FindDetailedScheduleByIdReturnType
-  | null
-  | undefined;
+export type AvailabilitySettingsScheduleType = FindDetailedScheduleByIdReturnType | null | undefined;
 
 export type AvailabilitySettingsPlatformWrapperProps = {
   id?: string;
