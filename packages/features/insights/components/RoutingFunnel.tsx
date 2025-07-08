@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { ChartCard } from "./ChartCard";
-import { RoutingFunnelContent } from "./RoutingFunnelContent";
+import { RoutingFunnelContent, legend } from "./RoutingFunnelContent";
 import { RoutingFunnelSkeleton } from "./RoutingFunnelSkeleton";
 
 export function RoutingFunnel() {
@@ -33,14 +33,14 @@ export function RoutingFunnel() {
 
   if (isLoading || !isSuccess || !data) {
     return (
-      <ChartCard title={t("routing_funnel")}>
+      <ChartCard title={t("routing_funnel")} legend={legend}>
         <RoutingFunnelSkeleton />
       </ChartCard>
     );
   }
 
   return (
-    <ChartCard title={t("routing_funnel")}>
+    <ChartCard title={t("routing_funnel")} legend={legend}>
       <RoutingFunnelContent data={data} />
     </ChartCard>
   );

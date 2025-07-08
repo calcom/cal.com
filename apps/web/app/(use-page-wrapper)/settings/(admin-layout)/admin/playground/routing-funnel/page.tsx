@@ -1,7 +1,7 @@
 import { getTranslate } from "app/_utils";
 
 import { ChartCard } from "@calcom/features/insights/components/ChartCard";
-import { RoutingFunnelContent } from "@calcom/features/insights/components/RoutingFunnelContent";
+import { RoutingFunnelContent, legend } from "@calcom/features/insights/components/RoutingFunnelContent";
 
 // Random sample data for playground testing
 const sampleRoutingFunnelData = [
@@ -61,7 +61,7 @@ export default async function RoutingFunnelPlayground() {
       </div>
 
       <div className="max-w-4xl">
-        <ChartCard title={t("routing_funnel")}>
+        <ChartCard title={t("routing_funnel")} legend={legend}>
           <RoutingFunnelContent data={sampleRoutingFunnelData} />
         </ChartCard>
       </div>

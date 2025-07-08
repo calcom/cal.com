@@ -1,6 +1,6 @@
 "use client";
 
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -16,40 +16,51 @@ interface RoutingFunnelContentProps {
   data: RoutingFunnelData[];
 }
 
+const COLOR = {
+  TOTAL: "#9AA2F7",
+  SUCCESFUL: "#89CFB5",
+  ACCEPTED: "#F7A1A1",
+};
+
+export const legend = [
+  { label: "Total Submissions", color: COLOR.TOTAL },
+  { label: "Successful Routings", color: COLOR.SUCCESFUL },
+  { label: "Accepted Bookings", color: COLOR.ACCEPTED },
+];
+
 export function RoutingFunnelContent({ data }: RoutingFunnelContentProps) {
   const { t } = useLocale();
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={data} margin={{ top: 30, right: 30, left: 0, bottom: 20 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis allowDecimals={false} />
+      <AreaChart data={data} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        <XAxis dataKey="name" className="text-xs" axisLine={false} tickLine={false} />
+        <YAxis allowDecimals={false} className="text-xs opacity-50" axisLine={false} tickLine={false} />
         <Tooltip content={<CustomTooltip />} />
-        <Legend />
         <Area
-          type="monotone"
+          type="linear"
           name={t("routing_funnel_total_submissions")}
           dataKey="totalSubmissions"
-          stackId="1"
-          stroke="#8884d8"
-          fill="#8884d8"
+          stroke={COLOR.TOTAL}
+          fill={COLOR.TOTAL}
+          fillOpacity={1}
         />
         <Area
-          type="monotone"
+          type="linear"
           name={t("routing_funnel_successful_routings")}
           dataKey="successfulRoutings"
-          stackId="1"
-          stroke="#83a6ed"
-          fill="#83a6ed"
+          stroke={COLOR.SUCCESFUL}
+          fill={COLOR.SUCCESFUL}
+          fillOpacity={1}
         />
         <Area
-          type="monotone"
+          type="linear"
           name={t("routing_funnel_accepted_bookings")}
           dataKey="acceptedBookings"
-          stackId="1"
-          stroke="#82ca9d"
-          fill="#82ca9d"
+          stroke={COLOR.ACCEPTED}
+          fill={COLOR.ACCEPTED}
+          fillOpacity={1}
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -79,9 +90,9 @@ const CustomTooltip = ({
   const totalSubmissions = payload.find((p) => p.dataKey === "totalSubmissions")?.value || 0;
 
   return (
-    <div className="bg-inverted text-inverted border-subtle rounded-lg border p-3 shadow-lg">
-      <p className="font-medium">{payload[0].payload.formattedDateFull}</p>
-      {[...payload].reverse().map((entry, index: number) => {
+    <div className="bg-default text-inverted border-subtle rounded-lg border p-3 shadow-lg">
+      <p className="text-default font-medium">{payload[0].payload.formattedDateFull}</p>
+      {payload.map((entry, index: number) => {
         const value = entry.value;
         let displayValue = value.toString();
 
