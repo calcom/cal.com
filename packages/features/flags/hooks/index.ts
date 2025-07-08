@@ -20,6 +20,7 @@ const initialData: AppFlags = {
   "workflow-smtp-emails": false,
   "cal-video-log-in-overlay": false,
   "use-api-v2-for-team-slots": false,
+  pbac: false,
   "restriction-schedule": false,
 };
 

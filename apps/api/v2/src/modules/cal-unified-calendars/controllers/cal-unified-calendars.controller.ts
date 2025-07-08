@@ -34,7 +34,7 @@ export class CalUnifiedCalendarsController {
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Get meeting Details from calendar",
+    summary: "Get meeting details from calendar",
     description: "Returns detailed information about a meeting including attendance metrics",
   })
   async getCalendarEventDetails(
