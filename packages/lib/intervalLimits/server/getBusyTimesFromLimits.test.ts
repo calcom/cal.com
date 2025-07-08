@@ -59,7 +59,10 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
     });
 
     it("should not mark days as busy when daily limit is not reached", async () => {
-      const bookings = createMockBookings();
+      const bookings = [
+        createMockBooking("2024-01-15T10:00:00Z", "2024-01-15T11:00:00Z", "Booking 1"),
+        createMockBooking("2024-01-16T09:00:00Z", "2024-01-16T10:00:00Z", "Booking 2"),
+      ];
       const bookingLimits: IntervalLimit = { PER_DAY: 3 };
       const dateFrom = dayjs("2024-01-01");
       const dateTo = dayjs("2024-01-31");
@@ -76,12 +79,6 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
       const busyTimes = limitManager.getBusyTimes();
 
       expect(busyTimes).toHaveLength(0);
-
-      const bookingsInRange = bookings.filter((booking) => {
-        const bookingDate = dayjs(booking.start);
-        return bookingDate.isBetween(dateFrom, dateTo, null, "[]");
-      });
-      expect(bookingsInRange.length).toBeGreaterThan(0);
     });
 
     it("should handle edge case with exactly limit number of bookings", async () => {
@@ -135,8 +132,12 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
     });
 
     it("should not mark weeks as busy when weekly limit is not reached", async () => {
-      const bookings = createMockBookings();
-      const bookingLimits: IntervalLimit = { PER_WEEK: 10 };
+      const bookings = [
+        createMockBooking("2024-01-15T10:00:00Z", "2024-01-15T11:00:00Z", "Booking 1"),
+        createMockBooking("2024-01-16T09:00:00Z", "2024-01-16T10:00:00Z", "Booking 2"),
+        createMockBooking("2024-01-22T11:00:00Z", "2024-01-22T12:00:00Z", "Booking 3"),
+      ];
+      const bookingLimits: IntervalLimit = { PER_WEEK: 5 };
       const dateFrom = dayjs("2024-01-01");
       const dateTo = dayjs("2024-01-31");
 
@@ -152,12 +153,6 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
       const busyTimes = limitManager.getBusyTimes();
 
       expect(busyTimes).toHaveLength(0);
-
-      const bookingsInRange = bookings.filter((booking) => {
-        const bookingDate = dayjs(booking.start);
-        return bookingDate.isBetween(dateFrom, dateTo, null, "[]");
-      });
-      expect(bookingsInRange.length).toBeGreaterThan(0);
     });
   });
 
@@ -187,8 +182,13 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
     });
 
     it("should not mark months as busy when monthly limit is not reached", async () => {
-      const bookings = createMockBookings();
-      const bookingLimits: IntervalLimit = { PER_MONTH: 10 };
+      const bookings = [
+        createMockBooking("2024-01-15T10:00:00Z", "2024-01-15T11:00:00Z", "Booking 1"),
+        createMockBooking("2024-01-16T09:00:00Z", "2024-01-16T10:00:00Z", "Booking 2"),
+        createMockBooking("2024-01-22T11:00:00Z", "2024-01-22T12:00:00Z", "Booking 3"),
+        createMockBooking("2024-02-05T13:00:00Z", "2024-02-05T14:00:00Z", "Booking 4"),
+      ];
+      const bookingLimits: IntervalLimit = { PER_MONTH: 5 };
       const dateFrom = dayjs("2024-01-01");
       const dateTo = dayjs("2024-02-29");
 
@@ -204,12 +204,6 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
       const busyTimes = limitManager.getBusyTimes();
 
       expect(busyTimes).toHaveLength(0);
-
-      const bookingsInRange = bookings.filter((booking) => {
-        const bookingDate = dayjs(booking.start);
-        return bookingDate.isBetween(dateFrom, dateTo, null, "[]");
-      });
-      expect(bookingsInRange.length).toBeGreaterThan(0);
     });
   });
 
@@ -263,7 +257,12 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
 
       mockCheckBookingLimit.mockResolvedValue(undefined);
 
-      const bookings = createMockBookings();
+      const bookings = [
+        createMockBooking("2024-01-15T10:00:00Z", "2024-01-15T11:00:00Z", "Booking 1"),
+        createMockBooking("2024-03-16T09:00:00Z", "2024-03-16T10:00:00Z", "Booking 2"),
+        createMockBooking("2024-06-22T11:00:00Z", "2024-06-22T12:00:00Z", "Booking 3"),
+        createMockBooking("2024-09-05T13:00:00Z", "2024-09-05T14:00:00Z", "Booking 4"),
+      ];
       const bookingLimits: IntervalLimit = { PER_YEAR: 10 };
       const dateFrom = dayjs("2024-01-01");
       const dateTo = dayjs("2024-12-31");
@@ -281,12 +280,6 @@ describe("getBusyTimesFromBookingLimits - Main Branch Baseline", () => {
       const busyTimes = limitManager.getBusyTimes();
 
       expect(busyTimes).toHaveLength(0);
-
-      const bookingsInRange = bookings.filter((booking) => {
-        const bookingDate = dayjs(booking.start);
-        return bookingDate.isBetween(dateFrom, dateTo, null, "[]");
-      });
-      expect(bookingsInRange.length).toBeGreaterThan(0);
 
       expect(mockCheckBookingLimit).toHaveBeenCalled();
     });
