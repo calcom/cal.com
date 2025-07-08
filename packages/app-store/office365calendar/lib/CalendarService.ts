@@ -2,6 +2,8 @@ import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microso
 import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
+// Import caching utilities
+import { CalendarCache } from "@calcom/features/calendar-cache";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -295,7 +297,61 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async getAvailability(
+  /**
+   * Try to get availability from cache first
+   */
+  private async tryGetAvailabilityFromCache(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyDate[] | null> {
+    try {
+      const calendarCache = await CalendarCache.init(this);
+      const calendarIds = selectedCalendars
+        .filter((cal) => cal.integration === this.integrationName)
+        .map((cal) => cal.externalId);
+
+      if (calendarIds.length === 0) {
+        return null;
+      }
+
+      const cached = await calendarCache.getCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args: {
+          timeMin: dateFrom,
+          timeMax: dateTo,
+          items: calendarIds.map((id) => ({ id })),
+        },
+      });
+
+      if (cached) {
+        this.log.debug("Cache hit for Outlook availability", {
+          credentialId: this.credential.id,
+          dateFrom,
+          dateTo,
+          calendarIds,
+        });
+        return cached.value as EventBusyDate[];
+      }
+
+      this.log.debug("Cache miss for Outlook availability", {
+        credentialId: this.credential.id,
+        dateFrom,
+        dateTo,
+        calendarIds,
+      });
+      return null;
+    } catch (error) {
+      this.log.warn("Failed to get availability from cache", { error });
+      return null;
+    }
+  }
+
+  /**
+   * Fetch availability data and cache the results
+   */
+  private async fetchAvailabilityData(
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
@@ -354,6 +410,120 @@ export default class Office365CalendarService implements Calendar {
     } catch (err) {
       return Promise.reject([]);
     }
+  }
+
+  /**
+   * Cache the availability data using the standard CalendarCache system
+   */
+  private async setCachedAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    result: EventBusyDate[]
+  ): Promise<void> {
+    try {
+      const calendarCache = await CalendarCache.init(this);
+      const calendarIds = selectedCalendars
+        .filter((cal) => cal.integration === this.integrationName)
+        .map((cal) => cal.externalId);
+
+      if (calendarIds.length === 0) {
+        return;
+      }
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args: {
+          timeMin: dateFrom,
+          timeMax: dateTo,
+          items: calendarIds.map((id) => ({ id })),
+        },
+        value: result,
+      });
+
+      this.log.debug("Cached Outlook availability", {
+        credentialId: this.credential.id,
+        dateFrom,
+        dateTo,
+        calendarIds,
+      });
+    } catch (error) {
+      this.log.warn("Failed to cache availability", { error });
+    }
+  }
+
+  /**
+   * Standard method for webhook-driven cache refresh
+   */
+  async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]): Promise<unknown> {
+    this.log.debug("fetchAvailabilityAndSetCache", { selectedCalendars });
+
+    // Use a standard time range for caching (similar to Google Calendar)
+    const now = new Date();
+    const oneMonthFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const dateFrom = now.toISOString();
+    const dateTo = oneMonthFromNow.toISOString();
+
+    const result = await this.fetchAvailabilityData(dateFrom, dateTo, selectedCalendars);
+    await this.setCachedAvailability(dateFrom, dateTo, selectedCalendars, result);
+
+    return result;
+  }
+
+  /**
+   * Standard Calendar interface method with caching support
+   */
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean
+  ): Promise<EventBusyDate[]> {
+    // Try cache first if not explicitly disabled
+    if (shouldServeCache !== false) {
+      const cachedResult = await this.tryGetAvailabilityFromCache(dateFrom, dateTo, selectedCalendars);
+      if (cachedResult) {
+        return cachedResult;
+      }
+    }
+
+    // Cache miss - fetch from API and cache the result
+    const result = await this.fetchAvailabilityData(dateFrom, dateTo, selectedCalendars);
+
+    // Cache the result if not explicitly disabled
+    if (shouldServeCache !== false) {
+      await this.setCachedAvailability(dateFrom, dateTo, selectedCalendars, result);
+    }
+
+    return result;
+  }
+
+  /**
+   * Standard webhook watching method (part of Calendar interface)
+   */
+  async watchCalendar(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<unknown> {
+    this.log.info("watchCalendar called for Outlook", options);
+    // Microsoft Graph webhooks would be implemented here in the future
+    // For now, this is a placeholder to match the Calendar interface
+    return Promise.resolve();
+  }
+
+  /**
+   * Standard webhook unwatching method (part of Calendar interface)
+   */
+  async unwatchCalendar(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<void> {
+    this.log.info("unwatchCalendar called for Outlook", options);
+    // Microsoft Graph webhook cleanup would be implemented here in the future
+    // For now, this is a placeholder to match the Calendar interface
+    return Promise.resolve();
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
