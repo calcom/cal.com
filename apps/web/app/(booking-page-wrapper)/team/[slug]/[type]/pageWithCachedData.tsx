@@ -11,7 +11,6 @@ import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizat
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import { loadTranslations } from "@calcom/lib/server/i18n";
-import { BookingService } from "@calcom/lib/server/service/booking";
 import slugify from "@calcom/lib/slugify";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 
@@ -20,7 +19,13 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import CachedClientView, { type TeamBookingPageProps } from "~/team/type-view-cached";
 
-import { getCachedTeamWithEventTypes, getCachedEventData, type TeamWithEventTypes } from "./queries";
+import {
+  getCachedTeamWithEventTypes,
+  getCachedEventData,
+  type TeamWithEventTypes,
+  getCRMData,
+  shouldUseApiV2ForTeamSlots,
+} from "./queries";
 
 const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),
@@ -166,14 +171,14 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
   }
 
   const [crmData, useApiV2] = await Promise.all([
-    BookingService.getCRMData(legacyCtx.query, {
+    getCRMData(legacyCtx.query, {
       id: team.eventTypes[0].id,
       isInstantEvent: team.eventTypes[0].isInstantEvent,
       schedulingType: team.eventTypes[0].schedulingType,
       metadata: team.eventTypes[0].metadata,
       length: eventData.length,
     }),
-    BookingService.shouldUseApiV2ForTeamSlots(team.id),
+    shouldUseApiV2ForTeamSlots(team.id),
   ]);
 
   const props: TeamBookingPageProps = {

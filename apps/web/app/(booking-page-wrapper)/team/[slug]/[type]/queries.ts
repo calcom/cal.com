@@ -20,7 +20,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 export const getCachedTeamWithEventTypes = unstable_cache(
   async (teamSlug: string, meetingSlug: string, orgSlug: string | null) => {
-    return await getTeamWithEventTypes(teamSlug, meetingSlug, orgSlug);
+    return await _getTeamWithEventTypes(teamSlug, meetingSlug, orgSlug);
   },
   undefined,
   {
@@ -28,9 +28,9 @@ export const getCachedTeamWithEventTypes = unstable_cache(
   }
 );
 
-export type TeamWithEventTypes = Awaited<ReturnType<typeof getTeamWithEventTypes>>;
+export type TeamWithEventTypes = Awaited<ReturnType<typeof _getTeamWithEventTypes>>;
 
-async function getTeamWithEventTypes(teamSlug: string, meetingSlug: string, orgSlug: string | null) {
+async function _getTeamWithEventTypes(teamSlug: string, meetingSlug: string, orgSlug: string | null) {
   const team = await prisma.team.findFirst({
     where: {
       ...getSlugOrRequestedSlug(teamSlug),
@@ -95,7 +95,7 @@ export const getCachedEventData = unstable_cache(
     orgSlug: string | null;
     fromRedirectOfNonOrgLink: boolean;
   }) => {
-    return await getEventDataForTeamBooking({
+    return await _getEventDataForTeamBooking({
       team,
       orgSlug,
       fromRedirectOfNonOrgLink,
@@ -107,7 +107,7 @@ export const getCachedEventData = unstable_cache(
   }
 );
 
-export async function getEventDataForTeamBooking({
+async function _getEventDataForTeamBooking({
   team,
   orgSlug,
   fromRedirectOfNonOrgLink,
