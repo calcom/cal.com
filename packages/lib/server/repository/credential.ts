@@ -229,4 +229,12 @@ export class CredentialRepository {
   static async updateWhereId({ id, data }: { id: number; data: { key: Prisma.InputJsonValue } }) {
     return prisma.credential.update({ where: { id }, data });
   }
+
+  static async findAllCredentialsByTeamId(teamId: number) {
+    return await prisma.credential.findMany({
+      where: {
+        teamId,
+      },
+    });
+  }
 }

@@ -50,6 +50,12 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
       "data-testid": "crm",
     },
     {
+      name: "hrms",
+      href: getHref(baseURL, "hrms", useQueryParam),
+      icon: "IoIosPeople",
+      "data-testid": "hrms",
+    },
+    {
       name: "messaging",
       href: getHref(baseURL, "messaging", useQueryParam),
       icon: "mail",

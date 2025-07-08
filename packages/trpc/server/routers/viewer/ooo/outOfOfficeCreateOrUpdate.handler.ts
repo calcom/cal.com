@@ -9,6 +9,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -374,6 +375,10 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       );
     })
   );
+
+  const allCredentialsForOrgId = await CredentialRepository.findAllCredentialsByTeamId(oooUserOrgId);
+
+  const hrmsManager = new HrmsManager(allCredentialsForOrgId);
 
   return {};
 };
