@@ -561,7 +561,9 @@ export const getPublicEvent = async (
 };
 
 // A cleaner version of `getPublicEvent` that uses various helper functions like `processEventDataShared` and `getEventTypeHosts`
-// Not to be used until it's battle-tested
+// There is still a lot of room for improvement, but it's a good starting point.
+// For example, currently we have logic for all user / team / org / platform logic in this function.
+// We should break this down into more dedicated functions.
 const getPublicEventRefactored = async (
   username: string,
   eventSlug: string,
