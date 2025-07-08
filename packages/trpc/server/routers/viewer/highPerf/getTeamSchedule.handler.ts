@@ -1,6 +1,6 @@
 import type { IncomingMessage } from "http";
 
-import { getAvailableSlots } from "../slots/util";
+import { AvailableSlotsService } from "../slots/util";
 import type { TGetTeamScheduleInputSchema } from "./getTeamSchedule.schema";
 
 export type GetTeamScheduleOptions = {
@@ -13,5 +13,6 @@ interface ContextForGetSchedule extends Record<string, unknown> {
 }
 
 export const getTeamScheduleHandler = async ({ ctx, input }: GetTeamScheduleOptions) => {
-  return await getAvailableSlots({ ctx, input });
+  const availableSlotsService = new AvailableSlotsService();
+  return await availableSlotsService.getAvailableSlots({ ctx, input });
 };
