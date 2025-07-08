@@ -1,13 +1,11 @@
 import { parentPort } from "worker_threads";
 
-import { AvailableSlotsService } from "@calcom/platform-libraries/slots";
+import { getAvailableSlots } from "@calcom/platform-libraries/slots";
 
 parentPort?.on("message", async (data) => {
   try {
     const { input, ctx } = data;
-    const availableSlotsService = new AvailableSlotsService();
-
-    const result = await availableSlotsService.getAvailableSlots({ input, ctx });
+    const result = await getAvailableSlots({ input, ctx });
     parentPort?.postMessage({ success: true, data: result });
   } catch (error) {
     parentPort?.postMessage({

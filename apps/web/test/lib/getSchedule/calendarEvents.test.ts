@@ -9,13 +9,12 @@ import {
 
 import { describe, test } from "vitest";
 
-import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect, expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 
 describe("getSchedule", () => {
-  const availableSlotsService = new AvailableSlotsService();
   setupAndTeardown();
   describe("Calendar event", () => {
     test("correctly identifies unavailable slots from selected calendars at user level", async () => {
@@ -64,7 +63,7 @@ describe("getSchedule", () => {
       // An event with one accepted booking
       await createBookingScenario(scenarioData);
 
-      const scheduleForDayWithAGoogleCalendarBooking = await availableSlotsService.getAvailableSlots({
+      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -134,7 +133,7 @@ describe("getSchedule", () => {
         // An event with one accepted booking
         await createBookingScenario(scenarioData);
 
-        const scheduleForDayWithAGoogleCalendarBooking = await availableSlotsService.getAvailableSlots({
+        const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
           input: {
             eventTypeId,
             eventTypeSlug: "",
@@ -203,7 +202,7 @@ describe("getSchedule", () => {
         // An event with one accepted booking
         await createBookingScenario(scenarioData);
 
-        const scheduleForDayWithAGoogleCalendarBooking = await availableSlotsService.getAvailableSlots({
+        const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
           input: {
             eventTypeId,
             eventTypeSlug: "",
@@ -276,7 +275,7 @@ describe("getSchedule", () => {
         // An event with one accepted booking
         await createBookingScenario(scenarioData);
 
-        const scheduleForDayWithAGoogleCalendarBooking = await availableSlotsService.getAvailableSlots({
+        const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
           input: {
             eventTypeId,
             eventTypeSlug: "",
