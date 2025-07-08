@@ -474,13 +474,20 @@ export const getPublicEvent = async (
   }
 
   const eventDataShared = await processEventDataShared({
-    eventData: eventWithUserProfiles,
+    eventData: event,
     metadata: eventMetaData,
     prisma,
   });
 
   return {
     ...eventDataShared,
+    owner: event.owner
+      ? await UserRepository.enrichUserWithItsProfile({
+          user: event.owner,
+        })
+      : null,
+    subsetOfHosts: hosts,
+    hosts: fetchAllUsers ? hosts : undefined,
     profile: getProfileFromEvent(eventWithUserProfiles),
     subsetOfUsers: users,
     users: fetchAllUsers ? users : undefined,
