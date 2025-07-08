@@ -58,6 +58,7 @@ export class DestinationCalendarRepository {
         userId: data.userId,
         integration: data.integration,
         externalId: data.externalId,
+        eventTypeId: null,
       },
     });
   }
