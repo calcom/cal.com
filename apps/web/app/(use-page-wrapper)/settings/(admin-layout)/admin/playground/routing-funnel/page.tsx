@@ -1,7 +1,13 @@
 import { getTranslate } from "app/_utils";
 
 import { ChartCard } from "@calcom/features/insights/components/ChartCard";
-import { RoutingFunnelContent, legend } from "@calcom/features/insights/components/RoutingFunnelContent";
+import { RoutingFunnelContent } from "@calcom/features/insights/components/RoutingFunnelContent";
+
+const legend = [
+  { label: "Total Submissions", color: "#9AA2F7" },
+  { label: "Successful Routings", color: "#89CFB5" },
+  { label: "Accepted Bookings", color: "#F7A1A1" },
+];
 
 // Random sample data for playground testing
 const sampleRoutingFunnelData = [
@@ -61,7 +67,7 @@ export default async function RoutingFunnelPlayground() {
       </div>
 
       <div className="max-w-4xl">
-        <ChartCard title={t("routing_funnel")} legend={legend}>
+        <ChartCard title={t("routing_funnel")} subtitle="Hello world!" legend={legend}>
           <RoutingFunnelContent data={sampleRoutingFunnelData} />
         </ChartCard>
       </div>

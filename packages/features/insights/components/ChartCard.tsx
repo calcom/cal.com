@@ -9,11 +9,13 @@ type LegendItem = {
 
 export function ChartCard({
   title,
+  subtitle,
   cta,
   legend,
   children,
 }: {
   title: string;
+  subtitle?: string;
   cta?: { label: string; onClick: () => void };
   legend?: Array<LegendItem>;
   children: React.ReactNode;
@@ -22,14 +24,21 @@ export function ChartCard({
     <div className="border-subtle bg-muted group relative w-full items-center rounded-2xl border px-1 pb-1">
       <div className="flex h-11 items-center justify-between px-4">
         <h2 className="text-emphasis text-sm font-semibold">{title}</h2>
-        {legend && <Legend items={legend} />}
+        {legend && (legend || []).length > 0 && <Legend items={legend} />}
         {cta && (
           <Button className="mr-3" color="secondary" onClick={cta.onClick}>
             {cta.label}
           </Button>
         )}
       </div>
-      <div className="bg-default border-default w-full gap-3 rounded-xl border">{children}</div>
+      <div className="bg-default border-default w-full gap-3 rounded-xl border">
+        {subtitle && (
+          <div className="text-subtle border-muted border-b p-3 text-sm font-medium leading-none">
+            {subtitle}
+          </div>
+        )}
+        {children}
+      </div>
     </div>
   );
 }
