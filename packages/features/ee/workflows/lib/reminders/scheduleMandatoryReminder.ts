@@ -41,7 +41,6 @@ async function _scheduleMandatoryReminder({
   const tracingLogger = spanContext ? DistributedTracing.getTracingLogger(spanContext) : log;
 
   tracingLogger.info("Scheduling mandatory reminder", {
-    eventTitle: evt.title,
     attendeeCount: evt.attendees.length,
     originalTraceId: traceContext?.traceId,
   });

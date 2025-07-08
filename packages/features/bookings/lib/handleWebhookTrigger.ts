@@ -33,8 +33,8 @@ async function _handleWebhookTrigger(args: {
       sendPayload(sub.secret, args.eventTrigger, new Date().toISOString(), sub, args.webhookData).catch(
         (e) => {
           if (isEventPayload(args.webhookData)) {
-            logger.error(
-              `Error executing webhook for event: ${args.eventTrigger}, URL: ${sub.subscriberUrl}, booking id: ${args.webhookData.bookingId}, booking uid: ${args.webhookData.uid}`,
+            tracingLogger.error(
+              `Error executing webhook for event: ${args.eventTrigger}, booking id: ${args.webhookData.bookingId}, booking uid: ${args.webhookData.uid}`,
               safeStringify(e)
             );
           }
@@ -43,7 +43,7 @@ async function _handleWebhookTrigger(args: {
     );
     await Promise.all(promises);
   } catch (error) {
-    logger.error("Error while sending webhook", error);
+    tracingLogger.error("Error while sending webhook", error);
   }
 }
 

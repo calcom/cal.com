@@ -58,7 +58,6 @@ const handleSeats = async (
     DistributedTracing.getTracingLogger(
       DistributedTracing.createTrace("handle_seats_fallback", {
         eventTypeId: eventType.id,
-        userInfo: reqBodyUser,
         eventTypeSlug: eventType.slug,
       })
     );

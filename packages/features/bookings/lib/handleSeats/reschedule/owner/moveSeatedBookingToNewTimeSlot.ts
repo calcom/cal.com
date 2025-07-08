@@ -71,7 +71,7 @@ const moveSeatedBookingToNewTimeSlot = async (
       errorCode: "BookingReschedulingMeetingFailed",
       message: "Booking Rescheduling failed",
     };
-    loggerWithEventDetails?.error(`Booking ${organizerUser.name} failed`, JSON.stringify({ error, results }));
+    loggerWithEventDetails?.error(`Booking rescheduling failed`, JSON.stringify({ error, results }));
   } else {
     const metadata: AdditionalInformation = {};
     if (results.length) {

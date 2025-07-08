@@ -9,20 +9,23 @@ export interface TraceContext {
   operation: string;
   bookingUid?: string;
   eventTypeId?: number;
-  userId?: number;
   eventTypeSlug?: string;
-  userInfo?: string | string[];
-  userIp?: string;
 }
 
 export class DistributedTracing {
   static createTrace(operation: string, context?: Partial<TraceContext>): TraceContext {
+    const traceId = context?.traceId || `trace_${nanoid()}`;
+    const spanId = `span_${nanoid()}`;
+    const parentSpanId = context?.spanId;
+
     return {
-      traceId: context?.traceId || `trace_${nanoid()}`,
-      spanId: `span_${nanoid()}`,
-      parentSpanId: context?.spanId,
+      traceId,
+      spanId,
+      parentSpanId,
       operation,
-      ...context,
+      bookingUid: context?.bookingUid,
+      eventTypeId: context?.eventTypeId,
+      eventTypeSlug: context?.eventTypeSlug,
     };
   }
 
@@ -43,8 +46,8 @@ export class DistributedTracing {
       `op:${context.operation}`,
     ];
 
-    if (context.eventTypeId && context.userInfo && context.eventTypeSlug) {
-      prefixes.push(`event:${context.eventTypeId}:${context.userInfo}/${context.eventTypeSlug}`);
+    if (context.eventTypeId && context.eventTypeSlug) {
+      prefixes.push(`event:${context.eventTypeId}/${context.eventTypeSlug}`);
     }
 
     if (context.bookingUid) {

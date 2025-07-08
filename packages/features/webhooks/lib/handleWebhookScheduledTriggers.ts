@@ -85,7 +85,6 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
     tracingLogger.info("Executing scheduled webhook", {
       bookingId: parsedJobPayload.id,
       triggerEvent: parsedJobPayload.triggerEvent,
-      subscriberUrl: job.subscriberUrl,
       originalTraceId: parsedJobPayload._traceContext?.traceId,
       timeSinceScheduled: Date.now() - new Date(parsedJobPayload.endTime).getTime(),
     });

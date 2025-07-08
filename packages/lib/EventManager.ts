@@ -193,7 +193,6 @@ export default class EventManager {
     const tracingLogger = spanContext ? DistributedTracing.getTracingLogger(spanContext) : log;
 
     tracingLogger.info("EventManager.create started", {
-      eventTitle: event.title,
       attendeeCount: event.attendees.length,
       integrationCount: this.calendarCredentials.length,
     });

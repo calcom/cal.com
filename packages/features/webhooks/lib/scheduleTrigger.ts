@@ -291,7 +291,6 @@ export async function scheduleTrigger({
   tracingLogger.info("Scheduling webhook trigger", {
     bookingId: booking.id,
     triggerEvent,
-    subscriberUrl,
     originalTraceId: traceContext?.traceId,
   });
 
