@@ -159,12 +159,11 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
     bookingForReschedule = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
     if (eventData.disableRescheduling) return redirect(`/booking/${rescheduleUid}`);
 
-    const shouldAllowRescheduleForCancelledBooking =
-      legacyCtx.query.allowRescheduleForCancelledBooking === "true" &&
-      eventData?.allowReschedulingCancelledBookings &&
-      bookingForReschedule?.status === BookingStatus.CANCELLED;
-
-    if (!shouldAllowRescheduleForCancelledBooking) {
+    if (
+      bookingForReschedule?.status === BookingStatus.CANCELLED &&
+      legacyCtx.query.allowRescheduleForCancelledBooking !== "true" &&
+      !eventData.allowReschedulingCancelledBookings
+    ) {
       // redirecting to the same booking page without `rescheduleUid` search param
       return redirect(`/team/${teamSlug}/${meetingSlug}`);
     }
