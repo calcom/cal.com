@@ -46,6 +46,14 @@ export class DistributedTracing {
       prefixes.push(`event:${context.eventTypeId}:${context.userInfo}/${context.eventTypeSlug}`);
     }
 
+    if (context.bookingUid) {
+      prefixes.push(`booking:${context.bookingUid}`);
+    }
+
+    if (context.userId) {
+      prefixes.push(`user:${context.userId}`);
+    }
+
     return logger.getSubLogger({ prefix: prefixes });
   }
 
