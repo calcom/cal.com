@@ -12,6 +12,7 @@ export interface TraceContext {
   userId?: number;
   eventTypeSlug?: string;
   userInfo?: string | string[];
+  userIp?: string;
 }
 
 export class DistributedTracing {
