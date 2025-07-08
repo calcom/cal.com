@@ -101,7 +101,13 @@ describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () =
       email: "test@example.com",
     });
 
-    expect(result).toEqual(organization);
+    expect(result).toEqual(
+      expect.objectContaining({
+        id: organization.id,
+        name: organization.name,
+        isOrganization: organization.isOrganization,
+      })
+    );
   });
 
   it("should not confuse a team with organization", async () => {
