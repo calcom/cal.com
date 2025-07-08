@@ -1725,11 +1725,7 @@ async function handler(
             (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
           );
           sendRoundRobinCancelledEmailsAndSMS(
-            {
-              ...copyEventAdditionalInfo,
-              startTime: dayjs(originalRescheduledBooking.startTime).toString(),
-              endTime: dayjs(originalRescheduledBooking.endTime).toString(),
-            },
+            cancelledRRHostEvt,
             cancelledMembers,
             eventType.metadata,
             !!reassignedTo
