@@ -10,6 +10,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
+import type { TeamFeatures } from "@calcom/features/flags/config";
+import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import Shell from "@calcom/features/shell/Shell";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -178,7 +180,13 @@ const organizationAdminKeys = [
   "delegation_credential",
 ];
 
-const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
+const useTabs = ({
+  isDelegationCredentialEnabled,
+  isPbacEnabled,
+}: {
+  isDelegationCredentialEnabled: boolean;
+  isPbacEnabled: boolean;
+}) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
@@ -211,6 +219,14 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
           newArray.push({
             name: "delegation_credential",
             href: "/settings/organizations/delegation-credential",
+          });
+        }
+
+        // Add pbac menu item only if feature flag is enabled
+        if (isPbacEnabled) {
+          newArray.push({
+            name: "roles_and_permissions",
+            href: "/settings/organizations/roles",
           });
         }
 
@@ -273,6 +289,7 @@ interface SettingsSidebarContainerProps {
   className?: string;
   navigationIsOpenedOnMobile?: boolean;
   bannersHeight?: number;
+  teamFeatures?: Record<number, TeamFeatures>;
 }
 
 const TeamListCollapsible = () => {
@@ -439,6 +456,7 @@ const SettingsSidebarContainer = ({
   className = "",
   navigationIsOpenedOnMobile,
   bannersHeight,
+  teamFeatures,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
@@ -450,11 +468,24 @@ const SettingsSidebarContainer = ({
     }[]
   >();
   const session = useSession();
-  const { data } = trpc.viewer.delegationCredential.check.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
+
+  const organizationId = session.data?.user?.org?.id;
+
+  const isDelegationCredentialEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: organizationId,
+    feature: "delegation-credential",
   });
+
+  const isPbacEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: organizationId,
+    feature: "pbac",
+  });
+
   const tabsWithPermissions = useTabs({
-    isDelegationCredentialEnabled: data?.hasDelegationCredential ?? false,
+    isDelegationCredentialEnabled,
+    isPbacEnabled,
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
@@ -728,9 +759,10 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 export type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
+  teamFeatures?: Record<number, TeamFeatures>;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({ children, ...rest }: SettingsLayoutProps) {
+export default function SettingsLayoutAppDirClient({ children, teamFeatures, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
@@ -762,6 +794,7 @@ export default function SettingsLayoutAppDirClient({ children, ...rest }: Settin
         <SidebarContainerElement
           sideContainerOpen={sideContainerOpen}
           setSideContainerOpen={setSideContainerOpen}
+          teamFeatures={teamFeatures}
         />
       }
       drawerState={state}
@@ -779,10 +812,18 @@ export default function SettingsLayoutAppDirClient({ children, ...rest }: Settin
   );
 }
 
+type SidebarContainerElementProps = {
+  sideContainerOpen: boolean;
+  bannersHeight?: number;
+  setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  teamFeatures?: Record<number, TeamFeatures>;
+};
+
 const SidebarContainerElement = ({
   sideContainerOpen,
   bannersHeight,
   setSideContainerOpen,
+  teamFeatures,
 }: SidebarContainerElementProps) => {
   const { t } = useLocale();
   return (
@@ -798,13 +839,8 @@ const SidebarContainerElement = ({
       <SettingsSidebarContainer
         navigationIsOpenedOnMobile={sideContainerOpen}
         bannersHeight={bannersHeight}
+        teamFeatures={teamFeatures}
       />
     </>
   );
-};
-
-type SidebarContainerElementProps = {
-  sideContainerOpen: boolean;
-  bannersHeight?: number;
-  setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };

@@ -43,4 +43,5 @@ export const ENDPOINTS = [
   "filterSegments",
   "ai",
   "phoneNumbers",
+  "pbac",
 ] as const;
