@@ -31,9 +31,18 @@ export function defaultResponder<T>(
         console.error(error);
         captureException(error);
       }
-      return res
-        .status(error.statusCode)
-        .json({ message: error.message, url: error.url, method: error.method, data: error?.data || null });
+      const errorResponse = {
+        message: error.message,
+        url: error.url,
+        method: error.method,
+        data: error?.data || null,
+      };
+
+      if (error?.data?.traceId) {
+        errorResponse.traceId = error.data.traceId;
+      }
+
+      return res.status(error.statusCode).json(errorResponse);
     } finally {
       performance.mark("End");
       performance.measure(`[${ok ? "OK" : "ERROR"}][$1] ${req.method} '${req.url}'`, "Start", "End");
