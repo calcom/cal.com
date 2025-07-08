@@ -96,7 +96,7 @@ export type FormValues = {
   schedulingType: SchedulingType | null;
   hidden: boolean;
   hideCalendarNotes: boolean;
-  multiplePrivateLinks: string[] | undefined;
+  multiplePrivateLinks: (string | PrivateLinkWithOptions)[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
   customReplyToEmail: string | null;
   locations: EventLocation[];

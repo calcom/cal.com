@@ -80,9 +80,8 @@ export const MultiplePrivateLinksController = ({
     }
 
     // Update the form value and trigger form change
-    // Convert back to string array for form compatibility
-    const stringValue = convertedValue.map((val) => val.link);
-    formMethods.setValue("multiplePrivateLinks", stringValue, {
+    // Store the full objects so the UI can display updated settings immediately
+    formMethods.setValue("multiplePrivateLinks", convertedValue, {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true,
@@ -177,7 +176,10 @@ export const MultiplePrivateLinksController = ({
                   latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
 
                 // Determine if link is expired and create description
-                let linkDescription = t("single_use_link");
+                let linkDescription = t("remainder_of_maximum_uses_left", {
+                  remainder: "1",
+                  maximum_uses: "1 use",
+                });
                 let isExpired = false;
 
                 if (val.expiresAt) {
@@ -208,9 +210,10 @@ export const MultiplePrivateLinksController = ({
                   if (isExpired) {
                     linkDescription = t("usage_limit_reached");
                   } else {
-                    linkDescription = `${remainingUses} of ${maxUses} ${
-                      remainingUses === 1 ? "use" : "uses"
-                    } remaining`;
+                    linkDescription = t("remainder_of_maximum_uses_left", {
+                      remainder: remainingUses,
+                      maximum_uses: `${maxUses} ${remainingUses === 1 ? "use" : "uses"}`,
+                    });
                   }
                 }
 
@@ -256,6 +259,7 @@ export const MultiplePrivateLinksController = ({
                         <Button
                           data-testid={`remove-single-use-link-${key}`}
                           variant="icon"
+                          type="button"
                           StartIcon="trash-2"
                           color="destructive"
                           className="ml-1 border-none"
