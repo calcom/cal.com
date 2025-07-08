@@ -488,6 +488,7 @@ export const getPublicEvent = async (
       : null,
     subsetOfHosts: hosts,
     hosts: fetchAllUsers ? hosts : undefined,
+    // Sets user data on profile object for easier access
     profile: getProfileFromEvent(eventWithUserProfiles),
     subsetOfUsers: users,
     users: fetchAllUsers ? users : undefined,
