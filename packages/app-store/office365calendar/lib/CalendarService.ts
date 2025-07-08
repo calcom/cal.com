@@ -450,20 +450,15 @@ export default class Office365CalendarService implements Calendar {
   /**
    * Standard method for webhook-driven cache refresh
    */
-  async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]): Promise<unknown> {
-    this.log.debug("fetchAvailabilityAndSetCache", { selectedCalendars });
-
-    // Use a standard time range for caching (similar to Google Calendar)
-    const now = new Date();
-    const oneMonthFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-    const dateFrom = now.toISOString();
-    const dateTo = oneMonthFromNow.toISOString();
-
-    const result = await this.fetchAvailabilityData(dateFrom, dateTo, selectedCalendars);
-    await this.setCachedAvailability(dateFrom, dateTo, selectedCalendars, result);
-
-    return result;
+  async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]): Promise<unknown[]> {
+    // Standard method for webhook-driven cache refresh
+    this.log.debug("fetchAvailabilityAndSetCache", {
+      selectedCalendarsCount: selectedCalendars.length,
+    });
+    return this.getAvailability(selectedCalendars, {
+      start: new Date().toISOString(),
+      end: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    });
   }
 
   /**

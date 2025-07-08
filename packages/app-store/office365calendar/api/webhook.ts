@@ -34,77 +34,85 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
   try {
-    // Parse notification payload
+    // Validate webhook notification
     const notification = NotificationSchema.parse(req.body);
 
-    for (const change of notification.value) {
-      log.info("Processing Outlook calendar change notification", {
-        subscriptionId: change.subscriptionId,
-        changeType: change.changeType,
-        resource: change.resource,
-        clientState: change.clientState,
-      });
+    log.info("Processing Outlook calendar change notification", {
+      subscriptionId: notification.value?.[0]?.subscriptionId,
+      changeType: notification.value?.[0]?.changeType,
+      // Remove resource logging to avoid exposing sensitive information
+    });
 
+    for (const change of notification.value || []) {
       // Extract credential ID and calendar ID from clientState
       if (!change.clientState) {
-        log.warn("No clientState in notification, skipping");
+        log.warn("Missing clientState in webhook notification");
         continue;
       }
 
-      const [credentialId, calendarId] = change.clientState.split("-");
-      if (!credentialId || !calendarId) {
+      const [credentialIdStr, calendarId] = change.clientState.split("-");
+      if (!credentialIdStr || !calendarId) {
         log.warn("Invalid clientState format, expected 'credentialId-calendarId'", {
           clientState: change.clientState,
         });
         continue;
       }
 
-      try {
-        // Get credential from database
-        const credential = await prisma.credential.findUnique({
-          where: { id: parseInt(credentialId) },
-          include: { user: true },
-        });
+      // Get credential from database
+      const credentialId = parseInt(credentialIdStr);
 
-        if (!credential) {
-          log.warn("Credential not found", { credentialId });
-          continue;
-        }
-
-        // Clear cache entries for this credential
-        // This will invalidate all cached availability for this Outlook credential
-        await prisma.calendarCache.deleteMany({
-          where: {
-            credentialId: parseInt(credentialId),
-          },
-        });
-
-        log.info("Cleared Outlook cache entries for credential", {
-          credentialId,
-          calendarId,
-          changeType: change.changeType,
-        });
-
-        // Optionally: You could also refresh cache for common date ranges here
-        // For now, we'll let it be refreshed on next request (lazy loading)
-      } catch (error) {
-        log.error("Error processing notification", {
-          error,
-          credentialId,
-          calendarId,
-          changeType: change.changeType,
-        });
+      // Validate that credentialId is a valid number
+      if (!credentialId || isNaN(credentialId)) {
+        log.warn("Invalid credential ID in webhook", { credentialIdStr });
+        continue;
       }
+
+      const credential = await prisma.credential.findUnique({
+        where: { id: credentialId },
+        // Only select specific fields needed, avoiding user data exposure
+        select: {
+          id: true,
+          key: true,
+          userId: true,
+          user: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (!credential) {
+        log.warn("Credential not found for webhook", { credentialId });
+        continue;
+      }
+
+      log.info("Invalidating cache for calendar", {
+        credentialId,
+        calendarId: `${calendarId.substring(0, 10)}...`, // Sanitize calendar ID logging
+      });
+
+      // Invalidate cache entries for this credential
+      await prisma.calendarCache.deleteMany({
+        where: {
+          credentialId: credentialId,
+        },
+      });
+
+      log.info("Cache invalidated successfully", { credentialId });
+
+      // Optionally: You could also refresh cache for common date ranges here
+      // For now, we'll let it be refreshed on next request (lazy loading)
     }
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ received: true });
   } catch (error) {
-    log.error("Error handling webhook", { error });
-    res.status(400).json({ error: "Invalid request" });
+    log.error("Error processing webhook:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
