@@ -116,7 +116,14 @@ async function setupTeamWithRoundRobin(users: Fixtures["users"], orgs: Fixtures[
 
   const teamMemberships = await prisma.membership.findMany({
     where: { teamId: team.id },
-    include: { user: true },
+    select: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
+    },
   });
 
   const teamMembers = teamMemberships.map((membership) => membership.user);
