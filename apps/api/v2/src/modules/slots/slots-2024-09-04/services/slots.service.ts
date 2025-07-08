@@ -47,6 +47,7 @@ export class SlotsService_2024_09_04 {
       const availableSlots: TimeSlots = await getAvailableSlots({
         input: {
           ...queryTransformed,
+          routingFormResponseId: queryTransformed.routingFormResponseId ?? undefined,
         },
         ctx: {},
       });
