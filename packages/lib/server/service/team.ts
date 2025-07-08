@@ -162,6 +162,9 @@ export class TeamService {
           where: {
             OR: [{ slug: meetingSlug }, { slug: { startsWith: `${meetingSlug}-team-id-` } }],
           },
+          // IMPORTANT:
+          // This is to ensure that `team.eventTypes[0]` (used for event data in team booking page)
+          // has everything expected in Booker (which used to rely on `getPublicEventSelect` trpc call)
           select: getPublicEventSelect(false),
         },
         isOrganization: true,
