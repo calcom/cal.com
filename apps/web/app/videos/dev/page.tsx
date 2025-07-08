@@ -2,10 +2,11 @@
 
 "use client";
 
-import { DevLoginOverlayUI } from "~/videos/views/videos-single-view";
+import { LogInOverlay } from "~/videos/views/videos-single-view";
+
 
 
 
 export default function DevLoginOverlay() {
-  return <DevLoginOverlayUI/>;
+  return <LogInOverlay/>
 }
