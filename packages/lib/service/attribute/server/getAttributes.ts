@@ -5,9 +5,9 @@ import prisma from "@calcom/prisma";
 import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 
-import { AttributeRepository } from "../../../server/repository/attribute";
-import { AttributeToUserRepository } from "../../../server/repository/attributeToUser";
-import { MembershipRepository } from "../../../server/repository/membership";
+import { AttributeRepository } from "../../../server/repository/prismaAttribute";
+import { AttributeToUserRepository } from "../../../server/repository/prismaAttributeToUser";
+import { PrismaMembershipRepository } from "../../../server/repository/prismaMembership";
 import type { AttributeId } from "../types";
 
 type UserId = number;
@@ -184,10 +184,11 @@ function _getAttributeOptionFromAttributeOption({
 }
 
 async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: number; teamId: number }) {
-  const { orgMemberships, teamMemberships } = await MembershipRepository.findMembershipsForBothOrgAndTeam({
-    orgId,
-    teamId,
-  });
+  const { orgMemberships, teamMemberships } =
+    await PrismaMembershipRepository.findMembershipsForBothOrgAndTeam({
+      orgId,
+      teamId,
+    });
 
   // Using map for performance lookup as it matters in the below loop working with 1000s of records
   const orgMembershipsByUserId = new Map(orgMemberships.map((m) => [m.userId, m]));

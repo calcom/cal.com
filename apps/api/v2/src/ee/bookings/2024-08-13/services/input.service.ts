@@ -18,7 +18,7 @@ import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -93,7 +93,7 @@ export class InputBookingsService_2024_08_13 {
     private readonly bookingSeatRepository: BookingSeatRepository,
     private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
     private readonly platformBookingsService: PlatformBookingsService,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: PrismaUsersRepository
   ) {}
 
   async createBookingRequest(
@@ -190,9 +190,20 @@ export class InputBookingsService_2024_08_13 {
     };
   }
 
-  private getRoutingFormData(routing: { teamMemberIds?: number[]; responseId?: number; teamMemberEmail?: string; skipContactOwner?: boolean; crmAppSlug?: string; crmOwnerRecordType?: string } | undefined) {
+  private getRoutingFormData(
+    routing:
+      | {
+          teamMemberIds?: number[];
+          responseId?: number;
+          teamMemberEmail?: string;
+          skipContactOwner?: boolean;
+          crmAppSlug?: string;
+          crmOwnerRecordType?: string;
+        }
+      | undefined
+  ) {
     if (!routing) return null;
-    
+
     return {
       routedTeamMemberIds: routing.teamMemberIds,
       routingFormResponseId: routing.responseId,

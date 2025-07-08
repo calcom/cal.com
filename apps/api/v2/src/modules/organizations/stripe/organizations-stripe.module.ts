@@ -1,7 +1,7 @@
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsStripeController } from "@/modules/organizations/stripe/organizations-stripe.controller";
 import { OrganizationsStripeService } from "@/modules/organizations/stripe/services/organizations-stripe.service";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
@@ -19,7 +19,7 @@ import { Module } from "@nestjs/common";
     CredentialsRepository,
     AppsRepository,
     RedisService,
-    OrganizationsRepository,
+    PrismaOrganizationsRepository,
     MembershipsRepository,
     OrganizationsTeamsRepository,
     TokensRepository,

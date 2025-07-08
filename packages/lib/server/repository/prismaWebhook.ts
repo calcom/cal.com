@@ -29,7 +29,7 @@ const filterWebhooks = (webhook: Webhook) => {
   return !appIds.some((appId: string) => webhook.appId == appId);
 };
 
-export class WebhookRepository {
+export class PrismaWebhookRepository {
   static async getAllWebhooksByUserId({
     userId,
     userRole,

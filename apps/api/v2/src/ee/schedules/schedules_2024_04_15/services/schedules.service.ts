@@ -2,7 +2,7 @@ import { CreateAvailabilityInput_2024_04_15 } from "@/ee/schedules/schedules_202
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesRepository_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { UserWithProfile, PrismaUsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
 
@@ -15,7 +15,7 @@ import { PrismaClient } from "@calcom/prisma";
 export class SchedulesService_2024_04_15 {
   constructor(
     private readonly schedulesRepository: SchedulesRepository_2024_04_15,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly dbWrite: PrismaWriteService
   ) {}
 

@@ -1,11 +1,11 @@
-import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
+import { PrismaUsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 import { User } from "@calcom/prisma/client";
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(private readonly usersRepository: PrismaUsersRepository) {}
 
   async getByUsernames(usernames: string[], orgSlug?: string, orgId?: number) {
     const users = await Promise.all(

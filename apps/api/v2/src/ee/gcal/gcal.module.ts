@@ -8,7 +8,7 @@ import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
@@ -21,7 +21,7 @@ import { ConfigService } from "@nestjs/config";
     SelectedCalendarsRepository,
     GCalService,
     CalendarsService,
-    UsersRepository,
+    PrismaUsersRepository,
     CalendarsRepository,
   ],
   controllers: [GcalController],

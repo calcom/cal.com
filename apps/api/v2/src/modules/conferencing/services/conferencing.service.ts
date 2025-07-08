@@ -1,11 +1,11 @@
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
+import { PrismaConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
 import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
 import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import {
   BadRequestException,
   InternalServerErrorException,
@@ -30,8 +30,8 @@ export class ConferencingService {
   private logger = new Logger("ConferencingService");
 
   constructor(
-    private readonly conferencingRepository: ConferencingRepository,
-    private readonly usersRepository: UsersRepository,
+    private readonly conferencingRepository: PrismaConferencingRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly googleMeetService: GoogleMeetService,
     private readonly zoomVideoService: ZoomVideoService,

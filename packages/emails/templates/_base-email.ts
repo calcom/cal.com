@@ -2,7 +2,7 @@ import { decodeHTML } from "entities";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { serverConfig } from "@calcom/lib/serverConfig";
@@ -29,7 +29,7 @@ export default class BaseEmail {
     return {};
   }
   public async sendEmail() {
-    const featuresRepository = new FeaturesRepository();
+    const featuresRepository = new PrismaFeaturesRepository();
     const emailsDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("emails");
     /** If email kill switch exists and is active, we prevent emails being sent. */
     if (emailsDisabled) {

@@ -7,7 +7,7 @@ import { DestinationCalendarsRepository } from "@/modules/destination-calendars/
 import { DestinationCalendarsService } from "@/modules/destination-calendars/services/destination-calendars.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -17,7 +17,7 @@ import { Module } from "@nestjs/common";
     CalendarsService,
     DestinationCalendarsService,
     DestinationCalendarsRepository,
-    UsersRepository,
+    PrismaUsersRepository,
     CredentialsRepository,
     AppsRepository,
     SelectedCalendarsRepository,

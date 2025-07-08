@@ -5,9 +5,9 @@ import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { InjectQueue } from "@nestjs/bull";
 import {
   BadRequestException,
@@ -28,12 +28,12 @@ export class BillingService implements OnModuleDestroy {
   private readonly webAppUrl: string;
 
   constructor(
-    private readonly teamsRepository: OrganizationsRepository,
+    private readonly teamsRepository: PrismaOrganizationsRepository,
     public readonly stripeService: StripeService,
     private readonly billingRepository: BillingRepository,
     private readonly configService: ConfigService<AppConfig>,
     private readonly billingConfigService: BillingConfigService,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly oAuthClientRepository: OAuthClientRepository,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue

@@ -4,7 +4,7 @@ import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import removeMember from "@calcom/features/ee/teams/lib/removeMember";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { TeamRepository } from "@calcom/lib/server/repository/prismaTeam";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";

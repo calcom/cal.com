@@ -1,6 +1,6 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { FeaturesRepository } from "../features.repository";
+import { PrismaFeaturesRepository } from "../features.repository";
 
 /**
  * Use Cases represent individual operations, like "Create Feature" or "Sign In" or "Toggle Feature".
@@ -11,7 +11,7 @@ import { FeaturesRepository } from "../features.repository";
  */
 export function checkIfUserHasFeatureUseCase(userId: number, slug: string): Promise<boolean> {
   return startSpan({ name: "checkIfUserHasFeature UseCase", op: "function" }, async () => {
-    const featuresRepository = new FeaturesRepository();
+    const featuresRepository = new PrismaFeaturesRepository();
 
     return await featuresRepository.checkIfUserHasFeature(userId, slug);
   });

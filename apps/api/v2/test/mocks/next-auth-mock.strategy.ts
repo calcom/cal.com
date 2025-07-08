@@ -1,11 +1,11 @@
 import { NextAuthPassportStrategy } from "@/lib/passport/strategies/types";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 
 @Injectable()
 export class NextAuthMockStrategy extends PassportStrategy(NextAuthPassportStrategy, "next-auth") {
-  constructor(private readonly email: string, private readonly userRepository: UsersRepository) {
+  constructor(private readonly email: string, private readonly userRepository: PrismaUsersRepository) {
     super();
   }
   async authenticate() {

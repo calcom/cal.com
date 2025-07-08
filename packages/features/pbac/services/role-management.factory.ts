@@ -1,4 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -111,12 +111,12 @@ class LegacyRoleManager implements IRoleManager {
 
 export class RoleManagementFactory {
   private static instance: RoleManagementFactory;
-  private featuresRepository: FeaturesRepository;
+  private featuresRepository: PrismaFeaturesRepository;
   private roleService: RoleService;
   private permissionCheckService: PermissionCheckService;
 
   private constructor() {
-    this.featuresRepository = new FeaturesRepository();
+    this.featuresRepository = new PrismaFeaturesRepository();
     this.roleService = new RoleService();
     this.permissionCheckService = new PermissionCheckService();
   }

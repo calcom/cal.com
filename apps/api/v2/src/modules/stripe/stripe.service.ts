@@ -4,7 +4,7 @@ import { CredentialsRepository } from "@/modules/credentials/credentials.reposit
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import {
   Injectable,
   NotFoundException,
@@ -46,7 +46,7 @@ export class StripeService {
     private readonly appsRepository: AppsRepository,
     private readonly credentialsRepository: CredentialsRepository,
     private readonly membershipRepository: MembershipsRepository,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: PrismaUsersRepository
   ) {
     this.stripe = new Stripe(configService.get("stripe.apiKey", { infer: true }) ?? "", {
       apiVersion: "2020-08-27",

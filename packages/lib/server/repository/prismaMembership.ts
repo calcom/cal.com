@@ -6,8 +6,8 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
+import { withSelectedCalendars } from "./prismaUser";
 import { LookupTarget, ProfileRepository } from "./profile";
-import { withSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 type IMembership = {
@@ -69,7 +69,7 @@ const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipW
   return prismaWhere;
 };
 
-export class MembershipRepository {
+export class PrismaMembershipRepository {
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
   async hasMembership({ userId, teamId }: { userId: number; teamId: number }): Promise<boolean> {

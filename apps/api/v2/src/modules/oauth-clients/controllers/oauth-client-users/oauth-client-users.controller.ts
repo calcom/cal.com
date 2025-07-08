@@ -17,7 +17,7 @@ import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import {
   Body,
   Controller,
@@ -54,7 +54,7 @@ export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
 
   constructor(
-    private readonly userRepository: UsersRepository,
+    private readonly userRepository: PrismaUsersRepository,
     private readonly oAuthClientUsersService: OAuthClientUsersService,
     private readonly oauthRepository: OAuthClientRepository,
     private readonly tokensRepository: TokensRepository,

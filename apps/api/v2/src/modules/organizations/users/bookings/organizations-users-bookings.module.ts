@@ -1,6 +1,6 @@
 import { BookingsModule_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsUsersBookingsController } from "@/modules/organizations/users/bookings/controllers/organizations-users-bookings-controller";
 import { OrganizationUsersBookingsService } from "@/modules/organizations/users/bookings/services/organization-users-bookings.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -18,7 +18,7 @@ import { Module } from "@nestjs/common";
     RedisModule,
     MembershipsModule,
   ],
-  providers: [OrganizationUsersBookingsService, OrganizationsRepository],
+  providers: [OrganizationUsersBookingsService, PrismaOrganizationsRepository],
   controllers: [OrganizationsUsersBookingsController],
 })
 export class OrganizationsUsersBookingsModule {}

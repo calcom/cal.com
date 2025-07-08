@@ -14,7 +14,7 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SelectedCalendarsModule } from "@/modules/selected-calendars/selected-calendars.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -24,7 +24,7 @@ import { Module } from "@nestjs/common";
     EventTypesService_2024_06_14,
     InputEventTypesService_2024_06_14,
     OutputEventTypesService_2024_06_14,
-    UsersRepository,
+    PrismaUsersRepository,
     UsersService,
     SchedulesRepository_2024_06_11,
     EventTypeResponseTransformPipe,

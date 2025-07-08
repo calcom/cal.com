@@ -6,7 +6,7 @@ import {
   SortOrder,
 } from "@/modules/ooo/inputs/ooo.input";
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 
 import { OutOfOfficeEntry } from "@calcom/prisma/client";
@@ -31,7 +31,7 @@ const OOO_REASON_TO_REASON_ID = {
 export class UserOOOService {
   constructor(
     private readonly oooRepository: UserOOORepository,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: PrismaUsersRepository
   ) {}
 
   formatOooReason(ooo: OutOfOfficeEntry) {

@@ -10,7 +10,7 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SelectedCalendarsController } from "@/modules/selected-calendars/controllers/selected-calendars.controller";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { SelectedCalendarsService } from "@/modules/selected-calendars/services/selected-calendars.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -19,7 +19,7 @@ import { Module } from "@nestjs/common";
     SelectedCalendarsRepository,
     CalendarsRepository,
     CalendarsService,
-    UsersRepository,
+    PrismaUsersRepository,
     CredentialsRepository,
     AppsRepository,
     OrganizationsMembershipService,

@@ -3,8 +3,6 @@ import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 import type { Team } from "@prisma/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { TeamRepository } from "./team";
-
 describe("TeamRepository", () => {
   beforeEach(() => {
     vi.resetAllMocks();

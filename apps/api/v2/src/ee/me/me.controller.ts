@@ -9,7 +9,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { UserWithProfile, PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
@@ -25,7 +25,7 @@ import { userSchemaResponse } from "@calcom/platform-types";
 @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
 export class MeController {
   constructor(
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly schedulesService: SchedulesService_2024_04_15,
     private readonly usersService: UsersService
   ) {}

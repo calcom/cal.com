@@ -1,7 +1,7 @@
 import appConfig from "@/config/app";
 import { AuthMethods } from "@/lib/enums/auth-methods";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
-import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
+import { PrismaDeploymentsRepository } from "@/modules/deployments/deployments.repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
 import { JwtService } from "@/modules/jwt/jwt.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -11,7 +11,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { ProfilesModule } from "@/modules/profiles/profiles.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { ExecutionContext, HttpException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ConfigModule } from "@nestjs/config";
@@ -70,7 +70,7 @@ describe("ApiAuthStrategy", () => {
         ApiAuthStrategy,
         ConfigService,
         OAuthFlowService,
-        UsersRepository,
+        PrismaUsersRepository,
         UsersService,
         ApiKeysRepository,
         DeploymentsService,
@@ -79,7 +79,7 @@ describe("ApiAuthStrategy", () => {
         PrismaWriteService,
         TokensRepository,
         JwtService,
-        DeploymentsRepository,
+        PrismaDeploymentsRepository,
         NestJwtService,
       ],
     }).compile();

@@ -26,7 +26,7 @@ type CredentialUpdateInput = {
   invalid?: boolean;
 };
 
-export class CredentialRepository {
+export class PrismaCredentialRepository {
   static async create(data: CredentialCreateInput) {
     const credential = await prisma.credential.create({ data: { ...data } });
     return buildNonDelegationCredential(credential);

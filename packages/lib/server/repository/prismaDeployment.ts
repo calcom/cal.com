@@ -4,7 +4,7 @@ import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma"
 
 import type { IDeploymentRepository } from "./deployment.interface";
 
-export class DeploymentRepository implements IDeploymentRepository {
+export class PrismaDeploymentRepository implements IDeploymentRepository {
   constructor(private prisma: PrismaClientWithoutExtensions | PrismaClientWithExtensions) {}
 
   async getLicenseKeyWithId(id: number): Promise<string | null> {

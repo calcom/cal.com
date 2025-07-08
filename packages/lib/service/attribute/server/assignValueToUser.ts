@@ -2,9 +2,9 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 
-import { AttributeRepository } from "../../../server/repository/attribute";
-import { AttributeOptionRepository } from "../../../server/repository/attributeOption";
-import { MembershipRepository } from "../../../server/repository/membership";
+import { AttributeRepository } from "../../../server/repository/prismaAttribute";
+import { AttributeOptionRepository } from "../../../server/repository/prismaAttributeOption";
+import { PrismaMembershipRepository } from "../../../server/repository/prismaMembership";
 import type { AttributeId, AttributeName, BulkAttributeAssigner, AttributeOptionAssignment } from "../types";
 import {
   doesSupportMultipleValues,
@@ -418,7 +418,7 @@ export const assignValueToUserInOrgBulk = async ({
   attributeLabelToValueMap: AttributeLabelToValueMap;
   updater: BulkAttributeAssigner;
 }) => {
-  const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
+  const membership = await PrismaMembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
   const defaultReturn = { numOfAttributeOptionsSet: 0, numOfAttributeOptionsDeleted: 0 };
   if (!membership) {
     console.error(`User ${userId} not a member of org ${orgId}, not assigning attribute options`);

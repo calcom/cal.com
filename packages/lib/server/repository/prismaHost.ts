@@ -1,6 +1,6 @@
 import prisma from "@calcom/prisma";
 
-export class HostRepository {
+export class PrismaHostRepository {
   static async updateHostsSchedule(userId: number, oldScheduleId: number, newScheduleId: number) {
     return await prisma.host.updateMany({
       where: {

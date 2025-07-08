@@ -11,3 +11,5 @@ export class MockFeaturesRepository implements IFeaturesRepository {
     return true;
   }
 }
+
+export const PrismaFeaturesRepository = MockFeaturesRepository;

@@ -6,7 +6,7 @@ import {
 } from "@/modules/credentials/credentials.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import {
   Injectable,
   InternalServerErrorException,
@@ -32,7 +32,7 @@ export class CalendarsService {
   private oAuthCalendarResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
 
   constructor(
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly credentialsRepository: CredentialsRepository,
     private readonly appsRepository: AppsRepository,
     private readonly calendarsRepository: CalendarsRepository,

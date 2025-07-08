@@ -18,7 +18,7 @@ const workspacePlatformSelectWithServiceAccountKey = {
   defaultServiceAccountKey: true,
 };
 
-export class WorkspacePlatformRepository {
+export class PrismaWorkspacePlatformRepository {
   private static withParsedServiceAccountKey<T extends { defaultServiceAccountKey: Prisma.JsonValue }>(
     data: T
   ) {

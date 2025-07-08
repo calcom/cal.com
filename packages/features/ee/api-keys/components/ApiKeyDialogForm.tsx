@@ -150,7 +150,8 @@ export default function ApiKeyDialogForm({
                   {t("api_key_modal_subtitle")}
                 </div>
                 <Link
-                  target="_blank" rel="noopener noreferrer"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   href="https://cal.com/platform"
                   className="border-subtle relative flex w-full items-start rounded-[10px] border p-4 text-sm">
                   {t("api_key_modal_subtitle_platform")}

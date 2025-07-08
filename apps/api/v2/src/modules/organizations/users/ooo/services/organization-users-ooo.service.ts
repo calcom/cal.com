@@ -1,7 +1,7 @@
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
 import { UserOOOService } from "@/modules/ooo/services/ooo.service";
 import { OrgUsersOOORepository } from "@/modules/organizations/users/ooo/organizations-users-ooo.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
@@ -9,7 +9,7 @@ export class OrgUsersOOOService {
   constructor(
     private readonly oooRepository: UserOOORepository,
     private readonly oooUserService: UserOOOService,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: PrismaUsersRepository,
     private readonly orgUsersOOORepository: OrgUsersOOORepository
   ) {}
 

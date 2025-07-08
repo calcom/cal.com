@@ -2,12 +2,12 @@ import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_0
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, EventTypesModule_2024_06_14, TokensModule],
-  providers: [UsersRepository, UsersService],
-  exports: [UsersRepository, UsersService],
+  providers: [PrismaUsersRepository, UsersService],
+  exports: [PrismaUsersRepository, UsersService],
 })
 export class UsersModule {}

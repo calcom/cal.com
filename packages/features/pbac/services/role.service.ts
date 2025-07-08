@@ -4,7 +4,7 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { RoleType as DomainRoleType } from "../domain/models/Role";
 import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models/Role";
 import type { IRoleRepository } from "../domain/repositories/IRoleRepository";
-import { RoleRepository } from "../infrastructure/repositories/RoleRepository";
+import { KyselyRoleRepository } from "../infrastructure/repositories/RoleRepository";
 import { DEFAULT_ROLE_IDS } from "../lib/constants";
 import { PermissionService } from "./permission.service";
 
@@ -12,7 +12,7 @@ import { PermissionService } from "./permission.service";
 
 export class RoleService {
   constructor(
-    private readonly repository: IRoleRepository = new RoleRepository(),
+    private readonly repository: IRoleRepository = new KyselyRoleRepository(),
     private readonly permissionService: PermissionService = new PermissionService()
   ) {}
 

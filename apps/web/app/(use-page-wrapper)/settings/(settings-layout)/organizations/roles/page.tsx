@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { AppFlags } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -29,7 +29,7 @@ const getCachedTeamRoles = unstable_cache(
 
 const getCachedTeamFeature = unstable_cache(
   async (teamId: number, feature: keyof AppFlags) => {
-    const featureRepo = new FeaturesRepository();
+    const featureRepo = new PrismaFeaturesRepository();
     const res = await featureRepo.checkIfTeamHasFeature(teamId, feature);
     return res;
   },

@@ -2,7 +2,7 @@ import { getPagination } from "@/lib/pagination/pagination";
 import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
@@ -18,7 +18,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 export class ManagedOrganizationsService {
   constructor(
     private readonly managedOrganizationsRepository: ManagedOrganizationsRepository,
-    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly organizationsRepository: PrismaOrganizationsRepository,
     private readonly managedOrganizationsBillingService: ManagedOrganizationsBillingService,
     private readonly organizationsMembershipService: OrganizationsMembershipService,
     private readonly apiKeysService: ApiKeysService,

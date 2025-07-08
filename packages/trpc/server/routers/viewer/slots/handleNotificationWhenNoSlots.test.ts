@@ -23,6 +23,9 @@ vi.mock("@calcom/features/flags/features.repository", () => ({
   FeaturesRepository: vi.fn().mockImplementation(() => ({
     checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
   })),
+  PrismaFeaturesRepository: vi.fn().mockImplementation(() => ({
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+  })),
 }));
 
 vi.spyOn(CalcomEmails, "sendOrganizationAdminNoSlotsNotification");

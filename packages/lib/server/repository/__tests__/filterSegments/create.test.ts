@@ -6,10 +6,10 @@ import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { FilterSegmentRepository } from "../../filterSegment";
 import type { TCreateFilterSegmentInputSchema } from "../../filterSegment.type";
+import { PrismaFilterSegmentRepository } from "../../prismaFilterSegment";
 
-const repository = new FilterSegmentRepository();
+const repository = new PrismaFilterSegmentRepository();
 
 describe("FilterSegmentRepository.create()", () => {
   const userId = 1;

@@ -1,7 +1,7 @@
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { InputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/input-schedules.service";
 import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
 
@@ -14,7 +14,7 @@ export class SchedulesService_2024_06_11 {
     private readonly schedulesRepository: SchedulesRepository_2024_06_11,
     private readonly inputSchedulesService: InputSchedulesService_2024_06_11,
     private readonly outputSchedulesService: OutputSchedulesService_2024_06_11,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: PrismaUsersRepository
   ) {}
 
   async createUserDefaultSchedule(userId: number, timeZone: string) {

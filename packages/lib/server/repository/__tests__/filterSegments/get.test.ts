@@ -5,10 +5,10 @@ import { describe, expect, it } from "vitest";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { FilterSegmentRepository } from "../../filterSegment";
 import { type TListFilterSegmentsInputSchema } from "../../filterSegment.type";
+import { PrismaFilterSegmentRepository } from "../../prismaFilterSegment";
 
-const repository = new FilterSegmentRepository();
+const repository = new PrismaFilterSegmentRepository();
 
 describe("FilterSegmentRepository.get()", () => {
   const userId = 1;

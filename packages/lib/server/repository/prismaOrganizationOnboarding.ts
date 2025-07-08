@@ -26,7 +26,7 @@ export type CreateOrganizationOnboardingInput = {
   isComplete?: boolean;
 };
 
-export class OrganizationOnboardingRepository {
+export class PrismaOrganizationOnboardingRepository {
   static async create(data: CreateOrganizationOnboardingInput) {
     logger.debug("Creating organization onboarding", safeStringify(data));
 

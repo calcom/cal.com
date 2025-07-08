@@ -1,7 +1,7 @@
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { VerificationTokenRepository } from "@calcom/lib/server/repository/verificationToken";
+import { VerificationTokenRepository } from "@calcom/lib/server/repository/prismaVerificationToken";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";

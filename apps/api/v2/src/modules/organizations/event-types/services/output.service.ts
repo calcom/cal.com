@@ -1,6 +1,6 @@
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, Host, DestinationCalendar, CalVideoSettings } from "@prisma/client";
 import { SchedulingType, Team } from "@prisma/client";
@@ -81,7 +81,7 @@ export class OutputOrganizationsEventTypesService {
   constructor(
     private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: PrismaUsersRepository
   ) {}
 
   async getResponseTeamEventType(databaseEventType: Input, isOrgTeamEvent: boolean) {

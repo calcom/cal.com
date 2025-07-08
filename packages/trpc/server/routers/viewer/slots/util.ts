@@ -41,14 +41,14 @@ import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
-import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
-import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
-import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
+import { PrismaBookingRepository as BookingRepo } from "@calcom/lib/server/repository/prismaBooking";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/prismaEventType";
+import { PrismaRoutingFormResponseRepository } from "@calcom/lib/server/repository/prismaFormResponse";
+import { PrismaScheduleRepository } from "@calcom/lib/server/repository/prismaSchedule";
+import { PrismaSelectedSlotsRepository } from "@calcom/lib/server/repository/prismaSelectedSlots";
+import { PrismaTeamRepository } from "@calcom/lib/server/repository/prismaTeam";
+import { PrismaUserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/prismaUser";
 import getSlots from "@calcom/lib/slots";
 import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/client";
@@ -94,7 +94,11 @@ async function getEventTypeId({
       organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
     );
   }
-  const eventType = await EventTypeRepository.findFirstEventTypeId({ slug: eventTypeSlug, teamId, userId });
+  const eventType = await PrismaEventTypeRepository.findFirstEventTypeId({
+    slug: eventTypeSlug,
+    teamId,
+    userId,
+  });
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
@@ -113,7 +117,7 @@ async function _getReservedSlotsAndCleanupExpired({
   const currentTimeInUtc = dayjs.utc().format();
 
   const unexpiredSelectedSlots =
-    (await SelectedSlotsRepository.findManyUnexpiredSlots({
+    (await PrismaSelectedSlotsRepository.findManyUnexpiredSlots({
       userIds: usersWithCredentials.map((user) => user.id),
       currentTimeInUtc,
     })) || [];
@@ -127,7 +131,7 @@ async function _getReservedSlotsAndCleanupExpired({
   return reservedSlots;
 
   async function _cleanupExpiredSlots({ eventTypeId }: { eventTypeId: number }) {
-    await SelectedSlotsRepository.deleteManyExpiredSlots({ eventTypeId, currentTimeInUtc });
+    await PrismaSelectedSlotsRepository.deleteManyExpiredSlots({ eventTypeId, currentTimeInUtc });
   }
 }
 
@@ -151,7 +155,7 @@ const _getEventType = async (
     return null;
   }
 
-  return await EventTypeRepository.findForSlots({ id: eventTypeId });
+  return await PrismaEventTypeRepository.findForSlots({ id: eventTypeId });
 };
 
 export const getEventType = withReporting(_getEventType, "getEventType");
@@ -170,7 +174,7 @@ const _getDynamicEventType = async (
   }
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
 
-  const usersForDynamicEventType = await UserRepository.findManyUsersForDynamicEventType({
+  const usersForDynamicEventType = await PrismaUserRepository.findManyUsersForDynamicEventType({
     currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
     usernameList: Array.isArray(input.usernameList)
       ? input.usernameList
@@ -343,11 +347,11 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
 
   let routingFormResponse = null;
   if (routingFormResponseId) {
-    routingFormResponse = await RoutingFormResponseRepository.findFormResponseIncludeForm({
+    routingFormResponse = await PrismaRoutingFormResponseRepository.findFormResponseIncludeForm({
       routingFormResponseId,
     });
   } else if (queuedFormResponseId) {
-    routingFormResponse = await RoutingFormResponseRepository.findQueuedFormResponseIncludeForm({
+    routingFormResponse = await PrismaRoutingFormResponseRepository.findQueuedFormResponseIncludeForm({
       queuedFormResponseId,
     });
   }
@@ -465,7 +469,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
   const bookerClientUid = ctx?.req?.cookies?.uid;
   const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
   if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
-    const scheduleRepo = new ScheduleRepository(prisma);
+    const scheduleRepo = new PrismaScheduleRepository(prisma);
     const restrictionSchedule = await scheduleRepo.findScheduleByIdForBuildDateRanges({
       scheduleId: eventType.restrictionScheduleId,
     });
@@ -783,7 +787,7 @@ async function getUserIdFromUsername(
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
   log.info("getUserIdFromUsername", safeStringify({ organizationDetails, username }));
-  const [user] = await UserRepository.findUsersByUsername({
+  const [user] = await PrismaUserRepository.findUsersByUsername({
     usernameList: [username],
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
@@ -795,7 +799,7 @@ async function getTeamIdFromSlug(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-  const team = await TeamRepository.findFirstBySlugAndParentSlug({
+  const team = await PrismaTeamRepository.findFirstBySlugAndParentSlug({
     slug,
     parentSlug: isValidOrgDomain && currentOrgDomain ? currentOrgDomain : null,
     select: { id: true },

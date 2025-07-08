@@ -7,7 +7,7 @@ interface RecordFormResponseInput {
   chosenRouteId: string | null;
 }
 
-export class RoutingFormResponseRepository {
+export class PrismaRoutingFormResponseRepository {
   private static generateCreateFormResponseData(
     input: RecordFormResponseInput & { queuedFormResponseId?: string | null }
   ) {

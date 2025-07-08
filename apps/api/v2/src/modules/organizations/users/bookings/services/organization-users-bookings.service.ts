@@ -1,5 +1,5 @@
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { GetBookingsInput_2024_08_13 } from "@calcom/platform-types";
@@ -8,7 +8,7 @@ import { GetBookingsInput_2024_08_13 } from "@calcom/platform-types";
 export class OrganizationUsersBookingsService {
   constructor(
     private readonly bookingsService: BookingsService_2024_08_13,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: PrismaUsersRepository
   ) {}
 
   async getOrganizationUserBookings(orgId: number, userId: number, queryParams: GetBookingsInput_2024_08_13) {

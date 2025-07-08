@@ -2,8 +2,8 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
+import { PrismaEventTypeRepository } from "@calcom/lib/server/repository/prismaEventType";
+import { SelectedSlotsRepository } from "@calcom/lib/server/repository/prismaSelectedSlots";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TIsAvailableInputSchema, TIsAvailableOutputSchema } from "./isAvailable.schema";
@@ -32,7 +32,7 @@ export const isAvailableHandler = async ({
   const { slots, eventTypeId } = input;
 
   // Get event type details for time bounds validation
-  const eventType = await EventTypeRepository.findByIdMinimal({ id: eventTypeId });
+  const eventType = await PrismaEventTypeRepository.findByIdMinimal({ id: eventTypeId });
 
   if (!eventType) {
     throw new HttpError({ statusCode: 404, message: "Event type not found" });

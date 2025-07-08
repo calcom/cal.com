@@ -1,5 +1,5 @@
 import { BillingRepository } from "@/modules/billing/billing.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { Process, Processor } from "@nestjs/bull";
 import { Logger } from "@nestjs/common";
@@ -20,7 +20,7 @@ export class BillingProcessor {
   constructor(
     public readonly stripeService: StripeService,
     private readonly billingRepository: BillingRepository,
-    private readonly teamsRepository: OrganizationsRepository
+    private readonly teamsRepository: PrismaOrganizationsRepository
   ) {}
 
   @Process(INCREMENT_JOB)

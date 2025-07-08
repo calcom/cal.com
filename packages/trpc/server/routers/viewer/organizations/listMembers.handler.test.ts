@@ -28,6 +28,9 @@ vi.mock("@calcom/features/flags/features.repository", () => ({
   FeaturesRepository: vi.fn().mockImplementation(() => ({
     checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
   })),
+  PrismaFeaturesRepository: vi.fn().mockImplementation(() => ({
+    checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
+  })),
 }));
 
 const ORGANIZATION_ID = 123;

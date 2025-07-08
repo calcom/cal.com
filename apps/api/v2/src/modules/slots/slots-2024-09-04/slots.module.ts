@@ -1,6 +1,6 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { PrismaOrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -12,7 +12,7 @@ import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slo
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -27,11 +27,11 @@ import { Module } from "@nestjs/common";
   providers: [
     SlotsRepository_2024_09_04,
     SlotsService_2024_09_04,
-    UsersRepository,
+    PrismaUsersRepository,
     SlotsInputService_2024_09_04,
     SlotsOutputService_2024_09_04,
     OrganizationsUsersRepository,
-    OrganizationsRepository,
+    PrismaOrganizationsRepository,
     OrganizationsTeamsRepository,
   ],
   controllers: [SlotsController_2024_09_04],

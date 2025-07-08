@@ -9,7 +9,7 @@ import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.se
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { UserWithProfile, PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
@@ -36,7 +36,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     private readonly config: ConfigService,
     private readonly oauthFlowService: OAuthFlowService,
     private readonly tokensRepository: TokensRepository,
-    private readonly userRepository: UsersRepository,
+    private readonly userRepository: PrismaUsersRepository,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly oauthRepository: OAuthClientRepository,
     private readonly profilesRepository: ProfilesRepository,

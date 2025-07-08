@@ -8,7 +8,10 @@ import { Logger } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
 import { JWT } from "googleapis-common";
 
-import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
+import {
+  PrismaDelegationCredentialRepository,
+  OAuth2UniversalSchema,
+} from "@calcom/platform-libraries/app-store";
 
 import { UnifiedCalendarEventOutput } from "../outputs/get-unified-calendar-event";
 
@@ -89,7 +92,7 @@ export class GoogleCalendarService {
       const cleanEmail = emailToImpersonate.replace(oauthClientIdAliasRegex, "");
 
       const serviceAccountCreds =
-        await DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({
+        await PrismaDelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({
           id: delegationCredential.id,
         });
 

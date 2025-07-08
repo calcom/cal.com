@@ -14,16 +14,15 @@ import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pag
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { PrismaUserRepository } from "@calcom/lib/server/repository/prismaUser";
 
 import { getRoutedUrl } from "./getRoutedUrl";
 
 // Mock dependencies
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
-vi.mock("@calcom/lib/server/repository/routingForm");
-vi.mock("@calcom/lib/server/repository/user");
+vi.mock("@calcom/lib/server/repository/prismaRoutingForm");
+vi.mock("@calcom/lib/server/repository/prismaUser");
 vi.mock("@calcom/features/ee/organizations/lib/orgDomains");
 vi.mock("@calcom/features/routing-forms/lib/isAuthorizedToViewForm");
 vi.mock("@calcom/app-store/routing-forms/lib/getSerializableForm");
@@ -79,7 +78,7 @@ describe("getRoutedUrl", () => {
     // Provide default mock implementations
     vi.mocked(orgDomainConfig).mockReturnValue({ currentOrgDomain: null });
     vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(null);
-    vi.mocked(UserRepository.enrichUserWithItsProfile).mockImplementation(async ({ user }) => user);
+    vi.mocked(PrismaUserRepository.enrichUserWithItsProfile).mockImplementation(async ({ user }) => user);
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(true);
     vi.mocked(getSerializableForm).mockResolvedValue(mockSerializableForm as never);
     vi.mocked(findMatchingRoute).mockReturnValue(null);

@@ -10,7 +10,7 @@ import { RetryableError } from "@calcom/lib/crmManager/errors";
 import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { AssignmentReasonRepository } from "@calcom/lib/server/repository/assignmentReason";
+import { AssignmentReasonRepository } from "@calcom/lib/server/repository/prismaAssignmentReason";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";

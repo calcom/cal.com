@@ -1,5 +1,5 @@
 import { NextAuthPassportStrategy } from "@/lib/passport/strategies/types";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { PrismaUsersRepository } from "@/modules/users/users.repository";
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
@@ -8,7 +8,10 @@ import { getToken } from "next-auth/jwt";
 
 @Injectable()
 export class NextAuthStrategy extends PassportStrategy(NextAuthPassportStrategy, "next-auth") {
-  constructor(private readonly userRepository: UsersRepository, private readonly config: ConfigService) {
+  constructor(
+    private readonly userRepository: PrismaUsersRepository,
+    private readonly config: ConfigService
+  ) {
     super();
   }
 

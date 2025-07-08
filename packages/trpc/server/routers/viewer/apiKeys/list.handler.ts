@@ -1,4 +1,4 @@
-import { ApiKeyRepository } from "@calcom/lib/server/repository/apiKey";
+import { ApiKeyRepository } from "@calcom/lib/server/repository/prismaApiKey";
 
 import type { TrpcSessionUser } from "../../../types";
 

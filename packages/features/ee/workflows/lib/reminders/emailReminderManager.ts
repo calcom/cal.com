@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import tasker from "@calcom/features/tasker";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -266,7 +266,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new PrismaFeaturesRepository();
 
   const isWorkflowSmtpEmailsEnabled = teamId
     ? await featureRepo.checkIfTeamHasFeature(teamId, "workflow-smtp-emails")

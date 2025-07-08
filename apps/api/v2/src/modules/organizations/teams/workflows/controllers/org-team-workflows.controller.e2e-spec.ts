@@ -21,13 +21,13 @@ import { Test } from "@nestjs/testing";
 import { User, Team } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { PrismaMembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { VerifiedResourcesRepositoryFixtures } from "test/fixtures/repository/verified-resources.repository.fixture";
-import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
+import { PrismaWorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -41,7 +41,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let profileRepositoryFixture: ProfileRepositoryFixture;
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
-  let workflowsRepositoryFixture: WorkflowRepositoryFixture;
+  let workflowsRepositoryFixture: PrismaWorkflowRepositoryFixture;
   let basePath = "";
   let org: Team;
   let orgTeam: Team;
@@ -81,7 +81,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
     apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
-    workflowsRepositoryFixture = new WorkflowRepositoryFixture(moduleRef);
+    workflowsRepositoryFixture = new PrismaWorkflowRepositoryFixture(moduleRef);
     verifiedResourcesRepositoryFixtures = new VerifiedResourcesRepositoryFixtures(moduleRef);
 
     org = await organizationsRepositoryFixture.create({
