@@ -136,12 +136,38 @@ export const useSchedule = ({
     eventTypeId: eventId ?? undefined,
   });
 
+  const staleSchedule = isTeamEvent
+    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(
+        {
+          ...input,
+          allowStale: true,
+        },
+        {
+          ...options,
+          trpc: {
+            context: {
+              skipBatch: true,
+            },
+          },
+          enabled: options.enabled && !isCallingApiV2Slots,
+        }
+      )
+    : undefined;
+
+  console.log("staleSchedule", staleSchedule);
+
   const schedule = isTeamEvent
-    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(input, {
-        ...options,
-        // Only enable if we're not using API V2
-        enabled: options.enabled && !isCallingApiV2Slots,
-      })
+    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(
+        {
+          ...input,
+          allowStale: false,
+        },
+        {
+          ...options,
+          // Only enable if we're not using API V2
+          enabled: options.enabled && staleSchedule?.isSuccess && !isCallingApiV2Slots,
+        }
+      )
     : trpc.viewer.slots.getSchedule.useQuery(input, options);
 
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
@@ -166,8 +192,15 @@ export const useSchedule = ({
     slotsQuery: schedule,
   });
 
+  console.log("scheduleLoading", staleSchedule?.isLoading);
+  console.log("staleLoaded", staleSchedule?.isSuccess);
+
+  const data = schedule.data ?? staleSchedule?.data;
+
   return {
     ...schedule,
+    isPending: staleSchedule?.isPending,
+    data,
     /**
      * Invalidates the request and resends it regardless of any other configuration including staleTime
      */
