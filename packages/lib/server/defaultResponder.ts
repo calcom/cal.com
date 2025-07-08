@@ -36,9 +36,15 @@ export function defaultResponder<T>(
         url: error.url,
         method: error.method,
         data: error?.data || null,
+      } as {
+        message: string;
+        url: string | undefined;
+        method: string | undefined;
+        data: Record<string, unknown> | null;
+        traceId?: string;
       };
 
-      if (error?.data?.traceId) {
+      if (error?.data?.traceId && typeof error.data.traceId === "string") {
         errorResponse.traceId = error.data.traceId;
       }
 

@@ -69,7 +69,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { DistributedTracing } from "@calcom/lib/tracing";
+import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -383,6 +383,7 @@ export type BookingHandlerInput = {
   // These used to come from headers but now we're passing them as params
   hostname?: string;
   forcedSlug?: string;
+  traceContext?: TraceContext;
 } & PlatformParams;
 
 async function handler(
@@ -400,14 +401,23 @@ async function handler(
     hostname,
     forcedSlug,
     areCalendarEventsEnabled = true,
+    traceContext: passedTraceContext,
   } = input;
 
-  const traceContext = DistributedTracing.createTrace("booking_creation", {
-    eventTypeId: rawBookingData.eventTypeId,
-    userId: userId,
-    eventTypeSlug: rawBookingData.eventTypeSlug,
-    userInfo: rawBookingData.user,
-  });
+  const traceContext = passedTraceContext
+    ? {
+        ...passedTraceContext,
+        eventTypeId: rawBookingData.eventTypeId,
+        userId: userId,
+        eventTypeSlug: rawBookingData.eventTypeSlug,
+        userInfo: rawBookingData.user,
+      }
+    : DistributedTracing.createTrace("booking_creation", {
+        eventTypeId: rawBookingData.eventTypeId,
+        userId: userId,
+        eventTypeSlug: rawBookingData.eventTypeSlug,
+        userInfo: rawBookingData.user,
+      });
   const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
 
   tracingLogger.info("Booking creation started", {
