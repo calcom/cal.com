@@ -57,6 +57,9 @@ export const getHashedLinksHandler = async ({ ctx, input }: GetHashedLinksOption
             userId,
             accepted: true,
           },
+          select: {
+            id: true,
+          },
         });
 
         if (!membership) {
