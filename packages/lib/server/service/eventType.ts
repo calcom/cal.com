@@ -8,6 +8,7 @@ import {
   EventTypeMetaDataSchema,
   EventTypeAppMetadataSchema,
   bookerLayouts as bookerLayoutsSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
 } from "@calcom/prisma/zod-utils";
 
 import { getPlaceholderAvatar } from "../../defaultAvatarImage";
@@ -107,11 +108,12 @@ export class EventTypeService {
     const name = team.parent?.name ?? team.name ?? null;
     const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
-    const eventMetaData = EventTypeMetaDataSchema.parse(eventData.metadata);
+    const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(eventData.metadata);
 
     const eventDataShared = await processEventDataShared({
       eventData,
       metadata: eventMetaData,
+      prisma,
     });
 
     return {

@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import removeMember from "@calcom/features/ee/teams/lib/removeMember";
+import { getPublicEventSelect } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
@@ -138,6 +139,7 @@ export class TeamService {
         hideBranding: true,
         parent: {
           select: {
+            id: true,
             slug: true,
             name: true,
             bannerUrl: true,
@@ -160,88 +162,7 @@ export class TeamService {
           where: {
             OR: [{ slug: meetingSlug }, { slug: { startsWith: `${meetingSlug}-team-id-` } }],
           },
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            description: true,
-            isInstantEvent: true,
-            schedulingType: true,
-            metadata: true,
-            length: true,
-            hidden: true,
-            disableCancelling: true,
-            disableRescheduling: true,
-            allowReschedulingCancelledBookings: true,
-            interfaceLanguage: true,
-            instantMeetingParameters: true,
-            aiPhoneCallConfig: true,
-            disableGuests: true,
-            assignAllTeamMembers: true,
-            bookingFields: true,
-            customInputs: true,
-            locations: true,
-            price: true,
-            currency: true,
-            requiresConfirmation: true,
-            requiresBookerEmailVerification: true,
-            recurringEvent: true,
-            seatsPerTimeSlot: true,
-            seatsShowAttendees: true,
-            seatsShowAvailabilityCount: true,
-            hideOrganizerEmail: true,
-            successRedirectUrl: true,
-            forwardParamsSuccessRedirect: true,
-            lockTimeZoneToggleOnBookingPage: true,
-            autoTranslateDescriptionEnabled: true,
-            periodType: true,
-            periodDays: true,
-            periodEndDate: true,
-            periodStartDate: true,
-            periodCountCalendarDays: true,
-            rescheduleWithSameRoundRobinHost: true,
-            fieldTranslations: {
-              select: {
-                translatedText: true,
-                targetLocale: true,
-                field: true,
-              },
-            },
-            schedule: {
-              select: {
-                id: true,
-                timeZone: true,
-              },
-            },
-            instantMeetingSchedule: {
-              select: {
-                id: true,
-                timeZone: true,
-              },
-            },
-            workflows: {
-              include: {
-                workflow: {
-                  include: {
-                    steps: true,
-                  },
-                },
-              },
-            },
-            hosts: {
-              take: 3,
-              select: {
-                user: {
-                  select: {
-                    name: true,
-                    username: true,
-                    email: true,
-                    weekStart: true,
-                  },
-                },
-              },
-            },
-          },
+          select: getPublicEventSelect(false),
         },
         isOrganization: true,
         organizationSettings: {

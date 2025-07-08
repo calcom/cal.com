@@ -50,7 +50,7 @@ const userSelect = {
   defaultScheduleId: true,
 } satisfies Prisma.UserSelect;
 
-const getPublicEventSelect = (fetchAllUsers: boolean) => {
+export const getPublicEventSelect = (fetchAllUsers: boolean) => {
   return {
     id: true,
     title: true,
@@ -476,6 +476,7 @@ export const getPublicEvent = async (
   const eventDataShared = await processEventDataShared({
     eventData: eventWithUserProfiles,
     metadata: eventMetaData,
+    prisma,
   });
 
   return {
@@ -647,7 +648,15 @@ function mapHostsToUsers(host: {
   };
 }
 
-export const processEventDataShared = async ({ eventData, metadata }) => {
+export const processEventDataShared = async ({
+  eventData,
+  metadata,
+  prisma,
+}: {
+  eventData: Prisma.EventTypeGetPayload<{ select: ReturnType<typeof getPublicEventSelect> }>;
+  metadata: ReturnType<typeof eventTypeMetaDataSchemaWithTypedApps.parse>;
+  prisma: PrismaClient;
+}) => {
   let showInstantEventConnectNowModal = eventData.isInstantEvent ?? false;
   if (eventData.isInstantEvent && eventData.instantMeetingSchedule?.id) {
     const { id, timeZone } = eventData.instantMeetingSchedule;
