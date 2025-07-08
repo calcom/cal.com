@@ -100,7 +100,7 @@ export const BookEventForm = ({
     // how many seconds are left to the meeting
     const secondsLeftTillMeeting = meetingTime.diff(currentTime, "second");
 
-    // how many seconds are left to the booking (minimumBookingNotice)
+    // how many seconds are left to make booking (minimumBookingNotice)
     const secondsLeftToMakeBooking = Math.min(
       secondsLeftTillMeeting - minimumBookingNoticeInSeconds,
       dayjs.duration(10, "days").asSeconds() // we limit it to 10 days because of setTimout don't allow more.
