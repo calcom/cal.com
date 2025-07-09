@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
+import { FileUploader, type FileData } from "@calcom/ui/components/file-uploader";
 import { Input, Label, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -13,6 +14,7 @@ interface ContactFormData {
   email: string;
   subject: string;
   message: string;
+  attachments?: FileData[];
 }
 
 const PlainContactForm = () => {
@@ -28,11 +30,16 @@ const PlainContactForm = () => {
     email: session?.user?.email || "",
     subject: "",
     message: "",
+    attachments: [],
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFilesChange = (files: FileData[]) => {
+    setFormData((prev) => ({ ...prev, attachments: files }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +67,7 @@ const PlainContactForm = () => {
         email: session?.user?.email || "",
         subject: "",
         message: "",
+        attachments: [],
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -76,6 +84,7 @@ const PlainContactForm = () => {
       email: session?.user?.email || "",
       subject: "",
       message: "",
+      attachments: [],
     });
   };
 
@@ -162,6 +171,20 @@ const PlainContactForm = () => {
                   onChange={handleInputChange}
                   required
                   rows={4}
+                />
+              </div>
+
+              <div>
+                <Label>{t("attachments_optional")}</Label>
+                <FileUploader
+                  id="contact-attachments"
+                  buttonMsg={t("add_files")}
+                  onFilesChange={handleFilesChange}
+                  acceptedFileTypes="image/*,video/*"
+                  maxFiles={5}
+                  maxFileSize={10 * 1024 * 1024}
+                  disabled={isSubmitting}
+                  testId="contact-form-file-upload"
                 />
               </div>
 

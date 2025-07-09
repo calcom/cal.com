@@ -7,11 +7,22 @@ import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
+const attachmentSchema = z.object({
+  file: z.object({
+    name: z.string(),
+    size: z.number(),
+    type: z.string(),
+  }),
+  dataUrl: z.string(),
+  id: z.string(),
+});
+
 const contactFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Valid email is required"),
   subject: z.string().min(1, "Subject is required"),
   message: z.string().min(1, "Message is required"),
+  attachments: z.array(attachmentSchema).optional().default([]),
 });
 
 export async function POST(req: Request) {
@@ -42,6 +53,27 @@ export async function POST(req: Request) {
               email
             }
             fullName
+          }
+          error {
+            message
+            type
+          }
+        }
+      }
+    `;
+
+    const createAttachmentUploadUrlMutation = `
+      mutation CreateAttachmentUploadUrl($input: CreateAttachmentUploadUrlInput!) {
+        createAttachmentUploadUrl(input: $input) {
+          attachmentUploadUrl {
+            uploadUrl
+            uploadFormData {
+              key
+              value
+            }
+            attachment {
+              id
+            }
           }
           error {
             message
@@ -104,6 +136,69 @@ export async function POST(req: Request) {
 
     const customerId = customerData.data.upsertCustomer.customer.id;
 
+    const attachmentIds: string[] = [];
+
+    if (validatedData.attachments && validatedData.attachments.length > 0) {
+      for (const attachment of validatedData.attachments) {
+        try {
+          const uploadUrlResponse = await fetch("https://core-api.uk.plain.com/graphql/v1", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${plainApiKey}`,
+            },
+            body: JSON.stringify({
+              query: createAttachmentUploadUrlMutation,
+              variables: {
+                input: {
+                  customerId,
+                  fileName: attachment.file.name,
+                  fileSizeBytes: attachment.file.size,
+                  attachmentType: "CUSTOMER_TIMELINE_ENTRY",
+                },
+              },
+            }),
+          });
+
+          const uploadUrlData = await uploadUrlResponse.json();
+
+          if (uploadUrlData.errors || uploadUrlData.data?.createAttachmentUploadUrl?.error) {
+            console.error("Plain attachment upload URL creation error:", uploadUrlData);
+            continue;
+          }
+
+          const {
+            uploadUrl,
+            uploadFormData,
+            attachment: attachmentInfo,
+          } = uploadUrlData.data.createAttachmentUploadUrl.attachmentUploadUrl;
+
+          const base64Data = attachment.dataUrl.split(",")[1];
+          const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+          const blob = new Blob([binaryData], { type: attachment.file.type });
+
+          const formData = new FormData();
+          uploadFormData.forEach((field: { key: string; value: string }) => {
+            formData.append(field.key, field.value);
+          });
+          formData.append("file", blob, attachment.file.name);
+
+          const uploadResponse = await fetch(uploadUrl, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (uploadResponse.ok) {
+            attachmentIds.push(attachmentInfo.id);
+          } else {
+            console.error("Failed to upload attachment to S3:", uploadResponse.statusText);
+          }
+        } catch (error) {
+          console.error("Error processing attachment:", error);
+        }
+      }
+    }
+
     const threadResponse = await fetch("https://core-api.uk.plain.com/graphql/v1", {
       method: "POST",
       headers: {
@@ -122,6 +217,11 @@ export async function POST(req: Request) {
                   text: validatedData.message,
                 },
               },
+              ...attachmentIds.map((attachmentId) => ({
+                componentAttachment: {
+                  attachmentId,
+                },
+              })),
             ],
             labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
           },

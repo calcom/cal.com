@@ -23,6 +23,13 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
         send_another_message: "Send Another Message",
         sending: "Sending...",
         send_message: "Send Message",
+        attachments_optional: "Attachments (Optional)",
+        add_files: "Add Files",
+        file_size_limit_exceed: "File size exceeds limit",
+        invalid_file_type: "Invalid file type",
+        max_files_exceeded: "Maximum files exceeded",
+        files_uploaded_successfully: "Files uploaded successfully",
+        file_upload_instructions: "Upload images or videos",
       };
       return translations[key] || key;
     },
@@ -70,6 +77,7 @@ describe("PlainContactForm", () => {
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Subject")).toBeInTheDocument();
     expect(screen.getByLabelText("Message")).toBeInTheDocument();
+    expect(screen.getByText("Attachments (Optional)")).toBeInTheDocument();
   });
 
   it("should pre-fill form with user data", () => {
@@ -132,6 +140,7 @@ describe("PlainContactForm", () => {
         email: "test@example.com",
         subject: "Test Subject",
         message: "Test message",
+        attachments: [],
       }),
     });
   });
