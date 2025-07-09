@@ -12,12 +12,14 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { formatTime } from "@calcom/lib/dayjs";
+import { getEventName } from "@calcom/lib/event";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
@@ -215,26 +217,49 @@ function BookingListItem(booking: BookingItemProps) {
     return attendeeSeatReference.referenceUid;
   };
 
-  const getBookingTitle = () => {
+  const getAttendee = () => {
     if (booking.seatsReferences.length > 0) {
-      const attendeeSeatReferenceData = booking.seatsReferences.find(
-        (reference) => reference.attendee
-      )?.attendee;
+      const attendeeSeatReferenceData = booking.seatsReferences.find((reference) => reference.attendee);
 
       const attendee = booking.attendees.find(
-        (attendee) => attendee.email === attendeeSeatReferenceData?.email
+        (attendee) => attendee.email === attendeeSeatReferenceData?.attendee?.email
       );
 
       if (!attendee) {
-        return booking.title;
+        return booking.attendees[0];
       }
 
-      return `${booking.eventType.title} ${t("between")} ${booking?.user?.name ?? "Nameless"} ${t("and")} ${
-        attendee.name ?? attendee.email ?? "Nameless"
-      }`;
+      return attendee;
     }
 
-    return booking.title;
+    return booking.attendees[0];
+  };
+
+  const getBookingTitle = () => {
+    const attendee = getAttendee();
+
+    if (!attendee) {
+      return booking.title;
+    }
+
+    if (booking.eventType.eventName) {
+      const eventNameObject = {
+        attendeeName: attendee?.name,
+        eventType: booking.eventType.title || " ",
+        eventName: booking.eventType.eventName,
+        host: booking?.user?.name || "Nameless",
+        location: location,
+        bookingFields: booking?.responses as Prisma.JsonObject | null,
+        eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
+        t,
+      };
+
+      return getEventName(eventNameObject);
+    }
+
+    return `${booking.eventType.title} ${t("between")} ${booking?.user?.name || "Nameless"} ${t("and")} ${
+      attendee?.name || "Nameless"
+    }`;
   };
 
   const pendingActions: ActionType[] = [
