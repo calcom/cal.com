@@ -326,7 +326,6 @@ class InitialSetupLLMCommand implements Command<TCreateRetellLLMSchema> {
               name: "check_availability",
               cal_api_key: this.calApiKey,
               event_type_id: this.eventTypeId,
-              // event_type_id: 297707,
               timezone: this.timeZone,
             },
             {

@@ -120,9 +120,21 @@ export const loggedInViewerRouter = router({
   }),
 
   setup: authedProcedure
-    .input(z.object({ eventTypeId: z.number(), agentTimeZone: z.string(), calApiKey: z.string() }))
+    .input(z.object({ eventTypeId: z.number(), agentTimeZone: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const { eventTypeId, calApiKey, agentTimeZone } = input;
+      const { eventTypeId, agentTimeZone } = input;
+
+      const { createHandler: createApiKeyHandler } = await import(
+        "@calcom/trpc/server/routers/viewer/apiKeys/create.handler"
+      );
+
+      const calApiKey = await createApiKeyHandler({
+        ctx,
+        input: {
+          note: `cal.ai api key for making phone calls for event type id: ${eventTypeId}`,
+          neverExpires: true,
+        },
+      });
 
       const { initialSetupLLM, createAgent } = await import(
         "@calcom/features/ee/cal-ai-phone/retellAIService"

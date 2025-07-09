@@ -84,7 +84,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     offsetStart,
     secondaryEmailId,
     aiPhoneCallConfig,
-    aISelfServeConfiguration,
+    aiSelfServeConfiguration,
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
     description: newDescription,
@@ -598,21 +598,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (aISelfServeConfiguration) {
-    console.log("aISelfServeConfiguration", aISelfServeConfiguration);
-    const res = await ctx.prisma.aISelfServeConfiguration.update({
+  if (aiSelfServeConfiguration) {
+    console.log("aISelfServeConfiguration", aiSelfServeConfiguration);
+    const res = await ctx.prisma.aiSelfServeConfiguration.update({
       where: { eventTypeId: id },
       data: {
-        ...(typeof aISelfServeConfiguration.yourPhoneNumberId === null
+        ...(typeof aiSelfServeConfiguration.yourPhoneNumberId === null
           ? { yourPhoneNumber: { disconnect: true } }
-          : !!aISelfServeConfiguration.yourPhoneNumberId
-          ? { yourPhoneNumber: { connect: { id: aISelfServeConfiguration.yourPhoneNumberId } } }
+          : !!aiSelfServeConfiguration.yourPhoneNumberId
+          ? { yourPhoneNumber: { connect: { id: aiSelfServeConfiguration.yourPhoneNumberId } } }
           : {}),
-        ...(aISelfServeConfiguration.numberToCall
-          ? { numberToCall: aISelfServeConfiguration.numberToCall }
+        ...(aiSelfServeConfiguration.numberToCall
+          ? { numberToCall: aiSelfServeConfiguration.numberToCall }
           : {}),
-        ...(aISelfServeConfiguration.agentTimeZone
-          ? { agentTimeZone: aISelfServeConfiguration.agentTimeZone }
+        ...(aiSelfServeConfiguration.agentTimeZone
+          ? { agentTimeZone: aiSelfServeConfiguration.agentTimeZone }
           : {}),
       },
     });

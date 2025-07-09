@@ -23,7 +23,6 @@ import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
 
 const setupSchema = z.object({
-  calApiKey: z.string().min(1, "API Key is required"),
   agentTimeZone: z.string().min(1, "Timezone is required"),
 });
 
@@ -152,15 +151,6 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
           <p className="text-subtle text-sm">{t("provide_api_key_and_timezone_to_setup")}</p>
         </div>
         <div className="border-subtle flex flex-col gap-y-6 rounded-b-lg border border-t-0 p-6">
-          <TextField
-            required
-            type="text"
-            {...setupForm.register("calApiKey")}
-            label={t("cal_api_key")}
-            placeholder="cal_live_..."
-            data-testid="cal-api-key"
-          />
-
           <Controller
             name="agentTimeZone"
             control={setupForm.control}
