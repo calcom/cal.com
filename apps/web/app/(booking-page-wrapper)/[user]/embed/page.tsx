@@ -8,20 +8,11 @@ import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
 import User, { type PageProps as ClientPageProps } from "~/users/views/users-public-view";
 
-export const generateMetadata = async ({ params, searchParams }: ServerPageProps) => {
-  const props = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
-  );
-
-  const { profile, isOrgSEOIndexable } = props;
-  const isOrg = !!profile?.organization;
-  const allowSEOIndexing =
-    (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
-
+export const generateMetadata = async () => {
   return {
     robots: {
-      follow: allowSEOIndexing,
-      index: allowSEOIndexing,
+      follow: false,
+      index: false,
     },
   };
 };

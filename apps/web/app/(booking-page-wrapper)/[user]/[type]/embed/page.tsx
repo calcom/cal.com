@@ -11,16 +11,11 @@ import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps
 
 import TypePage, { type PageProps as ClientPageProps } from "~/users/views/users-type-public-view";
 
-export const generateMetadata = async ({ params, searchParams }: ServerPageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(legacyCtx);
-
-  const { isSEOIndexable = true, eventData } = props;
-
+export const generateMetadata = async () => {
   return {
     robots: {
-      follow: !(eventData?.hidden || !isSEOIndexable),
-      index: !(eventData?.hidden || !isSEOIndexable),
+      follow: false,
+      index: false,
     },
   };
 };

@@ -14,31 +14,13 @@ const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 
 export type ClientPageProps = UserPageProps | TeamPageProps;
 
-export const generateMetadata = async ({ params, searchParams }: ServerPageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(legacyCtx);
-
-  if ((props as TeamPageProps)?.team) {
-    const { isSEOIndexable } = props as TeamPageProps;
-    return {
-      robots: {
-        index: isSEOIndexable,
-        follow: isSEOIndexable,
-      },
-    };
-  } else {
-    const { profile, isOrgSEOIndexable } = props as UserPageProps;
-
-    const isOrg = !!profile?.organization;
-    const allowSEOIndexing =
-      (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
-    return {
-      robots: {
-        index: allowSEOIndexing,
-        follow: allowSEOIndexing,
-      },
-    };
-  }
+export const generateMetadata = async () => {
+  return {
+    robots: {
+      follow: false,
+      index: false,
+    },
+  };
 };
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {

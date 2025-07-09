@@ -7,15 +7,11 @@ import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
 
 import TeamPage, { type PageProps as ClientPageProps } from "~/team/team-view";
 
-export const generateMetadata = async ({ params, searchParams }: ServerPageProps) => {
-  const { isSEOIndexable } = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
-  );
-
+export const generateMetadata = async () => {
   return {
     robots: {
-      follow: isSEOIndexable,
-      index: isSEOIndexable,
+      follow: false,
+      index: false,
     },
   };
 };

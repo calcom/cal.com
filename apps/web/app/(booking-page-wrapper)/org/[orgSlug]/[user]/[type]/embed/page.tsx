@@ -17,17 +17,11 @@ const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 
 export type ClientPageProps = UserTypePageProps | TeamTypePageProps;
 
-export const generateMetadata = async ({ params, searchParams }: ServerPageProps) => {
-  const props = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
-  );
-
-  const { isSEOIndexable = true, eventData } = props;
-
+export const generateMetadata = async () => {
   return {
     robots: {
-      follow: !(eventData?.hidden || !isSEOIndexable),
-      index: !(eventData?.hidden || !isSEOIndexable),
+      follow: false,
+      index: false,
     },
   };
 };
