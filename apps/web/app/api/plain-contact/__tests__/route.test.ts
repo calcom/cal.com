@@ -148,97 +148,6 @@ describe("/api/plain-contact", () => {
             },
           }),
       });
-    it("should handle form submission with file attachments", async () => {
-      mockGetServerSession.mockResolvedValue({
-        hasValidLicense: true,
-        upId: "test-up-id",
-        expires: "2025-12-31T23:59:59.999Z",
-        user: { id: 123, email: "test@example.com" },
-      });
-
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              data: {
-                upsertCustomer: {
-                  customer: {
-                    id: "customer-123",
-                    email: { email: "test@example.com" },
-                    fullName: "Test User",
-                  },
-                },
-              },
-            }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              data: {
-                createAttachmentUploadUrl: {
-                  attachmentUploadUrl: {
-                    uploadUrl: "https://s3.amazonaws.com/upload-url",
-                    uploadFormData: [
-                      { key: "key", value: "test-key" },
-                      { key: "Content-Type", value: "image/jpeg" },
-                    ],
-                    attachment: {
-                      id: "attachment-123",
-                    },
-                  },
-                },
-              },
-            }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              data: {
-                createThread: {
-                  thread: {
-                    id: "thread-123",
-                  },
-                },
-              },
-            }),
-        });
-
-      const request = new Request("http://localhost:3000/api/plain-contact", {
-        method: "POST",
-        body: JSON.stringify({
-          name: "Test User",
-          email: "test@example.com",
-          subject: "Test Subject",
-          message: "Test message",
-          attachments: [
-            {
-              file: {
-                name: "test.jpg",
-                size: 1024,
-                type: "image/jpeg",
-              },
-              dataUrl:
-                "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A",
-              id: "file-123",
-            },
-          ],
-        }),
-      });
-
-      const response = await POST(request);
-      expect(response.status).toBe(200);
-
-      const responseData = await response.json();
-      expect(responseData).toEqual({ success: true });
-
-      expect(mockFetch).toHaveBeenCalledTimes(4);
-    });
 
     const request = new Request("http://localhost:3000/api/plain-contact", {
       method: "POST",
@@ -258,6 +167,98 @@ describe("/api/plain-contact", () => {
     expect(responseData).toEqual({ success: true });
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("should handle form submission with file attachments", async () => {
+    mockGetServerSession.mockResolvedValue({
+      hasValidLicense: true,
+      upId: "test-up-id",
+      expires: "2025-12-31T23:59:59.999Z",
+      user: { id: 123, email: "test@example.com" },
+    });
+
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: {
+              upsertCustomer: {
+                customer: {
+                  id: "customer-123",
+                  email: { email: "test@example.com" },
+                  fullName: "Test User",
+                },
+              },
+            },
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: {
+              createAttachmentUploadUrl: {
+                attachmentUploadUrl: {
+                  uploadUrl: "https://s3.amazonaws.com/upload-url",
+                  uploadFormData: [
+                    { key: "key", value: "test-key" },
+                    { key: "Content-Type", value: "image/jpeg" },
+                  ],
+                  attachment: {
+                    id: "attachment-123",
+                  },
+                },
+              },
+            },
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: {
+              createThread: {
+                thread: {
+                  id: "thread-123",
+                },
+              },
+            },
+          }),
+      });
+
+    const request = new Request("http://localhost:3000/api/plain-contact", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Test User",
+        email: "test@example.com",
+        subject: "Test Subject",
+        message: "Test message",
+        attachments: [
+          {
+            file: {
+              name: "test.jpg",
+              size: 1024,
+              type: "image/jpeg",
+            },
+            dataUrl:
+              "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A",
+            id: "file-123",
+          },
+        ],
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+
+    const responseData = await response.json();
+    expect(responseData).toEqual({ success: true });
+
+    expect(mockFetch).toHaveBeenCalledTimes(4);
   });
 
   it("should handle Plain customer creation error", async () => {
