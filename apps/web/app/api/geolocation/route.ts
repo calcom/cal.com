@@ -3,16 +3,15 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import getIP from "@calcom/lib/getIP";
+import { checkRateLimitWithIPAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 
 async function getHandler(request: NextRequest) {
   const headersList = await headers();
-  const ip = getIP(request);
 
-  await checkRateLimitAndThrowError({
+  await checkRateLimitWithIPAndThrowError({
     rateLimitingType: "common",
-    identifier: `geolocation-${ip}`,
+    req: request,
+    identifier: `api.geolocation`,
   });
 
   const country = headersList.get("x-vercel-ip-country") || "Unknown";

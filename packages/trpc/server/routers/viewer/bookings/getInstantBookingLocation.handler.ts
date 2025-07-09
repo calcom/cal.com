@@ -16,7 +16,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const { bookingId } = input;
 
   await checkRateLimitAndThrowError({
-    identifier: `instant-booking:${bookingId}`,
+    identifier: `getInstantBookingLocation.${bookingId}`,
     rateLimitingType: "common",
   });
 

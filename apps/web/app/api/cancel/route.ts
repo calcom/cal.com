@@ -5,18 +5,17 @@ import type { NextRequest } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import getIP from "@calcom/lib/getIP";
 import { bookingCancelInput } from "@calcom/prisma/zod-utils";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function handler(req: NextRequest) {
-  const ip = getIP(req);
-  await checkRateLimitAndThrowError({
+  await checkRateLimitWithIPAndThrowError({
     rateLimitingType: "core",
-    identifier: `booking.cancel.${ip}`,
+    req,
+    identifier: `app.api.cancel`,
   });
+
   let appDirRequestBody;
   try {
     appDirRequestBody = await req.json();

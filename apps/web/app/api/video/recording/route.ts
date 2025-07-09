@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   }
 
   await checkRateLimitAndThrowError({
-    identifier: `cal-video-recording:${token}`,
+    identifier: `api.video.recording.${token}`,
     rateLimitingType: "common",
   });
 

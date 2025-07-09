@@ -20,7 +20,7 @@ type DuplicateOptions = {
 
 export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
   await checkRateLimitAndThrowError({
-    identifier: `duplicate-event-type:${input.id}`,
+    identifier: `eventTypes.duplicate.${input.id}`,
     rateLimitingType: "core",
   });
 

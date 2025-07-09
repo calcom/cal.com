@@ -1,3 +1,4 @@
+import getIP from "@calcom/lib/getIP";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
@@ -87,3 +88,19 @@ async function changeSMSLockState(identifier: string, status: SMSLockState) {
     });
   }
 }
+
+export const checkRateLimitWithIPAndThrowError = async ({
+  rateLimitingType,
+  req,
+  identifier,
+}: {
+  rateLimitingType: RateLimitHelper["rateLimitingType"];
+  req: NextRequest;
+  identifier: string;
+}) => {
+  const ip = getIP(req);
+  await checkRateLimitAndThrowError({
+    rateLimitingType,
+    identifier: `${identifier}.${ip}`,
+  });
+};
