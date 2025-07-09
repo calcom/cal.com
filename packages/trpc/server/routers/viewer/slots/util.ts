@@ -847,7 +847,7 @@ export class AvailableSlotsService {
     "getRegularOrDynamicEventType"
   );
 
-  getAvailableSlots = withReporting(this._getAvailableSlots, "getAvailableSlots");
+  getAvailableSlots = withReporting(this._getAvailableSlots.bind(this), "getAvailableSlots");
 
   async _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
     const {
