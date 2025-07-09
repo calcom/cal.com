@@ -107,6 +107,11 @@ export class GoogleCalendarService {
     }
 
     if (updateData.locations !== undefined) {
+      const nonVideoLocations = updateData.locations.filter((loc) => loc.type !== "video");
+      if (nonVideoLocations.length > 0) {
+        updatePayload.location = nonVideoLocations[0].url || nonVideoLocations[0].label;
+      }
+
       const videoLocation = updateData.locations.find((loc) => loc.type === "video");
       if (videoLocation) {
         updatePayload.conferenceData = {
