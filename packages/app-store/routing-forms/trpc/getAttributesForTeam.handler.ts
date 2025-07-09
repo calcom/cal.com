@@ -1,8 +1,7 @@
+import { NotFoundError } from "@calcom/lib/errors";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { getAttributesForTeam } from "@calcom/lib/service/attribute/server/getAttributes";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 import type { TGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
 
@@ -22,10 +21,7 @@ export default async function getAttributesForTeamHandler({
   const isMemberOfTeam = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId: user.id, teamId });
 
   if (!isMemberOfTeam) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "You are not a member of this team",
-    });
+    throw new NotFoundError("You are not a member of this team");
   }
 
   return getAttributesForTeam({ teamId });

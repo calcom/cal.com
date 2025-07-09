@@ -1,4 +1,5 @@
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
+import { mapBusinessErrorToTRPCError } from "@calcom/lib/errorMapping";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
@@ -16,54 +17,58 @@ type CreateOptions = {
 };
 const log = logger.getSubLogger({ prefix: ["viewer", "organizations", "createWithPaymentIntent"] });
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const paymentService = new OrganizationPaymentService(ctx.user);
-  const isAdmin = ctx.user.role === "ADMIN";
-  // Regular user can send onboardingId if the onboarding was started by ADMIN/someone else and they shared the link with them.
-  // ADMIN flow doesn't send onboardingId
-  const organizationOnboarding = await OrganizationOnboardingRepository.findById(input.onboardingId);
+  try {
+    const paymentService = new OrganizationPaymentService(ctx.user);
+    const isAdmin = ctx.user.role === "ADMIN";
+    // Regular user can send onboardingId if the onboarding was started by ADMIN/someone else and they shared the link with them.
+    // ADMIN flow doesn't send onboardingId
+    const organizationOnboarding = await OrganizationOnboardingRepository.findById(input.onboardingId);
 
-  if (!organizationOnboarding) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "organization_onboarding_not_found",
-    });
-  }
+    if (!organizationOnboarding) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "organization_onboarding_not_found",
+      });
+    }
 
-  if (organizationOnboarding.stripeSubscriptionId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "organization_has_subscription_already",
-    });
-  }
+    if (organizationOnboarding.stripeSubscriptionId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "organization_has_subscription_already",
+      });
+    }
 
-  if (!isAdmin && organizationOnboarding.orgOwnerEmail !== ctx.user.email) {
-    log.warn(
-      "Organization onboarding there but not have access",
-      safeStringify({
-        orgOwnerEmail: organizationOnboarding?.orgOwnerEmail,
-        userEmail: ctx.user.email,
-      })
+    if (!isAdmin && organizationOnboarding.orgOwnerEmail !== ctx.user.email) {
+      log.warn(
+        "Organization onboarding there but not have access",
+        safeStringify({
+          orgOwnerEmail: organizationOnboarding?.orgOwnerEmail,
+          userEmail: ctx.user.email,
+        })
+      );
+
+      // Intentionally throw vague error to avoid leaking information
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "organization_onboarding_not_found",
+      });
+    }
+
+    const paymentIntent = await paymentService.createPaymentIntent(
+      {
+        ...input,
+        logo: input.logo ?? null,
+        bio: input.bio ?? null,
+      },
+      organizationOnboarding
     );
 
-    // Intentionally throw vague error to avoid leaking information
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "organization_onboarding_not_found",
-    });
+    return {
+      checkoutUrl: paymentIntent.checkoutUrl,
+    };
+  } catch (error) {
+    throw mapBusinessErrorToTRPCError(error);
   }
-
-  const paymentIntent = await paymentService.createPaymentIntent(
-    {
-      ...input,
-      logo: input.logo ?? null,
-      bio: input.bio ?? null,
-    },
-    organizationOnboarding
-  );
-
-  return {
-    checkoutUrl: paymentIntent.checkoutUrl,
-  };
 };
 
 export default createHandler;

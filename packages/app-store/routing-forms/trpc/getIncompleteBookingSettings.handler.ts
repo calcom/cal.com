@@ -1,8 +1,7 @@
+import { NotFoundError } from "@calcom/lib/errors";
 import type { PrismaClient } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 import { enabledIncompleteBookingApps } from "../lib/enabledIncompleteBookingApps";
 import type { TGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
@@ -40,10 +39,7 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
   ]);
 
   if (!form) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Form not found",
-    });
+    throw new NotFoundError("Form not found");
   }
 
   const teamId = form?.teamId;

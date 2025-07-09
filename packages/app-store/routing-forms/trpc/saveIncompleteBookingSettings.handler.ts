@@ -1,8 +1,7 @@
+import { ValidationError } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 import incompleteBookingActionDataSchemas from "../lib/incompleteBooking/actionDataSchemas";
 import type { TSaveIncompleteBookingSettingsInputSchema } from "./saveIncompleteBookingSettings.schema";
@@ -28,20 +27,14 @@ const saveIncompleteBookingSettingsHandler = async (options: SaveIncompleteBooki
   const dataSchema = incompleteBookingActionDataSchemas[actionType];
 
   if (!dataSchema) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Action data schema not found",
-    });
+    throw new ValidationError("Action data schema not found");
   }
 
   const parsedData = dataSchema.safeParse(data);
 
   if (!parsedData.success) {
     log.error("Data is not valid", data, parsedData.error);
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Data is not valid",
-    });
+    throw new ValidationError("Data is not valid");
   }
 
   // Check to see if the action already exists

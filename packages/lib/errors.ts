@@ -24,6 +24,46 @@ export class ErrorWithCode extends Error {
   }
 }
 
+export class AuthorizationError extends Error {
+  code = "UNAUTHORIZED" as const;
+  constructor(message = "Unauthorized access") {
+    super(message);
+    this.name = "AuthorizationError";
+  }
+}
+
+export class ValidationError extends Error {
+  code = "BAD_REQUEST" as const;
+  constructor(message = "Validation failed") {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+export class NotFoundError extends Error {
+  code = "NOT_FOUND" as const;
+  constructor(message = "Resource not found") {
+    super(message);
+    this.name = "NotFoundError";
+  }
+}
+
+export class CredentialError extends Error {
+  code = "FORBIDDEN" as const;
+  constructor(message = "Credential error") {
+    super(message);
+    this.name = "CredentialError";
+  }
+}
+
+export class OrganizationError extends Error {
+  code = "BAD_REQUEST" as const;
+  constructor(message = "Organization error") {
+    super(message);
+    this.name = "OrganizationError";
+  }
+}
+
 export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: number; code?: string } {
   if (cause instanceof Error) {
     return cause;

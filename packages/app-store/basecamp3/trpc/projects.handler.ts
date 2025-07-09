@@ -1,8 +1,7 @@
+import { CredentialError } from "@calcom/lib/errors";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { refreshAccessToken } from "../lib/helpers";
@@ -25,7 +24,7 @@ export const projectHandler = async ({ ctx }: ProjectsHandlerOptions) => {
     select: credentialForCalendarServiceSelect,
   });
   if (!credential) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "No credential found for user" });
+    throw new CredentialError("No credential found for user");
   }
   let credentialKey = credential.key as BasecampToken;
   if (!credentialKey.account) {
