@@ -174,7 +174,8 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     }
     if (!session.data) {
       const searchString = !searchParams ? "" : `${searchParams.toString()}`;
-      router.push(`/auth/login?callbackUrl=${WEBAPP_URL}${path}${searchString ? `?${searchString}` : ""}`);
+      const relativePath = path.startsWith('/') ? path : '/' + path;
+      router.push(`/auth/login?callbackUrl=${encodeURIComponent(relativePath)}${searchString ? `?${searchString}` : ""}`);
     }
   }, [session, router, path, searchParams]);
   return {

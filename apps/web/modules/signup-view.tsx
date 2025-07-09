@@ -28,6 +28,7 @@ import {
   WEBSITE_TERMS_URL,
   WEBSITE_URL,
 } from "@calcom/lib/constants";
+import { safeCallbackUrl } from "@calcom/lib/WebAppURL";
 import { isENVDev } from "@calcom/lib/env";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { pushGTMEvent } from "@calcom/lib/gtm";
@@ -255,19 +256,21 @@ export default function Signup({
         const gettingStartedWithPlatform = "settings/platform/new";
 
         const constructCallBackIfUrlPresent = () => {
+          const callbackUrl = searchParams.get("callbackUrl") || "";
+          
           if (isOrgInviteByLink) {
-            return `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`;
+            return safeCallbackUrl(callbackUrl);
           }
 
-          return addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup");
+          return addOrUpdateQueryParam(safeCallbackUrl(callbackUrl), "from", "signup");
         };
 
         const constructCallBackIfUrlNotPresent = () => {
           if (!!isPlatformUser) {
-            return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
+            return `${WEBAPP_URL.replace(/\/+$/, '')}/${gettingStartedWithPlatform}?from=signup`;
           }
 
-          return `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`;
+          return `${WEBAPP_URL.replace(/\/+$/, '')}/${verifyOrGettingStarted}?from=signup`;
         };
 
         const constructCallBackUrl = () => {
@@ -476,7 +479,7 @@ export default function Signup({
                         sp.set("username", username);
                         sp.set("email", formMethods.getValues("email"));
                         router.push(
-                          `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
+                          `${process.env.NEXT_PUBLIC_WEBAPP_URL.replace(/\/+$/, '')}/auth/sso/saml?${sp.toString()}`
                         );
                       }}
                       className={classNames(

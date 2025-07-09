@@ -126,7 +126,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   const paymentLink = `/api/integrations/stripepayment/subscription?intentUsername=${
     inputUsernameValue || usernameFromStripe
-  }&action=${usernameChangeCondition}&callbackUrl=${WEBAPP_URL}${pathname}`;
+  }&action=${usernameChangeCondition}&callbackUrl=${WEBAPP_URL}${pathname.startsWith('/') ? pathname : '/' + pathname}`;
 
   const ActionButtons = () => {
     if (paymentRequired) {

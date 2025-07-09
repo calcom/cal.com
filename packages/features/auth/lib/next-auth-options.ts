@@ -271,7 +271,7 @@ if (isSAMLLoginEnabled) {
     version: "2.0",
     checks: ["pkce", "state"],
     authorization: {
-      url: `${WEBAPP_URL}/api/auth/saml/authorize`,
+      url: `${WEBAPP_URL.replace(/\/+$/, '')}/api/auth/saml/authorize`,
       params: {
         scope: "",
         response_type: "code",
@@ -279,10 +279,10 @@ if (isSAMLLoginEnabled) {
       },
     },
     token: {
-      url: `${WEBAPP_URL}/api/auth/saml/token`,
+      url: `${WEBAPP_URL.replace(/\/+$/, '')}/api/auth/saml/token`,
       params: { grant_type: "authorization_code" },
     },
-    userinfo: `${WEBAPP_URL}/api/auth/saml/userinfo`,
+    userinfo: `${WEBAPP_URL.replace(/\/+$/, '')}/api/auth/saml/userinfo`,
     profile: async (profile: {
       id?: number;
       firstName?: string;
@@ -1022,7 +1022,9 @@ export const getOptions = ({
      */
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (url.startsWith("/")) {
+        return `${baseUrl.replace(/\/+$/, '')}/${url.replace(/^\/+/, '')}`;
+      }
       // Allows callback URLs on the same domain
       else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
       return baseUrl;
