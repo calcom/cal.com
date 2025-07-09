@@ -97,11 +97,40 @@ export class GoogleCalendarService {
       };
     }
 
+    if (updateData.attendees !== undefined) {
+      updatePayload.attendees = updateData.attendees.map((attendee) => ({
+        email: attendee.email,
+        displayName: attendee.name,
+        responseStatus: this.mapResponseStatusToGoogle(attendee.responseStatus),
+        optional: attendee.optional,
+      }));
+    }
+
+    if (updateData.locations !== undefined) {
+      const videoLocation = updateData.locations.find((loc) => loc.type === "video");
+      if (videoLocation) {
+        updatePayload.conferenceData = {
+          entryPoints: updateData.locations.map((location) => ({
+            entryPointType: location.type,
+            uri: location.url,
+            label: location.label,
+            pin: (location as any).pin,
+            regionCode: (location as any).regionCode,
+          })),
+        };
+      }
+    }
+
+    if (updateData.status !== undefined) {
+      updatePayload.status = this.mapEventStatusToGoogle(updateData.status);
+    }
+
     try {
       const event = await calendar.events.patch({
         calendarId: bookingReference?.externalCalendarId ?? "primary",
         eventId: bookingReference?.uid,
         requestBody: updatePayload,
+        conferenceDataVersion: updateData.locations ? 1 : undefined,
       });
 
       if (!event.data) {
@@ -110,6 +139,40 @@ export class GoogleCalendarService {
       return event.data as GoogleCalendarEventResponse;
     } catch (error) {
       throw new NotFoundException("Failed to update meeting details");
+    }
+  }
+
+  private mapResponseStatusToGoogle(responseStatus?: string | null): string {
+    if (!responseStatus) return "needsAction";
+
+    switch (responseStatus.toLowerCase()) {
+      case "accepted":
+        return "accepted";
+      case "pending":
+        return "tentative";
+      case "declined":
+        return "declined";
+      case "needsaction":
+        return "needsAction";
+      default:
+        return "needsAction";
+    }
+  }
+
+  private mapEventStatusToGoogle(status?: string | null): string {
+    if (!status) return "confirmed";
+
+    switch (status.toLowerCase()) {
+      case "accepted":
+        return "confirmed";
+      case "pending":
+        return "tentative";
+      case "cancelled":
+        return "cancelled";
+      case "declined":
+        return "cancelled";
+      default:
+        return "confirmed";
     }
   }
 
