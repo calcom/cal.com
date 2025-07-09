@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
@@ -37,7 +37,7 @@ export async function getTeamWithMembers(args: {
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  const userSelect = {
     username: true,
     email: true,
     name: true,
@@ -69,7 +69,7 @@ export async function getTeamWithMembers(args: {
         },
       },
     },
-  });
+  } satisfies Prisma.UserSelect;
   let lookupBy;
 
   if (id) {
@@ -318,6 +318,7 @@ export async function getTeamWithoutMembers(args: {
       metadata: true,
       bookingLimits: true,
       rrResetInterval: true,
+      rrTimestampBasis: true,
       includeManagedEventsInLimits: true,
       parent: {
         select: {

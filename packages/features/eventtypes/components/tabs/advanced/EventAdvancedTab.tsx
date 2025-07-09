@@ -449,6 +449,7 @@ export const EventAdvancedTab = ({
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
 
   const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+
   const isRoundRobinEventType =
     eventType.schedulingType && eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
@@ -497,6 +498,9 @@ export const EventAdvancedTab = ({
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
   const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
+  const allowReschedulingCancelledBookingsLocked = shouldLockDisableProps(
+    "allowReschedulingCancelledBookings"
+  );
 
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
@@ -507,6 +511,10 @@ export const EventAdvancedTab = ({
   const [disableCancelling, setDisableCancelling] = useState(eventType.disableCancelling || false);
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
+
+  const [allowReschedulingCancelledBookings, setallowReschedulingCancelledBookings] = useState(
+    eventType.allowReschedulingCancelledBookings ?? false
+  );
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -568,27 +576,39 @@ export const EventAdvancedTab = ({
           isUserLoading={isUserLoading}
         />
       )}
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <FormBuilder
-          title={t("booking_questions_title")}
-          description={t("booking_questions_description")}
-          addFieldLabel={t("add_a_booking_question")}
-          formProp="bookingFields"
-          {...shouldLockDisableProps("bookingFields")}
-          dataStore={{
-            options: {
-              locations: {
-                // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
-                source: { label: "Location" },
-                value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+
+      <div className="border-subtle bg-muted rounded-lg border p-1">
+        <div className="p-5">
+          <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
+            {t("booking_questions_title")}
+          </div>
+          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+            {t("booking_questions_description")}
+          </p>
+        </div>
+        <div className="border-subtle bg-default rounded-lg border p-5">
+          <FormBuilder
+            showPhoneAndEmailToggle
+            title={t("confirmation")}
+            description={t("what_booker_should_provide")}
+            addFieldLabel={t("add_a_booking_question")}
+            formProp="bookingFields"
+            {...shouldLockDisableProps("bookingFields")}
+            dataStore={{
+              options: {
+                locations: {
+                  // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
+                  source: { label: "Location" },
+                  value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+                },
               },
-            },
-          }}
-          shouldConsiderRequired={(field: BookingField) => {
-            // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
-            return field.name === "location" ? true : field.required;
-          }}
-        />
+            }}
+            shouldConsiderRequired={(field: BookingField) => {
+              // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
+              return field.name === "location" ? true : field.required;
+            }}
+          />
+        </div>
       </div>
       <RequiresConfirmationController
         eventType={eventType}
@@ -902,6 +922,8 @@ export const EventAdvancedTab = ({
                         disabled={seatsLocked.disabled}
                         //For old events if value > MAX_SEATS_PER_TIME_SLOT
                         value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : value ?? 1}
+                        step={1}
+                        placeholder="1"
                         min={1}
                         max={MAX_SEATS_PER_TIME_SLOT}
                         containerClassName={classNames(
@@ -913,8 +935,7 @@ export const EventAdvancedTab = ({
                         labelClassName={customClassNames?.seatsOptions?.seatsInput?.label}
                         addOnSuffix={t("seats")}
                         onChange={(e) => {
-                          let enteredValue = Number(e.target.value);
-                          if (enteredValue < 1) enteredValue = 1;
+                          const enteredValue = parseInt(e.target.value);
                           onChange(Math.min(enteredValue, MAX_SEATS_PER_TIME_SLOT));
                         }}
                         data-testid="seats-per-time-slot"
@@ -1025,6 +1046,26 @@ export const EventAdvancedTab = ({
             description={t("allow_rescheduling_past_events_description")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+
+      <Controller
+        name="allowReschedulingCancelledBookings"
+        render={({ field: { onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("allow_rescheduling_cancelled_bookings")}
+            data-testid="allow-rescheduling-cancelled-bookings-toggle"
+            {...allowReschedulingCancelledBookingsLocked}
+            description={t("description_allow_rescheduling_cancelled_bookings")}
+            checked={allowReschedulingCancelledBookings}
+            onCheckedChange={(val) => {
+              setallowReschedulingCancelledBookings(val);
+              onChange(val);
+            }}
           />
         )}
       />

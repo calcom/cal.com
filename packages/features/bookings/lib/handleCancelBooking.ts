@@ -12,12 +12,13 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import EventManager from "@calcom/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -36,7 +37,7 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
@@ -88,6 +89,19 @@ async function handler(input: CancelBookingInput) {
     arePlatformEmailsEnabled,
   } = input;
 
+  /**
+   * Important: We prevent cancelling an already cancelled booking.
+   * A booking could have been CANCELLED due to a reschedule,
+   * in which case we simply update the existing calendar event and meeting.
+   * We want to avoid deleting them by a subsequent cancellation attempt.
+   */
+  if (bookingToDelete.status === BookingStatus.CANCELLED) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "This booking has already been cancelled.",
+    });
+  }
+
   if (!bookingToDelete.userId || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
@@ -99,7 +113,7 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
-  if (!platformClientId && !cancellationReason && bookingToDelete.userId == userId) {
+  if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
@@ -153,7 +167,7 @@ async function handler(input: CancelBookingInput) {
 
   const webhooks = await getWebhooks(subscriberOptions);
 
-  const organizer = await prisma.user.findFirstOrThrow({
+  const organizer = await prisma.user.findUniqueOrThrow({
     where: {
       id: bookingToDelete.userId,
     },
@@ -171,8 +185,10 @@ async function handler(input: CancelBookingInput) {
   const teamMembersPromises = [];
   const attendeesListPromises = [];
   const hostsPresent = !!bookingToDelete.eventType?.hosts;
+  const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
-  for (const attendee of bookingToDelete.attendees) {
+  for (let index = 0; index < bookingToDelete.attendees.length; index++) {
+    const attendee = bookingToDelete.attendees[index];
     const attendeeObject = {
       name: attendee.name,
       email: attendee.email,
@@ -184,18 +200,18 @@ async function handler(input: CancelBookingInput) {
       },
     };
 
-    // Check for the presence of hosts to determine if it is a team event type
-    if (hostsPresent) {
-      // If the attendee is a host then they are a team member
-      const teamMember = bookingToDelete.eventType?.hosts.some((host) => host.user.email === attendee.email);
-      if (teamMember) {
+    // The first attendee is the booker in all cases, so always consider them as an attendee.
+    if (index === 0) {
+      attendeesListPromises.push(attendeeObject);
+    } else {
+      const isTeamEvent = hostEmails.size > 0;
+      const isTeamMember = isTeamEvent && hostEmails.has(attendee.email);
+
+      if (isTeamMember) {
         teamMembersPromises.push(attendeeObject);
-        // If not then they are an attendee
       } else {
         attendeesListPromises.push(attendeeObject);
       }
-    } else {
-      attendeesListPromises.push(attendeeObject);
     }
   }
 
@@ -218,7 +234,8 @@ async function handler(input: CancelBookingInput) {
     title: bookingToDelete?.title,
     length: bookingToDelete?.eventType?.length,
     type: bookingToDelete?.eventType?.slug as string,
-    description: bookingToDelete?.description || "",
+    additionalNotes: bookingToDelete?.description,
+    description: bookingToDelete.eventType?.description,
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
     eventTypeId: bookingToDelete.eventTypeId as number,
     ...getCalEventResponses({
@@ -465,7 +482,7 @@ async function handler(input: CancelBookingInput) {
 
     const bookingToDeleteEventTypeMetadata = bookingToDeleteEventTypeMetadataParsed.data;
 
-    const credentials = await getAllCredentials(bookingToDelete.user, {
+    const credentials = await getAllCredentialsIncludeServiceAccountKey(bookingToDelete.user, {
       ...bookingToDelete.eventType,
       metadata: bookingToDeleteEventTypeMetadata,
     });
