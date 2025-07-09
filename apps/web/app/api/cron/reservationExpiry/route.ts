@@ -21,6 +21,15 @@ export async function handleReservationExpiry() {
       where: {
         releaseAt: { lt: currentTimeInUtc },
       },
+      select: {
+        id: true,
+        uid: true,
+        eventTypeId: true,
+        userId: true,
+        slotUtcStartDate: true,
+        slotUtcEndDate: true,
+        releaseAt: true,
+      },
     });
 
     for (const reservation of expiredReservations) {
@@ -133,7 +142,7 @@ export async function handleReservationExpiry() {
 }
 
 async function postHandler(request: NextRequest) {
-  const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
+  const apiKey = request.headers.get("authorization");
 
   if (process.env.CRON_API_KEY !== apiKey) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
