@@ -3,10 +3,71 @@ import { v4 as uuidv4 } from "uuid";
 import type { PrismaClient as PrismaWithExtensions } from "@calcom/prisma";
 import db from "@calcom/prisma";
 
-import type { Role, RolePermission, PermissionChange } from "../../domain/models/Role";
+import type { Role, RolePermission, PermissionChange, CreateRoleData } from "../../domain/models/Role";
+import { RoleType } from "../../domain/models/Role";
 
 export class RoleRepository {
   constructor(private readonly client: PrismaWithExtensions = db) {}
+
+  async findByName(name: string, teamId?: number): Promise<Role | null> {
+    return this.client.role.findFirst({
+      where: { name, teamId: teamId ?? null },
+      include: { permissions: true },
+    });
+  }
+
+  async findByTeamId(teamId: number): Promise<Role[]> {
+    return this.client.role.findMany({
+      where: { teamId },
+      include: { permissions: true },
+    });
+  }
+
+  async roleBelongsToTeam(roleId: string, teamId: number): Promise<boolean> {
+    const role = await this.client.role.findUnique({
+      where: { id: roleId },
+      select: { teamId: true },
+    });
+    return role?.teamId === teamId;
+  }
+
+  async create(data: CreateRoleData): Promise<Role> {
+    return this.client.$transaction(async (trx) => {
+      const role = await trx.role.create({
+        data: {
+          id: uuidv4(),
+          name: data.name,
+          color: data.color ?? null,
+          description: data.description ?? null,
+          teamId: data.teamId ?? null,
+          type: data.type ?? RoleType.CUSTOM,
+        },
+      });
+
+      if (data.permissions.length > 0) {
+        const permissionData = data.permissions.map((permission) => {
+          const [resource, action] = permission.split(".");
+          return {
+            id: uuidv4(),
+            roleId: role.id,
+            resource,
+            action,
+          };
+        });
+
+        await trx.rolePermission.createMany({ data: permissionData });
+      }
+
+      return this.findById(role.id) as Promise<Role>;
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.client.$transaction([
+      this.client.rolePermission.deleteMany({ where: { roleId: id } }),
+      this.client.role.delete({ where: { id } }),
+    ]);
+  }
 
   async update(
     roleId: string,

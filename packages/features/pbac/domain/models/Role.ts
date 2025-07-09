@@ -9,16 +9,18 @@ export type RoleType = (typeof RoleType)[keyof typeof RoleType];
 
 export interface RolePermission {
   id: string;
+  roleId: string;
   resource: string;
   action: string;
+  createdAt: Date;
 }
 
 export interface Role {
   id: string;
   name: string;
-  color?: string;
-  description?: string;
-  teamId?: number;
+  color: string | null;
+  description: string | null;
+  teamId: number | null;
   type: RoleType;
   permissions: RolePermission[];
   createdAt: Date;
