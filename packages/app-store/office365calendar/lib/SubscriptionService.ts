@@ -1,5 +1,4 @@
 // packages/app-store/office365calendar/lib/SubscriptionService.ts
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
@@ -10,7 +9,7 @@ import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
-interface SubscriptionResponse {
+export interface SubscriptionResponse {
   id: string;
   resource: string;
   applicationId: string;
@@ -139,16 +138,16 @@ export class Office365SubscriptionService {
     const {
       calendarId,
       changeTypes = ["created", "updated", "deleted"],
-      expirationMinutes = 4230, // Max allowed by Microsoft Graph (4230 minutes)
+      expirationMinutes = 4230,
       clientState = process.env.OFFICE365_WEBHOOK_CLIENT_STATE,
     } = params;
 
-    // Calculate expiration time (max 4230 minutes for calendar subscriptions)
     const expirationDateTime = new Date(Date.now() + expirationMinutes * 60 * 1000);
 
     const subscriptionPayload = {
       changeType: changeTypes.join(","),
-      notificationUrl: `${WEBAPP_URL}/api/integrations/office365calendar/webhook`,
+      // notificationUrl: `${WEBAPP_URL}/api/integrations/office365calendar/webhook`,
+      notificationUrl: `https://48f99acb71be.ngrok-free.app/api/integrations/office365calendar/webhook`,
       resource:
         calendarId === "primary"
           ? `${await this.getUserEndpoint()}/calendar/events`

@@ -1,4 +1,4 @@
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import { HttpError } from "@calcom/lib/http-error";
@@ -13,22 +13,43 @@ import { getCalendar } from "../../_utils/getCalendar";
 
 const log = logger.getSubLogger({ prefix: ["Office365CalendarWebhook"] });
 
-async function getHandler(req: NextApiRequest) {
-  // Microsoft Graph subscription validation
+/**
+ * GET handler for Microsoft Graph subscription validation
+ * This is used to validate the subscription with Microsoft Graph
+ * It returns the validation token as plain text
+ */
+async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const validationToken = req.query.validationToken;
 
   if (!validationToken || typeof validationToken !== "string") {
     throw new HttpError({ statusCode: 400, message: "Missing validation token" });
   }
 
-  log.debug("Validation request received", safeStringify({ validationToken }));
-
-  // Return the validation token as plain text (Microsoft Graph requirement)
-  return validationToken;
+  // Send as plain text directly - this is what Microsoft Graph expects
+  res.setHeader("Content-Type", "text/plain");
+  res.status(200).send(validationToken);
 }
 
-async function postHandler(req: NextApiRequest) {
-  // Validate client state if configured
+/**
+ * POST handler for Microsoft Graph webhook notifications
+ * This is used to process the notifications received from Microsoft Graph
+ * It validates the client state and processes the notifications
+ */
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
+  // Check if this is a validation request (has validationToken in query)
+  const validationToken = req.query.validationToken;
+
+  if (validationToken && typeof validationToken === "string") {
+    // This is a validation request from Microsoft Graph
+    log.debug("Validation request received", safeStringify({ validationToken }));
+
+    // Send as plain text directly - this is what Microsoft Graph expects
+    res.setHeader("Content-Type", "text/plain");
+    res.status(200).send(validationToken);
+    return;
+  }
+
+  // This is a regular notification
   const clientState = req.headers["x-microsoft-client-state"];
 
   log.debug(
@@ -39,7 +60,9 @@ async function postHandler(req: NextApiRequest) {
     })
   );
 
+  // Only validate client state for actual notifications, not validation requests
   if (
+    req.body?.value &&
     process.env.OFFICE365_WEBHOOK_CLIENT_STATE &&
     clientState !== process.env.OFFICE365_WEBHOOK_CLIENT_STATE
   ) {
@@ -50,7 +73,8 @@ async function postHandler(req: NextApiRequest) {
 
   if (!notifications || !Array.isArray(notifications)) {
     log.debug("No notifications found in request body");
-    return { message: "ok" };
+    res.status(200).json({ message: "ok" });
+    return;
   }
 
   // Process each notification
@@ -63,10 +87,16 @@ async function postHandler(req: NextApiRequest) {
     }
   }
 
-  return { message: "ok" };
+  res.status(200).json({ message: "ok" });
 }
 
-async function processNotification(notification: any) {
+interface Notification {
+  subscriptionId: string;
+  resource: string;
+  changeType: string;
+}
+
+async function processNotification(notification: Notification) {
   const { subscriptionId, resource, changeType } = notification;
 
   log.debug(

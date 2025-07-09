@@ -23,6 +23,7 @@ import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
+import { Office365SubscriptionService, type SubscriptionResponse } from "./SubscriptionService";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
 interface IRequest {
@@ -625,4 +626,13 @@ export default class Office365CalendarService implements Calendar {
 
     return response.json();
   };
+
+  async createAndSubscribeCalendar(calendarId: string): Promise<SubscriptionResponse> {
+    const subscriptionService = new Office365SubscriptionService(this.credential);
+    const subscription = await subscriptionService.createSubscription({
+      calendarId,
+    });
+
+    return subscription;
+  }
 }
