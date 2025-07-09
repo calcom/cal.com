@@ -43,7 +43,7 @@ async function postHandler(req: NextApiRequest) {
   const credentialForCalendarCache = await getCredentialForCalendarCache({ credentialId: credential.id });
   const calendarServiceForCalendarCache = await getCalendar(credentialForCalendarCache);
 
-  await calendarServiceForCalendarCache?.fetchAvailabilityAndSetCache?.(selectedCalendars);
+  await calendarServiceForCalendarCache?.fetchAvailabilityAndSetCacheIncremental?.(selectedCalendars);
   return { message: "ok" };
 }
 

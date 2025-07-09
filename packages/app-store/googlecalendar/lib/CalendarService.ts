@@ -455,6 +455,65 @@ export default class GoogleCalendarService implements Calendar {
     return apiResponse.json;
   }
 
+  async fetchEventsIncremental(
+    calendarId: string,
+    syncToken?: string
+  ): Promise<{ events: calendar_v3.Schema$Event[]; nextSyncToken?: string }> {
+    log.debug("fetchEventsIncremental", safeStringify({ calendarId, syncToken }));
+    const calendar = await this.authedCalendar();
+
+    try {
+      const response = await calendar.events.list({
+        calendarId,
+        syncToken,
+        singleEvents: true,
+        maxResults: 2500,
+      });
+
+      return {
+        events: response.data.items || [],
+        nextSyncToken: response.data.nextSyncToken || undefined,
+      };
+    } catch (error) {
+      const err = error as GoogleCalError;
+      if (err.code === 410) {
+        log.info("Sync token expired, performing full resync", { calendarId });
+        const response = await calendar.events.list({
+          calendarId,
+          singleEvents: true,
+          maxResults: 2500,
+        });
+
+        return {
+          events: response.data.items || [],
+          nextSyncToken: response.data.nextSyncToken || undefined,
+        };
+      }
+      throw err;
+    }
+  }
+
+  private convertEventsToBusyTimes(events: calendar_v3.Schema$Event[]): EventBusyDate[] {
+    const busyTimes: EventBusyDate[] = [];
+
+    for (const event of events) {
+      if (event.status === "cancelled" || !event.start || !event.end) {
+        continue;
+      }
+
+      if (!event.start.dateTime || !event.end.dateTime) {
+        continue;
+      }
+
+      busyTimes.push({
+        start: event.start.dateTime,
+        end: event.end.dateTime,
+      });
+    }
+
+    return busyTimes;
+  }
+
   async getFreeBusyResult(
     args: FreeBusyArgs,
     shouldServeCache?: boolean
@@ -677,7 +736,7 @@ export default class GoogleCalendarService implements Calendar {
     const fromDate = new Date(dateFrom);
     const toDate = new Date(dateTo);
     const oneDayMs = 1000 * 60 * 60 * 24;
-    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / (oneDayMs));
+    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / oneDayMs);
 
     // Google API only allows a date range of 90 days for /freebusy
     if (diff <= 90) {
@@ -987,6 +1046,39 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
+  async setAvailabilityInCacheWithSyncToken(
+    calendarIds: { id: string }[],
+    busyTimes: EventBusyDate[],
+    nextSyncToken?: string
+  ) {
+    const calendarCache = await CalendarCache.init(this);
+    const args = {
+      timeMin: getTimeMin(),
+      timeMax: getTimeMax(),
+      items: calendarIds,
+    };
+
+    const freeBusyResponse = {
+      calendars: calendarIds.reduce((acc, cal) => {
+        acc[cal.id] = {
+          busy: busyTimes.map((bt) => ({
+            start: bt.start,
+            end: bt.end,
+          })),
+        };
+        return acc;
+      }, {} as any),
+    };
+
+    await calendarCache.upsertCachedAvailability({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+      args,
+      value: freeBusyResponse,
+      nextSyncToken,
+    });
+  }
+
   async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
     this.log.debug("fetchAvailabilityAndSetCache", safeStringify({ selectedCalendars }));
     const selectedCalendarsPerEventType = new Map<
@@ -1018,6 +1110,45 @@ export default class GoogleCalendarService implements Calendar {
       };
       const data = await this.fetchAvailability(parsedArgs);
       await this.setAvailabilityInCache(parsedArgs, data);
+    }
+  }
+
+  async fetchAvailabilityAndSetCacheIncremental(selectedCalendars: IntegrationCalendar[]) {
+    const calendarCache = await CalendarCache.init(this);
+
+    for (const selectedCalendar of selectedCalendars) {
+      try {
+        const cached = await calendarCache.getCachedAvailability({
+          credentialId: this.credential.id,
+          userId: this.credential.userId,
+          args: {
+            timeMin: getTimeMin(),
+            timeMax: getTimeMax(),
+            items: [{ id: selectedCalendar.externalId }],
+          },
+        });
+
+        const existingSyncToken = cached?.nextSyncToken || undefined;
+
+        const { events, nextSyncToken } = await this.fetchEventsIncremental(
+          selectedCalendar.externalId,
+          existingSyncToken
+        );
+
+        const busyTimes = this.convertEventsToBusyTimes(events);
+
+        await this.setAvailabilityInCacheWithSyncToken(
+          [{ id: selectedCalendar.externalId }],
+          busyTimes,
+          nextSyncToken
+        );
+      } catch (error) {
+        log.error("Error in incremental sync, falling back to full sync", {
+          error,
+          calendarId: selectedCalendar.externalId,
+        });
+        await this.fetchAvailabilityAndSetCache([selectedCalendar]);
+      }
     }
   }
 
