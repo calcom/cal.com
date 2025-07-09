@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
@@ -153,7 +153,7 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
   });
 }
 
-const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+const teamSelect = {
   id: true,
   name: true,
   slug: true,
@@ -163,7 +163,7 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   isOrganization: true,
   organizationSettings: true,
   isPlatform: true,
-});
+} satisfies Prisma.TeamSelect;
 
 export class TeamRepository {
   static async findById({ id }: { id: number }) {
@@ -207,6 +207,24 @@ export class TeamRepository {
       where: {
         id,
         parentId,
+      },
+      select,
+    });
+  }
+
+  static async findFirstBySlugAndParentSlug({
+    slug,
+    parentSlug,
+    select = teamSelect,
+  }: {
+    slug: string;
+    parentSlug: string | null;
+    select?: Prisma.TeamSelect;
+  }) {
+    return await prisma.team.findFirst({
+      where: {
+        slug,
+        parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
       },
       select,
     });
