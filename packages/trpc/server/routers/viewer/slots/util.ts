@@ -14,6 +14,7 @@ import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { NotFoundError, ValidationError, AuthorizationError } from "@calcom/lib/errors";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks, getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
 import type {
@@ -56,8 +57,6 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import { TRPCError } from "@trpc/server";
-
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
@@ -96,7 +95,7 @@ async function getEventTypeId({
   }
   const eventType = await EventTypeRepository.findFirstEventTypeId({ slug: eventTypeSlug, teamId, userId });
   if (!eventType) {
-    throw new TRPCError({ code: "NOT_FOUND" });
+    throw new NotFoundError("Event type not found");
   }
   return eventType?.id;
 }
@@ -163,10 +162,7 @@ const _getDynamicEventType = async (
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
   // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
   if (!input.eventTypeSlug) {
-    throw new TRPCError({
-      message: "eventTypeSlug is required for dynamic booking",
-      code: "BAD_REQUEST",
-    });
+    throw new ValidationError("eventTypeSlug is required for dynamic booking");
   }
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
 
@@ -183,10 +179,7 @@ const _getDynamicEventType = async (
 
   const isDynamicAllowed = !usersWithOldSelectedCalendars.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed) {
-    throw new TRPCError({
-      message: "Some of the users in this group do not allow dynamic booking",
-      code: "UNAUTHORIZED",
-    });
+    throw new AuthorizationError("Some of the users in this group do not allow dynamic booking");
   }
   return Object.assign({}, dynamicEventType, {
     users: usersWithOldSelectedCalendars,
@@ -292,7 +285,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
   const eventType = await getRegularOrDynamicEventType(input, orgDetails);
 
   if (!eventType) {
-    throw new TRPCError({ code: "NOT_FOUND" });
+    throw new NotFoundError("Event type not found");
   }
 
   const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
@@ -326,7 +319,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
   if (!startTime.isValid() || !endTime.isValid()) {
-    throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
+    throw new ValidationError("Invalid time range given.");
   }
   // when an empty array is given we should prefer to have it handled as if this wasn't given at all
   // we don't want to return no availability in this case.
@@ -471,10 +464,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     });
     if (restrictionSchedule) {
       if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
-        throw new TRPCError({
-          message: "No timezone is set for the restricted schedule",
-          code: "BAD_REQUEST",
-        });
+        throw new ValidationError("No timezone is set for the restricted schedule");
       }
 
       const restrictionTimezone = eventType.useBookerTimezone
@@ -686,7 +676,7 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
   let foundAFutureLimitViolation = false;
   function _mapWithinBoundsSlotsToDate() {
     // This should never happen. Just for type safety, we already check in the upper scope
-    if (!eventType) throw new TRPCError({ code: "NOT_FOUND" });
+    if (!eventType) throw new NotFoundError("Event type not found");
 
     const withinBoundsSlotsMappedToDate = {} as typeof slotsMappedToDate;
     const doesStartFromToday = doesRangeStartFromToday(eventType.periodType);
