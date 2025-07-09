@@ -8,9 +8,8 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/org
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -58,19 +57,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventData = team.eventTypes[0];
 
-  let hasTeamOrOrgPermissions = false;
   const userId = session?.user?.id;
-  if (userId && eventData.team?.id) {
-    const isTeamAdminResult = await isTeamAdmin(userId, eventData.team.id);
-    if (isTeamAdminResult) {
-      hasTeamOrOrgPermissions = true;
-    } else if (eventData.team.parentId) {
-      const isOrgAdminResult = await isOrganisationAdmin(userId, eventData.team.parentId);
-      if (isOrgAdminResult) {
-        hasTeamOrOrgPermissions = true;
-      }
-    }
-  }
+  const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
+    userId,
+    eventData.team?.id,
+    eventData.team?.parentId
+  );
 
   let isHostOrOwner = eventData.owner?.id === userId || hasTeamOrOrgPermissions;
 

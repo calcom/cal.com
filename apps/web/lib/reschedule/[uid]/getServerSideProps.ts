@@ -7,10 +7,9 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
@@ -129,18 +128,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const userIsHost = booking?.eventType?.hosts?.find((host) => host.user.id === userId);
   const userIsOwnerOfEventType = userId !== undefined && booking?.eventType?.owner?.id === userId;
 
-  let hasTeamOrOrgPermissions = false;
-  if (userId && booking?.eventType?.team?.id) {
-    const isTeamAdminResult = await isTeamAdmin(userId, booking.eventType.team.id);
-    if (isTeamAdminResult) {
-      hasTeamOrOrgPermissions = true;
-    } else if (booking.eventType.team.parentId) {
-      const isOrgAdminResult = await isOrganisationAdmin(userId, booking.eventType.team.parentId);
-      if (isOrgAdminResult) {
-        hasTeamOrOrgPermissions = true;
-      }
-    }
-  }
+  const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
+    userId,
+    booking?.eventType?.team?.id,
+    booking?.eventType?.team?.parentId
+  );
 
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType || !!hasTeamOrOrgPermissions;
   if (isDisabledRescheduling && !isHostOrOwner) {

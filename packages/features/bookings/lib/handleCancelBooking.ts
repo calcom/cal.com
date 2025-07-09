@@ -13,6 +13,7 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
+import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -23,8 +24,6 @@ import logger from "@calcom/lib/logger";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -113,21 +112,11 @@ async function handler(input: CancelBookingInput) {
   const userIsOwnerOfEventType = bookingToDelete.eventType?.owner?.id === userId;
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
 
-  // Check if user has team or organization admin/owner permissions
-  let hasTeamOrOrgPermissions = false;
-  if (bookingToDelete.eventType?.team?.id && userId) {
-    // Check if user is a team admin or owner
-    const isTeamAdminResult = await isTeamAdmin(userId, bookingToDelete.eventType.team.id);
-    if (isTeamAdminResult) {
-      hasTeamOrOrgPermissions = true;
-    } else if (bookingToDelete.eventType.team.parentId) {
-      // Check if user is an organization admin or owner (if the team belongs to an organization)
-      const isOrgAdminResult = await isOrganisationAdmin(userId, bookingToDelete.eventType.team.parentId);
-      if (isOrgAdminResult) {
-        hasTeamOrOrgPermissions = true;
-      }
-    }
-  }
+  const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
+    userId,
+    bookingToDelete.eventType?.team?.id,
+    bookingToDelete.eventType?.team?.parentId
+  );
 
   if (bookingToDelete.eventType?.disableCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions) {
     throw new HttpError({

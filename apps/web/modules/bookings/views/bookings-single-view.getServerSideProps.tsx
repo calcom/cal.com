@@ -6,12 +6,11 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
@@ -173,22 +172,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     );
   };
 
-  const checkTeamOrOrgPermissions = async (userId?: number | null) => {
-    if (!userId || !eventType.team?.id) return false;
-
-    const isTeamAdminResult = await isTeamAdmin(userId, eventType.team.id);
-    if (isTeamAdminResult) return true;
-
-    if (eventType.team.parentId) {
-      const isOrgAdminResult = await isOrganisationAdmin(userId, eventType.team.parentId);
-      if (isOrgAdminResult) return true;
-    }
-
-    return false;
-  };
-
   const isLoggedInUserHost = checkIfUserIsHost(userId);
-  const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(userId);
+  const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
+    userId,
+    eventType.team?.id,
+    eventType.team?.parentId
+  );
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
