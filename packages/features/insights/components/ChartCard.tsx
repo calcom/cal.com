@@ -21,7 +21,7 @@ export function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-subtle bg-muted group relative w-full items-center rounded-2xl border px-1 pb-1">
+    <div className="bg-muted group relative w-full items-center rounded-2xl px-1 pb-1">
       <div className="flex h-11 items-center justify-between px-4">
         <h2 className="text-emphasis text-sm font-semibold">{title}</h2>
         {legend && (legend || []).length > 0 && <Legend items={legend} />}
@@ -31,7 +31,7 @@ export function ChartCard({
           </Button>
         )}
       </div>
-      <div className="bg-default border-default w-full gap-3 rounded-xl border">
+      <div className="bg-default border-muted w-full gap-3 rounded-xl border">
         {subtitle && (
           <div className="text-subtle border-muted border-b p-3 text-sm font-medium leading-none">
             {subtitle}
