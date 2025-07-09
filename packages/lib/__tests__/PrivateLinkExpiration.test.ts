@@ -17,13 +17,11 @@ vi.mock("../../../bookings/lib/handleNewBooking", () => ({
   handleNewBooking: vi.fn(),
 }));
 
-const prismaMock = mockDeep<PrismaClient>();
-
 const NOW = new Date("2024-03-20T12:00:00Z");
 
 describe("Private Link Expiration", () => {
   beforeEach(() => {
-    mockReset(prismaMock);
+    mockReset();
     vi.setSystemTime(NOW);
     vi.clearAllMocks();
   });
