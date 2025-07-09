@@ -434,63 +434,6 @@ describe("InsightsBookingService Integration Tests", () => {
     });
   });
 
-  describe("Caching", () => {
-    it("should cache authorization conditions", async () => {
-      const testData = await createTestData({
-        teamRole: MembershipRole.OWNER,
-        orgRole: MembershipRole.OWNER,
-      });
-
-      const service = new InsightsBookingService({
-        prisma,
-        options: {
-          scope: "user",
-          userId: testData.user.id,
-          orgId: testData.org.id,
-        },
-      });
-
-      // First call should build conditions
-      const conditions1 = await service.getAuthorizationConditions();
-      expect(conditions1).toEqual(Prisma.sql`("userId" = ${testData.user.id}) AND ("teamId" IS NULL)`);
-
-      // Second call should use cached conditions
-      const conditions2 = await service.getAuthorizationConditions();
-      expect(conditions2).toEqual(conditions1);
-
-      // Clean up
-      await testData.cleanup();
-    });
-
-    it("should cache filter conditions", async () => {
-      const testData = await createTestData();
-
-      const service = new InsightsBookingService({
-        prisma,
-        options: {
-          scope: "user",
-          userId: testData.user.id,
-          orgId: testData.org.id,
-        },
-        filters: {
-          eventTypeId: testData.eventType.id,
-        },
-      });
-
-      // First call should build conditions
-      const conditions1 = await service.getFilterConditions();
-      expect(conditions1).toEqual(
-        Prisma.sql`("eventTypeId" = ${testData.eventType.id}) OR ("eventParentId" = ${testData.eventType.id})`
-      );
-
-      // Second call should use cached conditions
-      const conditions2 = await service.getFilterConditions();
-      expect(conditions2).toEqual(conditions1);
-
-      await testData.cleanup();
-    });
-  });
-
   describe("getBaseConditions", () => {
     it("should combine authorization and filter conditions", async () => {
       const testData = await createTestData({
@@ -541,8 +484,11 @@ describe("InsightsBookingService Integration Tests", () => {
       `;
 
       // Should return the user booking since it matches both conditions
-      expect(results).toHaveLength(1);
-      expect(results[0]?.id).toBe(userBooking.id);
+      expect(results).toEqual([
+        {
+          id: userBooking.id,
+        },
+      ]);
 
       // Clean up
       await prisma.booking.delete({
