@@ -888,6 +888,6 @@ test.describe("RESERVATION_EXPIRED", async () => {
     await page.fill('[name="subscriberUrl"]', "https://webhook.example.com");
 
     // Verify RESERVATION_EXPIRED is available as a trigger option
-    await expect(page.locator('text="Reservation Expired"')).toBeVisible();
+    await expect(page.getByRole("option", { name: "Reservation Expired" })).toBeVisible();
   });
 });
