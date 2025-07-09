@@ -150,20 +150,6 @@ async function handler(input: CancelBookingInput) {
     });
 
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
-    let hasTeamOrOrgPermissions = false;
-    if (bookingToDelete.eventType?.team?.id && userId) {
-      // Check if user is a team admin or owner
-      const isTeamAdminResult = await isTeamAdmin(userId, bookingToDelete.eventType.team.id);
-      if (isTeamAdminResult) {
-        hasTeamOrOrgPermissions = true;
-      } else if (bookingToDelete.eventType.team.parentId) {
-        // Check if user is an organization admin or owner (if the team belongs to an organization)
-        const isOrgAdminResult = await isOrganisationAdmin(userId, bookingToDelete.eventType.team.parentId);
-        if (isOrgAdminResult) {
-          hasTeamOrOrgPermissions = true;
-        }
-      }
-    }
 
     if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions) {
       throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
