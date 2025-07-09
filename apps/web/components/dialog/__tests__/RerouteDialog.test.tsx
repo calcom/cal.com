@@ -440,11 +440,7 @@ describe("RerouteDialog", () => {
         render(
           <SessionProvider session={mockSession}>
             <TooltipProvider>
-              <RerouteDialog
-                isOpenDialog={true}
-                setIsOpenDialog={mockSetIsOpenDialog}
-                booking={mockBooking}
-              />
+              <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
             </TooltipProvider>
           </SessionProvider>
         );
@@ -487,11 +483,7 @@ describe("RerouteDialog", () => {
         render(
           <SessionProvider session={mockSession}>
             <TooltipProvider>
-              <RerouteDialog
-                isOpenDialog={true}
-                setIsOpenDialog={mockSetIsOpenDialog}
-                booking={mockBooking}
-              />
+              <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
             </TooltipProvider>
           </SessionProvider>
         );

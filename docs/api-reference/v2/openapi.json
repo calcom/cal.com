@@ -4913,6 +4913,8 @@
         },
         "tags": ["Orgs / Teams / Routing forms / Responses"]
       }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
       "get": {
         "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
         "summary": "Get Stripe connect URL for a team",
@@ -5047,6 +5049,7 @@
         "tags": ["Orgs / Teams / Stripe"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/users/{userId}/schedules": {
       "get": {
         "operationId": "OrganizationsTeamsSchedulesController_getUserSchedules",
         "summary": "Get schedules of a team member",
