@@ -155,8 +155,8 @@ const BookerComponent = ({
 
   const scrolledToTimeslotsOnce = useRef(false);
   const scrollToTimeSlots = () => {
-    if (isMobile && !isEmbed && !scrolledToTimeslotsOnce.current) {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Conditional within !isEmbed condition
+    if (isMobile && !scrolledToTimeslotsOnce.current) {
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- We are allowing it here because scrollToTimeSlots is called on explicit user action where it makes sense to scroll, remember that the goal is to not do auto-scroll on embed load because that ends up scrolling the embedding webpage too
       timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
       scrolledToTimeslotsOnce.current = true;
     }

@@ -12,7 +12,7 @@ import type { z } from "zod";
 
 import { prisma } from "@calcom/prisma";
 import type { getScheduleSchema, GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
-import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
@@ -62,6 +62,7 @@ const getBaseScenarioData = (): ScheduleScenario => ({
 });
 
 describe("getSchedule", () => {
+  const availableSlotsService = new AvailableSlotsService();
   setupAndTeardown();
 
   describe("Reserved Slots", () => {
@@ -93,7 +94,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const schedule = await getSchedule({
+      const schedule = await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
       });
 
@@ -128,7 +129,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const schedule = await getSchedule({
+      const schedule = await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
         ctx: {
           req: {
@@ -183,7 +184,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const schedule = await getSchedule({
+      const schedule = await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
       });
 
@@ -238,7 +239,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const schedule = await getSchedule({
+      const schedule = await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
       });
 
@@ -287,7 +288,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const schedule = await getSchedule({
+      const schedule = await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
       });
 
@@ -366,7 +367,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      await getSchedule({
+      await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
         ctx: {
           req: {
