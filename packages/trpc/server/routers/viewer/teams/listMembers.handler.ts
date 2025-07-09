@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -17,7 +17,7 @@ type ListMembersHandlerOptions = {
   input: TListMembersInputSchema;
 };
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   username: true,
   email: true,
   name: true,
@@ -26,7 +26,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   bio: true,
   disableImpersonation: true,
   lastActiveAt: true,
-});
+} satisfies Prisma.UserSelect;
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
   const { cursor, limit, teamId, searchTerm } = input;
