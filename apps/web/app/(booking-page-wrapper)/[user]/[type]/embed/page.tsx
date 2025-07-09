@@ -20,7 +20,7 @@ export const generateMetadata = async ({ params, searchParams }: ServerPageProps
   const { booking, isSEOIndexable = true, eventData, isBrandingHidden } = props;
   const rescheduleUid = booking?.uid;
   const profileName = eventData?.profile?.name ?? "";
-  const profileImage = eventData?.profile.image;
+  const profileImage = eventData?.profile?.image;
   const title = eventData?.title ?? "";
   const meeting = {
     title,
