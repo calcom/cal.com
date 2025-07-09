@@ -44,13 +44,12 @@ import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
-import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
-import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
@@ -89,7 +88,14 @@ export type GetAvailableSlotsResponse = Awaited<
   ReturnType<(typeof AvailableSlotsService)["prototype"]["_getAvailableSlots"]>
 >;
 
+export interface IAvailableSlotsService {
+  oooRepo: PrismaOOORepository;
+  scheduleRepo: ScheduleRepository;
+}
+
 export class AvailableSlotsService {
+  constructor(private readonly dependencies: IAvailableSlotsService) {}
+
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
     usersWithCredentials,
@@ -156,7 +162,7 @@ export class AvailableSlotsService {
       users: usersWithOldSelectedCalendars,
     });
   }
-  private getDynamicEventType = withReporting(this._getDynamicEventType, "getDynamicEventType");
+  private getDynamicEventType = withReporting(this._getDynamicEventType.bind(this), "getDynamicEventType");
 
   private applyOccupiedSeatsToCurrentSeats(
     currentSeats: CurrentSeats,
@@ -206,7 +212,7 @@ export class AvailableSlotsService {
     return await EventTypeRepository.findForSlots({ id: eventTypeId });
   }
 
-  private getEventType = withReporting(this._getEventType, "getEventType");
+  private getEventType = withReporting(this._getEventType.bind(this), "getEventType");
 
   private doesRangeStartFromToday(periodType: PeriodType) {
     return periodType === PeriodType.ROLLING_WINDOW || periodType === PeriodType.ROLLING;
@@ -230,7 +236,7 @@ export class AvailableSlotsService {
   }
 
   private getAllDatesWithBookabilityStatus = withReporting(
-    this._getAllDatesWithBookabilityStatus,
+    this._getAllDatesWithBookabilityStatus.bind(this),
     "getAllDatesWithBookabilityStatus"
   );
 
@@ -477,7 +483,7 @@ export class AvailableSlotsService {
   }
 
   private getBusyTimesFromLimitsForUsers = withReporting(
-    this._getBusyTimesFromLimitsForUsers,
+    this._getBusyTimesFromLimitsForUsers.bind(this),
     "getBusyTimesFromLimitsForUsers"
   );
 
@@ -621,15 +627,14 @@ export class AvailableSlotsService {
     return userBusyTimesMap;
   }
   private getBusyTimesFromTeamLimitsForUsers = withReporting(
-    this._getBusyTimesFromTeamLimitsForUsers,
+    this._getBusyTimesFromTeamLimitsForUsers.bind(this),
     "getBusyTimesFromTeamLimitsForUsers"
   );
 
   private async _getOOODates(startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) {
-    const oooRepo = new PrismaOOORepository(prisma);
-    return oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
+    return this.dependencies.oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
   }
-  private getOOODates = withReporting(this._getOOODates, "getOOODates");
+  private getOOODates = withReporting(this._getOOODates.bind(this), "getOOODates");
 
   private _getUsersWithCredentials({
     hosts,
@@ -642,7 +647,10 @@ export class AvailableSlotsService {
     return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
 
-  private getUsersWithCredentials = withReporting(this._getUsersWithCredentials, "getUsersWithCredentials");
+  private getUsersWithCredentials = withReporting(
+    this._getUsersWithCredentials.bind(this),
+    "getUsersWithCredentials"
+  );
 
   private getStartTime(startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) {
     const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
@@ -778,7 +786,7 @@ export class AvailableSlotsService {
         };
       });
     }
-    const enrichUsersWithData = withReporting(_enrichUsersWithData, "enrichUsersWithData");
+    const enrichUsersWithData = withReporting(_enrichUsersWithData.bind(this), "enrichUsersWithData");
     const users = enrichUsersWithData();
 
     // TODO: DI getUsersAvailability
@@ -843,11 +851,11 @@ export class AvailableSlotsService {
   }
 
   private getRegularOrDynamicEventType = withReporting(
-    this._getRegularOrDynamicEventType,
+    this._getRegularOrDynamicEventType.bind(this),
     "getRegularOrDynamicEventType"
   );
 
-  getAvailableSlots = withReporting(this._getAvailableSlots, "getAvailableSlots");
+  getAvailableSlots = withReporting(this._getAvailableSlots.bind(this), "getAvailableSlots");
 
   async _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
     const {
@@ -1051,8 +1059,7 @@ export class AvailableSlotsService {
     // TODO: DI isRestrictionScheduleEnabled
     const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
     if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
-      const scheduleRepo = new ScheduleRepository(prisma);
-      const restrictionSchedule = await scheduleRepo.findScheduleByIdForBuildDateRanges({
+      const restrictionSchedule = await this.dependencies.scheduleRepo.findScheduleByIdForBuildDateRanges({
         scheduleId: eventType.restrictionScheduleId,
       });
       if (restrictionSchedule) {
@@ -1242,7 +1249,7 @@ export class AvailableSlotsService {
         Object.create(null)
       );
     }
-    const mapSlotsToDate = withReporting(_mapSlotsToDate, "mapSlotsToDate");
+    const mapSlotsToDate = withReporting(_mapSlotsToDate.bind(this), "mapSlotsToDate");
     const slotsMappedToDate = mapSlotsToDate();
 
     loggerWithEventDetails.debug({ slotsMappedToDate });
@@ -1308,7 +1315,7 @@ export class AvailableSlotsService {
       return withinBoundsSlotsMappedToDate;
     };
     const mapWithinBoundsSlotsToDate = withReporting(
-      _mapWithinBoundsSlotsToDate,
+      _mapWithinBoundsSlotsToDate.bind(this),
       "mapWithinBoundsSlotsToDate"
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
