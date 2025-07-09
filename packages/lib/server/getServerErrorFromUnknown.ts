@@ -97,7 +97,8 @@ function getStatusCode(cause: Error): number {
     case ErrorCode.CancelledBookingsCannotBeRescheduled:
       return 400;
     case ErrorCode.NoAvailableUsersFound:
-    case ErrorCode.HostsUnavailableForBooking:
+    case ErrorCode.FixedHostsUnavailableForBooking:
+    case ErrorCode.RoundRobinHostsUnavailableForBooking:
     case ErrorCode.PaymentCreationFailure:
     case ErrorCode.ChargeCardFailure:
     case ErrorCode.AlreadySignedUpForBooking:

@@ -137,7 +137,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
   );
 
   test(
-    "should throw HostsUnavailableForBooking when Round Robin event has fixed hosts but no round robin host is available",
+    "should throw RoundRobinHostsUnavailableForBooking when Round Robin event has fixed hosts but no round robin host is available",
     async () => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
@@ -231,7 +231,7 @@ describe("handleNewBooking - Round Robin Host Validation", () => {
         handleNewBooking({
           bookingData: mockBookingData,
         })
-      ).rejects.toThrow(ErrorCode.HostsUnavailableForBooking);
+      ).rejects.toThrow(ErrorCode.RoundRobinHostsUnavailableForBooking);
     },
     timeout
   );
