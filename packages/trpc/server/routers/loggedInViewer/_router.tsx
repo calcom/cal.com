@@ -1,6 +1,13 @@
 import { z } from "zod";
 
+import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
+import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import { deletePhoneNumber } from "@calcom/features/ee/cal-ai-phone/retellAIService";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
+import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -25,6 +32,75 @@ type AppsRouterHandlerCache = {
   addNotificationsSubscription?: typeof import("./addNotificationsSubscription.handler").addNotificationsSubscriptionHandler;
   removeNotificationsSubscription?: typeof import("./removeNotificationsSubscription.handler").removeNotificationsSubscriptionHandler;
   markNoShow?: typeof import("./markNoShow.handler").markNoShow;
+};
+
+const generatePhoneNumberCheckoutSession = async ({
+  userId,
+  eventTypeId,
+}: {
+  userId: number;
+  eventTypeId?: number;
+}) => {
+  const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
+
+  if (!phoneNumberPriceId) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Phone number price ID not configured. Please contact support.",
+    });
+  }
+
+  // Get or create Stripe customer
+  const stripeCustomerId = await getStripeCustomerIdFromUserId(userId);
+  if (!stripeCustomerId) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to create Stripe customer.",
+    });
+  }
+
+  // Create Stripe checkout session for phone number subscription
+  const checkoutSession = await stripe.checkout.sessions.create({
+    customer: stripeCustomerId,
+    mode: "subscription",
+    line_items: [
+      {
+        price: phoneNumberPriceId,
+        quantity: 1,
+      },
+    ],
+    success_url: `${WEBAPP_URL}/api/phone-numbers/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${WEBAPP_URL}/settings/my-account/phone-numbers`,
+    allow_promotion_codes: true,
+    customer_update: {
+      address: "auto",
+    },
+    // Disabled when testing locally as usually developer doesn't setup Tax in Stripe Test mode
+    automatic_tax: {
+      enabled: IS_PRODUCTION,
+    },
+    metadata: {
+      userId: userId.toString(),
+      eventTypeId: eventTypeId?.toString() || "",
+      type: "phone_number_subscription",
+    },
+    subscription_data: {
+      metadata: {
+        userId: userId.toString(),
+        eventTypeId: eventTypeId?.toString() || "",
+        type: "phone_number_subscription",
+      },
+    },
+  });
+
+  if (!checkoutSession.url) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to create checkout session.",
+    });
+  }
+
+  return { url: checkoutSession.url, message: "Payment required to purchase phone number" };
 };
 
 export const loggedInViewerRouter = router({
@@ -136,94 +212,107 @@ export const loggedInViewerRouter = router({
       });
       return call;
     }),
+
   list: authedProcedure.query(async ({ ctx }) => {
     const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
     return await PhoneNumberRepository.findPhoneNumbersFromUserId({ userId: ctx.user.id });
   }),
+
   buy: authedProcedure
     .input(z.object({ eventTypeId: z.number().optional() }).optional())
     .mutation(async ({ ctx, input }) => {
-      const { createPhoneNumber, updatePhoneNumber } = await import(
-        "@calcom/features/ee/cal-ai-phone/retellAIService"
-      );
-      console.log("protectedProcedure.protectedProcedureprotectedProcedureinput", ctx, input);
-      // const { eventTypeId } = input;
-      // const creditService = new CreditService();
-      // const creditsToCharge = 50;
-
-      // const allCredits = await creditService.getAllCredits({ userId: ctx.user.id });
-      // const availableCredits = allCredits.totalRemainingMonthlyCredits + allCredits.additionalCredits;
-
-      // if (availableCredits < creditsToCharge) {
-      //   throw new TRPCError({ code: "FORBIDDEN", message: "You don't have enough credits." });
-      // }
-
-      // // --- Database and API Calls ---
-      // // 1. Charge credits first
-      // const chargeResult = await creditService.chargeCredits({
-      //   userId: ctx.user.id,
-      //   credits: creditsToCharge,
-      // });
-      // if (!chargeResult) {
-      //   throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to charge credits." });
-      // }
-
       const eventTypeId = input?.eventTypeId;
+      const userId = ctx.user.id;
 
-      // 2. Buy the phone number
-      const retellPhoneNumber = await createPhoneNumber();
+      // Generate checkout session for phone number subscription
+      const checkoutSession = await generatePhoneNumberCheckoutSession({
+        userId,
+        eventTypeId,
+      });
 
-      // 3. If eventTypeId is provided, assign agent to the new number
-      if (eventTypeId) {
-        const config = await prisma.aISelfServeConfiguration.findFirst({
-          where: {
-            eventTypeId: eventTypeId,
-            eventType: {
-              userId: ctx.user.id, // Authorization check
-            },
-          },
-        });
-
-        if (!config || !config.agentId) {
-          // This should ideally not happen in the intended flow, but it's a good safeguard.
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "AI agent not found for this event type.",
-          });
-        }
-
-        // Assign agent to the new number via Retell API
-        await updatePhoneNumber(retellPhoneNumber.phone_number, config.agentId);
-
-        // Create the number and link it in our DB
-        const newNumber = await prisma.calAiPhoneNumber.create({
-          data: {
-            userId: ctx.user.id,
-            phoneNumber: retellPhoneNumber.phone_number,
-            provider: "retell",
-          },
-        });
-
-        // Link the new number to the AI config
-        await prisma.aISelfServeConfiguration.update({
-          where: { id: config.id },
-          data: { yourPhoneNumberId: newNumber.id },
-        });
-
-        return newNumber;
+      // If there is a checkout session, return it
+      if (checkoutSession) {
+        return {
+          checkoutUrl: checkoutSession.url,
+          message: checkoutSession.message,
+          phoneNumber: null,
+        };
       }
 
-      // --- Default behavior: Just buy the number without assignment ---
-      const newNumber = await prisma.calAiPhoneNumber.create({
+      // This shouldn't happen as phone numbers always require payment
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Phone number billing is required but not configured.",
+      });
+    }),
+
+  cancel: authedProcedure.input(z.object({ phoneNumberId: z.number() })).mutation(async ({ ctx, input }) => {
+    const { phoneNumberId } = input;
+
+    // Find the phone number and verify ownership
+    const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
+      where: {
+        id: phoneNumberId,
+        userId: ctx.user.id,
+      },
+    });
+
+    if (!phoneNumber) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Phone number not found or you don't have permission to cancel it.",
+      });
+    }
+
+    if (!phoneNumber.stripeSubscriptionId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Phone number doesn't have an active subscription.",
+      });
+    }
+
+    try {
+      // Cancel the Stripe subscription
+      await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
+
+      // Update the phone number status
+      await prisma.calAiPhoneNumber.update({
+        where: {
+          id: phoneNumberId,
+        },
         data: {
-          userId: ctx.user.id,
-          phoneNumber: retellPhoneNumber.phone_number,
-          provider: "retell",
+          subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
         },
       });
 
-      return newNumber;
-    }),
+      // Remove phone number from AI configurations
+      await prisma.aISelfServeConfiguration.updateMany({
+        where: {
+          yourPhoneNumberId: phoneNumberId,
+        },
+        data: {
+          yourPhoneNumberId: null,
+        },
+      });
+
+      // Delete the phone number from Retell AI service
+      try {
+        await deletePhoneNumber(phoneNumber.phoneNumber);
+      } catch (error) {
+        // Log the error but don't fail the cancellation
+        console.error("Failed to delete phone number from Retell AI, but subscription was cancelled:", error);
+      }
+
+      return { success: true, message: "Phone number subscription cancelled successfully." };
+    } catch (error) {
+      console.error("Error cancelling phone number subscription:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to cancel subscription. Please try again or contact support.",
+      });
+    }
+  }),
+
   stripeCustomer: authedProcedure.query(async ({ ctx }) => {
     const { stripeCustomerHandler } = await import("./stripeCustomer.handler");
     return stripeCustomerHandler({ ctx });

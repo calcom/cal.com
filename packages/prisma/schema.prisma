@@ -2211,6 +2211,16 @@ enum BillingPeriod {
   ANNUALLY
 }
 
+enum PhoneNumberSubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  UNPAID
+}
+
 model OrganizationOnboarding {
   // TODO: Use uuid for id
   id String @id @default(uuid())
@@ -2423,7 +2433,13 @@ model CalAiPhoneNumber {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Billing fields for $5/month subscription
+  stripeCustomerId     String?
+  stripeSubscriptionId String?                        @unique
+  subscriptionStatus   PhoneNumberSubscriptionStatus?
+
   aiSelfServeConfigurations AISelfServeConfiguration?
 
   @@index([userId])
+  @@index([stripeSubscriptionId])
 }

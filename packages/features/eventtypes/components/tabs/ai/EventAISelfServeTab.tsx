@@ -10,6 +10,7 @@ import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { ShellMain } from "@calcom/features/shell/Shell";
+import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -20,15 +21,6 @@ import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
-
-const formatPhoneNumber = (phoneNumber: string) => {
-  const cleaned = `${phoneNumber}`.replace(/\D/g, "");
-  const match = cleaned.match(/^(\d{1})(\d{3})(\d{3})(\d{4})$/);
-  if (match) {
-    return `+${match[1]} (${match[2]}) ${match[3]}-${match[4]}`;
-  }
-  return phoneNumber;
-};
 
 const setupSchema = z.object({
   calApiKey: z.string().min(1, "API Key is required"),

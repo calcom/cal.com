@@ -221,7 +221,7 @@ class CreateRetellPhoneCallCommand implements Command<TCreatePhoneSchema> {
 }
 
 class CreatePhoneNumberCommand implements Command<TCreatePhoneNumberResponseSchema> {
-  constructor(private areaCode?: number) {}
+  constructor(private areaCode?: number, private nickName?: string) {}
 
   async execute(): Promise<TCreatePhoneNumberResponseSchema> {
     try {
@@ -229,6 +229,7 @@ class CreatePhoneNumberCommand implements Command<TCreatePhoneNumberResponseSche
         method: "POST",
         body: JSON.stringify({
           area_code: this.areaCode,
+          nickname: this.nickName ?? `cal-ai-phone-${Date.now()}`, // Add a unique nickname
         }),
       }).then(ZCreatePhoneNumberResponseSchema.parse);
 
@@ -240,8 +241,31 @@ class CreatePhoneNumberCommand implements Command<TCreatePhoneNumberResponseSche
   }
 }
 
-export const createPhoneNumber = async (areaCode?: number): Promise<TCreatePhoneNumberResponseSchema> => {
-  const command = new CreatePhoneNumberCommand(areaCode);
+export const createPhoneNumber = async (
+  areaCode?: number,
+  nickName?: string
+): Promise<TCreatePhoneNumberResponseSchema> => {
+  const command = new CreatePhoneNumberCommand(areaCode, nickName);
+  return command.execute();
+};
+
+class DeletePhoneNumberCommand implements Command<void> {
+  constructor(private phoneNumber: string) {}
+
+  async execute(): Promise<void> {
+    try {
+      await fetcher(`/delete-phone-number/${this.phoneNumber}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      log.error("Unable to Delete Phone Number", safeStringify(error));
+      throw new Error("Something went wrong! Unable to Delete Phone Number from Retell AI");
+    }
+  }
+}
+
+export const deletePhoneNumber = async (phoneNumber: string): Promise<void> => {
+  const command = new DeletePhoneNumberCommand(phoneNumber);
   return command.execute();
 };
 
