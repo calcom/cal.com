@@ -1,4 +1,4 @@
-import type { RolePermission } from "../domain/types/role";
+import type { RolePermission } from "../domain/models/Role";
 
 export type PermissionString = string;
 export type ParsedPermission = { resource: string; action: string };

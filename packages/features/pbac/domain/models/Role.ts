@@ -18,9 +18,9 @@ export interface RolePermission {
 export interface Role {
   id: string;
   name: string;
-  color: string | null;
-  description: string | null;
-  teamId: number | null;
+  color?: string;
+  description?: string;
+  teamId?: number;
   type: RoleType;
   permissions: RolePermission[];
   createdAt: Date;
