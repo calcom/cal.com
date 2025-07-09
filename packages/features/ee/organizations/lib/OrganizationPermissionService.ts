@@ -1,11 +1,10 @@
 import { ORGANIZATION_SELF_SERVE_MIN_SEATS, ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
+import { AuthorizationError, ValidationError } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["ee", "organizations", "OrganizationPermissionService"] });
 type SeatsPrice = {
@@ -101,25 +100,16 @@ export class OrganizationPermissionService {
     } & SeatsPrice
   ): Promise<boolean> {
     if (!(await this.hasPermissionToCreateForEmail(input.orgOwnerEmail))) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "you_do_not_have_permission_to_create_an_organization_for_this_email",
-      });
+      throw new AuthorizationError("you_do_not_have_permission_to_create_an_organization_for_this_email");
     }
 
     if (await this.hasConflictingOrganization({ slug: input.slug })) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "organization_already_exists_with_this_slug",
-      });
+      throw new ValidationError("organization_already_exists_with_this_slug");
     }
 
     if (await this.hasCompletedOnboarding(input.orgOwnerEmail)) {
       // TODO: Consider redirecting to success page
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "organization_onboarding_already_completed",
-      });
+      throw new ValidationError("organization_onboarding_already_completed");
     }
 
     const teamsToMigrate = input.teams
@@ -127,10 +117,7 @@ export class OrganizationPermissionService {
       .map((team) => team.id);
 
     if (teamsToMigrate && !(await this.hasPermissionToMigrateTeams(teamsToMigrate))) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams",
-      });
+      throw new AuthorizationError("you_do_not_have_permission_to_migrate_one_or_more_of_the_teams");
     }
 
     return true;

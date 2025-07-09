@@ -1,11 +1,10 @@
 import type { z } from "zod";
 
+import { NotFoundError } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import type { App_RoutingForms_FormResponse } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 import { jsonLogicToPrisma } from "../jsonLogicToPrisma";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -89,10 +88,7 @@ export const reportHandler = async (options: ReportHandlerOptions) => {
   });
 
   if (!form) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Form not found",
-    });
+    throw new NotFoundError("Form not found");
   }
   // TODO: Second argument is required to return deleted operators.
   const serializedForm = await getSerializableForm({ form, withDeletedFields: true });

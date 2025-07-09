@@ -1,8 +1,7 @@
+import { NotFoundError } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
-
-import { TRPCError } from "@trpc/server";
 
 import { deleteWorkfowRemindersOfRemovedMember } from "./deleteWorkflowRemindersOfRemovedMember";
 
@@ -71,7 +70,7 @@ const removeMember = async ({
     },
   });
 
-  if (!team || !foundUser) throw new TRPCError({ code: "NOT_FOUND" });
+  if (!team || !foundUser) throw new NotFoundError("Team or user not found");
 
   if (isOrg) {
     log.debug("Removing a member from the organization");

@@ -1,12 +1,11 @@
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { AuthorizationError } from "@calcom/lib/errors";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 import { setupDefaultSchedule } from "@calcom/trpc/server/routers/viewer/availability/util";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 interface IUpdateScheduleOptions {
   input: TUpdateInputSchema;
@@ -40,9 +39,7 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
   });
 
   if (!userSchedule) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-    });
+    throw new AuthorizationError("Unauthorized to update this schedule");
   }
 
   if (userSchedule?.userId !== user.id) {
@@ -53,9 +50,7 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
       input: { memberId: userSchedule.userId },
     });
     if (!hasEditPermission) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-      });
+      throw new AuthorizationError("Unauthorized to edit this schedule");
     }
   }
 

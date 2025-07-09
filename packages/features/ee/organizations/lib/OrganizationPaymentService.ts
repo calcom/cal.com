@@ -4,6 +4,7 @@ import {
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
 } from "@calcom/lib/constants";
+import { AuthorizationError } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
@@ -13,8 +14,6 @@ import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import type { BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 
@@ -171,10 +170,7 @@ export class OrganizationPaymentService {
       this.permissionService.hasModifiedDefaultPayment(input) &&
       !this.permissionService.hasPermissionToModifyDefaultPayment()
     ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You do not have permission to modify the default payment settings",
-      });
+      throw new AuthorizationError("You do not have permission to modify the default payment settings");
     }
 
     await this.permissionService.validatePermissions(input);

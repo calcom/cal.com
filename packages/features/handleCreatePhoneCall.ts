@@ -3,10 +3,9 @@ import { RetellAIService, validatePhoneNumber } from "@calcom/features/ee/cal-ai
 import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import type { TCreatePhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { OrganizationError } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
-import { TRPCError } from "@trpc/server";
 
 export const handleCreatePhoneCall = async ({
   user,
@@ -16,7 +15,7 @@ export const handleCreatePhoneCall = async ({
   input: TCreatePhoneCallSchema;
 }) => {
   if (!user?.profile?.organization) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not part of an organization" });
+    throw new OrganizationError("User is not part of an organization");
   }
 
   await checkRateLimitAndThrowError({

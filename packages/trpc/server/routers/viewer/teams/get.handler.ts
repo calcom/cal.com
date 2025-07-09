@@ -1,7 +1,7 @@
+import { mapBusinessErrorToTRPCError } from "@calcom/lib/errorMapping";
+import { AuthorizationError, NotFoundError } from "@calcom/lib/errors";
 import { getTeamWithoutMembers } from "@calcom/lib/server/queries/teams";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-
-import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
@@ -14,36 +14,34 @@ type GetDataOptions = {
 };
 
 export const get = async ({ ctx, input }: GetDataOptions) => {
-  const teamMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-    userId: ctx.user.id,
-    teamId: input.teamId,
-  });
-
-  if (!teamMembership) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You are not a member of this team.",
+  try {
+    const teamMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      userId: ctx.user.id,
+      teamId: input.teamId,
     });
-  }
 
-  const team = await getTeamWithoutMembers({
-    id: input.teamId,
-    userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
-    isOrgView: input?.isOrg,
-  });
+    if (!teamMembership) {
+      throw new AuthorizationError("You are not a member of this team.");
+    }
 
-  if (!team) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Team not found",
+    const team = await getTeamWithoutMembers({
+      id: input.teamId,
+      userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
+      isOrgView: input?.isOrg,
     });
-  }
 
-  const membership = {
-    role: teamMembership.role,
-    accepted: teamMembership.accepted,
-  };
-  return { ...team, membership };
+    if (!team) {
+      throw new NotFoundError("Team not found");
+    }
+
+    const membership = {
+      role: teamMembership.role,
+      accepted: teamMembership.accepted,
+    };
+    return { ...team, membership };
+  } catch (error) {
+    throw mapBusinessErrorToTRPCError(error);
+  }
 };
 
 export default get;

@@ -2,10 +2,9 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
+import { AuthorizationError, ValidationError, NotFoundError } from "@calcom/lib/errors";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 import { createFallbackRoute } from "../lib/createFallbackRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -31,9 +30,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
   let teamId = input.teamId;
   const settings = input.settings;
   if (!(await isFormCreateEditAllowed({ userId: user.id, formId: id, targetTeamId: teamId }))) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-    });
+    throw new AuthorizationError("Access forbidden");
   }
 
   let { routes: inputRoutes, fields: inputFields } = input;
@@ -306,27 +303,18 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     });
 
     if (!sourceForm) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Form to duplicate: ${duplicateFrom} not found`,
-      });
+      throw new NotFoundError(`Form to duplicate: ${duplicateFrom} not found`);
     }
 
     if (!(await canEditEntity(sourceForm, userId))) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: `Form to duplicate: ${duplicateFrom} not found or you are unauthorized`,
-      });
+      throw new NotFoundError(`Form to duplicate: ${duplicateFrom} not found or you are unauthorized`);
     }
 
     //TODO: Instead of parsing separately, use getSerializableForm. That would automatically remove deleted fields as well.
     const fieldsParsed = zodFields.safeParse(sourceForm.fields);
     const routesParsed = zodRoutes.safeParse(sourceForm.routes);
     if (!fieldsParsed.success || !routesParsed.success) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Could not parse source form's fields or routes",
-      });
+      throw new ValidationError("Could not parse source form's fields or routes");
     }
 
     let fields, routes;
@@ -383,11 +371,9 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     const routesOfRouter = zodRoutes.parse(router.routes);
     if (routesOfRouter) {
       if (routesOfRouter.find(isRouter)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message:
-            "A form being used as a Router must be a Origin form. It must not be using any other Router.",
-        });
+        throw new ValidationError(
+          "A form being used as a Router must be a Origin form. It must not be using any other Router."
+        );
       }
     }
   }

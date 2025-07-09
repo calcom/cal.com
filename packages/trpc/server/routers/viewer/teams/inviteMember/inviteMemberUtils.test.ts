@@ -1,10 +1,9 @@
 import { describe, it, vi, expect } from "vitest";
 
+import { ValidationError, AuthorizationError } from "@calcom/lib/errors";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import type { TeamWithParent } from "./types";
 import type { UserWithMembership } from "./utils";
@@ -130,7 +129,7 @@ describe("Invite Member Utils", () => {
     it("It should throw an error if the user is not an admin of the ORG", async () => {
       vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
       await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1, isOrg: true })).rejects.toThrow(
-        "UNAUTHORIZED"
+        AuthorizationError
       );
     });
 
@@ -143,7 +142,9 @@ describe("Invite Member Utils", () => {
 
     it("It should throw an error if the user is not an admin of the team", async () => {
       vi.mocked(isTeamAdmin).mockResolvedValue(false);
-      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1 })).rejects.toThrow("UNAUTHORIZED");
+      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1 })).rejects.toThrow(
+        AuthorizationError
+      );
     });
 
     it("It should NOT throw an error if the user is an admin of a team", async () => {
@@ -153,8 +154,8 @@ describe("Invite Member Utils", () => {
   });
 
   describe("getUniqueInvitationsOrThrowIfEmpty", () => {
-    it("should throw a TRPCError with code BAD_REQUEST if no emails are provided", async () => {
-      await expect(getUniqueInvitationsOrThrowIfEmpty([])).rejects.toThrow(TRPCError);
+    it("should throw a ValidationError if no emails are provided", async () => {
+      await expect(getUniqueInvitationsOrThrowIfEmpty([])).rejects.toThrow(ValidationError);
     });
 
     it("should return an array with multiple emails if an array is provided", async () => {
@@ -169,9 +170,9 @@ describe("Invite Member Utils", () => {
     });
   });
   describe("checkInputEmailIsValid", () => {
-    it("should throw a TRPCError with code BAD_REQUEST if the email is invalid", () => {
+    it("should throw a ValidationError if the email is invalid", () => {
       const invalidEmail = "invalid-email";
-      expect(() => checkInputEmailIsValid(invalidEmail)).toThrow(TRPCError);
+      expect(() => checkInputEmailIsValid(invalidEmail)).toThrow(ValidationError);
       expect(() => checkInputEmailIsValid(invalidEmail)).toThrowError(
         "Invite failed because invalid-email is not a valid email address"
       );

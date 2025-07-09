@@ -3,13 +3,12 @@ import { Prisma } from "@prisma/client";
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import removeMember from "@calcom/features/ee/teams/lib/removeMember";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
+import { NotFoundError } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 export class TeamService {
   /**
@@ -82,12 +81,9 @@ export class TeamService {
       },
     });
 
-    if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+    if (!verificationToken) throw new NotFoundError("Invite not found");
     if (!verificationToken.teamId || !verificationToken.team)
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Invite token is not associated with any team",
-      });
+      throw new NotFoundError("Invite token is not associated with any team");
 
     try {
       await prisma.membership.create({
@@ -102,10 +98,7 @@ export class TeamService {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === "P2002") {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "This user is a member of this team / has a pending invitation.",
-          });
+          throw new NotFoundError("This user is a member of this team / has a pending invitation.");
         }
       } else throw e;
     }
