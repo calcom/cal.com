@@ -1,5 +1,4 @@
 import type { Role, CreateRoleData } from "../models/Role";
-import type { PermissionString } from "../types/permission-registry";
 
 export interface IRoleRepository {
   findByName(name: string, teamId?: number): Promise<Role | null>;
@@ -10,7 +9,10 @@ export interface IRoleRepository {
   delete(id: string): Promise<void>;
   update(
     roleId: string,
-    permissions: PermissionString[],
+    permissionChanges: {
+      toAdd: PermissionChange[];
+      toRemove: PermissionChange[];
+    },
     updates?: {
       color?: string;
       name?: string;
