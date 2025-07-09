@@ -10,6 +10,7 @@ import { JWT } from "googleapis-common";
 
 import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
 
+import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
 import { UnifiedCalendarEventOutput } from "../outputs/get-unified-calendar-event";
 
 @Injectable()
@@ -50,6 +51,65 @@ export class GoogleCalendarService {
       return event.data as GoogleCalendarEventResponse;
     } catch (error) {
       throw new NotFoundException("Failed to retrieve meeting details");
+    }
+  }
+
+  async updateEventDetails(
+    eventUid: string,
+    updateData: UpdateUnifiedCalendarEventInput
+  ): Promise<GoogleCalendarEventResponse> {
+    const bookingReference =
+      await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
+
+    if (!bookingReference) {
+      throw new NotFoundException("Booking reference not found");
+    }
+
+    const ownerUserEmail = bookingReference?.booking?.user?.email;
+
+    const calendar = await this.getAuthorizedCalendarInstance(
+      ownerUserEmail,
+      bookingReference.credential?.key,
+      bookingReference.delegationCredential
+    );
+
+    const updatePayload: any = {};
+
+    if (updateData.title !== undefined) {
+      updatePayload.summary = updateData.title;
+    }
+
+    if (updateData.description !== undefined) {
+      updatePayload.description = updateData.description;
+    }
+
+    if (updateData.start) {
+      updatePayload.start = {
+        dateTime: updateData.start.time,
+        timeZone: updateData.start.timeZone,
+      };
+    }
+
+    if (updateData.end) {
+      updatePayload.end = {
+        dateTime: updateData.end.time,
+        timeZone: updateData.end.timeZone,
+      };
+    }
+
+    try {
+      const event = await calendar.events.patch({
+        calendarId: bookingReference?.externalCalendarId ?? "primary",
+        eventId: bookingReference?.uid,
+        requestBody: updatePayload,
+      });
+
+      if (!event.data) {
+        throw new NotFoundException("Failed to update meeting");
+      }
+      return event.data as GoogleCalendarEventResponse;
+    } catch (error) {
+      throw new NotFoundException("Failed to update meeting details");
     }
   }
 
