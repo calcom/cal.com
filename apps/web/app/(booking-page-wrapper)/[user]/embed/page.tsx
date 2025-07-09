@@ -1,11 +1,8 @@
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import type { PageProps as ServerPageProps } from "app/_types";
-import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-
-import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
@@ -16,27 +13,12 @@ export const generateMetadata = async ({ params, searchParams }: ServerPageProps
     buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
 
-  const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
+  const { profile, isOrgSEOIndexable } = props;
   const isOrg = !!profile?.organization;
   const allowSEOIndexing =
     (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
 
-  const meeting = {
-    title: markdownStrippedBio,
-    profile: { name: `${profile.name}`, image: profile.image },
-    users: [{ username: `${profile.username}`, name: `${profile.name}` }],
-  };
-  const metadata = await generateMeetingMetadata(
-    meeting,
-    () => profile.name,
-    () => markdownStrippedBio,
-    false,
-    getOrgFullOrigin(entity.orgSlug ?? null),
-    `/${decodeParams(await params).user}/embed`
-  );
-
   return {
-    ...metadata,
     robots: {
       follow: allowSEOIndexing,
       index: allowSEOIndexing,
