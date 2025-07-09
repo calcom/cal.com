@@ -1,7 +1,6 @@
 import { setUser as SentrySetUser } from "@sentry/nextjs";
 import type { Session } from "next-auth";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
@@ -16,13 +15,8 @@ import { middleware } from "../trpc";
 type Maybe<T> = T | null | undefined;
 
 export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<Session>) {
-  if (!session) {
-    return null;
-  }
-
-  if (!session.user?.id) {
-    return null;
-  }
+  // There is no session ID, so we return null
+  if (!session?.user?.id) return null;
 
   const userFromDb = await UserRepository.findUnlockedUserForSession({ userId: session.user.id });
 
@@ -31,54 +25,33 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     return null;
   }
 
-  const upId = session.upId;
-
   const user = await UserRepository.enrichUserWithTheProfile({
     user: userFromDb,
-    upId,
+    upId: session.upId,
   });
-
-  logger.debug(
-    `getUserFromSession: enriched user with profile - ${ctx.req?.url}`,
-    safeStringify({ user, userFromDb, upId })
-  );
-
-  const { email, username, id } = user;
-  if (!email || !id) {
-    return null;
-  }
 
   const userMetaData = userMetadata.parse(user.metadata || {});
   const orgMetadata = teamMetadataSchema.parse(user.profile?.organization?.metadata || {});
-  // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
 
-  const locale = user?.locale ?? ctx.locale;
+  // strips out the members from the organization profile
   const { members = [], ..._organization } = user.profile?.organization || {};
-  const isOrgAdmin = members.some((member) => ["OWNER", "ADMIN"].includes(member.role));
-
-  if (isOrgAdmin) {
-    logger.debug("User is an org admin", safeStringify({ userId: user.id }));
-  } else {
-    logger.debug("User is not an org admin", safeStringify({ userId: user.id }));
-  }
-  const organization = {
-    ..._organization,
-    id: user.profile?.organization?.id ?? null,
-    isOrgAdmin,
-    metadata: orgMetadata,
-    requestedSlug: orgMetadata?.requestedSlug ?? null,
-  };
+  const isOrgAdmin =
+    user.profile?.organization &&
+    user.profile?.organization.members.some((member) => ["OWNER", "ADMIN"].includes(member.role));
 
   return {
     ...user,
-    avatar: `${WEBAPP_URL}/${user.username}/avatar.png?${organization.id}` && `orgId=${organization.id}`,
-    // TODO: OrgNewSchema - later -  We could consolidate the props in user.profile?.organization as organization is a profile thing now.
-    organization,
-    organizationId: organization.id,
-    id,
-    email,
-    username,
-    locale,
+    // TODO: Remove when we have PBAC (also, remove `members` from the organization profile)
+    isOrgAdmin,
+    profile: {
+      ...user.profile,
+      organization: {
+        ..._organization,
+        metadata: orgMetadata,
+        requestedSlug: orgMetadata?.requestedSlug ?? null,
+      },
+    },
+    locale: user?.locale ?? ctx.locale,
     defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
   };
 }
