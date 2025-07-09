@@ -116,8 +116,6 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.NoAvailableUsersFound:
     case ErrorCode.FixedHostsUnavailableForBooking:
     case ErrorCode.RoundRobinHostsUnavailableForBooking:
-    case ErrorCode.PaymentCreationFailure:
-    case ErrorCode.ChargeCardFailure:
     case ErrorCode.AlreadySignedUpForBooking:
     case ErrorCode.BookingSeatsFull:
     case ErrorCode.NotEnoughAvailableSeats:
