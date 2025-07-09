@@ -70,7 +70,7 @@ export const getEventTypeById = async ({
   for (const eventTeamMembership of rawEventType.team?.members || []) {
     eventTeamMembershipsWithUserProfile.push({
       ...eventTeamMembership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await new UserRepository(prisma).enrichUserWithItsProfile({
         user: eventTeamMembership.user,
       }),
     });
@@ -81,7 +81,7 @@ export const getEventTypeById = async ({
     childrenWithUserProfile.push({
       ...child,
       owner: child.owner
-        ? await UserRepository.enrichUserWithItsProfile({
+        ? await new UserRepository(prisma).enrichUserWithItsProfile({
             user: child.owner,
           })
         : null,
@@ -91,7 +91,7 @@ export const getEventTypeById = async ({
   const eventTypeUsersWithUserProfile = [];
   for (const eventTypeUser of rawEventType.users) {
     eventTypeUsersWithUserProfile.push(
-      await UserRepository.enrichUserWithItsProfile({
+      await new UserRepository(prisma).enrichUserWithItsProfile({
         user: eventTypeUser,
       })
     );

@@ -116,7 +116,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+      const user = await new UserRepository(prisma).findByEmailAndIncludeProfilesAndPassword({
         email: credentials.email,
       });
       // Don't leak information about it being username or password that is invalid
@@ -291,7 +291,7 @@ if (isSAMLLoginEnabled) {
       locale?: string;
     }) => {
       log.debug("BoxyHQ:profile", safeStringify({ profile }));
-      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+      const user = await new UserRepository(prisma).findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
       return {
@@ -357,7 +357,7 @@ if (isSAMLLoginEnabled) {
         const email = userInfo.email.toLowerCase();
         let user = !email
           ? undefined
-          : await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
+          : await new UserRepository(prisma).findByEmailAndIncludeProfilesAndPassword({ email });
         if (!user) {
           const hostedCal = Boolean(HOSTED_CAL_FEATURES);
           if (hostedCal && email) {
@@ -373,7 +373,7 @@ if (isSAMLLoginEnabled) {
                 createUsersAndConnectToOrgProps,
                 org,
               });
-              user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+              user = await new UserRepository(prisma).findByEmailAndIncludeProfilesAndPassword({
                 email: email,
               });
             }

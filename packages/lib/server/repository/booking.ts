@@ -145,7 +145,7 @@ export class BookingRepository {
     if (!booking.eventType || !booking.eventType.teamId) return false;
 
     // TODO add checks for team and org
-    const isAdminOrUser = await UserRepository.isAdminOfTeamOrParentOrg({
+    const isAdminOrUser = await new UserRepository(prisma).isAdminOfTeamOrParentOrg({
       userId,
       teamId: booking.eventType.teamId,
     });

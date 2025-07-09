@@ -13,6 +13,7 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
@@ -111,7 +112,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     users: await Promise.all(
       (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
         async (u) =>
-          await UserRepository.enrichUserWithItsProfile({
+          await new UserRepository(prisma).enrichUserWithItsProfile({
             user: u,
           })
       )
@@ -123,7 +124,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
         users: await Promise.all(
           c.users.map(
             async (u) =>
-              await UserRepository.enrichUserWithItsProfile({
+              await new UserRepository(prisma).enrichUserWithItsProfile({
                 user: u,
               })
           )

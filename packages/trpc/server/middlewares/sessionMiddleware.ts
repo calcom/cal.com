@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -24,7 +25,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     return null;
   }
 
-  const userFromDb = await UserRepository.findUnlockedUserForSession({ userId: session.user.id });
+  const userFromDb = await new UserRepository(prisma).findUnlockedUserForSession({ userId: session.user.id });
 
   // some hacks to make sure `username` and `email` are never inferred as `null`
   if (!userFromDb) {
@@ -33,7 +34,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
   const upId = session.upId;
 
-  const user = await UserRepository.enrichUserWithTheProfile({
+  const user = await new UserRepository(prisma).enrichUserWithTheProfile({
     user: userFromDb,
     upId,
   });

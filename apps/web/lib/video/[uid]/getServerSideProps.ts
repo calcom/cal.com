@@ -142,7 +142,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const profile = booking.user
     ? (
-        await UserRepository.enrichUserWithItsProfile({
+        await new UserRepository(prisma).enrichUserWithItsProfile({
           user: booking.user,
         })
       ).profile

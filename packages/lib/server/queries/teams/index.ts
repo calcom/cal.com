@@ -186,7 +186,7 @@ export async function getTeamWithMembers(args: {
   for (const membership of teamOrOrg.members) {
     teamOrOrgMemberships.push({
       ...membership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await new UserRepository(prisma).enrichUserWithItsProfile({
         user: membership.user,
       }),
     });
@@ -236,7 +236,7 @@ export async function getTeamWithMembers(args: {
     const usersWithUserProfile = [];
     for (const { user } of eventType.hosts) {
       usersWithUserProfile.push(
-        await UserRepository.enrichUserWithItsProfile({
+        await new UserRepository(prisma).enrichUserWithItsProfile({
           user,
         })
       );

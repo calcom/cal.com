@@ -101,7 +101,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
 
   const formWithUserInfoProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await new UserRepository(prisma).enrichUserWithItsProfile({ user: form.user }),
   };
 
   return {
