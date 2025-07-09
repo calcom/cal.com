@@ -43,3 +43,8 @@ export interface UpdateRolePermissionsData {
     name?: string;
   };
 }
+
+export type PermissionChange = {
+  resource: string;
+  action: string;
+};

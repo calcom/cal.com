@@ -3,12 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { PrismaClient as PrismaWithExtensions } from "@calcom/prisma";
 import db from "@calcom/prisma";
 
-import type { Role, RolePermission } from "../../domain/types/role";
-
-type PermissionChange = {
-  resource: string;
-  action: string;
-};
+import type { Role, RolePermission, PermissionChange } from "../../domain/models/Role";
 
 export class RoleRepository {
   constructor(private readonly client: PrismaWithExtensions = db) {}

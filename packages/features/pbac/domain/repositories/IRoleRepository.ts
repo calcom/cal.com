@@ -1,4 +1,4 @@
-import type { Role, CreateRoleData, RolePermission } from "../models/Role";
+import type { Role, CreateRoleData, RolePermission, PermissionChange } from "../models/Role";
 
 export interface IRoleRepository {
   findByName(name: string, teamId?: number): Promise<Role | null>;
