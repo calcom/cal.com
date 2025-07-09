@@ -1,6 +1,6 @@
-import type { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
+import type { PrismaClient as PrismaWithExtensions } from "@calcom/prisma";
 import db from "@calcom/prisma";
 
 import type { Role, RolePermission } from "../../domain/types/role";
@@ -11,7 +11,7 @@ type PermissionChange = {
 };
 
 export class RoleRepository {
-  constructor(private readonly client: PrismaClient = db) {}
+  constructor(private readonly client: PrismaWithExtensions = db) {}
 
   async update(
     roleId: string,
