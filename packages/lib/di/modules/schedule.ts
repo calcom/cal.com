@@ -1,8 +1,7 @@
 import { createModule } from "@evyweb/ioctopus";
 
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
-
-import { ScheduleRepository } from "../repository/schedule";
+import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 
 export const scheduleRepositoryModule = createModule();
 scheduleRepositoryModule

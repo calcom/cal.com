@@ -8,7 +8,7 @@ import type { ScenarioData } from "../../utils/bookingScenario/bookingScenario";
 
 import { describe, expect, vi, test } from "vitest";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/available-slots.container";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import { PeriodType } from "@calcom/prisma/enums";
 
 import { expectedSlotsForSchedule } from "./expects";

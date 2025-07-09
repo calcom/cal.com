@@ -9,7 +9,7 @@ import {
 
 import { describe, test } from "vitest";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/available-slots.container";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 
 import { expect, expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";

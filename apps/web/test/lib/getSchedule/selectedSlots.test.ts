@@ -10,7 +10,7 @@ import type { IncomingMessage } from "http";
 import { describe, test, beforeEach, vi } from "vitest";
 import type { z } from "zod";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/available-slots.container";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import { prisma } from "@calcom/prisma";
 import type { getScheduleSchema, GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
 

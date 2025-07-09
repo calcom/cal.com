@@ -1,5 +1,4 @@
 // eslint-disable-next-line no-restricted-imports
-import { createModule } from "@evyweb/ioctopus";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -15,7 +14,6 @@ import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks, getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
 import type {
@@ -1371,9 +1369,3 @@ export class AvailableSlotsService {
     };
   }
 }
-
-export const availableSlotsModule = createModule();
-availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSlotsService, {
-  oooRepo: DI_TOKENS.OOO_REPOSITORY,
-  scheduleRepo: DI_TOKENS.SCHEDULE_REPOSITORY,
-} satisfies Record<keyof IAvailableSlotsService, symbol>);
