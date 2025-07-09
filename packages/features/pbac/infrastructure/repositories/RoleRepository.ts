@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 import db from "@calcom/prisma";
-import type { PrismaClient as PrismaClientWithExtensions, PrismaTransaction } from "@calcom/prisma";
+import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
 
 import { RoleMapper } from "../../domain/mappers/RoleMapper";
 import { RoleType } from "../../domain/models/Role";
@@ -10,14 +10,10 @@ import type { IRoleRepository } from "../../domain/repositories/IRoleRepository"
 import type { PermissionString } from "../../domain/types/permission-registry";
 
 export class RoleRepository implements IRoleRepository {
-  private client: PrismaClientWithExtensions | PrismaTransaction;
+  private client: PrismaClientWithExtensions;
 
-  constructor(client: PrismaClientWithExtensions | PrismaTransaction = db) {
+  constructor(client: PrismaClientWithExtensions = db) {
     this.client = client;
-  }
-
-  setTransaction(trx: PrismaClientWithExtensions | PrismaTransaction) {
-    this.client = trx;
   }
 
   async findByName(name: string, teamId?: number) {
@@ -65,31 +61,34 @@ export class RoleRepository implements IRoleRepository {
     const roleId = uuidv4();
     const now = new Date();
     // Create role
-    await this.client.role.create({
-      data: {
-        id: roleId,
-        name: data.name,
-        description: data.description || null,
-        teamId: data.teamId || null,
-        type: data.type || RoleType.CUSTOM,
-        color: data.color || null,
-        createdAt: now,
-        updatedAt: now,
-      },
-    });
-    // Create permissions only if there are any
-    if (data.permissions.length > 0) {
-      const permissionData = data.permissions.map((permission) => {
-        const [resource, action] = permission.split(".");
-        return {
-          id: uuidv4(),
-          roleId,
-          resource,
-          action,
-        };
+    await this.client.$transaction(async (trx) => {
+      await trx.role.create({
+        data: {
+          id: roleId,
+          name: data.name,
+          description: data.description || null,
+          teamId: data.teamId || null,
+          type: data.type || RoleType.CUSTOM,
+          color: data.color || null,
+          createdAt: now,
+          updatedAt: now,
+        },
       });
-      await this.client.rolePermission.createMany({ data: permissionData });
-    }
+      // Create permissions only if there are any
+      if (data.permissions.length > 0) {
+        const permissionData = data.permissions.map((permission) => {
+          const [resource, action] = permission.split(".");
+          return {
+            id: uuidv4(),
+            roleId,
+            resource,
+            action,
+          };
+        });
+        await trx.rolePermission.createMany({ data: permissionData });
+      }
+    });
+
     // Fetch complete role with permissions
     const completeRole = await this.findById(roleId);
     if (!completeRole) throw new Error("Failed to create role");
@@ -110,33 +109,36 @@ export class RoleRepository implements IRoleRepository {
       description?: string;
     }
   ) {
-    // Update role metadata if provided
-    if (updates) {
-      const updateData: Record<string, any> = {};
-      if (updates.color !== undefined) {
-        updateData.color = updates.color || null;
+    await this.client.$transaction(async (trx) => {
+      // Update role metadata if provided
+      if (updates) {
+        const updateData: Record<string, any> = {};
+        if (updates.color !== undefined) {
+          updateData.color = updates.color || null;
+        }
+        if (updates.name !== undefined) {
+          updateData.name = updates.name;
+        }
+        if (updates.description !== undefined) {
+          updateData.description = updates.description || null;
+        }
+        await trx.role.update({ where: { id: roleId }, data: updateData });
       }
-      if (updates.name !== undefined) {
-        updateData.name = updates.name;
-      }
-      if (updates.description !== undefined) {
-        updateData.description = updates.description || null;
-      }
-      await this.client.role.update({ where: { id: roleId }, data: updateData });
-    }
-    // Delete existing permissions
-    await this.client.rolePermission.deleteMany({ where: { roleId } });
-    // Create new permissions
-    const permissionData = permissions.map((permission) => {
-      const [resource, action] = permission.split(".");
-      return {
-        id: uuidv4(),
-        roleId,
-        resource,
-        action,
-      };
+      // Delete existing permissions
+      await trx.rolePermission.deleteMany({ where: { roleId } });
+      // Create new permissions
+      const permissionData = permissions.map((permission) => {
+        const [resource, action] = permission.split(".");
+        return {
+          id: uuidv4(),
+          roleId,
+          resource,
+          action,
+        };
+      });
+      await this.client.rolePermission.createMany({ data: permissionData });
     });
-    await this.client.rolePermission.createMany({ data: permissionData });
+
     // Fetch updated role
     const updatedRole = await this.findById(roleId);
     if (!updatedRole) throw new Error("Failed to update role permissions");

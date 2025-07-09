@@ -1,5 +1,5 @@
 import db from "@calcom/prisma";
-import type { PrismaClient as PrismaClientWithExtensions, PrismaTransaction } from "@calcom/prisma";
+import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
 
 import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
 import type { TeamPermissions } from "../../domain/models/Permission";
@@ -8,14 +8,10 @@ import type { CrudAction, CustomAction } from "../../domain/types/permission-reg
 import { Resource, type PermissionString } from "../../domain/types/permission-registry";
 
 export class PermissionRepository implements IPermissionRepository {
-  private client: PrismaClientWithExtensions | PrismaTransaction;
+  private client: PrismaClientWithExtensions;
 
-  constructor(client: PrismaClientWithExtensions | PrismaTransaction = db) {
+  constructor(client: PrismaClientWithExtensions = db) {
     this.client = client;
-  }
-
-  setTransaction(trx: PrismaClientWithExtensions | PrismaTransaction) {
-    this.client = trx;
   }
 
   async getUserMemberships(userId: number): Promise<TeamPermissions[]> {
