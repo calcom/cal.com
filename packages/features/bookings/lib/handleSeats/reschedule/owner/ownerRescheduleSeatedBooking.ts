@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import type EventManager from "@calcom/lib/EventManager";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import { type TraceContext } from "@calcom/lib/tracing";
 
 import type {
   NewTimeSlotBooking,
@@ -19,7 +19,6 @@ const ownerRescheduleSeatedBooking = async (
   eventManager: EventManager,
   traceContext?: TraceContext
 ) => {
-  const loggerWithEventDetails = traceContext ? DistributedTracing.getTracingLogger(traceContext) : undefined;
   const { originalRescheduledBooking, tAttendees } = rescheduleSeatedBookingObject;
   const { evt } = rescheduleSeatedBookingObject;
 
