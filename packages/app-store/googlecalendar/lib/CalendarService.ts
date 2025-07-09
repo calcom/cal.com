@@ -1099,7 +1099,7 @@ export default class GoogleCalendarService implements Calendar {
       }, {} as any),
     };
 
-    await calendarCache.upsertCachedAvailability({
+    await (calendarCache as any).upsertCachedAvailability({
       credentialId: this.credential.id,
       userId: this.credential.userId,
       args,
@@ -1157,7 +1157,7 @@ export default class GoogleCalendarService implements Calendar {
           },
         });
 
-        const existingSyncToken = cached?.nextSyncToken ?? undefined;
+        const existingSyncToken = (cached as any)?.nextSyncToken || undefined;
 
         const { events, nextSyncToken } = await this.fetchEventsIncremental(
           selectedCalendar.externalId,
