@@ -7,15 +7,28 @@ import {
   mockCalendar,
 } from "../../utils/bookingScenario/bookingScenario";
 
+import { createContainer } from "@evyweb/ioctopus";
 import { describe, test } from "vitest";
 
-import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { DI_TOKENS } from "@calcom/lib/di/tokens";
+import { oooRepositoryModule } from "@calcom/lib/server/modules/ooo";
+import { scheduleRepositoryModule } from "@calcom/lib/server/modules/schedule";
+import { prismaModule } from "@calcom/prisma/prisma.module";
+import {
+  availableSlotsModule,
+  type AvailableSlotsService,
+} from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect, expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 
 describe("getSchedule", () => {
-  const availableSlotsService = new AvailableSlotsService();
+  const container = createContainer();
+  container.load(Symbol("PrismaModule"), prismaModule);
+  container.load(Symbol("OOORepositoryModule"), oooRepositoryModule);
+  container.load(Symbol("ScheduleRepositoryModule"), scheduleRepositoryModule);
+  container.load(Symbol("AvailableSlotsModule"), availableSlotsModule);
+  const availableSlotsService = container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);
   setupAndTeardown();
   describe("Calendar event", () => {
     test("correctly identifies unavailable slots from selected calendars at user level", async () => {

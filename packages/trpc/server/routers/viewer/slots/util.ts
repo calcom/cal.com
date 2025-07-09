@@ -1,4 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
+import { createModule } from "@evyweb/ioctopus";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -14,6 +15,7 @@ import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks, getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
 import type {
@@ -44,13 +46,12 @@ import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
-import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
-import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
@@ -90,6 +91,11 @@ export type GetAvailableSlotsResponse = Awaited<
 >;
 
 export class AvailableSlotsService {
+  constructor(
+    private readonly oooRepo: PrismaOOORepository,
+    private readonly scheduleRepo: ScheduleRepository
+  ) {}
+
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
     usersWithCredentials,
@@ -626,8 +632,7 @@ export class AvailableSlotsService {
   );
 
   private async _getOOODates(startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) {
-    const oooRepo = new PrismaOOORepository(prisma);
-    return oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
+    return this.oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
   }
   private getOOODates = withReporting(this._getOOODates.bind(this), "getOOODates");
 
@@ -1054,8 +1059,7 @@ export class AvailableSlotsService {
     // TODO: DI isRestrictionScheduleEnabled
     const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
     if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
-      const scheduleRepo = new ScheduleRepository(prisma);
-      const restrictionSchedule = await scheduleRepo.findScheduleByIdForBuildDateRanges({
+      const restrictionSchedule = await this.scheduleRepo.findScheduleByIdForBuildDateRanges({
         scheduleId: eventType.restrictionScheduleId,
       });
       if (restrictionSchedule) {
@@ -1365,3 +1369,9 @@ export class AvailableSlotsService {
     };
   }
 }
+
+export const availableSlotsModule = createModule();
+availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSlotsService, {
+  // Maps constructor parameters to repository tokens
+  oooRepo: DI_TOKENS.OOO_REPOSITORY,
+});
