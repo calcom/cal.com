@@ -176,17 +176,6 @@ describe("RoleManagementFactory", () => {
         accepted: true,
         customRoleId: null,
       });
-      vi.mocked(isOrganisationAdmin).mockResolvedValue({
-        id: 1,
-        teamId: organizationId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        role: MembershipRole.ADMIN,
-        userId: userId,
-        disableImpersonation: false,
-        accepted: true,
-        customRoleId: null,
-      });
       vi.mocked(isOrganisationAdmin).mockReturnValue(Promise.resolve(false));
     });
 
