@@ -91,6 +91,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     seatsPerTimeSlot,
     restrictionScheduleId,
     calVideoSettings,
+    hostGroups,
     ...rest
   } = input;
 
@@ -442,6 +443,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       })),
     };
+  }
+
+  // Handle hostGroups updates
+  if (hostGroups !== undefined) {
+    // Delete all existing host groups for this event type
+    await ctx.prisma.hostGroup.deleteMany({
+      where: {
+        eventTypeId: id,
+      },
+    });
+
+    // Create new host groups if any are provided
+    if (hostGroups.length > 0) {
+      await ctx.prisma.hostGroup.createMany({
+        data: hostGroups.map((group) => ({
+          id: group.id,
+          name: group.name,
+          eventTypeId: id,
+        })),
+      });
+    }
   }
 
   if (input.metadata?.disableStandardEmails?.all) {

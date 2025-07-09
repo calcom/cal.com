@@ -29,6 +29,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -293,16 +294,11 @@ const RoundRobinHosts = ({
   customClassNames,
   teamId,
   isSegmentApplicable,
-  hostGroups = [],
 }: {
   orgId: number | null;
   value: Host[];
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
-  hostGroups: {
-    id: string;
-    name: string;
-  }[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: RoundRobinHostsCustomClassNames;
@@ -320,6 +316,10 @@ const RoundRobinHosts = ({
   const rrSegmentQueryValue = useWatch({
     control,
     name: "rrSegmentQueryValue",
+  });
+  const hostGroups = useWatch({
+    control,
+    name: "hostGroups",
   });
 
   return (
@@ -342,7 +342,17 @@ const RoundRobinHosts = ({
               {t("round_robin_groups_helper")}
             </p>
           </div>
-          <Button color="secondary" size="sm" StartIcon="plus">
+          <Button
+            color="secondary"
+            size="sm"
+            StartIcon="plus"
+            onClick={() => {
+              const newGroup = {
+                id: `group_${Date.now()}`,
+                name: `Group ${(hostGroups?.length || 0) + 1}`,
+              };
+              setValue("hostGroups", [...(hostGroups || []), newGroup], { shouldDirty: true });
+            }}>
             {t("add_group")}
           </Button>
         </div>
@@ -423,7 +433,25 @@ const RoundRobinHosts = ({
               if (hostsWithoutGroup.length > 0) {
                 return (
                   <div className="border-subtle my-4 rounded-md border p-4 pb-0">
-                    <Label className="-mb-1">Group 1</Label>
+                    <div className="-mb-1 flex items-center justify-between">
+                      <Label>Group 1</Label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Remove all hosts from Group 1 (set groupId to null)
+                          const updatedHosts = value.map((host) => {
+                            if (!host.groupId) {
+                              return { ...host, groupId: null };
+                            }
+                            return host;
+                          });
+                          onChange(updatedHosts);
+                          setValue("hosts", updatedHosts, { shouldDirty: true });
+                        }}
+                        className="text-subtle hover:text-default rounded p-1">
+                        <Icon name="x" className="h-4 w-4" />
+                      </button>
+                    </div>
                     <AddMembersWithSwitch
                       placeholder={t("add_a_member")}
                       teamId={teamId}
@@ -473,7 +501,38 @@ const RoundRobinHosts = ({
 
               return (
                 <div key={index} className="border-subtle my-4 rounded-md border p-4 pb-0">
-                  <Label className="-mb-1">{groupName}</Label>
+                  <div className="-mb-1 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={groupName}
+                        onChange={(e) => {
+                          const updatedHostGroups =
+                            hostGroups?.map((g) =>
+                              g.id === group.id ? { ...g, name: e.target.value } : g
+                            ) || [];
+                          setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+                        }}
+                        className="border-none bg-transparent p-0 text-sm font-medium focus:outline-none focus:ring-0"
+                        placeholder="Group name"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Remove the group from hostGroups
+                        const updatedHostGroups = hostGroups?.filter((g) => g.id !== group.id) || [];
+                        setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+
+                        // Remove all hosts that belong to this group
+                        const updatedHosts = value.filter((host) => host.groupId !== group.id);
+                        onChange(updatedHosts);
+                        setValue("hosts", updatedHosts, { shouldDirty: true });
+                      }}
+                      className="text-subtle hover:text-default rounded p-1">
+                      <Icon name="x" className="h-4 w-4" />
+                    </button>
+                  </div>
                   <AddMembersWithSwitch
                     placeholder={t("add_a_member")}
                     teamId={teamId}
@@ -584,7 +643,6 @@ const Hosts = ({
   setAssignAllTeamMembers,
   customClassNames,
   isSegmentApplicable,
-  hostGroups = [],
 }: {
   orgId: number | null;
   teamId: number;
@@ -593,10 +651,6 @@ const Hosts = ({
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: HostsCustomClassNames;
   isSegmentApplicable: boolean;
-  hostGroups?: {
-    id: string;
-    name: string;
-  }[];
 }) => {
   const {
     control,
@@ -690,7 +744,6 @@ const Hosts = ({
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 customClassNames={customClassNames?.roundRobinHosts}
                 isSegmentApplicable={isSegmentApplicable}
-                hostGroups={hostGroups}
               />
             </>
           ),
@@ -896,7 +949,6 @@ export const EventTeamAssignmentTab = ({
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
             customClassNames={customClassNames?.hosts}
-            hostGroups={eventType.hostGroups}
           />
         </>
       )}
