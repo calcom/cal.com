@@ -463,30 +463,59 @@ export default class GoogleCalendarService implements Calendar {
     const calendar = await this.authedCalendar();
 
     try {
-      const response = await calendar.events.list({
-        calendarId,
-        syncToken,
-        singleEvents: true,
-        maxResults: 2500,
-      });
+      const allEvents: calendar_v3.Schema$Event[] = [];
+      let pageToken: string | undefined;
+      let nextSyncToken: string | undefined;
+
+      do {
+        const response = await calendar.events.list({
+          calendarId,
+          syncToken,
+          pageToken,
+          singleEvents: true,
+          maxResults: 2500,
+        });
+
+        if (response.data.items) {
+          allEvents.push(...response.data.items);
+        }
+
+        pageToken = response.data.nextPageToken || undefined;
+        nextSyncToken = response.data.nextSyncToken || undefined;
+      } while (pageToken);
 
       return {
-        events: response.data.items || [],
-        nextSyncToken: response.data.nextSyncToken || undefined,
+        events: allEvents,
+        nextSyncToken,
       };
     } catch (error) {
       const err = error as GoogleCalError;
       if (err.code === 410) {
         log.info("Sync token expired, performing full resync", { calendarId });
-        const response = await calendar.events.list({
-          calendarId,
-          singleEvents: true,
-          maxResults: 2500,
-        });
+
+        const allEvents: calendar_v3.Schema$Event[] = [];
+        let pageToken: string | undefined;
+        let nextSyncToken: string | undefined;
+
+        do {
+          const response = await calendar.events.list({
+            calendarId,
+            pageToken,
+            singleEvents: true,
+            maxResults: 2500,
+          });
+
+          if (response.data.items) {
+            allEvents.push(...response.data.items);
+          }
+
+          pageToken = response.data.nextPageToken || undefined;
+          nextSyncToken = response.data.nextSyncToken || undefined;
+        } while (pageToken);
 
         return {
-          events: response.data.items || [],
-          nextSyncToken: response.data.nextSyncToken || undefined,
+          events: allEvents,
+          nextSyncToken,
         };
       }
       throw err;
@@ -1128,7 +1157,7 @@ export default class GoogleCalendarService implements Calendar {
           },
         });
 
-        const existingSyncToken = cached?.nextSyncToken || undefined;
+        const existingSyncToken = cached?.nextSyncToken ?? undefined;
 
         const { events, nextSyncToken } = await this.fetchEventsIncremental(
           selectedCalendar.externalId,
