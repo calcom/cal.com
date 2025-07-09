@@ -42,7 +42,9 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   return {
     ...user,
     // TODO: Remove when we have PBAC (also, remove `members` from the organization profile)
-    isOrgAdmin,
+    organization: {
+      isOrgAdmin,
+    },
     profile: {
       ...user.profile,
       organization: {
