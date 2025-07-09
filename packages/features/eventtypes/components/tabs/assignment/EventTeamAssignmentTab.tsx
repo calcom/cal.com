@@ -478,7 +478,7 @@ const RoundRobinHosts = ({
                     placeholder={t("add_a_member")}
                     teamId={teamId}
                     teamMembers={teamMembers}
-                    value={value.filter((host) => host.groupId === group.id)}
+                    value={value}
                     onChange={onChange}
                     assignAllTeamMembers={assignAllTeamMembers}
                     setAssignAllTeamMembers={setAssignAllTeamMembers}

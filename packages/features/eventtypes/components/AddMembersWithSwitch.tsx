@@ -94,7 +94,7 @@ const CheckedHostField = ({
                 }))
               );
           }}
-          value={(value || [])
+          value={(value.filter((host) => host.groupId === groupId) || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
             .reduce((acc, host) => {
               const option = options.find((member) => member.value === host.userId.toString());
