@@ -15,8 +15,8 @@ type ListSimpleMembersOptions = {
 
 export const listSimpleMembers = async ({ ctx }: ListSimpleMembersOptions) => {
   const { prisma } = ctx;
-  const { isOrgAdmin } = ctx.user.organization;
-  const hasPermsToView = !ctx.user.organization.isPrivate || isOrgAdmin;
+  const { isOrgAdmin } = ctx.user.organization || {};
+  const hasPermsToView = !ctx.user.profile.organization?.isPrivate || isOrgAdmin;
 
   if (!hasPermsToView) {
     return [];

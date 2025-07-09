@@ -66,7 +66,7 @@ export class EventTypesService_2024_04_15 {
     return {
       id: user.id,
       role: user.role,
-      organizationId: user.organizationId,
+      organizationId: user.profile.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
       metadata: user.metadata,

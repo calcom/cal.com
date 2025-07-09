@@ -14,9 +14,9 @@ type RemoveHostsFromEventTypes = {
 };
 
 export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHostsFromEventTypes) {
-  if (!ctx.user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!ctx.user.profile.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  if (!(await isOrganisationAdmin(ctx.user?.id, ctx.user.organizationId)))
+  if (!(await isOrganisationAdmin(ctx.user?.id, ctx.user.profile.organizationId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const { userIds, eventTypeIds } = input;

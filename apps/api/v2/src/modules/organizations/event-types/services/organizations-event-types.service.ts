@@ -59,7 +59,7 @@ export class OrganizationsEventTypesService {
     return {
       id: user.id,
       role: user.role,
-      organizationId: user.organizationId,
+      organizationId: user.profile.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId || null },
       metadata: user.metadata,

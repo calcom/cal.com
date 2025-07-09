@@ -210,13 +210,16 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
 
   // Probably we couldn't find a membership because the user is not a direct member of the team
   // So that would mean ctx.user.organization is present
-  if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
+  if (
+    (parse.data.isAll && ctx.user.profile.organizationId) ||
+    (!membership && ctx.user.profile.organizationId)
+  ) {
     //Look for membership type in organizationId
-    if (!membership && ctx.user.organizationId && parse.data.teamId) {
+    if (!membership && ctx.user.profile.organizationId && parse.data.teamId) {
       const isChildTeamOfOrg = await ctx.insightsDb.team.findFirst({
         where: {
           id: parse.data.teamId,
-          parentId: ctx.user.organizationId,
+          parentId: ctx.user.profile.organizationId,
         },
       });
       if (!isChildTeamOfOrg) {
@@ -227,7 +230,7 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
     const membershipOrg = await ctx.insightsDb.membership.findFirst({
       where: {
         userId: ctx.user.id,
-        teamId: ctx.user.organizationId,
+        teamId: ctx.user.profile.organizationId,
         accepted: true,
         role: {
           in: ["OWNER", "ADMIN"],
@@ -324,7 +327,7 @@ export const insightsRouter = router({
       isAll: isAll ?? false,
       ctx: {
         userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
+        userOrganizationId: ctx.user.profile.organizationId,
         insightsDb: ctx.insightsDb,
       },
     });
@@ -466,7 +469,7 @@ export const insightsRouter = router({
       isAll: isAll ?? false,
       ctx: {
         userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
+        userOrganizationId: ctx.user.profile.organizationId,
         insightsDb: ctx.insightsDb,
       },
     });
@@ -540,7 +543,7 @@ export const insightsRouter = router({
       isAll: isAll ?? false,
       ctx: {
         userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
+        userOrganizationId: ctx.user.profile.organizationId,
         insightsDb: ctx.insightsDb,
       },
     });
@@ -667,7 +670,7 @@ export const insightsRouter = router({
       isAll: isAll ?? false,
       ctx: {
         userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
+        userOrganizationId: ctx.user.profile.organizationId,
         insightsDb: ctx.insightsDb,
       },
     });
@@ -742,7 +745,7 @@ export const insightsRouter = router({
         isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
+          userOrganizationId: ctx.user.profile.organizationId,
           insightsDb: ctx.insightsDb,
         },
       });
@@ -825,7 +828,7 @@ export const insightsRouter = router({
         isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
+          userOrganizationId: ctx.user.profile.organizationId,
           insightsDb: ctx.insightsDb,
         },
       });
@@ -906,7 +909,7 @@ export const insightsRouter = router({
         isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
+          userOrganizationId: ctx.user.profile.organizationId,
           insightsDb: ctx.insightsDb,
         },
       });
@@ -983,7 +986,7 @@ export const insightsRouter = router({
     }
 
     // Validate if user belongs to org as admin/owner
-    if (user.organizationId && user.organization.isOrgAdmin) {
+    if (user.organizationId && user.organization?.isOrgAdmin) {
       const teamsAndOrg = await ctx.insightsDb.team.findMany({
         where: {
           OR: [{ parentId: user.organizationId }, { id: user.organizationId }],
@@ -1063,7 +1066,7 @@ export const insightsRouter = router({
       const user = ctx.user;
       const { teamId, isAll } = input;
 
-      if (isAll && user.organizationId && user.organization.isOrgAdmin) {
+      if (isAll && user.organizationId && user.organization?.isOrgAdmin) {
         const usersInTeam = await ctx.insightsDb.membership.findMany({
           where: {
             team: {
@@ -1161,7 +1164,7 @@ export const insightsRouter = router({
       isAll: isAll ?? false,
       ctx: {
         userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
+        userOrganizationId: ctx.user.profile.organizationId,
         insightsDb: ctx.insightsDb,
       },
     });
@@ -1278,7 +1281,7 @@ export const insightsRouter = router({
         isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
+          userOrganizationId: ctx.user.profile.organizationId,
           insightsDb: ctx.insightsDb,
         },
       });
@@ -1356,7 +1359,7 @@ export const insightsRouter = router({
         isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
+          userOrganizationId: ctx.user.profile.organizationId,
           insightsDb: ctx.insightsDb,
         },
       });
@@ -1434,7 +1437,7 @@ export const insightsRouter = router({
         isAll: isAll ?? false,
         ctx: {
           userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
+          userOrganizationId: ctx.user.profile.organizationId,
           insightsDb: ctx.insightsDb,
         },
       });
@@ -1505,7 +1508,7 @@ export const insightsRouter = router({
       isAll,
       user: {
         id: ctx.user.id,
-        organizationId: ctx.user.organizationId,
+        organizationId: ctx.user.profile.organizationId,
         isOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
       },
     });
@@ -1524,7 +1527,7 @@ export const insightsRouter = router({
         isAll,
         isOrgAdminOrOwner,
         eventTypeId,
-        organizationId: ctx.user.organizationId || null,
+        organizationId: ctx.user.profile.organizationId || null,
         limit,
         offset,
       });
@@ -1541,7 +1544,7 @@ export const insightsRouter = router({
         userId: ctx.user.id,
         teamId,
         isAll,
-        organizationId: ctx.user.organizationId ?? undefined,
+        organizationId: ctx.user.profile.organizationId ?? undefined,
       });
     }),
   routingFormsByStatus: userBelongsToTeamProcedure

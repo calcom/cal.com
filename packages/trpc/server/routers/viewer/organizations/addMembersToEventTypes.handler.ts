@@ -17,10 +17,10 @@ type AddBulkToEventTypeHandler = {
 };
 
 export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEventTypeHandler) {
-  if (!ctx.user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!ctx.user.profile.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
-  if (!(await isOrganisationAdmin(ctx.user?.id, ctx.user.organizationId)))
+  if (!(await isOrganisationAdmin(ctx.user?.id, ctx.user.profile.organizationId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const { eventTypeIds, teamIds, userIds } = input;

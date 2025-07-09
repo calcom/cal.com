@@ -56,7 +56,7 @@ const auditAndReturnNextUser = async (
     name: impersonatedUser.name,
     role: impersonatedUser.role,
     belongsToActiveTeam: hasTeam,
-    organizationId: impersonatedUser.organizationId,
+    organizationId: impersonatedUser.profile.organizationId,
     locale: impersonatedUser.locale,
     profile: impersonatedUser.profile,
   };
@@ -216,7 +216,7 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
   if (returningUser) {
     // Skip for none org users
     const inOrg =
-      returningUser.organizationId || // Keep for backwards compatibility
+      returningUser.profiles?.[0]?.organizationId || // Keep for backwards compatibility
       returningUser.profiles.some((profile) => profile.organizationId !== undefined); // New way of seeing if the user has a profile in orgs.
     if (returningUser.role !== "ADMIN" && !inOrg) return;
 
@@ -229,7 +229,7 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
         email: returningUser.email,
         locale: returningUser.locale,
         name: returningUser.name,
-        organizationId: returningUser.organizationId,
+        organizationId: returningUser.profiles?.[0]?.organizationId,
         role: returningUser.role,
         username: returningUser.username,
         profile,

@@ -158,7 +158,7 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
 
   const teamMembers = await getTeamMembers({
     teamIds,
-    organizationId: ctx.user.organizationId,
+    organizationId: ctx.user.profile.organizationId,
     cursor,
     limit,
     searchString,
@@ -180,7 +180,7 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
 
 export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) => {
   const { cursor, limit, searchString } = input;
-  const teamId = input.teamId || ctx.user.organizationId;
+  const teamId = input.teamId || ctx.user.profile.organizationId;
 
   let teamMembers: Member[] = [];
   let totalTeamMembers = 0;
@@ -227,7 +227,7 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
         teamId,
         cursor,
         limit,
-        organizationId: ctx.user.organizationId,
+        organizationId: ctx.user.profile.organizationId,
         searchString,
       });
     }

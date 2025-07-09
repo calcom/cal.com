@@ -69,7 +69,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
   }
 
-  if (ctx.user.organization.isPrivate && !ctx.user.organization.isOrgAdmin) {
+  if (ctx.user.organization?.isPrivate && !ctx.user.organization?.isOrgAdmin) {
     return {
       canUserGetMembers: false,
       rows: [],

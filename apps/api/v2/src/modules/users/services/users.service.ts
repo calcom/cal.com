@@ -25,13 +25,13 @@ export class UsersService {
   getUserMainProfile(user: UserWithProfile) {
     return (
       user?.movedToProfile ||
-      user.profiles?.find((p) => p.organizationId === user.organizationId) ||
+      user.profiles?.find((p) => p.organizationId === user.profile.organizationId) ||
       user.profiles?.[0]
     );
   }
 
   getUserMainOrgId(user: UserWithProfile) {
-    return this.getUserMainProfile(user)?.organizationId ?? user.organizationId;
+    return this.getUserMainProfile(user)?.organizationId ?? user.profile.organizationId;
   }
 
   getUserProfileByOrgId(user: UserWithProfile, organizationId: number) {

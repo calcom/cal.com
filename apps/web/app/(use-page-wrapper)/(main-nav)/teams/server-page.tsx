@@ -57,6 +57,6 @@ export const ServerTeamsListing = async ({
         errorMsgFromInvite={errorMsgFromInvite}
       />
     ),
-    CTA: !user.organizationId || user.organization.isOrgAdmin ? <TeamsCTA /> : null,
+    CTA: !user.profile.organizationId || user.organization?.isOrgAdmin ? <TeamsCTA /> : null,
   };
 };

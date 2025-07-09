@@ -12,7 +12,7 @@ type GetTeamsHandler = {
 
 export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
   const currentUser = ctx.user;
-  const currentUserOrgId = ctx.user.organizationId ?? currentUser.profiles[0].organizationId;
+  const currentUserOrgId = ctx.user.profile.organizationId ?? currentUser.profiles[0].organizationId;
 
   if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 

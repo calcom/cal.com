@@ -15,8 +15,8 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (!ctx.user.organizationId) return [];
 
-  const isOrgPrivate = ctx.user.organization.isPrivate;
-  const isOrgAdmin = ctx.user.organization.isOrgAdmin;
+  const isOrgPrivate = ctx.user.organization?.isPrivate;
+  const isOrgAdmin = ctx.user.organization?.isOrgAdmin;
 
   if (isOrgPrivate && !isOrgAdmin) return [];
 

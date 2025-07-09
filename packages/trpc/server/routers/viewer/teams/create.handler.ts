@@ -52,7 +52,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const isOrgChildTeam = !!user.profile?.organizationId;
 
   // For orgs we want to create teams under the org
-  if (user.profile?.organizationId && !user.organization.isOrgAdmin) {
+  if (user.organizationId && !user.organization?.isOrgAdmin) {
     throw new TRPCError({ code: "FORBIDDEN", message: "org_admins_can_create_new_teams" });
   }
 

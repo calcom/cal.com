@@ -22,7 +22,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   input,
 }: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
   const { teamId, attributesQueryValue, _enablePerf, _concurrency } = input;
-  const orgId = ctx.user.organizationId;
+  const orgId = ctx.user.profile.organizationId;
   if (!orgId) {
     throw new Error("You must be in an organization to use this feature");
   }

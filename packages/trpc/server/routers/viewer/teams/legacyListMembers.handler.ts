@@ -17,8 +17,8 @@ type ListMembersOptions = {
 
 export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
   const { prisma } = ctx;
-  const { isOrgAdmin } = ctx.user.organization;
-  const hasPermsToView = !ctx.user.organization.isPrivate || isOrgAdmin;
+  const { isOrgAdmin } = ctx.user.organization || {};
+  const hasPermsToView = !ctx.user.profile.organization?.isPrivate || isOrgAdmin;
 
   if (!hasPermsToView) {
     return {

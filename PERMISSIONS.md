@@ -100,7 +100,7 @@ enum ENTITY_PERMISSION_LEVEL {
 
 3. **Organization Admin Check**: Operations within an organization require the user to be an organization admin.
    ```typescript
-   if (user.profile?.organizationId && !user.organization.isOrgAdmin) {
+   if (user.profile?.organizationId && !user.profile.organization.isOrgAdmin) {
      throw new TRPCError({ code: "FORBIDDEN", message: "org_admins_can_create_new_teams" });
    }
    ```

@@ -1605,7 +1605,7 @@ export function getScenarioData(
     users: users.map((user) => {
       const newUser = {
         ...user,
-        organizationId: user.organizationId ?? null,
+        organizationId: user.profiles?.[0]?.organizationId ?? null,
       };
       return newUser;
     }),

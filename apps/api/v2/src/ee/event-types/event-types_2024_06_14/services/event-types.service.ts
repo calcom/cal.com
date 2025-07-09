@@ -138,7 +138,7 @@ export class EventTypesService_2024_06_14 {
       locale: user.locale ?? "en",
       role: user.role,
       username: user.username,
-      organizationId: user.organizationId,
+      organizationId: user.profile.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
       metadata: user.metadata,
