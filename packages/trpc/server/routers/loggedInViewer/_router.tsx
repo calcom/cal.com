@@ -202,6 +202,29 @@ export const loggedInViewerRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { eventTypeId, numberToCall } = input;
 
+      // Check if user has at least 5 credits before making a call
+      const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+      const creditService = new CreditService();
+
+      const hasCredits = await creditService.hasAvailableCredits({ userId: ctx.user.id });
+      if (!hasCredits) {
+        throw new TRPCError({
+          code: "PAYMENT_REQUIRED",
+          message: "Insufficient credits to make phone calls. Please purchase more credits.",
+        });
+      }
+
+      // Get detailed credit information to check minimum threshold
+      const creditInfo = await creditService.getAllCredits({ userId: ctx.user.id });
+      const totalAvailableCredits = creditInfo.totalRemainingMonthlyCredits + creditInfo.additionalCredits;
+
+      if (totalAvailableCredits < 5) {
+        throw new TRPCError({
+          code: "PAYMENT_REQUIRED",
+          message: `Insufficient credits to make phone calls. You need at least 5 credits but only have ${totalAvailableCredits}. Please purchase more credits.`,
+        });
+      }
+
       const { handleCreateSelfServePhoneCall } = await import(
         "@calcom/features/ee/cal-ai-phone/handleCreateSelfServePhoneCall"
       );
