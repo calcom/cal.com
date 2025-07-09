@@ -110,9 +110,8 @@ export class OutputBookingsService_2024_08_13 {
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason || null : undefined,
-      cancelledByEmail:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy || null : undefined,
+        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
+      cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
@@ -207,9 +206,8 @@ export class OutputBookingsService_2024_08_13 {
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason || null : undefined,
-      cancelledByEmail:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy || null : undefined,
+        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
+      cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
@@ -271,7 +269,7 @@ export class OutputBookingsService_2024_08_13 {
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason || null : undefined,
+        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -381,7 +379,7 @@ export class OutputBookingsService_2024_08_13 {
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason:
-        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason || null : undefined,
+        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
