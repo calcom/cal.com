@@ -22,7 +22,7 @@ export class PhoneNumberRepository {
       where: {
         userId,
         aiSelfServeConfigurations: null,
-        status: PhoneNumberSubscriptionStatus.ACTIVE,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
       },
     });
   }

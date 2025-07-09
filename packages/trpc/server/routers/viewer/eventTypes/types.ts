@@ -118,7 +118,7 @@ export const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
       message: "Applying default values and transformations",
     }
   ),
-  aISelfServeConfiguration: aISelfServeConfiguration.refine(
+  aiSelfServeConfiguration: aISelfServeConfiguration.refine(
     (data) => {
       if (!data) return true;
       data.yourPhoneNumber = data.yourPhoneNumber || undefined;

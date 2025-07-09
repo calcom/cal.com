@@ -209,7 +209,7 @@ export const loggedInViewerRouter = router({
       const hasCredits = await creditService.hasAvailableCredits({ userId: ctx.user.id });
       if (!hasCredits) {
         throw new TRPCError({
-          code: "PAYMENT_REQUIRED",
+          code: "FORBIDDEN",
           message: "Insufficient credits to make phone calls. Please purchase more credits.",
         });
       }
@@ -220,7 +220,7 @@ export const loggedInViewerRouter = router({
 
       if (totalAvailableCredits < 5) {
         throw new TRPCError({
-          code: "PAYMENT_REQUIRED",
+          code: "FORBIDDEN",
           message: `Insufficient credits to make phone calls. You need at least 5 credits but only have ${totalAvailableCredits}. Please purchase more credits.`,
         });
       }
