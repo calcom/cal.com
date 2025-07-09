@@ -1724,6 +1724,27 @@ model CalendarCache {
   @@index([userId, key])
 }
 
+model SlotsCache {
+  id             String   @id @default(uuid())
+  eventTypeId    Int
+  slotStartTime  DateTime
+  slotEndTime    DateTime
+  slotLength     Int // Duration in minutes
+  date           String // YYYY-MM-DD format for easy querying
+  month          String // YYYY-MM format for monthly cache management
+  availableCount Int
+  totalHosts     Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expiresAt      DateTime
+
+  @@unique([eventTypeId, slotStartTime, slotLength])
+  @@index([eventTypeId, date])
+  @@index([eventTypeId, month])
+  @@index([eventTypeId, slotLength])
+  @@index([expiresAt])
+}
+
 enum RedirectType {
   UserEventType @map("user-event-type")
   TeamEventType @map("team-event-type")

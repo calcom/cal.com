@@ -8,6 +8,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { SlotsCacheRepository } from "@calcom/features/calendar-cache/slots-cache.repository";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -328,6 +329,42 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
+
+  const isTestEnvironment = process.env.NODE_ENV === "test";
+
+  if (
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    _shouldServeCache !== false &&
+    !isTestEnvironment
+  ) {
+    const slotsCache = new SlotsCacheRepository();
+    const month = startTime.format("YYYY-MM");
+    const cachedSlots = await slotsCache.getCachedSlotsForMonth(eventType.id, month);
+
+    if (cachedSlots.length > 0) {
+      loggerWithEventDetails.debug(
+        "Returning cached slots",
+        safeStringify({
+          eventTypeId: eventType.id,
+          month,
+          slotCount: cachedSlots.length,
+        })
+      );
+
+      const slotsByDate = cachedSlots.reduce((acc, slot) => {
+        const date = dayjs(slot.slotStartTime).format("YYYY-MM-DD");
+        if (!acc[date]) acc[date] = [];
+        acc[date].push({
+          time: slot.slotStartTime,
+          availableCount: slot.availableCount,
+          totalHosts: slot.totalHosts,
+        });
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      return { slots: slotsByDate };
+    }
+  }
   // when an empty array is given we should prefer to have it handled as if this wasn't given at all
   // we don't want to return no availability in this case.
   const routedTeamMemberIds = input.routedTeamMemberIds ?? [];
@@ -461,6 +498,15 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
 
+  const slotsWithAvailability =
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN
+      ? timeSlots.map((slot) => ({
+          ...slot,
+          availableCount: calculateAvailableHostsForSlot(slot.time, allUsersAvailability),
+          totalHosts: allUsersAvailability.length,
+        }))
+      : timeSlots;
+
   let availableTimeSlots: typeof timeSlots = [];
   const bookerClientUid = ctx?.req?.cookies?.uid;
   const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
@@ -519,10 +565,10 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
         );
       });
     } else {
-      availableTimeSlots = timeSlots;
+      availableTimeSlots = slotsWithAvailability;
     }
   } else {
-    availableTimeSlots = timeSlots;
+    availableTimeSlots = slotsWithAvailability;
   }
 
   const reservedSlots = await _getReservedSlotsAndCleanupExpired({
@@ -722,6 +768,45 @@ const _getAvailableSlots = async ({ input, ctx }: GetScheduleOptions): Promise<I
   }
   const mapWithinBoundsSlotsToDate = withReporting(_mapWithinBoundsSlotsToDate, "mapWithinBoundsSlotsToDate");
   const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
+
+  if (
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    _shouldServeCache !== false &&
+    !isTestEnvironment
+  ) {
+    const slotsCache = new SlotsCacheRepository();
+
+    try {
+      const cacheEntries = Object.entries(withinBoundsSlotsMappedToDate).flatMap(([date, slots]) =>
+        slots.map((slot: any) => ({
+          slotStartTime: slot.time,
+          slotEndTime: dayjs(slot.time)
+            .add(input.duration || eventType.length, "minutes")
+            .toISOString(),
+          slotLength: input.duration || eventType.length,
+          availableCount: slot.availableCount || 0,
+          totalHosts: slot.totalHosts || 0,
+        }))
+      );
+
+      await slotsCache.batchUpsertSlots(eventType.id, cacheEntries);
+      loggerWithEventDetails.debug(
+        "Cached ROUND_ROBIN slots",
+        safeStringify({
+          eventTypeId: eventType.id,
+          slotCount: cacheEntries.length,
+        })
+      );
+    } catch (error) {
+      loggerWithEventDetails.error(
+        "Failed to cache ROUND_ROBIN slots",
+        safeStringify({
+          error,
+          eventTypeId: eventType.id,
+        })
+      );
+    }
+  }
 
   // We only want to run this on single targeted events and not dynamic
   if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
@@ -1336,3 +1421,19 @@ const calculateHostsAndAvailabilities = async ({
     currentSeats,
   };
 };
+
+function calculateAvailableHostsForSlot(slotTime: dayjs.Dayjs, allUsersAvailability: any[]): number {
+  return allUsersAvailability.filter((userAvailability) => {
+    const slotEnd = slotTime.add(30, "minute");
+
+    const isAvailable = userAvailability.dateRanges.some(
+      (range: any) => slotTime.isAfter(range.start) && slotEnd.isBefore(range.end)
+    );
+
+    const isBusy = userAvailability.busy.some(
+      (busyTime: any) => slotTime.isBefore(busyTime.end) && slotEnd.isAfter(busyTime.start)
+    );
+
+    return isAvailable && !isBusy;
+  }).length;
+}
