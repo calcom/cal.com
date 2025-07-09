@@ -14,6 +14,7 @@ import {
   bookTimeSlot,
   confirmBooking,
   confirmReschedule,
+  doOnOrgDomain,
   expectSlotNotAllowedToBook,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
@@ -21,6 +22,59 @@ import {
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
+
+async function testOrgMemberAction({
+  page,
+  users,
+  org,
+  bookingId,
+  role,
+  action,
+  testName,
+}: {
+  page: any;
+  users: any;
+  org: any;
+  bookingId: string | undefined;
+  role: "ADMIN" | "OWNER";
+  action: "reschedule" | "cancel";
+  testName: string;
+  prisma: any;
+}) {
+  const orgMember = await users.create({
+    username: `org-${role.toLowerCase()}-${action}`,
+    name: `Org ${role} ${action}`,
+    organizationId: org.id,
+    roleInOrganization: role,
+  });
+
+  await orgMember.apiLogin();
+
+  if (!bookingId) throw new Error("Booking ID not found");
+
+  await doOnOrgDomain({ orgSlug: org.slug, page }, async ({ page, goToUrlWithErrorHandling }) => {
+    const { success } = await goToUrlWithErrorHandling(`/booking/${bookingId}`);
+    if (!success) {
+      throw new Error(`Failed to navigate to booking page: /booking/${bookingId}`);
+    }
+    await page.waitForLoadState("networkidle");
+
+    if (action === "reschedule") {
+      await expect(page.locator('[data-testid="reschedule-link"]')).toBeVisible();
+      await page.locator('[data-testid="reschedule-link"]').click();
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await confirmReschedule(page);
+      await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
+    } else {
+      await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
+      await page.locator('[data-testid="cancel"]').click();
+      await page.locator('[data-testid="cancel_reason"]').fill(`${testName} cancellation test`);
+      await page.locator('[data-testid="confirm_cancel"]').click();
+      await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+    }
+  });
+}
+
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
@@ -632,20 +686,6 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
   });
 
-  test("Host should be able to see cancel and reschedule buttons even when disabled", async ({
-    page,
-    users,
-  }) => {
-    const [user] = users.get();
-    await user.apiLogin();
-
-    await page.goto(`/booking/${bookingId}`);
-    await expect(page).toHaveURL(`/booking/${bookingId}`);
-    // Host should be able to see the cancel and reschedule buttons even when disabled
-    await expect(page.locator('[data-testid="reschedule-link"]')).toBeVisible();
-    await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
-  });
-
   test("Direct access to reschedule/{bookingId} should redirect to success page", async ({ page }) => {
     await page.goto(`/reschedule/${bookingId}`);
 
@@ -792,5 +832,135 @@ test.describe("GTM container", () => {
 
     const scriptContent = await injectedScript.textContent();
     expect(scriptContent).toContain("googletagmanager");
+  });
+});
+
+test.describe("Organization members can cancel and reschedule when disabled", () => {
+  let bookingId: string | undefined;
+  let org: any;
+  let user: any;
+  let team: any;
+  let teamEventSlug: string;
+
+  test.beforeEach(async ({ page, users, prisma, orgs }) => {
+    user = await users.create(
+      {
+        name: `Test-user-${randomString(4)}`,
+        username: `test-user-${randomString(4)}`,
+      },
+      {
+        hasTeam: true,
+        teammates: [{ name: "teammate-1" }],
+        schedulingType: SchedulingType.COLLECTIVE,
+      }
+    );
+
+    const { team: userTeam } = await user.getFirstTeamMembership();
+    team = userTeam;
+
+    const teamEvent = await user.getFirstTeamEvent(team.id);
+    teamEventSlug = teamEvent.slug;
+
+    await prisma.eventType.update({
+      where: { id: teamEvent.id },
+      data: {
+        title: "No Cancel No Reschedule",
+        disableCancelling: true,
+        disableRescheduling: true,
+      },
+    });
+
+    org = await orgs.create({
+      name: "Test Org",
+    });
+
+    await prisma.team.update({
+      where: { id: team.id },
+      data: { parentId: org.id },
+    });
+
+    await doOnOrgDomain(
+      {
+        orgSlug: org.slug,
+        page,
+      },
+      async ({ page, goToUrlWithErrorHandling }) => {
+        const { success } = await goToUrlWithErrorHandling(`/team/${team.slug}/${teamEventSlug}`);
+        if (!success) {
+          throw new Error(`Failed to navigate to team event page: /team/${team.slug}/${teamEventSlug}`);
+        }
+        await selectFirstAvailableTimeSlotNextMonth(page);
+        await bookTimeSlot(page, {
+          name: "Test-user-1",
+          email: "test-booker@example.com",
+        });
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+        const url = new URL(page.url());
+        const pathSegments = url.pathname.split("/");
+        bookingId = pathSegments[pathSegments.length - 1];
+      }
+    );
+  });
+
+  test("Organization Admin should be able to reschedule even when disabled", async ({
+    page,
+    users,
+    prisma,
+  }) => {
+    await testOrgMemberAction({
+      page,
+      users,
+      org,
+      bookingId,
+      role: "ADMIN",
+      action: "reschedule",
+      testName: "Org Admin",
+      prisma,
+    });
+  });
+
+  test("Organization Admin should be able to cancel even when disabled", async ({ page, users, prisma }) => {
+    await testOrgMemberAction({
+      page,
+      users,
+      org,
+      bookingId,
+      role: "ADMIN",
+      action: "cancel",
+      testName: "Org Admin",
+      prisma,
+    });
+  });
+
+  test("Organization Owner should be able to reschedule even when disabled", async ({
+    page,
+    users,
+    prisma,
+  }) => {
+    await testOrgMemberAction({
+      page,
+      users,
+      org,
+      bookingId,
+      role: "OWNER",
+      action: "reschedule",
+      testName: "Org Owner",
+      prisma,
+    });
+  });
+
+  test("Organization Owner should be able to cancel even when disabled", async ({ page, users, prisma }) => {
+    await testOrgMemberAction({
+      page,
+      users,
+      org,
+      bookingId,
+      role: "OWNER",
+      action: "cancel",
+      testName: "Org Owner",
+      prisma,
+    });
   });
 });

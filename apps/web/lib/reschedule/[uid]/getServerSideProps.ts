@@ -9,6 +9,8 @@ import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFrom
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
@@ -63,6 +65,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           allowReschedulingCancelledBookings: true,
           team: {
             select: {
+              id: true,
               parentId: true,
               slug: true,
             },
@@ -125,8 +128,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const userId = session?.user?.id;
   const userIsHost = booking?.eventType?.hosts?.find((host) => host.user.id === userId);
   const userIsOwnerOfEventType = userId !== undefined && booking?.eventType?.owner?.id === userId;
-  const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
 
+  let hasTeamOrOrgPermissions = false;
+  if (userId && booking?.eventType?.team?.id) {
+    const isTeamAdminResult = await isTeamAdmin(userId, booking.eventType.team.id);
+    if (isTeamAdminResult) {
+      hasTeamOrOrgPermissions = true;
+    } else if (booking.eventType.team.parentId) {
+      const isOrgAdminResult = await isOrganisationAdmin(userId, booking.eventType.team.parentId);
+      if (isOrgAdminResult) {
+        hasTeamOrOrgPermissions = true;
+      }
+    }
+  }
+
+  const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType || !!hasTeamOrOrgPermissions;
   if (isDisabledRescheduling && !isHostOrOwner) {
     return {
       redirect: {
@@ -193,7 +209,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
     const userIsOwnerOfEventType = booking?.eventType.owner?.id === userId;
 
-    if (!userIsHost && !userIsOwnerOfEventType) {
+    let hasTeamOrOrgPermissions = false;
+    if (userId && booking?.eventType?.team?.id) {
+      const isTeamAdminResult = await isTeamAdmin(userId, booking.eventType.team.id);
+      if (isTeamAdminResult) {
+        hasTeamOrOrgPermissions = true;
+      } else if (booking.eventType.team.parentId) {
+        const isOrgAdminResult = await isOrganisationAdmin(userId, booking.eventType.team.parentId);
+        if (isOrgAdminResult) {
+          hasTeamOrOrgPermissions = true;
+        }
+      }
+    }
+
+    if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions) {
       return {
         notFound: true,
       } as {

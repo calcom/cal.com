@@ -9,6 +9,8 @@ import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/li
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -56,7 +58,25 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventData = team.eventTypes[0];
 
-  if (rescheduleUid && eventData.disableRescheduling) {
+  let hasTeamOrOrgPermissions = false;
+  const userId = session?.user?.id;
+  if (userId && eventData.team?.id) {
+    const isTeamAdminResult = await isTeamAdmin(userId, eventData.team.id);
+    if (isTeamAdminResult) {
+      hasTeamOrOrgPermissions = true;
+    } else if (eventData.team.parentId) {
+      const isOrgAdminResult = await isOrganisationAdmin(userId, eventData.team.parentId);
+      if (isOrgAdminResult) {
+        hasTeamOrOrgPermissions = true;
+      }
+    }
+  }
+  const isHostOrOwner =
+    eventData.owner?.id === userId ||
+    eventData.hosts?.some((host) => host.user.id === userId) ||
+    hasTeamOrOrgPermissions;
+
+  if (rescheduleUid && eventData.disableRescheduling && !isHostOrOwner) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
   }
 
@@ -228,11 +248,23 @@ const getTeamWithEventsData = async (
             select: {
               user: {
                 select: {
+                  id: true,
                   name: true,
                   username: true,
                   email: true,
                 },
               },
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              parentId: true,
+            },
+          },
+          owner: {
+            select: {
+              id: true,
             },
           },
         },

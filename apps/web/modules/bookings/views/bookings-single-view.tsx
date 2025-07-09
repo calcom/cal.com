@@ -151,6 +151,7 @@ export default function Success(props: PageProps) {
   );
   const { data: session } = useSession();
   const isHost = props.isLoggedInUserHost;
+  const isAdminOrOwner = props.hasTeamOrOrgPermissions;
 
   const [showUtmParams, setShowUtmParams] = useState(false);
 
@@ -376,11 +377,13 @@ export default function Success(props: PageProps) {
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
 
-  const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling || isHost;
-  const canCancelAndReschedule = (!eventType?.disableCancelling && !eventType?.disableRescheduling) || isHost;
+  const canCancelOrReschedule =
+    !eventType?.disableCancelling || !eventType?.disableRescheduling || isHost || isAdminOrOwner;
+  const canCancelAndReschedule =
+    (!eventType?.disableCancelling && !eventType?.disableRescheduling) || isHost || isAdminOrOwner;
 
-  const canCancel = !eventType?.disableCancelling || isHost;
-  const canReschedule = !eventType?.disableRescheduling || isHost;
+  const canCancel = !eventType?.disableCancelling || isHost || isAdminOrOwner;
+  const canReschedule = !eventType?.disableRescheduling || isHost || isAdminOrOwner;
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {

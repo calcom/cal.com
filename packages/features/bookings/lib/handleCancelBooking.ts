@@ -23,6 +23,8 @@ import logger from "@calcom/lib/logger";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -111,7 +113,23 @@ async function handler(input: CancelBookingInput) {
   const userIsOwnerOfEventType = bookingToDelete.eventType?.owner?.id === userId;
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
 
-  if (bookingToDelete.eventType?.disableCancelling && !isHostOrOwner) {
+  // Check if user has team or organization admin/owner permissions
+  let hasTeamOrOrgPermissions = false;
+  if (bookingToDelete.eventType?.team?.id && userId) {
+    // Check if user is a team admin or owner
+    const isTeamAdminResult = await isTeamAdmin(userId, bookingToDelete.eventType.team.id);
+    if (isTeamAdminResult) {
+      hasTeamOrOrgPermissions = true;
+    } else if (bookingToDelete.eventType.team.parentId) {
+      // Check if user is an organization admin or owner (if the team belongs to an organization)
+      const isOrgAdminResult = await isOrganisationAdmin(userId, bookingToDelete.eventType.team.parentId);
+      if (isOrgAdminResult) {
+        hasTeamOrOrgPermissions = true;
+      }
+    }
+  }
+
+  if (bookingToDelete.eventType?.disableCancelling && !isHostOrOwner && !hasTeamOrOrgPermissions) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
@@ -132,8 +150,22 @@ async function handler(input: CancelBookingInput) {
     });
 
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
+    let hasTeamOrOrgPermissions = false;
+    if (bookingToDelete.eventType?.team?.id && userId) {
+      // Check if user is a team admin or owner
+      const isTeamAdminResult = await isTeamAdmin(userId, bookingToDelete.eventType.team.id);
+      if (isTeamAdminResult) {
+        hasTeamOrOrgPermissions = true;
+      } else if (bookingToDelete.eventType.team.parentId) {
+        // Check if user is an organization admin or owner (if the team belongs to an organization)
+        const isOrgAdminResult = await isOrganisationAdmin(userId, bookingToDelete.eventType.team.parentId);
+        if (isOrgAdminResult) {
+          hasTeamOrOrgPermissions = true;
+        }
+      }
+    }
 
-    if (!userIsHost && !userIsOwnerOfEventType) {
+    if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions) {
       throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
     }
   }
