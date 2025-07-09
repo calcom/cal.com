@@ -6,12 +6,14 @@ import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models
 import type { IRoleRepository } from "../domain/repositories/IRoleRepository";
 import { RoleRepository } from "../infrastructure/repositories/RoleRepository";
 import { DEFAULT_ROLE_IDS } from "../lib/constants";
+import { PermissionDiffService } from "./permission-diff.service";
 import { PermissionService } from "./permission.service";
 
 export class RoleService {
   constructor(
     private readonly repository: IRoleRepository = new RoleRepository(),
-    private readonly permissionService: PermissionService = new PermissionService()
+    private readonly permissionService: PermissionService = new PermissionService(),
+    private readonly permissionDiffService: PermissionDiffService = new PermissionDiffService()
   ) {}
 
   async createRole(data: CreateRoleData) {
@@ -90,7 +92,11 @@ export class RoleService {
     if (!validationResult.isValid) {
       throw new Error(validationResult.error || "Invalid permissions provided");
     }
-    return this.repository.update(data.roleId, data.permissions, {
+
+    const existingPermissions = await this.repository.getPermissions(data.roleId);
+    const permissionChanges = this.permissionDiffService.calculateDiff(data.permissions, existingPermissions);
+
+    return this.repository.update(data.roleId, permissionChanges, {
       color: data.updates?.color,
       name: data.updates?.name,
     });
