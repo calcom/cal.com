@@ -3,7 +3,6 @@ import z from "zod";
 import { getTemplateBodyForAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
 import { Task } from "@calcom/features/tasker/repository";
-import { lockUser, LockReason } from "@calcom/lib/autoLock";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -112,7 +111,6 @@ export async function scanWorkflowBody(payload: string) {
         if (!workflowStep.workflow.user?.whitelistWorkflows) {
           // We won't delete the workflow step incase it is flagged as a false positive
           log.warn(`Workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`);
-          await lockUser("userId", userId.toString(), LockReason.SPAM_WORKFLOW_BODY);
 
           // Return early if spam is detected
           return;
