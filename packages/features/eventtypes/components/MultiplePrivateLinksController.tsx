@@ -165,9 +165,47 @@ export const MultiplePrivateLinksController = ({
             }
           };
 
+          // Helper function to check if a link is expired
+          const isLinkExpired = (val: PrivateLinkWithOptions) => {
+            const latestLinkData = linkDataMap.get(val.link);
+            const latestUsageCount =
+              latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
+
+            if (val.expiresAt) {
+              // The expiresAt date is already stored as end-of-day in user's timezone converted to UTC
+              // So we can directly compare with current time
+              return new Date(val.expiresAt).getTime() < Date.now();
+            } else if (
+              val.maxUsageCount !== undefined &&
+              val.maxUsageCount !== null &&
+              !isNaN(Number(val.maxUsageCount))
+            ) {
+              // Link is expired if usage count has reached or exceeded the limit
+              return latestUsageCount >= val.maxUsageCount;
+            }
+            return false;
+          };
+
+          // Sort links: non-expired first, then expired
+          // We need to preserve the original index for the removePrivateLink function
+          const sortedLinksWithIndex = convertedValue
+            .map((val, originalIndex) => ({ val, originalIndex }))
+            .sort((a, b) => {
+              const aExpired = isLinkExpired(a.val);
+              const bExpired = isLinkExpired(b.val);
+
+              // If one is expired and the other isn't, sort non-expired first
+              if (aExpired !== bExpired) {
+                return aExpired ? 1 : -1;
+              }
+
+              // If both have same expiry status, maintain original order
+              return 0;
+            });
+
           return (
             <ul ref={animateRef}>
-              {convertedValue.map((val, key) => {
+              {sortedLinksWithIndex.map(({ val, originalIndex }, key) => {
                 const singleUseURL = `${bookerUrl}/d/${val.link}/${formMethods.getValues("slug")}`;
 
                 // Get the link data from our map instead of individual queries
@@ -180,16 +218,12 @@ export const MultiplePrivateLinksController = ({
                   remainder: "1",
                   maximum_uses: "1 use",
                 });
-                let isExpired = false;
+                const isExpired = isLinkExpired(val);
 
                 if (val.expiresAt) {
                   // Convert stored UTC date to user's timezone for display and comparison
                   const expiryInUserTz = dayjs.utc(val.expiresAt).tz(userTimeZone || dayjs.tz.guess());
                   const expiryDate = expiryInUserTz.format("MMM DD, YYYY");
-
-                  // Compare current time in user's timezone with expiry time
-                  const nowInUserTz = dayjs().tz(userTimeZone || dayjs.tz.guess());
-                  isExpired = nowInUserTz.isAfter(expiryInUserTz);
 
                   linkDescription = isExpired
                     ? t("link_expired_on_date", { date: expiryDate })
@@ -203,9 +237,6 @@ export const MultiplePrivateLinksController = ({
                   const maxUses = val.maxUsageCount;
                   const usedCount = latestUsageCount;
                   const remainingUses = maxUses - usedCount;
-
-                  // Link is expired if usage count has reached or exceeded the limit
-                  isExpired = usedCount >= maxUses;
 
                   if (isExpired) {
                     linkDescription = t("usage_limit_reached");
@@ -253,17 +284,17 @@ export const MultiplePrivateLinksController = ({
                             color="minimal"
                             variant="icon"
                             StartIcon="settings"
-                            onClick={() => openSettingsDialog(key, val)}
+                            onClick={() => openSettingsDialog(originalIndex, val)}
                           />
                         )}
                         <Button
-                          data-testid={`remove-single-use-link-${key}`}
+                          data-testid={`remove-single-use-link-${originalIndex}`}
                           variant="icon"
                           type="button"
                           StartIcon="trash-2"
                           color="destructive"
                           className="ml-1 border-none"
-                          onClick={() => removePrivateLink(key)}
+                          onClick={() => removePrivateLink(originalIndex)}
                         />
                       </div>
                     </div>

@@ -80,9 +80,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return notFound;
   }
 
-  const isExpired = hashedLink.expiresAt
-    ? new Date(hashedLink.expiresAt).setHours(23, 59, 59) < Date.now()
-    : false;
+  const isExpired = hashedLink.expiresAt ? new Date(hashedLink.expiresAt).getTime() < Date.now() : false;
   const isUsageExceeded = hashedLink.maxUsageCount
     ? hashedLink.usageCount >= hashedLink.maxUsageCount
     : false;
