@@ -17,7 +17,7 @@ import {
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { getAvailableSlots } from "@calcom/platform-libraries/slots";
+import { AvailableSlotsService } from "@calcom/platform-libraries/slots";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
 import { Booking, EventType } from "@calcom/prisma/client";
 
@@ -31,6 +31,8 @@ const DEFAULT_RESERVATION_DURATION = 5;
 
 @Injectable()
 export class SlotsService_2024_09_04 {
+  private readonly availableSlotsService: AvailableSlotsService;
+
   constructor(
     private readonly eventTypeRepository: EventTypesRepository_2024_06_14,
     private readonly slotsRepository: SlotsRepository_2024_09_04,
@@ -39,12 +41,14 @@ export class SlotsService_2024_09_04 {
     private readonly membershipsService: MembershipsService,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly teamsRepository: TeamsRepository
-  ) {}
+  ) {
+    this.availableSlotsService = new AvailableSlotsService();
+  }
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
     try {
       const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
-      const availableSlots: TimeSlots = await getAvailableSlots({
+      const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
         input: {
           ...queryTransformed,
           routingFormResponseId: queryTransformed.routingFormResponseId ?? undefined,

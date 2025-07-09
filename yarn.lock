@@ -2519,7 +2519,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.241"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.243"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -3565,13 +3565,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.241":
-  version: 0.0.241
-  resolution: "@calcom/platform-libraries@npm:0.0.241"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.243":
+  version: 0.0.243
+  resolution: "@calcom/platform-libraries@npm:0.0.243"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 1eec9dce749b6678427e00d0f2d2f383d798066f2f7ef7aca1ce90d5c649ed41d2fc1496be93c7448e7c22d2e015e333c8fe0b81b7c3b04b9637f6ea1910a898
+  checksum: ce0a4778857a62a6df46b1c0b419fbaad1d874d7b0da92d43589348f6e07a7de912703692c9fbc1e21fb2e0bf4d323bcd7eae96b5198376216216c872374cc09
   languageName: node
   linkType: hard
 
@@ -5813,6 +5813,13 @@ __metadata:
     "@eslint/core": ^0.12.0
     levn: ^0.4.1
   checksum: e5d9be6ae54c7abd4605025e5831ac16dd0636ac5d41fbfcd8898a5d29711a2fb1fc8c784aa68a1469e66c8d41965da70d7a7516f9c2bca1c84342dd344bbb8e
+  languageName: node
+  linkType: hard
+
+"@evyweb/ioctopus@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@evyweb/ioctopus@npm:1.2.0"
+  checksum: f48382e2dfab9b48b59d02a0718ddbb8e9d81cbb6d214eb42b5378c2b9d9f9f8decb5b13019600972252e5b6c204901ebfbc36000a4a8ea0f69d6fd8b3417458
   languageName: node
   linkType: hard
 
@@ -21766,6 +21773,7 @@ __metadata:
     "@changesets/changelog-github": ^0.5.1
     "@changesets/cli": 2.29.4
     "@daily-co/daily-js": ^0.76.0
+    "@evyweb/ioctopus": ^1.2.0
     "@jetstreamapp/soql-parser-js": ^6.1.0
     "@next/third-parties": ^14.2.5
     "@playwright/test": ^1.45.3

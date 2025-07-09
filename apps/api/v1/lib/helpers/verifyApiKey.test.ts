@@ -23,6 +23,7 @@ afterEach(() => {
 
 const mockDeploymentRepository: IDeploymentRepository = {
   getLicenseKeyWithId: vi.fn().mockResolvedValue("mockLicenseKey"), // Mocked return value
+  getSignatureToken: vi.fn().mockResolvedValue("mockSignatureToken"),
 };
 
 // TODO: Fix the skip condition for this test suite

@@ -8,7 +8,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
-import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
@@ -27,7 +27,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
     const input = getScheduleSchema.parse({ usernameList: slugs, isTeamEvent: parsedIsTeamEvent, ...rest });
     const timeZoneSupported = input.timeZone ? isSupportedTimeZone(input.timeZone) : false;
-    const availableSlots = await getAvailableSlots({ ctx: await createContext({ req, res }), input });
+    const availableSlotsService = new AvailableSlotsService();
+    const availableSlots = await availableSlotsService.getAvailableSlots({
+      ctx: await createContext({ req, res }),
+      input,
+    });
     const slotsInProvidedTimeZone = timeZoneSupported
       ? Object.keys(availableSlots.slots).reduce(
           (acc: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>, date) => {
