@@ -68,7 +68,7 @@ export const CheckedTeamSelect = ({
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
-  const fitleredValue = value.filter((host) => host.groupId === groupId);
+  const fitleredValue = groupId ? value.filter((host) => host.groupId === groupId) : value;
 
   const handleSelectChange = (newFilteredValue: readonly CheckedSelectOption[]) => {
     const otherGroupsHosts = value.filter((host) => host.groupId !== groupId);
