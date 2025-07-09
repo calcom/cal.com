@@ -1,6 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
@@ -262,7 +263,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://cal.com/peer");
+      await page.fill("[name=externalRedirectUrl]", `${WEBAPP_URL}/pro`);
       await saveCurrentForm(page);
 
       const { fields } = await addAllTypesOfFieldsAndSaveForm(formId, page, {
@@ -290,7 +291,7 @@ test.describe("Routing Forms", () => {
 
       await page.click('button[type="submit"]');
       await page.waitForURL((url) => {
-        return url.hostname.includes("cal.com");
+        return url.pathname.endsWith("/pro");
       });
 
       const url = new URL(page.url());
@@ -509,7 +510,7 @@ test.describe("Routing Forms", () => {
 
       await page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
       await page.waitForURL((url) => {
-        return url.hostname.includes("cal.com") && url.searchParams.get("Test field") === "external-redirect";
+        return url.pathname.endsWith("/pro") && url.searchParams.get("Test field") === "external-redirect";
       });
 
       await page.goto(`/router?form=${routingForm.id}&Test field=custom-page`);
@@ -576,7 +577,7 @@ test.describe("Routing Forms", () => {
       routingType = await page.locator('[data-testid="chosen-route-title"]').innerText();
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("External Redirect");
-      expect(route).toBe("https://cal.com/peer");
+      expect(route).toBe(`${WEBAPP_URL}/pro`);
       await page.click('[data-testid="close-results-button"]');
 
       // Multiselect(Legacy)
@@ -925,7 +926,7 @@ test.describe("Routing Forms", () => {
         option: 2,
         page,
       });
-      await page.fill("[name=externalRedirectUrl]", "https://cal.com/peer");
+      await page.fill("[name=externalRedirectUrl]", `${WEBAPP_URL}/pro`);
       await saveCurrentForm(page);
       return {
         formId,
@@ -978,7 +979,7 @@ test.describe("Routing Forms", () => {
       await page.fill('[data-testid="form-field-short-text"]', "test");
       await page.click('button[type="submit"]');
       await page.waitForURL((url) => {
-        return url.hostname.includes("cal.com");
+        return url.pathname.endsWith("/pro");
       });
     };
 
@@ -1059,7 +1060,7 @@ async function fillSeededForm(page: Page, routingFormId: string) {
     await fillAllOptionsBasedFields();
     page.click('button[type="submit"]');
     await page.waitForURL((url) => {
-      return url.hostname.includes("cal.com");
+      return url.pathname.endsWith("/pro");
     });
   })();
 

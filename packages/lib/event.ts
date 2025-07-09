@@ -104,6 +104,8 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
       }
 
       dynamicEventName = dynamicEventName.replace(`{${variable}}`, fieldValue || "");
+    } else {
+      dynamicEventName = dynamicEventName.replace(`{${variable}}`, "");
     }
   });
 
