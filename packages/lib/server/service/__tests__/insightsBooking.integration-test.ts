@@ -544,7 +544,7 @@ describe("InsightsBookingService Integration Tests", () => {
     });
   });
 
-  describe("getBaseConditions", () => {
+  describe("findMany", () => {
     it("should combine authorization and filter conditions", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
@@ -587,11 +587,10 @@ describe("InsightsBookingService Integration Tests", () => {
         },
       });
 
-      const baseConditions = await service.getBaseConditions();
-      const results = await prisma.bookingTimeStatusDenormalized.findMany({
-        select: { id: true },
-        where: {
-          AND: baseConditions,
+      const results = await service.findMany({
+        select: {
+          id: true,
+          title: true,
         },
       });
 

@@ -26,13 +26,6 @@ export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope",
   }),
 ]);
 
-export type InsightsBookingServicePublicOptions = {
-  scope: "user" | "org" | "team";
-  userId: number;
-  orgId: number;
-  teamId?: number;
-};
-
 export type InsightsBookingServiceOptions = z.infer<typeof insightsBookingServiceOptionsSchema>;
 
 export type InsightsBookingServiceFilterOptions = {
@@ -57,7 +50,7 @@ export class InsightsBookingService {
     filters,
   }: {
     prisma: typeof readonlyPrisma;
-    options: InsightsBookingServicePublicOptions;
+    options: InsightsBookingServiceOptions;
     filters?: InsightsBookingServiceFilterOptions;
   }) {
     this.prisma = prisma;
@@ -67,13 +60,19 @@ export class InsightsBookingService {
     this.filters = filters;
   }
 
-  async getBaseConditions() {
+  async findMany(findManyArgs: Prisma.BookingTimeStatusDenormalizedFindManyArgs) {
     const authConditions = await this.getAuthorizationConditions();
     const filterConditions = await this.getFilterConditions();
 
-    return [authConditions, filterConditions].filter(
-      (c): c is Prisma.BookingTimeStatusDenormalizedWhereInput => c !== null
-    );
+    return this.prisma.bookingTimeStatusDenormalized.findMany({
+      ...findManyArgs,
+      where: {
+        ...findManyArgs.where,
+        AND: [authConditions, filterConditions].filter(
+          (c): c is Prisma.BookingTimeStatusDenormalizedWhereInput => c !== null
+        ),
+      },
+    });
   }
 
   async getAuthorizationConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
