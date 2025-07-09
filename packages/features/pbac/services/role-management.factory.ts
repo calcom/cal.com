@@ -78,11 +78,14 @@ class PBACRoleManager implements IRoleManager {
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
   async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
-    const isUpdaterAnOwner = await isOrganisationAdmin(userId, organizationId);
+    const membership = await isOrganisationAdmin(userId, organizationId);
 
-    // Only OWNER can update role to OWNER
-    if (!isUpdaterAnOwner) {
-      throw new RoleManagementError("Only owners can update roles", RoleManagementErrorCode.UNAUTHORIZED);
+    // Only OWNER/ADMIN can update role
+    if (!membership) {
+      throw new RoleManagementError(
+        "Only owners or admin can update roles",
+        RoleManagementErrorCode.UNAUTHORIZED
+      );
     }
   }
 

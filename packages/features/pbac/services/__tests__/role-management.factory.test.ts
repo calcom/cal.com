@@ -176,12 +176,22 @@ describe("RoleManagementFactory", () => {
         accepted: true,
         customRoleId: null,
       });
-      vi.mocked(isOrganisationAdmin).mockReturnValue(Promise.resolve(false));
+      vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
     });
 
     describe("checkPermissionToChangeRole", () => {
       it("should allow role change when user is owner", async () => {
-        vi.mocked(isOrganisationAdmin).mockReturnValue(Promise.resolve(false));
+        vi.mocked(isOrganisationAdmin).mockResolvedValue({
+          id: 1,
+          teamId: organizationId,
+          userId: userId,
+          role: MembershipRole.OWNER,
+          accepted: true,
+          disableImpersonation: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          customRoleId: null,
+        });
         const manager = await factory.createRoleManager(organizationId);
         await expect(manager.checkPermissionToChangeRole(userId, organizationId)).resolves.not.toThrow();
       });
@@ -190,7 +200,10 @@ describe("RoleManagementFactory", () => {
         vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
         const manager = await factory.createRoleManager(organizationId);
         await expect(manager.checkPermissionToChangeRole(userId, organizationId)).rejects.toThrow(
-          new RoleManagementError("Only owners can update roles", RoleManagementErrorCode.UNAUTHORIZED)
+          new RoleManagementError(
+            "Only owners or admin can update roles",
+            RoleManagementErrorCode.UNAUTHORIZED
+          )
         );
       });
     });
