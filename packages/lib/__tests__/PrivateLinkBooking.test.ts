@@ -14,9 +14,11 @@ vi.mock("../lib/handleNewBooking", () => ({
   handleNewBooking: vi.fn(),
 }));
 
+const prismaMock = mockDeep<PrismaClient>();
+
 describe("Private Link Booking Flow", () => {
   beforeEach(() => {
-    mockReset();
+    mockReset(prismaMock);
     vi.clearAllMocks();
   });
 
