@@ -18,20 +18,29 @@ import { prisma } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
-export const getCachedTeamWithEventTypes = unstable_cache(
-  async (teamSlug: string, meetingSlug: string, orgSlug: string | null) => {
-    return await _getTeamWithEventTypes(teamSlug, meetingSlug, orgSlug);
-  },
-  undefined,
-  {
+export async function getCachedTeamData(teamSlug: string, orgSlug: string | null) {
+  return unstable_cache(async () => _getTeamData(teamSlug, orgSlug), ["team-data", teamSlug, orgSlug ?? ""], {
     revalidate: NEXTJS_CACHE_TTL,
-  }
-);
+    tags: [`team:${teamSlug}${orgSlug ? `:${orgSlug}` : ""}`],
+  })();
+}
 
-export type TeamWithEventTypes = Awaited<ReturnType<typeof _getTeamWithEventTypes>>;
+export async function getCachedTeamEventType(teamSlug: string, meetingSlug: string, orgSlug: string | null) {
+  return unstable_cache(
+    async () => _getTeamEventType(teamSlug, meetingSlug, orgSlug),
+    ["team-event-type", teamSlug, meetingSlug, orgSlug ?? ""],
+    {
+      revalidate: NEXTJS_CACHE_TTL,
+      tags: [`event-type:${teamSlug}:${meetingSlug}${orgSlug ? `:${orgSlug}` : ""}`],
+    }
+  )();
+}
 
-async function _getTeamWithEventTypes(teamSlug: string, meetingSlug: string, orgSlug: string | null) {
-  const team = await prisma.team.findFirst({
+export type TeamData = Awaited<ReturnType<typeof _getTeamData>>;
+export type TeamEventType = Awaited<ReturnType<typeof _getTeamEventType>>;
+
+async function _getTeamData(teamSlug: string, orgSlug: string | null) {
+  return await prisma.team.findFirst({
     where: {
       ...getSlugOrRequestedSlug(teamSlug),
       parent: orgSlug ? getSlugOrRequestedSlug(orgSlug) : null,
@@ -64,15 +73,6 @@ async function _getTeamWithEventTypes(teamSlug: string, meetingSlug: string, org
       brandColor: true,
       darkBrandColor: true,
       theme: true,
-      eventTypes: {
-        where: {
-          OR: [{ slug: meetingSlug }, { slug: { startsWith: `${meetingSlug}-team-id-` } }],
-        },
-        // IMPORTANT:
-        // This is to ensure that `team.eventTypes[0]` (used for event data in team booking page)
-        // has everything expected in Booker (which used to rely on `getPublicEventSelect` trpc call)
-        select: getPublicEventSelect(false),
-      },
       isOrganization: true,
       organizationSettings: {
         select: {
@@ -81,65 +81,64 @@ async function _getTeamWithEventTypes(teamSlug: string, meetingSlug: string, org
       },
     },
   });
-  if (!team) return null;
-  return team;
 }
 
-export const getCachedEventData = unstable_cache(
-  async ({
-    team,
-    orgSlug,
-    fromRedirectOfNonOrgLink,
-  }: {
-    team: TeamWithEventTypes;
-    orgSlug: string | null;
-    fromRedirectOfNonOrgLink: boolean;
-  }) => {
-    return await _getEventDataForTeamBooking({
-      team,
-      orgSlug,
-      fromRedirectOfNonOrgLink,
-    });
-  },
-  undefined,
-  {
-    revalidate: NEXTJS_CACHE_TTL,
-  }
-);
+async function _getTeamEventType(teamSlug: string, meetingSlug: string, orgSlug: string | null) {
+  return await prisma.eventType.findFirst({
+    where: {
+      team: {
+        ...getSlugOrRequestedSlug(teamSlug),
+        parent: orgSlug ? getSlugOrRequestedSlug(orgSlug) : null,
+      },
+      OR: [{ slug: meetingSlug }, { slug: { startsWith: `${meetingSlug}-team-id-` } }],
+    },
+    // IMPORTANT:
+    // This ensures that the queried event type has everything expected in Booker
+    select: getPublicEventSelect(false),
+    orderBy: {
+      slug: "asc",
+    },
+  });
+}
 
-async function _getEventDataForTeamBooking({
-  team,
+export async function getEnrichedTeamAndEventType({
+  teamSlug,
+  meetingSlug,
   orgSlug,
   fromRedirectOfNonOrgLink,
 }: {
-  team: TeamWithEventTypes;
+  teamSlug: string;
+  meetingSlug: string;
   orgSlug: string | null;
   fromRedirectOfNonOrgLink: boolean;
 }) {
-  if (!team?.eventTypes?.[0]) {
+  const [teamData, eventType] = await Promise.all([
+    getCachedTeamData(teamSlug, orgSlug),
+    getCachedTeamEventType(teamSlug, meetingSlug, orgSlug),
+  ]);
+
+  if (!teamData || !eventType) {
     return null;
   }
 
-  const eventData = team.eventTypes[0];
-
   const { subsetOfHosts, hosts } = await getEventTypeHosts({
-    hosts: eventData.hosts,
+    hosts: eventType.hosts,
   });
 
-  const enrichedOwner = eventData.owner
+  const enrichedOwner = eventType.owner
     ? await UserRepository.enrichUserWithItsProfile({
-        user: eventData.owner,
+        user: eventType.owner,
       })
     : null;
   const users =
-    (await getUsersFromEvent({ ...eventData, owner: enrichedOwner, subsetOfHosts, hosts }, prisma)) ?? [];
-  const name = team.parent?.name ?? team.name ?? null;
-  const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
+    (await getUsersFromEvent({ ...eventType, owner: enrichedOwner, subsetOfHosts, hosts }, prisma)) ?? [];
+  const name = teamData.parent?.name ?? teamData.name ?? null;
+  const isUnpublished = teamData.parent ? !teamData.parent.slug : !teamData.slug;
 
-  const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(eventData.metadata);
+  const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata);
 
   const eventDataShared = await processEventDataShared({
-    eventData,
+    eventData: eventType,
     metadata: eventMetaData,
     prisma,
   });
@@ -149,19 +148,19 @@ async function _getEventDataForTeamBooking({
     owner: enrichedOwner,
     subsetOfHosts,
     hosts,
-    profile: getProfileFromEvent({ ...eventData, owner: enrichedOwner, subsetOfHosts, hosts }),
+    profile: getProfileFromEvent({ ...eventType, owner: enrichedOwner, subsetOfHosts, hosts }),
     subsetOfUsers: users,
     users,
     entity: {
       fromRedirectOfNonOrgLink,
       considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
       orgSlug,
-      teamSlug: team.slug ?? null,
+      teamSlug: teamData.slug ?? null,
       name,
       hideProfileLink: false,
-      logoUrl: team.parent
-        ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-        : getPlaceholderAvatar(team.logoUrl, team.name),
+      logoUrl: teamData.parent
+        ? getPlaceholderAvatar(teamData.parent.logoUrl, teamData.parent.name)
+        : getPlaceholderAvatar(teamData.logoUrl, teamData.name),
     },
   };
 }
