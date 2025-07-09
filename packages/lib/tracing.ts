@@ -17,12 +17,13 @@ export interface TraceContext {
 
 export class DistributedTracing {
   static createTrace(operation: string, context?: Partial<TraceContext>): TraceContext {
+    const { traceId, spanId, ...otherContext } = context || {};
     return {
-      traceId: context?.traceId || `trace_${nanoid()}`,
+      traceId: traceId || `trace_${nanoid()}`,
       spanId: `span_${nanoid()}`,
-      parentSpanId: context?.spanId,
+      parentSpanId: spanId,
       operation,
-      ...context,
+      ...otherContext,
     };
   }
 

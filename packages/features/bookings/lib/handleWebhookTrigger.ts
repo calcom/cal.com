@@ -12,7 +12,7 @@ async function _handleWebhookTrigger(args: {
   eventTrigger: string;
   webhookData: WebhookPayloadType;
   isDryRun?: boolean;
-  traceContext?: TraceContext;
+  traceContext: TraceContext;
 }) {
   try {
     if (args.isDryRun) return;

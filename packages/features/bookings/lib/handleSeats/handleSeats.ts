@@ -41,27 +41,28 @@ const handleSeats = async (
   // TODO: We could allow doing more things to support good dry run for seats
   if (isDryRun) return;
 
-  const spanContext = traceContext ? DistributedTracing.createSpan(traceContext, "handle_seats") : undefined;
-  const tracingLogger = spanContext ? DistributedTracing.getTracingLogger(spanContext) : undefined;
-
-  if (tracingLogger) {
-    tracingLogger.info("Processing seated booking", {
-      eventTypeId,
-      rescheduleUid,
-      reqBookingUid,
-      originalTraceId: traceContext?.traceId,
-    });
-  }
-
-  const loggerWithEventDetails =
-    tracingLogger ||
-    DistributedTracing.getTracingLogger(
-      DistributedTracing.createTrace("handle_seats_fallback", {
+  const spanContext = traceContext
+    ? DistributedTracing.createSpan(traceContext, "handle_seats")
+    : DistributedTracing.createTrace("handle_seats_fallback", {
         eventTypeId: eventType.id,
         userInfo: reqBodyUser,
         eventTypeSlug: eventType.slug,
-      })
-    );
+        bookingUid: reqBookingUid,
+        rescheduleUid,
+      });
+
+  const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
+
+  tracingLogger.info("Processing seated booking", {
+    eventTypeId,
+    eventTypeSlug: eventType.slug,
+    rescheduleUid,
+    reqBookingUid,
+    bookerEmail,
+    hasOriginalRescheduledBooking: !!originalRescheduledBooking,
+    isReschedule: !!rescheduleUid,
+    originalTraceId: traceContext?.traceId,
+  });
 
   let resultBooking: HandleSeatsResultBooking = null;
 
@@ -156,7 +157,7 @@ const handleSeats = async (
         traceContext: spanContext,
       });
     } catch (error) {
-      loggerWithEventDetails?.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+      tracingLogger.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
     const webhookData: EventPayloadType = {

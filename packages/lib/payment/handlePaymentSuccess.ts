@@ -15,10 +15,8 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
-import logger from "../logger";
 import { DistributedTracing, type TraceContext } from "../tracing";
 
-const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
 export async function handlePaymentSuccess(
   paymentId: number,
   bookingId: number,
@@ -35,7 +33,7 @@ export async function handlePaymentSuccess(
     originalTraceId: traceContext?.traceId,
   });
 
-  log.debug(`handling payment success for bookingId ${bookingId}`);
+  tracingLogger.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
 
   if (booking.location) evt.location = booking.location;
@@ -115,7 +113,7 @@ export async function handlePaymentSuccess(
         evt,
         booking,
       });
-      log.debug(`handling booking request for eventId ${eventType.id}`);
+      tracingLogger.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
     await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
