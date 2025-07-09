@@ -6,14 +6,14 @@ import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -40,7 +40,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const billingService = new StripeBillingService();
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
-  const emailVerification = await getFeatureFlag(prisma, "email-verification");
+  const featuresRepository = new FeaturesRepository();
+  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   const { travelSchedules, ...rest } = input;
 
@@ -151,7 +152,12 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   // if defined AND a base 64 string, upload and update the avatar URL
-  if (input.avatarUrl && input.avatarUrl.startsWith("data:image/png;base64,")) {
+  if (
+    input.avatarUrl &&
+    (input.avatarUrl.startsWith("data:image/png;base64,") ||
+      input.avatarUrl.startsWith("data:image/jpeg;base64,") ||
+      input.avatarUrl.startsWith("data:image/jpg;base64,"))
+  ) {
     data.avatarUrl = await uploadAvatar({
       avatar: await resizeBase64Image(input.avatarUrl),
       userId: user.id,
@@ -159,7 +165,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (input.completedOnboarding) {
-    const userTeams = await prisma.user.findFirst({
+    const userTeams = await prisma.user.findUnique({
       where: {
         id: user.id,
       },
@@ -215,7 +221,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
+  const updatedUserSelect = {
     select: {
       id: true,
       username: true,
@@ -233,7 +239,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         },
       },
     },
-  });
+  } satisfies Prisma.UserDefaultArgs;
 
   let updatedUser: Prisma.UserGetPayload<typeof updatedUserSelect>;
 

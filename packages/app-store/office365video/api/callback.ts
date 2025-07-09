@@ -8,8 +8,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-
-const scopes = ["OnlineMeetings.ReadWrite", "offline_access"];
+import { OFFICE365_VIDEO_SCOPES } from "./add";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -45,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     client_id: clientId,
     grant_type: "authorization_code",
     code,
-    scope: scopes.join(" "),
+    scope: OFFICE365_VIDEO_SCOPES.join(" "),
     redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/office365video/callback`,
     client_secret: clientSecret,
   });

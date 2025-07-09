@@ -122,6 +122,7 @@ const createTeam = async (team: Prisma.TeamCreateInput) => {
 const associateUserAndOrg = async ({ teamId, userId, role, username }: AssociateUserAndOrgProps) => {
   await prisma.membership.create({
     data: {
+      createdAt: new Date(),
       teamId,
       userId,
       role: role as MembershipRole,
@@ -250,6 +251,7 @@ async function createTeamAndAddUsers(
     const { role = MembershipRole.OWNER, id, username } = user;
     await prisma.membership.create({
       data: {
+        createdAt: new Date(),
         teamId: team.id,
         userId: id,
         role: role,
@@ -310,7 +312,11 @@ async function createOrganizationAndAddMembersAndTeams({
           const newUser = await createUserAndEventType({
             user: {
               ...member.memberData,
-              password: member.memberData.password.create?.hash,
+              theme:
+                member.memberData.theme === "dark" || member.memberData.theme === "light"
+                  ? member.memberData.theme
+                  : undefined,
+              password: member.memberData.password.create?.hash ?? "",
             },
             eventTypes: [
               {
@@ -567,6 +573,7 @@ async function createOrganizationAndAddMembersAndTeams({
       }
       await prisma.membership.create({
         data: {
+          createdAt: new Date(),
           teamId: team.id,
           userId: member.id,
           role: role,
@@ -1178,6 +1185,7 @@ async function main() {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "acme.com",
           isAdminAPIEnabled: true,
+          isAdminReviewed: true,
         },
       },
       members: [
@@ -1274,6 +1282,7 @@ async function main() {
         organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "dunder-mifflin.com",
+          isAdminReviewed: true,
         },
       },
       members: [

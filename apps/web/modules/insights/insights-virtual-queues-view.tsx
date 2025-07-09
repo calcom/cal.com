@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { TestForm } from "@calcom/app-store/routing-forms/components/SingleForm";
+import { TestForm } from "@calcom/app-store/routing-forms/components/_components/TestForm";
 import type { RoutingForm } from "@calcom/app-store/routing-forms/types/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -40,7 +40,7 @@ export default function InsightsVirtualQueuesPage() {
       />
       <div className="mt-10">
         {selectedForm ? (
-          <TestForm form={selectedForm} supportsTeamMembersMatchingLogic={true} showAllData={false} />
+          <TestForm form={selectedForm} supportsTeamMembersMatchingLogic={true} showRRData={true} />
         ) : (
           <></>
         )}

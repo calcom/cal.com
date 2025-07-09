@@ -1,16 +1,17 @@
 import type { AllPossibleLayouts, EmbedPageType } from "../types";
 
 const generateEventMetaSkeleton = () => {
-  const eventMetaOptions = Array.from({ length: 4 })
-    .map(
-      () => `
+  const eventMetaOptions = `
     <div class="flex items-start justify-start text-sm text-text">
-      <div class="animate-pulse bg-emphasis h-4 w-4 mr-2 rounded-sm"></div>
-      <div class="animate-pulse bg-emphasis h-4 w-40 rounded-sm"></div>
+      <div class="animate-pulse bg-emphasis h-4 w-4 mr-2 rounded-full"></div>
+      <div class="animate-pulse bg-emphasis h-4 w-10 rounded-sm"></div>
     </div>
-    `
-    )
-    .join("");
+    <div class="flex items-start justify-start text-sm text-text">
+      <div class="animate-pulse bg-emphasis h-4 w-4 mr-2 rounded-full"></div>
+      <div class="animate-pulse bg-emphasis h-4 w-20 rounded-sm mr-1"></div>
+      <div class="animate-pulse bg-emphasis h-4 w-4 rounded-sm"></div>
+    </div>
+  `;
   return `
         <div class="relative z-10 p-6" data-testid="event-meta">
           <div style="opacity: 1; transform: none;">
@@ -25,9 +26,9 @@ const generateEventMetaSkeleton = () => {
               <div class="animate-pulse bg-emphasis h-4 w-24 rounded-sm"></div>
             </p>
             <h1 data-testid="event-title" class="text-text text-xl font-semibold my-2 mb-4">
-              <div class="animate-pulse bg-emphasis h-6 w-48 rounded-sm"></div>
+              <div class="animate-pulse bg-emphasis h-6 w-20 rounded-sm"></div>
             </h1>
-            <div class="space-y-2 font-medium rtl:-mr-2">
+            <div class="space-y-3 font-medium">
               ${eventMetaOptions}
             </div>
           </div>

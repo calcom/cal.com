@@ -18,4 +18,11 @@ export type AppFlags = {
   "organizer-request-email-v2": boolean;
   "delegation-credential": boolean;
   "salesforce-crm-tasker": boolean;
+  "workflow-smtp-emails": boolean;
+  "cal-video-log-in-overlay": boolean;
+  "use-api-v2-for-team-slots": boolean;
+  pbac: boolean;
+  "restriction-schedule": boolean;
 };
+
+export type TeamFeatures = Record<keyof AppFlags, boolean>;

@@ -4,16 +4,23 @@ import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } fro
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
 import { usePathname } from "next/navigation";
-import { useQueryState, parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString } from "nuqs";
+import { useQueryState } from "nuqs";
 import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
 import {
+  activeFiltersParser,
+  sortingParser,
+  columnVisibilityParser,
+  columnSizingParser,
+  segmentIdParser,
+  pageIndexParser,
+  pageSizeParser,
+  searchTermParser,
+  DEFAULT_PAGE_SIZE,
+} from "./lib/parsers";
+import {
   type FilterValue,
-  ZSorting,
-  ZColumnVisibility,
-  ZActiveFilter,
-  ZColumnSizing,
   type FilterSegmentOutput,
   type ActiveFilters,
   type UseSegments,
@@ -23,6 +30,7 @@ import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 export type DataTableContextType = {
   tableIdentifier: string;
   ctaContainerRef: React.RefObject<HTMLDivElement>;
+  filterToOpen: React.MutableRefObject<string | undefined>;
 
   activeFilters: ActiveFilters;
   clearAll: (exclude?: string[]) => void;
@@ -56,15 +64,11 @@ export type DataTableContextType = {
 
   searchTerm: string;
   setSearchTerm: (searchTerm: string | null) => void;
+
+  timeZone?: string;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
-
-const DEFAULT_ACTIVE_FILTERS: ActiveFilters = [];
-const DEFAULT_SORTING: SortingState = [];
-const DEFAULT_COLUMN_VISIBILITY: VisibilityState = {};
-const DEFAULT_COLUMN_SIZING: ColumnSizingState = {};
-const DEFAULT_PAGE_SIZE = 10;
 
 interface DataTableProviderProps {
   useSegments?: UseSegments;
@@ -72,6 +76,9 @@ interface DataTableProviderProps {
   children: React.ReactNode;
   ctaContainerClassName?: string;
   defaultPageSize?: number;
+  segments?: FilterSegmentOutput[];
+  timeZone?: string;
+  preferredSegmentId?: number | null;
 }
 
 export function DataTableProvider({
@@ -80,27 +87,25 @@ export function DataTableProvider({
   useSegments = useSegmentsNoop,
   defaultPageSize = DEFAULT_PAGE_SIZE,
   ctaContainerClassName = CTA_CONTAINER_CLASS_NAME,
+  segments: providedSegments,
+  timeZone,
+  preferredSegmentId,
 }: DataTableProviderProps) {
-  const [activeFilters, setActiveFilters] = useQueryState(
-    "activeFilters",
-    parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault(DEFAULT_ACTIVE_FILTERS)
-  );
-  const [sorting, setSorting] = useQueryState(
-    "sorting",
-    parseAsArrayOf(parseAsJson(ZSorting.parse)).withDefault(DEFAULT_SORTING)
-  );
+  const filterToOpen = useRef<string | undefined>(undefined);
+  const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
+  const [sorting, setSorting] = useQueryState("sorting", sortingParser);
   const [columnVisibility, setColumnVisibility] = useQueryState<VisibilityState>(
     "cols",
-    parseAsJson(ZColumnVisibility.parse).withDefault(DEFAULT_COLUMN_VISIBILITY)
+    columnVisibilityParser
   );
-  const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>(
-    "widths",
-    parseAsJson(ZColumnSizing.parse).withDefault(DEFAULT_COLUMN_SIZING)
+  const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>("widths", columnSizingParser);
+  const [segmentId, setSegmentId] = useQueryState(
+    "segment",
+    segmentIdParser.withDefault(preferredSegmentId ?? -1)
   );
-  const [segmentId, setSegmentId] = useQueryState("segment", parseAsInteger.withDefault(-1));
-  const [pageIndex, setPageIndex] = useQueryState("page", parseAsInteger.withDefault(0));
-  const [pageSize, setPageSize] = useQueryState("size", parseAsInteger.withDefault(defaultPageSize));
-  const [searchTerm, setSearchTerm] = useQueryState("q", parseAsString.withDefault(""));
+  const [pageIndex, setPageIndex] = useQueryState("page", pageIndexParser);
+  const [pageSize, setPageSize] = useQueryState("size", pageSizeParser);
+  const [searchTerm, setSearchTerm] = useQueryState("q", searchTermParser);
 
   const setDebouncedSearchTerm = useMemo(
     () => debounce((value: string | null) => setSearchTerm(value ? value.trim() : null), 500),
@@ -188,6 +193,8 @@ export function DataTableProvider({
       setPageSize,
       setPageIndex,
       setSearchTerm,
+      segments: providedSegments,
+      preferredSegmentId,
     }
   );
 
@@ -216,6 +223,7 @@ export function DataTableProvider({
       value={{
         tableIdentifier,
         ctaContainerRef,
+        filterToOpen,
         activeFilters,
         addFilter,
         clearAll,
@@ -241,6 +249,7 @@ export function DataTableProvider({
         isSegmentEnabled,
         searchTerm,
         setSearchTerm: setDebouncedSearchTerm,
+        timeZone,
       }}>
       {children}
     </DataTableContext.Provider>
