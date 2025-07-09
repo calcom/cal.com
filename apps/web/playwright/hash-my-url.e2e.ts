@@ -47,7 +47,8 @@ test.describe("hash my url", () => {
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     // Make sure we're navigated to the success page
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+    const successPage = await page.locator("[data-testid=success-page]");
+    await expect(successPage).toBeVisible();
 
     // hash regenerates after successful booking (only for usage-based links)
     await page.goto("/event-types");
@@ -56,12 +57,6 @@ test.describe("hash my url", () => {
     await page.locator("ul[data-testid=event-types] > li a").first().click();
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
-
-    // Check if the Private Links section is present before proceeding
-    const privateLinksSection = page.locator("text=Private Links");
-    if ((await privateLinksSection.count()) === 0) {
-      return;
-    }
 
     // After booking with a usage-based private link, the toggle will be off and the input will not be present
     const hashedLinkCheck2 = await page.locator('[data-testid="multiplePrivateLinksCheck"]');
