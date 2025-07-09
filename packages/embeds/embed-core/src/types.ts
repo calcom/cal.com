@@ -67,6 +67,44 @@ export type KnownConfig = {
   // Prefixing with cal.embed because there could be more query params that aren't required by embed and are used for things like prefilling booking form, configuring dry run, and some other params simply to be forwarded to the booking success redirect URL.
   // There are some cal. prefixed query params as well, not meant for embed specifically, but in general for cal.com
   "cal.embed.pageType"?: EmbedPageType;
+  // If true, then when doing a "connect" with pre-rendered iframe, we won't fetch slots. This is useful when we are reusing the iframe fully as is.
+  "cal.embed.noSlotsFetchOnConnect"?: "true" | "false";
 };
 
-export {};
+export type EmbedBookerState =
+  | "initializing"
+  | "slotsPending"
+  | "slotsLoading"
+  /**
+   * When slots have loaded
+   * Even when slots aren't requested, due to cal.skipSlotFetch, then also this state is achieved
+   */
+  | "slotsDone"
+  | "slotsLoadingError";
+
+export type SlotsStatus = "loading" | "success" | "error";
+export type SlotsQuery = {
+  isPending?: boolean;
+  isError?: boolean;
+  isSuccess?: boolean;
+  isLoading?: boolean;
+};
+
+/**
+ * All types of config that are critical to be processed as soon as possible are provided as query params to the iframe
+ */
+export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Record<string, string>> & {
+  // TODO: iframeAttrs shouldn't be part of it as that configures the iframe element and not the iframed app.
+  iframeAttrs?: Record<string, string> & {
+    id?: string;
+  };
+} & KnownConfig;
+
+export type SetStyles = React.Dispatch<React.SetStateAction<EmbedStyles>>;
+export type setNonStylesConfig = React.Dispatch<React.SetStateAction<EmbedNonStylesConfig>>;
+
+export type ModalPrerenderOptions = {
+  slotsStaleTimeMs?: number;
+  iframeForceReloadThresholdMs?: number;
+  backgroundSlotsFetch?: boolean;
+};

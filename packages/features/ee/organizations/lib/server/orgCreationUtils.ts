@@ -31,6 +31,7 @@ function isNotACompanyEmail(email: string) {
     "icloud.com",
     "mail.com",
     "protonmail.com",
+    "proton.me",
     "zoho.com",
     "yandex.com",
     "gmx.com",
