@@ -37,20 +37,21 @@ export const getScheduleSchema = z
     queuedFormResponseId: z.string().nullish(),
     email: z.string().nullish(),
   })
-  .transform((val) => {
-    // Need this so we can pass a single username in the query string form public API
-    if (val.usernameList) {
-      val.usernameList = Array.isArray(val.usernameList) ? val.usernameList : [val.usernameList];
-    }
-    if (!val.orgSlug) {
-      val.orgSlug = null;
-    }
-    return val;
-  })
-  .refine(
-    (data) => !!data.eventTypeId || (!!data.usernameList && !!data.eventTypeSlug),
-    "You need to either pass an eventTypeId OR an usernameList/eventTypeSlug combination"
-  );
+  // TODO: this transform part doesn't allow me to extend the schema with other fields, will fix later.
+ //.transform((val) => {
+ //  // Need this so we can pass a single username in the query string form public API
+ //  if (val.usernameList) {
+ //    val.usernameList = Array.isArray(val.usernameList) ? val.usernameList : [val.usernameList];
+ //  }
+ //  if (!val.orgSlug) {
+ //    val.orgSlug = null;
+ //  }
+ //  return val;
+ //})
+ //.refine(
+ //  (data) => !!data.eventTypeId || (!!data.usernameList && !!data.eventTypeSlug),
+ //  "You need to either pass an eventTypeId OR an usernameList/eventTypeSlug combination"
+ //);
 
 export const reserveSlotSchema = z
   .object({

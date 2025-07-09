@@ -75,24 +75,24 @@ export const trpc: CreateTRPCNext<AppRouter, NextPageContext, null> = createTRPC
               process.env.NEXT_PUBLIC_LOGGER_LEVEL >= 0) ||
             (opts.direction === "down" && opts.result instanceof Error),
         }),
-        splitLink({
-          // check for context property `skipBatch`
-          condition: (op) => !!op.context.skipBatch,
-          // when condition is true, use normal request
-          true: (runtime) => {
-            const links = Object.fromEntries(
-              ENDPOINTS.map((endpoint) => [endpoint, httpLink({ url: `${url}/${endpoint}` })(runtime)])
-            );
-            return resolveEndpoint(links);
-          },
-          // when condition is false, use batch request
-          false: (runtime) => {
-            const links = Object.fromEntries(
-              ENDPOINTS.map((endpoint) => [endpoint, httpBatchLink({ url: `${url}/${endpoint}` })(runtime)])
-            );
-            return resolveEndpoint(links);
-          },
-        }),
+        //splitLink({
+        //  // check for context property `skipBatch`
+        //  condition: (op) => !!op.context.skipBatch,
+        //  // when condition is true, use normal request
+        //  true: (runtime) => {
+        //    const links = Object.fromEntries(
+        //      ENDPOINTS.map((endpoint) => [endpoint, httpLink({ url: `${url}/${endpoint}` })(runtime)])
+        //    );
+        //    return resolveEndpoint(links);
+        //  },
+        //  // when condition is false, use batch request
+        //  false: (runtime) => {
+        //    const links = Object.fromEntries(
+        //      ENDPOINTS.map((endpoint) => [endpoint, httpBatchLink({ url: `${url}/${endpoint}` })(runtime)])
+        //    );
+        //    return resolveEndpoint(links);
+        //  },
+        //}),
       ],
       /**
        * @link https://react-query.tanstack.com/reference/QueryClient
