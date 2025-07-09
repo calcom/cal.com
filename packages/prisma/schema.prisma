@@ -1419,12 +1419,14 @@ model WorkflowsOnTeams {
 
 model Deployment {
   /// This is a single row table, so we use a fixed id
-  id              Int       @id @default(1)
-  logo            String?
+  id                      Int       @id @default(1)
+  logo                    String?
   /// @zod.custom(imports.DeploymentTheme)
-  theme           Json?
-  licenseKey      String?
-  agreedLicenseAt DateTime?
+  theme                   Json?
+  licenseKey              String?
+  // We encrypt the signature token in the deployment table with the current calendso encryption key
+  signatureTokenEncrypted String?
+  agreedLicenseAt         DateTime?
 }
 
 enum TimeUnit {
@@ -2015,9 +2017,8 @@ model Attribute {
 
   type AttributeType
 
-  name String
-  slug String @unique
-
+  name    String
+  slug    String
   enabled Boolean @default(true)
 
   usersCanEditRelation Boolean @default(false)
@@ -2028,6 +2029,7 @@ model Attribute {
   isWeightsEnabled Boolean           @default(false)
   isLocked         Boolean           @default(false)
 
+  @@unique([teamId, slug])
   @@index([teamId])
 }
 
