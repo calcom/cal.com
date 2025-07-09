@@ -94,13 +94,19 @@ const CheckedHostField = ({
                 }))
               );
           }}
-          value={(value.filter((host) => host.groupId === groupId) || [])
+          value={(value || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
             .reduce((acc, host) => {
               const option = options.find((member) => member.value === host.userId.toString());
               if (!option) return acc;
 
-              acc.push({ ...option, priority: host.priority ?? 2, isFixed, weight: host.weight ?? 100 });
+              acc.push({
+                ...option,
+                priority: host.priority ?? 2,
+                isFixed,
+                weight: host.weight ?? 100,
+                groupId: host.groupId,
+              });
 
               return acc;
             }, [] as CheckedSelectOption[])}
@@ -109,6 +115,7 @@ const CheckedHostField = ({
           placeholder={placeholder}
           isRRWeightsEnabled={isRRWeightsEnabled}
           customClassNames={customClassNames}
+          groupId={groupId}
           {...rest}
         />
       </div>

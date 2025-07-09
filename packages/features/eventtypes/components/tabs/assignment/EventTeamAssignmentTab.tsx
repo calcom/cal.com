@@ -631,7 +631,7 @@ const Hosts = ({
   // This is because the host is created from list option in CheckedHostField component.
   const updatedHosts = (changedHosts: Host[]) => {
     const existingHosts = getValues("hosts");
-    console.log("existingHosts", JSON.stringify(existingHosts));
+
     return changedHosts.map((newValue) => {
       const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
 
