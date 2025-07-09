@@ -75,7 +75,7 @@ const assignUserToAttributeHandler = async ({ input, ctx: { user: authedUser } }
     where: {
       userId_teamId: {
         userId: input.userId,
-        teamId: org.id,
+        teamId: authedUser.profile.organizationId,
       },
     },
   });
