@@ -1,4 +1,5 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { AvailableSlotsService } from "@/lib/services/AvailableSlots";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
@@ -17,7 +18,6 @@ import {
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { AvailableSlotsService } from "@calcom/platform-libraries/slots";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
 import { Booking, EventType } from "@calcom/prisma/client";
 
@@ -31,8 +31,6 @@ const DEFAULT_RESERVATION_DURATION = 5;
 
 @Injectable()
 export class SlotsService_2024_09_04 {
-  private readonly availableSlotsService: AvailableSlotsService;
-
   constructor(
     private readonly eventTypeRepository: EventTypesRepository_2024_06_14,
     private readonly slotsRepository: SlotsRepository_2024_09_04,
@@ -40,10 +38,9 @@ export class SlotsService_2024_09_04 {
     private readonly slotsInputService: SlotsInputService_2024_09_04,
     private readonly membershipsService: MembershipsService,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly teamsRepository: TeamsRepository
-  ) {
-    this.availableSlotsService = new AvailableSlotsService();
-  }
+    private readonly teamsRepository: TeamsRepository,
+    private readonly availableSlotsService: AvailableSlotsService
+  ) {}
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
     try {
