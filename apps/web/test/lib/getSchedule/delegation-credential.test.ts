@@ -12,14 +12,13 @@ import { expectNoAttemptToGetAvailability } from "../../utils/bookingScenario/ex
 
 import { describe, test } from "vitest";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect, expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 
 describe("getSchedule", () => {
-  const availableSlotsService = getAvailableSlotsService();
   setupAndTeardown();
 
   describe("Delegation Credential", () => {
@@ -91,6 +90,7 @@ describe("getSchedule", () => {
       };
 
       await createBookingScenario(scenarioData);
+      const availableSlotsService = new AvailableSlotsService();
       const scheduleForDayWithAGoogleCalendarBooking = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
@@ -182,6 +182,7 @@ describe("getSchedule", () => {
       };
 
       await createBookingScenario(scenarioData);
+      const availableSlotsService = new AvailableSlotsService();
       const scheduleForDayWithAGoogleCalendarBooking = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,

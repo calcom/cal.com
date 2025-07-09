@@ -44,12 +44,13 @@ import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
-import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
+import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
@@ -88,14 +89,7 @@ export type GetAvailableSlotsResponse = Awaited<
   ReturnType<(typeof AvailableSlotsService)["prototype"]["_getAvailableSlots"]>
 >;
 
-export interface IAvailableSlotsService {
-  oooRepo: PrismaOOORepository;
-  scheduleRepo: ScheduleRepository;
-}
-
 export class AvailableSlotsService {
-  constructor(private readonly dependencies: IAvailableSlotsService) {}
-
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
     usersWithCredentials,
@@ -632,7 +626,8 @@ export class AvailableSlotsService {
   );
 
   private async _getOOODates(startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) {
-    return this.dependencies.oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
+    const oooRepo = new PrismaOOORepository(prisma);
+    return oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
   }
   private getOOODates = withReporting(this._getOOODates.bind(this), "getOOODates");
 
@@ -1059,7 +1054,8 @@ export class AvailableSlotsService {
     // TODO: DI isRestrictionScheduleEnabled
     const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
     if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
-      const restrictionSchedule = await this.dependencies.scheduleRepo.findScheduleByIdForBuildDateRanges({
+      const scheduleRepo = new ScheduleRepository(prisma);
+      const restrictionSchedule = await scheduleRepo.findScheduleByIdForBuildDateRanges({
         scheduleId: eventType.restrictionScheduleId,
       });
       if (restrictionSchedule) {

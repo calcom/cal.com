@@ -1,7 +1,6 @@
 import type { IncomingMessage } from "http";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
-
+import { AvailableSlotsService } from "../slots/util";
 import type { TGetTeamScheduleInputSchema } from "./getTeamSchedule.schema";
 
 export type GetTeamScheduleOptions = {
@@ -14,6 +13,6 @@ interface ContextForGetSchedule extends Record<string, unknown> {
 }
 
 export const getTeamScheduleHandler = async ({ ctx, input }: GetTeamScheduleOptions) => {
-  const availableSlotsService = getAvailableSlotsService();
+  const availableSlotsService = new AvailableSlotsService();
   return await availableSlotsService.getAvailableSlots({ ctx, input });
 };
