@@ -14,23 +14,10 @@ import type { TrpcSessionUser } from "../../../types";
 import type { TCreateInputSchema } from "./create.schema";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
-type User = {
-  id: SessionUser["id"];
-  role: SessionUser["role"];
-  organizationId: SessionUser["organizationId"];
-  organization: {
-    isOrgAdmin: SessionUser["organization"]["isOrgAdmin"];
-  };
-  profile: {
-    id: SessionUser["id"] | null;
-  };
-  metadata: SessionUser["metadata"];
-  email: SessionUser["email"];
-};
 
 type CreateOptions = {
   ctx: {
-    user: User;
+    user: SessionUser;
     prisma: PrismaClient;
   };
   input: TCreateInputSchema;
@@ -49,7 +36,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
-  const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
+  const isOrgAdmin = !!ctx.user?.isOrgAdmin;
 
   const locations: EventTypeLocation[] =
     inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
@@ -105,17 +92,10 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   // If we are in an organization & they are not admin & they are not creating an event on a teamID
   // Check if evenTypes are locked.
-  if (ctx.user.organizationId && !ctx.user?.organization?.isOrgAdmin && !teamId) {
-    const orgSettings = await ctx.prisma.organizationSettings.findUnique({
-      where: {
-        organizationId: ctx.user.organizationId,
-      },
-      select: {
-        lockEventTypeCreationForUsers: true,
-      },
-    });
-
-    const orgHasLockedEventTypes = !!orgSettings?.lockEventTypeCreationForUsers;
+  if (!ctx.user.isOrgAdmin && !teamId) {
+    // TODO: Refactor this as part of PBAC, right now isOrgAdmin applies to all profile organizations (currently one-to-one)
+    const orgHasLockedEventTypes =
+      !!ctx.user.profile.organization?.organizationSettings?.lockEventTypeCreationForUsers;
     if (orgHasLockedEventTypes) {
       console.warn(
         `User ${userId} does not have permission to create this new event type - Locked status: ${orgHasLockedEventTypes}`
