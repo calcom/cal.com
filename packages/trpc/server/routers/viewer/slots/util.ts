@@ -1371,7 +1371,6 @@ export class AvailableSlotsService {
 }
 
 export const availableSlotsModule = createModule();
-availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSlotsService, {
-  oooRepo: DI_TOKENS.OOO_REPOSITORY,
-  scheduleRepo: DI_TOKENS.SCHEDULE_REPOSITORY,
-});
+availableSlotsModule
+  .bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE)
+  .toClass(AvailableSlotsService, [DI_TOKENS.OOO_REPOSITORY, DI_TOKENS.SCHEDULE_REPOSITORY]);
