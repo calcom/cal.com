@@ -351,7 +351,23 @@ const RoundRobinHosts = ({
                 id: `group_${Date.now()}`,
                 name: `Group ${(hostGroups?.length || 0) + 1}`,
               };
-              setValue("hostGroups", [...(hostGroups || []), newGroup], { shouldDirty: true });
+              const updatedHostGroups = [...(hostGroups || []), newGroup];
+              setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+
+              // If this is the first group and there are hosts without a group, assign them to this group
+              if (hostGroups?.length === 0) {
+                const currentHosts = getValues("hosts");
+                const hostsWithoutGroup = currentHosts.filter((host) => !host.groupId);
+                if (hostsWithoutGroup.length > 0) {
+                  const updatedHosts = currentHosts.map((host) => {
+                    if (!host.groupId) {
+                      return { ...host, groupId: newGroup.id };
+                    }
+                    return host;
+                  });
+                  setValue("hosts", updatedHosts, { shouldDirty: true });
+                }
+              }
             }}>
             {t("add_group")}
           </Button>
