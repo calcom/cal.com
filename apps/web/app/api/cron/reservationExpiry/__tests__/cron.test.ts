@@ -37,15 +37,6 @@ async function handleReservationExpiry() {
           },
         });
 
-        const user = await prismock.user.findUnique({
-          where: { id: reservation.userId },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        });
-
         // Get webhooks for this reservation
         const webhooks = await prismock.webhook.findMany({
           where: {
@@ -73,6 +64,7 @@ async function handleReservationExpiry() {
 
         expiredReservationsProcessed++;
       } catch (error) {
+        console.error(`Error processing expired reservation ${reservation.uid}:`, error);
         // Continue processing other reservations even if one fails
       }
     }
