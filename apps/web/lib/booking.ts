@@ -70,6 +70,7 @@ export const getEventTypesFromDB = async (id: number) => {
           slug: true,
           name: true,
           hideBranding: true,
+          parentId: true,
           parent: {
             select: {
               hideBranding: true,
