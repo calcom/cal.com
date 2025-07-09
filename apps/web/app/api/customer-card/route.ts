@@ -475,7 +475,8 @@ async function handler(request: NextRequest) {
   // Validate request body
   const { cardKeys, customer } = inputSchema.parse(requestBody);
 
-  const user = await new UserRepository(prisma).findByEmail({ email: customer.email });
+  const userRepo = new UserRepository(prisma);
+  const user = await userRepo.findByEmail({ email: customer.email });
 
   if (!user) {
     return NextResponse.json({
@@ -503,7 +504,7 @@ async function handler(request: NextRequest) {
   }
 
   // Fetch team details including userId and team name
-  const teamMemberships = await new UserRepository(prisma).findTeamsByUserId({ userId: user.id });
+  const teamMemberships = await userRepo.findTeamsByUserId({ userId: user.id });
   const firstTeam = teamMemberships.teams[0] ?? null;
 
   // Parse user metadata

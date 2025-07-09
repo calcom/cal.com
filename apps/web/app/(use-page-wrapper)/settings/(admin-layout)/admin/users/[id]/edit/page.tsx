@@ -22,7 +22,8 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
     );
   }
 
-  const user = await new UserRepository(prisma).adminFindById(input.data.id);
+  const userRepo = new UserRepository(prisma);
+  const user = await userRepo.adminFindById(input.data.id);
 
   return await _generateMetadata(
     (t) => `${t("editing_user")}: ${user.username}`,
@@ -38,7 +39,8 @@ const Page = async ({ params }: { params: Params }) => {
 
   if (!input.success) throw new Error("Invalid access");
 
-  const user = await new UserRepository(prisma).adminFindById(input.data.id);
+  const userRepo = new UserRepository(prisma);
+  const user = await userRepo.adminFindById(input.data.id);
   const t = await getTranslate();
 
   return (

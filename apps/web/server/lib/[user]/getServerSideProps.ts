@@ -200,7 +200,9 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 };
 
 export async function getUsersInOrgContext(usernameList: string[], orgSlug: string | null) {
-  const usersInOrgContext = await new UserRepository(prisma).findUsersByUsername({
+  const userRepo = new UserRepository(prisma);
+
+  const usersInOrgContext = await userRepo.findUsersByUsername({
     usernameList,
     orgSlug,
   });
@@ -213,7 +215,7 @@ export async function getUsersInOrgContext(usernameList: string[], orgSlug: stri
   // the platform organization does not have a domain. In this case there is no org domain but also platform member
   // "User.organization" is not null so "UserRepository.findUsersByUsername" returns empty array and we do this as a last resort
   // call to find platform member.
-  return await new UserRepository(prisma).findPlatformMembersByUsernames({
+  return await userRepo.findPlatformMembersByUsernames({
     usernameList,
   });
 }
