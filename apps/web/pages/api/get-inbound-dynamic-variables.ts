@@ -95,10 +95,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const endTime = now.add(2, "month").endOf("month").toISOString();
   const orgSlug = eventType?.team?.parent?.slug ?? null;
   const container = createContainer();
-  container.load(Symbol("PrismaModule"), prismaModule);
-  container.load(Symbol("OOORepositoryModule"), oooRepositoryModule);
-  container.load(Symbol("ScheduleRepositoryModule"), scheduleRepositoryModule);
-  container.load(Symbol("AvailableSlotsModule"), availableSlotsModule);
+  container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
+  container.load(DI_TOKENS.OOO_REPOSITORY_MODULE, oooRepositoryModule);
+  container.load(DI_TOKENS.SCHEDULE_REPOSITORY_MODULE, scheduleRepositoryModule);
+  container.load(DI_TOKENS.AVAILABLE_SLOTS_SERVICE_MODULE, availableSlotsModule);
   const availableSlotsService = container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);
 
   const availableSlots = await availableSlotsService.getAvailableSlots({
