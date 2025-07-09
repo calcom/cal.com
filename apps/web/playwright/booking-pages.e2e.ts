@@ -1,5 +1,7 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
+import type { createUsersFixture } from "playwright/fixtures/users";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -32,14 +34,16 @@ async function testOrgMemberAction({
   action,
   testName,
 }: {
-  page: any;
-  users: any;
-  org: any;
+  page: Page;
+  users: ReturnType<typeof createUsersFixture>;
+  org: {
+    id: number;
+    slug: string;
+  };
   bookingId: string | undefined;
   role: "ADMIN" | "OWNER";
   action: "reschedule" | "cancel";
   testName: string;
-  prisma: any;
 }) {
   const orgMember = await users.create({
     username: `org-${role.toLowerCase()}-${action}`,
