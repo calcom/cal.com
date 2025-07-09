@@ -6,7 +6,7 @@ import { ScheduleRepository as PrismaScheduleRepository } from "@/lib/repositori
 import { AvailableSlotsService } from "@/lib/services/AvailableSlots";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module, Logger } from "@nestjs/common";
-import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ConfigModule } from "@nestjs/config";
 import { SentryModule } from "@sentry/nestjs/setup";
 
 @Module({
@@ -19,6 +19,6 @@ import { SentryModule } from "@sentry/nestjs/setup";
     }),
     PrismaModule,
   ],
-  providers: [Logger, ConfigService, PrismaOOORepository, PrismaScheduleRepository, AvailableSlotsService],
+  providers: [Logger, PrismaOOORepository, PrismaScheduleRepository, AvailableSlotsService],
 })
 export class SlotsWorkerModule {}
