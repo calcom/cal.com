@@ -103,7 +103,7 @@ export class InsightsBookingService {
 
     if (this.filters.eventTypeId) {
       conditions.push(
-        Prisma.sql`("eventTypeId" = ${this.filters.eventTypeId} OR "eventParentId" = ${this.filters.eventTypeId})`
+        Prisma.sql`("eventTypeId" = ${this.filters.eventTypeId}) OR ("eventParentId" = ${this.filters.eventTypeId})`
       );
     }
 
@@ -132,7 +132,7 @@ export class InsightsBookingService {
     }
 
     if (this.options.scope === "user") {
-      return Prisma.sql`"userId" = ${this.options.userId} AND "teamId" IS NULL`;
+      return Prisma.sql`("userId" = ${this.options.userId}) AND ("teamId" IS NULL)`;
     } else if (this.options.scope === "org") {
       return await this.buildOrgAuthorizationCondition(this.options);
     } else if (this.options.scope === "team") {
@@ -162,11 +162,11 @@ export class InsightsBookingService {
 
     const conditions: Prisma.Sql[] = [];
 
-    conditions.push(Prisma.sql`("teamId" = ANY(${teamIds}) AND "isTeamBooking" = true)`);
+    conditions.push(Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`);
 
     if (userIdsFromOrg.length > 0) {
       const uniqueUserIds = Array.from(new Set(userIdsFromOrg));
-      conditions.push(Prisma.sql`("userId" = ANY(${uniqueUserIds}) AND "isTeamBooking" = false)`);
+      conditions.push(Prisma.sql`("userId" = ANY(${uniqueUserIds})) AND ("isTeamBooking" = false)`);
     }
 
     return conditions.reduce((acc, condition, index) => {
@@ -195,10 +195,10 @@ export class InsightsBookingService {
 
     const conditions: Prisma.Sql[] = [];
 
-    conditions.push(Prisma.sql`("teamId" = ${options.teamId} AND "isTeamBooking" = true)`);
+    conditions.push(Prisma.sql`("teamId" = ${options.teamId}) AND ("isTeamBooking" = true)`);
 
     if (userIdsFromTeam.length > 0) {
-      conditions.push(Prisma.sql`("userId" = ANY(${userIdsFromTeam}) AND "isTeamBooking" = false)`);
+      conditions.push(Prisma.sql`("userId" = ANY(${userIdsFromTeam})) AND ("isTeamBooking" = false)`);
     }
 
     return conditions.reduce((acc, condition, index) => {

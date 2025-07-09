@@ -270,7 +270,7 @@ describe("InsightsBookingService Integration Tests", () => {
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual(Prisma.sql`"userId" = ${testData.user.id} AND "teamId" IS NULL`);
+      expect(conditions).toEqual(Prisma.sql`("userId" = ${testData.user.id}) AND ("teamId" IS NULL)`);
 
       await testData.cleanup();
     });
@@ -293,9 +293,9 @@ describe("InsightsBookingService Integration Tests", () => {
 
       const conditions = await service.getAuthorizationConditions();
       expect(conditions).toEqual(
-        Prisma.sql`("teamId" = ${testData.team.id} AND "isTeamBooking" = true) OR ("userId" = ANY(${[
+        Prisma.sql`(("teamId" = ${testData.team.id}) AND ("isTeamBooking" = true)) OR (("userId" = ANY(${[
           testData.user.id,
-        ]}) AND "isTeamBooking" = false)`
+        ]})) AND ("isTeamBooking" = false))`
       );
 
       // Clean up
@@ -330,16 +330,16 @@ describe("InsightsBookingService Integration Tests", () => {
       const conditions = await service.getAuthorizationConditions();
 
       expect(conditions).toEqual(
-        Prisma.sql`("teamId" = ANY(${[
+        Prisma.sql`(("teamId" = ANY(${[
           testData.org.id,
           testData.team.id,
           team2.id,
           team3.id,
-        ]}) AND "isTeamBooking" = true) OR ("userId" = ANY(${[
+        ]})) AND ("isTeamBooking" = true)) OR (("userId" = ANY(${[
           testData.user.id,
           user2.id,
           user3.id,
-        ]}) AND "isTeamBooking" = false)`
+        ]})) AND ("isTeamBooking" = false))`
       );
 
       await testData.cleanup();
@@ -382,7 +382,7 @@ describe("InsightsBookingService Integration Tests", () => {
 
       const conditions = await service.getFilterConditions();
       expect(conditions).toEqual(
-        Prisma.sql`("eventTypeId" = ${testData.eventType.id} OR "eventParentId" = ${testData.eventType.id})`
+        Prisma.sql`("eventTypeId" = ${testData.eventType.id}) OR ("eventParentId" = ${testData.eventType.id})`
       );
 
       await testData.cleanup();
@@ -427,7 +427,7 @@ describe("InsightsBookingService Integration Tests", () => {
 
       const conditions = await service.getFilterConditions();
       expect(conditions).toEqual(
-        Prisma.sql`(("eventTypeId" = ${testData.eventType.id} OR "eventParentId" = ${testData.eventType.id})) AND ("userId" = ${testData.user.id})`
+        Prisma.sql`(("eventTypeId" = ${testData.eventType.id}) OR ("eventParentId" = ${testData.eventType.id})) AND ("userId" = ${testData.user.id})`
       );
 
       await testData.cleanup();
@@ -452,7 +452,7 @@ describe("InsightsBookingService Integration Tests", () => {
 
       // First call should build conditions
       const conditions1 = await service.getAuthorizationConditions();
-      expect(conditions1).toEqual(Prisma.sql`"userId" = ${testData.user.id} AND "teamId" IS NULL`);
+      expect(conditions1).toEqual(Prisma.sql`("userId" = ${testData.user.id}) AND ("teamId" IS NULL)`);
 
       // Second call should use cached conditions
       const conditions2 = await service.getAuthorizationConditions();
@@ -480,7 +480,7 @@ describe("InsightsBookingService Integration Tests", () => {
       // First call should build conditions
       const conditions1 = await service.getFilterConditions();
       expect(conditions1).toEqual(
-        Prisma.sql`("eventTypeId" = ${testData.eventType.id} OR "eventParentId" = ${testData.eventType.id})`
+        Prisma.sql`("eventTypeId" = ${testData.eventType.id}) OR ("eventParentId" = ${testData.eventType.id})`
       );
 
       // Second call should use cached conditions
@@ -536,7 +536,7 @@ describe("InsightsBookingService Integration Tests", () => {
 
       const baseConditions = await service.getBaseConditions();
       const results = await prisma.$queryRaw<{ id: number }[]>`
-        SELECT id FROM "BookingTimeStatusDenormalized" 
+        SELECT id FROM "BookingTimeStatusDenormalized"
         WHERE ${baseConditions}
       `;
 
