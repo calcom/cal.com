@@ -1,7 +1,7 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { TeamService } from "@calcom/lib/server/service/team";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -61,7 +61,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
       message: "You can not remove yourself from a team you own.",
     });
 
-  await TeamRepository.removeMembers(teamIds, memberIds, isOrg);
+  await TeamService.removeMembers(teamIds, memberIds, isOrg);
 };
 
 export default removeMemberHandler;

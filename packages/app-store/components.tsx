@@ -1,20 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
 
 import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
@@ -59,44 +55,8 @@ export const InstallAppButton = (
     disableInstall?: boolean;
   } & InstallAppButtonProps
 ) => {
-  const { isPending: isUserLoading, data: user } = trpc.viewer.me.get.useQuery();
-  const router = useRouter();
-  const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
-  const { isPending: isTeamPlanStatusLoading, hasTeamPlan } = useHasTeamPlan();
-
-  useEffect(() => {
-    const el = proProtectionElementRef.current;
-    if (!el) {
-      return;
-    }
-    el.addEventListener(
-      "click",
-      (e) => {
-        if (!user) {
-          router.push(
-            `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL + location.pathname + location.search}`
-          );
-          e.stopPropagation();
-          return;
-        }
-
-        if (props.teamsPlanRequired && !hasTeamPlan) {
-          // TODO: I think we should show the UpgradeTip in a Dialog here. This would solve the problem of no way to go back to the App page from the UpgradeTip page(except browser's back button)
-          router.push(props.teamsPlanRequired.upgradeUrl);
-          e.stopPropagation();
-          return;
-        }
-      },
-      true
-    );
-  }, [isUserLoading, user, router, hasTeamPlan, props.teamsPlanRequired]);
-
-  if (isUserLoading || isTeamPlanStatusLoading) {
-    return null;
-  }
-
   return (
-    <div ref={proProtectionElementRef} className={props.wrapperClassName}>
+    <div className={props.wrapperClassName}>
       <InstallAppButtonWithoutPlanCheck {...props} />
     </div>
   );

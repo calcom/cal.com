@@ -13,13 +13,14 @@ import { expectNoAttemptToGetAvailability } from "../../utils/bookingScenario/ex
 import { describe, test } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
-import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect, expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 
 describe("getSchedule", () => {
   setupAndTeardown();
+
   describe("Delegation Credential", () => {
     test("correctly identifies unavailable slots using DelegationCredential credentials", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
@@ -89,8 +90,8 @@ describe("getSchedule", () => {
       };
 
       await createBookingScenario(scenarioData);
-
-      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
+      const availableSlotsService = new AvailableSlotsService();
+      const scheduleForDayWithAGoogleCalendarBooking = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -181,8 +182,8 @@ describe("getSchedule", () => {
       };
 
       await createBookingScenario(scenarioData);
-
-      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
+      const availableSlotsService = new AvailableSlotsService();
+      const scheduleForDayWithAGoogleCalendarBooking = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",

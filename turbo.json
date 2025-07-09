@@ -32,6 +32,7 @@
         "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
         "NEXT_PUBLIC_IS_E2E",
         "NEXT_PUBLIC_SENTRY_DSN",
+        "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
         "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
         "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRODUCT_ID",
         "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
@@ -67,6 +68,9 @@
     "@calcom/web#start": {
       "cache": false,
       "dependsOn": []
+    },
+    "@calcom/atoms#build": {
+      "outputs": ["dist/**", "globals.min.css"]
     },
     "@calcom/api-v2#build": {
       "dependsOn": ["^build"],
@@ -281,6 +285,7 @@
     "DAILY_SCALE_PLAN",
     "DAILY_WEBHOOK_SECRET",
     "DAILY_MEETING_ENDED_WEBHOOK_SECRET",
+    "DAILY_VIDEO_REGION",
     "DATABASE_CHUNK_SIZE",
     "DATABASE_DIRECT_URL",
     "DATABASE_URL",

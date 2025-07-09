@@ -114,6 +114,7 @@ describe("handleResponse", () => {
       handleResponse({
         response: { email: { value: "test@test.com", label: "Email" } }, // Name is missing
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: false,
@@ -129,6 +130,7 @@ describe("handleResponse", () => {
           email: { value: "invalid-email", label: "Email" },
         },
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: false,
@@ -139,6 +141,7 @@ describe("handleResponse", () => {
   it("should record form response when not in preview and not queued", async () => {
     const dbFormResponse = {
       id: 1,
+      uuid: "d8b4b7d2-3f45-4f67-9aa1-98c4b49cf283",
       formId: mockForm.id,
       response: mockResponse,
       chosenRouteId: null,
@@ -152,6 +155,7 @@ describe("handleResponse", () => {
     const result = await handleResponse({
       response: mockResponse,
       form: mockForm,
+      identifierKeyedResponse: null,
       formFillerId: "user1",
       chosenRouteId: null,
       isPreview: false,
@@ -186,6 +190,7 @@ describe("handleResponse", () => {
     const result = await handleResponse({
       response: mockResponse,
       form: mockForm,
+      identifierKeyedResponse: null,
       formFillerId: "user1",
       chosenRouteId: null,
       isPreview: false,
@@ -208,6 +213,7 @@ describe("handleResponse", () => {
       const result = await handleResponse({
         response: mockResponse,
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: true,
@@ -224,6 +230,7 @@ describe("handleResponse", () => {
       const result = await handleResponse({
         response: mockResponse,
         form: mockForm,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: null,
         isPreview: true,
@@ -274,6 +281,11 @@ describe("handleResponse", () => {
       formFillerId: "user1",
       chosenRouteId: "route1",
       isPreview: false,
+      identifierKeyedResponse: {
+        name: "John Doe",
+        email: "john.doe@example.com",
+      },
+      fetchCrm: true,
     });
 
     expect(routerGetCrmContactOwnerEmail).toHaveBeenCalled();
@@ -300,6 +312,7 @@ describe("handleResponse", () => {
       handleResponse({
         response: mockResponse,
         form: formWithRoute,
+        identifierKeyedResponse: null,
         formFillerId: "user1",
         chosenRouteId: "route1",
         isPreview: false,

@@ -136,6 +136,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     attendees: attendeesList,
     uid: booking.uid,
+    iCalUID: booking.iCalUID,
     recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
     location: booking.location,
     destinationCalendar: booking?.destinationCalendar

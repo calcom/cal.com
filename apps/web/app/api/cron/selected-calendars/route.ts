@@ -153,7 +153,7 @@ async function fetchPrimaryCalendarId({
   const userEmail = delegationUserCredential.user.email;
 
   try {
-    const primaryCalendar = await googleCalendarService.fetchPrimaryCalendar();
+    const primaryCalendar = await googleCalendarService.getPrimaryCalendar();
     primaryCalendarId = primaryCalendar?.id;
   } catch (error) {
     log.error(

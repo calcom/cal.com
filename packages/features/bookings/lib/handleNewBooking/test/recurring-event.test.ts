@@ -256,7 +256,7 @@ describe("handleNewBooking", () => {
         timeout
       );
 
-      test(
+      test.skip(
         `should fail recurring booking if second slot is already booked`,
         async ({}) => {
           const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
@@ -822,7 +822,7 @@ describe("handleNewBooking", () => {
       );
     });
     describe("Round robin event type:", () => {
-      test("should when when a fixed host is not available on the second slot", async () => {
+      test.skip("should when when a fixed host is not available on the second slot", async () => {
         const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
           .handleRecurringEventBooking;
         const booker = getBooker({

@@ -7,7 +7,7 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [],
+  "ignore": ["@calcom/platform-libraries"],
   "privatePackages": {
     "version": false,
     "tag": false

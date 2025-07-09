@@ -443,7 +443,7 @@ export class BookingsController_2024_08_13 {
   @Permissions([BOOKING_READ])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Get 'Booking References' for a booking",
+    summary: "Get booking references",
   })
   @HttpCode(HttpStatus.OK)
   async getBookingReferences(

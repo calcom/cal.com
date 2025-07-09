@@ -11,7 +11,9 @@ export const CreditsBadge = function CreditsBadge({ teamId }: { teamId?: number 
   return (
     <Tooltip content={t("requires_credits_tooltip")}>
       <Link href={teamId ? `/settings/teams/${teamId}/billing` : "/settings/billing"}>
-        <Badge variant="gray">{t("requires_credits")}</Badge>
+        <Badge variant="gray" className="whitespace-nowrap">
+          {t("requires_credits")}
+        </Badge>
       </Link>
     </Tooltip>
   );

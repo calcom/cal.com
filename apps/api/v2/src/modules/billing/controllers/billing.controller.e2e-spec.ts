@@ -116,6 +116,7 @@ describe("Platform Billing Controller (e2e)", () => {
 
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
+      .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
       .then(async (res) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
@@ -143,6 +144,7 @@ describe("Platform Billing Controller (e2e)", () => {
     );
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
+      .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
       .then(async (res) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
@@ -172,6 +174,7 @@ describe("Platform Billing Controller (e2e)", () => {
 
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
+      .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
       .then(async (res) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
@@ -204,6 +207,7 @@ describe("Platform Billing Controller (e2e)", () => {
 
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
+      .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
       .then(async (res) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);

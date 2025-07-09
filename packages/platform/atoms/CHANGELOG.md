@@ -1,6 +1,14 @@
+## 1.0.114
+
+### Patch Changes
+
+- [#22148](https://github.com/calcom/cal.com/pull/22148) [`d27490e`](https://github.com/calcom/cal.com/commit/d27490e6f2438d353dfcf3e793c8886e723307f3) Thanks [@supalarry](https://github.com/supalarry)! - test release
+
 ## 1.0.63
+
 1. 💥 BREAKING - `useGetBooking` hook has been renamed to `useBooking` hook and `useGetBookings` hook to `useBookings` and the data returned has different
-structure. Here is example response from `useBooking`:
+   structure. Here is example response from `useBooking`:
+
 ```
 {
   "id": 73,
@@ -47,9 +55,11 @@ structure. Here is example response from `useBooking`:
   }
 }
 ```
+
 It is important to note that `useBooking` can return one booking, one individual recurrence of recurring booking or if id of recurring booking is passed then array
 of all recurrences within recurring booking. Response schema can be viewed in api docs https://cal.com/docs/api-reference/v2/bookings/get-a-booking and switching
 between data response objects in the dropdown. This means that in your frontend you need to handle case if its an individual object or an array of bookings:
+
 ```
 const { isLoading, data: booking, refetch } = useBooking((router.query.bookingUid as string) ?? "");
 
@@ -63,5 +73,5 @@ if (!Array.isArray(booking)) {
 ```
 
 2. FIX - phone booking field not showing correctly https://linear.app/calcom/issue/CAL-4465/platform-fix-phone-booking-field
-3. FEAT - ability to hide booker event type details sidebar https://linear.app/calcom/issue/CAL-4443/platform-feat-booker-hide-event-details 
+3. FEAT - ability to hide booker event type details sidebar https://linear.app/calcom/issue/CAL-4443/platform-feat-booker-hide-event-details
 4. FEAT - make booker name and email booker properties read only if specified https://linear.app/calcom/issue/CAL-4441/platform-feat-make-name-and-email-fields-not-editable

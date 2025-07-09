@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 //import "server-only";
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
@@ -41,7 +41,7 @@ export const getEventTypeById = async ({
   isTrpcCall = false,
   isUserOrganizationAdmin,
 }: getEventTypeByIdProps) => {
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  const userSelect = {
     name: true,
     avatarUrl: true,
     username: true,
@@ -50,7 +50,7 @@ export const getEventTypeById = async ({
     locale: true,
     defaultScheduleId: true,
     isPlatformManaged: true,
-  });
+  } satisfies Prisma.UserSelect;
 
   const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
 

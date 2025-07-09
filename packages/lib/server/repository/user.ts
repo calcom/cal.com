@@ -4,8 +4,8 @@ import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizatio
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -27,7 +27,7 @@ const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
 
-const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+const teamSelect = {
   id: true,
   name: true,
   slug: true,
@@ -36,9 +36,9 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   organizationSettings: true,
   isOrganization: true,
   isPlatform: true,
-});
+} satisfies Prisma.TeamSelect;
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   id: true,
   username: true,
   name: true,
@@ -77,7 +77,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   lastActiveAt: true,
   identityProvider: true,
   teams: true,
-});
+} satisfies Prisma.UserSelect;
 
 export class UserRepository {
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
@@ -963,6 +963,31 @@ export class UserRepository {
     return prisma.user.update({
       where: { id },
       data: { whitelistWorkflows },
+    });
+  }
+
+  static async findManyUsersForDynamicEventType({
+    currentOrgDomain,
+    usernameList,
+  }: {
+    currentOrgDomain: string | null;
+    usernameList: string[];
+  }) {
+    const { where } = await UserRepository._getWhereClauseForFindingUsersByUsername({
+      orgSlug: currentOrgDomain,
+      usernameList,
+    });
+
+    // TODO: Should be moved to UserRepository
+    return prisma.user.findMany({
+      where,
+      select: {
+        allowDynamicBooking: true,
+        ...availabilityUserSelect,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+      },
     });
   }
 }

@@ -87,7 +87,7 @@ export class ConferencingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({ summary: "Get OAuth conferencing app auth url" })
+  @ApiOperation({ summary: "Get OAuth conferencing app auth URL" })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
@@ -130,7 +130,7 @@ export class ConferencingController {
   @Get("/:app/oauth/callback")
   @UseGuards()
   @Redirect(undefined, 301)
-  @ApiOperation({ summary: "conferencing apps oauths callback" })
+  @ApiOperation({ summary: "Conferencing app OAuth callback" })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",

@@ -8,11 +8,11 @@ import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/Ca
 import { handleCreateSelectedCalendars, isSameEmail } from "../route";
 
 // Mock GoogleCalendarService
-const fetchPrimaryCalendarMock = vi.fn();
+const getPrimaryCalendarMock = vi.fn();
 vi.mock("@calcom/app-store/googlecalendar/lib/CalendarService", () => {
   return {
     default: vi.fn().mockImplementation(() => ({
-      fetchPrimaryCalendar: fetchPrimaryCalendarMock,
+      getPrimaryCalendar: getPrimaryCalendarMock,
     })),
   };
 });
@@ -116,7 +116,7 @@ describe("handleCreateSelectedCalendars integration", () => {
     prismock.user.deleteMany();
     prismock.team.deleteMany();
     prismock.workspacePlatform.deleteMany();
-    fetchPrimaryCalendarMock.mockReset();
+    getPrimaryCalendarMock.mockReset();
   });
 
   it("shows a helpful message when no Delegation Credentials are set up in the system", async () => {
@@ -138,7 +138,7 @@ describe("handleCreateSelectedCalendars integration", () => {
       domain: "example.com",
     });
     await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
-    fetchPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
+    getPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
 
     const result = await handleCreateSelectedCalendars();
     expect(result.success).toBe(1);
@@ -159,7 +159,7 @@ describe("handleCreateSelectedCalendars integration", () => {
         domain: "example.com",
       });
       await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
-      fetchPrimaryCalendarMock.mockResolvedValue({ id: "notuser@example.com" });
+      getPrimaryCalendarMock.mockResolvedValue({ id: "notuser@example.com" });
 
       const result = await handleCreateSelectedCalendars();
       expect(result.success).toBe(1);
@@ -183,7 +183,7 @@ describe("handleCreateSelectedCalendars integration", () => {
         domain: "example.com",
       });
       await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
-      fetchPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
+      getPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
 
       const result = await handleCreateSelectedCalendars();
       expect(result.success).toBe(1);
@@ -210,7 +210,7 @@ describe("handleCreateSelectedCalendars integration", () => {
       delegationCredentialId: delegationCredential.id,
       credentialId: 1,
     });
-    fetchPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
+    getPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
 
     const result = await handleCreateSelectedCalendars();
     expect(result.success).toBe(0);
@@ -247,7 +247,7 @@ describe("handleCreateSelectedCalendars integration", () => {
       error: "some error" as unknown as null,
       credentialId: regularCredential.id,
     });
-    fetchPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
+    getPrimaryCalendarMock.mockResolvedValue({ id: "user1@example.com" });
 
     const result = await handleCreateSelectedCalendars();
     expect(result.success).toBe(1);
@@ -272,7 +272,7 @@ describe("handleCreateSelectedCalendars integration", () => {
         domain: "example.com",
       });
       await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
-      fetchPrimaryCalendarMock.mockRejectedValue(
+      getPrimaryCalendarMock.mockRejectedValue(
         new CalendarAppDelegationCredentialInvalidGrantError("some error")
       );
 
@@ -293,7 +293,7 @@ describe("handleCreateSelectedCalendars integration", () => {
         domain: "example.com",
       });
       await createCredential({ id: 1, userId: user.id, delegationCredentialId: delegationCredential.id });
-      fetchPrimaryCalendarMock.mockRejectedValue(new Error("some error"));
+      getPrimaryCalendarMock.mockRejectedValue(new Error("some error"));
 
       const result = await handleCreateSelectedCalendars();
       expect(result.success).toBe(0);

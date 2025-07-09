@@ -6,12 +6,21 @@ import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import * as constants from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
+import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import { createOrganizationFromOnboarding } from "./createOrganizationFromOnboarding";
+
+vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
+  LicenseKeySingleton: {
+    getInstance: vi.fn(),
+  },
+}));
 
 // Mock the external functions
 vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
@@ -147,6 +156,19 @@ async function createTestMembership(data: { userId: number; teamId: number; role
   });
 }
 
+async function expectOrganizationOnboardingToHaveDataContaining({
+  onboardingId,
+  expectedData,
+}: {
+  onboardingId: string;
+  expectedData: Partial<OrganizationOnboarding>;
+}) {
+  const updatedOrganizationOnboarding = await prismock.organizationOnboarding.findUnique({
+    where: { id: onboardingId },
+  });
+  expect(updatedOrganizationOnboarding).toEqual(expect.objectContaining(expectedData));
+}
+
 describe("createOrganizationFromOnboarding", () => {
   beforeEach(async () => {
     vi.resetAllMocks();
@@ -154,260 +176,326 @@ describe("createOrganizationFromOnboarding", () => {
     await prismock.reset();
   });
 
-  // Skipped because non-existend user creation support isn't there through onboarding now.
-  it.skip("should create an organization with a non-existent user as owner", async () => {
-    const organizationOnboarding = await createTestOrganizationOnboarding();
-
-    const { organization, owner } = await createOrganizationFromOnboarding({
-      organizationOnboarding,
-      paymentSubscriptionId: "mock_subscription_id",
-      paymentSubscriptionItemId: "mock_subscription_item_id",
+  describe("hosted", () => {
+    beforeEach(() => {
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
     });
 
-    // Verify organization creation
-    expect(organization).toBeDefined();
-    expect(organization.name).toBe(organizationOnboarding.name);
-    expect(organization.slug).toBe(organizationOnboarding.slug);
-    expect(organization.metadata).toEqual({
-      orgSeats: 5,
-      orgPricePerSeat: 20,
-      billingPeriod: "MONTHLY",
-      subscriptionId: "mock_subscription_id",
-      subscriptionItemId: "mock_subscription_item_id",
+    // Skipped because non-existend user creation support isn't there through onboarding now.
+    it.skip("should create an organization with a non-existent user as owner", async () => {
+      const organizationOnboarding = await createTestOrganizationOnboarding();
+
+      const { organization, owner } = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      });
+
+      // Verify organization creation
+      expect(organization).toBeDefined();
+      expect(organization.name).toBe(organizationOnboarding.name);
+      expect(organization.slug).toBe(organizationOnboarding.slug);
+      expect(organization.metadata).toEqual({
+        orgSeats: 5,
+        orgPricePerSeat: 20,
+        billingPeriod: "MONTHLY",
+        subscriptionId: "mock_subscription_id",
+        subscriptionItemId: "mock_subscription_item_id",
+      });
+
+      // Verify owner creation
+      expect(owner).toBeDefined();
+      expect(owner.email).toBe(organizationOnboarding.orgOwnerEmail);
     });
 
-    // Verify owner creation
-    expect(owner).toBeDefined();
-    expect(owner.email).toBe(organizationOnboarding.orgOwnerEmail);
-  });
-
-  it("should create an organization with an existing user as owner", async () => {
-    const orgOwnerEmail = "test@example.com";
-    const existingUser = await createTestUser({
-      email: orgOwnerEmail,
-      name: "Existing User",
-      username: "existinguser",
-      onboardingCompleted: true,
-      emailVerified: new Date(),
-    });
-
-    const organizationOnboarding = await createTestOrganizationOnboarding({
-      orgOwnerEmail,
-    });
-
-    const { organization, owner } = await createOrganizationFromOnboarding({
-      organizationOnboarding,
-      paymentSubscriptionId: "mock_subscription_id",
-      paymentSubscriptionItemId: "mock_subscription_item_id",
-    });
-
-    // Verify organization creation
-    expect(organization).toBeDefined();
-    expect(organization.name).toBe(organizationOnboarding.name);
-    expect(organization.slug).toBe(organizationOnboarding.slug);
-
-    // Verify owner is the existing user
-    expect(owner.id).toBe(existingUser.id);
-    expect(owner.email).toBe(existingUser.email);
-
-    expect(createDomain).toHaveBeenCalledWith(organization.slug);
-    // Verify team creation and member invites still work
-    expect(inviteMembersWithNoInviterPermissionCheck).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orgSlug: organization.slug,
-        teamId: organization.id,
-        invitations: organizationOnboarding.invitedMembers?.map((member) => ({
-          usernameOrEmail: member.email,
-          role: MembershipRole.MEMBER,
-        })),
-      })
-    );
-    expect(createTeamsHandler).toHaveBeenCalledWith(
-      expect.objectContaining({
-        input: expect.objectContaining({
-          orgId: organization.id,
-          teamNames: ["New Team"],
-          moveTeams: expect.arrayContaining([expect.objectContaining({ id: 1, newSlug: "new-team-slug" })]),
-        }),
-      })
-    );
-  });
-
-  it("should reuse existing organization if organizationId is already set in onboarding. Covers the retry scenario where org got created but then error occurred", async () => {
-    const orgName = "Existing Org";
-    const orgSlug = "existing-org";
-    const existingOrg = await createTestOrganization({
-      name: orgName,
-      slug: orgSlug,
-    });
-
-    const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
-      user: {
+    it("should create an organization with an existing user as owner", async () => {
+      const orgOwnerEmail = "test@example.com";
+      const existingUser = await createTestUser({
+        email: orgOwnerEmail,
         name: "Existing User",
         username: "existinguser",
-        email: "test@example.com",
-      },
-      organizationOnboarding: {
-        organizationId: existingOrg.id,
+        onboardingCompleted: true,
+        emailVerified: new Date(),
+      });
+
+      const organizationOnboarding = await createTestOrganizationOnboarding({
+        orgOwnerEmail,
+      });
+
+      const { organization, owner } = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      });
+
+      // Verify organization creation
+      expect(organization).toBeDefined();
+      expect(organization.name).toBe(organizationOnboarding.name);
+      expect(organization.slug).toBe(organizationOnboarding.slug);
+
+      // Verify owner is the existing user
+      expect(owner.id).toBe(existingUser.id);
+      expect(owner.email).toBe(existingUser.email);
+
+      expect(createDomain).toHaveBeenCalledWith(organization.slug);
+      // Verify team creation and member invites still work
+      expect(inviteMembersWithNoInviterPermissionCheck).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orgSlug: organization.slug,
+          teamId: organization.id,
+          invitations: organizationOnboarding.invitedMembers?.map((member) => ({
+            usernameOrEmail: member.email,
+            role: MembershipRole.MEMBER,
+          })),
+        })
+      );
+      expect(createTeamsHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            orgId: organization.id,
+            teamNames: ["New Team"],
+            moveTeams: expect.arrayContaining([expect.objectContaining({ id: 1, newSlug: "new-team-slug" })]),
+          }),
+        })
+      );
+    });
+
+    it("should reuse existing organization if organizationId is already set in onboarding. Covers the retry scenario where org got created but then error occurred", async () => {
+      const orgName = "Existing Org";
+      const orgSlug = "existing-org";
+      const existingOrg = await createTestOrganization({
         name: orgName,
         slug: orgSlug,
-      },
-    });
+      });
 
-    const { organization } = await createOrganizationFromOnboarding({
-      organizationOnboarding,
-      paymentSubscriptionId: "mock_subscription_id",
-      paymentSubscriptionItemId: "mock_subscription_item_id",
-    });
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          name: "Existing User",
+          username: "existinguser",
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          organizationId: existingOrg.id,
+          name: orgName,
+          slug: orgSlug,
+        },
+      });
 
-    // Verify the existing organization was reused
-    expect(organization.id).toBe(existingOrg.id);
-  });
-
-  it("should throw error if organization with same slug exists", async () => {
-    const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
-      user: {
-        email: "test@example.com",
-      },
-      organizationOnboarding: {
-        slug: "conflicting-org-with-same-slug",
-      },
-    });
-
-    await createTestOrganization({
-      name: "Conflicting Org with same slug",
-      slug: organizationOnboarding.slug,
-    });
-
-    await expect(
-      createOrganizationFromOnboarding({
+      const { organization } = await createOrganizationFromOnboarding({
         organizationOnboarding,
         paymentSubscriptionId: "mock_subscription_id",
         paymentSubscriptionItemId: "mock_subscription_item_id",
-      })
-    ).rejects.toThrow("organization_url_taken");
-  });
+      });
 
-  it("should create team with slugified slug", async () => {
-    const teamToMove = await createTestTeam({
-      name: "Sales",
-      slug: "Company Sales",
+      // Verify the existing organization was reused
+      expect(organization.id).toBe(existingOrg.id);
     });
 
-    const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
-      user: {
-        email: "test@example.com",
-      },
-      organizationOnboarding: {
-        slug: "UPPERCASE-SLUG",
-        teams: [{ id: teamToMove.id, name: "Sales", isBeingMigrated: true, slug: "sales-team" }],
-      },
+    it("should throw error if organization with same slug exists", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          slug: "conflicting-org-with-same-slug",
+        },
+      });
+
+      await createTestOrganization({
+        name: "Conflicting Org with same slug",
+        slug: organizationOnboarding.slug,
+      });
+
+      await expect(
+        createOrganizationFromOnboarding({
+          organizationOnboarding,
+          paymentSubscriptionId: "mock_subscription_id",
+          paymentSubscriptionItemId: "mock_subscription_item_id",
+        })
+      ).rejects.toThrow("organization_url_taken");
     });
 
-    const { organization } = await createOrganizationFromOnboarding({
-      organizationOnboarding,
-      paymentSubscriptionId: "mock_subscription_id",
-      paymentSubscriptionItemId: "mock_subscription_item_id",
-    });
+    it("should create team with slugified slug", async () => {
+      const teamToMove = await createTestTeam({
+        name: "Sales",
+        slug: "Company Sales",
+      });
 
-    expect(createTeamsHandler).toHaveBeenCalledWith(
-      expect.objectContaining({
-        input: expect.objectContaining({
-          orgId: organization.id,
-          teamNames: [],
-          moveTeams: expect.arrayContaining([expect.objectContaining({ id: 1, newSlug: "sales-team" })]),
-        }),
-      })
-    );
-  });
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          slug: "UPPERCASE-SLUG",
+          teams: [{ id: teamToMove.id, name: "Sales", isBeingMigrated: true, slug: "sales-team" }],
+        },
+      });
 
-  it("should update stripe customer ID for existing user", async () => {
-    const { user: existingUser, organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
-      user: {
-        email: "test@example.com",
-      },
-      organizationOnboarding: {
-        slug: "conflicting-org-with-same-slug",
-      },
-    });
-
-    await createOrganizationFromOnboarding({
-      organizationOnboarding,
-      paymentSubscriptionId: "mock_subscription_id",
-      paymentSubscriptionItemId: "mock_subscription_item_id",
-    });
-
-    // Verify user's stripe customer ID was updated
-    const updatedUser = await prismock.user.findUnique({
-      where: { id: existingUser.id },
-    });
-
-    expect(updatedUser?.metadata).toEqual(
-      expect.objectContaining({
-        stripeCustomerId: organizationOnboarding.stripeCustomerId,
-      })
-    );
-  });
-
-  it("should create organization in with slug set even if there is a team with same slug of which orgOwner(to-be) is a member", async () => {
-    const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
-      user: {
-        email: "test@example.com",
-      },
-      organizationOnboarding: {
-        slug: "conflicting-org-with-same-slug",
-      },
-    });
-
-    const teamWithConflictingSlug = await createTestTeam({
-      name: "TestTeamWithConflictingSlug",
-      slug: organizationOnboarding.slug,
-    });
-
-    // Make the orgOwner a member of the team
-    await createTestMembership({
-      userId: organizationOnboarding.createdById,
-      teamId: teamWithConflictingSlug.id,
-      role: MembershipRole.ADMIN,
-    });
-
-    const { organization } = await createOrganizationFromOnboarding({
-      organizationOnboarding,
-      paymentSubscriptionId: "mock_subscription_id",
-      paymentSubscriptionItemId: "mock_subscription_item_id",
-    });
-
-    expect(organization.slug).toBe(organizationOnboarding.slug);
-  });
-
-  it("should not create organization if there is a team with same slug of which orgOwner(to-be) is not a member", async () => {
-    const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
-      user: {
-        email: "test@example.com",
-      },
-      organizationOnboarding: {
-        slug: "conflicting-org-with-same-slug",
-      },
-    });
-
-    await createTestTeam({
-      name: "TestTeamWithConflictingSlugNotOwnedByOrgOwner",
-      slug: organizationOnboarding.slug,
-    });
-
-    // Don't make the orgOwner a member of the team
-    // await createTestMembership({
-    //   userId: organizationOnboarding.createdById,
-    //   teamId: teamWithConflictingSlug.id,
-    //   role: MembershipRole.ADMIN,
-    // });
-
-    await expect(
-      createOrganizationFromOnboarding({
+      const { organization } = await createOrganizationFromOnboarding({
         organizationOnboarding,
         paymentSubscriptionId: "mock_subscription_id",
         paymentSubscriptionItemId: "mock_subscription_item_id",
-      })
-    ).rejects.toThrow("organization_url_taken");
+      });
+
+      expect(createTeamsHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            orgId: organization.id,
+            teamNames: [],
+            moveTeams: expect.arrayContaining([expect.objectContaining({ id: 1, newSlug: "sales-team" })]),
+          }),
+        })
+      );
+    });
+
+    it("should update stripe customer ID for existing user", async () => {
+      const { user: existingUser, organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          slug: "conflicting-org-with-same-slug",
+        },
+      });
+
+      await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      });
+
+      // Verify user's stripe customer ID was updated
+      const updatedUser = await prismock.user.findUnique({
+        where: { id: existingUser.id },
+      });
+
+      expect(updatedUser?.metadata).toEqual(
+        expect.objectContaining({
+          stripeCustomerId: organizationOnboarding.stripeCustomerId,
+        })
+      );
+    });
+
+    it("should create organization in with slug set even if there is a team with same slug of which orgOwner(to-be) is a member", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          slug: "conflicting-org-with-same-slug",
+        },
+      });
+
+      const teamWithConflictingSlug = await createTestTeam({
+        name: "TestTeamWithConflictingSlug",
+        slug: organizationOnboarding.slug,
+      });
+
+      // Make the orgOwner a member of the team
+      await createTestMembership({
+        userId: organizationOnboarding.createdById,
+        teamId: teamWithConflictingSlug.id,
+        role: MembershipRole.ADMIN,
+      });
+
+      const { organization } = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      });
+
+      expect(organization.slug).toBe(organizationOnboarding.slug);
+    });
+
+    it("should not create organization if there is a team with same slug of which orgOwner(to-be) is not a member", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          slug: "conflicting-org-with-same-slug",
+        },
+      });
+
+      await createTestTeam({
+        name: "TestTeamWithConflictingSlugNotOwnedByOrgOwner",
+        slug: organizationOnboarding.slug,
+      });
+
+      // Don't make the orgOwner a member of the team
+      // await createTestMembership({
+      //   userId: organizationOnboarding.createdById,
+      //   teamId: teamWithConflictingSlug.id,
+      //   role: MembershipRole.ADMIN,
+      // });
+
+      await expect(
+        createOrganizationFromOnboarding({
+          organizationOnboarding,
+          paymentSubscriptionId: "mock_subscription_id",
+          paymentSubscriptionItemId: "mock_subscription_item_id",
+        })
+      ).rejects.toThrow("organization_url_taken");
+    });
+
+    it("should not mark the Onboarding as completed(isComplete=true)", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+      });
+
+      await expectOrganizationOnboardingToHaveDataContaining({
+        onboardingId: organizationOnboarding.id,
+        expectedData: {
+          isComplete: false,
+        },
+      });
+    });
+  });
+
+  describe("self-hosted", () => {
+    beforeEach(() => {
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(true);
+    });
+
+    it("should fail if the license is invalid", async () => {
+      vi.mocked(LicenseKeySingleton.getInstance as ReturnType<typeof vi.fn>).mockResolvedValue({
+        checkLicense: vi.fn().mockResolvedValue(false),
+      });
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+      });
+
+      await expect(
+        createOrganizationFromOnboarding({
+          organizationOnboarding,
+          paymentSubscriptionId: "mock_subscription_id",
+          paymentSubscriptionItemId: "mock_subscription_item_id",
+        })
+      ).rejects.toThrow("Self hosted license not valid");
+    });
+
+    it("should create an organization with a valid license", async () => {
+      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
+        checkLicense: vi.fn().mockResolvedValue(true),
+      });
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+      });
+
+      const { organization, owner } = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      });
+
+      expect(organization).toBeDefined();
+      expect(owner).toBeDefined();
+    });
   });
 });

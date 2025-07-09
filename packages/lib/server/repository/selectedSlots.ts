@@ -70,4 +70,43 @@ export class SelectedSlotsRepository {
       },
     });
   }
+
+  static async findManyUnexpiredSlots({
+    userIds,
+    currentTimeInUtc,
+  }: {
+    userIds: number[];
+    currentTimeInUtc: string;
+  }) {
+    return prisma.selectedSlots.findMany({
+      where: {
+        userId: { in: userIds },
+        releaseAt: { gt: currentTimeInUtc },
+      },
+      select: {
+        id: true,
+        slotUtcStartDate: true,
+        slotUtcEndDate: true,
+        userId: true,
+        isSeat: true,
+        eventTypeId: true,
+        uid: true,
+      },
+    });
+  }
+
+  static async deleteManyExpiredSlots({
+    eventTypeId,
+    currentTimeInUtc,
+  }: {
+    eventTypeId: number;
+    currentTimeInUtc: string;
+  }) {
+    return prisma.selectedSlots.deleteMany({
+      where: {
+        eventTypeId: { equals: eventTypeId },
+        releaseAt: { lt: currentTimeInUtc },
+      },
+    });
+  }
 }

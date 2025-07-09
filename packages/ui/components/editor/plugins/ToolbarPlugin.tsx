@@ -220,7 +220,6 @@ function getSelectedNode(selection: RangeSelection) {
 }
 
 export default function ToolbarPlugin(props: TextEditorProps) {
-  const isInitialized = useRef(false);
   const [editor] = useLexicalComposerContext();
   const toolbarRef = useRef(null);
   const [blockType, setBlockType] = useState("paragraph");
@@ -365,13 +364,11 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   }, [props.updateTemplate]);
 
   useEffect(() => {
-    if (props.setFirstRender && !isInitialized.current) {
-      isInitialized.current = true;
+    if (props.setFirstRender) {
       props.setFirstRender(false);
       editor.update(() => {
         const parser = new DOMParser();
-        const content = props.getText()?.replace(/\n/g, "<br>");
-        const dom = parser.parseFromString(content, "text/html");
+        const dom = parser.parseFromString(props.getText(), "text/html");
 
         const nodes = $generateNodesFromDOM(editor, dom);
 

@@ -17,7 +17,7 @@ import {
   VERSION_2024_08_13,
 } from "@calcom/platform-constants";
 import { TRPCError } from "@calcom/platform-libraries";
-import { getAvailableSlots } from "@calcom/platform-libraries/slots";
+import { AvailableSlotsService } from "@calcom/platform-libraries/slots";
 import { RemoveSelectedSlotInput_2024_04_15, ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
 import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform-types";
 
@@ -170,8 +170,10 @@ export class SlotsController_2024_04_15 {
           : query.isTeamEvent;
 
       // Do not use workers in E2E, not supported by TS-JEST
-      const availableSlots = this.config.get<boolean>("e2e")
-        ? await getAvailableSlots({
+      const availableSlotsService = this.config.get<boolean>("e2e") ? new AvailableSlotsService() : null;
+
+      const availableSlots = availableSlotsService
+        ? await availableSlotsService.getAvailableSlots({
             input: {
               ...query,
               isTeamEvent,

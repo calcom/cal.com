@@ -29,7 +29,7 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
   });
   const appsStatus: AppsStatus[] | undefined = undefined;
 
-  const numSlotsToCheckForAvailability = 2;
+  const numSlotsToCheckForAvailability = 1;
 
   let thirdPartyRecurringEventId = null;
 

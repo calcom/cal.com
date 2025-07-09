@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getPublishedOrgIdFromMemberOrTeamId } from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
 
@@ -120,8 +120,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (!orgId) {
-    orgId = await getOrgIdFromMemberOrTeamId({
-      memberId: parsedUserId,
+    orgId = await getPublishedOrgIdFromMemberOrTeamId({
+      ...(!parsedTeamId ? { memberId: parsedUserId } : {}),
       teamId: parsedTeamId,
     });
   }
@@ -137,7 +137,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).send(`SMS are free for organizations. Credits set to 0`);
   }
 
-  const price = await twilio.getPriceForSMS(smsSid);
+  const { price, numSegments } = await twilio.getMessageInfo(smsSid);
 
   const credits = price ? creditService.calculateCreditsFromPrice(price) : null;
 
@@ -147,6 +147,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     userId: parsedUserId,
     smsSid,
     bookingUid: parsedBookingUid,
+    smsSegments: numSegments ?? undefined,
   });
 
   if (chargedUserOrTeamId) {

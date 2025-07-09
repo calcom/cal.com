@@ -1,11 +1,15 @@
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
 import {
   assertCanCreateOrg,
   findUserToBeOrgOwner,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -28,6 +32,20 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     "Starting organization creation intent",
     safeStringify({ slug, name, orgOwnerEmail, isPlatform })
   );
+
+  if (IS_SELF_HOSTED) {
+    const deploymentRepo = new DeploymentRepository(prisma);
+    const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+    const hasValidLicense = await licenseKeyService.checkLicense();
+
+    if (!hasValidLicense) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        // TODO: We need to send translation keys from here and frontend should translate it
+        message: "License is not valid",
+      });
+    }
+  }
 
   const loggedInUser = ctx.user;
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
