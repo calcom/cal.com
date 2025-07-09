@@ -1,10 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
+import { ValidationError } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
 
 import { onFormSubmission } from "../trpc/utils";
 import type { FormResponse, SerializableForm } from "../types/types";
@@ -38,9 +37,7 @@ export const onSubmissionOfFormResponse = async ({
 }) => {
   if (!form.fields) {
     // There is no point in submitting a form that doesn't have fields defined
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-    });
+    throw new ValidationError("Form fields not defined");
   }
   const settings = RoutingFormSettings.parse(form.settings);
   let userWithEmails: string[] = [];

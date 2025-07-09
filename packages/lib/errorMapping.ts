@@ -6,6 +6,7 @@ import {
   NotFoundError,
   CredentialError,
   OrganizationError,
+  RateLimitError,
 } from "./errors";
 
 export function mapBusinessErrorToTRPCError(error: unknown): TRPCError {
@@ -40,6 +41,13 @@ export function mapBusinessErrorToTRPCError(error: unknown): TRPCError {
   if (error instanceof OrganizationError) {
     return new TRPCError({
       code: "BAD_REQUEST",
+      message: error.message,
+    });
+  }
+
+  if (error instanceof RateLimitError) {
+    return new TRPCError({
+      code: "TOO_MANY_REQUESTS",
       message: error.message,
     });
   }

@@ -1,14 +1,13 @@
 import { z } from "zod";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { NotFoundError, AuthorizationError, ValidationError } from "@calcom/lib/errors";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import type { TUpdateInputSchema } from "./types";
@@ -53,7 +52,7 @@ export const eventOwnerProcedure = authedProcedure
     });
 
     if (!event) {
-      throw new TRPCError({ code: "NOT_FOUND" });
+      throw new NotFoundError("Event type not found");
     }
 
     const isAuthorized = (function () {
@@ -70,7 +69,7 @@ export const eventOwnerProcedure = authedProcedure
     })();
 
     if (!isAuthorized) {
-      throw new TRPCError({ code: "FORBIDDEN" });
+      throw new AuthorizationError("Forbidden access to event type");
     }
 
     const isAllowed = (function () {
@@ -85,7 +84,7 @@ export const eventOwnerProcedure = authedProcedure
       console.warn(
         `User ${ctx.user.id} attempted to an create an event for users ${input.users.join(", ")}.`
       );
-      throw new TRPCError({ code: "FORBIDDEN" });
+      throw new AuthorizationError("Forbidden user assignment");
     }
 
     return next();
@@ -148,10 +147,7 @@ export function ensureUniqueBookingFields(fields: TUpdateInputSchema["bookingFie
 
   fields.reduce((discoveredFields, field) => {
     if (discoveredFields[field.name]) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Duplicate booking field name: ${field.name}`,
-      });
+      throw new ValidationError(`Duplicate booking field name: ${field.name}`);
     }
 
     discoveredFields[field.name] = true;
@@ -170,16 +166,10 @@ export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bo
   const emailField = fields.find((field) => field.name === "email");
 
   if (emailField?.hidden && attendeePhoneNumberField?.hidden) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Both Email and Attendee Phone Number cannot be hidden`,
-    });
+    throw new ValidationError("Both Email and Attendee Phone Number cannot be hidden");
   }
   if (!emailField?.required && !attendeePhoneNumberField?.required) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `At least Email or Attendee Phone Number need to be required field.`,
-    });
+    throw new ValidationError("At least Email or Attendee Phone Number need to be required field.");
   }
 }
 

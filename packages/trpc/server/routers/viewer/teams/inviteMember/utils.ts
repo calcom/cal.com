@@ -7,6 +7,7 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import { AuthorizationError, ValidationError, NotFoundError } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -24,8 +25,6 @@ import type { Profile as ProfileType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
 
 import { isEmail } from "../util";
 import type { TeamWithParent } from "./types";
@@ -68,19 +67,17 @@ export async function ensureAtleastAdminPermissions({
 }) {
   // Checks if the team they are inviting to IS the org. Not a child team
   if (isOrg) {
-    if (!(await isOrganisationAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (!(await isOrganisationAdmin(userId, teamId)))
+      throw new AuthorizationError("Unauthorized to invite to organization");
   } else {
     // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
-    if (!(await isTeamAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (!(await isTeamAdmin(userId, teamId))) throw new AuthorizationError("Unauthorized to invite to team");
   }
 }
 
 export function checkInputEmailIsValid(email: string) {
   if (!isEmail(email))
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Invite failed because ${email} is not a valid email address`,
-    });
+    throw new ValidationError(`Invite failed because ${email} is not a valid email address`);
 }
 
 export async function getTeamOrThrow(teamId: number) {
@@ -98,11 +95,7 @@ export async function getTeamOrThrow(teamId: number) {
     },
   });
 
-  if (!team)
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: `Team not found`,
-    });
+  if (!team) throw new NotFoundError("Team not found");
 
   return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
 }
@@ -120,10 +113,7 @@ export async function getUniqueInvitationsOrThrowIfEmpty(invitations: Invitation
   });
 
   if (uniqueInvitations.length === 0) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "You must provide at least one email address to invite.",
-    });
+    throw new ValidationError("You must provide at least one email address to invite.");
   }
 
   return uniqueInvitations;
@@ -671,10 +661,7 @@ export const sendExistingUserTeamInviteEmails = async ({
     log.debug("Sending team invite email to", safeStringify({ user, currentUserName, currentUserTeamName }));
 
     if (!currentUserTeamName) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "The team doesn't have a name",
-      });
+      throw new ValidationError("The team doesn't have a name");
     }
 
     // inform user of membership by email

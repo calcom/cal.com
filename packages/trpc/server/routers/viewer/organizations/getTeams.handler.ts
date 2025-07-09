@@ -1,6 +1,6 @@
+import { mapBusinessErrorToTRPCError } from "@calcom/lib/errorMapping";
+import { AuthorizationError } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
-
-import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 
@@ -11,22 +11,26 @@ type GetTeamsHandler = {
 };
 
 export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
-  const currentUser = ctx.user;
-  const currentUserOrgId = ctx.user.organizationId ?? currentUser.profiles[0].organizationId;
+  try {
+    const currentUser = ctx.user;
+    const currentUserOrgId = ctx.user.organizationId ?? currentUser.profiles[0].organizationId;
 
-  if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (!currentUserOrgId) throw new AuthorizationError("User not part of any organization");
 
-  const allOrgTeams = await prisma.team.findMany({
-    where: {
-      parentId: currentUserOrgId,
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
+    const allOrgTeams = await prisma.team.findMany({
+      where: {
+        parentId: currentUserOrgId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
-  return allOrgTeams;
+    return allOrgTeams;
+  } catch (error) {
+    throw mapBusinessErrorToTRPCError(error);
+  }
 }
 
 export default getTeamsHandler;

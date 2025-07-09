@@ -64,6 +64,14 @@ export class OrganizationError extends Error {
   }
 }
 
+export class RateLimitError extends Error {
+  code = "TOO_MANY_REQUESTS" as const;
+  constructor(message = "Rate limit exceeded") {
+    super(message);
+    this.name = "RateLimitError";
+  }
+}
+
 export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: number; code?: string } {
   if (cause instanceof Error) {
     return cause;
