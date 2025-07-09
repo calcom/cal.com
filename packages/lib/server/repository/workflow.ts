@@ -7,7 +7,7 @@ import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
@@ -23,7 +23,7 @@ export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
 
 const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
 
-const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>()({
+const { include: includedFields } = {
   include: {
     activeOn: {
       select: {
@@ -63,7 +63,7 @@ const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>
       },
     },
   },
-});
+} satisfies Prisma.WorkflowDefaultArgs;
 
 export class WorkflowRepository {
   private static log = logger.getSubLogger({ prefix: ["workflow"] });

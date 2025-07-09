@@ -11,6 +11,14 @@ export function isBookerReady() {
   return window._embedBookerState === "slotsDone";
 }
 
+function isSkeletonSupportedPageType() {
+  const url = new URL(document.URL);
+  const pageType = url.searchParams.get("cal.embed.pageType");
+  // Any non-empty pageType is skeleton supported because generateSkeleton()
+  // will generate a skeleton for it (either specific or fallback to default)
+  return !!pageType;
+}
+
 /**
  * It is important to be able to check realtime(instead of storing isLinkReady as a variable) if the link is ready, because there is a possibility that  booker might have moved to non-ready state from ready state
  */
@@ -20,10 +28,14 @@ export function isLinkReady({ embedStore }: { embedStore: typeof import("./embed
   }
 
   if (isBookerPage()) {
-    // Let's wait for Booker to be ready before showing the embed
-    // It means that booker has loaded all its data and is ready to show
-    // TODO: We could try to mark the embed as ready earlier in this case not relying on document.readyState
-    return isBookerReady();
+    if (isSkeletonSupportedPageType()) {
+      // Let's wait for Booker to be ready before showing the embed as there is already a skeleton loader being shown and we don't really need to show the booker's actual skeleton
+      // Booker's actual skeleton shows event-type description and other details too but it could cause the UX to be bad if we show two different skeletons one by one and they might not overlap well
+      return isBookerReady();
+    } else {
+      // For regular loader (non-skeleton), don't wait for slots to be complete before toggling off the loader
+      return true;
+    }
   }
   return true;
 }

@@ -270,6 +270,8 @@ model DestinationCalendar {
   eventTypeId                      Int?                  @unique
   credentialId                     Int?
   credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  createdAt                        DateTime?             @default(now())
+  updatedAt                        DateTime?             @updatedAt
   delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId           String?
   domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
@@ -854,6 +856,8 @@ model SelectedCalendar {
   externalId               String
   credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId             Int?
+  createdAt                DateTime?   @default(now())
+  updatedAt                DateTime?   @updatedAt
   // Used to identify a watched calendar channel in Google Calendar
   googleChannelId          String?
   googleChannelKind        String?
@@ -2366,6 +2370,7 @@ enum RoleType {
 model Role {
   id          String           @id @default(cuid())
   name        String
+  color       String?
   description String?
   teamId      Int? // null for global roles
   team        Team?            @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -2380,7 +2385,7 @@ model Role {
 }
 
 model RolePermission {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   roleId    String
   role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
   resource  String
