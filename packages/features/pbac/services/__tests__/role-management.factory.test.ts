@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -24,7 +24,7 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 vi.mock("@calcom/lib/server/queries/organisations", () => ({
-  isOrganisationOwner: vi.fn(),
+  isOrganisationAdmin: vi.fn(),
 }));
 
 describe("RoleManagementFactory", () => {
@@ -160,18 +160,18 @@ describe("RoleManagementFactory", () => {
     beforeEach(() => {
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
       vi.mocked(prisma.membership.update).mockResolvedValue({});
-      vi.mocked(isOrganisationOwner).mockResolvedValue(false);
+      vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
     });
 
     describe("checkPermissionToChangeRole", () => {
       it("should allow role change when user is owner", async () => {
-        vi.mocked(isOrganisationOwner).mockResolvedValue(true);
+        vi.mocked(isOrganisationAdmin).mockResolvedValue(true);
         const manager = await factory.createRoleManager(organizationId);
         await expect(manager.checkPermissionToChangeRole(userId, organizationId)).resolves.not.toThrow();
       });
 
       it("should throw UNAUTHORIZED when user is not owner", async () => {
-        vi.mocked(isOrganisationOwner).mockResolvedValue(false);
+        vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
         const manager = await factory.createRoleManager(organizationId);
         await expect(manager.checkPermissionToChangeRole(userId, organizationId)).rejects.toThrow(TRPCError);
       });

@@ -1,5 +1,5 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -73,7 +73,7 @@ class PBACRoleManager implements IRoleManager {
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
   async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
-    const isUpdaterAnOwner = await isOrganisationOwner(userId, organizationId);
+    const isUpdaterAnOwner = await isOrganisationAdmin(userId, organizationId);
 
     // Only OWNER can update role to OWNER
     if (!isUpdaterAnOwner) {
