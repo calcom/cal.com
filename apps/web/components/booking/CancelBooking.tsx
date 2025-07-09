@@ -202,7 +202,7 @@ export default function CancelBooking(props: Props) {
       setShowVerificationDialog(false);
       handleCancellation();
     } else {
-      setVerificationError(t("email_verification_error"));
+      setVerificationError(t("proceed_with_cancellation_error"));
     }
   };
 
@@ -291,7 +291,7 @@ export default function CancelBooking(props: Props) {
         <DialogContent>
           <DialogHeader title={t("verify_email")} />
           <div className="space-y-4 py-4">
-            <p className="text-default text-sm">{t("verify_email_description")}</p>
+            <p className="text-default text-sm">{t("proceed_with_cancellation_description")}</p>
             <Input
               type="email"
               placeholder={t("email_placeholder")}
@@ -302,6 +302,7 @@ export default function CancelBooking(props: Props) {
             {verificationError && <p className="text-error text-sm">{verificationError}</p>}
             <div className="flex justify-end space-x-2">
               <Button
+                color="secondary"
                 onClick={() => {
                   setShowVerificationDialog(false);
                   setVerificationError("");
