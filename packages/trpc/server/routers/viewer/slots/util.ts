@@ -1372,6 +1372,6 @@ export class AvailableSlotsService {
 
 export const availableSlotsModule = createModule();
 availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSlotsService, {
-  // Maps constructor parameters to repository tokens
   oooRepo: DI_TOKENS.OOO_REPOSITORY,
+  scheduleRepo: DI_TOKENS.SCHEDULE_REPOSITORY,
 });
