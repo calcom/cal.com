@@ -10,6 +10,6 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
     private readonly oooRepoDependency: OOORepository,
     private readonly scheduleRepoDependency: ScheduleRepository
   ) {
-    super(oooRepoDependency, scheduleRepoDependency);
+    super({ oooRepo: oooRepoDependency, scheduleRepo: scheduleRepoDependency });
   }
 }

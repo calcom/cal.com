@@ -6,18 +6,10 @@ import {
 } from "../../utils/bookingScenario/bookingScenario";
 import type { ScenarioData } from "../../utils/bookingScenario/bookingScenario";
 
-import { createContainer } from "@evyweb/ioctopus";
 import { describe, expect, vi, test } from "vitest";
 
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
-import { oooRepositoryModule } from "@calcom/lib/server/modules/ooo";
-import { scheduleRepositoryModule } from "@calcom/lib/server/modules/schedule";
+import { getAvailableSlotsService } from "@calcom/lib/di/available-slots.container";
 import { PeriodType } from "@calcom/prisma/enums";
-import { prismaModule } from "@calcom/prisma/prisma.module";
-import {
-  availableSlotsModule,
-  type AvailableSlotsService,
-} from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
@@ -78,12 +70,7 @@ vi.mock("@calcom/lib/constants", () => ({
 }));
 
 describe("getSchedule", () => {
-  const container = createContainer();
-  container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
-  container.load(DI_TOKENS.OOO_REPOSITORY_MODULE, oooRepositoryModule);
-  container.load(DI_TOKENS.SCHEDULE_REPOSITORY_MODULE, scheduleRepositoryModule);
-  container.load(DI_TOKENS.AVAILABLE_SLOTS_SERVICE_MODULE, availableSlotsModule);
-  const availableSlotsService = container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);
+  const availableSlotsService = getAvailableSlotsService();
   setupAndTeardown();
   describe("Future Limits", () => {
     describe("PeriodType=ROLLING", () => {

@@ -90,11 +90,13 @@ export type GetAvailableSlotsResponse = Awaited<
   ReturnType<(typeof AvailableSlotsService)["prototype"]["_getAvailableSlots"]>
 >;
 
+export interface IAvailableSlotsService {
+  oooRepo: PrismaOOORepository;
+  scheduleRepo: ScheduleRepository;
+}
+
 export class AvailableSlotsService {
-  constructor(
-    private readonly oooRepo: PrismaOOORepository,
-    private readonly scheduleRepo: ScheduleRepository
-  ) {}
+  constructor(private readonly dependencies: IAvailableSlotsService) {}
 
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
@@ -632,7 +634,7 @@ export class AvailableSlotsService {
   );
 
   private async _getOOODates(startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) {
-    return this.oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
+    return this.dependencies.oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
   }
   private getOOODates = withReporting(this._getOOODates.bind(this), "getOOODates");
 
@@ -1059,7 +1061,7 @@ export class AvailableSlotsService {
     // TODO: DI isRestrictionScheduleEnabled
     const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
     if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
-      const restrictionSchedule = await this.scheduleRepo.findScheduleByIdForBuildDateRanges({
+      const restrictionSchedule = await this.dependencies.scheduleRepo.findScheduleByIdForBuildDateRanges({
         scheduleId: eventType.restrictionScheduleId,
       });
       if (restrictionSchedule) {
@@ -1371,6 +1373,7 @@ export class AvailableSlotsService {
 }
 
 export const availableSlotsModule = createModule();
-availableSlotsModule
-  .bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE)
-  .toClass(AvailableSlotsService, [DI_TOKENS.OOO_REPOSITORY, DI_TOKENS.SCHEDULE_REPOSITORY]);
+availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSlotsService, {
+  oooRepo: DI_TOKENS.OOO_REPOSITORY,
+  scheduleRepo: DI_TOKENS.SCHEDULE_REPOSITORY,
+} satisfies Record<keyof IAvailableSlotsService, symbol>);

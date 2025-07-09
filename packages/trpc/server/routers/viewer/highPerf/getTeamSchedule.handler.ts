@@ -1,12 +1,7 @@
-import { createContainer } from "@evyweb/ioctopus";
 import type { IncomingMessage } from "http";
 
-import { DI_TOKENS } from "@calcom/lib/di/tokens";
-import { oooRepositoryModule } from "@calcom/lib/server/modules/ooo";
-import { scheduleRepositoryModule } from "@calcom/lib/server/modules/schedule";
-import { prismaModule } from "@calcom/prisma/prisma.module";
+import { getAvailableSlotsService } from "@calcom/lib/di/available-slots.container";
 
-import { availableSlotsModule, type AvailableSlotsService } from "../slots/util";
 import type { TGetTeamScheduleInputSchema } from "./getTeamSchedule.schema";
 
 export type GetTeamScheduleOptions = {
@@ -19,11 +14,6 @@ interface ContextForGetSchedule extends Record<string, unknown> {
 }
 
 export const getTeamScheduleHandler = async ({ ctx, input }: GetTeamScheduleOptions) => {
-  const container = createContainer();
-  container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
-  container.load(DI_TOKENS.OOO_REPOSITORY_MODULE, oooRepositoryModule);
-  container.load(DI_TOKENS.SCHEDULE_REPOSITORY_MODULE, scheduleRepositoryModule);
-  container.load(DI_TOKENS.AVAILABLE_SLOTS_SERVICE_MODULE, availableSlotsModule);
-  const availableSlotsService = container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);
+  const availableSlotsService = getAvailableSlotsService();
   return await availableSlotsService.getAvailableSlots({ ctx, input });
 };
