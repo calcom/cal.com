@@ -2,10 +2,9 @@ import { z } from "zod";
 
 import prisma from "@calcom/prisma";
 
-import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { ZGetAttributeSchema } from "./get.schema";
+import { assertOrgMember } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -14,19 +13,12 @@ type GetOptions = {
   input: ZGetAttributeSchema;
 };
 
-const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
-  const org = ctx.user.organization;
-
-  if (!org.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be apart of an organization to use this feature",
-    });
-  }
-
+const getAttributeHandler = async ({ input, ctx: { user: authedUser } }: GetOptions) => {
+  // assert authenticated user is part of an organization
+  assertOrgMember(authedUser);
   const attribute = await prisma.attribute.findUnique({
     where: {
-      teamId: org.id,
+      teamId: authedUser.profile.organizationId,
       id: input.id,
     },
     select: {

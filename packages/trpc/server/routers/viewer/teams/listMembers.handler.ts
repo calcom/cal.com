@@ -116,8 +116,8 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
 const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], teamId: number) => {
   const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
   const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
-  const orgId = ctx.user.organizationId;
-  const isTargetingOrg = teamId === ctx.user.organizationId;
+  const orgId = ctx.user.profile?.organizationId ?? -1; // just make sure there's no overlap
+  const isTargetingOrg = teamId === orgId;
 
   if (isTargetingOrg) {
     return isOrgAdminOrOwner || !isOrgPrivate;

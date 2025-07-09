@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { ZAssignUserToAttribute } from "./assignUserToAttribute.schema";
+import { assertOrgMember } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -14,23 +15,16 @@ type GetOptions = {
   input: ZAssignUserToAttribute;
 };
 
-const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
-  const org = ctx.user.organization;
-
-  if (!org.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be apart of an organization to use this feature",
-    });
-  }
-
+const assignUserToAttributeHandler = async ({ input, ctx: { user: authedUser } }: GetOptions) => {
+  // assert authenticated user is part of an organization
+  assertOrgMember(authedUser);
   // Ensure this organization can access these attributes and attribute options
   const attributes = await prisma.attribute.findMany({
     where: {
       id: {
         in: input.attributes.map((attribute) => attribute.id),
       },
-      teamId: org.id,
+      teamId: authedUser.profile.organizationId,
     },
     select: {
       name: true,

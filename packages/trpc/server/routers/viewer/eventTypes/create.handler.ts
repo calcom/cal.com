@@ -36,7 +36,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
-  const isOrgAdmin = !!ctx.user?.isOrgAdmin;
+  const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
 
   const locations: EventTypeLocation[] =
     inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);

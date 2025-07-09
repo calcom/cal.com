@@ -38,11 +38,12 @@ const applyRoleToAllTeams = async (userId: number, teamIds: number[], role: Memb
 
 export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const { user } = ctx;
-  const { id: userId, organizationId } = user;
+  const { id: userId } = user;
 
-  if (!organizationId)
+  if (!user.profile?.organizationId) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a member of an organizaiton" });
-
+  }
+  const organizationId = user.profile.organizationId;
   const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
   await roleManager.checkPermissionToChangeRole(userId, organizationId);
 

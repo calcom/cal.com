@@ -12,8 +12,8 @@ type Options = {
 };
 
 // Delete directory sync connection for a team
-export const deleteHandler = async ({ ctx, input }: Options) => {
-  await userCanCreateTeamGroupMapping(ctx.user, ctx.user.organizationId, input.teamId);
+export const deleteHandler = async ({ ctx: { user: authedUser }, input }: Options) => {
+  await userCanCreateTeamGroupMapping(authedUser, authedUser.profile?.organizationId, input.teamId);
 
   await prisma.dSyncTeamGroupMapping.delete({
     where: {

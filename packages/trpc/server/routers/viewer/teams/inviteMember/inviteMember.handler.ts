@@ -249,7 +249,7 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   const isTeamAnOrg = team.isOrganization;
   const organization = inviter.profile.organization;
 
-  let inviterOrgId = inviter.organization.id;
+  let inviterOrgId = inviter.profile.organizationId;
   let orgSlug = organization ? organization.slug || organization.requestedSlug : null;
   let isInviterOrgAdmin = inviter.organization.isOrgAdmin;
 

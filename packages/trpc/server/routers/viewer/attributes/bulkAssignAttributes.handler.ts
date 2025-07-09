@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import { processUserAttributes } from "./attributeUtils";
 import type { ZBulkAssignAttributes } from "./bulkAssignAttributes.schema";
+import { assertOrgMember } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -13,16 +14,9 @@ type GetOptions = {
   input: ZBulkAssignAttributes;
 };
 
-const bulkAssignAttributesHandler = async ({ input, ctx }: GetOptions) => {
-  const org = ctx.user.organization;
-
-  if (!org.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be part of an organization to use this feature",
-    });
-  }
-
+const bulkAssignAttributesHandler = async ({ input, ctx: { user: authedUser } }: GetOptions) => {
+  // assert authenticated user is part of an organization
+  assertOrgMember(authedUser);
   // Create a map of attribute types for quick lookup
   const attributeTypes = new Map<string, string>();
 
@@ -32,7 +26,7 @@ const bulkAssignAttributesHandler = async ({ input, ctx }: GetOptions) => {
       id: {
         in: input.attributes.map((attribute) => attribute.id),
       },
-      teamId: org.id,
+      teamId: authedUser.profile.organizationId,
     },
     select: {
       id: true,

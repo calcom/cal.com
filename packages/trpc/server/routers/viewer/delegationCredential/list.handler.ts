@@ -1,21 +1,18 @@
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import { encryptedServiceAccountKeySchema } from "@calcom/lib/server/serviceAccountKey";
-import type { PrismaClient } from "@calcom/prisma";
 
 import { ensureNoServiceAccountKey } from "./utils";
 
 export default async function handler({
-  ctx,
+  ctx: { user: authedUser },
 }: {
-  ctx: { prisma: PrismaClient; user: { id: number; organization: { id: number | null } } };
+  ctx: { user: { id: number; profile?: { organization: { id: number | null } } } };
 }) {
-  const { user } = ctx;
-
-  const organizationId = user.organization?.id;
-
+  const organizationId = authedUser.profile?.organization?.id;
   if (!organizationId) {
     throw new Error("You must be in an organization to list delegation credentials");
   }
+
   const delegationCredentials =
     await DelegationCredentialRepository.findByOrgIdIncludeSensitiveServiceAccountKey({
       organizationId,

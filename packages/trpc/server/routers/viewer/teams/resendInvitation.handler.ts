@@ -20,7 +20,9 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
   await ensureAtleastAdminPermissions({
     userId: ctx.user.id,
     teamId:
-      ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
+      ctx.user.profile.organizationId && ctx.user.organization.isOrgAdmin
+        ? ctx.user.profile.organizationId
+        : input.teamId,
     isOrg: input.isOrg,
   });
 

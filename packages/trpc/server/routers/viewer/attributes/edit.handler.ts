@@ -5,7 +5,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { ZEditAttributeSchema } from "./edit.schema";
-import { getOptionsWithValidContains } from "./utils";
+import { assertOrgMember, getOptionsWithValidContains } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -14,23 +14,16 @@ type GetOptions = {
   input: ZEditAttributeSchema;
 };
 
-const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
-  const org = ctx.user.organization;
-
-  if (!org.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be apart of an organization to use this feature",
-    });
-  }
-
+const editAttributesHandler = async ({ input, ctx: { user: authedUser } }: GetOptions) => {
+  // assert authenticated user is part of an organization
+  assertOrgMember(authedUser);
   // If an option is removed, it is to be removed from contains of corresponding group as well if any
   const options = getOptionsWithValidContains(input.options);
 
   const foundAttribute = await prisma.attribute.findUnique({
     where: {
       id: input.attributeId,
-      teamId: org.id,
+      teamId: authedUser.profile.organizationId,
     },
     select: {
       id: true,

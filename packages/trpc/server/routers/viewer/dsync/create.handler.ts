@@ -30,7 +30,13 @@ export const createHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  const { organization } = ctx.user;
+  const { organization } = ctx.user.profile ?? { organization: null };
+  if (!organization) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "User does not belong to any organization",
+    });
+  }
 
   const tenant = input.organizationId ? `${organization.slug}-${organization.id}` : (samlTenantID as string);
 
