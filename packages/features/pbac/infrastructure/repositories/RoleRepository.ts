@@ -5,22 +5,25 @@ import db from "@calcom/prisma";
 
 import type { Role, RolePermission, PermissionChange, CreateRoleData } from "../../domain/models/Role";
 import { RoleType } from "../../domain/models/Role";
+import { RoleOutputMapper } from "../mappers/RoleOutputMapper";
 
 export class RoleRepository {
   constructor(private readonly client: PrismaWithExtensions = db) {}
 
   async findByName(name: string, teamId?: number): Promise<Role | null> {
-    return this.client.role.findFirst({
+    const role = await this.client.role.findFirst({
       where: { name, teamId: teamId ?? null },
       include: { permissions: true },
     });
+    return role ? RoleOutputMapper.toDomain(role) : null;
   }
 
   async findByTeamId(teamId: number): Promise<Role[]> {
-    return this.client.role.findMany({
+    const roles = await this.client.role.findMany({
       where: { teamId },
       include: { permissions: true },
     });
+    return RoleOutputMapper.toDomainList(roles);
   }
 
   async roleBelongsToTeam(roleId: string, teamId: number): Promise<boolean> {
@@ -32,7 +35,7 @@ export class RoleRepository {
   }
 
   async create(data: CreateRoleData): Promise<Role> {
-    return this.client.$transaction(async (trx) => {
+    const roleId = await this.client.$transaction(async (trx) => {
       const role = await trx.role.create({
         data: {
           id: uuidv4(),
@@ -42,6 +45,7 @@ export class RoleRepository {
           teamId: data.teamId ?? null,
           type: data.type ?? RoleType.CUSTOM,
         },
+        include: { permissions: true },
       });
 
       if (data.permissions.length > 0) {
@@ -57,9 +61,13 @@ export class RoleRepository {
 
         await trx.rolePermission.createMany({ data: permissionData });
       }
-
-      return this.findById(role.id) as Promise<Role>;
+      return role.id;
     });
+
+    const completeRole = await this.findById(roleId);
+    if (!completeRole) throw new Error("Failed to create role");
+
+    return RoleOutputMapper.toDomain(completeRole);
   }
 
   async delete(id: string): Promise<void> {
@@ -124,17 +132,19 @@ export class RoleRepository {
   }
 
   async findById(roleId: string): Promise<Role | null> {
-    return this.client.role.findUnique({
+    const role = await this.client.role.findUnique({
       where: { id: roleId },
       include: {
         permissions: true,
       },
     });
+    return role ? RoleOutputMapper.toDomain(role) : null;
   }
 
   async getPermissions(roleId: string): Promise<RolePermission[]> {
-    return this.client.rolePermission.findMany({
+    const permissions = await this.client.rolePermission.findMany({
       where: { roleId },
     });
+    return permissions.map(RoleOutputMapper.toDomainPermission);
   }
 }
