@@ -70,6 +70,12 @@ export const CheckedTeamSelect = ({
 
   const fitleredValue = value.filter((host) => host.groupId === groupId);
 
+  const handleSelectChange = (newFilteredValue: readonly CheckedSelectOption[]) => {
+    const otherGroupsHosts = value.filter((host) => host.groupId !== groupId);
+    const newFullValue = [...otherGroupsHosts, ...newFilteredValue];
+    props.onChange(newFullValue);
+  };
+
   return (
     <>
       <Select
@@ -79,6 +85,7 @@ export const CheckedTeamSelect = ({
         isSearchable={true}
         options={options}
         value={fitleredValue}
+        onChange={handleSelectChange}
         isMulti
         className={customClassNames?.hostsSelect?.select}
         innerClassNames={customClassNames?.hostsSelect?.innerClassNames}

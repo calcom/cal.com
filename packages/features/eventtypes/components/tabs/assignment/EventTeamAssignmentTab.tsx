@@ -683,18 +683,7 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  // Get the groupId from the first changed host to determine which group is being updated
-                  const targetGroupId = changeValue.length > 0 ? changeValue[0].groupId : null;
-
-                  const preservedHosts = value.filter(
-                    (host: Host) => host.isFixed || host.groupId !== targetGroupId
-                  );
-
-                  // Add the updated hosts for the current group
-                  const updatedHostsForGroup = updatedHosts(changeValue);
-
-                  const hosts = [...preservedHosts, ...updatedHostsForGroup];
-
+                  const hosts = [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
                   onChange(hosts);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
