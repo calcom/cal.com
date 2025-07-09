@@ -71,10 +71,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       }
     }
   }
-  const isHostOrOwner =
-    eventData.owner?.id === userId ||
-    eventData.hosts?.some((host) => host.user.id === userId) ||
-    hasTeamOrOrgPermissions;
+
+  let isHostOrOwner = eventData.owner?.id === userId || hasTeamOrOrgPermissions;
+
+  // We will only check the database if the user is not the owner or has team or org permissions
+  if (userId && !isHostOrOwner) {
+    const hostCheck = await prisma.host.findFirst({
+      where: {
+        userId,
+        eventTypeId: eventData.id,
+      },
+    });
+    isHostOrOwner = !!hostCheck;
+  }
 
   if (rescheduleUid && eventData.disableRescheduling && !isHostOrOwner) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
@@ -248,7 +257,6 @@ const getTeamWithEventsData = async (
             select: {
               user: {
                 select: {
-                  id: true,
                   name: true,
                   username: true,
                   email: true,

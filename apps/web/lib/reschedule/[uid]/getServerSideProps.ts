@@ -209,19 +209,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
     const userIsOwnerOfEventType = booking?.eventType.owner?.id === userId;
 
-    let hasTeamOrOrgPermissions = false;
-    if (userId && booking?.eventType?.team?.id) {
-      const isTeamAdminResult = await isTeamAdmin(userId, booking.eventType.team.id);
-      if (isTeamAdminResult) {
-        hasTeamOrOrgPermissions = true;
-      } else if (booking.eventType.team.parentId) {
-        const isOrgAdminResult = await isOrganisationAdmin(userId, booking.eventType.team.parentId);
-        if (isOrgAdminResult) {
-          hasTeamOrOrgPermissions = true;
-        }
-      }
-    }
-
     if (!userIsHost && !userIsOwnerOfEventType && !hasTeamOrOrgPermissions) {
       return {
         notFound: true,

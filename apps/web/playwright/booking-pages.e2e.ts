@@ -908,11 +908,7 @@ test.describe("Organization members can cancel and reschedule when disabled", ()
     );
   });
 
-  test("Organization Admin should be able to reschedule even when disabled", async ({
-    page,
-    users,
-    prisma,
-  }) => {
+  test("Organization Admin should be able to reschedule even when disabled", async ({ page, users }) => {
     await testOrgMemberAction({
       page,
       users,
@@ -921,11 +917,10 @@ test.describe("Organization members can cancel and reschedule when disabled", ()
       role: "ADMIN",
       action: "reschedule",
       testName: "Org Admin",
-      prisma,
     });
   });
 
-  test("Organization Admin should be able to cancel even when disabled", async ({ page, users, prisma }) => {
+  test("Organization Admin should be able to cancel even when disabled", async ({ page, users }) => {
     await testOrgMemberAction({
       page,
       users,
@@ -934,15 +929,10 @@ test.describe("Organization members can cancel and reschedule when disabled", ()
       role: "ADMIN",
       action: "cancel",
       testName: "Org Admin",
-      prisma,
     });
   });
 
-  test("Organization Owner should be able to reschedule even when disabled", async ({
-    page,
-    users,
-    prisma,
-  }) => {
+  test("Organization Owner should be able to reschedule even when disabled", async ({ page, users }) => {
     await testOrgMemberAction({
       page,
       users,
@@ -951,11 +941,10 @@ test.describe("Organization members can cancel and reschedule when disabled", ()
       role: "OWNER",
       action: "reschedule",
       testName: "Org Owner",
-      prisma,
     });
   });
 
-  test("Organization Owner should be able to cancel even when disabled", async ({ page, users, prisma }) => {
+  test("Organization Owner should be able to cancel even when disabled", async ({ page, users }) => {
     await testOrgMemberAction({
       page,
       users,
@@ -964,7 +953,6 @@ test.describe("Organization members can cancel and reschedule when disabled", ()
       role: "OWNER",
       action: "cancel",
       testName: "Org Owner",
-      prisma,
     });
   });
 });
