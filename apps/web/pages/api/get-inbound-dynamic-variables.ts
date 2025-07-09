@@ -5,6 +5,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { ZGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import type { TGetRetellLLMSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
