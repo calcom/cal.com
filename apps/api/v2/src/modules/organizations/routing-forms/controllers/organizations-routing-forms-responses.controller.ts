@@ -28,9 +28,11 @@ import { Request } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
+import { CreateRoutingFormResponseFromQueuedInput } from "../inputs/create-routing-form-response-from-queued.input";
 import { CreateRoutingFormResponseInput } from "../inputs/create-routing-form-response.input";
 import { GetRoutingFormResponsesParams } from "../inputs/get-routing-form-responses-params.input";
 import { UpdateRoutingFormResponseInput } from "../inputs/update-routing-form-response.input";
+import { CreateRoutingFormResponseFromQueuedOutput } from "../outputs/create-routing-form-response-from-queued.output";
 import { CreateRoutingFormResponseOutput } from "../outputs/create-routing-form-response.output";
 import { UpdateRoutingFormResponseOutput } from "../outputs/update-routing-form-response.output";
 
@@ -57,7 +59,6 @@ export class OrganizationsRoutingFormsResponsesController {
     @Query() queryParams: GetRoutingFormResponsesParams
   ): Promise<GetRoutingFormResponsesOutput> {
     const { skip, take, ...filters } = queryParams;
-
     const responses =
       await this.organizationsRoutingFormsResponsesService.getOrganizationRoutingFormResponses(
         orgId,
@@ -88,6 +89,30 @@ export class OrganizationsRoutingFormsResponsesController {
       routingFormId,
       query,
       request
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: result,
+    };
+  }
+
+  @Post("/from-queued/:queuedResponseId")
+  @ApiOperation({ summary: "Create routing form response from queued response" })
+  @UseGuards(IsRoutingFormInOrg)
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  async createRoutingFormResponseFromQueued(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("routingFormId") routingFormId: string,
+    @Param("queuedResponseId") queuedResponseId: string,
+    @Body() input: CreateRoutingFormResponseFromQueuedInput
+  ): Promise<CreateRoutingFormResponseFromQueuedOutput> {
+    const result = await this.organizationsRoutingFormsResponsesService.createRoutingFormResponseFromQueued(
+      orgId,
+      routingFormId,
+      queuedResponseId,
+      input
     );
 
     return {
