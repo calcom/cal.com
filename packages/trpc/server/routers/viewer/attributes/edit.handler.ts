@@ -44,7 +44,7 @@ const editAttributesHandler = async ({ input, ctx: { user: authedUser } }: GetOp
     data: {
       name: input.name,
       type: input.type,
-      teamId: org.id,
+      teamId: authedUser.profile.organizationId,
       isLocked: input.isLocked,
       isWeightsEnabled: input.isWeightsEnabled,
     },

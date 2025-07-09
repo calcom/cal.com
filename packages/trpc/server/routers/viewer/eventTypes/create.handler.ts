@@ -92,7 +92,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   // If we are in an organization & they are not admin & they are not creating an event on a teamID
   // Check if evenTypes are locked.
-  if (!ctx.user.isOrgAdmin && !teamId) {
+  if (!ctx.user.organization.isOrgAdmin && !teamId) {
     // TODO: Refactor this as part of PBAC, right now isOrgAdmin applies to all profile organizations (currently one-to-one)
     const orgHasLockedEventTypes =
       !!ctx.user.profile.organization?.organizationSettings?.lockEventTypeCreationForUsers;

@@ -54,7 +54,7 @@ const assignUserToAttributeHandler = async ({ input, ctx: { user: authedUser } }
         in: attributeOptionIds,
       },
       attribute: {
-        teamId: org.id,
+        teamId: authedUser.profile.organizationId,
       },
     },
     select: {

@@ -43,7 +43,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   let oooUserName = ctx.user.username;
   let oooUserEmail = ctx.user.email;
   let oooUserTimeZone = ctx.user.timeZone;
-  let oooUserOrgId = ctx.user.organizationId;
+  let oooUserOrgId = ctx.user.profile?.organizationId;
   let oooUserFullName = ctx.user.name;
 
   let isAdmin;

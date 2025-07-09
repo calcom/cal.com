@@ -45,14 +45,18 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     organization: {
       isOrgAdmin,
     },
-    profile: {
-      ...user.profile,
-      organization: {
-        ..._organization,
-        metadata: orgMetadata,
-        requestedSlug: orgMetadata?.requestedSlug ?? null,
-      },
-    },
+    ...(user.profile
+      ? {
+          profile: {
+            ...user.profile,
+            organization: {
+              ..._organization,
+              metadata: orgMetadata,
+              requestedSlug: orgMetadata?.requestedSlug ?? null,
+            },
+          },
+        }
+      : {}),
     locale: user?.locale ?? ctx.locale,
     defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
   };

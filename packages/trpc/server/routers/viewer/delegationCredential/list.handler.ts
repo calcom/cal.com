@@ -6,9 +6,9 @@ import { ensureNoServiceAccountKey } from "./utils";
 export default async function handler({
   ctx: { user: authedUser },
 }: {
-  ctx: { user: { id: number; profile?: { organization: { id: number | null } } } };
+  ctx: { user: { id: number; profile?: { organizationId: number | null } } };
 }) {
-  const organizationId = authedUser.profile?.organization?.id;
+  const organizationId = authedUser.profile?.organizationId;
   if (!organizationId) {
     throw new Error("You must be in an organization to list delegation credentials");
   }

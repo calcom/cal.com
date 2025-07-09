@@ -24,8 +24,8 @@ type Options = {
 export const Handler = async ({ ctx, input }: Options) => {
   const { token } = input;
   const { user } = ctx;
-  const isLoggedInUserPartOfOrg = !!user.organization.id;
 
+  const isLoggedInUserPartOfOrg = !!user.profile?.organizationId;
   if (!isLoggedInUserPartOfOrg) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Logged in user is not member of Organization" });
   }
