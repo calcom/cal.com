@@ -17,7 +17,7 @@ import { describe, vi, test } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { SchedulingType, type BookingStatus } from "@calcom/prisma/enums";
-import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect, expectedSlotsForSchedule } from "./getSchedule/expects";
 import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
@@ -31,6 +31,7 @@ vi.mock("@calcom/lib/constants", () => ({
 }));
 
 describe("getSchedule", () => {
+  const availableSlotsService = new AvailableSlotsService();
   setupAndTeardown();
 
   // TODO: Move these inside describe('Team Event')
@@ -113,7 +114,7 @@ describe("getSchedule", () => {
         bookings: [],
       });
 
-      const scheduleWithLeadSkip = await getSchedule({
+      const scheduleWithLeadSkip = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -134,7 +135,7 @@ describe("getSchedule", () => {
         }
       );
 
-      const scheduleWithoutLeadSkip = await getSchedule({
+      const scheduleWithoutLeadSkip = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -262,7 +263,7 @@ describe("getSchedule", () => {
         bookings: [],
       });
 
-      const scheduleFixedHostLead = await getSchedule({
+      const scheduleFixedHostLead = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -291,7 +292,7 @@ describe("getSchedule", () => {
         }
       );
 
-      const scheduleRRHostLead = await getSchedule({
+      const scheduleRRHostLead = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -392,7 +393,7 @@ describe("getSchedule", () => {
         bookings: [],
       });
 
-      const scheduleWithLeadSkip = await getSchedule({
+      const scheduleWithLeadSkip = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -526,7 +527,7 @@ describe("getSchedule", () => {
         bookings: [],
       });
 
-      const scheduleWithLeadSkip = await getSchedule({
+      const scheduleWithLeadSkip = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -623,7 +624,7 @@ describe("getSchedule", () => {
         bookings: [],
       });
 
-      const scheduleWithLeadSkip = await getSchedule({
+      const scheduleWithLeadSkip = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -732,7 +733,7 @@ describe("getSchedule", () => {
         bookings: [],
       });
 
-      const scheduleWithLeadSkip = await getSchedule({
+      const scheduleWithLeadSkip = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -829,7 +830,7 @@ describe("getSchedule", () => {
         bookings: [],
       });
 
-      const scheduleWithLeadSkip = await getSchedule({
+      const scheduleWithLeadSkip = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -926,7 +927,7 @@ describe("getSchedule", () => {
         bookings: [],
       });
 
-      const scheduleWhenContactOwnerIsSkipped = await getSchedule({
+      const scheduleWhenContactOwnerIsSkipped = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -1030,7 +1031,7 @@ describe("getSchedule", () => {
       });
 
       // Day Plus 2 is completely free - It only has non accepted bookings
-      const scheduleOnCompletelyFreeDay = await getSchedule({
+      const scheduleOnCompletelyFreeDay = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           // EventTypeSlug doesn't matter for non-dynamic events
@@ -1064,7 +1065,7 @@ describe("getSchedule", () => {
       );
 
       // Day plus 3
-      const scheduleForDayWithOneBooking = await getSchedule({
+      const scheduleForDayWithOneBooking = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -1130,7 +1131,7 @@ describe("getSchedule", () => {
       });
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-      const scheduleForEventWith30Length = await getSchedule({
+      const scheduleForEventWith30Length = await availableSlotsService.getAvailableSlots({
         input: {
           orgSlug: null,
           eventTypeId: 1,
@@ -1167,17 +1168,18 @@ describe("getSchedule", () => {
         }
       );
 
-      const scheduleForEventWith30minsLengthAndSlotInterval2hrs = await getSchedule({
-        input: {
-          orgSlug: null,
-          eventTypeId: 2,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-          isTeamEvent: false,
-        },
-      });
+      const scheduleForEventWith30minsLengthAndSlotInterval2hrs =
+        await availableSlotsService.getAvailableSlots({
+          input: {
+            orgSlug: null,
+            eventTypeId: 2,
+            eventTypeSlug: "",
+            startTime: `${plus1DateString}T18:30:00.000Z`,
+            endTime: `${plus2DateString}T18:29:59.999Z`,
+            timeZone: Timezones["+5:30"],
+            isTeamEvent: false,
+          },
+        });
       // `slotInterval` takes precedence over `length`
       // 4:30 is utc so it is 10:00 in IST
       expect(scheduleForEventWith30minsLengthAndSlotInterval2hrs).toHaveTimeSlots(
@@ -1227,7 +1229,7 @@ describe("getSchedule", () => {
       // Time Travel to the beginning of today after getting all the dates correctly.
       timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
 
-      const scheduleForEventWithBookingNotice13Hrs = await getSchedule({
+      const scheduleForEventWithBookingNotice13Hrs = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -1251,7 +1253,7 @@ describe("getSchedule", () => {
         }
       );
 
-      const scheduleForEventWithBookingNotice10Hrs = await getSchedule({
+      const scheduleForEventWithBookingNotice10Hrs = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 2,
           eventTypeSlug: "",
@@ -1314,7 +1316,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const scheduleForEventOnADayWithNonCalBooking = await getSchedule({
+      const scheduleForEventOnADayWithNonCalBooking = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -1389,7 +1391,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const scheduleForEventOnADayWithCalBooking = await getSchedule({
+      const scheduleForEventOnADayWithCalBooking = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -1448,7 +1450,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const schedule = await getSchedule({
+      const schedule = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -1513,7 +1515,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const scheduleForEventOnADayWithDateOverride = await getSchedule({
+      const scheduleForEventOnADayWithDateOverride = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -1592,7 +1594,7 @@ describe("getSchedule", () => {
 
       // Requesting this user's availability for their
       // individual Event Type
-      const thisUserAvailability = await getSchedule({
+      const thisUserAvailability = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 2,
           eventTypeSlug: "",
@@ -1705,7 +1707,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const thisUserAvailabilityBookingLimitOne = await getSchedule({
+      const thisUserAvailabilityBookingLimitOne = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -1717,7 +1719,7 @@ describe("getSchedule", () => {
         },
       });
 
-      const thisUserAvailabilityBookingLimitTwo = await getSchedule({
+      const thisUserAvailabilityBookingLimitTwo = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 2,
           eventTypeSlug: "",
@@ -1833,7 +1835,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const thisUserAvailabilityDurationLimitReached = await getSchedule({
+      const thisUserAvailabilityDurationLimitReached = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -1845,7 +1847,7 @@ describe("getSchedule", () => {
         },
       });
 
-      const thisUserAvailabilityDurationLimitNotReached = await getSchedule({
+      const thisUserAvailabilityDurationLimitNotReached = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 2,
           eventTypeSlug: "",
@@ -1943,7 +1945,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const thisUserAvailabilityDurationLimit = await getSchedule({
+      const thisUserAvailabilityDurationLimit = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -2039,7 +2041,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const weeklyAvailability = await getSchedule({
+      const weeklyAvailability = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -2169,7 +2171,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const availabilityEventTypeOne = await getSchedule({
+      const availabilityEventTypeOne = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -2190,7 +2192,7 @@ describe("getSchedule", () => {
 
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(0);
 
-      const availabilityEventTypeTwo = await getSchedule({
+      const availabilityEventTypeTwo = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 2,
           eventTypeSlug: "",
@@ -2211,7 +2213,7 @@ describe("getSchedule", () => {
 
       expect(availableSlotsInTz2.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(0);
 
-      const availabilityUserEventType = await getSchedule({
+      const availabilityUserEventType = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 3,
           eventTypeSlug: "",
@@ -2327,7 +2329,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const eventType1Availability = await getSchedule({
+      const eventType1Availability = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -2339,7 +2341,7 @@ describe("getSchedule", () => {
         },
       });
 
-      const eventType2Availability = await getSchedule({
+      const eventType2Availability = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 2,
           eventTypeSlug: "",
@@ -2387,7 +2389,7 @@ describe("getSchedule", () => {
         ],
       });
 
-      const eventType2AvailabilityUpdated = await getSchedule({
+      const eventType2AvailabilityUpdated = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 2,
           eventTypeSlug: "",
@@ -2468,7 +2470,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const thisUserAvailabilityBookingLimit = await getSchedule({
+      const thisUserAvailabilityBookingLimit = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -2583,7 +2585,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const availabilityEventTypeOne = await getSchedule({
+      const availabilityEventTypeOne = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -2604,7 +2606,7 @@ describe("getSchedule", () => {
 
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(0); // 1 booking per day as limit
 
-      const availabilityEventTypeTwo = await getSchedule({
+      const availabilityEventTypeTwo = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 2,
           eventTypeSlug: "",
@@ -2624,7 +2626,7 @@ describe("getSchedule", () => {
 
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(0); // 1 booking per day as limit
 
-      const availabilityUserEventType = await getSchedule({
+      const availabilityUserEventType = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 3,
           eventTypeSlug: "",
@@ -2708,7 +2710,7 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
-      const thisUserAvailabilityBookingLimit = await getSchedule({
+      const thisUserAvailabilityBookingLimit = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -2791,7 +2793,7 @@ describe("getSchedule", () => {
 
       // Requesting this user's availability for their
       // individual Event Type
-      const thisUserAvailability = await getSchedule({
+      const thisUserAvailability = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 2,
           eventTypeSlug: "",
@@ -2862,7 +2864,7 @@ describe("getSchedule", () => {
         ],
       });
 
-      const schedule = await getSchedule({
+      const schedule = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -2961,7 +2963,7 @@ describe("getSchedule", () => {
         ],
       });
 
-      const scheduleForTeamEventOnADayWithNoBooking = await getSchedule({
+      const scheduleForTeamEventOnADayWithNoBooking = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -2992,17 +2994,18 @@ describe("getSchedule", () => {
         }
       );
 
-      const scheduleForTeamEventOnADayWithOneBookingForEachUser = await getSchedule({
-        input: {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-          isTeamEvent: true,
-          orgSlug: null,
-        },
-      });
+      const scheduleForTeamEventOnADayWithOneBookingForEachUser =
+        await availableSlotsService.getAvailableSlots({
+          input: {
+            eventTypeId: 1,
+            eventTypeSlug: "",
+            startTime: `${plus1DateString}T18:30:00.000Z`,
+            endTime: `${plus2DateString}T18:29:59.999Z`,
+            timeZone: Timezones["+5:30"],
+            isTeamEvent: true,
+            orgSlug: null,
+          },
+        });
 
       // A user with blocked time in another event, still affects Team Event availability
       // It's a collective availability, so both user 101 and 102 are considered for timeslots
@@ -3101,17 +3104,18 @@ describe("getSchedule", () => {
           },
         ],
       });
-      const scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots = await getSchedule({
-        input: {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-          isTeamEvent: true,
-          orgSlug: null,
-        },
-      });
+      const scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots =
+        await availableSlotsService.getAvailableSlots({
+          input: {
+            eventTypeId: 1,
+            eventTypeSlug: "",
+            startTime: `${plus1DateString}T18:30:00.000Z`,
+            endTime: `${plus2DateString}T18:29:59.999Z`,
+            timeZone: Timezones["+5:30"],
+            isTeamEvent: true,
+            orgSlug: null,
+          },
+        });
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserButOnDifferentTimeslots).toHaveTimeSlots(
         [
@@ -3130,17 +3134,18 @@ describe("getSchedule", () => {
         { dateString: plus2DateString }
       );
 
-      const scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot = await getSchedule({
-        input: {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-          isTeamEvent: true,
-          orgSlug: null,
-        },
-      });
+      const scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot =
+        await availableSlotsService.getAvailableSlots({
+          input: {
+            eventTypeId: 1,
+            eventTypeSlug: "",
+            startTime: `${plus2DateString}T18:30:00.000Z`,
+            endTime: `${plus3DateString}T18:29:59.999Z`,
+            timeZone: Timezones["+5:30"],
+            isTeamEvent: true,
+            orgSlug: null,
+          },
+        });
       // A user with blocked time in another event, still affects Team Event availability
       expect(scheduleForTeamEventOnADayWithOneBookingForEachUserOnSameTimeSlot).toHaveTimeSlots(
         [
@@ -3195,7 +3200,7 @@ describe("getSchedule", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      const getScheduleRes = await getSchedule({
+      const getScheduleRes = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeSlug: scenario.eventTypes[0]?.slug,
           startTime: `${plus1DateString}T18:30:00.000Z`,
@@ -3275,7 +3280,7 @@ describe("getSchedule", () => {
         bookings: [],
       });
 
-      const scheduleWithHostChoosenSch = await getSchedule({
+      const scheduleWithHostChoosenSch = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -3341,7 +3346,7 @@ describe("getSchedule", () => {
         bookings: [],
       });
 
-      const scheduleWithEventCommonSch = await getSchedule({
+      const scheduleWithEventCommonSch = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -3422,7 +3427,7 @@ describe("getSchedule", () => {
         ],
       });
 
-      const schedule = await getSchedule({
+      const schedule = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -3503,7 +3508,7 @@ describe("getSchedule", () => {
         ],
       });
 
-      const schedule = await getSchedule({
+      const schedule = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
