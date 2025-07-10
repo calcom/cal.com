@@ -1,6 +1,7 @@
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
 
 import slugify from "../../slugify";
@@ -37,7 +38,8 @@ export class UserCreationService {
 
     const hashedPassword = password ? await hashPassword(password) : null;
 
-    const user = await UserRepository.create({
+    const userRepo = new UserRepository(prisma);
+    const user = await userRepo.create({
       ...data,
       username: slugify(username),
       ...(hashedPassword && { hashedPassword }),

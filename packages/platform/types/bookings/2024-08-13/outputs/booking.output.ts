@@ -18,7 +18,7 @@ import {
 import type { BookingLanguageType } from "../inputs/language";
 import { BookingLanguage } from "../inputs/language";
 
-class Attendee {
+class BookingAttendee {
   @ApiProperty({ type: String, example: "John Doe" })
   @IsString()
   @Expose()
@@ -52,7 +52,7 @@ class Attendee {
   phoneNumber?: string;
 }
 
-export class SeatedAttendee extends Attendee {
+export class SeatedAttendee extends BookingAttendee {
   @ApiProperty({ type: String, example: "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1" })
   @IsString()
   @Expose()
@@ -264,11 +264,11 @@ class BaseBookingOutput_2024_08_13 {
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
-  @ApiProperty({ type: [Attendee] })
+  @ApiProperty({ type: [BookingAttendee] })
   @ValidateNested({ each: true })
-  @Type(() => Attendee)
+  @Type(() => BookingAttendee)
   @Expose()
-  attendees!: Attendee[];
+  attendees!: BookingAttendee[];
 
   @ApiPropertyOptional({
     type: [String],

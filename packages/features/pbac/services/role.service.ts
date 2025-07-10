@@ -1,4 +1,4 @@
-import kysely from "@calcom/kysely";
+import db from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { RoleType as DomainRoleType } from "../domain/models/Role";
@@ -6,14 +6,14 @@ import type { CreateRoleData, UpdateRolePermissionsData } from "../domain/models
 import type { IRoleRepository } from "../domain/repositories/IRoleRepository";
 import { RoleRepository } from "../infrastructure/repositories/RoleRepository";
 import { DEFAULT_ROLE_IDS } from "../lib/constants";
+import { PermissionDiffService } from "./permission-diff.service";
 import { PermissionService } from "./permission.service";
-
-// These IDs must match the ones in the migration
 
 export class RoleService {
   constructor(
     private readonly repository: IRoleRepository = new RoleRepository(),
-    private readonly permissionService: PermissionService = new PermissionService()
+    private readonly permissionService: PermissionService = new PermissionService(),
+    private readonly permissionDiffService: PermissionDiffService = new PermissionDiffService()
   ) {}
 
   async createRole(data: CreateRoleData) {
@@ -37,19 +37,13 @@ export class RoleService {
   }
 
   async assignRoleToMember(roleId: string, membershipId: number) {
-    return this.repository.transaction(async (repo, trx) => {
-      const role = await trx.selectFrom("Role").select("id").where("id", "=", roleId).executeTakeFirst();
-      if (!role) throw new Error("Role not found");
-
-      // TODO: Move this to a MembershipRepository - bit difficult due to the trx record here.
-      await trx
-        .updateTable("Membership")
-        .set({ customRoleId: roleId })
-        .where("id", "=", membershipId)
-        .execute();
-
-      return role;
+    const role = await this.repository.findById(roleId);
+    if (!role) throw new Error("Role not found");
+    await db.membership.update({
+      where: { id: membershipId },
+      data: { customRoleId: roleId },
     });
+    return role;
   }
 
   async getRolePermissions(roleId: string) {
@@ -58,12 +52,10 @@ export class RoleService {
   }
 
   async removeRoleFromMember(membershipId: number) {
-    // TODO: Move this to a MembershipRepository
-    await kysely
-      .updateTable("Membership")
-      .set({ customRoleId: null })
-      .where("id", "=", membershipId)
-      .execute();
+    await db.membership.update({
+      where: { id: membershipId },
+      data: { customRoleId: null },
+    });
   }
 
   async getRole(roleId: string) {
@@ -79,12 +71,10 @@ export class RoleService {
     if (!role) {
       throw new Error("Role not found");
     }
-
     // Don't allow deleting default roles
     if (role.type === DomainRoleType.SYSTEM) {
       throw new Error("Cannot delete default roles");
     }
-
     await this.repository.delete(roleId);
   }
 
@@ -93,19 +83,20 @@ export class RoleService {
     if (!role) {
       throw new Error("Role not found");
     }
-
     // Don't allow updating default roles
     if (role.type === DomainRoleType.SYSTEM) {
       throw new Error("Cannot update default roles");
     }
-
     // Validate permissions
     const validationResult = this.permissionService.validatePermissions(data.permissions);
     if (!validationResult.isValid) {
       throw new Error(validationResult.error || "Invalid permissions provided");
     }
 
-    return this.repository.update(data.roleId, data.permissions, {
+    const existingPermissions = await this.repository.getPermissions(data.roleId);
+    const permissionChanges = this.permissionDiffService.calculateDiff(data.permissions, existingPermissions);
+
+    return this.repository.update(data.roleId, permissionChanges, {
       color: data.updates?.color,
       name: data.updates?.name,
     });

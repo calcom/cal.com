@@ -16,7 +16,7 @@ type AppCredentialsByTypeOptions = {
 /** Used for grabbing credentials on specific app pages */
 export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentialsByTypeOptions) => {
   const { user } = ctx;
-  const userAdminTeams = await UserRepository.getUserAdminTeams(ctx.user.id);
+  const userAdminTeams = await new UserRepository(prisma).getUserAdminTeams({ userId: ctx.user.id });
   const { user: _, ...safeCredentialSelectWithoutUser } = safeCredentialSelect;
   const userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
 

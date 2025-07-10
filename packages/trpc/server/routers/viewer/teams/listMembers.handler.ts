@@ -78,7 +78,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
 
   const membersWithApps = await Promise.all(
     teamMembers.map(async (member) => {
-      const user = await UserRepository.enrichUserWithItsProfile({
+      const user = await new UserRepository(prisma).enrichUserWithItsProfile({
         user: member.user,
       });
       const { profile, ...restUser } = user;

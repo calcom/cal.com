@@ -50,6 +50,7 @@ import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedS
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
+import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
@@ -140,7 +141,7 @@ export class AvailableSlotsService {
     }
     const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
 
-    const usersForDynamicEventType = await UserRepository.findManyUsersForDynamicEventType({
+    const usersForDynamicEventType = await new UserRepository(prisma).findManyUsersForDynamicEventType({
       currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
       usernameList: Array.isArray(input.usernameList)
         ? input.usernameList
@@ -246,7 +247,7 @@ export class AvailableSlotsService {
   ) {
     const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
     log.info("getUserIdFromUsername", safeStringify({ organizationDetails, username }));
-    const [user] = await UserRepository.findUsersByUsername({
+    const [user] = await new UserRepository(prisma).findUsersByUsername({
       usernameList: [username],
       orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     });
