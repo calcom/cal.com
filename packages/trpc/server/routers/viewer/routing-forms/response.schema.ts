@@ -6,7 +6,7 @@ export const ZResponseInputSchema = z.object({
   response: z.record(
     z.object({
       label: z.string(),
-      identifier: z.string().optional(),
+      identifier: z.string().nullable(),
       value: z.union([z.string(), z.number(), z.array(z.string())]),
     })
   ),
