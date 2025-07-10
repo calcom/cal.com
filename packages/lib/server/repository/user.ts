@@ -631,8 +631,8 @@ export class UserRepository {
 
     return user;
   }
-  async getUserAdminTeams({ userId }: { userId: number }): Promise<UserAdminTeams> {
-    const user = await this.prismaClient.user.findUnique({
+  async getUserAdminTeams({ userId }: { userId: number }) {
+    return await this.prismaClient.user.findUnique({
       where: {
         id: userId,
       },
@@ -682,12 +682,6 @@ export class UserRepository {
         },
       },
     });
-
-    if (!user) {
-      return [];
-    }
-
-    return user.teams.map((membership) => membership.team.id);
   }
   async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
     const membershipQuery = {

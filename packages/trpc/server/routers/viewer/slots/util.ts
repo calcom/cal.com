@@ -50,6 +50,7 @@ import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedS
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
+import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
