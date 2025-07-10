@@ -7,10 +7,9 @@ import {
   submitAndWaitForResponse,
 } from "./lib/testUtils";
 
-test.describe.configure({ mode: "parallel" });
+test.describe.configure({ mode: "serial" }); // Run tests sequentially to avoid data conflicts
 
-// TODO: This test is very flaky. Feels like tossing a coin and hope that it won't fail. Needs to be revisited.
-test.describe("hash my url", () => {
+test.describe("private links creation and usage", () => {
   test.beforeEach(async ({ users }) => {
     const user = await users.create();
     await user.apiLogin();
@@ -18,22 +17,26 @@ test.describe("hash my url", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
-  test("generate url hash", async ({ page }) => {
+  test("generate private link and make a booking with it", async ({ page }) => {
     await page.goto("/event-types");
     // We wait until loading is finished
-    await page.waitForSelector('[data-testid="event-types"]');
-    await page.locator("ul[data-testid=event-types] > li a").first().click();
-    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
-      "aria-current",
-      "page"
-    ); // fix the race condition
-    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); //fix the race condition
+    await Promise.all([
+      page.waitForURL("**/event-types"),
+      page.getByTestId("event-types").locator("li a").first().click(),
+    ]);
+
+    await expect(page.locator("[data-testid=event-title]")).toBeVisible();
+
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
-    // ignore if it is already checked, and click if unchecked
-    const hashedLinkCheck = await page.locator('[data-testid="multiplePrivateLinksCheck"]');
 
-    await hashedLinkCheck.click();
+    const hashedLinkCheck = page.locator('[data-testid="multiplePrivateLinksCheck"]');
+    await expect(hashedLinkCheck).toBeVisible();
+
+    // ignore if it is already checked, and click if unchecked
+    if (!(await hashedLinkCheck.isChecked())) {
+      await hashedLinkCheck.click();
+    }
 
     // Wait for the private link URL input to be visible and get its value
     const $url = await page.locator('[data-testid="private-link-url"]').inputValue();
@@ -47,19 +50,20 @@ test.describe("hash my url", () => {
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     // Make sure we're navigated to the success page
-    const successPage = await page.locator("[data-testid=success-page]");
+    const successPage = page.getByTestId("success-page");
     await expect(successPage).toBeVisible();
 
     // hash regenerates after successful booking (only for usage-based links)
     await page.goto("/event-types");
-    // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
+    await page.reload(); // ensure fresh state
+
     await page.locator("ul[data-testid=event-types] > li a").first().click();
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
 
     // After booking with a usage-based private link, the toggle will be off and the input will not be present
-    const hashedLinkCheck2 = await page.locator('[data-testid="multiplePrivateLinksCheck"]');
+    const hashedLinkCheck2 = page.locator('[data-testid="multiplePrivateLinksCheck"]');
     await expect(hashedLinkCheck2).not.toBeChecked();
     await expect(page.locator('[data-testid="private-link-url"]')).toHaveCount(0);
 
@@ -68,6 +72,8 @@ test.describe("hash my url", () => {
     await page.getByTestId("vertical-tab-event_setup_tab_title").click();
     await page.locator("[data-testid=event-title]").first().fill("somethingrandom");
     await page.locator("[data-testid=event-slug]").first().fill("somethingrandom");
+    await page.waitForTimeout(500); // or check if slug field is updated visually
+
     await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
@@ -76,5 +82,116 @@ test.describe("hash my url", () => {
     // Wait for the private link URL input to be visible and get its value
     const $url2 = await page.locator('[data-testid="private-link-url"]').inputValue();
     expect($url2.includes("somethingrandom")).toBeTruthy();
+  });
+  // TODO: Add test for private link with expiration date
+  test("generate private link with future expiration date and make a booking with it", async ({ page }) => {
+    await page.goto("/event-types");
+    // We wait until loading is finished
+    await Promise.all([
+      page.waitForURL("**/event-types"),
+      page.getByTestId("event-types").locator("li a").first().click(),
+    ]);
+
+    await expect(page.locator("[data-testid=event-title]")).toBeVisible();
+
+    // We wait for the page to load
+    await page.locator(".primary-navigation >> text=Advanced").click();
+
+    const privateLinkCheck = page.locator('[data-testid="multiplePrivateLinksCheck"]');
+    await expect(privateLinkCheck).toBeVisible();
+
+    // ignore if it is already checked, and click if unchecked
+    if (!(await privateLinkCheck.isChecked())) {
+      await privateLinkCheck.click();
+    }
+
+    // Wait for the private link URL input to be visible and get its value
+    const $url = await page.locator('[data-testid="private-link-url"]').inputValue();
+    await page.locator('[data-testid="private-link-settings"]').click();
+    await expect(page.locator('[data-testid="private-link-radio-group"]')).toBeVisible();
+    await page.locator('[data-testid="private-link-time"]').click();
+    await page.locator('[data-testid="private-link-expiration-settings-save"]').click();
+    await page.waitForTimeout(500);
+    // click update
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      action: () => page.locator("[data-testid=update-eventtype]").click(),
+    });
+    // book using generated url hash
+    await page.goto($url);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+    // Make sure we're navigated to the success page
+    await expect(page.getByTestId("success-page")).toBeVisible();
+
+    // hash regenerates after successful booking (only for usage-based links)
+    await page.goto("/event-types");
+    await page.waitForSelector('[data-testid="event-types"]');
+    await page.reload(); // ensure fresh state
+
+    await page.locator("ul[data-testid=event-types] > li a").first().click();
+    // We wait for the page to load
+    await page.locator(".primary-navigation >> text=Advanced").click();
+
+    // After booking with a expiration date based private link, the toggle should still be on
+    const privateLinkCheck2 = page.locator('[data-testid="multiplePrivateLinksCheck"]');
+    await expect(privateLinkCheck2).toBeChecked();
+  });
+  test("generate private link with 2 usages and make 2 bookings with it", async ({ page }) => {
+    await page.goto("/event-types");
+    // We wait until loading is finished
+    await Promise.all([
+      page.waitForURL("**/event-types"),
+      page.getByTestId("event-types").locator("li a").first().click(),
+    ]);
+
+    await expect(page.locator("[data-testid=event-title]")).toBeVisible();
+
+    // We wait for the page to load
+    await page.locator(".primary-navigation >> text=Advanced").click();
+
+    const privateLinkCheck = page.locator('[data-testid="multiplePrivateLinksCheck"]');
+    await expect(privateLinkCheck).toBeVisible();
+
+    // ignore if it is already checked, and click if unchecked
+    if (!(await privateLinkCheck.isChecked())) {
+      await privateLinkCheck.click();
+    }
+
+    // Wait for the private link URL input to be visible and get its value
+    const $url = await page.locator('[data-testid="private-link-url"]').inputValue();
+    await page.locator('[data-testid="private-link-settings"]').click();
+    await expect(page.locator('[data-testid="private-link-radio-group"]')).toBeVisible();
+    await page.locator('[data-testid="private-link-usage-count"]').fill("2");
+    await page.locator('[data-testid="private-link-expiration-settings-save"]').click();
+    await page.waitForTimeout(500);
+    // click update
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+      action: () => page.locator("[data-testid=update-eventtype]").click(),
+    });
+    // book using generated url hash
+    await page.goto($url);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+    // Make sure we're navigated to the success page
+    await expect(page.getByTestId("success-page")).toBeVisible();
+
+    // book again using generated url hash
+    await page.goto($url);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+    // Make sure we're navigated to the success page
+    await expect(page.getByTestId("success-page")).toBeVisible();
+
+    await page.goto("/event-types");
+    await page.waitForSelector('[data-testid="event-types"]');
+    await page.reload(); // ensure fresh state
+
+    await page.locator("ul[data-testid=event-types] > li a").first().click();
+    // We wait for the page to load
+    await page.locator(".primary-navigation >> text=Advanced").click();
+
+    // After booking twice with a 2 usages based private link, the toggle should be off
+    const privateLinkCheck2 = page.locator('[data-testid="multiplePrivateLinksCheck"]');
+    await expect(privateLinkCheck2).not.toBeChecked();
   });
 });

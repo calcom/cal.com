@@ -321,11 +321,12 @@ export const MultiplePrivateLinksController = ({
             <RadioArea.Group
               className="space-y-2"
               value={selectedType}
+              data-testid="private-link-radio-group"
               onValueChange={(value: "time" | "usage") => {
                 setSelectedType(value);
                 updateLinkSettings(currentLinkIndex, value);
               }}>
-              <RadioArea.Item value="usage" className="w-full text-sm">
+              <RadioArea.Item value="usage" data-testid="private-link-usage" className="w-full text-sm">
                 <Label className="mb-0 cursor-pointer text-sm font-medium">
                   {t("usage_based_expiration")}
                 </Label>
@@ -334,6 +335,7 @@ export const MultiplePrivateLinksController = ({
                     <NumberInput
                       required
                       min={1}
+                      data-testid="private-link-usage-count"
                       placeholder={t("number_of_uses")}
                       value={maxUsageCount === null ? "" : maxUsageCount}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -349,13 +351,14 @@ export const MultiplePrivateLinksController = ({
                   </div>
                 )}
               </RadioArea.Item>
-              <RadioArea.Item value="time" className="w-full text-sm">
+              <RadioArea.Item data-testid="private-link-time" value="time" className="w-full text-sm">
                 <Label className="mb-0 cursor-pointer text-sm font-medium">
                   {t("time_based_expiration")}
                 </Label>
                 {selectedType === "time" && (
                   <div className="mt-2 w-[180px]">
                     <DatePicker
+                      data-testid="private-link-expiration-date"
                       date={expiryDate}
                       onDatesChange={(newDate: Date) => {
                         setExpiryDate(newDate);
@@ -369,7 +372,11 @@ export const MultiplePrivateLinksController = ({
           </div>
 
           <div className="mb-4 mt-4 flex justify-end">
-            <Button type="button" color="primary" onClick={() => setIsDialogOpen(false)}>
+            <Button
+              type="button"
+              color="primary"
+              data-testid="private-link-expiration-settings-save"
+              onClick={() => setIsDialogOpen(false)}>
               {t("save")}
             </Button>
           </div>
