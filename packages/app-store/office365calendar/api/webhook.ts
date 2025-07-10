@@ -50,31 +50,39 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // This is a regular notification
-  const clientState = req.headers["x-microsoft-client-state"];
-
-  log.debug(
-    "Webhook notification received",
-    safeStringify({
-      clientState,
-      body: req.body,
-    })
-  );
-
-  // Only validate client state for actual notifications, not validation requests
-  if (
-    req.body?.value &&
-    process.env.OFFICE365_WEBHOOK_CLIENT_STATE &&
-    clientState !== process.env.OFFICE365_WEBHOOK_CLIENT_STATE
-  ) {
-    throw new HttpError({ statusCode: 403, message: "Invalid client state" });
-  }
-
   const notifications = req.body?.value;
 
   if (!notifications || !Array.isArray(notifications)) {
     log.debug("No notifications found in request body");
     res.status(200).json({ message: "ok" });
     return;
+  }
+
+  log.debug(
+    "Webhook notification received",
+    safeStringify({
+      body: req.body,
+      notificationCount: notifications.length,
+    })
+  );
+
+  // Validate client state for each notification
+  if (process.env.OFFICE365_WEBHOOK_CLIENT_STATE) {
+    for (const notification of notifications) {
+      const notificationClientState = notification.clientState;
+
+      if (notificationClientState !== process.env.OFFICE365_WEBHOOK_CLIENT_STATE) {
+        log.error(
+          "Invalid client state in notification",
+          safeStringify({
+            expected: process.env.OFFICE365_WEBHOOK_CLIENT_STATE,
+            received: notificationClientState,
+            subscriptionId: notification.subscriptionId,
+          })
+        );
+        throw new HttpError({ statusCode: 403, message: "Invalid client state" });
+      }
+    }
   }
 
   // Process each notification
@@ -137,10 +145,11 @@ async function processNotification(notification: Notification) {
       await calendarService?.fetchAvailabilityAndSetCache?.([selectedCalendar]);
 
       log.debug(
-        "Successfully refreshed cache for credential",
+        "*************************\n\n\n\n\n\n\n\n\n\n\n\n\n\nSuccessfully refreshed cache for credential",
         safeStringify({
           credentialId: credential.id,
-        })
+        }),
+        "\n\n\n\n\n\n\n\n\n\n\n\n\n\n**************************"
       );
     } catch (error) {
       log.error(
