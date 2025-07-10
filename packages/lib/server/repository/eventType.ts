@@ -948,6 +948,7 @@ export class EventTypeRepository {
           select: {
             credentials: { select: credentialForCalendarServiceSelect },
             ...availabilityUserSelect,
+            bookingLimits: true,
           },
         },
       },

@@ -421,6 +421,9 @@ model User {
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
 
+  /// @zod.custom(imports.intervalLimitsType)
+  bookingLimits Json?
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])

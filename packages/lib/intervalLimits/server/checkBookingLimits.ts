@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import dayjs from "@calcom/dayjs";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
@@ -16,6 +18,8 @@ async function _checkBookingLimits(
   eventId: number,
   rescheduleUid?: string | undefined,
   timeZone?: string | null,
+  user?: { id: number; email: string },
+  isGlobalBookingLimits?: boolean,
   includeManagedEvents?: boolean
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
@@ -30,6 +34,8 @@ async function _checkBookingLimits(
       eventId,
       timeZone,
       rescheduleUid,
+      user,
+      isGlobalBookingLimits,
       includeManagedEvents,
     })
   );
@@ -52,6 +58,7 @@ async function _checkBookingLimit({
   timeZone,
   teamId,
   user,
+  isGlobalBookingLimits,
   includeManagedEvents = false,
 }: {
   eventStartDate: Date;
@@ -62,6 +69,7 @@ async function _checkBookingLimit({
   timeZone?: string | null;
   teamId?: number;
   user?: { id: number; email: string };
+  isGlobalBookingLimits?: boolean;
   includeManagedEvents?: boolean;
 }) {
   {
@@ -75,6 +83,18 @@ async function _checkBookingLimit({
     const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
 
     let bookingsInPeriod;
+
+    let whereInput: Prisma.BookingWhereInput = {
+      eventTypeId: eventId,
+    };
+    if (user?.id && isGlobalBookingLimits) {
+      whereInput = {
+        userId: user.id,
+        eventType: {
+          schedulingType: null,
+        },
+      };
+    }
 
     if (teamId && user) {
       bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
@@ -90,7 +110,7 @@ async function _checkBookingLimit({
       bookingsInPeriod = await prisma.booking.count({
         where: {
           status: BookingStatus.ACCEPTED,
-          eventTypeId: eventId,
+          ...whereInput,
           // FIXME: bookings that overlap on one side will never be counted
           startTime: {
             gte: startDate,
