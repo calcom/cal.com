@@ -107,9 +107,10 @@ export class AvailableSlotsService {
     eventTypeId: number;
   }) {
     const currentTimeInUtc = dayjs.utc().format();
+    const slotsRepo = new SelectedSlotsRepository(prisma);
 
     const unexpiredSelectedSlots =
-      (await SelectedSlotsRepository.findManyUnexpiredSlots({
+      (await slotsRepo.findManyUnexpiredSlots({
         userIds: usersWithCredentials.map((user) => user.id),
         currentTimeInUtc,
       })) || [];
@@ -123,7 +124,7 @@ export class AvailableSlotsService {
     return reservedSlots;
 
     async function _cleanupExpiredSlots({ eventTypeId }: { eventTypeId: number }) {
-      await SelectedSlotsRepository.deleteManyExpiredSlots({ eventTypeId, currentTimeInUtc });
+      await slotsRepo.deleteManyExpiredSlots({ eventTypeId, currentTimeInUtc });
     }
   }
 
