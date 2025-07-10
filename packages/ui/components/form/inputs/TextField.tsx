@@ -82,13 +82,13 @@ const Addon = ({ children, className, error, onClickAddon, size = "md", position
       onClickAddon && "pointer-events-auto cursor-pointer disabled:hover:cursor-not-allowed",
       className
     )}>
-    <span
+    <div
       className={classNames(
         "text-sm font-medium leading-none",
         error ? "text-error" : "text-muted peer-disabled:opacity-50"
       )}>
       {children}
-    </span>
+    </div>
   </div>
 );
 
