@@ -18,6 +18,14 @@ vi.mock("@calcom/lib/server/repository/selectedSlots", () => ({
   },
 }));
 
+vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({
+  default: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@calcom/features/webhooks/lib/scheduleTrigger", () => ({
+  scheduleReservationExpiredTrigger: vi.fn().mockResolvedValue(undefined),
+}));
+
 // A tiny helper to build a canned handler context with stubbed Prisma methods.
 const buildContext = () => {
   const prismaStub = {
@@ -80,7 +88,6 @@ describe("reserveSlotHandler cookie settings", () => {
         slotUtcStartDate: new Date().toISOString(),
         slotUtcEndDate: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
         eventTypeId: 1,
-        bookingUid: undefined,
         _isDryRun: false,
       },
     });
@@ -100,7 +107,6 @@ describe("reserveSlotHandler cookie settings", () => {
         slotUtcStartDate: new Date().toISOString(),
         slotUtcEndDate: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
         eventTypeId: 1,
-        bookingUid: undefined,
         _isDryRun: false,
       },
     });
