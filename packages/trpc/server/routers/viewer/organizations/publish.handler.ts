@@ -16,7 +16,7 @@ type PublishOptions = {
 };
 
 export const publishHandler = async ({ ctx }: PublishOptions) => {
-  const orgId = ctx.user.organizationId;
+  const orgId = ctx.user.profile?.organizationId;
   if (!orgId)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have an organization to upgrade" });
 

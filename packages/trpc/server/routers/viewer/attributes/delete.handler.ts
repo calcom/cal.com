@@ -1,9 +1,8 @@
 import prisma from "@calcom/prisma";
 
-import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { ZDeleteAttributeSchema } from "./delete.schema";
+import { assertOrgMember } from "./utils";
 
 type DeleteOptions = {
   ctx: {
@@ -12,19 +11,13 @@ type DeleteOptions = {
   input: ZDeleteAttributeSchema;
 };
 
-const deleteAttributeHandler = async ({ input, ctx }: DeleteOptions) => {
-  const org = ctx.user.organization;
-
-  if (!org.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be apart of an organization to use this feature",
-    });
-  }
+const deleteAttributeHandler = async ({ input, ctx: { user: authedUser } }: DeleteOptions) => {
+  // assert authenticated user is part of an organization
+  assertOrgMember(authedUser);
 
   const attribute = await prisma.attribute.delete({
     where: {
-      teamId: org.id,
+      teamId: authedUser.profile.organizationId,
       id: input.id,
     },
   });

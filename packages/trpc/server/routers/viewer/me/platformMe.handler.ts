@@ -10,26 +10,23 @@ type MeOptions = {
   };
 };
 
-export const platformMeHandler = async ({ ctx }: MeOptions) => {
-  const { user: sessionUser } = ctx;
-
+export const platformMeHandler = async ({ ctx: { user: authedUser } }: MeOptions) => {
   const allUserEnrichedProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(
-    sessionUser
+    authedUser
   );
 
   const mainProfile =
-    allUserEnrichedProfiles.find((profile) => sessionUser.movedToProfileId === profile.id) ||
-    allUserEnrichedProfiles.find((profile) => sessionUser.organizationId === profile.organizationId) ||
+    allUserEnrichedProfiles.find((profile) => authedUser.movedToProfileId === profile.id) ||
     allUserEnrichedProfiles[0];
 
   return {
-    id: sessionUser.id,
-    username: sessionUser.username,
-    email: sessionUser.email,
-    timeFormat: sessionUser.timeFormat,
-    timeZone: sessionUser.timeZone,
-    defaultScheduleId: sessionUser.defaultScheduleId,
-    weekStart: sessionUser.weekStart,
+    id: authedUser.id,
+    username: authedUser.username,
+    email: authedUser.email,
+    timeFormat: authedUser.timeFormat,
+    timeZone: authedUser.timeZone,
+    defaultScheduleId: authedUser.defaultScheduleId,
+    weekStart: authedUser.weekStart,
     organizationId: mainProfile.organizationId,
     organization: {
       isPlatform: mainProfile.organization?.isPlatform ?? false,

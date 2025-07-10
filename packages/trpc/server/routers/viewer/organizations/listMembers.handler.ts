@@ -33,19 +33,22 @@ function getUserConditions(oAuthClientId?: string) {
 }
 
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
-  const organizationId = ctx.user.organizationId ?? ctx.user.profiles[0].organizationId;
+  const orgId = ctx.user.profile?.organizationId;
+  if (!orgId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of an organization." });
+  }
   const searchTerm = input.searchTerm;
   const oAuthClientId = input.oAuthClientId;
   const expand = input.expand;
   const filters = input.filters || [];
 
   const featuresRepository = new FeaturesRepository();
-  const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
+  const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(orgId, "pbac");
 
   const allAttributeOptions = await prisma.attributeOption.findMany({
     where: {
       attribute: {
-        teamId: organizationId,
+        teamId: orgId,
       },
     },
     orderBy: {
@@ -65,11 +68,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       })),
     }));
 
-  if (!organizationId) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "User is not part of any organization." });
-  }
-
-  if (ctx.user.organization.isPrivate && !ctx.user.organization.isOrgAdmin) {
+  if (ctx.user.profile.organization.isPrivate && !ctx.user.organization.isOrgAdmin) {
     return {
       canUserGetMembers: false,
       rows: [],
@@ -128,7 +127,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           filterValue: lastActiveAtFilter.value,
         })),
     },
-    teamId: organizationId,
+    teamId: orgId,
     ...(searchTerm && {
       user: {
         OR: [
@@ -312,9 +311,9 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           : null,
         avatarUrl: user.avatarUrl,
         teams: user.teams
-          .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
+          .filter((team) => team.team.id !== orgId) // In this context we dont want to return the org team
           .map((team) => {
-            if (team.team.id === organizationId) return;
+            if (team.team.id === orgId) return;
             return {
               id: team.team.id,
               name: team.team.name,

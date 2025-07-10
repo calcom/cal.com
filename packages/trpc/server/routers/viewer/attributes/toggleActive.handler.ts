@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { ZToggleActiveSchema } from "./toggleActive.schema";
+import { assertOrgMember } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -12,21 +13,14 @@ type GetOptions = {
   input: ZToggleActiveSchema;
 };
 
-const toggleActiveHandler = async ({ input, ctx }: GetOptions) => {
-  const org = ctx.user.organization;
-
-  if (!org.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be apart of an organization to use this feature",
-    });
-  }
-
+const toggleActiveHandler = async ({ input, ctx: { user: authedUser } }: GetOptions) => {
+  // assert authenticated user is part of an organization
+  assertOrgMember(authedUser);
   // Ensure that this users org owns the attribute
   const attribute = await prisma.attribute.findUnique({
     where: {
       id: input.attributeId,
-      teamId: org.id,
+      teamId: authedUser.profile.organizationId,
     },
     select: {
       id: true,

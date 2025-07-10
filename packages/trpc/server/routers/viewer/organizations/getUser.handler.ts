@@ -16,10 +16,10 @@ type AdminVerifyOptions = {
 export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
   const currentUser = ctx.user;
 
-  if (!currentUser.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!currentUser.profile.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
-  if (!(await isOrganisationAdmin(currentUser?.id, currentUser.organizationId)))
+  if (!(await isOrganisationAdmin(currentUser?.id, currentUser.profile.organizationId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // get requested user from database and ensure they are in the same organization
@@ -51,7 +51,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
     prisma.membership.findFirst({
       where: {
         userId: input.userId,
-        teamId: currentUser.organizationId,
+        teamId: currentUser.profile.organizationId,
         accepted: true,
       },
       select: {
@@ -62,7 +62,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
       where: {
         userId: input.userId,
         team: {
-          parentId: currentUser.organizationId,
+          parentId: currentUser.profile.organizationId,
         },
       },
       select: {

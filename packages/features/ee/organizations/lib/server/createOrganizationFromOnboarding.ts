@@ -275,7 +275,10 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
     ctx: {
       user: {
         ...owner,
-        organizationId,
+        // the owner must "own" the organization but the org doesn't fully exist yet, so we pass the organizationId here
+        profile: {
+          organizationId,
+        },
       },
     },
     input: {

@@ -15,15 +15,17 @@ interface AddBulkToTeamProps {
 }
 
 export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => {
-  if (!user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
-
+  // check user is in organization
+  if (!user.profile?.organizationId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
   // check if user is admin of organization
-  if (!(await isOrganisationAdmin(user?.id, user.organizationId)))
+  if (!(await isOrganisationAdmin(user?.id, user.profile.organizationId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const usersInOrganization = await prisma.membership.findMany({
     where: {
-      teamId: user.organizationId,
+      teamId: user.profile.organizationId,
       user: {
         id: {
           in: input.userIds,

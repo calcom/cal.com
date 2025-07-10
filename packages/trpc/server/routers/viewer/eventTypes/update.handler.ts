@@ -35,16 +35,8 @@ import {
 } from "./util";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
-type User = {
-  id: SessionUser["id"];
-  username: SessionUser["username"];
-  profile: {
-    id: SessionUser["profile"]["id"] | null;
-  };
-  userLevelSelectedCalendars: SessionUser["userLevelSelectedCalendars"];
-  organizationId: number | null;
-  email: SessionUser["email"];
-  locale: string;
+type User = Pick<SessionUser, "id" | "username" | "email" | "userLevelSelectedCalendars" | "locale"> & {
+  profile?: Pick<SessionUser["profile"], "id" | "organizationId">;
 };
 
 type UpdateOptions = {
@@ -200,7 +192,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   ensureUniqueBookingFields(bookingFields);
   ensureEmailOrPhoneNumberIsPresent(bookingFields);
 
-  if (autoTranslateDescriptionEnabled && !ctx.user.organizationId) {
+  if (autoTranslateDescriptionEnabled && !ctx.user.profile?.organizationId) {
     logger.error(
       "Auto-translating description requires an organization. This should not happen - UI controls should prevent this state."
     );
@@ -209,7 +201,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     // autoTranslate feature is allowed for org users only
-    autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled),
+    autoTranslateDescriptionEnabled: !!(ctx.user.profile?.organizationId && autoTranslateDescriptionEnabled),
     description: newDescription,
     title: newTitle,
     bookingFields,
@@ -626,7 +618,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       .length === 0;
   const title = newTitle ?? (hasNoTitleTranslations ? eventType.title : undefined);
 
-  if (ctx.user.organizationId && autoTranslateDescriptionEnabled && (title || description)) {
+  if (ctx.user.profile?.organizationId && autoTranslateDescriptionEnabled && (title || description)) {
     await tasker.create("translateEventTypeData", {
       eventTypeId: id,
       description,
@@ -671,7 +663,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     oldEventType: eventType,
     updatedEventType,
     children,
-    profileId: ctx.user.profile.id,
+    profileId: ctx.user.profile?.id ?? null,
     prisma: ctx.prisma,
     updatedValues,
   });

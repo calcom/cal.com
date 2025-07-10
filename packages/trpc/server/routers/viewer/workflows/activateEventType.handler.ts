@@ -299,7 +299,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         },
       });
 
-      const bookerUrl = await getBookerBaseUrl(ctx.user.organizationId ?? null);
+      const bookerUrl = await getBookerBaseUrl(ctx.user.profile?.organizationId ?? null);
 
       for (const booking of bookingsForReminders) {
         // eventTypeId is technically nullable but we know it will be there

@@ -8,11 +8,13 @@ type VerifyCodeOptions = {
 };
 
 export const getBrandHandler = async ({ ctx }: VerifyCodeOptions) => {
-  const { user } = ctx;
+  const {
+    user: { profile },
+  } = ctx;
 
-  if (!user.organizationId) return null;
+  if (!profile.organizationId) return null;
 
-  return await getBrand(user.organizationId);
+  return await getBrand(profile.organizationId);
 };
 
 export default getBrandHandler;

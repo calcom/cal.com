@@ -18,11 +18,10 @@ type LoggedInUser = {
   email: string;
   locale: string;
   emailVerified: Date | null;
-  organizationId: number | null;
 };
 
 export default async function toggleEnabledHandler({
-  ctx,
+  ctx: { user: authedUser },
   input,
 }: {
   ctx: {
@@ -30,14 +29,13 @@ export default async function toggleEnabledHandler({
   };
   input: z.infer<typeof DelegationCredentialToggleEnabledSchema>;
 }) {
-  const { user: loggedInUser } = ctx;
-  const t = await getTranslation(ctx.user.locale ?? "en", "common");
+  const t = await getTranslation(authedUser.locale ?? "en", "common");
 
-  if (!loggedInUser.emailVerified) {
+  if (!authedUser.emailVerified) {
     throw new Error(t("verify_your_email"));
   }
 
-  return toggleDelegationCredentialEnabled(loggedInUser, input);
+  return toggleDelegationCredentialEnabled(authedUser, input);
 }
 
 export async function toggleDelegationCredentialEnabled(
@@ -118,7 +116,7 @@ const assertWorkspaceConfigured = async ({
   user,
 }: {
   delegationCredentialId: string;
-  user: { id: number; email: string; organizationId: number | null };
+  user: { id: number; email: string };
 }) => {
   const delegationCredential = await DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey(
     {

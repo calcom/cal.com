@@ -17,11 +17,11 @@ export default async function handler({
   ctx,
 }: {
   input: z.infer<typeof DelegationCredentialCreateSchema>;
-  ctx: { user: { id: number; organizationId: number | null } };
+  ctx: { user: { id: number; profile?: { organizationId: number | null } } };
 }) {
   const { workspacePlatformSlug, domain, serviceAccountKey } = input;
   const { user } = ctx;
-  const { organizationId } = user;
+  const { organizationId } = user.profile ?? {};
 
   if (!organizationId) {
     throw new TRPCError({

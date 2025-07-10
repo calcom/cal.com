@@ -62,7 +62,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     throw new TRPCError({ code: "BAD_REQUEST", message: t(layoutError) });
   }
 
-  if (input.username && !user.organizationId) {
+  if (input.username && !user.profile?.organizationId) {
     const username = slugify(input.username);
     // Only validate if we're changing usernames
     if (username !== user.username) {
@@ -74,7 +74,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         throw new TRPCError({ code: "BAD_REQUEST", message: t("username_already_taken") });
       }
     }
-  } else if (input.username && user.organizationId && user.movedToProfileId) {
+  } else if (input.username && user.profile?.organizationId && user.movedToProfileId) {
     // don't change user.username if we have profile.username
     delete data.username;
   }

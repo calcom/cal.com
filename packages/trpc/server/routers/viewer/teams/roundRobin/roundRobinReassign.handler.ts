@@ -25,7 +25,7 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
 
   return await roundRobinReassignment({
     bookingId,
-    orgId: ctx.user.organizationId,
+    orgId: ctx.user.profile?.organizationId ?? null,
     reassignedById: ctx.user.id,
   });
 };

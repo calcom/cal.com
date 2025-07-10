@@ -77,7 +77,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
 
-  const profileData = user.organization?.isPlatform
+  const profileData = user.profile?.organization?.isPlatform
     ? {
         organizationId: null,
         organization: { id: -1, isPlatform: true, slug: "", isOrgAdmin: false },
@@ -87,7 +87,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
       }
     : {
         organizationId: user.profile?.organizationId ?? null,
-        organization: user.organization,
+        organization: user.profile?.organization,
         username: user.profile?.username ?? user.username ?? null,
         profile: user.profile ?? null,
         profiles: allUserEnrichedProfiles,

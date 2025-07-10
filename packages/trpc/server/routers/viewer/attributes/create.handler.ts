@@ -3,11 +3,9 @@ import prisma from "@calcom/prisma";
 import type { Attribute } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 
-import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { ZCreateAttributeSchema } from "./create.schema";
-import { getOptionsWithValidContains } from "./utils";
+import { assertOrgMember, getOptionsWithValidContains } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -18,15 +16,8 @@ type GetOptions = {
 
 const typesWithOptions = ["SINGLE_SELECT", "MULTI_SELECT"];
 
-const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
-  const org = ctx.user.organization;
-
-  if (!org.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be apart of an organization to use this feature",
-    });
-  }
+const createAttributesHandler = async ({ input, ctx: { user: authedUser } }: GetOptions) => {
+  assertOrgMember(authedUser);
 
   const slug = slugify(input.name);
   const uniqueOptions = getOptionsWithValidContains(input.options);
@@ -41,7 +32,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
         name: input.name,
         type: input.type,
         isLocked: input.isLocked,
-        teamId: org.id,
+        teamId: authedUser.profile.organizationId,
       },
     });
   } catch (error) {

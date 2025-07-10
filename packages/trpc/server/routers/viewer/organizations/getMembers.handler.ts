@@ -10,19 +10,20 @@ type CreateOptions = {
   input: TGetMembersInputSchema;
 };
 
-export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
+export const getMembersHandler = async ({ input, ctx: { user: authedUser } }: CreateOptions) => {
   const { teamIdToExclude, accepted, distinctUser } = input;
 
-  if (!ctx.user.organizationId) return [];
+  if (!authedUser.profile?.organizationId) return [];
 
-  const isOrgPrivate = ctx.user.organization.isPrivate;
-  const isOrgAdmin = ctx.user.organization.isOrgAdmin;
+  const isOrgPrivate = authedUser.profile?.organization?.isPrivate;
+  // TODO: Refactor with PBAC
+  const isOrgAdmin = authedUser.organization.isOrgAdmin;
 
   if (isOrgPrivate && !isOrgAdmin) return [];
 
   const teamQuery = await prisma.team.findUnique({
     where: {
-      id: ctx.user.organizationId,
+      id: authedUser.profile.organizationId,
     },
     select: {
       members: {

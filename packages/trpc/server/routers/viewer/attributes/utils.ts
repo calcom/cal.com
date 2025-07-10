@@ -1,3 +1,7 @@
+import { TRPCError } from "@trpc/server";
+
+import type { TrpcSessionUser } from "../../../types";
+
 /**
  * Ensures that contains has no non-existent sub-options
  */
@@ -23,4 +27,17 @@ export function getOptionsWithValidContains<
         contains: contains.filter((subOptionId) => possibleSubOptionsIds.includes(subOptionId)),
       } as T;
     });
+}
+
+export function assertOrgMember(
+  user: NonNullable<TrpcSessionUser>
+): asserts user is NonNullable<TrpcSessionUser> & {
+  profile: NonNullable<TrpcSessionUser>["profile"] & { organizationId: string };
+} {
+  if (!user.profile.organizationId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be part of an organization to use this feature",
+    });
+  }
 }

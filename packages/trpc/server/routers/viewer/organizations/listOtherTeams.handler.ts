@@ -15,7 +15,7 @@ export const listOtherTeamHandler = async ({ ctx: { user } }: ListOptions) => {
 
   return await OrganizationRepository.findTeamsInOrgIamNotPartOf({
     userId: user.id,
-    parentId: user?.organization?.id ?? null,
+    parentId: user?.profile?.organizationId ?? null,
   });
 };
 

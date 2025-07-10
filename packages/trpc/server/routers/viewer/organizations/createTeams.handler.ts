@@ -21,27 +21,27 @@ type CreateTeamsOptions = {
   ctx: {
     user: {
       id: number;
-      organizationId: number | null;
+      profile?: {
+        organizationId: number | null;
+      };
     };
   };
   input: TCreateTeamsSchema;
 };
 
-export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => {
+export const createTeamsHandler = async ({ ctx: { user: authedUser }, input }: CreateTeamsOptions) => {
   // Whether self-serve or not, createTeams endpoint is accessed by Org Owner only.
   // Even when instance admin creates an org, then by the time he reaches team creation steps, he has impersonated the org owner.
-  const organizationOwner = ctx.user;
-
   const { orgId, moveTeams, creationSource } = input;
 
   // Remove empty team names that could be there due to the default empty team name
   const teamNames = input.teamNames.filter((name) => name.trim().length > 0);
 
-  if (orgId !== organizationOwner.organizationId) {
-    log.error("User is not the owner of the organization", safeStringify({ orgId, organizationOwner }));
+  if (orgId !== authedUser.profile?.organizationId) {
+    log.error("User is not the owner of the organization", safeStringify({ orgId, userId: authedUser.id }));
     throw new NotAuthorizedError();
   }
-
+  const organizationOwner = authedUser;
   // Validate user membership role
   const userMembershipRole = await prisma.membership.findFirst({
     where: {
@@ -59,7 +59,10 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   });
 
   if (!userMembershipRole) {
-    log.error("User is not a member of the organization", safeStringify({ orgId, organizationOwner }));
+    log.error(
+      "User is not a member of the organization",
+      safeStringify({ orgId, userId: organizationOwner.id })
+    );
     throw new NotAuthorizedError();
   }
 
@@ -124,7 +127,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
             parentId: orgId,
             slug: slugify(name),
             members: {
-              create: { userId: ctx.user.id, role: MembershipRole.OWNER, accepted: true },
+              create: { userId: organizationOwner.id, role: MembershipRole.OWNER, accepted: true },
             },
           },
         });
@@ -136,12 +139,6 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   return { duplicatedSlugs };
 };
-
-class NoUserError extends TRPCError {
-  constructor() {
-    super({ code: "BAD_REQUEST", message: "no_user" });
-  }
-}
 
 class NotAuthorizedError extends TRPCError {
   constructor() {

@@ -1,8 +1,7 @@
 import { AttributeRepository } from "@calcom/lib/server/repository/attribute";
 
-import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
+import { assertOrgMember } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -10,17 +9,10 @@ type GetOptions = {
   };
 };
 
-const listHandler = async (opts: GetOptions) => {
-  const org = opts.ctx.user.organization;
-
-  if (!org.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be apart of an organization to use this feature",
-    });
-  }
-
-  return await AttributeRepository.findAllByOrgIdWithOptions({ orgId: org.id });
+const listHandler = async ({ ctx: { user: authedUser } }: GetOptions) => {
+  // assert authenticated user is part of an organization
+  assertOrgMember(authedUser);
+  return await AttributeRepository.findAllByOrgIdWithOptions({ orgId: authedUser.profile.organizationId });
 };
 
 export default listHandler;

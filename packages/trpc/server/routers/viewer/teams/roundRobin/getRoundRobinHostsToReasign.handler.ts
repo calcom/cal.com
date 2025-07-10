@@ -106,7 +106,7 @@ async function getEventTypeFromDB(eventTypeId: number, prisma: PrismaClient) {
 export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobinHostsToReassignOptions) => {
   const { prisma, user } = ctx;
   const { bookingId, limit, cursor, searchTerm } = input;
-  const organizationId = user.organizationId;
+  const organizationId = user.profile.organizationId ?? null;
   const gettingRoundRobinHostsToReassignLogger = logger.getSubLogger({
     prefix: ["gettingRoundRobinHostsToReassign", `${bookingId}`],
   });

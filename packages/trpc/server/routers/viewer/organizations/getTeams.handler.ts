@@ -10,10 +10,8 @@ type GetTeamsHandler = {
   };
 };
 
-export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
-  const currentUser = ctx.user;
-  const currentUserOrgId = ctx.user.organizationId ?? currentUser.profiles[0].organizationId;
-
+export async function getTeamsHandler({ ctx: { user: authedUser } }: GetTeamsHandler) {
+  const currentUserOrgId = authedUser.profile?.organizationId;
   if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const allOrgTeams = await prisma.team.findMany({

@@ -11,10 +11,10 @@ type Options = {
   input: ZCreateInputSchema;
 };
 
-export const createHandler = async ({ ctx, input }: Options) => {
+export const createHandler = async ({ ctx: { user: authedUser }, input }: Options) => {
   const { organizationId } = await userCanCreateTeamGroupMapping(
-    ctx.user,
-    ctx.user.organizationId,
+    authedUser,
+    authedUser.profile?.organizationId,
     input.teamId
   );
 

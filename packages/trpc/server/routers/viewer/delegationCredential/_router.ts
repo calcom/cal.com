@@ -14,17 +14,16 @@ import {
 } from "./schema";
 
 const checkDelegationCredentialFeature = async ({
-  ctx,
+  ctx: { user: authedUser },
   next,
 }: {
-  ctx: { user: { id: number; locale?: string; organizationId: number | null } };
+  ctx: { user: { id: number; locale?: string; profile: { organizationId: number | null } } };
   next: () => Promise<any>;
 }) => {
-  const user = ctx.user;
-  const t = await getTranslation(user.locale ?? "en", "common");
+  const t = await getTranslation(authedUser.locale ?? "en", "common");
   const featureRepo = new FeaturesRepository();
 
-  if (!user.organizationId) {
+  if (!authedUser.profile?.organizationId) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: t("no_organization_found"),
@@ -32,7 +31,7 @@ const checkDelegationCredentialFeature = async ({
   }
 
   const hasDelegationCredential = await featureRepo.checkIfTeamHasFeature(
-    user.organizationId,
+    authedUser.profile.organizationId,
     "delegation-credential"
   );
   if (!hasDelegationCredential) {

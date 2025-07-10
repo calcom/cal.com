@@ -7,6 +7,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
+import { assertOrgMember } from "./utils";
 
 interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
   ctx: {
@@ -18,14 +19,12 @@ interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
 }
 
 export const findTeamMembersMatchingAttributeLogicHandler = async ({
-  ctx,
+  ctx: { user: authedUser },
   input,
 }: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
   const { teamId, attributesQueryValue, _enablePerf, _concurrency } = input;
-  const orgId = ctx.user.organizationId;
-  if (!orgId) {
-    throw new Error("You must be in an organization to use this feature");
-  }
+  // assert authenticated user is part of an organization
+  assertOrgMember(authedUser);
   const {
     teamMembersMatchingAttributeLogic: matchingTeamMembersWithResult,
     mainAttributeLogicBuildingWarnings: mainWarnings,
@@ -35,7 +34,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     {
       teamId,
       attributesQueryValue,
-      orgId,
+      orgId: authedUser.profile.organizationId,
     },
     {
       enablePerf: _enablePerf,

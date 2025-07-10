@@ -16,8 +16,8 @@ type BulkDeleteUsersHandler = {
 };
 
 export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHandler) {
-  const currentUser = ctx.user;
-  const currentUserOrgId = currentUser.organizationId ?? currentUser.profiles[0].organizationId;
+  const { user: currentUser } = ctx;
+  const currentUserOrgId = currentUser.profile?.organizationId;
 
   if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 

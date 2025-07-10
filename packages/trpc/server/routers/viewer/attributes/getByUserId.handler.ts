@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { ZGetByUserIdSchema } from "./getByUserId.schema";
+import { assertOrgMember } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -26,22 +27,15 @@ export type GroupedAttribute = {
   }[];
 };
 
-const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
-  const org = ctx.user.organization;
-
-  if (!org.id) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be apart of an organization to use this feature",
-    });
-  }
-
+const getByUserIdHandler = async ({ input, ctx: { user: authedUser } }: GetOptions) => {
+  // assert authenticated user is part of an organization
+  assertOrgMember(authedUser);
   // Ensure user is apart of the organization
   const membership = await prisma.membership.findUnique({
     where: {
       userId_teamId: {
         userId: input.userId,
-        teamId: org.id,
+        teamId: authedUser.profile.organizationId,
       },
     },
   });
