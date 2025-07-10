@@ -349,8 +349,9 @@ const RoundRobinHosts = ({
             size="sm"
             StartIcon="plus"
             onClick={() => {
+              const currentHosts = getValues("hosts").filter((host) => !host.isFixed);
               // If no groups exist yet, create two groups
-              if (hostGroups?.length === 0) {
+              if (hostGroups?.length === 0 && currentHosts.length > 0) {
                 const firstGroup = {
                   id: `temp_${Date.now()}_1`,
                   name: "",
@@ -362,23 +363,18 @@ const RoundRobinHosts = ({
                 const updatedHostGroups = [firstGroup, secondGroup];
                 setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
 
-                // Assign existing hosts without a group to the first group
-                const currentHosts = getValues("hosts");
-                const existingHosts = currentHosts.filter((host) => !host.isFixed);
-                if (existingHosts.length > 0) {
-                  const updatedHosts = currentHosts.map((host) => {
-                    if (!host.groupId && !host.isFixed) {
-                      return { ...host, groupId: firstGroup.id };
-                    }
-                    return host;
-                  });
-                  setValue("hosts", updatedHosts, { shouldDirty: true });
-                }
+                const updatedHosts = currentHosts.map((host) => {
+                  if (!host.groupId && !host.isFixed) {
+                    return { ...host, groupId: firstGroup.id };
+                  }
+                  return host;
+                });
+                setValue("hosts", updatedHosts, { shouldDirty: true });
               } else {
                 // If groups already exist, just add one more group
                 const newGroup = {
                   id: `temp_${Date.now()}_${hostGroups.length + 1}`,
-                  name: `Group ${hostGroups.length + 1}`,
+                  name: ``,
                 };
                 const updatedHostGroups = [...hostGroups, newGroup];
                 setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
@@ -440,6 +436,7 @@ const RoundRobinHosts = ({
             automaticAddAllEnabled={true}
             isRRWeightsEnabled={isRRWeightsEnabled}
             isFixed={false}
+            groupId={hostGroups.length === 1 ? hostGroups[0].id : null}
             containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
             onActive={() => {
               const currentHosts = getValues("hosts");
@@ -454,7 +451,7 @@ const RoundRobinHosts = ({
                     weight: host?.weight ?? 100,
                     // if host was already added, retain scheduleId and groupId
                     scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                    groupId: host?.groupId || null,
+                    groupId: host?.groupId || (hostGroups.length === 1 ? hostGroups[0].id : null),
                   };
                 }),
                 { shouldDirty: true }
@@ -654,8 +651,6 @@ const Hosts = ({
   // This is because the host is created from list option in CheckedHostField component.
   const updatedHosts = (changedHosts: Host[]) => {
     const existingHosts = getValues("hosts");
-    console.log("existingHosts", JSON.stringify(existingHosts));
-    console.log("changedHosts", JSON.stringify(changedHosts));
     return changedHosts.map((newValue) => {
       const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
 
