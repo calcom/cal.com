@@ -63,7 +63,9 @@ test.describe("private links creation and usage", () => {
     await page.locator(".primary-navigation >> text=Advanced").click();
 
     // After booking with a usage-based private link, the link should be expired
-    await expect(page.locator('[data-testid="private-link-expired"]')).toBeVisible();
+    await expect(page.locator('[data-testid="private-link-description"]')).toContainText(
+      "Usage limit reached"
+    );
 
     // Ensure that private URL is enabled after modifying the event type.
     // Additionally, if the slug is changed, ensure that the private URL is updated accordingly.
@@ -131,7 +133,7 @@ test.describe("private links creation and usage", () => {
     await page.locator(".primary-navigation >> text=Advanced").click();
 
     // After booking with a expiration date based private link, the link should be expired
-    await expect(page.locator('[data-testid="private-link-expired"]')).toBeVisible();
+    await expect(page.locator('[data-testid="private-link-expired"]')).toBeHidden();
   });
   test("generate private link with 2 usages and make 2 bookings with it", async ({ page }) => {
     await page.goto("/event-types");
@@ -188,6 +190,8 @@ test.describe("private links creation and usage", () => {
     await page.locator(".primary-navigation >> text=Advanced").click();
 
     // After booking twice with a 2 usages based private link, the link should be expired
-    await expect(page.locator('[data-testid="private-link-expired"]')).toBeVisible();
+    await expect(page.locator('[data-testid="private-link-description"]')).toContainText(
+      "Usage limit reached"
+    );
   });
 });
