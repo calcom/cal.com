@@ -82,7 +82,7 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
 
   @Post("/")
   @ApiOperation({ summary: "Create routing form response and get available slots" })
-  @Roles("TEAM_ADMIN")
+  @Roles("TEAM_MEMBER")
   @PlatformPlan("ESSENTIALS")
   async createRoutingFormResponse(
     @Param("orgId", ParseIntPipe) orgId: number,

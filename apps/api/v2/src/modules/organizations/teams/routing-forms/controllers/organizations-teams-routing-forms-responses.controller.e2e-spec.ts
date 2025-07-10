@@ -531,6 +531,7 @@ describe("Organizations Teams Routing Forms Responses", () => {
       expect(data.eventTypeId).toEqual(routingEventType.id);
       expect(data.slots).toBeDefined();
       expect(typeof data.slots).toBe("object");
+      expect(data.routing?.teamMemberIds).toBeDefined();
 
       // Clean up
       await prismaWriteService.prisma.app_RoutingForms_Form.delete({

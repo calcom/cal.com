@@ -1,3 +1,5 @@
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { CreateRoutingFormResponseInput } from "@/modules/organizations/routing-forms/inputs/create-routing-form-response.input";
 import { CreateRoutingFormResponseOutputData } from "@/modules/organizations/routing-forms/outputs/create-routing-form-response.output";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
@@ -17,7 +19,8 @@ import { ById_2024_09_04_type } from "@calcom/platform-types";
 export class SharedRoutingFormResponseService {
   constructor(
     private readonly slotsService: SlotsService_2024_09_04,
-    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
+    private readonly eventTypesRepository: EventTypesRepository_2024_06_14
   ) {}
 
   async createRoutingFormResponseWithSlots(
@@ -26,6 +29,7 @@ export class SharedRoutingFormResponseService {
     request: Request
   ): Promise<CreateRoutingFormResponseOutputData> {
     const { queueResponse, ...slotsQuery } = query;
+    const user = request.user as ApiAuthGuardUser;
 
     this.validateDateRange(slotsQuery.start, slotsQuery.end);
 
@@ -49,7 +53,7 @@ export class SharedRoutingFormResponseService {
     }
 
     // Extract event type information from the routed URL
-    const { eventTypeId, crmParams } = await this.extractEventTypeAndCrmParams(redirectUrl);
+    const { eventTypeId, crmParams } = await this.extractEventTypeAndCrmParams(user.id, redirectUrl);
 
     const paramsForGetAvailableSlots = {
       type: ById_2024_09_04_type,
@@ -149,10 +153,13 @@ export class SharedRoutingFormResponseService {
     };
   }
 
-  private async extractEventTypeAndCrmParams(routingUrl: URL) {
+  private async extractEventTypeAndCrmParams(userId: number, routingUrl: URL) {
     // Extract team and event type information
+    // TODO: Route action also has eventTypeId directly now and instead of using this brittle approach for getting event type by slug, we should get by eventTypeId
     const { teamId, eventTypeSlug } = this.extractTeamIdAndEventTypeSlugFromRedirectUrl(routingUrl);
-    const eventType = await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(teamId, eventTypeSlug);
+    const eventType = teamId
+      ? await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(teamId, eventTypeSlug)
+      : await this.eventTypesRepository.getUserEventTypeBySlug(userId, eventTypeSlug);
 
     if (!eventType?.id) {
       // This could only happen if the event-type earlier selected as route action was deleted
@@ -195,12 +202,8 @@ export class SharedRoutingFormResponseService {
     const eventTypeSlug = this.extractEventTypeFromRoutedUrl(routingUrl);
     const teamId = this.extractTeamIdFromRoutedUrl(routingUrl);
 
-    if (!teamId) {
-      throw new NotFoundException("Team ID not found in the routed URL.");
-    }
-
     if (!eventTypeSlug) {
-      throw new NotFoundException("Event type slug not found in the routed URL.");
+      throw new InternalServerErrorException("Event type slug not found in the routed URL.");
     }
 
     return { teamId, eventTypeSlug };
@@ -208,7 +211,11 @@ export class SharedRoutingFormResponseService {
 
   private extractTeamIdFromRoutedUrl(routingUrl: URL) {
     const routingSearchParams = routingUrl.searchParams;
-    return Number(routingSearchParams.get("cal.teamId"));
+    const teamId = Number(routingSearchParams.get("cal.teamId"));
+    if (isNaN(teamId)) {
+      return null;
+    }
+    return teamId;
   }
 
   private extractEventTypeFromRoutedUrl(routingUrl: URL) {

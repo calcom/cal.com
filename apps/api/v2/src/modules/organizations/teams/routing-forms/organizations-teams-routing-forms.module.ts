@@ -1,3 +1,4 @@
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/routing-forms/organizations-routing-forms.repository";
@@ -41,6 +42,7 @@ import { OrganizationsTeamsRoutingFormsService } from "./services/organizations-
     MembershipsRepository,
     OrganizationsRoutingFormsResponsesService,
     OrganizationsRoutingFormsRepository,
+    EventTypesRepository_2024_06_14,
   ],
   controllers: [OrganizationsTeamsRoutingFormsResponsesController, OrganizationsTeamsRoutingFormsController],
 })

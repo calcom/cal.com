@@ -17,16 +17,20 @@ export class IsUserRoutingForm implements CanActivate {
       throw new ForbiddenException("IsUserRoutingForm - No routing form id found in request params.");
     }
 
-    const routingForm = await this.dbRead.prisma.app_RoutingForms_Form.findFirst({
+    const userRoutingForm = await this.dbRead.prisma.app_RoutingForms_Form.findFirst({
       where: {
         id: routingFormId,
         userId: Number(user.id),
+        teamId: null,
+      },
+      select: {
+        id: true,
       },
     });
 
-    if (!routingForm) {
+    if (!userRoutingForm) {
       throw new ForbiddenException(
-        `IsUserRoutingForm - Routing Form with id=${routingFormId} is not owned by user with id=${user.id}.`
+        `Routing Form with id=${routingFormId} is not a user Routing Form owned by user with id=${user.id}.`
       );
     }
 

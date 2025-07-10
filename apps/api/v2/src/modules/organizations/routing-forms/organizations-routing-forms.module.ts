@@ -1,3 +1,4 @@
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { IsUserRoutingForm } from "@/modules/auth/guards/organizations/is-user-routing-form.guard";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -29,6 +30,7 @@ import { SharedRoutingFormResponseService } from "./services/shared-routing-form
     SharedRoutingFormResponseService,
     OrganizationsTeamsRoutingFormsResponsesOutputService,
     TeamsEventTypesRepository,
+    EventTypesRepository_2024_06_14,
   ],
   controllers: [OrganizationsRoutingFormsController, OrganizationsRoutingFormsResponsesController],
 })
