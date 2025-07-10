@@ -45,7 +45,6 @@ export class RoleRepository {
           teamId: data.teamId ?? null,
           type: data.type ?? RoleType.CUSTOM,
         },
-        include: { permissions: true },
       });
 
       if (data.permissions.length > 0) {
@@ -67,7 +66,7 @@ export class RoleRepository {
     const completeRole = await this.findById(roleId);
     if (!completeRole) throw new Error("Failed to create role");
 
-    return RoleOutputMapper.toDomain(completeRole);
+    return completeRole;
   }
 
   async delete(id: string): Promise<void> {
