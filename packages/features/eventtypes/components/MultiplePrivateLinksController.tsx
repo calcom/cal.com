@@ -284,11 +284,12 @@ export const MultiplePrivateLinksController = ({
                             color="minimal"
                             variant="icon"
                             StartIcon="settings"
+                            data-testid="private-link-settings"
                             onClick={() => openSettingsDialog(originalIndex, val)}
                           />
                         )}
                         <Button
-                          data-testid={`remove-single-use-link-${originalIndex}`}
+                          data-testid={`remove-private-link-${originalIndex}`}
                           variant="icon"
                           type="button"
                           StartIcon="trash-2"
@@ -306,7 +307,7 @@ export const MultiplePrivateLinksController = ({
                 color="minimal"
                 StartIcon="plus"
                 onClick={addPrivateLink}
-                data-testid="add-single-use-link-button">
+                data-testid="add-private-link-button">
                 {t("add_a_multiple_private_link")}
               </Button>
             </ul>
