@@ -8,6 +8,8 @@ import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
+import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
+import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -42,6 +44,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const { prisma, user } = ctx;
   const defaultStatus = "upcoming";
   const bookingListingByStatus = [input.filters.status || defaultStatus];
+  const includeHostAndTeamPermissions = input.filters.includeHostAndTeamPermissions ?? false;
 
   const { bookings, recurringInfo, totalCount } = await getAllUserBookings({
     ctx: {
@@ -55,8 +58,96 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     filters: input.filters,
   });
 
+  if (!includeHostAndTeamPermissions) {
+    return {
+      bookings,
+      recurringInfo,
+      totalCount,
+    };
+  }
+
+  // Cache for event type permissions to avoid recalculating for multiple bookings of the same event type
+  const eventTypePermissionsCache = new Map<
+    number,
+    {
+      isUserHostOrOwner: boolean;
+      hasTeamOrOrgPermissions: boolean;
+    }
+  >();
+
+  const enrichedBookings = await Promise.all(
+    bookings.map(async (booking) => {
+      const eventTypeId = booking.eventType?.id;
+
+      // Don't calculate permissions for bookings in the past
+      if (new Date(booking.endTime) < new Date()) {
+        return booking;
+      }
+
+      // Check cache first
+      if (eventTypeId && eventTypePermissionsCache.has(eventTypeId)) {
+        const cachedPermissions = eventTypePermissionsCache.get(eventTypeId)!;
+        return {
+          ...booking,
+          eventType: {
+            ...booking.eventType,
+            isUserHostOrOwner: cachedPermissions.isUserHostOrOwner,
+            hasTeamOrOrgPermissions: cachedPermissions.hasTeamOrOrgPermissions,
+          },
+        };
+      }
+
+      const isUserHost = checkIfUserIsHost(
+        user.id,
+        {
+          user: booking.user,
+          attendees: booking.attendees,
+        },
+        {
+          users: booking.eventType?.users?.map((u) => u.user).filter(Boolean) as
+            | { id: number; email: string }[]
+            | undefined,
+          hosts: booking.eventType?.hosts?.map((h) => ({ user: h.user })).filter((h) => h.user) as
+            | { user: { id: number; email: string } }[]
+            | undefined,
+        }
+      );
+
+      const isUserOwnerOfEventType = user.id === booking.eventType?.userId;
+
+      let hasTeamOrOrgPermissions = false;
+      if (booking.eventType?.team?.id) {
+        hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
+          user.id,
+          booking.eventType.team.id,
+          booking.eventType.team.parentId
+        );
+      }
+
+      const isUserHostOrOwner = isUserHost || isUserOwnerOfEventType;
+
+      // Cache the results for this event type
+      if (eventTypeId) {
+        eventTypePermissionsCache.set(eventTypeId, {
+          isUserHostOrOwner,
+          hasTeamOrOrgPermissions,
+        });
+      }
+
+      const { users, hosts, ...eventTypeWithoutUsersAndHosts } = booking.eventType;
+      return {
+        ...booking,
+        eventType: {
+          ...eventTypeWithoutUsersAndHosts,
+          isUserHostOrOwner,
+          hasTeamOrOrgPermissions,
+        },
+      };
+    })
+  );
+
   return {
-    bookings,
+    bookings: enrichedBookings,
     recurringInfo,
     totalCount,
   };
@@ -488,6 +579,7 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                "EventType.userId",
                 eb
                   .cast<SchedulingType | null>(
                     eb
@@ -507,9 +599,39 @@ export async function getBookings({
                 jsonObjectFrom(
                   eb
                     .selectFrom("Team")
-                    .select(["Team.id", "Team.name", "Team.slug"])
+                    .select(["Team.id", "Team.name", "Team.slug", "Team.parentId"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
+                ...(filters.includeHostAndTeamPermissions
+                  ? [
+                      jsonArrayFrom(
+                        eb
+                          .selectFrom("_user_eventtype")
+                          .select((eb) => [
+                            jsonObjectFrom(
+                              eb
+                                .selectFrom("users")
+                                .select(["users.id", "users.email"])
+                                .whereRef("_user_eventtype.B", "=", "users.id")
+                            ).as("user"),
+                          ])
+                          .whereRef("_user_eventtype.A", "=", "EventType.id")
+                      ).as("users"),
+                      jsonArrayFrom(
+                        eb
+                          .selectFrom("Host")
+                          .select((eb) => [
+                            jsonObjectFrom(
+                              eb
+                                .selectFrom("users")
+                                .select(["users.id", "users.email"])
+                                .whereRef("Host.userId", "=", "users.id")
+                            ).as("user"),
+                          ])
+                          .whereRef("Host.eventTypeId", "=", "EventType.id")
+                      ).as("hosts"),
+                    ]
+                  : []),
               ])
               .whereRef("EventType.id", "=", "Booking.eventTypeId")
           ).as("eventType"),

@@ -17,6 +17,7 @@ export const ZGetInputSchema = z.object({
     beforeUpdatedDate: z.string().optional(),
     afterCreatedDate: z.string().optional(),
     beforeCreatedDate: z.string().optional(),
+    includeHostAndTeamPermissions: z.boolean().optional(),
   }),
   limit: z.number().min(1).max(100),
   offset: z.number().default(0),

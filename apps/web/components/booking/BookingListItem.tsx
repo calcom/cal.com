@@ -362,8 +362,14 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
-  const isDisabledCancelling = booking.eventType.disableCancelling;
-  const isDisabledRescheduling = booking.eventType.disableRescheduling;
+  const isDisabledCancelling =
+    booking.eventType.disableCancelling &&
+    !booking.eventType.isUserHostOrOwner &&
+    !booking.eventType.hasTeamOrOrgPermissions;
+  const isDisabledRescheduling =
+    booking.eventType.disableRescheduling &&
+    !booking.eventType.isUserHostOrOwner &&
+    !booking.eventType.hasTeamOrOrgPermissions;
 
   if (isTabRecurring && isRecurring) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");

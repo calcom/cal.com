@@ -146,6 +146,7 @@ function BookingsContent({ status }: BookingsProps) {
         ? dayjs(dateRange?.startDate).startOf("day").toISOString()
         : undefined,
       beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
+      includeHostAndTeamPermissions: true,
     },
   });
 
