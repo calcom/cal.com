@@ -15,8 +15,11 @@ export const aiRouter = router({
   }),
   getConfig: authedProcedure.input(z.object({ eventTypeId: z.number() })).query(async ({ input }) => {
     console.log("getConfig", input);
-    return await prisma.aISelfServeConfiguration.findUnique({
-      where: { eventTypeId: input.eventTypeId },
+    const { AISelfServeConfigurationRepository } = await import(
+      "@calcom/lib/server/repository/aiSelfServeConfiguration"
+    );
+    return await AISelfServeConfigurationRepository.findByEventTypeId({
+      eventTypeId: input.eventTypeId,
     });
   }),
   setup: authedProcedure
@@ -54,14 +57,15 @@ export const aiRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create agent." });
       }
 
-      const config = await prisma.aISelfServeConfiguration.create({
-        data: {
-          eventTypeId,
-          enabled: true,
-          llmId: llm.llm_id,
-          agentId: agent.agent_id,
-          agentTimeZone: timeZone,
-        },
+      const { AISelfServeConfigurationRepository } = await import(
+        "@calcom/lib/server/repository/aiSelfServeConfiguration"
+      );
+      const config = await AISelfServeConfigurationRepository.create({
+        eventTypeId,
+        enabled: true,
+        llmId: llm.llm_id,
+        agentId: agent.agent_id,
+        agentTimeZone: timeZone,
       });
 
       return config;
@@ -82,13 +86,12 @@ export const aiRouter = router({
       const { updateRetellLLM } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
       const { llmId, ...updateData } = input;
 
-      const config = await prisma.aISelfServeConfiguration.findFirst({
-        where: {
-          llmId: llmId,
-          eventType: {
-            userId: ctx.user.id,
-          },
-        },
+      const { AISelfServeConfigurationRepository } = await import(
+        "@calcom/lib/server/repository/aiSelfServeConfiguration"
+      );
+      const config = await AISelfServeConfigurationRepository.findByLlmIdAndUserId({
+        llmId: llmId,
+        userId: ctx.user.id,
       });
 
       if (!config) {

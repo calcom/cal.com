@@ -1,6 +1,5 @@
 import { createSelfServePhoneCall } from "@calcom/features/ee/cal-ai-phone/retellAIService";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -18,16 +17,12 @@ export const handleCreateSelfServePhoneCall = async ({
     identifier: `create-self-serve-phone-call:${userId}`,
   });
 
-  const config = await prisma.aISelfServeConfiguration.findFirst({
-    where: {
-      eventTypeId: eventTypeId,
-      eventType: {
-        userId: userId,
-      },
-    },
-    include: {
-      yourPhoneNumber: true,
-    },
+  const { AISelfServeConfigurationRepository } = await import(
+    "@calcom/lib/server/repository/aiSelfServeConfiguration"
+  );
+  const config = await AISelfServeConfigurationRepository.findByEventTypeIdAndUserId({
+    eventTypeId: eventTypeId,
+    userId: userId,
   });
 
   console.log("config", config);

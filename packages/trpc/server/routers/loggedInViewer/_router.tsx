@@ -106,16 +106,11 @@ const generatePhoneNumberCheckoutSession = async ({
 export const loggedInViewerRouter = router({
   getConfig: authedProcedure.input(z.object({ eventTypeId: z.number() })).query(async ({ input }) => {
     console.log("loggedInViewerRouter.getConfig", input);
-    return await prisma.aISelfServeConfiguration.findUnique({
-      where: { eventTypeId: input.eventTypeId },
-      include: {
-        yourPhoneNumber: {
-          select: {
-            phoneNumber: true,
-            id: true,
-          },
-        },
-      },
+    const { AISelfServeConfigurationRepository } = await import(
+      "@calcom/lib/server/repository/aiSelfServeConfiguration"
+    );
+    return await AISelfServeConfigurationRepository.findByEventTypeId({
+      eventTypeId: input.eventTypeId,
     });
   }),
 
@@ -136,10 +131,6 @@ export const loggedInViewerRouter = router({
         },
       });
 
-      const { initialSetupLLM, createAgent } = await import(
-        "@calcom/features/ee/cal-ai-phone/retellAIService"
-      );
-
       const eventType = await prisma.eventType.findFirst({
         where: {
           id: eventTypeId,
@@ -153,34 +144,41 @@ export const loggedInViewerRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const llm = await initialSetupLLM(calApiKey, agentTimeZone, eventTypeId);
-      if (!llm.llm_id) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create LLM." });
-      }
+      // Use the new RetellAI service for better error handling and consistency
+      const { RetellAIServiceFactory } = await import("@calcom/features/ee/cal-ai-phone/retell-ai");
+      const aiService = RetellAIServiceFactory.create();
 
-      const agentName = `agent-for-user-${ctx.user.id}-${ctx.user.username}-${Math.floor(
-        Math.random() * 10000
-      )}`;
-      const agent = await createAgent(llm.llm_id, agentName);
-      if (!agent.agent_id) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create agent." });
-      }
+      try {
+        const { llmId, agentId } = await aiService.setupAIConfiguration({
+          calApiKey,
+          timeZone: agentTimeZone,
+          eventTypeId,
+        });
 
-      const config = await prisma.aISelfServeConfiguration.create({
-        data: {
+        const { AISelfServeConfigurationRepository } = await import(
+          "@calcom/lib/server/repository/aiSelfServeConfiguration"
+        );
+        const config = await AISelfServeConfigurationRepository.create({
           eventTypeId,
           enabled: true,
-          llmId: llm.llm_id,
-          agentId: agent.agent_id,
+          llmId,
+          agentId,
           agentTimeZone,
-        },
-      });
+        });
 
-      return config;
+        return config;
+      } catch (error) {
+        console.error("Error setting up AI configuration:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to set up AI configuration. Please try again or contact support.",
+        });
+      }
     }),
   getLlm: authedProcedure.input(z.object({ llmId: z.string() })).query(async ({ input }) => {
-    const { getRetellLLM } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
-    return getRetellLLM(input.llmId);
+    const { RetellAIServiceFactory } = await import("@calcom/features/ee/cal-ai-phone/retell-ai");
+    const aiService = RetellAIServiceFactory.create();
+    return aiService.getLLMDetails(input.llmId);
   }),
   updateLlm: authedProcedure
     .input(
@@ -191,23 +189,24 @@ export const loggedInViewerRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { updateRetellLLM } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
       const { llmId, ...updateData } = input;
 
-      const config = await prisma.aISelfServeConfiguration.findFirst({
-        where: {
-          llmId: llmId,
-          eventType: {
-            userId: ctx.user.id,
-          },
-        },
+      const { AISelfServeConfigurationRepository } = await import(
+        "@calcom/lib/server/repository/aiSelfServeConfiguration"
+      );
+      const config = await AISelfServeConfigurationRepository.findByLlmIdAndUserId({
+        llmId: llmId,
+        userId: ctx.user.id,
       });
 
       if (!config) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      return updateRetellLLM(llmId, updateData);
+      const { RetellAIServiceFactory } = await import("@calcom/features/ee/cal-ai-phone/retell-ai");
+      const aiService = RetellAIServiceFactory.create();
+
+      return aiService.updateLLMConfiguration(llmId, updateData);
     }),
   makeSelfServePhoneCall: authedProcedure
     .input(z.object({ eventTypeId: z.number(), numberToCall: z.string() }))
@@ -321,13 +320,11 @@ export const loggedInViewerRouter = router({
       });
 
       // Remove phone number from AI configurations
-      await prisma.aISelfServeConfiguration.updateMany({
-        where: {
-          yourPhoneNumberId: phoneNumberId,
-        },
-        data: {
-          yourPhoneNumberId: null,
-        },
+      const { AISelfServeConfigurationRepository } = await import(
+        "@calcom/lib/server/repository/aiSelfServeConfiguration"
+      );
+      await AISelfServeConfigurationRepository.removePhoneNumberFromConfigurations({
+        phoneNumberId,
       });
 
       // Delete the phone number from Retell AI service
@@ -404,13 +401,12 @@ export const loggedInViewerRouter = router({
       const { eventTypeId, phoneNumberId } = input;
 
       // Get the AI configuration for this event type
-      const config = await prisma.aISelfServeConfiguration.findFirst({
-        where: {
-          eventTypeId,
-          eventType: {
-            userId: ctx.user.id,
-          },
-        },
+      const { AISelfServeConfigurationRepository } = await import(
+        "@calcom/lib/server/repository/aiSelfServeConfiguration"
+      );
+      const config = await AISelfServeConfigurationRepository.findByEventTypeIdAndUserId({
+        eventTypeId,
+        userId: ctx.user.id,
       });
 
       if (!config || !config.agentId) {
@@ -447,9 +443,9 @@ export const loggedInViewerRouter = router({
       }
 
       // Update the AI configuration to link the phone number
-      const updatedConfig = await prisma.aISelfServeConfiguration.update({
-        where: { id: config.id },
-        data: { yourPhoneNumberId: phoneNumberId },
+      const updatedConfig = await AISelfServeConfigurationRepository.updatePhoneNumberAssignment({
+        configId: config.id,
+        yourPhoneNumberId: phoneNumberId,
       });
 
       return { success: true, config: updatedConfig };
@@ -461,16 +457,12 @@ export const loggedInViewerRouter = router({
       const { eventTypeId } = input;
 
       // Get the AI configuration for this event type
-      const config = await prisma.aISelfServeConfiguration.findFirst({
-        where: {
-          eventTypeId,
-          eventType: {
-            userId: ctx.user.id,
-          },
-        },
-        include: {
-          yourPhoneNumber: true,
-        },
+      const { AISelfServeConfigurationRepository } = await import(
+        "@calcom/lib/server/repository/aiSelfServeConfiguration"
+      );
+      const config = await AISelfServeConfigurationRepository.findByEventTypeIdAndUserId({
+        eventTypeId,
+        userId: ctx.user.id,
       });
 
       if (!config) {
@@ -481,9 +473,9 @@ export const loggedInViewerRouter = router({
       }
 
       // Update the AI configuration to unlink the phone number
-      const updatedConfig = await prisma.aISelfServeConfiguration.update({
-        where: { id: config.id },
-        data: { yourPhoneNumberId: null },
+      const updatedConfig = await AISelfServeConfigurationRepository.updatePhoneNumberAssignment({
+        configId: config.id,
+        yourPhoneNumberId: null,
       });
 
       return { success: true, config: updatedConfig };
@@ -495,16 +487,12 @@ export const loggedInViewerRouter = router({
       const { eventTypeId } = input;
 
       // Get the AI configuration for this event type
-      const config = await prisma.aISelfServeConfiguration.findFirst({
-        where: {
-          eventTypeId,
-          eventType: {
-            userId: ctx.user.id,
-          },
-        },
-        include: {
-          yourPhoneNumber: true,
-        },
+      const { AISelfServeConfigurationRepository } = await import(
+        "@calcom/lib/server/repository/aiSelfServeConfiguration"
+      );
+      const config = await AISelfServeConfigurationRepository.findByEventTypeIdAndUserId({
+        eventTypeId,
+        userId: ctx.user.id,
       });
 
       if (!config) {
@@ -514,39 +502,63 @@ export const loggedInViewerRouter = router({
         });
       }
 
-      const { deleteAgent, deleteLLM } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
+      // Use the new RetellAI service with fault-tolerant deletion
+      const { RetellAIServiceFactory } = await import("@calcom/features/ee/cal-ai-phone/retell-ai");
+      const aiService = RetellAIServiceFactory.create();
 
       try {
-        // Delete the agent from Retell AI if it exists
-        if (config.agentId) {
-          try {
-            await deleteAgent(config.agentId);
-          } catch (error) {
-            console.error("Failed to delete agent from Retell AI:", error);
-          }
-        }
-
-        // Delete the LLM from Retell AI if it exists
-        if (config.llmId) {
-          try {
-            await deleteLLM(config.llmId);
-          } catch (error) {
-            console.error("Failed to delete LLM from Retell AI:", error);
-          }
-        }
-
-        // Delete the AI configuration from the database
-        await prisma.aISelfServeConfiguration.delete({
-          where: { id: config.id },
+        // Delete external resources with fault tolerance
+        const deletionResult = await aiService.deleteAIConfiguration({
+          llmId: config.llmId || undefined,
+          agentId: config.agentId || undefined,
         });
 
-        return { success: true, message: "AI configuration deleted successfully." };
+        // Always delete the database record, even if external deletion had issues
+        await AISelfServeConfigurationRepository.delete({
+          id: config.id,
+        });
+
+        // Return detailed result with any warnings about partial failures
+        if (deletionResult.success) {
+          return {
+            success: true,
+            message: "AI configuration deleted successfully.",
+            deletionResult,
+          };
+        } else {
+          // Partial failure - database was cleaned up but external resources may have issues
+          return {
+            success: true,
+            message:
+              "AI configuration deleted from database. Some external resources may need manual cleanup.",
+            deletionResult,
+            warnings: deletionResult.errors,
+          };
+        }
       } catch (error) {
         console.error("Error deleting AI configuration:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to delete AI configuration. Please try again or contact support.",
-        });
+
+        // Try to delete database record even if external deletion fails
+        try {
+          await AISelfServeConfigurationRepository.delete({
+            id: config.id,
+          });
+
+          return {
+            success: true,
+            message:
+              "AI configuration deleted from database, but external cleanup failed. Manual cleanup may be required.",
+            warnings: [
+              `External deletion failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+            ],
+          };
+        } catch (dbError) {
+          console.error("Failed to delete AI configuration from database:", dbError);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to delete AI configuration. Please try again or contact support.",
+          });
+        }
       }
     }),
 });

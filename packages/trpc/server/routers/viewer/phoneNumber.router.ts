@@ -51,13 +51,12 @@ export const phoneNumberRouter = router({
 
       // 3. If eventTypeId is provided, assign agent to the new number
       if (eventTypeId) {
-        const config = await prisma.aISelfServeConfiguration.findFirst({
-          where: {
-            eventTypeId: eventTypeId,
-            eventType: {
-              userId: ctx.user.id, // Authorization check
-            },
-          },
+        const { AISelfServeConfigurationRepository } = await import(
+          "@calcom/lib/server/repository/aiSelfServeConfiguration"
+        );
+        const config = await AISelfServeConfigurationRepository.findByEventTypeIdAndUserId({
+          eventTypeId: eventTypeId,
+          userId: ctx.user.id,
         });
 
         if (!config || !config.agentId) {
@@ -81,9 +80,9 @@ export const phoneNumberRouter = router({
         });
 
         // Link the new number to the AI config
-        await prisma.aISelfServeConfiguration.update({
-          where: { id: config.id },
-          data: { yourPhoneNumberId: newNumber.id },
+        await AISelfServeConfigurationRepository.updatePhoneNumberAssignment({
+          configId: config.id,
+          yourPhoneNumberId: newNumber.id,
         });
 
         return newNumber;
