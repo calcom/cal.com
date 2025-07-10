@@ -10,9 +10,9 @@ import type { IncomingMessage } from "http";
 import { describe, test, beforeEach, vi } from "vitest";
 import type { z } from "zod";
 
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import { prisma } from "@calcom/prisma";
 import type { getScheduleSchema, GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
-import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
@@ -62,7 +62,7 @@ const getBaseScenarioData = (): ScheduleScenario => ({
 });
 
 describe("getSchedule", () => {
-  const availableSlotsService = new AvailableSlotsService();
+  const availableSlotsService = getAvailableSlotsService();
   setupAndTeardown();
 
   describe("Reserved Slots", () => {

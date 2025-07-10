@@ -18,7 +18,7 @@ import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
-import { BookingRepository as BookingRepo } from "./server/repository/booking";
+import { BookingRepository } from "./server/repository/booking";
 
 const _getBusyTimes = async (params: {
   credentials: CredentialForCalendarService[];
@@ -108,7 +108,8 @@ const _getBusyTimes = async (params: {
   let bookings = params.currentBookings;
 
   if (!bookings) {
-    bookings = await BookingRepo.findAllExistingBookingsForEventTypeBetween({
+    const bookingRepo = new BookingRepository(prisma);
+    bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
       userIdAndEmailMap: new Map([[userId, userEmail]]),
       eventTypeId,
       startDate: startTimeAdjustedWithMaxBuffer,

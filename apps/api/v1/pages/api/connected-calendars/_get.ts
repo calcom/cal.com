@@ -105,7 +105,9 @@ async function getHandler(req: NextApiRequest) {
 
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
 
-  const usersWithCalendars = await UserRepository.findManyByIdsIncludeDestinationAndSelectedCalendars({
+  const usersWithCalendars = await new UserRepository(
+    prisma
+  ).findManyByIdsIncludeDestinationAndSelectedCalendars({
     ids: userIds,
   });
 

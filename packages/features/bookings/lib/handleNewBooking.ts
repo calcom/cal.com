@@ -506,7 +506,8 @@ async function handler(
     (!isConfirmedByDefault && !userReschedulingIsOwner) ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
-    const existingBooking = await BookingRepository.getValidBookingFromEventTypeForAttendee({
+    const bookingRepo = new BookingRepository(prisma);
+    const existingBooking = await bookingRepo.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,

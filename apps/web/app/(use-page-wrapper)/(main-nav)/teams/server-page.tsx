@@ -6,6 +6,7 @@ import { unstable_cache } from "next/cache";
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { TeamService } from "@calcom/lib/server/service/team";
+import prisma from "@calcom/prisma";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
 import { TRPCError } from "@trpc/server";
@@ -14,7 +15,8 @@ import { TeamsCTA } from "./CTA";
 
 const getCachedTeams = unstable_cache(
   async (userId: number) => {
-    return await TeamRepository.findTeamsByUserId({
+    const teamRepo = new TeamRepository(prisma);
+    return await teamRepo.findTeamsByUserId({
       userId,
       includeOrgs: true,
     });

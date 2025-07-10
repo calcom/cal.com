@@ -135,7 +135,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
+  const userRepo = new UserRepository(prisma);
+  const usersInOrgContext = await userRepo.findUsersByUsername({
     usernameList: usernames,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });

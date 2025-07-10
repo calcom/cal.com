@@ -84,7 +84,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   const [teamSlugs, userSlugs] = [
     await prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
-    await UserRepository.findManyByOrganization({ organizationId: orgId }),
+    await new UserRepository(prisma).findManyByOrganization({ organizationId: orgId }),
   ];
 
   const existingSlugs = teamSlugs

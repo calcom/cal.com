@@ -538,14 +538,20 @@ class EventsInsights {
             ? booking.seatsReferences.map((ref) => ref.attendee)
             : booking.attendees;
 
+        // List all no-show guests (name and email)
+        const noShowGuests =
+          attendeeList
+            .filter((attendee) => attendee?.noShow)
+            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+            .filter(Boolean) // remove null values
+            .join("; ") || null;
+        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
+
         const formattedAttendees = attendeeList
           .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
           .filter(Boolean);
 
-        return [
-          booking.uid,
-          { attendeeList: formattedAttendees, noShowGuest: attendeeList[0]?.noShow || false },
-        ];
+        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
       })
     );
 
@@ -565,7 +571,8 @@ class EventsInsights {
         return [
           uid,
           {
-            noShowGuest: data.noShowGuest,
+            noShowGuests: data.noShowGuests,
+            noShowGuestsCount: data.noShowGuestsCount,
             ...attendeeFields,
           },
         ];
@@ -582,7 +589,7 @@ class EventsInsights {
 
         return {
           ...bookingTimeStatus,
-          noShowGuest: false,
+          noShowGuests: null,
           ...nullAttendeeFields,
         };
       }
@@ -597,14 +604,15 @@ class EventsInsights {
 
         return {
           ...bookingTimeStatus,
-          noShowGuest: false,
+          noShowGuests: null,
           ...nullAttendeeFields,
         };
       }
 
       return {
         ...bookingTimeStatus,
-        noShowGuest: attendeeData.noShowGuest,
+        noShowGuests: attendeeData.noShowGuests,
+        noShowGuestsCount: attendeeData.noShowGuestsCount,
         ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
       };
     });

@@ -9,13 +9,27 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsRoutingFormInTeam } from "@/modules/auth/guards/routing-forms/is-routing-form-in-team.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { CreateRoutingFormResponseInput } from "@/modules/organizations/routing-forms/inputs/create-routing-form-response.input";
 import { GetRoutingFormResponsesParams } from "@/modules/organizations/routing-forms/inputs/get-routing-form-responses-params.input";
 import { UpdateRoutingFormResponseInput } from "@/modules/organizations/routing-forms/inputs/update-routing-form-response.input";
+import { CreateRoutingFormResponseOutput } from "@/modules/organizations/routing-forms/outputs/create-routing-form-response.output";
 import { UpdateRoutingFormResponseOutput } from "@/modules/organizations/routing-forms/outputs/update-routing-form-response.output";
 import { GetRoutingFormResponsesOutput } from "@/modules/organizations/teams/routing-forms/outputs/get-routing-form-responses.output";
 import { OrganizationsTeamsRoutingFormsResponsesService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses.service";
-import { Controller, Get, Patch, Param, ParseIntPipe, Query, UseGuards, Body } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseGuards,
+  Body,
+  Req,
+} from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Request } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -63,6 +77,30 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
     return {
       status: SUCCESS_STATUS,
       data: routingFormResponses,
+    };
+  }
+
+  @Post("/")
+  @ApiOperation({ summary: "Create routing form response and get available slots" })
+  @Roles("TEAM_MEMBER")
+  @PlatformPlan("ESSENTIALS")
+  async createRoutingFormResponse(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("routingFormId") routingFormId: string,
+    @Query() query: CreateRoutingFormResponseInput,
+    @Req() request: Request
+  ): Promise<CreateRoutingFormResponseOutput> {
+    const result =
+      await this.organizationsTeamsRoutingFormsResponsesService.createRoutingFormResponseWithSlots(
+        routingFormId,
+        query,
+        request
+      );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: result,
     };
   }
 

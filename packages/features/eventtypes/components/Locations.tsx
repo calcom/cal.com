@@ -344,7 +344,7 @@ const Locations: React.FC<LocationsProps> = ({
               {isCalVideo && !isPlatform && (
                 <div className="bg-muted mt-2 space-y-2 rounded-lg p-4">
                   <div className="w-full">
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-4">
                       <Controller
                         name="calVideoSettings.disableRecordingForGuests"
                         defaultValue={!!eventType.calVideoSettings?.disableRecordingForGuests}
@@ -352,7 +352,7 @@ const Locations: React.FC<LocationsProps> = ({
                           return (
                             <SettingsToggle
                               title={t("disable_recording_for_guests")}
-                              labelClassName="text-sm"
+                              labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
                             />
@@ -367,7 +367,7 @@ const Locations: React.FC<LocationsProps> = ({
                           return (
                             <SettingsToggle
                               title={t("disable_recording_for_organizer")}
-                              labelClassName="text-sm"
+                              labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
                             />
@@ -382,7 +382,7 @@ const Locations: React.FC<LocationsProps> = ({
                           return (
                             <SettingsToggle
                               title={t("enable_automatic_transcription")}
-                              labelClassName="text-sm"
+                              labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
                             />
@@ -398,7 +398,7 @@ const Locations: React.FC<LocationsProps> = ({
                             return (
                               <SettingsToggle
                                 title={t("disable_transcription_for_guests")}
-                                labelClassName="text-sm"
+                                labelClassName="text-sm leading-6 whitespace-normal break-words"
                                 checked={value}
                                 onCheckedChange={onChange}
                               />
@@ -414,7 +414,7 @@ const Locations: React.FC<LocationsProps> = ({
                             return (
                               <SettingsToggle
                                 title={t("disable_transcription_for_organizer")}
-                                labelClassName="text-sm"
+                                labelClassName="text-sm leading-6 whitespace-normal break-words"
                                 checked={value}
                                 onCheckedChange={onChange}
                               />
@@ -427,7 +427,8 @@ const Locations: React.FC<LocationsProps> = ({
                         label={t("enter_redirect_url_on_exit_description")}
                         defaultValue={eventType.calVideoSettings?.redirectUrlOnExit || ""}
                         data-testid="calVideoSettings.redirectUrlOnExit"
-                        containerClassName="mt-2"
+                        containerClassName="mt-4"
+                        className="leading-6"
                         {...formMethods.register("calVideoSettings.redirectUrlOnExit", {
                           setValueAs: (v) => (!v || v.trim() === "" ? null : v),
                         })}
