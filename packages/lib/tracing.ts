@@ -14,6 +14,7 @@ export interface TraceContext {
   userInfo?: string | string[];
   userIp?: string;
   rescheduleUid?: string;
+  confirmed?: boolean;
 }
 
 export class DistributedTracing {
