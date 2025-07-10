@@ -13,6 +13,7 @@ export interface TraceContext {
   eventTypeSlug?: string;
   userInfo?: string | string[];
   userIp?: string;
+  rescheduleUid?: string;
 }
 
 export class DistributedTracing {
