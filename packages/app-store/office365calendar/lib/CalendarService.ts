@@ -1,7 +1,7 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
-import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
+import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -38,7 +38,7 @@ interface ISettledResponse {
     "Retry-After": string;
     "Content-Type": string;
   };
-  body: Record<string, DefaultBodyType>;
+  body: Record<string, any>;
 }
 
 interface IBatchResponse {
@@ -322,6 +322,27 @@ export default class Office365CalendarService implements Calendar {
         return Promise.resolve([]);
       }
 
+      // ---- CACHING LOGIC START ----
+      const normalizedTimeMin = dayjs(dateFrom).startOf("day").toISOString();
+      const normalizedTimeMax = dayjs(dateTo).endOf("day").toISOString();
+      const cacheArgs = {
+        timeMin: normalizedTimeMin,
+        timeMax: normalizedTimeMax,
+        items: selectedCalendarIds.map((id) => ({ id })),
+      };
+      const calendarCache = new CalendarCacheRepository(this);
+      const cached = await calendarCache.getCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args: cacheArgs,
+      });
+      if (cached) {
+        this.log.debug("[Cache Hit] Returning cached Office365 availability", { cacheArgs });
+        return cached.value as EventBusyDate[];
+      }
+      this.log.debug("[Cache Miss] Fetching Office365 availability from API", { cacheArgs });
+      // ---- CACHING LOGIC END ----
+
       const ids = await (selectedCalendarIds.length === 0
         ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
         : Promise.resolve(selectedCalendarIds));
@@ -350,7 +371,18 @@ export default class Office365CalendarService implements Calendar {
       // Recursively fetch nextLink responses
       alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
 
-      return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
+      const busyTimes = alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
+
+      // ---- STORE IN CACHE ----
+      await calendarCache.upsertCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args: cacheArgs,
+        value: busyTimes,
+      });
+      // ---- END STORE IN CACHE ----
+
+      return busyTimes;
     } catch (err) {
       return Promise.reject([]);
     }
