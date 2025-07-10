@@ -1134,7 +1134,7 @@ export class AvailableSlotsService {
 
     if (reservedSlots?.length > 0) {
       let occupiedSeats: typeof reservedSlots = reservedSlots.filter(
-        (item: any) => item.isSeat && item.eventTypeId === eventType.id
+        (item) => item.isSeat && item.eventTypeId === eventType.id
       );
       if (occupiedSeats?.length) {
         const addedToCurrentSeats: string[] = [];
@@ -1142,7 +1142,7 @@ export class AvailableSlotsService {
           availabilityCheckProps.currentSeats = availabilityCheckProps.currentSeats.map((item) => {
             const attendees =
               occupiedSeats.filter(
-                (seat: any) => seat.slotUtcStartDate.toISOString() === item.startTime.toISOString()
+                (seat) => seat.slotUtcStartDate.toISOString() === item.startTime.toISOString()
               )?.length || 0;
             if (attendees) addedToCurrentSeats.push(item.startTime.toISOString());
             return {
@@ -1153,7 +1153,7 @@ export class AvailableSlotsService {
             };
           });
           occupiedSeats = occupiedSeats.filter(
-            (item: any) => !addedToCurrentSeats.includes(item.slotUtcStartDate.toISOString())
+            (item) => !addedToCurrentSeats.includes(item.slotUtcStartDate.toISOString())
           );
         }
 
@@ -1164,7 +1164,7 @@ export class AvailableSlotsService {
 
         currentSeats = availabilityCheckProps.currentSeats;
       }
-      const busySlotsFromReservedSlots = (reservedSlots as any).reduce((r: any, c: any) => {
+      const busySlotsFromReservedSlots = reservedSlots.reduce<{ start: Date; end: Date }[]>((r, c) => {
         if (!c.isSeat) {
           r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
         }
