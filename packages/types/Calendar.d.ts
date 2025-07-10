@@ -178,6 +178,7 @@ export interface CalendarEvent {
     name: string;
     members: TeamMember[];
     id: number;
+    enableAIBotRecording?: boolean;
   };
   location?: string | null;
   conferenceCredentialId?: number;
@@ -238,6 +239,7 @@ export interface AdditionalInformation {
   conferenceData?: ConferenceData;
   entryPoints?: EntryPoint[];
   hangoutLink?: string;
+  recallBotId?: string;
 }
 
 export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, "externalId"> {

@@ -12,6 +12,12 @@ interface CreateBotRequest {
   };
 }
 
+interface UpdateBotRequest {
+  meeting_url?: string;
+  bot_name?: string;
+  join_at?: string;
+}
+
 interface CreateBotResponse {
   id: string;
   meeting_url: string;
@@ -66,5 +72,89 @@ export async function createRecallBot(params: {
   } catch (error) {
     log.error("Error creating Recall.ai bot", error);
     return null;
+  }
+}
+
+export async function updateRecallBot(params: {
+  botId: string;
+  meetingUrl?: string;
+  botName?: string;
+  joinAt?: Date;
+}): Promise<CreateBotResponse | null> {
+  const apiKey = process.env.RECALL_AI_API_KEY;
+
+  if (!apiKey) {
+    log.warn("RECALL_AI_API_KEY not configured, skipping bot update");
+    return null;
+  }
+
+  try {
+    const requestBody: UpdateBotRequest = {};
+
+    if (params.meetingUrl) {
+      requestBody.meeting_url = params.meetingUrl;
+    }
+    if (params.botName) {
+      requestBody.bot_name = params.botName;
+    }
+    if (params.joinAt) {
+      requestBody.join_at = params.joinAt.toISOString();
+    }
+
+    const response = await fetch(`https://api.recall.ai/api/v1/bot/${params.botId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Token ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      log.error("Failed to update Recall.ai bot", {
+        status: response.status,
+        error: errorText,
+        botId: params.botId,
+      });
+      return null;
+    }
+
+    const result = (await response.json()) as CreateBotResponse;
+    log.info("Successfully updated Recall.ai bot", { botId: result.id, meetingUrl: params.meetingUrl });
+    return result;
+  } catch (error) {
+    log.error("Error updating Recall.ai bot", error);
+    return null;
+  }
+}
+
+export async function deleteRecallBot(botId: string): Promise<boolean> {
+  const apiKey = process.env.RECALL_AI_API_KEY;
+
+  if (!apiKey) {
+    log.warn("RECALL_AI_API_KEY not configured, skipping bot deletion");
+    return false;
+  }
+
+  try {
+    const response = await fetch(`https://api.recall.ai/api/v1/bot/${botId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Token ${apiKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      log.error("Failed to delete Recall.ai bot", { status: response.status, error: errorText, botId });
+      return false;
+    }
+
+    log.info("Successfully deleted Recall.ai bot", { botId });
+    return true;
+  } catch (error) {
+    log.error("Error deleting Recall.ai bot", error);
+    return false;
   }
 }
