@@ -262,7 +262,7 @@ export const getPublicEvent = async (
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
-    const usersInOrgContext = await UserRepository.findUsersByUsername({
+    const usersInOrgContext = await new UserRepository(prisma).findUsersByUsername({
       usernameList,
       orgSlug: org,
     });
@@ -422,7 +422,7 @@ export const getPublicEvent = async (
   const usersAsHosts = event.hosts.map((host) => host.user);
 
   // Enrich users in a single batch call
-  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(usersAsHosts);
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(usersAsHosts);
 
   // Map enriched users back to the hosts
   const hosts = event.hosts.map((host, index) => ({
@@ -433,7 +433,7 @@ export const getPublicEvent = async (
   const eventWithUserProfiles = {
     ...event,
     owner: event.owner
-      ? await UserRepository.enrichUserWithItsProfile({
+      ? await new UserRepository(prisma).enrichUserWithItsProfile({
           user: event.owner,
         })
       : null,
@@ -954,7 +954,7 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
   if (!users.length) return null;
 
   // Batch enrich users in a single call
-  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(users);
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(users);
 
   // Map the enriched users back to include the organization info
   const usersWithUserProfile = enrichedUsers.map((user) => ({

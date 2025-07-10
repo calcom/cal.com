@@ -40,9 +40,8 @@ export const isAvailableHandler = async ({
 
   // Check each slot's availability
   // Without uid, we must not check for reserved slots because if uuid isn't set in cookie yet, but it is going to be through reserveSlot request soon, we could consider the slot as reserved accidentally.
-  const reservedSlots = uid
-    ? await SelectedSlotsRepository.findManyReservedByOthers(slots, eventTypeId, uid)
-    : [];
+  const slotsRepo = new SelectedSlotsRepository(ctx.prisma);
+  const reservedSlots = uid ? await slotsRepo.findManyReservedByOthers(slots, eventTypeId, uid) : [];
 
   // Map all slots to their availability status
   const slotsWithStatus: TIsAvailableOutputSchema["slots"] = slots.map((slot) => {

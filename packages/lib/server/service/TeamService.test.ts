@@ -47,14 +47,17 @@ describe("TeamService", () => {
       };
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      vi.mocked(TeamRepository.deleteById).mockResolvedValue(mockDeletedTeam);
+      const mockTeamRepo = {
+        deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
+      };
+      vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
 
       const result = await TeamService.delete({ id: 1 });
 
       expect(TeamBilling.findAndInit).toHaveBeenCalledWith(1);
       expect(mockTeamBilling.cancel).toHaveBeenCalled();
       expect(WorkflowService.deleteWorkflowRemindersOfRemovedTeam).toHaveBeenCalledWith(1);
-      expect(TeamRepository.deleteById).toHaveBeenCalledWith({ id: 1 });
+      expect(mockTeamRepo.deleteById).toHaveBeenCalledWith({ id: 1 });
       expect(deleteDomain).toHaveBeenCalledWith("deleted-team");
       expect(result).toEqual(mockDeletedTeam);
     });
