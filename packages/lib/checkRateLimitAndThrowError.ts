@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+
 import getIP from "@calcom/lib/getIP";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
