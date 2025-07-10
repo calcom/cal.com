@@ -13,7 +13,6 @@ export class OrganizationBillingRepository implements IOrganizationBillingReposi
         id: true,
         slug: true,
         name: true,
-        billingPeriod: true,
       },
     });
   }
@@ -31,6 +30,18 @@ export class OrganizationBillingRepository implements IOrganizationBillingReposi
     return organization?.stripeCustomerId ?? null;
   }
 
+  async updateStripeCustomerId(organizationId: number, stripeCustomerId: string) {
+    return prisma.team.update({
+      where: {
+        id: organizationId,
+        isOrganization: true,
+      },
+      data: {
+        stripeCustomerId,
+      },
+    });
+  }
+
   async getSubscriptionId(organizationId: number) {
     const organization = await prisma.team.findUnique({
       where: {
@@ -38,9 +49,13 @@ export class OrganizationBillingRepository implements IOrganizationBillingReposi
         isOrganization: true,
       },
       select: {
-        stripeSubscriptionId: true,
+        platformBilling: {
+          select: {
+            subscriptionId: true,
+          },
+        },
       },
     });
-    return organization?.stripeSubscriptionId ?? null;
+    return organization?.platformBilling?.subscriptionId ?? null;
   }
 }

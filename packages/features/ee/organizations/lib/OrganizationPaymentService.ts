@@ -80,8 +80,20 @@ export class OrganizationPaymentService {
     this.user = user;
   }
 
-  protected async getOrCreateStripeCustomerId(email: string) {
-    log.debug("getOrCreateStripeCustomerId", safeStringify({ email }));
+  protected async getOrCreateStripeCustomerId(email: string, organizationId?: number) {
+    log.debug("getOrCreateStripeCustomerId", safeStringify({ email, organizationId }));
+
+    if (organizationId) {
+      const organization = await prisma.team.findUnique({
+        where: { id: organizationId, isOrganization: true },
+        select: { stripeCustomerId: true, name: true },
+      });
+
+      if (organization?.stripeCustomerId) {
+        return organization.stripeCustomerId;
+      }
+    }
+
     const existingCustomer = await prisma.user.findUnique({
       where: { email },
       select: { id: true, metadata: true },
@@ -92,6 +104,19 @@ export class OrganizationPaymentService {
       : undefined;
 
     if (parsedMetadata?.stripeCustomerId) {
+      if (organizationId) {
+        await prisma.team.update({
+          where: { id: organizationId, isOrganization: true },
+          data: { stripeCustomerId: parsedMetadata.stripeCustomerId },
+        });
+        log.debug(
+          "Migrated stripeCustomerId to organization",
+          safeStringify({
+            organizationId,
+            stripeCustomerId: parsedMetadata.stripeCustomerId,
+          })
+        );
+      }
       return parsedMetadata.stripeCustomerId;
     }
 
@@ -100,11 +125,25 @@ export class OrganizationPaymentService {
       email,
       metadata: {
         email,
+        ...(organizationId && { organizationId: organizationId.toString() }),
       },
     });
 
     const stripeCustomerId = customer.stripeCustomerId;
-    if (existingCustomer && parsedMetadata) {
+
+    if (organizationId) {
+      await prisma.team.update({
+        where: { id: organizationId, isOrganization: true },
+        data: { stripeCustomerId },
+      });
+      log.debug(
+        "Stored stripeCustomerId at organization level",
+        safeStringify({
+          organizationId,
+          stripeCustomerId,
+        })
+      );
+    } else if (existingCustomer && parsedMetadata) {
       await UserRepository.updateStripeCustomerId({
         id: existingCustomer.id,
         stripeCustomerId,

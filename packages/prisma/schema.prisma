@@ -522,6 +522,7 @@ model Team {
   createdByOAuthClient   PlatformOAuthClient?    @relation("CreatedByOAuthClient", fields: [createdByOAuthClientId], references: [id], onDelete: Cascade)
   createdByOAuthClientId String?
   smsLockState           SMSLockState            @default(UNLOCKED)
+  stripeCustomerId       String?
   platformBilling        PlatformBilling?
   activeOrgWorkflows     WorkflowsOnTeams[]
   attributes             Attribute[]

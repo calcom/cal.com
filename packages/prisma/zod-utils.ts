@@ -389,6 +389,7 @@ export const teamMetadataSchema = z
       })
       .optional(),
     billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+    stripeCustomerId: z.string().optional(),
   })
   .partial()
   .nullable();
