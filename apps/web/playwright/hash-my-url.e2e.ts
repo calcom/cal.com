@@ -62,10 +62,8 @@ test.describe("private links creation and usage", () => {
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
 
-    // After booking with a usage-based private link, the toggle will be off and the input will not be present
-    const hashedLinkCheck2 = page.locator('[data-testid="multiplePrivateLinksCheck"]');
-    await expect(hashedLinkCheck2).not.toBeChecked();
-    await expect(page.locator('[data-testid="private-link-url"]')).toHaveCount(0);
+    // After booking with a usage-based private link, the link should be expired
+    await expect(page.locator('[data-testid="private-link-expired"]')).toBeVisible();
 
     // Ensure that private URL is enabled after modifying the event type.
     // Additionally, if the slug is changed, ensure that the private URL is updated accordingly.
@@ -132,9 +130,8 @@ test.describe("private links creation and usage", () => {
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
 
-    // After booking with a expiration date based private link, the toggle should still be on
-    const privateLinkCheck2 = page.locator('[data-testid="multiplePrivateLinksCheck"]');
-    await expect(privateLinkCheck2).toBeChecked();
+    // After booking with a expiration date based private link, the link should be expired
+    await expect(page.locator('[data-testid="private-link-expired"]')).toBeVisible();
   });
   test("generate private link with 2 usages and make 2 bookings with it", async ({ page }) => {
     await page.goto("/event-types");
@@ -190,8 +187,7 @@ test.describe("private links creation and usage", () => {
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
 
-    // After booking twice with a 2 usages based private link, the toggle should be off
-    const privateLinkCheck2 = page.locator('[data-testid="multiplePrivateLinksCheck"]');
-    await expect(privateLinkCheck2).not.toBeChecked();
+    // After booking twice with a 2 usages based private link, the link should be expired
+    await expect(page.locator('[data-testid="private-link-expired"]')).toBeVisible();
   });
 });

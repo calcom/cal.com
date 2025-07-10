@@ -273,7 +273,9 @@ export const MultiplePrivateLinksController = ({
                               />
                             </Tooltip>
                           ) : (
-                            <Badge variant="red">{t("expired")}</Badge>
+                            <Badge data-testid="private-link-expired" variant="red">
+                              {t("expired")}
+                            </Badge>
                           )
                         }
                       />
