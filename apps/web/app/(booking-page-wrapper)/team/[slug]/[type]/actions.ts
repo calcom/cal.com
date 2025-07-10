@@ -1,18 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
-
-export async function revalidateTeamBookingPage(
-  teamSlug: string,
-  meetingSlug: string,
-  orgSlug: string | null
-) {
-  if (orgSlug) {
-    revalidatePath(`/org/${orgSlug}/team/${teamSlug}/${meetingSlug}`);
-  } else {
-    revalidatePath(`/team/${teamSlug}/${meetingSlug}`);
-  }
-}
+import { revalidateTag } from "next/cache";
 
 /**
  * Invalidate only the team data cache for a specific team
