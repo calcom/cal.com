@@ -545,6 +545,7 @@ model Team {
   managedOrganization  ManagedOrganization?  @relation("ManagedOrganization")
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
   filterSegments       FilterSegment[]
+  enableAIBotRecording Boolean               @default(false)
 
   @@unique([slug, parentId])
   @@index([parentId])

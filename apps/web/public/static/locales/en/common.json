@@ -3359,5 +3359,8 @@
   "license_validation_failed": "Failed to validate license key",
   "license_key_saved": "License key saved successfully",
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
+  "ai_bot_recording": "AI Bot Recording",
+  "ai_bot_recording_description": "Automatically record and transcribe Google Meet calls with an AI bot",
+  "ai_bot_recording_updated_successfully": "AI bot recording setting updated successfully",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

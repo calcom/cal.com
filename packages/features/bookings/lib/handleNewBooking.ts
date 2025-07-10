@@ -63,6 +63,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
+import { createRecallBot } from "@calcom/lib/recallAi";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -1816,6 +1817,23 @@ async function handler(
             results.push({
               ...googleMeetResult,
               success: false,
+            });
+          }
+
+          if (
+            googleCalResult?.createdEvent?.hangoutLink &&
+            isTeamEventType &&
+            eventType.team?.enableAIBotRecording
+          ) {
+            const botName = `${eventType.team.name} Meeting Bot`;
+            const joinAt = new Date(evt.startTime);
+
+            await createRecallBot({
+              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              botName,
+              joinAt,
+            }).catch((error) => {
+              loggerWithEventDetails.error("Failed to create Recall.ai bot", { error });
             });
           }
         }
