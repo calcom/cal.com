@@ -2,10 +2,7 @@
 
 import { revalidateTag } from "next/cache";
 
-/**
- * Invalidate only the team data cache for a specific team
- * Use this when team data is modified
- */
+// Coupled with `getCachedTeamData` in `queries.ts`
 export async function revalidateTeamDataCache({
   teamSlug,
   orgSlug,
@@ -16,10 +13,7 @@ export async function revalidateTeamDataCache({
   revalidateTag(`team:${teamSlug}${orgSlug ? `:${orgSlug}` : ""}`);
 }
 
-/**
- * Invalidate only the team event type cache for a specific event type
- * Use this when event type data is modified
- */
+// Coupled with `getCachedTeamEventType` in `queries.ts`
 export async function revalidateTeamEventTypeCache({
   teamSlug,
   meetingSlug,
