@@ -47,7 +47,8 @@ export const createAProfileForAnExistingUser = async ({
     movedFromUserId: user.id,
   });
 
-  await UserRepository.updateWhereId({
+  const userRepo = new UserRepository(prisma);
+  await userRepo.updateWhereId({
     whereId: user.id,
     data: {
       movedToProfileId: profile.id,
