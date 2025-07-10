@@ -206,8 +206,9 @@ const FixedHosts = ({
                       userId: parseInt(teamMember.value, 10),
                       priority: host?.priority ?? 2,
                       weight: host?.weight ?? 100,
-                      // if host was already added, retain scheduleId
+                      // if host was already added, retain scheduleId and groupId
                       scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                      groupId: host?.groupId || null,
                     };
                   }),
                   { shouldDirty: true }
@@ -261,8 +262,9 @@ const FixedHosts = ({
                       userId: parseInt(teamMember.value, 10),
                       priority: host?.priority ?? 2,
                       weight: host?.weight ?? 100,
-                      // if host was already added, retain scheduleId
+                      // if host was already added, retain scheduleId and groupId
                       scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                      groupId: host?.groupId || null,
                     };
                   }),
                   { shouldDirty: true }
@@ -350,22 +352,22 @@ const RoundRobinHosts = ({
               // If no groups exist yet, create two groups
               if (hostGroups?.length === 0) {
                 const firstGroup = {
-                  id: `group_${Date.now()}`,
-                  name: `Group 1`,
+                  id: `temp_${Date.now()}_1`,
+                  name: "",
                 };
                 const secondGroup = {
-                  id: `group_${Date.now() + 1}`,
-                  name: `Group 2`,
+                  id: `temp_${Date.now()}_2`,
+                  name: "",
                 };
                 const updatedHostGroups = [firstGroup, secondGroup];
                 setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
 
                 // Assign existing hosts without a group to the first group
                 const currentHosts = getValues("hosts");
-                const hostsWithoutGroup = currentHosts.filter((host) => !host.groupId);
-                if (hostsWithoutGroup.length > 0) {
+                const existingHosts = currentHosts.filter((host) => !host.isFixed);
+                if (existingHosts.length > 0) {
                   const updatedHosts = currentHosts.map((host) => {
-                    if (!host.groupId) {
+                    if (!host.groupId && !host.isFixed) {
                       return { ...host, groupId: firstGroup.id };
                     }
                     return host;
@@ -375,11 +377,16 @@ const RoundRobinHosts = ({
               } else {
                 // If groups already exist, just add one more group
                 const newGroup = {
-                  id: `group_${Date.now()}`,
-                  name: `Group ${(hostGroups?.length || 0) + 1}`,
+                  id: `temp_${Date.now()}_${hostGroups.length + 1}`,
+                  name: `Group ${hostGroups.length + 1}`,
                 };
-                const updatedHostGroups = [...(hostGroups || []), newGroup];
+                const updatedHostGroups = [...hostGroups, newGroup];
                 setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+              }
+              // Disable 'Add all team members' switch if enabled
+              if (assignAllTeamMembers) {
+                setValue("assignAllTeamMembers", false, { shouldDirty: true });
+                setAssignAllTeamMembers(false);
               }
             }}>
             {t("add_group")}
@@ -445,8 +452,9 @@ const RoundRobinHosts = ({
                     userId: parseInt(teamMember.value, 10),
                     priority: host?.priority ?? 2,
                     weight: host?.weight ?? 100,
-                    // if host was already added, retain scheduleId
+                    // if host was already added, retain scheduleId and groupId
                     scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                    groupId: host?.groupId || null,
                   };
                 }),
                 { shouldDirty: true }
@@ -646,7 +654,8 @@ const Hosts = ({
   // This is because the host is created from list option in CheckedHostField component.
   const updatedHosts = (changedHosts: Host[]) => {
     const existingHosts = getValues("hosts");
-
+    console.log("existingHosts", JSON.stringify(existingHosts));
+    console.log("changedHosts", JSON.stringify(changedHosts));
     return changedHosts.map((newValue) => {
       const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
 
