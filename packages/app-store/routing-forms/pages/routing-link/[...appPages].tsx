@@ -236,6 +236,7 @@ const usePrefilledResponse = (form: Props["form"]) => {
     prefillResponse[field.id] = {
       value: getFieldResponseForJsonLogic({ field, value }),
       label: field.label,
+      identifier: field?.identifier || null,
     };
   });
   const [response, setResponse] = useState<FormResponse>(prefillResponse);
