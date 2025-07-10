@@ -17,6 +17,7 @@ import type { PageProps as LegacyPageProps } from "~/team/type-view";
 import CachedTeamBooker, { generateMetadata as generateCachedMetadata } from "./pageWithCachedData";
 
 async function isCachedTeamBookingEnabled(searchParams: SearchParams): Promise<boolean> {
+  return true;
   const featuresRepository = new FeaturesRepository();
   const isGloballyEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
     "team-booking-page-cache"

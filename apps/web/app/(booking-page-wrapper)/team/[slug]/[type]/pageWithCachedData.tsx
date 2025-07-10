@@ -21,10 +21,8 @@ import CachedClientView, { type TeamBookingPageProps } from "~/team/type-view-ca
 
 import {
   getCachedTeamData,
-  getCachedTeamEventType,
-  getEnrichedTeamAndEventType,
+  getEnrichedEventType,
   type TeamData,
-  type TeamEventType,
   getCRMData,
   shouldUseApiV2ForTeamSlots,
 } from "./queries";
@@ -34,24 +32,21 @@ const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
 });
 
-const getTeamMetadataForBooking = (
-  teamData: NonNullable<TeamData>,
-  eventType: NonNullable<TeamEventType>
-) => {
+const _getTeamMetadataForBooking = (teamData: NonNullable<TeamData>, eventTypeId: number) => {
   const organizationSettings = getOrganizationSEOSettings(teamData);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
   return {
     orgBannerUrl: teamData.parent?.bannerUrl ?? "",
     hideBranding: shouldHideBrandingForTeamEvent({
-      eventTypeId: eventType.id,
+      eventTypeId,
       team: teamData,
     }),
     isSEOIndexable: allowSEOIndexing,
   };
 };
 
-async function getOrgContext(params: Params) {
+async function _getOrgContext(params: Params) {
   const result = paramsSchema.safeParse({
     slug: params?.slug,
     type: params?.type,
@@ -73,7 +68,7 @@ async function getOrgContext(params: Params) {
   };
 }
 
-const getMultipleDurationValue = (
+const _getMultipleDurationValue = (
   multipleDurationConfig: number[] | undefined,
   queryDuration: string | string[] | null | undefined,
   defaultValue: number
@@ -84,60 +79,56 @@ const getMultipleDurationValue = (
 };
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getOrgContext(await params);
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await _getOrgContext(await params);
 
-  // Use the new separated cache functions
-  const [teamData, eventType] = await Promise.all([
-    getCachedTeamData(teamSlug, currentOrgDomain),
-    getCachedTeamEventType(teamSlug, meetingSlug, currentOrgDomain),
-  ]);
+  const teamData = await getCachedTeamData(teamSlug, currentOrgDomain);
+  if (!teamData) return {}; // should never happen
 
-  if (!teamData || !eventType) return {}; // should never happen
-
-  const teamAndEventTypeData = await getEnrichedTeamAndEventType({
+  const enrichedEventType = await getEnrichedEventType({
     teamSlug,
     meetingSlug,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     fromRedirectOfNonOrgLink: (await searchParams).orgRedirection === "true",
   });
-  if (!teamAndEventTypeData) return {}; // should never happen
+  if (!enrichedEventType) return {}; // should never happen
 
-  const { hideBranding, isSEOIndexable } = getTeamMetadataForBooking(teamData, eventType);
-  const title = teamAndEventTypeData.title;
-  const profileName = teamAndEventTypeData.profile.name ?? "";
-  const profileImage = teamAndEventTypeData.profile.image;
+  const title = enrichedEventType.title;
+  const profileName = enrichedEventType.profile.name ?? "";
+  const profileImage = enrichedEventType.profile.image;
 
   const meeting = {
     title,
     profile: { name: profileName, image: profileImage },
     users: [
-      ...(teamAndEventTypeData?.subsetOfUsers || []).map((user) => ({
+      ...(enrichedEventType?.subsetOfUsers || []).map((user) => ({
         name: `${user.name}`,
         username: `${user.username}`,
       })),
     ],
   };
 
+  const { hideBranding, isSEOIndexable } = _getTeamMetadataForBooking(teamData, enrichedEventType.id);
+
   const metadata = await generateMeetingMetadata(
     meeting,
     () => `${title} | ${profileName}`,
     () => title,
     hideBranding,
-    getOrgFullOrigin(teamAndEventTypeData.entity.orgSlug ?? null),
+    getOrgFullOrigin(enrichedEventType.entity.orgSlug ?? null),
     `/team/${teamSlug}/${meetingSlug}`
   );
 
   return {
     ...metadata,
     robots: {
-      follow: !(teamAndEventTypeData.hidden || !isSEOIndexable),
-      index: !(teamAndEventTypeData.hidden || !isSEOIndexable),
+      follow: !(enrichedEventType.hidden || !isSEOIndexable),
+      index: !(enrichedEventType.hidden || !isSEOIndexable),
     },
   };
 };
 
 const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
-  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await getOrgContext(await params);
+  const { currentOrgDomain, isValidOrgDomain, teamSlug, meetingSlug } = await _getOrgContext(await params);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
 
@@ -152,20 +143,17 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
     if (redirectResult) return redirect(redirectResult.redirect.destination);
   }
 
-  const [teamData, eventType] = await Promise.all([
-    getCachedTeamData(teamSlug, currentOrgDomain),
-    getCachedTeamEventType(teamSlug, meetingSlug, currentOrgDomain),
-  ]);
+  const teamData = await getCachedTeamData(teamSlug, currentOrgDomain);
 
-  if (!teamData || !eventType) return notFound();
+  if (!teamData) return notFound();
 
-  const teamAndEventTypeData = await getEnrichedTeamAndEventType({
+  const enrichedEventType = await getEnrichedEventType({
     teamSlug,
     meetingSlug,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
   });
-  if (!teamAndEventTypeData) return notFound();
+  if (!enrichedEventType) return notFound();
 
   // Handle rescheduling
   const { rescheduleUid } = legacyCtx.query;
@@ -173,12 +161,12 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
   if (rescheduleUid) {
     const session = await getServerSession({ req: legacyCtx.req });
     bookingForReschedule = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-    if (teamAndEventTypeData.disableRescheduling) return redirect(`/booking/${rescheduleUid}`);
+    if (enrichedEventType.disableRescheduling) return redirect(`/booking/${rescheduleUid}`);
 
     if (
       bookingForReschedule?.status === BookingStatus.CANCELLED &&
       legacyCtx.query.allowRescheduleForCancelledBooking !== "true" &&
-      !teamAndEventTypeData.allowReschedulingCancelledBookings
+      !enrichedEventType.allowReschedulingCancelledBookings
     ) {
       // redirecting to the same booking page without `rescheduleUid` search param
       return redirect(`/team/${teamSlug}/${meetingSlug}`);
@@ -187,38 +175,38 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
 
   const [crmData, useApiV2] = await Promise.all([
     getCRMData(legacyCtx.query, {
-      id: eventType.id,
-      isInstantEvent: eventType.isInstantEvent,
-      schedulingType: eventType.schedulingType,
-      metadata: eventType.metadata,
-      length: teamAndEventTypeData.length,
+      id: enrichedEventType.id,
+      isInstantEvent: enrichedEventType.isInstantEvent,
+      schedulingType: enrichedEventType.schedulingType,
+      metadata: enrichedEventType.metadata,
+      length: enrichedEventType.length,
     }),
     shouldUseApiV2ForTeamSlots(teamData.id),
   ]);
 
   const props: TeamBookingPageProps = {
-    ...getTeamMetadataForBooking(teamData, eventType),
+    ..._getTeamMetadataForBooking(teamData, enrichedEventType.id),
     ...crmData,
     useApiV2,
     isInstantMeeting: legacyCtx.query.isInstantMeeting === "true",
     eventSlug: meetingSlug,
     username: teamSlug,
     eventData: {
-      ...teamAndEventTypeData,
+      ...enrichedEventType,
     },
-    entity: { ...teamAndEventTypeData.entity },
+    entity: { ...enrichedEventType.entity },
     bookingData: bookingForReschedule,
     isTeamEvent: true,
-    durationConfig: teamAndEventTypeData.metadata?.multipleDuration,
-    duration: getMultipleDurationValue(
-      teamAndEventTypeData.metadata?.multipleDuration,
+    durationConfig: enrichedEventType.metadata?.multipleDuration,
+    duration: _getMultipleDurationValue(
+      enrichedEventType.metadata?.multipleDuration,
       legacyCtx.query.duration,
-      teamAndEventTypeData.length
+      enrichedEventType.length
     ),
   };
   const Booker = <CachedClientView {...props} />;
 
-  const eventLocale = teamAndEventTypeData.interfaceLanguage;
+  const eventLocale = enrichedEventType.interfaceLanguage;
   if (eventLocale) {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);

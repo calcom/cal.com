@@ -37,7 +37,6 @@ export async function getCachedTeamEventType(teamSlug: string, meetingSlug: stri
 }
 
 export type TeamData = Awaited<ReturnType<typeof _getTeamData>>;
-export type TeamEventType = Awaited<ReturnType<typeof _getTeamEventType>>;
 
 async function _getTeamData(teamSlug: string, orgSlug: string | null) {
   return await prisma.team.findFirst({
@@ -101,7 +100,7 @@ async function _getTeamEventType(teamSlug: string, meetingSlug: string, orgSlug:
   });
 }
 
-export async function getEnrichedTeamAndEventType({
+export async function getEnrichedEventType({
   teamSlug,
   meetingSlug,
   orgSlug,
