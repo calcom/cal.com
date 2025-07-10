@@ -100,8 +100,8 @@ const mockForm: TargetRoutingFormForResponse = {
 };
 
 const mockResponse: z.infer<typeof ZResponseInputSchema>["response"] = {
-  name: { value: "John Doe", label: "Name" },
-  email: { value: "john.doe@example.com", label: "Email" },
+  name: { value: "John Doe", label: "Name", identifier: "name" },
+  email: { value: "john.doe@example.com", label: "Email", identifier: "email" },
 };
 
 describe("handleResponse", () => {
@@ -112,7 +112,7 @@ describe("handleResponse", () => {
   it("should throw a TRPCError for missing required fields", async () => {
     await expect(
       handleResponse({
-        response: { email: { value: "test@test.com", label: "Email" } }, // Name is missing
+        response: { email: { value: "test@test.com", label: "Email", identifier: "email" } }, // Name is missing
         form: mockForm,
         identifierKeyedResponse: null,
         formFillerId: "user1",
@@ -126,8 +126,8 @@ describe("handleResponse", () => {
     await expect(
       handleResponse({
         response: {
-          name: { value: "John Doe", label: "Name" },
-          email: { value: "invalid-email", label: "Email" },
+          name: { value: "John Doe", label: "Name", identifier: "name" },
+          email: { value: "invalid-email", label: "Email", identifier: "email" },
         },
         form: mockForm,
         identifierKeyedResponse: null,
