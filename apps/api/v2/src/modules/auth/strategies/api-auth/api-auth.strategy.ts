@@ -111,7 +111,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
               }
             }
             // token was not third party token, rethrow error from authenticateBearerToken
-            if (err instanceof HttpException || err instanceof Error) {
+            if (err instanceof Error) {
               return this.error(err);
             }
           }
