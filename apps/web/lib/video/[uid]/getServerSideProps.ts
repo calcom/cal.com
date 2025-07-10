@@ -252,7 +252,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const showRecordingButton = shouldEnableRecordButton({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
-    isOrganizer: sessionUserId === bookingObj.user?.id,
+    isOrganizer,
   });
 
   const enableAutomaticTranscription = shouldEnableAutomaticTranscription({
@@ -263,13 +263,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const enableAutomaticRecordingForOrganizer = shouldEnableAutomaticRecording({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
-    isOrganizer: sessionUserId === bookingObj.user?.id,
+    isOrganizer,
   });
 
   const showTranscriptionButton = shouldEnableTranscriptionButton({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
-    isOrganizer: sessionUserId === bookingObj.user?.id,
+    isOrganizer,
   });
 
   return {
