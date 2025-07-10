@@ -103,9 +103,10 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   }
 
   const profileEnrichmentStart = performance.now();
+  const userRepo = new UserRepository(prisma);
   const formWithUserProfile = {
     ...form,
-    user: await new UserRepository(prisma).enrichUserWithItsProfile({ user: form.user }),
+    user: await userRepo.enrichUserWithItsProfile({ user: form.user }),
   };
   timeTaken.profileEnrichment = performance.now() - profileEnrichmentStart;
 

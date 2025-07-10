@@ -106,32 +106,35 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
   type UserEventTypes = (typeof profileEventTypes)[number];
 
-  const mapEventType = async (eventType: UserEventTypes) => ({
-    ...eventType,
-    safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
-    users: await Promise.all(
-      (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-        async (u) =>
-          await new UserRepository(prisma).enrichUserWithItsProfile({
-            user: u,
-          })
-      )
-    ),
-    metadata: eventType.metadata ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata) : null,
-    children: await Promise.all(
-      (eventType.children || []).map(async (c) => ({
-        ...c,
-        users: await Promise.all(
-          c.users.map(
-            async (u) =>
-              await new UserRepository(prisma).enrichUserWithItsProfile({
-                user: u,
-              })
-          )
-        ),
-      }))
-    ),
-  });
+  const mapEventType = async (eventType: UserEventTypes) => {
+    const userRepo = new UserRepository(prisma);
+    return {
+      ...eventType,
+      safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
+      users: await Promise.all(
+        (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+          async (u) =>
+            await userRepo.enrichUserWithItsProfile({
+              user: u,
+            })
+        )
+      ),
+      metadata: eventType.metadata ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata) : null,
+      children: await Promise.all(
+        (eventType.children || []).map(async (c) => ({
+          ...c,
+          users: await Promise.all(
+            c.users.map(
+              async (u) =>
+                await userRepo.enrichUserWithItsProfile({
+                  user: u,
+                })
+            )
+          ),
+        }))
+      ),
+    };
+  };
 
   const userEventTypes = (await Promise.all(profileEventTypes.map(mapEventType))).filter((eventType) => {
     const isAChildEvent = eventType.parentId;

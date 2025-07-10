@@ -38,7 +38,8 @@ export class UserCreationService {
 
     const hashedPassword = password ? await hashPassword(password) : null;
 
-    const user = await new UserRepository(prisma).create({
+    const userRepo = new UserRepository(prisma);
+    const user = await userRepo.create({
       ...data,
       username: slugify(username),
       ...(hashedPassword && { hashedPassword }),

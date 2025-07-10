@@ -12,7 +12,8 @@ export const throwIfNotHaveAdminAccessToTeam = async ({
   if (!teamId) {
     return;
   }
-  const userAdminTeams = await new UserRepository(prisma).getUserAdminTeams({ userId });
+  const userRepo = new UserRepository(prisma);
+  const userAdminTeams = await userRepo.getUserAdminTeams({ userId });
   const teamsUserHasAdminAccessFor = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
   const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.some((id) => id === teamId);
 
