@@ -68,6 +68,11 @@
       "import": "./dist/conferencing.js",
       "require": "./dist/conferencing.cjs",
       "types": "./dist/conferencing.d.ts"
+    },
+    "./repositories": {
+      "import": "./dist/repositories.js",
+      "require": "./dist/repositories.cjs",
+      "types": "./dist/repositories.d.ts"
     }
   },
   "typesVersions": {
@@ -92,6 +97,9 @@
       ],
       "conferencing": [
         "dist/conferencing.d.ts"
+      ],
+      "repositories": [
+        "dist/repositories.d.ts"
       ]
     }
   }

@@ -293,26 +293,49 @@ export async function scheduleReservationExpiredTrigger({
   try {
     const payload = JSON.stringify({ triggerEvent, ...slot });
 
-    await prisma.webhookScheduledTriggers.create({
-      data: {
-        payload,
-        appId: subscriber.appId,
-        startAfter: slot.releaseAt,
+    // Check if a scheduled trigger already exists for this slot and subscriber
+    const existingTrigger = await prisma.webhookScheduledTriggers.findFirst({
+      where: {
+        webhookId: subscriber.id,
+        selectedSlotId: slot.id,
         subscriberUrl,
-        webhook: {
-          connect: {
-            id: subscriber.id,
-          },
-        },
-        SelectedSlots: {
-          connect: {
-            id: slot.id,
-          },
-        },
       },
     });
+
+    if (existingTrigger) {
+      // Update the existing scheduled trigger
+      await prisma.webhookScheduledTriggers.update({
+        where: { id: existingTrigger.id },
+        data: {
+          payload,
+          appId: subscriber.appId,
+          startAfter: slot.releaseAt,
+          subscriberUrl,
+        },
+      });
+    } else {
+      // Create a new scheduled trigger
+      await prisma.webhookScheduledTriggers.create({
+        data: {
+          payload,
+          appId: subscriber.appId,
+          startAfter: slot.releaseAt,
+          subscriberUrl,
+          webhook: {
+            connect: {
+              id: subscriber.id,
+            },
+          },
+          SelectedSlots: {
+            connect: {
+              id: slot.id,
+            },
+          },
+        },
+      });
+    }
   } catch (error) {
-    console.error("Error schedulling webhook trigger", error);
+    console.error("Error scheduling webhook trigger (create/update)", error);
   }
 }
 

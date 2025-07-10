@@ -23,7 +23,12 @@ const buildContext = () => {
   const prismaStub = {
     eventType: {
       // Return a minimal event type that will exercise the happy path.
-      findUnique: vi.fn().mockResolvedValue({ users: [{ id: 1 }], seatsPerTimeSlot: null }),
+      findUnique: vi.fn().mockResolvedValue({
+        users: [{ id: 1 }],
+        seatsPerTimeSlot: null,
+        teamId: null,
+        team: { parentId: null },
+      }),
     },
     booking: {
       findFirst: vi.fn().mockResolvedValue(null),
