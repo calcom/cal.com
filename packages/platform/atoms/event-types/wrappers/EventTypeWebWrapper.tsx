@@ -319,6 +319,13 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
+      if (team?.slug) {
+        revalidateTeamEventTypeCache({
+          teamSlug: team.slug,
+          meetingSlug: eventType.slug,
+          orgSlug: team.parent?.slug ?? null,
+        });
+      }
       showToast(t("event_type_deleted_successfully"), "success");
       isTeamEventTypeDeleted.current = true;
       appRouter.push("/event-types");
