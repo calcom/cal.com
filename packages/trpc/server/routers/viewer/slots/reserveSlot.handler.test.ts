@@ -34,7 +34,10 @@ const buildContext = () => {
       findFirst: vi.fn().mockResolvedValue(null),
     },
     selectedSlots: {
-      upsert: vi.fn().mockResolvedValue(null),
+      upsert: vi.fn().mockResolvedValue({
+        id: 123,
+        releaseAt: new Date().toISOString(),
+      }),
     },
   } as unknown as any;
 
