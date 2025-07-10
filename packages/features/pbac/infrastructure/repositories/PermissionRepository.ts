@@ -107,6 +107,11 @@ export class PermissionRepository implements IPermissionRepository {
   }
 
   async checkRolePermissions(roleId: string, permissions: PermissionString[]): Promise<boolean> {
+    // Validate that permissions array is not empty to prevent privilege escalation
+    if (permissions.length === 0) {
+      return false;
+    }
+
     const permissionPairs = permissions.map((p) => {
       const [resource, action] = p.split(".");
       return { resource, action };
@@ -179,6 +184,11 @@ export class PermissionRepository implements IPermissionRepository {
   }
 
   async getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]> {
+    // Validate that permissions array is not empty to prevent privilege escalation
+    if (permissions.length === 0) {
+      return [];
+    }
+
     const permissionPairs = permissions.map((p) => {
       const [resource, action] = p.split(".");
       return { resource, action };

@@ -247,6 +247,41 @@ describe("PermissionCheckService", () => {
       expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
       expect(mockRepository.checkRolePermissions).not.toHaveBeenCalled();
     });
+
+    it("should return false when permissions array is empty", async () => {
+      const membership = {
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: "admin_role",
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+      mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
+        id: membership.id,
+        teamId: membership.teamId,
+        userId: membership.userId,
+        customRoleId: membership.customRoleId,
+      });
+      mockRepository.getOrgMembership.mockResolvedValueOnce(null);
+      mockRepository.checkRolePermissions.mockResolvedValueOnce(false);
+
+      const result = await service.checkPermissions({
+        userId: 1,
+        teamId: 1,
+        permissions: [],
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toBe(false);
+      expect(mockRepository.checkRolePermissions).toHaveBeenCalledWith("admin_role", []);
+    });
   });
 
   describe("getUserPermissions", () => {
@@ -323,6 +358,13 @@ describe("PermissionCheckService", () => {
 
       expect(result).toEqual([]);
       expect(mockRepository.getTeamIdsWithPermissions).not.toHaveBeenCalled();
+    });
+
+    it("should return empty array when permissions array is empty", async () => {
+      const result = await service.getTeamIdsWithPermissions(1, []);
+
+      expect(result).toEqual([]);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith(1, []);
     });
 
     it("should return empty array and log error when repository throws", async () => {
