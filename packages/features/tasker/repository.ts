@@ -68,10 +68,6 @@ export class Task {
     });
   }
 
-  static async getAll() {
-    return db.task.findMany();
-  }
-
   static async getFailed() {
     return db.task.findMany({
       where: whereMaxAttemptsReached,
@@ -156,21 +152,12 @@ export class Task {
   }
 
   static async cancelWithReference(referenceUid: string, type: TaskTypes) {
-    const task = await db.task.findFirst({
-      where: {
-        referenceUid,
-        type,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!task) return null;
-
     return await db.task.delete({
       where: {
-        id: task.id,
+        referenceUid_type: {
+          referenceUid,
+          type,
+        },
       },
     });
   }
