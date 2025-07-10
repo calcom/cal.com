@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Saate oma kalendri ühendada <1>siit</1>.",
   "default_calendar_selected": "Vaikekalender",
   "hide_from_profile": "Peida profiilist",
-  "event_setup_tab_title": "Sündmuse seadistamine",
+  "basics": "Sündmuse seadistamine",
   "availability_not_found_in_schedule_error": "Ajakavas ei leitud saadavust",
   "event_limit_tab_title": "Piirangud",
   "event_limit_tab_description": "Kui sageli saate broneerida",

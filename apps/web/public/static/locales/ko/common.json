@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "캘린더는 <1>여기</1>에서 연결할 수 있습니다.",
   "default_calendar_selected": "기본 캘린더",
   "hide_from_profile": "프로필에서 숨기기",
-  "event_setup_tab_title": "이벤트 설정",
+  "basics": "이벤트 설정",
   "availability_not_found_in_schedule_error": "일정에서 사용 가능 시간을 찾을 수 없습니다",
   "event_limit_tab_title": "한도",
   "event_limit_tab_description": "예약 가능 횟수",

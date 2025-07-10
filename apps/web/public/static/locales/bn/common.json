@@ -1405,7 +1405,7 @@
   "connect_your_calendar_and_link": "আপনি আপনার ক্যালেন্ডার থেকে সংযুক্ত করতে পারেন <1>এখানে</1>।",
   "default_calendar_selected": "ডিফল্ট ক্যালেন্ডার",
   "hide_from_profile": "প্রোফাইল থেকে লুকান",
-  "event_setup_tab_title": "ইভেন্ট সেটআপ",
+  "basics": "ইভেন্ট সেটআপ",
   "availability_not_found_in_schedule_error": "তফসিলের মধ্যে কোনও প্রাপ্যতা পাওয়া যায় না",
   "event_limit_tab_title": "সীমা",
   "event_limit_tab_description": "আপনি কতবার বুক করা যায়",

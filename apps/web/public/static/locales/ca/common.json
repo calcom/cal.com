@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Pots connectar el teu calendari des d'<1>aquí</1>.",
   "default_calendar_selected": "Calendari predeterminat",
   "hide_from_profile": "Amaga del perfil",
-  "event_setup_tab_title": "Configuració de l'esdeveniment",
+  "basics": "Configuració de l'esdeveniment",
   "availability_not_found_in_schedule_error": "No s'ha trobat disponibilitat a l'agenda",
   "event_limit_tab_title": "Límits",
   "event_limit_tab_description": "Amb quina freqüència et poden reservar",

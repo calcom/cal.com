@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Bạn có thể kết nối lịch của mình từ <1>đây</1>.",
   "default_calendar_selected": "Lịch mặc định",
   "hide_from_profile": "Ẩn khỏi hồ sơ",
-  "event_setup_tab_title": "Thiết lập sự kiện",
+  "basics": "Thiết lập sự kiện",
   "availability_not_found_in_schedule_error": "Không tìm thấy thời gian khả dụng trong lịch trình",
   "event_limit_tab_title": "Giới hạn",
   "event_limit_tab_description": "Bạn có thể được đặt lịch bao lần",

@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "您可以從<1>這裡</1>連結行事曆。",
   "default_calendar_selected": "預設行事曆",
   "hide_from_profile": "從個人資料隱藏",
-  "event_setup_tab_title": "活動設定",
+  "basics": "活動設定",
   "availability_not_found_in_schedule_error": "在日程中找不到可用時間",
   "event_limit_tab_title": "限制",
   "event_limit_tab_description": "您的可預約頻率",

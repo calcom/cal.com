@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Zure egutegia <1>hemendik</1> konekta dezakezu.",
   "default_calendar_selected": "Egutegi lehenetsia",
   "hide_from_profile": "Ezkutatu profiletik",
-  "event_setup_tab_title": "Gertaeraren konfigurazioa",
+  "basics": "Gertaeraren konfigurazioa",
   "availability_not_found_in_schedule_error": "Ez da eskuragarritasunik aurkitu ordutegian",
   "event_limit_tab_title": "Mugak",
   "event_limit_tab_description": "Zenbatetan erreserbatu zaitzaketen",

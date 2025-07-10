@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Vă puteți conecta calendarul de <1>aici</1>.",
   "default_calendar_selected": "Calendar implicit",
   "hide_from_profile": "Ascundeți din profil",
-  "event_setup_tab_title": "Configurare eveniment",
+  "basics": "Configurare eveniment",
   "availability_not_found_in_schedule_error": "Nu s-a găsit disponibilitate în program",
   "event_limit_tab_title": "Limite",
   "event_limit_tab_description": "Cât de des puteți fi rezervat",

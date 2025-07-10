@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Можете да свържете календара си от <1>тук</1>.",
   "default_calendar_selected": "Календар по подразбиране",
   "hide_from_profile": "Скрий от профила",
-  "event_setup_tab_title": "Настройка на събитие",
+  "basics": "Настройка на събитие",
   "availability_not_found_in_schedule_error": "Не е намерена свободна заетост в графика",
   "event_limit_tab_title": "Лимити",
   "event_limit_tab_description": "Колко често можете да бъдете резервиран",

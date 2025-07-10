@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Môžete pripojiť svoj kalendár z <1>tu</1>.",
   "default_calendar_selected": "Predvolený kalendár",
   "hide_from_profile": "Skryť z profilu",
-  "event_setup_tab_title": "Nastavenie udalosti",
+  "basics": "Nastavenie udalosti",
   "availability_not_found_in_schedule_error": "V rozvrhu nebola nájdená dostupnosť",
   "event_limit_tab_title": "Limity",
   "event_limit_tab_description": "Ako často môžete byť rezervovaní",

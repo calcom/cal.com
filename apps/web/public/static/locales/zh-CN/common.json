@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "您可以从<1>这里</1>连接您的日历。",
   "default_calendar_selected": "默认日历",
   "hide_from_profile": "从个人资料中隐藏",
-  "event_setup_tab_title": "活动设置",
+  "basics": "活动设置",
   "availability_not_found_in_schedule_error": "时间表中没有可供安排的时间",
   "event_limit_tab_title": "限制",
   "event_limit_tab_description": "您多久可被预约一次",

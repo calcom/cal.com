@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Voit yhdistää kalenterisi <1>täältä</1>.",
   "default_calendar_selected": "Oletuskalenteri valittu",
   "hide_from_profile": "Piilota profiilista",
-  "event_setup_tab_title": "Tapahtuman asetukset",
+  "basics": "Tapahtuman asetukset",
   "availability_not_found_in_schedule_error": "Aikataulusta ei löytynyt vapaita aikoja",
   "event_limit_tab_title": "Rajoitukset",
   "event_limit_tab_description": "Kuinka usein sinut voidaan varata",

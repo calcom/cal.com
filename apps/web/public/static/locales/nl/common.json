@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "U kunt uw agenda koppelen vanaf <1>hier</1>.",
   "default_calendar_selected": "Standaardagenda",
   "hide_from_profile": "In profiel verbergen",
-  "event_setup_tab_title": "Configuratie gebeurtenis",
+  "basics": "Configuratie gebeurtenis",
   "availability_not_found_in_schedule_error": "Geen beschikbaarheid gevonden in het schema",
   "event_limit_tab_title": "Grenswaarden",
   "event_limit_tab_description": "Hoe vaak u geboekt kunt worden",

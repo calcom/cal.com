@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Możesz podłączyć swój kalendarz <1>tutaj</1>.",
   "default_calendar_selected": "Domyślny kalendarz",
   "hide_from_profile": "Ukryj w profilu",
-  "event_setup_tab_title": "Konfiguracja wydarzenia",
+  "basics": "Konfiguracja wydarzenia",
   "availability_not_found_in_schedule_error": "Brak dostępności w harmonogramie",
   "event_limit_tab_title": "Limity",
   "event_limit_tab_description": "Jak często można rezerwować Twoje usługi",

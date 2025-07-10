@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Puedes conectar tu calendario desde <1>aquí</1>.",
   "default_calendar_selected": "Calendario predeterminado",
   "hide_from_profile": "Ocultar del perfil",
-  "event_setup_tab_title": "Configuración del evento",
+  "basics": "Configuración del evento",
   "availability_not_found_in_schedule_error": "No se encontró disponibilidad en el horario",
   "event_limit_tab_title": "Límites",
   "event_limit_tab_description": "Con qué frecuencia puedes ser reservado",

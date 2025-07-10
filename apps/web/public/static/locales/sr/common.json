@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Ne možete da povežete svoj kalendar <1>odavde</1>.",
   "default_calendar_selected": "Podrazumevani kalendar",
   "hide_from_profile": "Sakrij sa profila",
-  "event_setup_tab_title": "Podešavanje događaja",
+  "basics": "Podešavanje događaja",
   "availability_not_found_in_schedule_error": "Nema dostupnosti u rasporedu",
   "event_limit_tab_title": "Granice",
   "event_limit_tab_description": "Koliko često možete da budete rezervisani",

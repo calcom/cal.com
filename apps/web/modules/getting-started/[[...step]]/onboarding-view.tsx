@@ -45,7 +45,7 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
   }[] = [
     {
       title: t("welcome_to_cal_header", { appName: APP_NAME }),
-      subtitle: [t("we_just_need_basic_info"), t("edit_form_later_subtitle")],
+      subtitle: [t("we_just_need_basic_info")],
     },
     {
       title: t("connect_your_calendar"),
@@ -60,8 +60,9 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
     {
       title: t("set_availability"),
       subtitle: [
-        t("set_availability_getting_started_subtitle_1"),
-        t("set_availability_getting_started_subtitle_2"),
+        `${t("set_availability_getting_started_subtitle_1")} ${t(
+          "set_availability_getting_started_subtitle_2"
+        )}`,
       ],
     },
     {

@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Takviminizi <1>buradan</1> bağlayabilirsiniz.",
   "default_calendar_selected": "Varsayılan takvim",
   "hide_from_profile": "Profilde gizle",
-  "event_setup_tab_title": "Etkinlik Kurulumu",
+  "basics": "Etkinlik Kurulumu",
   "availability_not_found_in_schedule_error": "Programda uygunluk bulunamadı",
   "event_limit_tab_title": "Limitler",
   "event_limit_tab_description": "Ne sıklıkla rezervasyon yapabilirsiniz",

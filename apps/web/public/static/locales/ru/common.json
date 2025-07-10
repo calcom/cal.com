@@ -1461,7 +1461,7 @@
   "connect_your_calendar_and_link": "Можно подключить календарь <1>отсюда</1>.",
   "default_calendar_selected": "Календарь по умолчанию",
   "hide_from_profile": "Скрыть в профиле",
-  "event_setup_tab_title": "Настройка события",
+  "basics": "Настройка события",
   "availability_not_found_in_schedule_error": "Доступность не найдена в расписании",
   "event_limit_tab_title": "Лимиты",
   "event_limit_tab_description": "Как часто можно забронировать для вас событие",
