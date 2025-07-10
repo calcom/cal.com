@@ -211,7 +211,8 @@ export class AvailableSlotsService {
       return null;
     }
 
-    return await EventTypeRepository.findForSlots({ id: eventTypeId });
+    const eventTypeRepo = new EventTypeRepository(prisma);
+    return await eventTypeRepo.findForSlots({ id: eventTypeId });
   }
 
   private getEventType = withReporting(this._getEventType.bind(this), "getEventType");
@@ -281,7 +282,8 @@ export class AvailableSlotsService {
         organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
       );
     }
-    const eventType = await EventTypeRepository.findFirstEventTypeId({ slug: eventTypeSlug, teamId, userId });
+    const eventTypeRepo = new EventTypeRepository(prisma);
+    const eventType = await eventTypeRepo.findFirstEventTypeId({ slug: eventTypeSlug, teamId, userId });
     if (!eventType) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
