@@ -5,6 +5,7 @@ import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
+import type { PermissionString } from "../../domain/types/permission-registry";
 import { PermissionCheckService } from "../permission-check.service";
 import type { PermissionService } from "../permission.service";
 
@@ -33,7 +34,9 @@ describe("PermissionCheckService", () => {
       checkRolePermission: vi.fn(),
       checkRolePermissions: vi.fn(),
       getResourcePermissions: vi.fn(),
-    };
+      getTeamIdsWithPermission: vi.fn(),
+      getTeamIdsWithPermissions: vi.fn(),
+    } as MockRepository;
 
     mockFeaturesRepository = {
       checkIfTeamHasFeature: vi.fn(),
@@ -262,6 +265,74 @@ describe("PermissionCheckService", () => {
       const result = await service.getUserPermissions(1);
       expect(result).toEqual(memberships);
       expect(mockRepository.getUserMemberships).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe("getTeamIdsWithPermission", () => {
+    it("should return team IDs where user has the specified permission", async () => {
+      const expectedTeamIds = [1, 2, 3];
+      mockRepository.getTeamIdsWithPermission.mockResolvedValueOnce(expectedTeamIds);
+
+      const result = await service.getTeamIdsWithPermission(1, "eventType.read");
+
+      expect(result).toEqual(expectedTeamIds);
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith(1, "eventType.read");
+    });
+
+    it("should return empty array when permission validation fails", async () => {
+      mockPermissionService.validatePermission.mockReturnValueOnce({
+        isValid: false,
+        error: "Invalid permissions",
+      });
+
+      const result = await service.getTeamIdsWithPermission(1, "eventType.read");
+
+      expect(result).toEqual([]);
+      expect(mockRepository.getTeamIdsWithPermission).not.toHaveBeenCalled();
+    });
+
+    it("should return empty array and log error when repository throws", async () => {
+      mockRepository.getTeamIdsWithPermission.mockRejectedValueOnce(new Error("Database error"));
+
+      const result = await service.getTeamIdsWithPermission(1, "eventType.read");
+
+      expect(result).toEqual([]);
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith(1, "eventType.read");
+    });
+  });
+
+  describe("getTeamIdsWithPermissions", () => {
+    it("should return team IDs where user has all specified permissions", async () => {
+      const expectedTeamIds = [1, 2];
+      const permissions: PermissionString[] = ["eventType.read", "eventType.create"];
+      mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce(expectedTeamIds);
+
+      const result = await service.getTeamIdsWithPermissions(1, permissions);
+
+      expect(result).toEqual(expectedTeamIds);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith(1, permissions);
+    });
+
+    it("should return empty array when permissions validation fails", async () => {
+      mockPermissionService.validatePermissions.mockReturnValueOnce({
+        isValid: false,
+        error: "Invalid permissions",
+      });
+
+      const result = await service.getTeamIdsWithPermissions(1, ["eventType.read"] as PermissionString[]);
+
+      expect(result).toEqual([]);
+      expect(mockRepository.getTeamIdsWithPermissions).not.toHaveBeenCalled();
+    });
+
+    it("should return empty array and log error when repository throws", async () => {
+      const permissions: PermissionString[] = ["eventType.read", "eventType.create"];
+      mockRepository.getTeamIdsWithPermissions.mockRejectedValueOnce(new Error("Database error"));
+
+      const result = await service.getTeamIdsWithPermissions(1, permissions);
+
+      expect(result).toEqual([]);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith(1, permissions);
     });
   });
 });
