@@ -361,6 +361,8 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return empty array when permissions array is empty", async () => {
+      mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce([]);
+
       const result = await service.getTeamIdsWithPermissions(1, []);
 
       expect(result).toEqual([]);
