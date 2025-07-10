@@ -23,6 +23,46 @@ export type { UserWithLegacySelectedCalendars } from "../withSelectedCalendars";
 export { withSelectedCalendars };
 export type UserAdminTeams = number[];
 
+export type SessionUser = {
+  id: number;
+  username: string | null;
+  name: string | null;
+  email: string;
+  emailVerified: Date | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  timeZone: string;
+  weekStart: string;
+  startTime: number;
+  endTime: number;
+  defaultScheduleId: number | null;
+  bufferTime: number;
+  theme: string | null;
+  appTheme: string | null;
+  createdDate: Date;
+  hideBranding: boolean;
+  twoFactorEnabled: boolean;
+  disableImpersonation: boolean;
+  identityProvider: string | null;
+  identityProviderId: string | null;
+  brandColor: string | null;
+  darkBrandColor: string | null;
+  movedToProfileId: number | null;
+  completedOnboarding: boolean;
+  destinationCalendar: any;
+  locale: string;
+  timeFormat: number | null;
+  trialEndsAt: Date | null;
+  metadata: any;
+  role: string;
+  allowDynamicBooking: boolean;
+  allowSEOIndexing: boolean;
+  receiveMonthlyDigestEmail: boolean;
+  profiles: any[];
+  allSelectedCalendars: any[];
+  userLevelSelectedCalendars: any[];
+};
+
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
@@ -351,13 +391,13 @@ export class UserRepository {
     return !!user.movedToProfileId;
   }
 
-  async enrichUserWithTheProfile<T extends { username: string | null; id: number }>({
-    user,
-    upId,
-  }: {
-    user: T;
-    upId: UpId;
-  }) {
+  async enrichUserWithTheProfile<
+    T extends {
+      id: number;
+      username: string | null;
+      [key: string]: any;
+    }
+  >({ user, upId }: { user: T; upId: UpId }): Promise<T & { profile: UserProfile }> {
     const profile = await ProfileRepository.findByUpId(upId);
     if (!profile) {
       return {
@@ -378,7 +418,13 @@ export class UserRepository {
    * 2. While dealing with a User that has been moved to a Profile i.e. he was invited to an organization when he was an existing user.
    * 3. We haven't added profileId to all the entities, so they aren't aware of which profile they belong to. So, we still mostly use this function to enrich the user with its profile.
    */
-  async enrichUserWithItsProfile<T extends { id: number; username: string | null }>({
+  async enrichUserWithItsProfile<
+    T extends {
+      id: number;
+      username: string | null;
+      [key: string]: any;
+    }
+  >({
     user,
   }: {
     user: T;
