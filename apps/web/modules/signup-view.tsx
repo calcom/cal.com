@@ -397,12 +397,18 @@ export default function Signup({
                       data-testid="signup-usernamefield"
                       setPremium={(value) => setPremiumUsername(value)}
                       addOnLeading={
-                        orgSlug
-                          ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
-                              URL_PROTOCOL_REGEX,
-                              ""
-                            )}/`
-                          : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                        <div
+                          className="scrollbar-hide max-w-[120px] overflow-x-auto whitespace-nowrap"
+                          style={{
+                            WebkitOverflowScrolling: "touch",
+                          }}>
+                          {orgSlug
+                            ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
+                                URL_PROTOCOL_REGEX,
+                                ""
+                              )}/`
+                            : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`}
+                        </div>
                       }
                     />
                   ) : null}
