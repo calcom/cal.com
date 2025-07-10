@@ -53,7 +53,7 @@ import getSlots from "@calcom/lib/slots";
 import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
+import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
@@ -107,14 +107,17 @@ export class AvailableSlotsService {
     eventTypeId: number;
   }) {
     const currentTimeInUtc = dayjs.utc().format();
+    const slotsRepo = new SelectedSlotsRepository(prisma as any);
 
     const unexpiredSelectedSlots =
-      (await SelectedSlotsRepository.findManyUnexpiredSlots({
+      (await slotsRepo.findManyUnexpiredSlots({
         userIds: usersWithCredentials.map((user) => user.id),
         currentTimeInUtc,
       })) || [];
 
-    const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter((slot) => slot.uid !== bookerClientUid);
+    const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter(
+      (slot: any) => slot.uid !== bookerClientUid
+    );
 
     await _cleanupExpiredSlots({ eventTypeId });
 
@@ -123,7 +126,7 @@ export class AvailableSlotsService {
     return reservedSlots;
 
     async function _cleanupExpiredSlots({ eventTypeId }: { eventTypeId: number }) {
-      await SelectedSlotsRepository.deleteManyExpiredSlots({ eventTypeId, currentTimeInUtc });
+      await slotsRepo.deleteManyExpiredSlots({ eventTypeId, currentTimeInUtc });
     }
   }
 
@@ -1133,7 +1136,7 @@ export class AvailableSlotsService {
 
     if (reservedSlots?.length > 0) {
       let occupiedSeats: typeof reservedSlots = reservedSlots.filter(
-        (item) => item.isSeat && item.eventTypeId === eventType.id
+        (item: any) => item.isSeat && item.eventTypeId === eventType.id
       );
       if (occupiedSeats?.length) {
         const addedToCurrentSeats: string[] = [];
@@ -1141,7 +1144,7 @@ export class AvailableSlotsService {
           availabilityCheckProps.currentSeats = availabilityCheckProps.currentSeats.map((item) => {
             const attendees =
               occupiedSeats.filter(
-                (seat) => seat.slotUtcStartDate.toISOString() === item.startTime.toISOString()
+                (seat: any) => seat.slotUtcStartDate.toISOString() === item.startTime.toISOString()
               )?.length || 0;
             if (attendees) addedToCurrentSeats.push(item.startTime.toISOString());
             return {
@@ -1152,7 +1155,7 @@ export class AvailableSlotsService {
             };
           });
           occupiedSeats = occupiedSeats.filter(
-            (item) => !addedToCurrentSeats.includes(item.slotUtcStartDate.toISOString())
+            (item: any) => !addedToCurrentSeats.includes(item.slotUtcStartDate.toISOString())
           );
         }
 
@@ -1163,7 +1166,7 @@ export class AvailableSlotsService {
 
         currentSeats = availabilityCheckProps.currentSeats;
       }
-      const busySlotsFromReservedSlots = reservedSlots.reduce<EventBusyDate[]>((r, c) => {
+      const busySlotsFromReservedSlots = (reservedSlots as any).reduce((r: any, c: any) => {
         if (!c.isSeat) {
           r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
         }
