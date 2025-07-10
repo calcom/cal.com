@@ -79,7 +79,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
 
   if (user) {
     if (eventData.active) {
-      if (await new UserRepository(prisma).isAMemberOfOrganization({ userId: user.id, organizationId })) {
+      if (await new UserRepository(prisma).isAMemberOfOrganization({ user, organizationId })) {
         await syncCustomAttributesToUser({
           event,
           userEmail,
