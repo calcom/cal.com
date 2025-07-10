@@ -133,7 +133,7 @@ export default function JoinCall(props: PageProps) {
     let callFrame: DailyCall | null = null;
 
     try {
-      callFrame = createCallFrame(userNameForCall);
+      callFrame = createCallFrame(userNameForCall) ?? null;
       setDaily(callFrame);
       setIsCallFrameReady(true);
 
