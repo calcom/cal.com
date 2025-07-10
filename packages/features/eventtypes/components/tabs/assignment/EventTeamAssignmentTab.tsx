@@ -347,26 +347,39 @@ const RoundRobinHosts = ({
             size="sm"
             StartIcon="plus"
             onClick={() => {
-              const newGroup = {
-                id: `group_${Date.now()}`,
-                name: `Group ${(hostGroups?.length || 0) + 1}`,
-              };
-              const updatedHostGroups = [...(hostGroups || []), newGroup];
-              setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
-
-              // If this is the first group and there are hosts without a group, assign them to this group
+              // If no groups exist yet, create two groups
               if (hostGroups?.length === 0) {
+                const firstGroup = {
+                  id: `group_${Date.now()}`,
+                  name: `Group 1`,
+                };
+                const secondGroup = {
+                  id: `group_${Date.now() + 1}`,
+                  name: `Group 2`,
+                };
+                const updatedHostGroups = [firstGroup, secondGroup];
+                setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+
+                // Assign existing hosts without a group to the first group
                 const currentHosts = getValues("hosts");
                 const hostsWithoutGroup = currentHosts.filter((host) => !host.groupId);
                 if (hostsWithoutGroup.length > 0) {
                   const updatedHosts = currentHosts.map((host) => {
                     if (!host.groupId) {
-                      return { ...host, groupId: newGroup.id };
+                      return { ...host, groupId: firstGroup.id };
                     }
                     return host;
                   });
                   setValue("hosts", updatedHosts, { shouldDirty: true });
                 }
+              } else {
+                // If groups already exist, just add one more group
+                const newGroup = {
+                  id: `group_${Date.now()}`,
+                  name: `Group ${(hostGroups?.length || 0) + 1}`,
+                };
+                const updatedHostGroups = [...(hostGroups || []), newGroup];
+                setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
               }
             }}>
             {t("add_group")}
@@ -407,7 +420,7 @@ const RoundRobinHosts = ({
             )}
           />
         </>
-        {!hostGroups.length ? (
+        {!hostGroups.length || hostGroups.length === 1 ? (
           <AddMembersWithSwitch
             placeholder={t("add_a_member")}
             teamId={teamId}
@@ -443,76 +456,8 @@ const RoundRobinHosts = ({
           />
         ) : (
           <>
-            {/* show all hosts first that have no group */}
-            {(() => {
-              const hostsWithoutGroup = value.filter((host) => !host.groupId);
-              if (hostsWithoutGroup.length > 0) {
-                return (
-                  <div className="border-subtle my-4 rounded-md border p-4 pb-0">
-                    <div className="-mb-1 flex items-center justify-between">
-                      <Label>Group 1</Label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          // Remove all hosts from Group 1 (set groupId to null)
-                          const updatedHosts = value.map((host) => {
-                            if (!host.groupId) {
-                              return { ...host, groupId: null };
-                            }
-                            return host;
-                          });
-                          onChange(updatedHosts);
-                          setValue("hosts", updatedHosts, { shouldDirty: true });
-                        }}
-                        className="text-subtle hover:text-default rounded p-1">
-                        <Icon name="x" className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <AddMembersWithSwitch
-                      placeholder={t("add_a_member")}
-                      teamId={teamId}
-                      teamMembers={teamMembers}
-                      value={hostsWithoutGroup}
-                      onChange={onChange}
-                      assignAllTeamMembers={assignAllTeamMembers}
-                      setAssignAllTeamMembers={setAssignAllTeamMembers}
-                      isSegmentApplicable={isSegmentApplicable}
-                      automaticAddAllEnabled={true}
-                      isRRWeightsEnabled={isRRWeightsEnabled}
-                      isFixed={false}
-                      groupId={null}
-                      containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
-                      onActive={() => {
-                        const currentHosts = getValues("hosts");
-                        setValue(
-                          "hosts",
-                          teamMembers.map((teamMember) => {
-                            const host = currentHosts.find(
-                              (host) => host.userId === parseInt(teamMember.value, 10)
-                            );
-                            return {
-                              isFixed: false,
-                              userId: parseInt(teamMember.value, 10),
-                              priority: host?.priority ?? 2,
-                              weight: host?.weight ?? 100,
-                              // if host was already added, retain scheduleId and groupId
-                              scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                              groupId: host?.groupId || null,
-                            };
-                          }),
-                          { shouldDirty: true }
-                        );
-                      }}
-                      customClassNames={customClassNames?.addMembers}
-                    />
-                  </div>
-                );
-              }
-              return null;
-            })()}
             {hostGroups.map((group, index) => {
-              const hasHostsWithoutGroup = value.some((host) => !host.groupId);
-              const groupNumber = hasHostsWithoutGroup ? index + 2 : index + 1;
+              const groupNumber = index + 1;
               const groupName = group.name || `Group ${groupNumber}`;
 
               return (
