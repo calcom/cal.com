@@ -532,7 +532,8 @@ export class CreditService {
   }
 
   async getMonthlyCredits(teamId: number) {
-    const team = await TeamRepository.findTeamWithMembers(teamId);
+    const teamRepo = new TeamRepository(prisma);
+    const team = await teamRepo.findTeamWithMembers(teamId);
 
     if (!team) return 0;
 
