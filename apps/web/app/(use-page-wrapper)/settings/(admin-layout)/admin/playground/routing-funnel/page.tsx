@@ -67,7 +67,12 @@ export default async function RoutingFunnelPlayground() {
       </div>
 
       <div className="max-w-4xl">
-        <ChartCard title={t("routing_funnel")} subtitle="Hello world!" legend={legend}>
+        <ChartCard
+          title={t("routing_funnel")}
+          subtitle="Hello world!"
+          legend={legend}
+          legendSize="sm"
+          cta={{ label: "Show all", onClick: undefined }}>
           <RoutingFunnelContent data={sampleRoutingFunnelData} />
         </ChartCard>
       </div>
