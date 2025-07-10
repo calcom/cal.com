@@ -250,9 +250,7 @@ function BookingListItem(booking: BookingItemProps) {
             id: "reschedule",
             icon: "clock" as const,
             label: t("reschedule_booking"),
-            href: `/reschedule/${booking.uid}${
-              booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-            }`,
+            href: `/reschedule/${booking.uid}`,
           },
           {
             id: "reschedule_request",
