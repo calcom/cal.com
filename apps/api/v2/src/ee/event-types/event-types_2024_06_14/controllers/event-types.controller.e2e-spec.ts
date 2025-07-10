@@ -93,6 +93,7 @@ describe("Event types Endpoints", () => {
     const name = `event-types-2024-06-14-user-${randomString()}`;
     const username = name;
     let eventType: EventTypeOutput_2024_06_14;
+    let hiddenEventType: EventTypeOutput_2024_06_14;
     let user: User;
     let orgUser: User;
     let falseTestUser: User;
@@ -572,6 +573,35 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           eventType = responseBody.data;
         });
+    });
+
+    it("should create a hidden event type", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class hidden",
+        slug: "coding-class-hidden",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        hidden: true,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      const createdEventType = responseBody.data;
+      expect(createdEventType).toHaveProperty("id");
+      expect(createdEventType.title).toEqual(body.title);
+      expect(createdEventType.hidden).toEqual(body.hidden);
+      hiddenEventType = responseBody.data;
     });
 
     it(`/GET/event-types by username`, async () => {

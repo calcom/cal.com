@@ -127,6 +127,7 @@ export class OutputEventTypesService_2024_06_14 {
       hideCalendarEventDetails,
       hideOrganizerEmail,
       calVideoSettings,
+      hidden,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -203,6 +204,7 @@ export class OutputEventTypesService_2024_06_14 {
       hideCalendarEventDetails,
       hideOrganizerEmail,
       calVideoSettings,
+      hidden,
     };
   }
 
