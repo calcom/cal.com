@@ -289,7 +289,7 @@ export default class GoogleCalendarService implements Calendar {
           },
         });
 
-        if (calEvent.team?.enableAIBotRecording && calEvent.location === MeetLocationType) {
+        if ((calEvent.team?.enableAIBotRecording ?? false) && calEvent.location === MeetLocationType) {
           const botName = `${calEvent.team.name} Meeting Bot`;
           const joinAt = new Date(calEvent.startTime);
 
@@ -412,13 +412,10 @@ export default class GoogleCalendarService implements Calendar {
         endTime: evt?.data.end,
       });
 
-      if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
-        const existingDescription = evt.data.description || "";
-        const botIdMatch = existingDescription.match(/recallBotId:\s*([a-zA-Z0-9-]+)/);
-        const existingBotId = botIdMatch ? botIdMatch[1] : null;
+      const existingBotId = event.additionalInformation?.recallBotId as string | undefined;
 
-        // Update Recall.ai bot for team events with AI recording enabled
-        if (event.team?.enableAIBotRecording && existingBotId) {
+      if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
+        if ((event.team?.enableAIBotRecording ?? false) && existingBotId) {
           const botName = `${event.team.name} Meeting Bot`;
           const joinAt = new Date(event.startTime);
 
@@ -475,21 +472,7 @@ export default class GoogleCalendarService implements Calendar {
     const selectedCalendar = externalCalendarId || "primary";
 
     try {
-      let existingBotId: string | null = null;
-      if (event.team?.enableAIBotRecording && event.location === MeetLocationType) {
-        try {
-          const existingEvent = await calendar.events.get({
-            calendarId: selectedCalendar,
-            eventId: uid,
-          });
-
-          const description = existingEvent.data.description || "";
-          const botIdMatch = description.match(/recallBotId:\s*([a-zA-Z0-9-]+)/);
-          existingBotId = botIdMatch ? botIdMatch[1] : null;
-        } catch (getError) {
-          this.log.warn("Could not retrieve event details for bot cleanup", { uid, getError });
-        }
-      }
+      const existingBotId = event.additionalInformation?.recallBotId as string | undefined;
 
       // Delete the calendar event
       const deleteResult = await calendar.events.delete({
@@ -500,7 +483,7 @@ export default class GoogleCalendarService implements Calendar {
       });
 
       // Delete associated Recall.ai bot if it exists
-      if (existingBotId) {
+      if (existingBotId && (event.team?.enableAIBotRecording ?? false)) {
         await deleteRecallBot(existingBotId).catch((error) => {
           this.log.error("Failed to delete Recall.ai bot", { error, botId: existingBotId });
         });

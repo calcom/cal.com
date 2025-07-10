@@ -31,6 +31,9 @@ export async function createRecallBot(params: {
   joinAt?: Date;
 }): Promise<CreateBotResponse | null> {
   const apiKey = process.env.RECALL_AI_API_KEY;
+  const baseUrl = process.env.RECALL_AI_BASE_URL || "https://api.recall.ai";
+
+  console.log("createRecallBot", params.meetingUrl, params.botName);
 
   if (!apiKey) {
     log.warn("RECALL_AI_API_KEY not configured, skipping bot creation");
@@ -41,17 +44,16 @@ export async function createRecallBot(params: {
     const requestBody: CreateBotRequest = {
       meeting_url: params.meetingUrl,
       bot_name: params.botName,
-      recording_mode: "speaker_view",
-      transcription_options: {
-        provider: "assembly_ai",
-      },
+      recording_config: { transcript: { provider: { meeting_captions: {} } } },
     };
 
     if (params.joinAt) {
       requestBody.join_at = params.joinAt.toISOString();
     }
 
-    const response = await fetch("https://api.recall.ai/api/v1/bot", {
+    console.log("requestBody", requestBody);
+
+    const response = await fetch(`${baseUrl}/api/v1/bot`, {
       method: "POST",
       headers: {
         Authorization: `Token ${apiKey}`,
@@ -67,6 +69,7 @@ export async function createRecallBot(params: {
     }
 
     const result = (await response.json()) as CreateBotResponse;
+    console.log("response.result", result);
     log.info("Successfully created Recall.ai bot", { botId: result.id, meetingUrl: params.meetingUrl });
     return result;
   } catch (error) {
@@ -82,6 +85,7 @@ export async function updateRecallBot(params: {
   joinAt?: Date;
 }): Promise<CreateBotResponse | null> {
   const apiKey = process.env.RECALL_AI_API_KEY;
+  const baseUrl = process.env.RECALL_AI_BASE_URL || "https://api.recall.ai";
 
   if (!apiKey) {
     log.warn("RECALL_AI_API_KEY not configured, skipping bot update");
@@ -101,7 +105,7 @@ export async function updateRecallBot(params: {
       requestBody.join_at = params.joinAt.toISOString();
     }
 
-    const response = await fetch(`https://api.recall.ai/api/v1/bot/${params.botId}`, {
+    const response = await fetch(`${baseUrl}/api/v1/bot/${params.botId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Token ${apiKey}`,
@@ -131,6 +135,7 @@ export async function updateRecallBot(params: {
 
 export async function deleteRecallBot(botId: string): Promise<boolean> {
   const apiKey = process.env.RECALL_AI_API_KEY;
+  const baseUrl = process.env.RECALL_AI_BASE_URL || "https://api.recall.ai";
 
   if (!apiKey) {
     log.warn("RECALL_AI_API_KEY not configured, skipping bot deletion");
@@ -138,7 +143,7 @@ export async function deleteRecallBot(botId: string): Promise<boolean> {
   }
 
   try {
-    const response = await fetch(`https://api.recall.ai/api/v1/bot/${botId}`, {
+    const response = await fetch(`${baseUrl}/api/v1/bot/${botId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Token ${apiKey}`,
