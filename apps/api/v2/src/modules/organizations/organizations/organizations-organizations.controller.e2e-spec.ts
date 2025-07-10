@@ -284,6 +284,27 @@ describe("Organizations Organizations Endpoints", () => {
       });
   });
 
+  it("should create managed organization", async () => {
+    const suffix = randomString();
+
+    const body: CreateOrganizationInput = {
+      name: `organizations organizations org ${suffix}`,
+      metadata: { key: "value" },
+    };
+
+    const response = await request(app.getHttpServer())
+      .post(`/v2/organizations/${managerOrg.id}/organizations`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .send(body)
+      .expect(409);
+
+    expect(response.body.error.message).toBe(
+      `Organization with slug '${slugify(
+        body.name
+      )}' already exists. Please, either provide a different slug or change name so that the automatically generated slug is different.`
+    );
+  });
+
   it("should get managed organization", async () => {
     return request(app.getHttpServer())
       .get(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg.id}`)

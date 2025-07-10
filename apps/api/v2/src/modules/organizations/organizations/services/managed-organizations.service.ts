@@ -9,7 +9,7 @@ import { UpdateOrganizationInput } from "@/modules/organizations/organizations/i
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
 import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { slugify } from "@calcom/platform-libraries";
 import { SkipTakePagination } from "@calcom/platform-types";
@@ -42,6 +42,18 @@ export class ManagedOrganizationsService {
 
     if (!organizationData.slug) {
       organizationData.slug = slugify(organizationData.name);
+    }
+
+    const existingManagedOrganization =
+      await this.managedOrganizationsRepository.getManagedOrganizationBySlug(
+        managerOrganizationId,
+        organizationData.slug
+      );
+
+    if (existingManagedOrganization) {
+      throw new ConflictException(
+        `Organization with slug '${organizationData.slug}' already exists. Please, either provide a different slug or change name so that the automatically generated slug is different.`
+      );
     }
 
     const organization = await this.managedOrganizationsRepository.createManagedOrganization(

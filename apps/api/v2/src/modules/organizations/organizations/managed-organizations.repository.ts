@@ -24,6 +24,17 @@ export class ManagedOrganizationsRepository {
     });
   }
 
+  async getManagedOrganizationBySlug(managerOrganizationId: number, managedOrganizationSlug: string) {
+    return this.dbRead.prisma.managedOrganization.findFirst({
+      where: {
+        managerOrganizationId,
+        managedOrganization: {
+          slug: managedOrganizationSlug,
+        },
+      },
+    });
+  }
+
   async getByManagerManagedIds(managerOrganizationId: number, managedOrganizationId: number) {
     return this.dbRead.prisma.managedOrganization.findUnique({
       where: {
