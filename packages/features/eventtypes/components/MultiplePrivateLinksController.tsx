@@ -14,7 +14,6 @@ import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
 import { DatePicker } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
 import { NumberInput } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
@@ -331,9 +330,7 @@ export const MultiplePrivateLinksController = ({
                 updateLinkSettings(currentLinkIndex, value);
               }}>
               <RadioArea.Item value="usage" data-testid="private-link-usage" className="w-full text-sm">
-                <Label className="mb-0 cursor-pointer text-sm font-medium">
-                  {t("usage_based_expiration")}
-                </Label>
+                <div className="mb-0 text-sm font-medium">{t("usage_based_expiration")}</div>
                 {selectedType === "usage" && (
                   <div className="mt-2 w-[180px]">
                     <NumberInput
@@ -356,9 +353,7 @@ export const MultiplePrivateLinksController = ({
                 )}
               </RadioArea.Item>
               <RadioArea.Item data-testid="private-link-time" value="time" className="w-full text-sm">
-                <Label className="mb-0 cursor-pointer text-sm font-medium">
-                  {t("time_based_expiration")}
-                </Label>
+                <div className="mb-0 text-sm font-medium">{t("time_based_expiration")}</div>
                 {selectedType === "time" && (
                   <div className="mt-2 w-[180px]">
                     <DatePicker
