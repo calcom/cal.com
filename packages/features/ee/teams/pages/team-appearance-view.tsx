@@ -73,6 +73,8 @@ const ProfileView = ({ team }: ProfileViewProps) => {
 
       showToast(t("your_team_updated_successfully"), "success");
       if (res?.slug) {
+        // Appearance changes (theme, colours, branding toggles) are read on the team booking page through
+        // `getCachedTeamData` in `queries.ts`.
         await revalidateTeamDataCache({
           teamSlug: res?.slug,
           orgSlug: team?.parent?.slug ?? null,

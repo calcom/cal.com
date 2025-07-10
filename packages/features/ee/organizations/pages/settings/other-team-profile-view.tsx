@@ -68,6 +68,7 @@ const OtherTeamProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       if (team?.slug) {
+        // Org admins editing another team's profile should purge the cached team data
         revalidateTeamDataCache({
           teamSlug: team.slug,
           orgSlug: team.parent?.slug ?? null,

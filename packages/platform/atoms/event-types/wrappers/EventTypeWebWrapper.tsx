@@ -140,6 +140,8 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
       form.reset(currentValues);
       revalidateEventTypeEditPage(eventType.id);
       if (eventType.team?.slug) {
+        // When an event-type is updated,
+        // guests could still hit a stale cache and see the old page.
         revalidateTeamEventTypeCache({
           teamSlug: eventType.team.slug,
           meetingSlug: eventType.slug,
@@ -320,6 +322,8 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       if (team?.slug) {
+        // When a team event-type is deleted,
+        // guests could still hit a stale cache and see the old page.
         revalidateTeamEventTypeCache({
           teamSlug: team.slug,
           meetingSlug: eventType.slug,

@@ -59,6 +59,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
         });
       }
       if (team?.slug) {
+        // Booking limits are enforced during slot generation, which relies on the same cached team data.
         revalidateTeamDataCache({
           teamSlug: team.slug,
           orgSlug: team.parent?.slug ?? null,

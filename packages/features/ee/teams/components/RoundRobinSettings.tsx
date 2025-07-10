@@ -40,6 +40,7 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       if (team?.slug) {
+        // Rounb robin reset interval / basis governs host selection logic on the booking page.
         revalidateTeamDataCache({
           teamSlug: team.slug,
           orgSlug: team.parent?.slug ?? null,
