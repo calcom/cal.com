@@ -80,7 +80,7 @@ const userSelect = {
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
-  constructor(private prismaClient: PrismaClient | any) {}
+  constructor(private prismaClient: PrismaClient) {}
 
   async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await this.prismaClient.membership.findMany({
@@ -575,7 +575,7 @@ export class UserRepository {
     });
   }
 
-  static async create(
+  async create(
     data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
       username: string;
       hashedPassword?: string;
