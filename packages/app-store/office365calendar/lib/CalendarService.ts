@@ -298,7 +298,8 @@ export default class Office365CalendarService implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    forceRefresh = false
   ): Promise<EventBusyDate[]> {
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);
@@ -331,16 +332,20 @@ export default class Office365CalendarService implements Calendar {
         items: selectedCalendarIds.map((id) => ({ id })),
       };
       const calendarCache = new CalendarCacheRepository(this);
-      const cached = await calendarCache.getCachedAvailability({
-        credentialId: this.credential.id,
-        userId: this.credential.userId,
-        args: cacheArgs,
-      });
-      if (cached) {
-        this.log.debug("[Cache Hit] Returning cached Office365 availability", { cacheArgs });
-        return cached.value as EventBusyDate[];
+      if (!forceRefresh) {
+        const cached = await calendarCache.getCachedAvailability({
+          credentialId: this.credential.id,
+          userId: this.credential.userId,
+          args: cacheArgs,
+        });
+        if (cached) {
+          this.log.debug("[Cache Hit] Returning cached Office365 availability", { cacheArgs });
+          return cached.value as EventBusyDate[];
+        }
       }
-      this.log.debug("[Cache Miss] Fetching Office365 availability from API", { cacheArgs });
+      this.log.debug("[Cache Miss or Forced Refresh] Fetching Office365 availability from API", {
+        cacheArgs,
+      });
       // ---- CACHING LOGIC END ----
 
       const ids = await (selectedCalendarIds.length === 0
@@ -386,6 +391,13 @@ export default class Office365CalendarService implements Calendar {
     } catch (err) {
       return Promise.reject([]);
     }
+  }
+
+  async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
+    // Choose a time range (e.g., now to 2 months ahead)
+    const dateFrom = new Date().toISOString();
+    const dateTo = dayjs().add(2, "month").toISOString();
+    await this.getAvailability(dateFrom, dateTo, selectedCalendars, true); // forceRefresh = true
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
