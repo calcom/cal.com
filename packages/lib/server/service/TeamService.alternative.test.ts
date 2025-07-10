@@ -35,14 +35,17 @@ const mockTeamBilling = {
 };
 
 // Mock implementations that modify the in-memory database
-vi.mocked(TeamRepository.deleteById).mockImplementation(async ({ id }) => {
-  const team = database.teams.get(id);
-  if (team) {
-    database.teams.delete(id);
-    return team;
-  }
-  throw new Error(`Team with id ${id} not found`);
-});
+const mockTeamRepo = {
+  deleteById: vi.fn().mockImplementation(async ({ id }) => {
+    const team = database.teams.get(id);
+    if (team) {
+      database.teams.delete(id);
+      return team;
+    }
+    throw new Error(`Team with id ${id} not found`);
+  }),
+};
+vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
 
 vi.mocked(deleteDomain).mockImplementation(async (slug) => {
   database.domains.delete(slug);
