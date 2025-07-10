@@ -1,10 +1,8 @@
-// Main exports
 export { RetellAIService } from "./service";
 export { RetellAIServiceFactory } from "./factory";
 export { RetellAIApiClient } from "./client";
 export { RetellAIError } from "./errors";
 
-// Type exports
 export type {
   RetellAIRepository,
   CreateLLMRequest,
