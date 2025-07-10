@@ -7,7 +7,7 @@ import {
   submitAndWaitForResponse,
 } from "./lib/testUtils";
 
-test.describe.configure({ mode: "serial" }); // Run tests sequentially to avoid data conflicts
+test.describe.configure({ mode: "serial" });
 
 test.describe("private links creation and usage", () => {
   test.beforeEach(async ({ users }) => {
@@ -83,7 +83,7 @@ test.describe("private links creation and usage", () => {
     const $url2 = await page.locator('[data-testid="private-link-url"]').inputValue();
     expect($url2.includes("somethingrandom")).toBeTruthy();
   });
-  // TODO: Add test for private link with expiration date
+
   test("generate private link with future expiration date and make a booking with it", async ({ page }) => {
     await page.goto("/event-types");
     // We wait until loading is finished

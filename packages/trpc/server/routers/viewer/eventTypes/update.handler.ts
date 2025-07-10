@@ -14,6 +14,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { PrivateLinksRepository } from "@calcom/lib/server/repository/privateLinks";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
@@ -35,12 +36,6 @@ import {
 } from "./util";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
-
-type HashedLinkInputType = {
-  link: string;
-  expiresAt?: Date;
-  maxUsageCount?: number;
-};
 
 type User = {
   id: SessionUser["id"];
@@ -497,91 +492,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       break;
     }
   }
-  const connectedLinks = await ctx.prisma.hashedLink.findMany({
-    where: {
-      eventTypeId: input.id,
-    },
-    select: {
-      id: true,
-      link: true,
-    },
-  });
-
+  // Handle multiple private links using the repository
+  const connectedLinks = await PrivateLinksRepository.findLinksByEventTypeId(input.id);
   const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
 
-  if (multiplePrivateLinks && multiplePrivateLinks.length > 0) {
-    // First, delete any links that are no longer in the array
-    const currentLinks = multiplePrivateLinks.map((link) =>
-      typeof link === "string" ? link : (link as HashedLinkInputType).link
-    );
-    const linksToBeDeleted = connectedMultiplePrivateLinks.filter((link) => !currentLinks.includes(link));
-
-    if (linksToBeDeleted.length > 0) {
-      await ctx.prisma.hashedLink.deleteMany({
-        where: {
-          eventTypeId: input.id,
-          link: {
-            in: linksToBeDeleted,
-          },
-        },
-      });
-    }
-
-    // Then, handle each link that needs to be created or updated
-    for (const privateLink of multiplePrivateLinks) {
-      const linkValue =
-        typeof privateLink === "string" ? privateLink : (privateLink as HashedLinkInputType).link;
-      const existingLink = connectedMultiplePrivateLinks.includes(linkValue);
-
-      if (!existingLink) {
-        // Link needs to be created
-        const createData: Prisma.HashedLinkCreateManyInput = {
-          link: linkValue,
-          eventTypeId: input.id,
-          expiresAt:
-            typeof privateLink !== "string" ? (privateLink as HashedLinkInputType).expiresAt ?? null : null,
-        };
-        // Only add maxUsageCount to createData if it's explicitly provided
-        if (
-          typeof privateLink !== "string" &&
-          typeof (privateLink as HashedLinkInputType).maxUsageCount === "number"
-        ) {
-          createData.maxUsageCount = (privateLink as HashedLinkInputType).maxUsageCount;
-        }
-        await ctx.prisma.hashedLink.create({
-          data: createData,
-        });
-      } else if (typeof privateLink !== "string") {
-        // Link exists but may need to be updated with new expiresAt or maxUsageCount
-        const updateData: Prisma.HashedLinkUpdateManyMutationInput = {
-          expiresAt: (privateLink as HashedLinkInputType).expiresAt ?? null,
-        };
-        // Only add maxUsageCount to updateData if it's explicitly provided
-        if (typeof (privateLink as HashedLinkInputType).maxUsageCount === "number") {
-          updateData.maxUsageCount = (privateLink as HashedLinkInputType).maxUsageCount;
-        }
-        await ctx.prisma.hashedLink.updateMany({
-          where: {
-            eventTypeId: input.id,
-            link: linkValue,
-          },
-          data: updateData,
-        });
-      }
-    }
-  } else {
-    // Delete all the private links for this event.
-    if (connectedMultiplePrivateLinks.length > 0) {
-      await ctx.prisma.hashedLink.deleteMany({
-        where: {
-          eventTypeId: input.id,
-          link: {
-            in: connectedMultiplePrivateLinks,
-          },
-        },
-      });
-    }
-  }
+  await PrivateLinksRepository.handleMultiplePrivateLinks({
+    eventTypeId: input.id,
+    multiplePrivateLinks,
+    connectedMultiplePrivateLinks,
+  });
 
   if (assignAllTeamMembers !== undefined) {
     data.assignAllTeamMembers = assignAllTeamMembers;
