@@ -1,6 +1,6 @@
 import { ExecutionContext, CanActivate } from "@nestjs/common";
 
-import { OrAuthGuard, OrAuth } from "./or-auth.guard";
+import { Or } from "./or.guard";
 
 // Mock guards for testing
 class MockGuard1 implements CanActivate {
@@ -30,8 +30,8 @@ class MockGuard3 implements CanActivate {
   }
 }
 
-describe("OrAuthGuard", () => {
-  let guard: InstanceType<ReturnType<typeof OrAuth>>;
+describe("OrGuard", () => {
+  let guard: InstanceType<ReturnType<typeof Or>>;
   let mockExecutionContext: ExecutionContext;
   let mockModuleRef: any;
 
@@ -40,8 +40,8 @@ describe("OrAuthGuard", () => {
       get: jest.fn(),
     };
 
-    const OrAuthGuardClass = OrAuth([MockGuard1, MockGuard2]);
-    guard = new OrAuthGuardClass(mockModuleRef);
+    const OrGuardClass = Or([MockGuard1, MockGuard2]);
+    guard = new OrGuardClass(mockModuleRef);
     mockExecutionContext = {} as ExecutionContext;
   });
 
@@ -94,11 +94,11 @@ describe("OrAuthGuard", () => {
   });
 });
 
-describe("OrAuth decorator", () => {
+describe("Or decorator", () => {
   it("should create a guard class with the specified guards", () => {
-    const OrAuthGuardClass = OrAuth([MockGuard1, MockGuard2]);
+    const OrGuardClass = Or([MockGuard1, MockGuard2]);
 
-    expect(OrAuthGuardClass).toBeDefined();
-    expect(typeof OrAuthGuardClass).toBe("function");
+    expect(OrGuardClass).toBeDefined();
+    expect(typeof OrGuardClass).toBe("function");
   });
 });

@@ -4,7 +4,7 @@ import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.de
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { OrAuth } from "@/modules/auth/guards/or-auth";
+import { Or } from "@/modules/auth/guards/or-guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { IsUserRoutingForm } from "@/modules/auth/guards/organizations/is-user-routing-form.guard";
@@ -75,7 +75,7 @@ export class OrganizationsRoutingFormsResponsesController {
 
   @Post("/")
   @ApiOperation({ summary: "Create routing form response and get available slots" })
-  @UseGuards(OrAuth([RolesGuard, IsUserRoutingForm]))
+  @UseGuards(Or([RolesGuard, IsUserRoutingForm]))
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async createRoutingFormResponse(
