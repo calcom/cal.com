@@ -223,6 +223,17 @@ function BookingListItem(booking: BookingItemProps) {
     return booking.seatsReferences[0].referenceUid;
   };
 
+  const checkIfUserIsHost = (userId?: number | null) => {
+    if (!userId) return false;
+
+    return (
+      booking.user?.id === userId ||
+      booking.eventType.hosts?.some(
+        (host) => host.id === userId && booking.attendees.some((attendee) => attendee.email === host.email)
+      )
+    );
+  };
+
   const checkIfUserIsAuthorizedToConfirmBooking = (
     { user, eventType }: Pick<BookingItemProps, "user" | "eventType">,
     {
@@ -232,7 +243,7 @@ function BookingListItem(booking: BookingItemProps) {
     }: Pick<LoggedInUser, "userId" | "userIsOrgAdminOrOwner" | "teamsWhereUserIsAdminOrOwner">
   ) => {
     const isUserOwner = user?.id === userId;
-    const isUserTeamEventHost = eventType?.hosts?.some((host) => host.userId === userId);
+    const isUserTeamEventHost = checkIfUserIsHost(userId);
     const isUserTeamAdminOrOwner = teamsWhereUserIsAdminOrOwner?.some(
       (team) => team.teamId === eventType?.team?.id || team.teamId === eventType?.parent?.teamId
     );

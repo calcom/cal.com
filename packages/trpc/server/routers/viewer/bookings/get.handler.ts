@@ -489,7 +489,8 @@ export async function getBookings({
                 jsonArrayFrom(
                   eb
                     .selectFrom("Host")
-                    .select(["Host.userId"])
+                    .innerJoin("users", "Host.userId", "users.id")
+                    .select(["users.id", "users.email"])
                     .whereRef("Host.eventTypeId", "=", "EventType.id")
                 ).as("hosts"),
                 jsonObjectFrom(
