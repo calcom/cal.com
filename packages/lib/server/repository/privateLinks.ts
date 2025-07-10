@@ -131,4 +131,126 @@ export class PrivateLinksRepository {
       },
     });
   }
+
+  static async findLinkWithEventTypeDetails(linkId: string, tx?: PrismaTransaction) {
+    const prismaClient = tx ?? prisma;
+
+    return await prismaClient.hashedLink.findUnique({
+      where: {
+        link: linkId,
+      },
+      select: {
+        id: true,
+        link: true,
+        expiresAt: true,
+        maxUsageCount: true,
+        usageCount: true,
+        eventTypeId: true,
+        eventType: {
+          select: {
+            teamId: true,
+            userId: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async findLinksWithEventTypeDetails(linkIds: string[], tx?: PrismaTransaction) {
+    const prismaClient = tx ?? prisma;
+
+    return await prismaClient.hashedLink.findMany({
+      where: {
+        link: {
+          in: linkIds,
+        },
+      },
+      select: {
+        id: true,
+        link: true,
+        expiresAt: true,
+        maxUsageCount: true,
+        usageCount: true,
+        eventTypeId: true,
+        eventType: {
+          select: {
+            teamId: true,
+            userId: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async validateAndIncrementUsage(linkId: string, tx?: PrismaTransaction) {
+    const prismaClient = tx ?? prisma;
+
+    const hashedLink = await prismaClient.hashedLink.findUnique({
+      where: {
+        link: linkId,
+      },
+    });
+
+    if (!hashedLink) {
+      throw new Error("Link has expired");
+    }
+
+    const now = new Date();
+    if (hashedLink.expiresAt && hashedLink.expiresAt < now) {
+      throw new Error("Link has expired");
+    }
+
+    if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
+      if (hashedLink.usageCount >= hashedLink.maxUsageCount) {
+        throw new Error("Link has expired");
+      }
+
+      try {
+        await prismaClient.hashedLink.update({
+          where: {
+            id: hashedLink.id,
+            usageCount: { lt: hashedLink.maxUsageCount },
+          },
+          data: {
+            usageCount: { increment: 1 },
+          },
+        });
+      } catch (updateError) {
+        throw new Error("Link usage limit reached");
+      }
+    }
+
+    return hashedLink;
+  }
+
+  static async checkUserPermissionForLink(
+    link: { eventType: { teamId?: number | null; userId?: number | null } },
+    userId: number,
+    tx?: PrismaTransaction
+  ): Promise<boolean> {
+    const prismaClient = tx ?? prisma;
+
+    // If the event type belongs to a user, check if it's the current user
+    if (link.eventType.userId && link.eventType.userId !== userId) {
+      return false;
+    }
+
+    // If the event type belongs to a team, check if the user is part of that team
+    if (link.eventType.teamId) {
+      const membership = await prismaClient.membership.findFirst({
+        where: {
+          teamId: link.eventType.teamId,
+          userId,
+          accepted: true,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      return !!membership;
+    }
+
+    return true;
+  }
 }

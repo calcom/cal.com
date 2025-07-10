@@ -67,6 +67,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrivateLinksRepository } from "@calcom/lib/server/repository/privateLinks";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -2113,50 +2114,17 @@ async function handler(
 
   try {
     if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      const hashedLink = await prisma.hashedLink.findUnique({
-        where: {
-          link: reqBody.hashedLink as string,
-        },
-      });
-      if (!hashedLink) {
-        throw new HttpError({ statusCode: 410, message: "Link has expired" });
-      }
-
-      const now = new Date();
-      if (hashedLink.expiresAt && hashedLink.expiresAt < now) {
-        throw new HttpError({ statusCode: 410, message: "Link has expired" });
-      }
-
-      if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
-        if (hashedLink.usageCount >= hashedLink.maxUsageCount) {
-          throw new HttpError({ statusCode: 410, message: "Link has expired" });
-        }
-
-        try {
-          await prisma.hashedLink.update({
-            where: {
-              id: hashedLink.id,
-              usageCount: { lt: hashedLink.maxUsageCount },
-            },
-            data: {
-              usageCount: { increment: 1 },
-            },
-          });
-        } catch (updateError) {
-          // If update fails, it might be because another concurrent request used the link
-          throw new HttpError({ statusCode: 410, message: "Link usage limit reached" });
-        }
-      }
+      await PrivateLinksRepository.validateAndIncrementUsage(reqBody.hashedLink as string);
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
 
-    // Rethrow HttpErrors (our custom errors) but handle/convert other errors
-    if (error instanceof HttpError) {
-      throw error;
+    // Handle repository errors and convert to HttpErrors
+    if (error instanceof Error) {
+      throw new HttpError({ statusCode: 410, message: error.message });
     }
 
-    // For database errors or other unexpected errors, provide a generic message
+    // For unexpected errors, provide a generic message
     throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
   }
 
