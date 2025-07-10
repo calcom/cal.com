@@ -43,7 +43,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     teamId: number | null;
     userId: number | null;
     title: string;
-  }
+  };
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -130,24 +130,24 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
                     operator: "equal",
                     value: ["answer1"],
                     valueSrc: ["value"],
-                    valueType: ["text"]
-                  }
-                }
-              }
+                    valueType: ["text"],
+                  },
+                },
+              },
             },
             action: {
               type: "eventTypeRedirectUrl",
               eventTypeId: routingEventType.id,
-              value: `team/${team.slug}/${routingEventType.slug}`
+              value: `team/${team.slug}/${routingEventType.slug}`,
             },
-            isFallback: false
+            isFallback: false,
           },
           {
             id: "fallback-route",
             action: { type: "customPageMessage", value: "Fallback Message" },
             isFallback: true,
-            queryValue: { id: "fallback-route", type: "group" }
-          }
+            queryValue: { id: "fallback-route", type: "group" },
+          },
         ],
         fields: [
           {
@@ -155,18 +155,18 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
             type: "text",
             label: "Question 1",
             required: true,
-            identifier: "question1"
+            identifier: "question1",
           },
           {
-            id: "question2", 
+            id: "question2",
             type: "text",
             label: "Question 2",
             required: false,
-            identifier: "question2"
-          }
+            identifier: "question2",
+          },
         ],
         settings: {
-          emailOwnerOnSubmission: false
+          emailOwnerOnSubmission: false,
         },
         teamId: team.id,
         userId: user.id,
@@ -245,7 +245,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
   describe(`POST /v2/organizations/:orgId/routing-forms/:routingFormId/responses`, () => {
     it("should return 403 when organization does not exist", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/99999/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
+        .post(
+          `/v2/organizations/99999/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1",
@@ -255,7 +257,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
     it("should return 404 when routing form does not exist", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/non-existent-id/responses?start=2050-09-05&end=2050-09-06`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/non-existent-id/responses?start=2050-09-05&end=2050-09-06`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1",
@@ -265,7 +269,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
     it("should return 401 when authentication token is missing", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`
+        )
         .send({
           question1: "answer1",
         })
@@ -274,7 +280,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
     it("should create response and return available slots when routing to event type", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1", // This matches the route condition
@@ -296,7 +304,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
     it("should return 400 when required form fields are missing", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question2: "answer2", // Missing required question1
@@ -306,7 +316,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
     it("should create response and return custom message if the routing is to custom page", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "different-answer", // This won't match any route
@@ -334,7 +346,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         })
         .expect(400);
 
-      // Missing end parameter  
+      // Missing end parameter
       await request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
@@ -347,7 +359,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
     it("should return 400 when date parameters have invalid format", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=invalid-date&end=2050-09-06`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=invalid-date&end=2050-09-06`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1",
@@ -357,7 +371,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
     it("should return 400 when end date is before start date", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-10&end=2050-09-05`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-10&end=2050-09-05`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1",
@@ -371,10 +387,15 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
         email: `unauthorized-user-${randomString()}@api.com`,
       });
 
-      const { keyString: unauthorizedApiKey } = await apiKeysRepositoryFixture.createApiKey(unauthorizedUser.id, null);
+      const { keyString: unauthorizedApiKey } = await apiKeysRepositoryFixture.createApiKey(
+        unauthorizedUser.id,
+        null
+      );
 
       const response = await request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`
+        )
         .set({ Authorization: `Bearer cal_test_${unauthorizedApiKey}` })
         .send({
           question1: "answer1",
@@ -390,7 +411,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
     it("should handle queued response creation", async () => {
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06&queueResponse=true`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06&queueResponse=true`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1",
@@ -426,24 +449,24 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
                       operator: "equal",
                       value: ["answer1"],
                       valueSrc: ["value"],
-                      valueType: ["text"]
-                    }
-                  }
-                }
+                      valueType: ["text"],
+                    },
+                  },
+                },
               },
               action: {
                 type: "eventTypeRedirectUrl",
                 eventTypeId: 99999, // Invalid event type ID
-                value: `team/${team.slug}/non-existent-event-type`
+                value: `team/${team.slug}/non-existent-event-type`,
               },
-              isFallback: false
+              isFallback: false,
             },
             {
               id: "fallback-route",
               action: { type: "customPageMessage", value: "Fallback Message" },
               isFallback: true,
-              queryValue: { id: "fallback-route", type: "group" }
-            }
+              queryValue: { id: "fallback-route", type: "group" },
+            },
           ],
           fields: [
             {
@@ -451,11 +474,11 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
               type: "text",
               label: "Question 1",
               required: true,
-              identifier: "question1"
-            }
+              identifier: "question1",
+            },
           ],
           settings: {
-            emailOwnerOnSubmission: false
+            emailOwnerOnSubmission: false,
           },
           teamId: team.id,
           userId: user.id,
@@ -464,7 +487,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
       // Try to create a response for the form with invalid event type
       const response = await request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingFormWithInvalidEventType.id}/responses?start=2050-09-05&end=2050-09-06`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${routingFormWithInvalidEventType.id}/responses?start=2050-09-05&end=2050-09-06`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1",
@@ -474,7 +499,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
       // Clean up the form
       await prismaWriteService.prisma.app_RoutingForms_Form.delete({
-        where: { id: routingFormWithInvalidEventType.id }
+        where: { id: routingFormWithInvalidEventType.id },
       });
     });
 
@@ -482,7 +507,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
       // This test verifies that routing forms can handle team member assignments
       // and that the routing returns the correct team member information
       return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${routingForm.id}/responses?start=2050-09-05&end=2050-09-06`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "answer1", // This matches the route condition
@@ -524,23 +551,23 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
                       operator: "equal",
                       value: ["external"],
                       valueSrc: ["value"],
-                      valueType: ["text"]
-                    }
-                  }
-                }
+                      valueType: ["text"],
+                    },
+                  },
+                },
               },
               action: {
                 type: "externalRedirectUrl",
-                value: "https://example.com/external-booking"
+                value: "https://example.com/external-booking",
               },
-              isFallback: false
+              isFallback: false,
             },
             {
               id: "fallback-route",
               action: { type: "customPageMessage", value: "Fallback Message" },
               isFallback: true,
-              queryValue: { id: "fallback-route", type: "group" }
-            }
+              queryValue: { id: "fallback-route", type: "group" },
+            },
           ],
           fields: [
             {
@@ -548,11 +575,11 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
               type: "text",
               label: "Question 1",
               required: true,
-              identifier: "question1"
-            }
+              identifier: "question1",
+            },
           ],
           settings: {
-            emailOwnerOnSubmission: false
+            emailOwnerOnSubmission: false,
           },
           teamId: team.id,
           userId: user.id,
@@ -560,7 +587,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
       });
 
       const response = await request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/routing-forms/${externalRoutingForm.id}/responses?start=2050-09-05&end=2050-09-06`)
+        .post(
+          `/v2/organizations/${org.id}/routing-forms/${externalRoutingForm.id}/responses?start=2050-09-05&end=2050-09-06`
+        )
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           question1: "external", // This matches the route condition for external redirect
@@ -574,7 +603,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
       expect(data.routingExternalRedirectUrl).toBeDefined();
       expect(data.routingExternalRedirectUrl).toContain("https://example.com/external-booking");
       expect(data.routingExternalRedirectUrl).toContain("cal.action=externalRedirectUrl");
-      
+
       // Verify that it doesn't contain event type routing data
       expect(data.eventTypeId).toBeUndefined();
       expect(data.slots).toBeUndefined();
@@ -583,10 +612,9 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
 
       // Clean up the external routing form
       await prismaWriteService.prisma.app_RoutingForms_Form.delete({
-        where: { id: externalRoutingForm.id }
+        where: { id: externalRoutingForm.id },
       });
     });
-
   });
 
   describe(`PATCH /v2/organizations/:orgId/routing-forms/:routingFormId/responses/:responseId`, () => {
