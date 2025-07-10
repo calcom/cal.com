@@ -101,8 +101,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
 
+  const userRepo = new UserRepository(prisma);
   const enrichedBookingUser = booking.user
-    ? await new UserRepository(prisma).enrichUserWithItsProfile({ user: booking.user })
+    ? await userRepo.enrichUserWithItsProfile({ user: booking.user })
     : null;
 
   const eventUrl = await buildEventUrlFromBooking({

@@ -30,7 +30,8 @@ async function authMiddleware() {
     throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   }
 
-  const userWithCredentials = await new UserRepository(prisma).findUserWithCredentials({
+  const userRepo = new UserRepository(prisma);
+  const userWithCredentials = await userRepo.findUserWithCredentials({
     id: session.user.id,
   });
 

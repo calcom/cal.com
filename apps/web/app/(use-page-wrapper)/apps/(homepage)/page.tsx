@@ -26,7 +26,8 @@ const ServerPage = async () => {
   const session = await getServerSession({ req });
   let appStore, userAdminTeamsIds: number[];
   if (session?.user?.id) {
-    const userAdminTeams = await new UserRepository(prisma).getUserAdminTeams({ userId: session.user.id });
+    const userRepo = new UserRepository(prisma);
+    const userAdminTeams = await userRepo.getUserAdminTeams({ userId: session.user.id });
     userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
     appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeamsIds);
   } else {

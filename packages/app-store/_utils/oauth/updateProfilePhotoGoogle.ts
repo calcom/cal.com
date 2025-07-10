@@ -26,11 +26,13 @@ export async function updateProfilePhotoGoogle(oAuth2Client: OAuth2Client, userI
         avatar: await resizeBase64Image(avatarUrl),
         userId,
       });
-      await new UserRepository(prisma).updateAvatar({ id: userId, avatarUrl: resizedAvatarUrl });
+      const userRepo = new UserRepository(prisma);
+      await userRepo.updateAvatar({ id: userId, avatarUrl: resizedAvatarUrl });
       return;
     }
 
-    await new UserRepository(prisma).updateAvatar({ id: userId, avatarUrl });
+    const userRepo = new UserRepository(prisma);
+    await userRepo.updateAvatar({ id: userId, avatarUrl });
   } catch (error) {
     logger.error("Error updating avatarUrl from google calendar connect", error);
   }

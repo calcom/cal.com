@@ -18,7 +18,8 @@ import { STEPS } from "~/apps/installation/[[...step]]/constants";
 import type { OnboardingPageProps, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
 
 const getUser = async (userId: number) => {
-  const userAdminTeams = await new UserRepository(prisma).getUserAdminTeams({ userId });
+  const userRepo = new UserRepository(prisma);
+  const userAdminTeams = await userRepo.getUserAdminTeams({ userId });
 
   if (!userAdminTeams?.id) {
     return null;

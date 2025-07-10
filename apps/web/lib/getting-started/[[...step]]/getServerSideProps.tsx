@@ -13,7 +13,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user = await new UserRepository(prisma).findUserTeams({
+  const userRepo = new UserRepository(prisma);
+  const user = await userRepo.findUserTeams({
     id: session.user.id,
   });
 

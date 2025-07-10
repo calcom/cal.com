@@ -101,7 +101,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
     name = profileUsername || username;
 
-    const [user] = await new UserRepository(prisma).findUsersByUsername({
+    const userRepo = new UserRepository(prisma);
+    const [user] = await userRepo.findUsersByUsername({
       usernameList: [name],
       orgSlug: org,
     });
