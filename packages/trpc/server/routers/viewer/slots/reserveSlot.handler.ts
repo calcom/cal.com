@@ -64,7 +64,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   }
 
   // Check for existing reservations for the same slot
-  const slotsRepo = new SelectedSlotsRepository(prisma as any);
+  const slotsRepo = new SelectedSlotsRepository(prisma);
   const reservedBySomeoneElse = await slotsRepo.findReservedByOthers({
     slot: {
       utcStartIso: slotUtcStartDate,
