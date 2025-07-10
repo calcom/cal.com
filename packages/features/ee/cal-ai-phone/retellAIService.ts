@@ -258,14 +258,54 @@ class DeletePhoneNumberCommand implements Command<void> {
         method: "DELETE",
       });
     } catch (error) {
-      log.error("Unable to Delete Phone Number", safeStringify(error));
-      throw new Error("Something went wrong! Unable to Delete Phone Number from Retell AI");
+      log.error("Unable to Delete Phone number", safeStringify(error));
+      throw new Error("Something went wrong! Unable to Delete Phone number");
     }
   }
 }
 
 export const deletePhoneNumber = async (phoneNumber: string): Promise<void> => {
   const command = new DeletePhoneNumberCommand(phoneNumber);
+  return command.execute();
+};
+
+class DeleteLLMCommand implements Command<void> {
+  constructor(private llmId: string) {}
+
+  async execute(): Promise<void> {
+    try {
+      await fetcher(`/delete-retell-llm/${this.llmId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      log.error("Unable to Delete LLM", safeStringify(error));
+      throw new Error("Something went wrong! Unable to Delete LLM");
+    }
+  }
+}
+
+export const deleteLLM = async (llmId: string): Promise<void> => {
+  const command = new DeleteLLMCommand(llmId);
+  return command.execute();
+};
+
+class DeleteAgentCommand implements Command<void> {
+  constructor(private agentId: string) {}
+
+  async execute(): Promise<void> {
+    try {
+      await fetcher(`/delete-agent/${this.agentId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      log.error("Unable to Delete Agent", safeStringify(error));
+      throw new Error("Something went wrong! Unable to Delete Agent");
+    }
+  }
+}
+
+export const deleteAgent = async (agentId: string): Promise<void> => {
+  const command = new DeleteAgentCommand(agentId);
   return command.execute();
 };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useFormContext, Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -14,6 +15,7 @@ import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
+import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextAreaField } from "@calcom/ui/components/form";
@@ -39,6 +41,7 @@ const ErrorMessage = ({ fieldName, message }: { fieldName: string; message: stri
 export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupProps["eventType"] }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const formMethods = useFormContext<FormValues>();
 
@@ -72,6 +75,33 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
       utils.viewer.loggedInViewerRouter.getConfig.invalidate();
       utils.viewer.loggedInViewerRouter.list.invalidate();
       showToast(t("phone_number_purchased_successfully"), "success");
+    },
+    onError: (error: any) => showToast(error.message, "error"),
+  });
+
+  const assignPhoneNumberMutation = trpc.viewer.loggedInViewerRouter.assignPhoneNumber.useMutation({
+    onSuccess: () => {
+      utils.viewer.loggedInViewerRouter.getConfig.invalidate();
+      utils.viewer.loggedInViewerRouter.list.invalidate();
+      showToast(t("phone_number_assigned_successfully"), "success");
+    },
+    onError: (error: any) => showToast(error.message, "error"),
+  });
+
+  const unassignPhoneNumberMutation = trpc.viewer.loggedInViewerRouter.unassignPhoneNumber.useMutation({
+    onSuccess: () => {
+      utils.viewer.loggedInViewerRouter.getConfig.invalidate();
+      utils.viewer.loggedInViewerRouter.list.invalidate();
+      showToast(t("phone_number_unassigned_successfully"), "success");
+    },
+    onError: (error: any) => showToast(error.message, "error"),
+  });
+
+  const deleteAiConfigMutation = trpc.viewer.loggedInViewerRouter.deleteAiConfig.useMutation({
+    onSuccess: () => {
+      utils.viewer.loggedInViewerRouter.getConfig.invalidate();
+      utils.viewer.loggedInViewerRouter.list.invalidate();
+      showToast(t("ai_configuration_deleted_successfully"), "success");
     },
     onError: (error: any) => showToast(error.message, "error"),
   });
@@ -123,6 +153,25 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
     }
   };
 
+  const handleDeleteAiConfig = async () => {
+    try {
+      await deleteAiConfigMutation.mutateAsync({
+        eventTypeId: eventType.id,
+      });
+      // Reset form values
+      formMethods.setValue("aiSelfServeConfiguration", {
+        generalPrompt: "",
+        beginMessage: "",
+        numberToCall: "",
+        yourPhoneNumber: null,
+        yourPhoneNumberId: null,
+      });
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting AI configuration:", error);
+    }
+  };
+
   console.log("aiConfig", aiConfig);
 
   if (isLoadingAiConfig || isLoadingLlmDetails) return <></>;
@@ -131,13 +180,11 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
     const handleSubmit = () => {
       try {
         const values = setupForm.getValues();
-        const { agentTimeZone, calApiKey } = values;
+        const { agentTimeZone } = values;
         setupMutation.mutate({
           eventTypeId: eventType.id,
           agentTimeZone: agentTimeZone ?? preferredTimezone,
-          calApiKey,
         });
-        showToast(t("ai_assistant_setup_successfully"), "success");
       } catch (e) {
         console.log("e", e);
         showToast(t("error_setting_up_ai_assistant"), "error");
@@ -182,8 +229,19 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
   return (
     <div>
       <div className="border-subtle rounded-lg rounded-b-none border px-4 py-6 sm:px-6">
-        <h2 className="text-emphasis text-md font-medium">Cal.ai</h2>
-        <p className="text-subtle text-sm">{t("use_cal_ai_to_make_call_description")}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-emphasis text-md font-medium">Cal.ai</h2>
+            <p className="text-subtle text-sm">{t("use_cal_ai_to_make_call_description")}</p>
+          </div>
+          <Button
+            color="destructive"
+            variant="outline"
+            onClick={() => setDeleteDialogOpen(true)}
+            StartIcon="trash">
+            {t("delete")}
+          </Button>
+        </div>
       </div>
       <div className="border-subtle flex flex-col gap-y-6 rounded-b-lg border border-t-0 p-6">
         <div>
@@ -207,6 +265,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                 isOptionDisabled={(option) => {
                   return option.isDisabled;
                 }}
+                isLoading={assignPhoneNumberMutation.isPending || unassignPhoneNumberMutation.isPending}
                 placeholder={t("choose_phone_number")}
                 value={
                   !!assignedPhoneNumber?.phoneNumber
@@ -217,14 +276,34 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                   console.log("option", option);
                   return `${formatPhoneNumber(option.label)} ${option.isDisabled ? "(Taken)" : ""}`;
                 }}
-                onChange={(e) => {
+                onChange={async (e) => {
                   console.log("e", e);
                   if (e) {
                     formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumber", e.label);
                     formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", e.value);
+
+                    try {
+                      await assignPhoneNumberMutation.mutateAsync({
+                        eventTypeId: eventType.id,
+                        phoneNumberId: e.value,
+                      });
+                    } catch (error) {
+                      console.error("Error assigning phone number:", error);
+                      // Reset the form values on error
+                      formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumber", null);
+                      formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", null);
+                    }
                   } else {
                     formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumber", null);
                     formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", null);
+
+                    try {
+                      await unassignPhoneNumberMutation.mutateAsync({
+                        eventTypeId: eventType.id,
+                      });
+                    } catch (error) {
+                      console.error("Error unassigning phone number:", error);
+                    }
                   }
                 }}
               />
@@ -263,7 +342,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
               control={formMethods.control}
               render={({ field: { onChange, value, name }, fieldState: { error } }) => {
                 return (
-                  <div>
+                  <>
                     <PhoneInput
                       required
                       placeholder={t("phone_number")}
@@ -275,7 +354,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                       }}
                     />
                     {error?.message && <ErrorMessage message={error.message} fieldName={name} />}
-                  </div>
+                  </>
                 );
               }}
             />
@@ -288,12 +367,28 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                 makeCallMutation.isPending ||
                 updateLlmMutation.isPending
               }
-              disabled={!assignedPhoneNumber && !!formMethods.getValues().numberToCall}>
+              disabled={
+                (!assignedPhoneNumber && !!formMethods.getValues().numberToCall) ||
+                assignPhoneNumberMutation.isPending ||
+                unassignPhoneNumberMutation.isPending
+              }>
               {assignedPhoneNumber ? t("save_and_test_call") : t("save_changes")}
             </Button>
           </div>
         </div>
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("delete_ai_configuration")}
+          confirmBtnText={t("delete")}
+          cancelBtnText={t("cancel")}
+          isPending={deleteAiConfigMutation.isPending}
+          onConfirm={handleDeleteAiConfig}>
+          <p className="mt-5">{t("are_you_sure_you_want_to_delete_ai_configuration")}</p>
+        </ConfirmationDialogContent>
+      </Dialog>
     </div>
   );
 };

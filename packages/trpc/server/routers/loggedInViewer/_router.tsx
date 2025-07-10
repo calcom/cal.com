@@ -397,4 +397,156 @@ export const loggedInViewerRouter = router({
     const { markNoShow } = await import("./markNoShow.handler");
     return markNoShow(opts);
   }),
+
+  assignPhoneNumber: authedProcedure
+    .input(z.object({ eventTypeId: z.number(), phoneNumberId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { eventTypeId, phoneNumberId } = input;
+
+      // Get the AI configuration for this event type
+      const config = await prisma.aISelfServeConfiguration.findFirst({
+        where: {
+          eventTypeId,
+          eventType: {
+            userId: ctx.user.id,
+          },
+        },
+      });
+
+      if (!config || !config.agentId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "AI agent not found for this event type.",
+        });
+      }
+
+      // Get the phone number details
+      const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
+        where: {
+          id: phoneNumberId,
+          userId: ctx.user.id,
+        },
+      });
+
+      if (!phoneNumber) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Phone number not found or you don't have permission to use it.",
+        });
+      }
+
+      const { updatePhoneNumber } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
+
+      try {
+        await updatePhoneNumber(phoneNumber.phoneNumber, config.agentId);
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to assign phone number to agent in Retell AI.",
+        });
+      }
+
+      // Update the AI configuration to link the phone number
+      const updatedConfig = await prisma.aISelfServeConfiguration.update({
+        where: { id: config.id },
+        data: { yourPhoneNumberId: phoneNumberId },
+      });
+
+      return { success: true, config: updatedConfig };
+    }),
+
+  unassignPhoneNumber: authedProcedure
+    .input(z.object({ eventTypeId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { eventTypeId } = input;
+
+      // Get the AI configuration for this event type
+      const config = await prisma.aISelfServeConfiguration.findFirst({
+        where: {
+          eventTypeId,
+          eventType: {
+            userId: ctx.user.id,
+          },
+        },
+        include: {
+          yourPhoneNumber: true,
+        },
+      });
+
+      if (!config) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "AI configuration not found for this event type.",
+        });
+      }
+
+      // Update the AI configuration to unlink the phone number
+      const updatedConfig = await prisma.aISelfServeConfiguration.update({
+        where: { id: config.id },
+        data: { yourPhoneNumberId: null },
+      });
+
+      return { success: true, config: updatedConfig };
+    }),
+
+  deleteAiConfig: authedProcedure
+    .input(z.object({ eventTypeId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { eventTypeId } = input;
+
+      // Get the AI configuration for this event type
+      const config = await prisma.aISelfServeConfiguration.findFirst({
+        where: {
+          eventTypeId,
+          eventType: {
+            userId: ctx.user.id,
+          },
+        },
+        include: {
+          yourPhoneNumber: true,
+        },
+      });
+
+      if (!config) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "AI configuration not found for this event type.",
+        });
+      }
+
+      const { deleteAgent, deleteLLM } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
+
+      try {
+        // Delete the agent from Retell AI if it exists
+        if (config.agentId) {
+          try {
+            await deleteAgent(config.agentId);
+          } catch (error) {
+            console.error("Failed to delete agent from Retell AI:", error);
+          }
+        }
+
+        // Delete the LLM from Retell AI if it exists
+        if (config.llmId) {
+          try {
+            await deleteLLM(config.llmId);
+          } catch (error) {
+            console.error("Failed to delete LLM from Retell AI:", error);
+          }
+        }
+
+        // Delete the AI configuration from the database
+        await prisma.aISelfServeConfiguration.delete({
+          where: { id: config.id },
+        });
+
+        return { success: true, message: "AI configuration deleted successfully." };
+      } catch (error) {
+        console.error("Error deleting AI configuration:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete AI configuration. Please try again or contact support.",
+        });
+      }
+    }),
 });
