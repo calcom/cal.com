@@ -410,7 +410,7 @@ export default function Signup({
                                 )}/`
                               : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`}
                           </div>
-                          <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-black to-transparent" />
+                          <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-gray-100 to-transparent dark:from-black" />
                         </div>
                       }
                     />
