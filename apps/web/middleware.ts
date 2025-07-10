@@ -15,7 +15,7 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup", "/api/trpc/"];
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup"];
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   if (!POST_METHODS_ALLOWED_API_ROUTES.some((route) => pathname.startsWith(route)) && req.method === "POST") {
