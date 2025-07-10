@@ -25,7 +25,7 @@ export function useWizardState(defaultStep = 1, maxSteps: number) {
 
   const goToStep = useCallback(
     (newStep: number) => {
-      setStep(Math.min(Math.max(newStep, 1), maxSteps));
+      setStep(Math.min(Math.max(newStep + 1, 1), maxSteps));
     },
     [setStep, maxSteps]
   );

@@ -46,7 +46,7 @@ export function WizardForm({
   defaultStep = 1,
   disableNavigation = false,
 }: WizardFormProps) {
-  const { currentStep, maxSteps, nextStep, prevStep, isFirstStep, isLastStep } = useWizardState(
+  const { currentStep, maxSteps, nextStep, goToStep, prevStep, isFirstStep, isLastStep } = useWizardState(
     defaultStep,
     steps.length
   );
@@ -56,11 +56,6 @@ export function WizardForm({
   useEffect(() => {
     setCurrentStepisPending(false);
   }, [currentStep]);
-
-  const goToStep = (step: number) => {
-    const newStep = step + 1;
-    router.replace(`${href}?step=${newStep}`);
-  };
 
   return (
     <div className="mx-auto mt-4 print:w-full" data-testid="wizard-form">
@@ -79,7 +74,6 @@ export function WizardForm({
               navigateToStep={goToStep}
               stepLabel={stepLabel}
               data-testid="wizard-step-component"
-              disableNavigation={disableNavigation}
             />
           )}
         </div>
