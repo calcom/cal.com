@@ -317,7 +317,7 @@ async function ensureStripeCustomerIdIsUpdated({
 }) {
   const parsedMetadata = userMetadata.parse(owner.metadata);
 
-  await UserRepository.updateStripeCustomerId({
+  await new UserRepository(prisma).updateStripeCustomerId({
     id: owner.id,
     stripeCustomerId: stripeCustomerId,
     existingMetadata: parsedMetadata,
