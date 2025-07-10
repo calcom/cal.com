@@ -391,13 +391,13 @@ export class UserRepository {
     return !!user.movedToProfileId;
   }
 
-  async enrichUserWithTheProfile<
-    T extends {
-      id: number;
-      username: string | null;
-      [key: string]: any;
-    }
-  >({ user, upId }: { user: T; upId: UpId }): Promise<T & { profile: UserProfile }> {
+  async enrichUserWithTheProfile<T extends { username: string | null; id: number }>({
+    user,
+    upId,
+  }: {
+    user: T;
+    upId: UpId;
+  }) {
     const profile = await ProfileRepository.findByUpId(upId);
     if (!profile) {
       return {

@@ -93,7 +93,7 @@ export class OrganizationRepository {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
     const organization = await this.create(orgData);
     const ownerUsernameInOrg = getOrgUsernameFromEmail(owner.email, orgData.autoAcceptEmail);
-    const userRepo = new UserRepository(this.prismaClient);
+    const userRepo = new UserRepository(prisma);
     const ownerInDb = await userRepo.create({
       email: owner.email,
       username: ownerUsernameInOrg,
