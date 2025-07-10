@@ -28,6 +28,10 @@ export type FindManyArgs = {
       | {
           not: null;
         };
+    office365SubscriptionId?: string | null;
+    office365SubscriptionExpiration?: string | null;
+    office365SubscriptionResource?: string | null;
+    office365SubscriptionClientState?: string | null;
   };
   orderBy?: {
     userId?: "asc" | "desc";
@@ -165,8 +169,8 @@ export class SelectedCalendarRepository {
             },
           },
         },
-        // RN we only support google calendar subscriptions for now
-        integration: "google_calendar",
+        // Support both google calendar and office365 calendar subscriptions
+        integration: { in: ["google_calendar", "office365_calendar"] },
         AND: [
           {
             OR: [
@@ -190,10 +194,22 @@ export class SelectedCalendarRepository {
           },
           {
             OR: [
-              // Either is a calendar pending to be watched
-              { googleChannelExpiration: null },
-              // Or is a calendar that is about to expire
-              { googleChannelExpiration: { lt: tomorrowTimestamp } },
+              // Google Calendar conditions
+              {
+                integration: "google_calendar",
+                OR: [
+                  { googleChannelExpiration: null },
+                  { googleChannelExpiration: { lt: tomorrowTimestamp } },
+                ],
+              },
+              // Office 365 Calendar conditions
+              {
+                integration: "office365_calendar",
+                OR: [
+                  { office365SubscriptionExpiration: null },
+                  { office365SubscriptionExpiration: { lt: tomorrowTimestamp } },
+                ],
+              },
             ],
           },
         ],
@@ -207,9 +223,20 @@ export class SelectedCalendarRepository {
    */
   static async getNextBatchToUnwatch(limit = 100) {
     const where: Prisma.SelectedCalendarWhereInput = {
-      // RN we only support google calendar subscriptions for now
-      integration: "google_calendar",
-      googleChannelExpiration: { not: null },
+      // Support both google calendar and office365 calendar subscriptions
+      integration: { in: ["google_calendar", "office365_calendar"] },
+      OR: [
+        // Google Calendar with active subscription
+        {
+          integration: "google_calendar",
+          googleChannelExpiration: { not: null },
+        },
+        // Office 365 Calendar with active subscription
+        {
+          integration: "office365_calendar",
+          office365SubscriptionExpiration: { not: null },
+        },
+      ],
       AND: [
         {
           OR: [
@@ -273,6 +300,26 @@ export class SelectedCalendarRepository {
     return await prisma.selectedCalendar.findFirst({
       where: {
         googleChannelId,
+      },
+      select: {
+        credential: {
+          select: {
+            ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  static async findFirstByOffice365SubscriptionId(office365SubscriptionId: string) {
+    return await prisma.selectedCalendar.findFirst({
+      where: {
+        office365SubscriptionId,
       },
       select: {
         credential: {

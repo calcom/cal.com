@@ -846,19 +846,26 @@ model Availability {
 }
 
 model SelectedCalendar {
-  id                       String      @id @default(uuid())
-  user                     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                   Int
-  integration              String
-  externalId               String
-  credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId             Int?
+  id           String      @id @default(uuid())
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  integration  String
+  externalId   String
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId Int?
+
   // Used to identify a watched calendar channel in Google Calendar
   googleChannelId          String?
   googleChannelKind        String?
   googleChannelResourceId  String?
   googleChannelResourceUri String?
   googleChannelExpiration  String?
+
+  // Used to identify a watched calendar subscription in Office 365
+  office365SubscriptionId          String?
+  office365SubscriptionExpiration  String?
+  office365SubscriptionResource    String?
+  office365SubscriptionClientState String?
 
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
@@ -880,6 +887,7 @@ model SelectedCalendar {
   // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
+  @@unique([office365SubscriptionId, eventTypeId])
   @@index([userId])
   @@index([externalId])
   @@index([eventTypeId])
@@ -887,6 +895,8 @@ model SelectedCalendar {
   // Composite indices to optimize calendar-cache queries
   @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
   @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
+  @@index([integration, office365SubscriptionExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_office365_watch_idx")
+  @@index([integration, office365SubscriptionExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_office365_unwatch_idx")
 }
 
 enum EventTypeCustomInputType {
