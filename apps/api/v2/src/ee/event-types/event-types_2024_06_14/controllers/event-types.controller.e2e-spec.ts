@@ -651,6 +651,30 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.color).toEqual(eventType.color);
     });
 
+    it(`/GET/event-types by username including hidden`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types/all`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+
+      const fetchedEventType = responseBody.data?.find(
+        (responseEventType) => responseEventType.id === eventType.id
+      );
+      const fetchedHiddenEventType = responseBody.data?.find(
+        (responseEventType) => responseEventType.id === hiddenEventType.id
+      );
+      expect(fetchedEventType?.id).toEqual(eventType.id);
+      expect(fetchedHiddenEventType?.id).toEqual(hiddenEventType.id);
+    });
+
     it(`/GET/event-types by username and orgSlug`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types?username=${orgUser.username}&orgSlug=${organization.slug}`)

@@ -89,6 +89,7 @@ type Input = Pick<
   | "hideCalendarEventDetails"
   | "hideOrganizerEmail"
   | "calVideoSettings"
+  | "hidden"
 >;
 
 @Injectable()

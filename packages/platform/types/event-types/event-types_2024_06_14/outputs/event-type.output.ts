@@ -442,7 +442,7 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsOptional()
   @IsBoolean()
-  @DocsPropertyOptional({
+  @ApiPropertyOptional({
     description:
       "If hidden the event type will not be publically available in the public /v2/event-types endpoint and it requires making authenticated request to /v2/event-types/{eventTypeId} to get it.",
   })
