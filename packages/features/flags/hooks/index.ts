@@ -22,6 +22,7 @@ const initialData: AppFlags = {
   "use-api-v2-for-team-slots": false,
   pbac: false,
   "restriction-schedule": false,
+  "posthog-booking-tracking": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {
