@@ -18,7 +18,7 @@ export async function revalidateTeamDataCache({
 
 /**
  * Invalidate only the team event type cache for a specific event type
- * Use this when event types are added, removed, or modified
+ * Use this when event type data is modified
  */
 export async function revalidateTeamEventTypeCache({
   teamSlug,
