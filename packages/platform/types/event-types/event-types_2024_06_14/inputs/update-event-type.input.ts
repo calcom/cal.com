@@ -414,6 +414,13 @@ class BaseUpdateEventTypeInput {
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Whether the event type is hidden from public view",
+  })
+  hidden?: boolean;
 }
 export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
   @IsOptional()

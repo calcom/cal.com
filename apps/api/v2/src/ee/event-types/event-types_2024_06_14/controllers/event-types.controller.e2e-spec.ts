@@ -2156,4 +2156,152 @@ describe("Event types Endpoints", () => {
       await app.close();
     });
   });
+
+  describe("Hidden Event Types", () => {
+    let app: INestApplication;
+    let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
+    let userRepositoryFixture: UserRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let user: User;
+    const userEmail = `hidden-event-types-user-${randomString()}@api.com`;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        userEmail,
+        Test.createTestingModule({
+          providers: [PrismaExceptionFilter, HttpExceptionFilter],
+          imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+
+      organization = await teamRepositoryFixture.create({
+        name: `hidden-event-types-organization-${randomString()}`,
+        slug: `hidden-event-types-org-${randomString()}`,
+      });
+
+      oAuthClient = await createOAuthClient(organization.id);
+      user = await userRepositoryFixture.create({
+        email: userEmail,
+        name: `hidden-event-types-user-${randomString()}`,
+        username: `hidden-event-types-user-${randomString()}`,
+      });
+
+      await app.init();
+    });
+
+    async function createOAuthClient(organizationId: number) {
+      const data = {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: ["redirect-uri"],
+        permissions: 32,
+      };
+      const secret = "secret";
+
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
+    }
+
+    it("should create a hidden event type", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Hidden Consultation",
+        slug: "hidden-consultation",
+        description: "This is a hidden event type for private consultations.",
+        lengthInMinutes: 30,
+        hidden: true,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const createdEventType = responseBody.data;
+          expect(createdEventType).toHaveProperty("id");
+          expect(createdEventType.title).toEqual(body.title);
+          expect(createdEventType.slug).toEqual(body.slug);
+          expect(createdEventType.description).toEqual(body.description);
+          expect(createdEventType.lengthInMinutes).toEqual(body.lengthInMinutes);
+          expect(createdEventType.hidden).toEqual(true);
+          expect(createdEventType.ownerId).toEqual(user.id);
+        });
+    });
+
+    it("should update the hidden property of an event type", async () => {
+      const createBody: CreateEventTypeInput_2024_06_14 = {
+        title: "Initially Visible Event",
+        slug: "initially-visible-event",
+        description: "This event starts as visible.",
+        lengthInMinutes: 45,
+        hidden: false,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(createBody)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+      expect(createdEventType.hidden).toEqual(false);
+
+      const updateBody: UpdateEventTypeInput_2024_06_14 = {
+        hidden: true,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(updateBody)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const updatedEventType = responseBody.data;
+          expect(updatedEventType.id).toEqual(createdEventType.id);
+          expect(updatedEventType.hidden).toEqual(true);
+          expect(updatedEventType.title).toEqual(createBody.title);
+        });
+    });
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
+      try {
+        await userRepositoryFixture.delete(user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      await app.close();
+    });
+  });
 });

@@ -439,6 +439,12 @@ class BaseEventTypeOutput_2024_06_14 {
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings | null;
+
+  @IsBoolean()
+  @DocsProperty({
+    description: "Whether the event type is hidden from public view",
+  })
+  hidden!: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
