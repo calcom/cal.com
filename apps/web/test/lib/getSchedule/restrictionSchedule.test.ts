@@ -10,8 +10,8 @@ import {
 import { describe, test, vi } from "vitest";
 import type { z } from "zod";
 
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import type { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
-import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
@@ -89,7 +89,7 @@ async function setupTeamAndFeatures() {
 }
 
 describe("getSchedule", () => {
-  const availableSlotsService = new AvailableSlotsService();
+  const availableSlotsService = getAvailableSlotsService();
   setupAndTeardown();
 
   describe("Restriction Schedule", () => {

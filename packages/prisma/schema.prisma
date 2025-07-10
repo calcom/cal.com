@@ -1999,9 +1999,8 @@ model Attribute {
 
   type AttributeType
 
-  name String
-  slug String @unique
-
+  name    String
+  slug    String
   enabled Boolean @default(true)
 
   usersCanEditRelation Boolean @default(false)
@@ -2012,6 +2011,7 @@ model Attribute {
   isWeightsEnabled Boolean           @default(false)
   isLocked         Boolean           @default(false)
 
+  @@unique([teamId, slug])
   @@index([teamId])
 }
 
