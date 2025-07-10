@@ -292,7 +292,8 @@ export class AvailableSlotsService {
     organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
   ) {
     const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-    const team = await TeamRepository.findFirstBySlugAndParentSlug({
+    const teamRepo = new TeamRepository(prisma);
+    const team = await teamRepo.findFirstBySlugAndParentSlug({
       slug,
       parentSlug: isValidOrgDomain && currentOrgDomain ? currentOrgDomain : null,
       select: { id: true },
