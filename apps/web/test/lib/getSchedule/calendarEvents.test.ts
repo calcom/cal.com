@@ -9,13 +9,13 @@ import {
 
 import { describe, test } from "vitest";
 
-import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 
 import { expect, expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 
 describe("getSchedule", () => {
-  const availableSlotsService = new AvailableSlotsService();
+  const availableSlotsService = getAvailableSlotsService();
   setupAndTeardown();
   describe("Calendar event", () => {
     test("correctly identifies unavailable slots from selected calendars at user level", async () => {
