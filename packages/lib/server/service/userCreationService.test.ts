@@ -54,12 +54,15 @@ describe("UserCreationService", () => {
       organizationId: null,
     } as any);
 
-    vi.mocked(UserRepository).mockImplementation(
-      () =>
-        ({
-          create: mockCreate,
-        } as any)
-    );
+    const mockUserRepository = vi.mocked(UserRepository);
+    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
+      mockUserRepository.mockImplementation(
+        () =>
+          ({
+            create: mockCreate,
+          } as any)
+      );
+    }
 
     const user = await UserCreationService.createUser({ data: mockUserData });
 
@@ -83,12 +86,15 @@ describe("UserCreationService", () => {
       organizationId: null,
     } as any);
 
-    vi.mocked(UserRepository).mockImplementation(
-      () =>
-        ({
-          create: mockCreate,
-        } as any)
-    );
+    const mockUserRepository = vi.mocked(UserRepository);
+    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
+      mockUserRepository.mockImplementation(
+        () =>
+          ({
+            create: mockCreate,
+          } as any)
+      );
+    }
 
     const user = await UserCreationService.createUser({ data: mockUserData });
 
@@ -111,12 +117,15 @@ describe("UserCreationService", () => {
       organizationId: null,
     } as any);
 
-    vi.mocked(UserRepository).mockImplementation(
-      () =>
-        ({
-          create: mockCreate,
-        } as any)
-    );
+    const mockUserRepository = vi.mocked(UserRepository);
+    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
+      mockUserRepository.mockImplementation(
+        () =>
+          ({
+            create: mockCreate,
+          } as any)
+      );
+    }
 
     const user = await UserCreationService.createUser({
       data: { ...mockUserData, password: mockPassword },

@@ -87,12 +87,15 @@ describe("getRoutedUrl", () => {
     vi.mocked(RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(null);
 
     const mockEnrichUserWithItsProfile = vi.fn().mockImplementation(async ({ user }) => user);
-    vi.mocked(UserRepository).mockImplementation(
-      () =>
-        ({
-          enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-        } as any)
-    );
+    const mockUserRepository = vi.mocked(UserRepository);
+    if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
+      mockUserRepository.mockImplementation(
+        () =>
+          ({
+            enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+          } as any)
+      );
+    }
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(true);
     vi.mocked(getSerializableForm).mockResolvedValue(mockSerializableForm as never);
     vi.mocked(findMatchingRoute).mockReturnValue(null);
