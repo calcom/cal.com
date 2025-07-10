@@ -880,6 +880,12 @@ model SelectedCalendar {
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
 
+  // Office365 webhook subscription fields
+  office365SubscriptionId          String?
+  office365SubscriptionExpiration  String?
+  office365SubscriptionResource    String?
+  office365SubscriptionClientState String?
+
   // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
   // We currently ensure uniqueness by checking for the existence of the record before creating a new one
   // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}

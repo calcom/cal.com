@@ -657,4 +657,49 @@ export default class Office365CalendarService implements Calendar {
 
     return response.json();
   };
+
+  /**
+   * Creates a Microsoft Graph webhook subscription for a calendar.
+   * @param calendarId The Office365 calendar ID to subscribe to
+   * @param notificationUrl The public URL to receive webhook notifications
+   * @returns The subscription response from Microsoft Graph
+   */
+  async subscribeToCalendar({
+    calendarId,
+    notificationUrl,
+  }: {
+    calendarId: string;
+    notificationUrl: string;
+  }) {
+    const tokenObject = getTokenObjectFromCredential(this.credential);
+    const accessToken = tokenObject?.access_token;
+    if (!accessToken) {
+      this.log.error("No access token available for subscription");
+      throw new Error("No access token available");
+    }
+    const resource = `/me/calendars/${calendarId}/events`;
+    const expirationDateTime = new Date(Date.now() + 60 * 60 * 1000 * 2).toISOString(); // 2 hours from now (max 4230 mins)
+    const body = {
+      changeType: "created,updated,deleted",
+      notificationUrl,
+      resource,
+      expirationDateTime,
+      clientState: Math.random().toString(36).substring(2, 15),
+    };
+    const response = await fetch("https://graph.microsoft.com/v1.0/subscriptions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      this.log.error("Failed to create Office365 subscription", result);
+      throw new Error(result.error?.message || "Failed to create subscription");
+    }
+    this.log.info("Created Office365 subscription", result);
+    return result;
+  }
 }
