@@ -53,7 +53,7 @@ import getSlots from "@calcom/lib/slots";
 import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { EventBusyDetails } from "@calcom/types/Calendar";
+import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
@@ -1164,7 +1164,7 @@ export class AvailableSlotsService {
 
         currentSeats = availabilityCheckProps.currentSeats;
       }
-      const busySlotsFromReservedSlots = reservedSlots.reduce<{ start: Date; end: Date }[]>((r, c) => {
+      const busySlotsFromReservedSlots = reservedSlots.reduce<EventBusyDate[]>((r, c) => {
         if (!c.isSeat) {
           r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
         }
