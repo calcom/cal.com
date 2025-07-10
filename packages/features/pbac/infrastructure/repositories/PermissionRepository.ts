@@ -111,26 +111,38 @@ export class PermissionRepository implements IPermissionRepository {
       const [resource, action] = p.split(".");
       return { resource, action };
     });
-    const matchingPermissions = await this.client.rolePermission.count({
-      where: {
-        roleId,
-        OR: [
-          { resource: "*", action: "*" },
-          {
-            AND: [{ resource: "*" }, { action: { in: permissionPairs.map((p) => p.action) } }],
-          },
-          {
-            AND: [{ resource: { in: permissionPairs.map((p) => p.resource) } }, { action: "*" }],
-          },
-          {
-            OR: permissionPairs.map((p) => ({
-              AND: [{ resource: p.resource }, { action: p.action }],
-            })),
-          },
-        ],
-      },
-    });
-    return matchingPermissions >= permissions.length;
+    const resourceActions = permissionPairs.map((p) => [p.resource, p.action]);
+    const resources = permissionPairs.map((p) => p.resource);
+    const actions = permissionPairs.map((p) => p.action);
+
+    const matchingPermissions = await this.client.$queryRaw<[{ count: bigint }]>`
+      WITH permission_checks AS (
+        -- Universal permission (*,*)
+        SELECT 1 as match FROM "RolePermission"
+        WHERE "roleId" = ${roleId} AND "resource" = '*' AND "action" = '*'
+
+        UNION ALL
+
+        -- Wildcard resource with specific actions
+        SELECT 1 as match FROM "RolePermission"
+        WHERE "roleId" = ${roleId} AND "resource" = '*' AND "action" = ANY(${actions})
+
+        UNION ALL
+
+        -- Specific resources with wildcard action
+        SELECT 1 as match FROM "RolePermission"
+        WHERE "roleId" = ${roleId} AND "action" = '*' AND "resource" = ANY(${resources})
+
+        UNION ALL
+
+        -- Exact resource-action pairs
+        SELECT 1 as match FROM "RolePermission"
+        WHERE "roleId" = ${roleId} AND ("resource", "action") = ANY(${resourceActions})
+      )
+      SELECT COUNT(*) as count FROM permission_checks
+    `;
+
+    return Number(matchingPermissions[0].count) >= permissions.length;
   }
 
   async getResourcePermissions(
