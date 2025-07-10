@@ -69,10 +69,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     return responseWithHeaders({ url, res: routingFormRewriteResponse, req });
   }
 
-  if (url.pathname.startsWith("/api/trpc/")) {
-    requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
-  }
-
   if (url.pathname.startsWith("/api/auth/signup")) {
     const isSignupDisabled = await safeGet<boolean>("isSignupDisabled");
     // If is in maintenance mode, point the url pathname to the maintenance page
@@ -178,7 +174,6 @@ export const config = {
     "/:path*/embed",
     // API routes
     "/api/auth/signup",
-    "/api/trpc/:path*",
   ],
 };
 
