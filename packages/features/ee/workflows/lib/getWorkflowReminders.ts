@@ -4,7 +4,14 @@ import type { EventType, User, WorkflowReminder, WorkflowStep, Prisma } from "@c
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 type PartialWorkflowStep =
-  | (Partial<WorkflowStep> & { workflow: { userId?: number; teamId?: number } })
+  | (Partial<WorkflowStep> & {
+      workflow: {
+        userId?: number;
+        teamId?: number;
+        user?: { email: string } | null;
+        team?: { members: { user: { email: string }; role: string }[] } | null;
+      };
+    })
   | null;
 
 type Booking = Prisma.BookingGetPayload<{
@@ -140,6 +147,29 @@ export const select = {
         select: {
           userId: true,
           teamId: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
+          team: {
+            select: {
+              members: {
+                select: {
+                  user: {
+                    select: {
+                      email: true,
+                    },
+                  },
+                  role: true,
+                },
+                where: {
+                  role: "OWNER",
+                },
+                take: 1,
+              },
+            },
+          },
         },
       },
     },
@@ -214,4 +244,18 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
   const unscheduledReminders = (await getWorkflowReminders(whereFilter, select)) as PartialWorkflowReminder[];
 
   return unscheduledReminders;
+}
+
+export function getWorkflowAssigneeEmail(workflowStep: PartialWorkflowStep): string | null {
+  if (!workflowStep?.workflow) return null;
+
+  if (workflowStep.workflow.userId && workflowStep.workflow.user?.email) {
+    return workflowStep.workflow.user.email;
+  }
+
+  if (workflowStep.workflow.teamId && workflowStep.workflow.team?.members?.[0]?.user?.email) {
+    return workflowStep.workflow.team.members[0].user.email;
+  }
+
+  return null;
 }

@@ -16,7 +16,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
-import { select } from "../lib/getWorkflowReminders";
+import { select, getWorkflowAssigneeEmail } from "../lib/getWorkflowReminders";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
@@ -128,8 +128,16 @@ export async function handler(req: NextRequest) {
           additionalNotes: reminder.booking?.description,
           responses: responses,
           meetingUrl,
-          cancelLink,
-          rescheduleLink,
+          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
+            getWorkflowAssigneeEmail(reminder.workflowStep)
+              ? `&cancelledBy=${encodeURIComponent(getWorkflowAssigneeEmail(reminder.workflowStep)!)}`
+              : ""
+          }`,
+          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}${
+            getWorkflowAssigneeEmail(reminder.workflowStep)
+              ? `?rescheduledBy=${encodeURIComponent(getWorkflowAssigneeEmail(reminder.workflowStep)!)}`
+              : ""
+          }`,
           attendeeTimezone: reminder.booking.attendees[0].timeZone,
           eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
             reminder.booking.attendees[0].timeZone
