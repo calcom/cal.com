@@ -22,9 +22,10 @@ export default function InsightsRoutingFormResponsesPage() {
 
           <RoutingFunnel />
 
-          <RoutedToPerPeriod />
-
-          <FailedBookingsByField />
+          <div className="flex flex-col gap-4 md:flex-row">
+            <RoutedToPerPeriod />
+            <FailedBookingsByField />
+          </div>
 
           <small className="text-default block text-center">
             {t("looking_for_more_insights")}{" "}
