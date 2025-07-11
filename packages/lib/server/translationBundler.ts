@@ -1,60 +1,48 @@
-import { readFileSync, readdirSync } from "fs";
+import { readFileSync } from "fs";
 import { join } from "path";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 
 const LOCALES_PATH = join(__dirname, "../../../apps/web/public/static/locales");
 
-interface TranslationBundle {
-  [locale: string]: {
-    [namespace: string]: Record<string, string>;
-  };
+interface LocaleCache {
+  [cacheKey: string]: Record<string, string>;
 }
 
-let translationBundle: TranslationBundle | null = null;
-let bundleVersion: string | null = null;
+let localeCache: LocaleCache = {};
+let cacheVersion: string | null = null;
 
-function loadTranslationBundle(): TranslationBundle {
-  if (translationBundle && bundleVersion === CALCOM_VERSION) {
-    return translationBundle;
+function loadTranslationForLocale(locale: string, ns: string): Record<string, string> {
+  const cacheKey = `${locale}-${ns}-${CALCOM_VERSION}`;
+
+  if (cacheVersion === CALCOM_VERSION && localeCache[cacheKey]) {
+    return localeCache[cacheKey];
   }
 
-  const bundle: TranslationBundle = {};
-  const locales = readdirSync(LOCALES_PATH);
-
-  for (const locale of locales) {
-    const localePath = join(LOCALES_PATH, locale);
-    try {
-      const commonJsonPath = join(localePath, "common.json");
-      const translations = JSON.parse(readFileSync(commonJsonPath, "utf-8"));
-
-      if (!bundle[locale]) {
-        bundle[locale] = {};
-      }
-      bundle[locale]["common"] = translations;
-    } catch (error) {
-      console.warn(`Failed to load translations for locale ${locale}:`, error);
-    }
+  if (cacheVersion !== CALCOM_VERSION) {
+    localeCache = {};
+    cacheVersion = CALCOM_VERSION;
   }
 
-  translationBundle = bundle;
-  bundleVersion = CALCOM_VERSION;
-  return bundle;
+  try {
+    const translationPath = join(LOCALES_PATH, locale, `${ns}.json`);
+    const translations = JSON.parse(readFileSync(translationPath, "utf-8"));
+    localeCache[cacheKey] = translations;
+    return translations;
+  } catch (error) {
+    console.warn(`Failed to load translations for ${locale}/${ns}:`, error);
+    return {};
+  }
 }
 
 export function getBundledTranslations(locale: string, ns: string): Record<string, string> {
-  const bundle = loadTranslationBundle();
   const normalizedLocale = locale === "zh" ? "zh-CN" : locale;
 
-  const localeTranslations = bundle[normalizedLocale];
-  if (localeTranslations && localeTranslations[ns]) {
-    return localeTranslations[ns];
+  const translations = loadTranslationForLocale(normalizedLocale, ns);
+  if (Object.keys(translations).length > 0) {
+    return translations;
   }
 
-  const englishTranslations = bundle["en"];
-  if (englishTranslations && englishTranslations[ns]) {
-    return englishTranslations[ns];
-  }
-
-  return {};
+  const englishTranslations = loadTranslationForLocale("en", ns);
+  return englishTranslations;
 }
