@@ -94,6 +94,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       descriptionAsSafeHTML: _descriptionAsSafeHTML,
       secondaryEmailId,
       instantMeetingScheduleId: _instantMeetingScheduleId,
+      restrictionScheduleId: _restrictionScheduleId,
       ...rest
     } = eventType;
 
@@ -113,7 +114,13 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             },
           }
         : undefined,
-
+      restrictionSchedule: _restrictionScheduleId
+        ? {
+            connect: {
+              id: _restrictionScheduleId,
+            },
+          }
+        : undefined,
       recurringEvent: recurringEvent || undefined,
       bookingLimits: bookingLimits ?? undefined,
       durationLimits: durationLimits ?? undefined,
@@ -144,7 +151,8 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       }
     }
 
-    const newEventType = await EventTypeRepository.create(data);
+    const eventTypeRepo = new EventTypeRepository(prisma);
+    const newEventType = await eventTypeRepo.create(data);
 
     // Create custom inputs
     if (customInputs) {
