@@ -13,6 +13,15 @@ import { test } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
 import { bookTimeSlot, doOnOrgDomain } from "./lib/testUtils";
 
+// Dynamic test date: always tomorrow in UTC, used everywhere for consistency
+const TEST_DATE = new Date(Date.UTC(
+  new Date().getUTCFullYear(),
+  new Date().getUTCMonth(),
+  new Date().getUTCDate() + 1
+));
+const TEST_DATE_ISO = TEST_DATE.toISOString();
+const TEST_DATE_DAY = TEST_DATE.getUTCDate().toString();
+
 /**
  * Booking Race Condition Prevention Test
  *
@@ -117,12 +126,7 @@ async function setupTeamWithRoundRobin(users: Fixtures["users"], orgs: Fixtures[
   const teamMemberships = await prisma.membership.findMany({
     where: { teamId: team.id },
     select: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-        },
-      },
+      user: true, // Select full user object for type safety
     },
   });
 
@@ -202,10 +206,9 @@ async function setupCalendarCache(teamMembers: User[]) {
   // Set up calendar cache with stale data to test cache functionality
   // This simulates the production scenario where cache shows availability
   // but real calendar API might show different data
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const cacheTimeRange = {
-    timeMin: getTimeMin(tomorrow.toISOString()),
-    timeMax: getTimeMax(tomorrow.toISOString()),
+    timeMin: getTimeMin(TEST_DATE_ISO),
+    timeMax: getTimeMax(TEST_DATE_ISO),
   };
 
   const credentials = await prisma.credential.findMany({
@@ -283,6 +286,8 @@ async function enableCalendarCacheFeatures(teamId: number) {
 async function mockGoogleCalendarAPI(page: Page) {
   // Mock Google Calendar API to simulate real-world calendar data
   // This creates a mismatch with cache data to test cache functionality
+  const busyStart = `${TEST_DATE_ISO.slice(0, 10)}T08:00:00.000Z`;
+  const busyEnd = `${TEST_DATE_ISO.slice(0, 10)}T09:00:00.000Z`;
   await page.route("**/calendar/v3/freeBusy**", async (route: Route) => {
     const mockResponse = {
       kind: "calendar#freeBusy",
@@ -290,24 +295,24 @@ async function mockGoogleCalendarAPI(page: Page) {
         "pro-user@example.com": {
           busy: [
             {
-              start: "2025-07-02T08:00:00.000Z",
-              end: "2025-07-02T09:00:00.000Z",
+              start: busyStart,
+              end: busyEnd,
             },
           ],
         },
         "teammate-1@example.com": {
           busy: [
             {
-              start: "2025-07-02T08:00:00.000Z",
-              end: "2025-07-02T09:00:00.000Z",
+              start: busyStart,
+              end: busyEnd,
             },
           ],
         },
         "teammate-2@example.com": {
           busy: [
             {
-              start: "2025-07-02T08:00:00.000Z",
-              end: "2025-07-02T09:00:00.000Z",
+              start: busyStart,
+              end: busyEnd,
             },
           ],
         },
@@ -349,18 +354,9 @@ async function performConcurrentBookings(
     await page1.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
     await page2.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
 
-    // Select tomorrow's date
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    const targetDay = tomorrow.getDate().toString();
-
-    await page1
-      .locator(`[data-testid="day"][data-disabled="false"]`)
-      .filter({ hasText: new RegExp(`^${targetDay}$`) })
-      .click();
-    await page2
-      .locator(`[data-testid="day"][data-disabled="false"]`)
-      .filter({ hasText: new RegExp(`^${targetDay}$`) })
-      .click();
+    // Select the dynamic test date
+    await selectAvailableDay(page1, TEST_DATE_DAY);
+    await selectAvailableDay(page2, TEST_DATE_DAY);
 
     // Select first available time slot
     await page1.locator('[data-testid="time"]').nth(0).waitFor();
@@ -405,6 +401,25 @@ async function performConcurrentBookings(
   });
 
   return { firstResponse, secondResponse };
+}
+
+// Defensive helper to select a calendar day by text, or fail with debug info
+async function selectAvailableDay(page: Page, targetDay: string) {
+  const dayLocator = page
+    .locator(`[data-testid="day"][data-disabled="false"]`)
+    .filter({ hasText: new RegExp(`^${targetDay}$`) });
+  const count = await dayLocator.count();
+  if (count === 0) {
+    const availableDays = await page.locator('[data-testid="day"][data-disabled="false"]').allTextContents();
+    console.error(
+      `No enabled day button found for day '${targetDay}'. Available enabled days:`,
+      availableDays
+    );
+    throw new Error(
+      `Test setup error: Could not find enabled calendar day for '${targetDay}'. See console for available days.`
+    );
+  }
+  await dayLocator.first().click();
 }
 
 async function analyzeBookingResults(
