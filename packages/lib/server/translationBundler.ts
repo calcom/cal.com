@@ -4,7 +4,35 @@ import path from "path";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 
-const LOCALES_PATH = path.resolve(process.cwd(), "..", "..", "packages/lib/server/locales");
+function findMonorepoRoot(): string {
+  let currentDir = __dirname;
+  while (currentDir !== path.dirname(currentDir)) {
+    try {
+      const packageJsonPath = path.join(currentDir, "package.json");
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+      if (packageJson.workspaces && packageJson.name === "calcom-monorepo") {
+        return currentDir;
+      }
+    } catch (error) {}
+    currentDir = path.dirname(currentDir);
+  }
+
+  let fallbackDir = process.cwd();
+  while (fallbackDir !== path.dirname(fallbackDir)) {
+    try {
+      const packageJsonPath = path.join(fallbackDir, "package.json");
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+      if (packageJson.workspaces && packageJson.name === "calcom-monorepo") {
+        return fallbackDir;
+      }
+    } catch (error) {}
+    fallbackDir = path.dirname(fallbackDir);
+  }
+
+  return process.cwd();
+}
+
+const LOCALES_PATH = path.join(findMonorepoRoot(), "packages/lib/server/locales");
 
 interface LocaleCache {
   [cacheKey: string]: Record<string, string>;
