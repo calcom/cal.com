@@ -3379,5 +3379,6 @@
   "time_based_expiration_description": "This link can be used for bookings until the end of {{date}}",
   "usage_based_expiration_description": "This link can be used for {{count}} booking",
   "usage_based_expiration_description_plural": "This link can be used for {{count}} bookings",
+  "private_link_expired": "This link has expired",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1,3 +1,4 @@
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -13,17 +14,17 @@ type NormalizedLink = {
   maxUsageCount?: number | null;
 };
 
-export class PrivateLinksRepository {
-  private static normalizeLinkInput(input: string | HashedLinkInputType): NormalizedLink {
-    return typeof input === "string"
-      ? { link: input, expiresAt: null }
-      : {
-          link: input.link,
-          expiresAt: input.expiresAt ?? null,
-          maxUsageCount: input.maxUsageCount,
-        };
-  }
+function normalizeLinkInput(input: string | HashedLinkInputType): NormalizedLink {
+  return typeof input === "string"
+    ? { link: input, expiresAt: null }
+    : {
+        link: input.link,
+        expiresAt: input.expiresAt ?? null,
+        maxUsageCount: input.maxUsageCount,
+      };
+}
 
+export class PrivateLinksRepository {
   static async deleteLinks(eventTypeId: number, linksToDelete: string[], tx?: PrismaTransaction) {
     if (linksToDelete.length === 0) return;
 
@@ -46,7 +47,7 @@ export class PrivateLinksRepository {
       expiresAt: linkData.expiresAt,
     };
 
-    if (typeof linkData.maxUsageCount === "number" && linkData.maxUsageCount !== null) {
+    if (Number.isFinite(linkData.maxUsageCount)) {
       data.maxUsageCount = linkData.maxUsageCount;
     }
 
@@ -192,12 +193,12 @@ export class PrivateLinksRepository {
     });
 
     if (!hashedLink) {
-      throw new Error("Link has expired");
+      throw new Error(ErrorCode.PrivateLinkExpired);
     }
 
     const now = new Date();
     if (hashedLink.expiresAt && hashedLink.expiresAt < now) {
-      throw new Error("Link has expired");
+      throw new Error(ErrorCode.PrivateLinkExpired);
     }
 
     if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
@@ -230,27 +231,19 @@ export class PrivateLinksRepository {
   ): Promise<boolean> {
     const prismaClient = tx ?? prisma;
 
-    // If the event type belongs to a user, check if it's the current user
-    if (link.eventType.userId && link.eventType.userId !== userId) {
-      return false;
-    }
+    if (link.eventType.userId && link.eventType.userId !== userId) return false;
+    if (!link.eventType.teamId) return true;
 
-    // If the event type belongs to a team, check if the user is part of that team
-    if (link.eventType.teamId) {
-      const membership = await prismaClient.membership.findFirst({
-        where: {
-          teamId: link.eventType.teamId,
-          userId,
-          accepted: true,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      return !!membership;
-    }
-
-    return true;
+    const membership = await prismaClient.membership.findFirst({
+      where: {
+        teamId: link.eventType.teamId,
+        userId,
+        accepted: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!membership;
   }
 }
