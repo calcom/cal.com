@@ -5,7 +5,7 @@ import path from "path";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 
 function findMonorepoRoot(): string {
-  let currentDir = path.dirname(require.resolve(__filename));
+  let currentDir = __dirname;
   while (currentDir !== path.dirname(currentDir)) {
     try {
       const packageJsonPath = path.join(currentDir, "package.json");
