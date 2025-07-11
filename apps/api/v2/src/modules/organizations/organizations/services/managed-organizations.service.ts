@@ -5,6 +5,7 @@ import { ManagedOrganizationsBillingService } from "@/modules/billing/services/m
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
+import { GetManagedOrganizationsInput_2024_08_13 } from "@/modules/organizations/organizations/inputs/get-managed-organizations.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
 import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
@@ -113,11 +114,14 @@ export class ManagedOrganizationsService {
     return this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);
   }
 
-  async getManagedOrganizations(managerOrganizationId: number, pagination: SkipTakePagination) {
+  async getManagedOrganizations(
+    managerOrganizationId: number,
+    query: GetManagedOrganizationsInput_2024_08_13
+  ) {
     const { items: managedOrganizations, totalItems } =
       await this.managedOrganizationsRepository.getByManagerOrganizationIdPaginated(
         managerOrganizationId,
-        pagination
+        query
       );
 
     return {
@@ -125,7 +129,7 @@ export class ManagedOrganizationsService {
         this.managedOrganizationsOutputService.getOutputManagedOrganization(managedOrganization)
       ),
       pagination: getPagination({
-        ...pagination,
+        ...query,
         totalCount: totalItems,
       }),
     };

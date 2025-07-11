@@ -10007,6 +10007,36 @@
               "default": 0,
               "type": "number"
             }
+          },
+          {
+            "name": "slug",
+            "required": false,
+            "in": "query",
+            "example": "organization-slug",
+            "description": "The slug of the managed organization",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "metadataKey",
+            "required": false,
+            "in": "query",
+            "example": "metadata-key",
+            "description": "The key of the metadata - it is case sensitive so provide exactly as stored. If you provide it then you must also provide metadataValue",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "metadataValue",
+            "required": false,
+            "in": "query",
+            "example": "metadata-value",
+            "description": "The value of the metadata - it is case sensitive so provide exactly as stored. If you provide it then you must also provide metadataKey",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -21530,8 +21560,7 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT",
-              "RESERVATION_EXPIRED"
+              "FORM_SUBMITTED_NO_EVENT"
             ]
           },
           "secret": {
@@ -21608,8 +21637,7 @@
               "OOO_CREATED",
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT",
-              "RESERVATION_EXPIRED"
+              "FORM_SUBMITTED_NO_EVENT"
             ]
           },
           "secret": {
@@ -24805,7 +24833,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "example": "en"
           },
