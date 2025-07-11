@@ -1,4 +1,5 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { filterActiveLinks, isLinkExpired } from "@calcom/lib/privateLinksUtils";
 import { prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -230,4 +231,8 @@ export class PrivateLinksRepository {
     });
     return !!membership;
   }
+
+  // Utility functions moved to @calcom/lib/privateLinksUtils for browser compatibility
+  static isLinkExpired = isLinkExpired;
+  static filterActiveLinks = filterActiveLinks;
 }
