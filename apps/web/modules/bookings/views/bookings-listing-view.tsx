@@ -82,6 +82,34 @@ function BookingsContent({ status }: BookingsProps) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
+  const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
+  const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
+  const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
+  const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
+  const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
+  const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
+  const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
+
+  const { limit, offset } = useDataTable();
+
+  const query = trpc.viewer.bookings.get.useQuery({
+    limit,
+    offset,
+    filters: {
+      status,
+      eventTypeIds,
+      teamIds,
+      userIds,
+      attendeeName,
+      attendeeEmail,
+      bookingUid,
+      afterStartDate: dateRange?.startDate
+        ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+        : undefined,
+      beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
+    },
+  });
+
   // Generate dynamic tabs that preserve query parameters
   const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
     const queryString = searchParams?.toString() || "";
@@ -114,40 +142,19 @@ function BookingsContent({ status }: BookingsProps) {
       },
     ];
 
-    return baseTabConfigs.map((tabConfig) => ({
+    const filteredTabConfigs = baseTabConfigs.filter((tabConfig) => {
+      if (tabConfig.name === "recurring") {
+        return query.data ? query.data.recurringInfo?.length > 0 : true;
+      }
+      return true;
+    });
+
+    return filteredTabConfigs.map((tabConfig) => ({
       name: tabConfig.name,
       href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
       "data-testid": tabConfig["data-testid"],
     }));
-  }, [searchParams?.toString()]);
-
-  const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
-  const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
-  const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
-  const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
-  const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
-  const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
-  const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
-
-  const { limit, offset } = useDataTable();
-
-  const query = trpc.viewer.bookings.get.useQuery({
-    limit,
-    offset,
-    filters: {
-      status,
-      eventTypeIds,
-      teamIds,
-      userIds,
-      attendeeName,
-      attendeeEmail,
-      bookingUid,
-      afterStartDate: dateRange?.startDate
-        ? dayjs(dateRange?.startDate).startOf("day").toISOString()
-        : undefined,
-      beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
-    },
-  });
+  }, [searchParams?.toString(), query.data?.recurringInfo]);
 
   const columns = useMemo(() => {
     const columnHelper = createColumnHelper<RowData>();
