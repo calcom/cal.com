@@ -1,3 +1,3 @@
-import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
-export { getAvailableSlots };
+export { AvailableSlotsService };
