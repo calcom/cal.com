@@ -5,8 +5,7 @@ import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
-
+import { RoleManagementError, RoleManagementErrorCode } from "../../domain/errors/role-management.error";
 import { DEFAULT_ROLE_IDS } from "../../lib/constants";
 import { PermissionCheckService } from "../permission-check.service";
 import { RoleManagementFactory } from "../role-management.factory";
@@ -117,7 +116,12 @@ describe("RoleManagementFactory", () => {
       it("should throw UNAUTHORIZED when user lacks permission", async () => {
         mockPermissionCheckService.checkPermission.mockResolvedValue(false);
         const manager = await factory.createRoleManager(organizationId);
-        await expect(manager.checkPermissionToChangeRole(userId, organizationId)).rejects.toThrow(TRPCError);
+        await expect(manager.checkPermissionToChangeRole(userId, organizationId)).rejects.toThrow(
+          new RoleManagementError(
+            "You do not have permission to change roles",
+            RoleManagementErrorCode.UNAUTHORIZED
+          )
+        );
       });
     });
 
@@ -144,14 +148,16 @@ describe("RoleManagementFactory", () => {
         expect(mockRoleService.assignRoleToMember).toHaveBeenCalledWith(customRoleId, membershipId);
       });
 
-      it("should throw UNAUTHORIZED for invalid custom role", async () => {
+      it("should throw INVALID_ROLE for invalid custom role", async () => {
         const customRoleId = "invalid-role";
         mockRoleService.roleBelongsToTeam.mockResolvedValue(false);
 
         const manager = await factory.createRoleManager(organizationId);
         await expect(
           manager.assignRole(userId, organizationId, customRoleId as MembershipRole, membershipId)
-        ).rejects.toThrow(TRPCError);
+        ).rejects.toThrow(
+          new RoleManagementError("You do not have access to this role", RoleManagementErrorCode.INVALID_ROLE)
+        );
       });
     });
   });
@@ -159,13 +165,33 @@ describe("RoleManagementFactory", () => {
   describe("LegacyRoleManager", () => {
     beforeEach(() => {
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
-      vi.mocked(prisma.membership.update).mockResolvedValue({});
+      vi.mocked(prisma.membership.update).mockResolvedValue({
+        id: 1,
+        teamId: organizationId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        role: MembershipRole.MEMBER,
+        userId: userId,
+        disableImpersonation: false,
+        accepted: true,
+        customRoleId: null,
+      });
       vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
     });
 
     describe("checkPermissionToChangeRole", () => {
       it("should allow role change when user is owner", async () => {
-        vi.mocked(isOrganisationAdmin).mockResolvedValue(true);
+        vi.mocked(isOrganisationAdmin).mockResolvedValue({
+          id: 1,
+          teamId: organizationId,
+          userId: userId,
+          role: MembershipRole.OWNER,
+          accepted: true,
+          disableImpersonation: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          customRoleId: null,
+        });
         const manager = await factory.createRoleManager(organizationId);
         await expect(manager.checkPermissionToChangeRole(userId, organizationId)).resolves.not.toThrow();
       });
@@ -173,7 +199,12 @@ describe("RoleManagementFactory", () => {
       it("should throw UNAUTHORIZED when user is not owner", async () => {
         vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
         const manager = await factory.createRoleManager(organizationId);
-        await expect(manager.checkPermissionToChangeRole(userId, organizationId)).rejects.toThrow(TRPCError);
+        await expect(manager.checkPermissionToChangeRole(userId, organizationId)).rejects.toThrow(
+          new RoleManagementError(
+            "Only owners or admin can update roles",
+            RoleManagementErrorCode.UNAUTHORIZED
+          )
+        );
       });
     });
 
