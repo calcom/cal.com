@@ -197,18 +197,73 @@ BEGIN
         "bookingStatusOrder" = calculate_booking_status_order(NEW.status::text),
         "bookingCreatedAt" = NEW."createdAt",
         "bookingStartTime" = NEW."startTime",
-        "bookingEndTime" = NEW."endTime"
+        "bookingEndTime" = NEW."endTime",
+        "eventTypeId" = NEW."eventTypeId",
+        "eventTypeParentId" = (
+            SELECT et."parentId" 
+            FROM "EventType" et 
+            WHERE et.id = NEW."eventTypeId"
+        ),
+        "eventTypeSchedulingType" = (
+            SELECT et."schedulingType" 
+            FROM "EventType" et 
+            WHERE et.id = NEW."eventTypeId"
+        )
     WHERE rfrd."bookingId" = NEW.id;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger for Booking table
-DROP TRIGGER IF EXISTS booking_update_trigger_for_routing_form ON "Booking";
-CREATE TRIGGER booking_update_trigger_for_routing_form
-    AFTER UPDATE OF status, "createdAt", "startTime", "endTime", "userId" ON "Booking"
+-- Trigger function for booking deletions
+CREATE OR REPLACE FUNCTION trigger_cleanup_routing_form_response_denormalized_booking()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Clear booking-related fields for all responses linked to this booking
+    UPDATE "RoutingFormResponseDenormalized" rfrd
+    SET
+        "bookingUid" = NULL,
+        "bookingId" = NULL,
+        "bookingStatus" = NULL,
+        "bookingStatusOrder" = NULL,
+        "bookingCreatedAt" = NULL,
+        "bookingStartTime" = NULL,
+        "bookingEndTime" = NULL,
+        "bookingUserId" = NULL,
+        "bookingUserName" = NULL,
+        "bookingUserEmail" = NULL,
+        "bookingUserAvatarUrl" = NULL,
+        "bookingAssignmentReason" = '',
+        "eventTypeId" = NULL,
+        "eventTypeParentId" = NULL,
+        "eventTypeSchedulingType" = NULL,
+        utm_source = NULL,
+        utm_medium = NULL,
+        utm_campaign = NULL,
+        utm_term = NULL,
+        utm_content = NULL
+    WHERE rfrd."bookingId" = OLD.id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create triggers for Booking table
+DROP TRIGGER IF EXISTS booking_insert_trigger_for_routing_form ON "Booking";
+CREATE TRIGGER booking_insert_trigger_for_routing_form
+    AFTER INSERT ON "Booking"
     FOR EACH ROW
     EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_booking();
+
+DROP TRIGGER IF EXISTS booking_update_trigger_for_routing_form ON "Booking";
+CREATE TRIGGER booking_update_trigger_for_routing_form
+    AFTER UPDATE OF status, "createdAt", "startTime", "endTime", "userId", "eventTypeId" ON "Booking"
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_booking();
+
+DROP TRIGGER IF EXISTS booking_delete_trigger_for_routing_form ON "Booking";
+CREATE TRIGGER booking_delete_trigger_for_routing_form
+    AFTER DELETE ON "Booking"
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_cleanup_routing_form_response_denormalized_booking();
 
 -- Trigger function for user changes
 CREATE OR REPLACE FUNCTION trigger_refresh_routing_form_response_denormalized_user()
