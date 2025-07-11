@@ -1,9 +1,10 @@
 import { readFileSync } from "fs";
 import { join } from "path";
+import path from "path";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 
-const LOCALES_PATH = join(process.cwd(), "packages/lib/server/locales");
+const LOCALES_PATH = path.resolve(process.cwd(), "..", "..", "packages/lib/server/locales");
 
 interface LocaleCache {
   [cacheKey: string]: Record<string, string>;
