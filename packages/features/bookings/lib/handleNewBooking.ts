@@ -488,13 +488,9 @@ async function handler(
     : null;
 
   if (originalRescheduledBooking && originalRescheduledBooking.rescheduled) {
-    const bookingRepo = new BookingRepository(prisma);
-    const rescheduledTo = await bookingRepo.findFirstBookingByReschedule({
-      originalBookingUid: originalRescheduledBooking.uid,
-    });
     throw new HttpError({
       statusCode: 400,
-      message: `Can't reschedule booking with uid=${originalRescheduledBooking.uid} because it has been rescheduled already to booking with uid=${rescheduledTo?.uid}. You probably want to reschedule ${rescheduledTo?.uid} instead.`,
+      message: `Can't reschedule booking with uid=${originalRescheduledBooking.uid} because it has been rescheduled already. Please reschedule the new booking instead.`,
     });
   }
 
