@@ -217,6 +217,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
   }: {
     installedApps?: RouterOutputs["viewer"]["apps"]["integrations"]["items"];
   }) => {
+    const baseApps = teamId || orgId ? [ZOOM, OFFICE_365_VIDEO] : [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO];
+    const allowedApps = apps ? baseApps.filter((app) => apps.includes(app as ConferencingAppSlug)) : baseApps;
+
     return (
       <Dropdown>
         <DropdownMenuTrigger asChild>
@@ -225,8 +228,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {/* Show Google Meet if it's not installed and either no apps filter is provided or it's in the apps filter */}
           {installedApps &&
+            allowedApps.includes(GOOGLE_MEET) &&
             !isAppInstalled({ appSlug: GOOGLE_MEET, installedApps, orgId, teamId }) &&
             (!apps || apps.includes(GOOGLE_MEET)) && (
               <DropdownMenuItem>
@@ -236,8 +239,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
               </DropdownMenuItem>
             )}
 
-          {/* Show Zoom if it's not installed and either no apps filter is provided or it's in the apps filter */}
           {installedApps &&
+            allowedApps.includes(ZOOM) &&
             !isAppInstalled({ appSlug: ZOOM, installedApps, orgId, teamId }) &&
             (!apps || apps.includes(ZOOM)) && (
               <DropdownMenuItem>
@@ -247,8 +250,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
               </DropdownMenuItem>
             )}
 
-          {/* Show Office 365 Video if it's not installed and either no apps filter is provided or it's in the apps filter */}
           {installedApps &&
+            allowedApps.includes(OFFICE_365_VIDEO) &&
             !isAppInstalled({ appSlug: OFFICE_365_VIDEO, installedApps, orgId, teamId }) &&
             (!apps || apps.includes(OFFICE_365_VIDEO)) && (
               <DropdownMenuItem>

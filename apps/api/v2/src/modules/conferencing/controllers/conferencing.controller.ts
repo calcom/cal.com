@@ -19,7 +19,6 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { HttpService } from "@nestjs/axios";
 import { Logger, ParseIntPipe } from "@nestjs/common";
 import {
-  Body,
   Controller,
   Delete,
   Get,

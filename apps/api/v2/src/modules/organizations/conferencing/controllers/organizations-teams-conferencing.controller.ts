@@ -14,7 +14,6 @@ import {
 } from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
 import {
   ConferencingAppsOutputResponseDto,
-  ConferencingAppOutputResponseDto,
   ConferencingAppsOutputDto,
   DisconnectConferencingAppOutputResponseDto,
 } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
@@ -22,7 +21,6 @@ import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferenci
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -43,7 +41,6 @@ import {
 import { ApiOperation, ApiTags as DocsTags, ApiParam } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
-import { stringify } from "querystring";
 
 import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
 

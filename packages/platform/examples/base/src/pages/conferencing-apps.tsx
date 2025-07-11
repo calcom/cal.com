@@ -15,7 +15,13 @@ export default function ConferencingApps(props: { calUsername: string; calEmail:
       className={`flex min-h-screen flex-col ${inter.className} main text-default flex min-h-full w-full flex-col items-center overflow-visible`}>
       <Navbar username={props.calUsername} />
       <div className="my-8">
-        <ConferencingAppsSettings returnTo={callbackUri} onErrorReturnTo={callbackUri} orgId={1} />
+        <ConferencingAppsSettings
+          returnTo={callbackUri}
+          onErrorReturnTo={callbackUri}
+          // orgId={1}
+          // teamId={19}
+          // apps={["zoom", "google-meet"]}
+        />
       </div>
     </main>
   );
