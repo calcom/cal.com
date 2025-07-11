@@ -1,14 +1,8 @@
 "use client";
 
 import { ChartCard } from "@calcom/features/insights/components/ChartCard";
-import { RoutingFunnelContent } from "@calcom/features/insights/components/RoutingFunnelContent";
+import { RoutingFunnelContent, legend } from "@calcom/features/insights/components/RoutingFunnelContent";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-const legend = [
-  { label: "Total Submissions", color: "#9AA2F7" },
-  { label: "Successful Routings", color: "#89CFB5" },
-  { label: "Accepted Bookings", color: "#F7A1A1" },
-];
 
 // Random sample data for playground testing
 const sampleRoutingFunnelData = [
