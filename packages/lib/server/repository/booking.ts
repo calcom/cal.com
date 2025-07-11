@@ -401,6 +401,7 @@ export class BookingRepository {
                 disableTranscriptionForGuests: true,
                 disableTranscriptionForOrganizer: true,
                 redirectUrlOnExit: true,
+                enableFlappyBirdGame: true,
               },
             },
           },

@@ -376,6 +376,22 @@ const Locations: React.FC<LocationsProps> = ({
                       />
 
                       <Controller
+                        name="calVideoSettings.enableFlappyBirdGame"
+                        defaultValue={!!eventType.calVideoSettings?.enableFlappyBirdGame}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("enable_flappy_bird_game")}
+                              description={t("enable_flappy_bird_game_description")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+
+                      <Controller
                         name="calVideoSettings.enableAutomaticTranscription"
                         defaultValue={!!eventType.calVideoSettings?.enableAutomaticTranscription}
                         render={({ field: { onChange, value } }) => {
