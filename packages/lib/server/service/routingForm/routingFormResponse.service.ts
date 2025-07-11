@@ -1,9 +1,9 @@
 import type z from "zod";
 
 import { zodNonRouterField } from "@calcom/app-store/routing-forms/zod";
+import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import logger from "@calcom/lib/logger";
 
-import { routingFormResponseInDbSchema } from "../../../../app-store/routing-forms/zod";
 import { RoutingFormResponseRepository } from "../../repository/routingFormResponse.repository";
 
 export class RoutingFormResponseService {
