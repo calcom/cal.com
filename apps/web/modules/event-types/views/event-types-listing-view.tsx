@@ -929,8 +929,8 @@ const InfiniteScrollMain = ({
 type Props = {
   userEventGroupsData: GetUserEventGroupsResponse;
   user: {
-    completedOnboarding: boolean;
     id: number;
+    completedOnboarding?: boolean;
   } | null;
 };
 
