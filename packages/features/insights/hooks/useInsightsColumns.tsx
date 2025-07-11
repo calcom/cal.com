@@ -101,7 +101,7 @@ export const useInsightsColumns = ({
         id: "bookingAttendees",
         header: t("routing_form_insights_booked_by"),
         size: 200,
-        enableColumnFilter: false,
+        enableColumnFilter: true,
         enableSorting: false,
         meta: {
           filter: {
@@ -145,19 +145,28 @@ export const useInsightsColumns = ({
             return acc;
           }, {} as Record<string, string>) ?? {};
 
-        return columnHelper.accessor(`response.${fieldHeader.id}`, {
+        return columnHelper.accessor((row) => row.fields.find((field) => field.fieldId === fieldHeader.id), {
           id: fieldHeader.id,
           header: startCase(fieldHeader.label),
           enableSorting: false,
           cell: (info) => {
-            const values = info.getValue();
+            let values;
+
+            if (isMultiSelect) {
+              values = info.getValue()?.valueStringArray;
+            } else if (isNumber) {
+              values = info.getValue()?.valueNumber;
+            } else {
+              values = info.getValue()?.valueString;
+            }
+
             if (isMultiSelect || isSingleSelect) {
               const result = z.union([ZResponseMultipleValues, ZResponseSingleValue]).safeParse(values);
               return (
                 result.success && (
                   <ResponseValueCell
                     optionMap={optionMap}
-                    values={Array.isArray(result.data.value) ? result.data.value : [result.data.value]}
+                    values={Array.isArray(result.data) ? result.data : [result.data]}
                     rowId={info.row.original.id}
                   />
                 )
@@ -167,7 +176,7 @@ export const useInsightsColumns = ({
               return (
                 result.success && (
                   <div className="truncate">
-                    <span title={String(result.data.value)}>{result.data.value}</span>
+                    <span title={String(result.data)}>{result.data}</span>
                   </div>
                 )
               );
