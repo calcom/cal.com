@@ -75,6 +75,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     return {
       ...systemBeforeFieldLocation,
       label: field.label,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 

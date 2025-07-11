@@ -128,6 +128,22 @@ export class UpdateWorkflowDto {
   @IsOptional()
   activation?: WorkflowActivationDto;
 
+  @ApiPropertyOptional({
+    description: "Trigger configuration for the workflow",
+    items: {
+      oneOf: [
+        { $ref: getSchemaPath(OnBeforeEventTriggerDto) },
+        { $ref: getSchemaPath(OnAfterEventTriggerDto) },
+        { $ref: getSchemaPath(OnCancelTriggerDto) },
+        { $ref: getSchemaPath(OnCreationTriggerDto) },
+        { $ref: getSchemaPath(OnRescheduleTriggerDto) },
+        { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
+        { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
+      ],
+    },
+  })
+  @ValidateNested()
+  @IsOptional()
   @Type(() => BaseWorkflowTriggerDto, {
     discriminator: {
       property: "type",
@@ -142,7 +158,7 @@ export class UpdateWorkflowDto {
       ],
     },
   })
-  trigger!:
+  trigger?:
     | OnAfterEventTriggerDto
     | OnBeforeEventTriggerDto
     | OnCreationTriggerDto

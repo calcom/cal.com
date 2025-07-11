@@ -25,6 +25,7 @@ import {
   TitleDefaultFieldInput_2024_06_14,
   SplitNameDefaultFieldInput_2024_06_14,
   UrlFieldInput_2024_06_14,
+  LocationDefaultFieldInput_2024_06_14,
 } from "../inputs";
 
 export class NameDefaultFieldOutput_2024_06_14 extends NameDefaultFieldInput_2024_06_14 {
@@ -108,7 +109,7 @@ export class EmailDefaultFieldOutput_2024_06_14 extends EmailDefaultFieldInput_2
   hidden!: boolean;
 }
 
-export class LocationDefaultFieldOutput_2024_06_14 {
+export class LocationDefaultFieldOutput_2024_06_14 extends LocationDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -146,6 +147,16 @@ export class LocationDefaultFieldOutput_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   label?: string;
+
+  @IsBoolean()
+  @ApiProperty({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&location=office`,\
+      the location field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill!: boolean;
 }
 
 export class RescheduleReasonDefaultFieldOutput_2024_06_14 extends RescheduleReasonDefaultFieldInput_2024_06_14 {

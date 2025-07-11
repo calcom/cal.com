@@ -243,14 +243,6 @@ export class WorkflowPhoneAttendeeStepDto extends BaseWorkflowStepDto {
   @IsIn(STEP_ACTIONS)
   action: typeof SMS_ATTENDEE = SMS_ATTENDEE;
 
-  @ApiProperty({
-    description:
-      "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
-    example: "3243434",
-    externalDocs: {
-      url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team",
-    },
-  })
   @ApiProperty({ description: "Message content for this step", type: TextWorkflowMessageDto })
   @ValidateNested()
   @Type(() => TextWorkflowMessageDto)

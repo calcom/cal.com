@@ -83,6 +83,7 @@ export function transformBookingFieldsInternalToApi(
             required: !!field.required,
             hidden: !!field.hidden,
             label: field.label,
+            disableOnPrefill: !!field.disableOnPrefill,
           } satisfies LocationDefaultFieldOutput_2024_06_14;
         case "rescheduleReason":
           return {
