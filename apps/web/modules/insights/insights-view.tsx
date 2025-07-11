@@ -19,6 +19,7 @@ import {
   MostCancelledBookingsTables,
   PopularEventsTable,
   RecentFeedbackTable,
+  TimezoneBadge,
 } from "@calcom/features/insights/components";
 import "@calcom/features/insights/components/tremor.css";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
@@ -28,9 +29,9 @@ import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsights
 import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export default function InsightsPage() {
+export default function InsightsPage({ timeZone }: { timeZone: string }) {
   return (
-    <DataTableProvider>
+    <DataTableProvider timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <InsightsPageContent />
       </InsightsOrgTeamsProvider>
@@ -62,6 +63,7 @@ function InsightsPageContent() {
         <div className="grow" />
         <Download />
         <DateRangeFilter column={createdAtColumn} />
+        <TimezoneBadge />
       </div>
 
       <div className="my-4 space-y-4">

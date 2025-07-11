@@ -35,6 +35,7 @@ import {
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
 import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
+import { EventManager } from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
   FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE,
@@ -78,6 +79,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
     const eventTypeSlug = `user-bookings-event-type-${randomString()}`;
     let recurringEventTypeId: number;
     const recurringEventTypeSlug = `user-bookings-event-type-${randomString()}`;
+    let eventTypeRequiresConfirmationId: number;
+    const eventTypeRequiresConfirmationSlug = `user-bookings-event-type-requires-confirmation-${randomString()}`;
 
     let createdBooking: BookingOutput_2024_08_13;
     let rescheduledBooking: BookingOutput_2024_08_13;
@@ -152,6 +155,17 @@ describe("Bookings Endpoints 2024-08-13", () => {
         user.id
       );
       recurringEventTypeId = recurringEvent.id;
+
+      const eventTypeRequiresConfirmation = await eventTypesRepositoryFixture.create(
+        {
+          title: `user-bookings-2024-08-13-event-type-requires-confirmation-${randomString()}`,
+          slug: eventTypeRequiresConfirmationSlug,
+          length: 60,
+          requiresConfirmation: true,
+        },
+        user.id
+      );
+      eventTypeRequiresConfirmationId = eventTypeRequiresConfirmation.id;
 
       bookingInThePast = await bookingsRepositoryFixture.create({
         user: {
@@ -2536,6 +2550,338 @@ describe("Bookings Endpoints 2024-08-13", () => {
         );
         await bookingsRepositoryFixture.deleteById(rescheduledBooking.id);
         await bookingsRepositoryFixture.deleteById(newBooking.id);
+      });
+    });
+
+    describe("cant't cancel already cancelled booking", () => {
+      it("should not be able to cancel alraedy cancelled booking", async () => {
+        const cancelledBooking = await bookingsRepositoryFixture.create({
+          status: "CANCELLED",
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          startTime: new Date(Date.UTC(2050, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2050, 0, 8, 14, 0, 0)),
+          title: "peer coding lets goo",
+          uid: `cancelled-booking-${randomString()}`,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          location: "integrations:daily",
+          customInputs: {},
+          metadata: {},
+          responses: {
+            name: "Oldie",
+            email: "oldie@gmail.com",
+          },
+          attendees: {
+            create: {
+              email: "oldie@gmail.com",
+              name: "Oldie",
+              locale: "lv",
+              timeZone: "Europe/Rome",
+            },
+          },
+        });
+
+        const body: CancelBookingInput_2024_08_13 = {
+          cancellationReason: "Going on a vacation",
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings/${cancelledBooking.uid}/cancel`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .expect(400);
+
+        expect(response.body.error.message).toEqual(
+          `Can't cancel booking with uid=${cancelledBooking.uid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
+        );
+        await bookingsRepositoryFixture.deleteById(cancelledBooking.id);
+      });
+    });
+
+    describe("calendar events", () => {
+      beforeEach(() => {
+        jest.restoreAllMocks();
+        jest
+          .spyOn(EventManager.prototype, "create")
+          .mockImplementation(() => Promise.resolve({ results: [], referencesToCreate: [] }));
+      });
+
+      describe("platform oAuth client has calendar events enabled", () => {
+        beforeAll(async () => {
+          await oauthClientRepositoryFixture.update(oAuthClient.id, {
+            areCalendarEventsEnabled: true,
+          });
+        });
+
+        it("should create calendar event when booking normal event", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 9, 9, 0, 0)).toISOString(),
+            eventTypeId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+              if (responseDataIsBooking(responseBody.data)) {
+                const data: BookingOutput_2024_08_13 = responseBody.data;
+                expect(data.id).toBeDefined();
+                expect(data.uid).toBeDefined();
+                expect(EventManager.prototype.create).toHaveBeenCalledTimes(1);
+              } else {
+                throw new Error(
+                  "Invalid response data - expected booking but received array of possibly recurring bookings"
+                );
+              }
+            });
+        });
+
+        it("should create calendar events when booking recurring event", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 10, 9, 0, 0)).toISOString(),
+            eventTypeId: recurringEventTypeId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              expect(EventManager.prototype.create).toHaveBeenCalledTimes(3);
+            });
+        });
+
+        describe("event type requires confirmation", () => {
+          let bookingThatRequiresConfirmationUid: string;
+
+          it("should not create calendar event when booking event that requires confirmation", async () => {
+            const body: CreateBookingInput_2024_08_13 = {
+              start: new Date(Date.UTC(2040, 0, 12, 9, 0, 0)).toISOString(),
+              eventTypeId: eventTypeRequiresConfirmationId,
+              attendee: {
+                name: "Mr Proper",
+                email: "mr_proper@gmail.com",
+                timeZone: "Europe/Rome",
+                language: "it",
+              },
+            };
+
+            return request(app.getHttpServer())
+              .post("/v2/bookings")
+              .send(body)
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(201)
+              .then(async (response) => {
+                const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+                expect(responseBody.status).toEqual(SUCCESS_STATUS);
+                expect(responseBody.data).toBeDefined();
+                expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+                if (responseDataIsBooking(responseBody.data)) {
+                  const data: BookingOutput_2024_08_13 = responseBody.data;
+                  expect(data.id).toBeDefined();
+                  expect(data.uid).toBeDefined();
+                  expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+                  bookingThatRequiresConfirmationUid = data.uid;
+                } else {
+                  throw new Error(
+                    "Invalid response data - expected booking but received array of possibly recurring bookings"
+                  );
+                }
+              });
+          });
+
+          it("should create calendar event when confirming event that requires confirmation", async () => {
+            return request(app.getHttpServer())
+              .post(`/v2/bookings/${bookingThatRequiresConfirmationUid}/confirm`)
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(200)
+              .then(async (response) => {
+                const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+                expect(responseBody.status).toEqual(SUCCESS_STATUS);
+                expect(responseBody.data).toBeDefined();
+                expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+                if (responseDataIsBooking(responseBody.data)) {
+                  const data: BookingOutput_2024_08_13 = responseBody.data;
+                  expect(data.id).toBeDefined();
+                  expect(data.uid).toBeDefined();
+                  expect(EventManager.prototype.create).toHaveBeenCalledTimes(1);
+                } else {
+                  throw new Error(
+                    "Invalid response data - expected booking but received array of possibly recurring bookings"
+                  );
+                }
+              });
+          });
+        });
+      });
+
+      describe("platform oAuth client has calendar events disabled", () => {
+        beforeAll(async () => {
+          await oauthClientRepositoryFixture.update(oAuthClient.id, {
+            areCalendarEventsEnabled: false,
+          });
+        });
+
+        it("should not create calendar event when booking", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 9, 10, 0, 0)).toISOString(),
+            eventTypeId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+          };
+
+          const beforeCreate = new Date();
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201)
+            .then(async (response) => {
+              const afterCreate = new Date();
+              const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+              if (responseDataIsBooking(responseBody.data)) {
+                const data: BookingOutput_2024_08_13 = responseBody.data;
+                expect(data.id).toBeDefined();
+                expect(data.uid).toBeDefined();
+                expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+              } else {
+                throw new Error(
+                  "Invalid response data - expected booking but received array of possibly recurring bookings"
+                );
+              }
+            });
+        });
+
+        it("should not create calendar events when booking recurring event", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 11, 10, 0, 0)).toISOString(),
+            eventTypeId: recurringEventTypeId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+            });
+        });
+
+        describe("event type requires confirmation", () => {
+          let bookingThatRequiresConfirmationUid: string;
+
+          it("should not create calendar event when booking event that requires confirmation", async () => {
+            const body: CreateBookingInput_2024_08_13 = {
+              start: new Date(Date.UTC(2040, 0, 12, 10, 0, 0)).toISOString(),
+              eventTypeId: eventTypeRequiresConfirmationId,
+              attendee: {
+                name: "Mr Proper",
+                email: "mr_proper@gmail.com",
+                timeZone: "Europe/Rome",
+                language: "it",
+              },
+            };
+
+            return request(app.getHttpServer())
+              .post("/v2/bookings")
+              .send(body)
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(201)
+              .then(async (response) => {
+                const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+                expect(responseBody.status).toEqual(SUCCESS_STATUS);
+                expect(responseBody.data).toBeDefined();
+                expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+                if (responseDataIsBooking(responseBody.data)) {
+                  const data: BookingOutput_2024_08_13 = responseBody.data;
+                  expect(data.id).toBeDefined();
+                  expect(data.uid).toBeDefined();
+                  expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+                  bookingThatRequiresConfirmationUid = data.uid;
+                } else {
+                  throw new Error(
+                    "Invalid response data - expected booking but received array of possibly recurring bookings"
+                  );
+                }
+              });
+          });
+
+          it("should not create calendar event when confirming event that requires confirmation", async () => {
+            return request(app.getHttpServer())
+              .post(`/v2/bookings/${bookingThatRequiresConfirmationUid}/confirm`)
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(200)
+              .then(async (response) => {
+                const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+                expect(responseBody.status).toEqual(SUCCESS_STATUS);
+                expect(responseBody.data).toBeDefined();
+                expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+                if (responseDataIsBooking(responseBody.data)) {
+                  const data: BookingOutput_2024_08_13 = responseBody.data;
+                  expect(data.id).toBeDefined();
+                  expect(data.uid).toBeDefined();
+                  expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+                } else {
+                  throw new Error(
+                    "Invalid response data - expected booking but received array of possibly recurring bookings"
+                  );
+                }
+              });
+          });
+        });
       });
     });
 
