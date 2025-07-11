@@ -396,7 +396,6 @@ export default abstract class BaseCalendarService implements Calendar {
         // Fix timezone extraction - get TZID from DTSTART property parameters
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         const tzidFromDtstart = dtstartProperty?.getParameter("tzid");
-        
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
         const timezone = dtstart ? dtstart["timezone"] : undefined;
         // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
