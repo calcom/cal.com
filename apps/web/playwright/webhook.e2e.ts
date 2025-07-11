@@ -876,3 +876,18 @@ test.describe("OOO_CREATED", async () => {
     webhookReceiver.close();
   });
 });
+
+test.describe("RESERVATION_EXPIRED", async () => {
+  test("should show RESERVATION_EXPIRED in webhook trigger options", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+
+    await page.goto("/settings/developer/webhooks");
+    await page.click('[data-testid="new_webhook"]');
+
+    await page.fill('[name="subscriberUrl"]', "https://webhook.example.com");
+
+    // Verify RESERVATION_EXPIRED is available as a trigger option
+    await expect(page.getByRole("option", { name: "Reservation Expired" })).toBeVisible();
+  });
+});
