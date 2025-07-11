@@ -19,7 +19,7 @@ test("dynamic booking", async ({ page, users }) => {
 
   const free = await users.create({ username: "free.example" });
   await page.goto(`/${pro.username}+${free.username}`);
-  //fix race condtion
+  //fix race condition
   await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor({ state: "visible" });
 
   await test.step("book an event first day in next month", async () => {
