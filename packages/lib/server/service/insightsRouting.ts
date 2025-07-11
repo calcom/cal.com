@@ -319,7 +319,8 @@ export class InsightsRoutingService {
     options: Extract<InsightsRoutingServiceOptions, { scope: "org" }>
   ): Promise<Prisma.Sql> {
     // Get all teams from the organization
-    const teamsFromOrg = await TeamRepository.findAllByParentId({
+    const teamRepo = new TeamRepository(this.prisma);
+    const teamsFromOrg = await teamRepo.findAllByParentId({
       parentId: options.orgId,
       select: { id: true },
     });
@@ -332,7 +333,8 @@ export class InsightsRoutingService {
   private async buildTeamAuthorizationCondition(
     options: Extract<InsightsRoutingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
-    const childTeamOfOrg = await TeamRepository.findByIdAndParentId({
+    const teamRepo = new TeamRepository(this.prisma);
+    const childTeamOfOrg = await teamRepo.findByIdAndParentId({
       id: options.teamId,
       parentId: options.orgId,
       select: { id: true },
