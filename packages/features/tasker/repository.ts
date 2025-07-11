@@ -1,4 +1,4 @@
-import { type Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import db from "@calcom/prisma";
 
@@ -151,15 +151,28 @@ export class Task {
     });
   }
 
-  static async cancelWithReference(referenceUid: string, type: TaskTypes) {
-    return await db.task.delete({
-      where: {
-        referenceUid_type: {
-          referenceUid,
-          type,
+  static async cancelWithReference(referenceUid: string, type: TaskTypes): Promise<Prisma.Task | null> {
+    // db.task.delete throws an error if the task does not exist, so we catch it and return null
+    try {
+      return await db.task.delete({
+        where: {
+          referenceUid_type: {
+            referenceUid,
+            type,
+          },
         },
-      },
-    });
+        select: {
+          id: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+        // P2025 is the error code for "Record to delete does not exist"
+        console.warn(`Task with reference ${referenceUid} and type ${type} does not exist. No action taken.`);
+        return null;
+      }
+      throw error;
+    }
   }
 
   static async cleanup() {
