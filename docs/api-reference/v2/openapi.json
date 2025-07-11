@@ -14524,6 +14524,10 @@
           },
           "label": {
             "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&location=office`,      the location field will be prefilled with this value and disabled."
           }
         },
         "required": ["slug"]
@@ -15230,16 +15234,25 @@
       "LocationDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "slug": {
+            "type": "string",
+            "enum": ["title", "location", "notes", "guests", "rescheduleReason"],
+            "example": "location",
+            "description": "This booking field is returned only if the event type has more than one location. The purpose of this field is to allow the user to select the location where the event will take place.",
+            "default": "location"
+          },
+          "label": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&location=office`,      the location field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
             "description": "This property is always true because it's a default field",
             "example": true
-          },
-          "slug": {
-            "type": "string",
-            "default": "location",
-            "description": "This booking field is returned only if the event type has more than one location. The purpose of this field is to allow the user to select the location where the event will take place."
           },
           "type": {
             "type": "string",
@@ -15251,12 +15264,9 @@
           "hidden": {
             "type": "boolean",
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
-          },
-          "label": {
-            "type": "string"
           }
         },
-        "required": ["isDefault", "slug", "type", "required", "hidden"]
+        "required": ["slug", "isDefault", "type", "required", "hidden"]
       },
       "RescheduleReasonDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -20245,18 +20255,43 @@
               }
             ]
           },
+          "trigger": {
+            "type": "object",
+            "description": "Trigger configuration for the workflow",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/OnBeforeEventTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterEventTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnCancelTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnCreationTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnRescheduleTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterCalVideoGuestsNoShowTriggerDto"
+                },
+                {
+                  "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+                }
+              ]
+            }
+          },
           "steps": {
             "description": "Steps to execute as part of the workflow",
             "items": {
               "type": "object"
             },
             "type": "array"
-          },
-          "trigger": {
-            "type": "object"
           }
-        },
-        "required": ["trigger"]
+        }
       },
       "StripConnectOutputDto": {
         "type": "object",
