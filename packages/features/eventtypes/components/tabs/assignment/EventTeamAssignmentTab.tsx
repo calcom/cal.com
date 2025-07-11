@@ -10,6 +10,7 @@ import AddMembersWithSwitch, {
   mapUserToValue,
 } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
+import { BulkHostAssignment } from "@calcom/features/eventtypes/components/BulkHostAssignment";
 import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
@@ -183,35 +184,44 @@ const FixedHosts = ({
             </p>
           </div>
           <div className="border-subtle rounded-b-md border border-t-0 px-6">
-            <AddMembersWithSwitch
+            <BulkHostAssignment
               teamId={teamId}
               teamMembers={teamMembers}
-              value={value}
-              onChange={onChange}
-              assignAllTeamMembers={assignAllTeamMembers}
-              setAssignAllTeamMembers={setAssignAllTeamMembers}
-              automaticAddAllEnabled={!isRoundRobinEvent}
-              isFixed={true}
-              customClassNames={customClassNames?.addMembers}
-              onActive={() => {
-                const currentHosts = getValues("hosts");
-                setValue(
-                  "hosts",
-                  teamMembers.map((teamMember) => {
-                    const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                    return {
-                      isFixed: true,
-                      userId: parseInt(teamMember.value, 10),
-                      priority: host?.priority ?? 2,
-                      weight: host?.weight ?? 100,
-                      // if host was already added, retain scheduleId
-                      scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                    };
-                  }),
-                  { shouldDirty: true }
-                );
-              }}
-            />
+              currentHosts={value}
+              onHostsChange={onChange}
+              isFixed={true}>
+              <AddMembersWithSwitch
+                teamId={teamId}
+                teamMembers={teamMembers}
+                value={value}
+                onChange={onChange}
+                assignAllTeamMembers={assignAllTeamMembers}
+                setAssignAllTeamMembers={setAssignAllTeamMembers}
+                automaticAddAllEnabled={!isRoundRobinEvent}
+                isFixed={true}
+                customClassNames={customClassNames?.addMembers}
+                onActive={() => {
+                  const currentHosts = getValues("hosts");
+                  setValue(
+                    "hosts",
+                    teamMembers.map((teamMember) => {
+                      const host = currentHosts.find(
+                        (host) => host.userId === parseInt(teamMember.value, 10)
+                      );
+                      return {
+                        isFixed: true,
+                        userId: parseInt(teamMember.value, 10),
+                        priority: host?.priority ?? 2,
+                        weight: host?.weight ?? 100,
+                        // if host was already added, retain scheduleId
+                        scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                      };
+                    }),
+                    { shouldDirty: true }
+                  );
+                }}
+              />
+            </BulkHostAssignment>
           </div>
         </>
       ) : (
@@ -236,37 +246,46 @@ const FixedHosts = ({
           }}
           childrenClassName={classNames("lg:ml-0", customClassNames?.children)}>
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
-            <AddMembersWithSwitch
-              data-testid="fixed-hosts-select"
-              placeholder={t("add_a_member")}
+            <BulkHostAssignment
               teamId={teamId}
               teamMembers={teamMembers}
-              customClassNames={customClassNames?.addMembers}
-              value={value}
-              onChange={onChange}
-              assignAllTeamMembers={assignAllTeamMembers}
-              setAssignAllTeamMembers={setAssignAllTeamMembers}
-              automaticAddAllEnabled={!isRoundRobinEvent}
-              isFixed={true}
-              onActive={() => {
-                const currentHosts = getValues("hosts");
-                setValue(
-                  "hosts",
-                  teamMembers.map((teamMember) => {
-                    const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                    return {
-                      isFixed: true,
-                      userId: parseInt(teamMember.value, 10),
-                      priority: host?.priority ?? 2,
-                      weight: host?.weight ?? 100,
-                      // if host was already added, retain scheduleId
-                      scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                    };
-                  }),
-                  { shouldDirty: true }
-                );
-              }}
-            />
+              currentHosts={value}
+              onHostsChange={onChange}
+              isFixed={true}>
+              <AddMembersWithSwitch
+                data-testid="fixed-hosts-select"
+                placeholder={t("add_a_member")}
+                teamId={teamId}
+                teamMembers={teamMembers}
+                customClassNames={customClassNames?.addMembers}
+                value={value}
+                onChange={onChange}
+                assignAllTeamMembers={assignAllTeamMembers}
+                setAssignAllTeamMembers={setAssignAllTeamMembers}
+                automaticAddAllEnabled={!isRoundRobinEvent}
+                isFixed={true}
+                onActive={() => {
+                  const currentHosts = getValues("hosts");
+                  setValue(
+                    "hosts",
+                    teamMembers.map((teamMember) => {
+                      const host = currentHosts.find(
+                        (host) => host.userId === parseInt(teamMember.value, 10)
+                      );
+                      return {
+                        isFixed: true,
+                        userId: parseInt(teamMember.value, 10),
+                        priority: host?.priority ?? 2,
+                        weight: host?.weight ?? 100,
+                        // if host was already added, retain scheduleId
+                        scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                      };
+                    }),
+                    { shouldDirty: true }
+                  );
+                }}
+              />
+            </BulkHostAssignment>
           </div>
         </SettingsToggle>
       )}
@@ -368,39 +387,46 @@ const RoundRobinHosts = ({
             )}
           />
         </>
-        <AddMembersWithSwitch
-          placeholder={t("add_a_member")}
+        <BulkHostAssignment
           teamId={teamId}
           teamMembers={teamMembers}
-          value={value}
-          onChange={onChange}
-          assignAllTeamMembers={assignAllTeamMembers}
-          setAssignAllTeamMembers={setAssignAllTeamMembers}
-          isSegmentApplicable={isSegmentApplicable}
-          automaticAddAllEnabled={true}
-          isRRWeightsEnabled={isRRWeightsEnabled}
-          isFixed={false}
-          containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
-          onActive={() => {
-            const currentHosts = getValues("hosts");
-            setValue(
-              "hosts",
-              teamMembers.map((teamMember) => {
-                const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                return {
-                  isFixed: false,
-                  userId: parseInt(teamMember.value, 10),
-                  priority: host?.priority ?? 2,
-                  weight: host?.weight ?? 100,
-                  // if host was already added, retain scheduleId
-                  scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                };
-              }),
-              { shouldDirty: true }
-            );
-          }}
-          customClassNames={customClassNames?.addMembers}
-        />
+          currentHosts={value}
+          onHostsChange={onChange}
+          isFixed={false}>
+          <AddMembersWithSwitch
+            placeholder={t("add_a_member")}
+            teamId={teamId}
+            teamMembers={teamMembers}
+            value={value}
+            onChange={onChange}
+            assignAllTeamMembers={assignAllTeamMembers}
+            setAssignAllTeamMembers={setAssignAllTeamMembers}
+            isSegmentApplicable={isSegmentApplicable}
+            automaticAddAllEnabled={true}
+            isRRWeightsEnabled={isRRWeightsEnabled}
+            isFixed={false}
+            containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
+            onActive={() => {
+              const currentHosts = getValues("hosts");
+              setValue(
+                "hosts",
+                teamMembers.map((teamMember) => {
+                  const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                  return {
+                    isFixed: false,
+                    userId: parseInt(teamMember.value, 10),
+                    priority: host?.priority ?? 2,
+                    weight: host?.weight ?? 100,
+                    // if host was already added, retain scheduleId
+                    scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                  };
+                }),
+                { shouldDirty: true }
+              );
+            }}
+            customClassNames={customClassNames?.addMembers}
+          />
+        </BulkHostAssignment>
       </div>
     </div>
   );
