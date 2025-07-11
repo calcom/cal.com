@@ -8,6 +8,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { CardComponent } from "@lib/plain/card-components";
@@ -474,7 +475,8 @@ async function handler(request: NextRequest) {
   // Validate request body
   const { cardKeys, customer } = inputSchema.parse(requestBody);
 
-  const user = await UserRepository.findByEmail({ email: customer.email });
+  const userRepo = new UserRepository(prisma);
+  const user = await userRepo.findByEmail({ email: customer.email });
 
   if (!user) {
     return NextResponse.json({
@@ -502,7 +504,7 @@ async function handler(request: NextRequest) {
   }
 
   // Fetch team details including userId and team name
-  const teamMemberships = await UserRepository.findTeamsByUserId({ userId: user.id });
+  const teamMemberships = await userRepo.findTeamsByUserId({ userId: user.id });
   const firstTeam = teamMemberships.teams[0] ?? null;
 
   // Parse user metadata
