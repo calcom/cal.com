@@ -68,6 +68,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
     rrResetInterval: input.rrResetInterval,
     rrTimestampBasis: input.rrTimestampBasis,
+    enableAIBotRecording: input.enableAIBotRecording,
   };
 
   if (
@@ -171,6 +172,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
     rrResetInterval: updatedTeam.rrResetInterval,
     rrTimestampBasis: updatedTeam.rrTimestampBasis,
+    enableAIBotRecording: updatedTeam.enableAIBotRecording,
   };
 };
 

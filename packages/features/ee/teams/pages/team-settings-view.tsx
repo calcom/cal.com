@@ -177,6 +177,46 @@ const PrivacySettingsView = ({ team }: ProfileViewProps) => {
   );
 };
 
+const AIBotRecordingView = ({ team }: ProfileViewProps) => {
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
+
+  const mutation = trpc.viewer.teams.update.useMutation({
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+    async onSuccess() {
+      await utils.viewer.teams.get.invalidate();
+      showToast(t("ai_bot_recording_updated_successfully"), "success");
+    },
+  });
+
+  if (!isAdmin) {
+    return (
+      <div className="border-subtle rounded-md border p-5">
+        <span className="text-default text-sm">{t("only_owner_change")}</span>
+      </div>
+    );
+  }
+
+  return (
+    <SettingsToggle
+      toggleSwitchAtTheEnd={true}
+      title={t("ai_bot_recording")}
+      description={t("ai_bot_recording_description")}
+      checked={team.enableAIBotRecording ?? false}
+      onCheckedChange={(checked) => {
+        mutation.mutate({
+          id: team.id,
+          enableAIBotRecording: checked,
+        });
+      }}
+      switchContainerClassName="border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6"
+    />
+  );
+};
+
 const TeamSettingsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
@@ -198,7 +238,7 @@ const TeamSettingsViewWrapper = () => {
         router.replace("/teams");
       }
     },
-    [error]
+    [error, router]
   );
 
   if (isPending) return <AppearanceSkeletonLoader />;
@@ -209,6 +249,7 @@ const TeamSettingsViewWrapper = () => {
     <>
       <BookingLimitsView team={team} />
       <PrivacySettingsView team={team} />
+      <AIBotRecordingView team={team} />
       <InternalNotePresetsView team={team} />
       <RoundRobinSettings team={team} />
     </>

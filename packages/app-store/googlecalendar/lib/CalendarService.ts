@@ -11,6 +11,7 @@ import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/date
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
 import logger from "@calcom/lib/logger";
+import { createRecallBot, updateRecallBot, deleteRecallBot } from "@calcom/lib/recallAi";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
@@ -287,6 +288,36 @@ export default class GoogleCalendarService implements Calendar {
             }),
           },
         });
+
+        if ((calEvent.team?.enableAIBotRecording ?? false) && calEvent.location === MeetLocationType) {
+          const botName = `${calEvent.team.name} Meeting Bot`;
+          const joinAt = new Date(calEvent.startTime);
+
+          const botResult = await createRecallBot({
+            meetingUrl: event.hangoutLink,
+            botName,
+            joinAt,
+          }).catch((error) => {
+            this.log.error("Failed to create Recall.ai bot", { error });
+            return null;
+          });
+
+          if (botResult?.id) {
+            await calendar.events.patch({
+              calendarId: selectedCalendar,
+              eventId: event.id || "",
+              requestBody: {
+                description: getRichDescription({
+                  ...calEvent,
+                  additionalInformation: {
+                    hangoutLink: event.hangoutLink,
+                    recallBotId: botResult.id,
+                  },
+                }),
+              },
+            });
+          }
+        }
       }
 
       return {
@@ -381,7 +412,23 @@ export default class GoogleCalendarService implements Calendar {
         endTime: evt?.data.end,
       });
 
+      const existingBotId = event.additionalInformation?.recallBotId as string | undefined;
+
       if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
+        if ((event.team?.enableAIBotRecording ?? false) && existingBotId) {
+          const botName = `${event.team.name} Meeting Bot`;
+          const joinAt = new Date(event.startTime);
+
+          await updateRecallBot({
+            botId: existingBotId,
+            meetingUrl: evt.data.hangoutLink,
+            botName,
+            joinAt,
+          }).catch((error) => {
+            this.log.error("Failed to update Recall.ai bot", { error, botId: existingBotId });
+          });
+        }
+
         calendar.events.patch({
           // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
@@ -389,7 +436,10 @@ export default class GoogleCalendarService implements Calendar {
           requestBody: {
             description: getRichDescription({
               ...event,
-              additionalInformation: { hangoutLink: evt.data.hangoutLink },
+              additionalInformation: {
+                hangoutLink: evt.data.hangoutLink,
+                recallBotId: existingBotId || undefined,
+              },
             }),
           },
         });
@@ -422,13 +472,24 @@ export default class GoogleCalendarService implements Calendar {
     const selectedCalendar = externalCalendarId || "primary";
 
     try {
-      const event = await calendar.events.delete({
+      const existingBotId = event.additionalInformation?.recallBotId as string | undefined;
+
+      // Delete the calendar event
+      const deleteResult = await calendar.events.delete({
         calendarId: selectedCalendar,
         eventId: uid,
         sendNotifications: false,
         sendUpdates: "none",
       });
-      return event?.data;
+
+      // Delete associated Recall.ai bot if it exists
+      if (existingBotId && (event.team?.enableAIBotRecording ?? false)) {
+        await deleteRecallBot(existingBotId).catch((error) => {
+          this.log.error("Failed to delete Recall.ai bot", { error, botId: existingBotId });
+        });
+      }
+
+      return deleteResult?.data;
     } catch (error) {
       this.log.error(
         "There was an error deleting event from google calendar: ",

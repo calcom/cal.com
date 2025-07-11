@@ -91,6 +91,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               id: true,
               name: true,
               parentId: true,
+              enableAIBotRecording: true,
             },
           },
           workflows: {
@@ -234,8 +235,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     team: !!booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
-          id: booking.eventType.team.id,
+          id: booking.eventType.team.id || 0,
           members: [],
+          enableAIBotRecording: booking.eventType.team?.enableAIBotRecording ?? false,
         }
       : undefined,
     ...(platformClientParams ? platformClientParams : {}),

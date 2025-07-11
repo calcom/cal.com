@@ -321,6 +321,7 @@ export async function getTeamWithoutMembers(args: {
       rrResetInterval: true,
       rrTimestampBasis: true,
       includeManagedEventsInLimits: true,
+      enableAIBotRecording: true,
       parent: {
         select: {
           id: true,
