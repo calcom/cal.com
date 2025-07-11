@@ -1,7 +1,8 @@
-import { getTranslate } from "app/_utils";
+"use client";
 
 import { ChartCard } from "@calcom/features/insights/components/ChartCard";
 import { RoutingFunnelContent } from "@calcom/features/insights/components/RoutingFunnelContent";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const legend = [
   { label: "Total Submissions", color: "#9AA2F7" },
@@ -55,8 +56,8 @@ const sampleRoutingFunnelData = [
   },
 ];
 
-export default async function RoutingFunnelPlayground() {
-  const t = await getTranslate();
+export default function RoutingFunnelPlayground() {
+  const { t } = useLocale();
   return (
     <div className="space-y-6 p-6">
       <div className="mb-6">
@@ -72,7 +73,12 @@ export default async function RoutingFunnelPlayground() {
           subtitle="Hello world!"
           legend={legend}
           legendSize="sm"
-          cta={{ label: "Show all", onClick: undefined }}>
+          cta={{
+            label: "Show all",
+            onClick: () => {
+              alert("hello!");
+            },
+          }}>
           <RoutingFunnelContent data={sampleRoutingFunnelData} />
         </ChartCard>
       </div>
