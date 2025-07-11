@@ -173,7 +173,7 @@ export async function _onFormSubmission(
             form: {
               id: form.id,
               name: form.name,
-              teamId: form.teamId,
+              teamId: form.teamId ?? null,
             },
             responses: fieldResponsesByIdentifier,
             redirect: chosenAction,
