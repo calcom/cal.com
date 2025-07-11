@@ -151,7 +151,8 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       }
     }
 
-    const newEventType = await EventTypeRepository.create(data);
+    const eventTypeRepo = new EventTypeRepository(prisma);
+    const newEventType = await eventTypeRepo.create(data);
 
     // Create custom inputs
     if (customInputs) {

@@ -44,4 +44,14 @@ export interface IPermissionRepository {
     teamId: number,
     resource: Resource
   ): Promise<(CrudAction | CustomAction)[]>;
+
+  /**
+   * Gets all team IDs where the user has a specific permission
+   */
+  getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]>;
+
+  /**
+   * Gets all team IDs where the user has all of the specified permissions
+   */
+  getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]>;
 }

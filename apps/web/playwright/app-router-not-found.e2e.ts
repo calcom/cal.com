@@ -2,6 +2,10 @@ import { expectPageToBeNotFound } from "playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
 
+test.describe.configure({ mode: "parallel" });
+
+test.afterEach(({ users }) => users.deleteAll());
+
 test.describe("App Router - error handling", () => {
   test("404s must render App Router's not-found page regardless of whether pages router or app router is used", async ({
     page,

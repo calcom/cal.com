@@ -1,9 +1,5 @@
-import { CreateRoutingFormResponseInput } from "@/modules/organizations/routing-forms/inputs/create-routing-form-response.input";
-import { CreateRoutingFormResponseOutputData } from "@/modules/organizations/routing-forms/outputs/create-routing-form-response.output";
-import { SharedRoutingFormResponseService } from "@/modules/organizations/routing-forms/services/shared-routing-form-response.service";
 import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses-output.service";
 import { Injectable } from "@nestjs/common";
-import { Request } from "express";
 
 import { OrganizationsTeamsRoutingFormsResponsesRepository } from "../repositories/organizations-teams-routing-forms-responses.repository";
 
@@ -11,8 +7,7 @@ import { OrganizationsTeamsRoutingFormsResponsesRepository } from "../repositori
 export class OrganizationsTeamsRoutingFormsResponsesService {
   constructor(
     private readonly routingFormsRepository: OrganizationsTeamsRoutingFormsResponsesRepository,
-    private readonly routingFormsResponsesOutputService: OrganizationsTeamsRoutingFormsResponsesOutputService,
-    private readonly sharedRoutingFormResponseService: SharedRoutingFormResponseService
+    private readonly routingFormsResponsesOutputService: OrganizationsTeamsRoutingFormsResponsesOutputService
   ) {}
 
   async getTeamRoutingFormResponses(
@@ -39,18 +34,6 @@ export class OrganizationsTeamsRoutingFormsResponsesService {
     );
 
     return this.routingFormsResponsesOutputService.getRoutingFormResponses(responses);
-  }
-
-  async createRoutingFormResponseWithSlots(
-    routingFormId: string,
-    query: CreateRoutingFormResponseInput,
-    request: Request
-  ): Promise<CreateRoutingFormResponseOutputData> {
-    return this.sharedRoutingFormResponseService.createRoutingFormResponseWithSlots(
-      routingFormId,
-      query,
-      request
-    );
   }
 
   async updateTeamRoutingFormResponse(

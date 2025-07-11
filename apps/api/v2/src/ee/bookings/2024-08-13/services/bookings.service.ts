@@ -596,9 +596,9 @@ export class BookingsService_2024_08_13 {
       } else if (isRecurring && isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted));
       } else if (isSeated) {
-        formattedBookings.push(this.outputService.getOutputSeatedBooking(formatted));
+        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted));
       } else {
-        formattedBookings.push(this.outputService.getOutputBooking(formatted));
+        formattedBookings.push(await this.outputService.getOutputBooking(formatted));
       }
     }
 

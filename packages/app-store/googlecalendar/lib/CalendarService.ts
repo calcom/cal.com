@@ -677,7 +677,7 @@ export default class GoogleCalendarService implements Calendar {
     const fromDate = new Date(dateFrom);
     const toDate = new Date(dateTo);
     const oneDayMs = 1000 * 60 * 60 * 24;
-    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / (oneDayMs));
+    const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / oneDayMs);
 
     // Google API only allows a date range of 90 days for /freebusy
     if (diff <= 90) {

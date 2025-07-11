@@ -32,7 +32,8 @@ export const isAvailableHandler = async ({
   const { slots, eventTypeId } = input;
 
   // Get event type details for time bounds validation
-  const eventType = await EventTypeRepository.findByIdMinimal({ id: eventTypeId });
+  const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+  const eventType = await eventTypeRepo.findByIdMinimal({ id: eventTypeId });
 
   if (!eventType) {
     throw new HttpError({ statusCode: 404, message: "Event type not found" });
