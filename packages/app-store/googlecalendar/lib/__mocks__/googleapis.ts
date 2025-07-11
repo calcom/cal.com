@@ -24,6 +24,12 @@ const calendarMockImplementation = {
         expiration: "1111111111",
       },
     }),
+    list: vi.fn().mockResolvedValue({
+      data: {
+        items: [],
+        nextSyncToken: "mock-sync-token",
+      },
+    }),
   },
   freebusy: {
     query: freebusyQueryMock,
