@@ -57,7 +57,6 @@ const OrgGeneralView = () => {
     isPending,
     error,
   } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
-  const { data: user } = trpc.viewer.me.get.useQuery();
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -67,6 +66,7 @@ const OrgGeneralView = () => {
     },
     [error]
   );
+  const { data: user } = trpc.viewer.me.get.useQuery();
 
   if (isPending) return <SkeletonLoader />;
   if (!currentOrg) {

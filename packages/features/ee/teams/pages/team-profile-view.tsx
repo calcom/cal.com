@@ -111,6 +111,7 @@ const ProfileView = () => {
     },
     [error]
   );
+
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   const permalink = team
