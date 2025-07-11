@@ -10,7 +10,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
 
@@ -43,13 +43,12 @@ const getCachedEventGroups = unstable_cache(
   { revalidate: 3600 } // seconds
 );
 
-const Page = async ({ params, searchParams }: PageProps) => {
+const Page = async ({ searchParams }: PageProps) => {
   const _searchParams = await searchParams;
   const _headers = await headers();
   const _cookies = await cookies();
-  const context = buildLegacyCtx(_headers, _cookies, await params, _searchParams);
 
-  const session = await getServerSession({ req: context.req });
+  const session = await getServerSession({ req: buildLegacyRequest(_headers, _cookies) });
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }
