@@ -21,17 +21,23 @@ export default async function InsightsLayout({ children }: { children: React.Rea
     redirect("/");
   }
 
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(
+    session?.user.org?.id || -1,
+    "pbac"
+  );
+  if (pbacFeatureEnabled) {
+    const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
-  const permissionCheckService = new PermissionCheckService();
-  const hasPermission = await permissionCheckService.checkPermission({
-    userId: session?.user.id ?? -1,
-    teamId: session?.user.org?.id ?? -1,
-    permission: "insights.read",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-  });
-  if (!hasPermission) {
-    redirect("/");
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
+      userId: session?.user.id ?? -1,
+      teamId: session?.user.org?.id ?? -1,
+      permission: "insights.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+    if (!hasPermission) {
+      redirect("/");
+    }
   }
 
   const t = await getTranslate();
