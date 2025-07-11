@@ -22580,12 +22580,7 @@
             "example": "+1234567890"
           }
         },
-        "required": [
-          "name",
-          "email",
-          "timeZone",
-          "absent"
-        ]
+        "required": ["name", "email", "timeZone", "absent"]
       },
       "BookingOutput_2024_08_13": {
         "type": "object",
@@ -22949,7 +22944,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "example": "en"
           },
@@ -23878,10 +23874,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "email",
-          "absent"
-        ]
+        "required": ["email", "absent"]
       },
       "MarkAbsentBookingInput_2024_08_13": {
         "type": "object",

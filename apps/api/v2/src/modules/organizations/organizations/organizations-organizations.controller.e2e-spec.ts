@@ -176,7 +176,7 @@ describe("Organizations Organizations Endpoints", () => {
     metadata: { key: "value" },
   };
 
-  it.only("should create managed organization", async () => {
+  it("should create managed organization", async () => {
     return request(app.getHttpServer())
       .post(`/v2/organizations/${managerOrg.id}/organizations`)
       .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
