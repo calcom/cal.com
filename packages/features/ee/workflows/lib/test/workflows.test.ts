@@ -59,7 +59,7 @@ const workflowSelect = {
   steps: true,
   activeOn: true,
   activeOnTeams: true,
-};
+} satisfies Prisma.WorkflowSelect;
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2024-05-20T11:59:59Z"));
