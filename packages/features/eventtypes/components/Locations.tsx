@@ -107,6 +107,66 @@ const getLocationInfo = ({
   return { locationAvailable, locationDetails };
 };
 
+const LocationInput = (props: {
+  eventLocationType: EventLocationType;
+  defaultValue?: string;
+  index: number;
+  customClassNames?: LocationInputCustomClassNames;
+  disableLocationProp?: boolean;
+}) => {
+  const { t } = useLocale();
+  const { eventLocationType, index, customClassNames, disableLocationProp, ...remainingProps } = props;
+  if (eventLocationType?.organizerInputType === "text") {
+    const { defaultValue, ...rest } = remainingProps;
+
+    return (
+      <Controller
+        name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
+        defaultValue={defaultValue}
+        render={({ field: { onChange, value } }) => {
+          return (
+            <Input
+              name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+              placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+              type="text"
+              required
+              onChange={onChange}
+              value={value}
+              {...(disableLocationProp ? { disabled: true } : {})}
+              className={classNames("my-0", customClassNames?.addressInput)}
+              {...rest}
+            />
+          );
+        }}
+      />
+    );
+  } else if (eventLocationType?.organizerInputType === "phone") {
+    const { defaultValue, ...rest } = remainingProps;
+
+    return (
+      <Controller
+        name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
+        defaultValue={defaultValue}
+        render={({ field: { onChange, value } }) => {
+          return (
+            <PhoneInput
+              required
+              disabled={disableLocationProp}
+              placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+              name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+              className={customClassNames?.phoneInput}
+              value={value}
+              onChange={onChange}
+              {...rest}
+            />
+          );
+        }}
+      />
+    );
+  }
+  return null;
+};
+
 const Locations: React.FC<LocationsProps> = ({
   isChildrenManagedEventType,
   disableLocationProp,
@@ -167,64 +227,6 @@ const Locations: React.FC<LocationsProps> = ({
     eventType,
     locationOptions: props.locationOptions,
   });
-
-  const LocationInput = (props: {
-    eventLocationType: EventLocationType;
-    defaultValue?: string;
-    index: number;
-    customClassNames?: LocationInputCustomClassNames;
-  }) => {
-    const { eventLocationType, index, customClassNames, ...remainingProps } = props;
-    if (eventLocationType?.organizerInputType === "text") {
-      const { defaultValue, ...rest } = remainingProps;
-
-      return (
-        <Controller
-          name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-          defaultValue={defaultValue}
-          render={({ field: { onChange, value } }) => {
-            return (
-              <Input
-                name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
-                type="text"
-                required
-                onChange={onChange}
-                value={value}
-                {...(disableLocationProp ? { disabled: true } : {})}
-                className={classNames("my-0", customClassNames?.addressInput)}
-                {...rest}
-              />
-            );
-          }}
-        />
-      );
-    } else if (eventLocationType?.organizerInputType === "phone") {
-      const { defaultValue, ...rest } = remainingProps;
-
-      return (
-        <Controller
-          name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-          defaultValue={defaultValue}
-          render={({ field: { onChange, value } }) => {
-            return (
-              <PhoneInput
-                required
-                disabled={disableLocationProp}
-                placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
-                name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                className={customClassNames?.phoneInput}
-                value={value}
-                onChange={onChange}
-                {...rest}
-              />
-            );
-          }}
-        />
-      );
-    }
-    return null;
-  };
 
   const [showEmptyLocationSelect, setShowEmptyLocationSelect] = useState(false);
   const defaultInitialLocation = defaultValue || null;
@@ -342,7 +344,7 @@ const Locations: React.FC<LocationsProps> = ({
               {isCalVideo && !isPlatform && (
                 <div className="bg-muted mt-2 space-y-2 rounded-lg p-4">
                   <div className="w-full">
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-4">
                       <Controller
                         name="calVideoSettings.disableRecordingForGuests"
                         defaultValue={!!eventType.calVideoSettings?.disableRecordingForGuests}
@@ -350,7 +352,7 @@ const Locations: React.FC<LocationsProps> = ({
                           return (
                             <SettingsToggle
                               title={t("disable_recording_for_guests")}
-                              labelClassName="text-sm"
+                              labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
                             />
@@ -365,7 +367,7 @@ const Locations: React.FC<LocationsProps> = ({
                           return (
                             <SettingsToggle
                               title={t("disable_recording_for_organizer")}
-                              labelClassName="text-sm"
+                              labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
                             />
@@ -380,7 +382,7 @@ const Locations: React.FC<LocationsProps> = ({
                           return (
                             <SettingsToggle
                               title={t("enable_automatic_transcription")}
-                              labelClassName="text-sm"
+                              labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
                             />
@@ -396,7 +398,7 @@ const Locations: React.FC<LocationsProps> = ({
                             return (
                               <SettingsToggle
                                 title={t("disable_transcription_for_guests")}
-                                labelClassName="text-sm"
+                                labelClassName="text-sm leading-6 whitespace-normal break-words"
                                 checked={value}
                                 onCheckedChange={onChange}
                               />
@@ -412,7 +414,7 @@ const Locations: React.FC<LocationsProps> = ({
                             return (
                               <SettingsToggle
                                 title={t("disable_transcription_for_organizer")}
-                                labelClassName="text-sm"
+                                labelClassName="text-sm leading-6 whitespace-normal break-words"
                                 checked={value}
                                 onCheckedChange={onChange}
                               />
@@ -425,7 +427,8 @@ const Locations: React.FC<LocationsProps> = ({
                         label={t("enter_redirect_url_on_exit_description")}
                         defaultValue={eventType.calVideoSettings?.redirectUrlOnExit || ""}
                         data-testid="calVideoSettings.redirectUrlOnExit"
-                        containerClassName="mt-2"
+                        containerClassName="mt-4"
+                        className="leading-6"
                         {...formMethods.register("calVideoSettings.redirectUrlOnExit", {
                           setValueAs: (v) => (!v || v.trim() === "" ? null : v),
                         })}
@@ -459,6 +462,7 @@ const Locations: React.FC<LocationsProps> = ({
                         eventLocationType={eventLocationType}
                         index={index}
                         customClassNames={customClassNames?.organizerContactInput?.locationInput}
+                        disableLocationProp={disableLocationProp}
                       />
                     </div>
                     <ErrorMessage
