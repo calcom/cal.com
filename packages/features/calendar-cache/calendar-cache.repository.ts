@@ -169,34 +169,4 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       },
     });
   }
-
-  /**
-   * Invalidate cached availability for a given calendarId (externalId/email) and optional time range.
-   * If timeMin/timeMax are provided, only delete cache entries overlapping that range.
-   * If not, delete all cache entries for the calendarId.
-   */
-  async invalidateAvailabilityCache({
-    calendarId,
-    timeMin,
-    timeMax,
-  }: {
-    calendarId: string;
-    timeMin?: string;
-    timeMax?: string;
-  }) {
-    // The cache key includes items: [{id: calendarId}], so we need to match keys containing this id
-    // We'll do a LIKE query on the key JSON string
-    const where: any = {
-      key: {
-        contains: `"id":"${calendarId}"`,
-      },
-    };
-    if (timeMin) {
-      where.key.contains = `"timeMin":"${timeMin}"`;
-    }
-    if (timeMax) {
-      where.key.contains = `"timeMax":"${timeMax}"`;
-    }
-    await prisma.calendarCache.deleteMany({ where });
-  }
 }
