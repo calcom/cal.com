@@ -45,7 +45,31 @@ const rule = createRule({
 
           const isVariableAssignment = parent?.type === "VariableDeclarator" && parent.init === node;
 
-          if (isPassedToCallback || isVariableAssignment) {
+          const isObjectProperty = parent?.type === "Property" && parent.value === node;
+
+          const isArrayElement = parent?.type === "ArrayExpression" && parent.elements.includes(node);
+
+          const isFunctionArgument =
+            parent?.type === "CallExpression" &&
+            parent.arguments.includes(node) &&
+            !(
+              parent.callee.type === "MemberExpression" &&
+              parent.callee.property.type === "Identifier" &&
+              ["map", "filter", "forEach", "reduce", "find", "some", "every"].includes(
+                parent.callee.property.name
+              )
+            );
+
+          const isReturnStatement = parent?.type === "ReturnStatement" && parent.argument === node;
+
+          if (
+            isPassedToCallback ||
+            isVariableAssignment ||
+            isObjectProperty ||
+            isArrayElement ||
+            isFunctionArgument ||
+            isReturnStatement
+          ) {
             context.report({
               node,
               messageId: "no-this-in-static-method",
