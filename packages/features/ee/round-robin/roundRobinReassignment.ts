@@ -20,6 +20,7 @@ import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/lib/delegationCredential/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getEventName } from "@calcom/lib/event";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -140,6 +141,10 @@ export const roundRobinReassignment = async ({
     },
     roundRobinReassignLogger
   );
+
+  if (availableUsers.length === 0) {
+    throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
+  }
 
   const reassignedRRHost = await getLuckyUser({
     availableUsers,
