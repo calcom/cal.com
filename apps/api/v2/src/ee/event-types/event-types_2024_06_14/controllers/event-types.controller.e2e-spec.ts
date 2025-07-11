@@ -1722,7 +1722,7 @@ describe("Event types Endpoints", () => {
         description: "undefined booking fields",
         length: 40,
         hidden: false,
-        slug: "undefined-booking-fields",
+        slug: `undefined-booking-fields-${randomString()}`,
         locations: [],
         schedulingType: SchedulingType.ROUND_ROBIN,
       };
@@ -1751,6 +1751,14 @@ describe("Event types Endpoints", () => {
               required: true,
               disableOnPrefill: false,
               hidden: false,
+            },
+            {
+              disableOnPrefill: false,
+              hidden: true,
+              isDefault: true,
+              required: false,
+              slug: "attendeePhoneNumber",
+              type: "phone",
             },
             {
               isDefault: true,
