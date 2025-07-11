@@ -80,7 +80,10 @@ export class ConferencingController {
     @Param("app") app: string
   ): Promise<ConferencingAppOutputResponseDto> {
     const credential = await this.conferencingService.connectUserNonOauthApp(app, user.id);
-    return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToInstance(ConferencingAppsOutputDto, credential, { strategy: "excludeAll" }),
+    };
   }
 
   @Get("/:app/oauth/auth-url")
@@ -205,10 +208,12 @@ export class ConferencingController {
   async listInstalledConferencingApps(
     @GetUser() user: UserWithProfile
   ): Promise<ConferencingAppsOutputResponseDto> {
-    const conferencingApps = await this.conferencingService.getConferencingApps(user.id);
+    const conferencingApps = await this.conferencingService.getConferencingApps(user);
     return {
       status: SUCCESS_STATUS,
-      data: conferencingApps.map((app) => plainToInstance(ConferencingAppsOutputDto, app)),
+      data: conferencingApps.map((app) =>
+        plainToInstance(ConferencingAppsOutputDto, app, { strategy: "excludeAll" })
+      ),
     };
   }
 

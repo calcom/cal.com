@@ -22,10 +22,7 @@ import {
   OFFICE_365_VIDEO,
 } from "@calcom/platform-constants";
 import { userMetadata } from "@calcom/platform-libraries";
-import {
-  getUsersAndTeamsCredentialsIncludeServiceAccountKey,
-  getUsersCredentialsIncludeServiceAccountKey,
-} from "@calcom/platform-libraries/app-store";
+import { getUsersAndTeamsCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import { getApps, handleDeleteCredential } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
@@ -33,7 +30,6 @@ export class ConferencingService {
   private logger = new Logger("ConferencingService");
 
   constructor(
-    private readonly conferencingRepository: ConferencingRepository,
     private readonly usersRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly googleMeetService: GoogleMeetService,
@@ -41,8 +37,14 @@ export class ConferencingService {
     private readonly office365VideoService: Office365VideoService
   ) {}
 
-  async getConferencingApps(userId: number) {
-    return this.conferencingRepository.findConferencingApps(userId);
+  async getConferencingApps(user: UserWithProfile) {
+    const credentials = await getUsersAndTeamsCredentialsIncludeServiceAccountKey(user);
+
+    // Remove sensitive key field from each credential
+    return credentials.map((credential) => {
+      const { key: _key, ...credentialWithoutKey } = credential;
+      return credentialWithoutKey;
+    });
   }
 
   async connectUserNonOauthApp(app: string, userId: number) {

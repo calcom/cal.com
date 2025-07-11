@@ -118,7 +118,9 @@ export class OrganizationsConferencingController {
 
     return {
       status: SUCCESS_STATUS,
-      data: conferencingApps.map((app) => plainToInstance(ConferencingAppsOutputDto, app)),
+      data: conferencingApps.map((app) =>
+        plainToInstance(ConferencingAppsOutputDto, app, { strategy: "excludeAll" })
+      ),
     };
   }
 

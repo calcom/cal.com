@@ -22,7 +22,7 @@ type Props = {
 
 export const useAtomGetPublicEvent = ({ username, eventSlug, isTeamEvent, teamId, selectedDuration }: Props) => {
 
-  const { organizationId } = useAtomsContext();
+  const { organizationId, isInit } = useAtomsContext();
 
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
@@ -53,6 +53,7 @@ export const useAtomGetPublicEvent = ({ username, eventSlug, isTeamEvent, teamId
           throw new Error(res.data.error.message);
         });
     },
+    enabled: isInit,
   });
 
   return event;
