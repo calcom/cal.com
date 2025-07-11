@@ -225,4 +225,40 @@ export class PermissionCheckService {
   private checkFallbackRoles(userRole: MembershipRole, allowedRoles: MembershipRole[]): boolean {
     return allowedRoles.includes(userRole);
   }
+
+  /**
+   * Gets all team IDs where the user has a specific permission
+   */
+  async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
+    try {
+      const validationResult = this.permissionService.validatePermission(permission);
+      if (!validationResult.isValid) {
+        this.logger.error(validationResult.error);
+        return [];
+      }
+
+      return await this.repository.getTeamIdsWithPermission(userId, permission);
+    } catch (error) {
+      this.logger.error(error);
+      return [];
+    }
+  }
+
+  /**
+   * Gets all team IDs where the user has all of the specified permissions
+   */
+  async getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]> {
+    try {
+      const validationResult = this.permissionService.validatePermissions(permissions);
+      if (!validationResult.isValid) {
+        this.logger.error(validationResult.error);
+        return [];
+      }
+
+      return await this.repository.getTeamIdsWithPermissions(userId, permissions);
+    } catch (error) {
+      this.logger.error(error);
+      return [];
+    }
+  }
 }
