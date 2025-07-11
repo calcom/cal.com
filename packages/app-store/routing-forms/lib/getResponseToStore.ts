@@ -19,7 +19,6 @@ export const getResponseToStore = ({
 
     response[field.id] = {
       label: field.label,
-      identifier: field?.identifier || null,
       value: getFieldResponseForJsonLogic({ field, value: fieldResponse }),
     };
   });
