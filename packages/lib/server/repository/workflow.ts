@@ -401,8 +401,6 @@ export class WorkflowRepository {
       [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
     };
 
-    console.log(remindersToDelete);
-
     if (!remindersToDelete) return Promise.resolve();
 
     const results = await Promise.allSettled(
