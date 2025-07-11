@@ -16,8 +16,8 @@ import {
 import { describe, vi, test } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import { SchedulingType, type BookingStatus } from "@calcom/prisma/enums";
-import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect, expectedSlotsForSchedule } from "./getSchedule/expects";
 import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
@@ -31,7 +31,7 @@ vi.mock("@calcom/lib/constants", () => ({
 }));
 
 describe("getSchedule", () => {
-  const availableSlotsService = new AvailableSlotsService();
+  const availableSlotsService = getAvailableSlotsService();
   setupAndTeardown();
 
   // TODO: Move these inside describe('Team Event')
