@@ -13,6 +13,7 @@ type ResponseDataType =
   | {
       appSlug?: string;
       appLink?: string;
+      credentialId?: number;
     }
   | undefined;
 export const useGetDefaultConferencingApp = (teamId?: number, orgId?: number) => {

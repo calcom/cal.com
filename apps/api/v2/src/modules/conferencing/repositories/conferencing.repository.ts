@@ -62,4 +62,11 @@ export class ConferencingRepository {
       select: this.credentialSelect,
     });
   }
+
+  async findMultipleTeamsConferencingApp(teamIds: number[], app: string) {
+    return this.dbRead.prisma.credential.findMany({
+      where: { teamId: { in: teamIds }, appId: app },
+      select: this.credentialSelect,
+    });
+  }
 }

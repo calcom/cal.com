@@ -22,7 +22,10 @@ import {
   OFFICE_365_VIDEO,
 } from "@calcom/platform-constants";
 import { userMetadata } from "@calcom/platform-libraries";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
+import {
+  getUsersAndTeamsCredentialsIncludeServiceAccountKey,
+  getUsersCredentialsIncludeServiceAccountKey,
+} from "@calcom/platform-libraries/app-store";
 import { getApps, handleDeleteCredential } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
@@ -87,14 +90,20 @@ export class ConferencingService {
     return userMetadata.parse(user?.metadata)?.defaultConferencingApp;
   }
 
-  async checkAppIsValidAndConnected(user: UserWithProfile, appSlug: string) {
+  async checkAppIsValidAndConnected(user: UserWithProfile, appSlug: string, credentialId?: number) {
     if (!CONFERENCING_APPS.includes(appSlug)) {
       throw new BadRequestException("Invalid app, available apps are: ", CONFERENCING_APPS.join(", "));
     }
-    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
+    const credentials = await getUsersAndTeamsCredentialsIncludeServiceAccountKey(user);
+
+    if (credentialId) {
+      const specificCredential = credentials.find((cred) => cred.id === credentialId);
+      if (!specificCredential) {
+        throw new BadRequestException(`Credential with ID ${credentialId} not found for app ${appSlug}.`);
+      }
+    }
 
     const foundApp = getApps(credentials, true).filter((app) => app.slug === appSlug)[0];
-
     const appLocation = foundApp?.appData?.location;
 
     if (!foundApp || !appLocation) {
@@ -112,12 +121,17 @@ export class ConferencingService {
     });
   }
 
-  async setDefaultConferencingApp(user: UserWithProfile, app: string) {
+  async setDefaultConferencingApp(user: UserWithProfile, app: string, credentialId?: number) {
     // cal-video is global, so we can skip this check
     if (app !== CAL_VIDEO) {
-      await this.checkAppIsValidAndConnected(user, app);
+      await this.checkAppIsValidAndConnected(user, app, credentialId);
     }
-    const updatedUser = await this.usersRepository.setDefaultConferencingApp(user.id, app);
+    const updatedUser = await this.usersRepository.setDefaultConferencingApp(
+      user.id,
+      app,
+      undefined,
+      credentialId
+    );
     const metadata = updatedUser.metadata as { defaultConferencingApp?: { appSlug?: string } };
     if (metadata?.defaultConferencingApp?.appSlug !== app) {
       throw new InternalServerErrorException(`Could not set ${app} as default conferencing app`);

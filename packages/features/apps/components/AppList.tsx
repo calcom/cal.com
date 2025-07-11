@@ -78,7 +78,10 @@ export const AppList = ({
   }) => {
     const appSlug = item?.slug;
     const appIsDefault =
-      appSlug === defaultConferencingApp?.appSlug ||
+      (appSlug === defaultConferencingApp?.appSlug &&
+        (defaultConferencingApp?.credentialId
+          ? defaultConferencingApp.credentialId === item.credentialOwner?.credentialId
+          : true)) ||
       (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
     return (
       <AppListCard
@@ -112,6 +115,7 @@ export const AppList = ({
                           } else {
                             handleUpdateUserDefaultConferencingApp({
                               appSlug,
+                              credentialId: item.credentialOwner?.credentialId,
                               onSuccessCallback: () => setBulkUpdateModal(true),
                               onErrorCallback: () => {
                                 return;

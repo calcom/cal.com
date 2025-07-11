@@ -60,6 +60,28 @@ export class OrganizationsConferencingService {
     return credential;
   }
 
+  async validateAndCheckOrgTeamConferencingApp(teamIds: number[], app: string, credentialId?: number) {
+    if (!CONFERENCING_APPS.includes(app)) {
+      throw new BadRequestException("Invalid app, available apps are: ", CONFERENCING_APPS.join(", "));
+    }
+    const credentials = await this.conferencingRepository.findMultipleTeamsConferencingApp(teamIds, app);
+
+    if (!credentials.length) {
+      throw new BadRequestException(`${app} not connected.`);
+    }
+
+    // If credentialId is provided, verify it exists and is of the correct type
+    if (credentialId) {
+      const specificCredential = credentials.find((cred) => cred.id === credentialId);
+      if (!specificCredential) {
+        throw new BadRequestException(`Credential with ID ${credentialId} not found for app ${app}.`);
+      }
+      return specificCredential;
+    }
+
+    return credentials[0];
+  }
+
   async disconnectConferencingApp({
     teamId,
     user,
@@ -78,12 +100,27 @@ export class OrganizationsConferencingService {
     });
   }
 
-  async setDefaultConferencingApp({ teamId, app }: { teamId: number; app: string }) {
+  async setDefaultConferencingApp({
+    orgId,
+    teamId,
+    app,
+    credentialId,
+  }: {
+    orgId?: number;
+    teamId: number;
+    app: string;
+    credentialId?: number;
+  }) {
     // cal-video is global, so we can skip this check
     if (app !== CAL_VIDEO) {
-      await this.checkAppIsValidAndConnected(teamId, app);
+      await this.validateAndCheckOrgTeamConferencingApp(
+        orgId ? [teamId, orgId] : [teamId],
+        app,
+        credentialId
+      );
     }
-    const team = await this.teamsRepository.setDefaultConferencingApp(teamId, app);
+
+    const team = await this.teamsRepository.setDefaultConferencingApp(teamId, app, undefined, credentialId);
     const metadata = team.metadata as { defaultConferencingApp?: { appSlug?: string } };
     if (metadata?.defaultConferencingApp?.appSlug !== app) {
       throw new InternalServerErrorException(`Could not set ${app} as default conferencing app`);

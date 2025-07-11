@@ -155,20 +155,24 @@ export const ConferencingAppsViewPlatformWrapper = ({
 
   const handleUpdateUserDefaultConferencingApp = ({
     appSlug,
+    credentialId,
     onSuccessCallback,
     onErrorCallback,
   }: UpdateUsersDefaultConferencingAppParams) => {
-    updateDefaultAppMutation.mutate(appSlug, {
-      onSuccess: () => {
-        showToast("Default app updated successfully", "success");
-        queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
-        !shouldDisableBulkUpdates && onSuccessCallback();
-      },
-      onError: (error) => {
-        showToast(`Error: ${error.message}`, "error");
-        onErrorCallback();
-      },
-    });
+    updateDefaultAppMutation.mutate(
+      { app: appSlug, credentialId },
+      {
+        onSuccess: () => {
+          showToast("Default app updated successfully", "success");
+          queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
+          !shouldDisableBulkUpdates && onSuccessCallback();
+        },
+        onError: (error) => {
+          showToast(`Error: ${error.message}`, "error");
+          onErrorCallback();
+        },
+      }
+    );
   };
 
   const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {

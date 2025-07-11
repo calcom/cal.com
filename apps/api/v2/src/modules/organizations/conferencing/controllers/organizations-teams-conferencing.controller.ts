@@ -130,6 +130,40 @@ export class OrganizationsTeamsConferencingController {
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Post("/teams/:teamId/conferencing/:app/default/:credentialId")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Set team default conferencing application with specific credential ID" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
+    required: true,
+  })
+  @ApiParam({
+    name: "credentialId",
+    description: "Specific credential ID to use for the conferencing app",
+    type: Number,
+    required: true,
+  })
+  async setTeamDefaultAppWithCredential(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("app") app: string,
+    @Param("credentialId", ParseIntPipe) credentialId: number
+  ): Promise<SetDefaultConferencingAppOutputResponseDto> {
+    await this.organizationsConferencingService.setDefaultConferencingApp({
+      orgId,
+      teamId,
+      app,
+      credentialId,
+    });
+
+    return { status: SUCCESS_STATUS };
+  }
+
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Post("/teams/:teamId/conferencing/:app/default")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Set team default conferencing application" })
@@ -141,9 +175,11 @@ export class OrganizationsTeamsConferencingController {
   })
   async setTeamDefaultApp(
     @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("orgId", ParseIntPipe) orgId: number,
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
     await this.organizationsConferencingService.setDefaultConferencingApp({
+      orgId,
       teamId,
       app,
     });

@@ -17,25 +17,26 @@ import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferenci
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { HttpService } from "@nestjs/axios";
-import { Logger } from "@nestjs/common";
+import { Logger, ParseIntPipe } from "@nestjs/common";
 import {
+  Body,
   Controller,
+  Delete,
   Get,
-  Query,
   HttpCode,
   HttpStatus,
-  UseGuards,
-  Post,
   Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+  HttpException,
   BadRequestException,
-  Delete,
   Headers,
   Redirect,
-  Req,
-  HttpException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
 
@@ -228,6 +229,32 @@ export class ConferencingController {
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
     await this.conferencingService.setDefaultConferencingApp(user, app);
+    return { status: SUCCESS_STATUS };
+  }
+
+  @Post("/:app/default/:credentialId")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({ summary: "Set your default conferencing application with specific credential ID" })
+  @ApiParam({
+    name: "app",
+    description: "Conferencing application type",
+    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
+    required: true,
+  })
+  @ApiParam({
+    name: "credentialId",
+    description: "Specific credential ID to use for the conferencing app",
+    type: Number,
+    required: true,
+  })
+  async defaultWithCredential(
+    @GetUser() user: UserWithProfile,
+    @Param("app") app: string,
+    @Param("credentialId", ParseIntPipe) credentialId: number
+  ): Promise<SetDefaultConferencingAppOutputResponseDto> {
+    await this.conferencingService.setDefaultConferencingApp(user, app, credentialId);
     return { status: SUCCESS_STATUS };
   }
 

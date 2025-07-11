@@ -26,13 +26,19 @@ export const useUpdateUserDefaultConferencingApp = ({
     onSuccess,
     onError,
     onSettled,
-    mutationFn: (app: App["slug"]) => {
+    mutationFn: ({ app, credentialId }: { app: App["slug"]; credentialId?: number }) => {
       if (!app) throw new Error("app is required");
 
-      let pathname = `/conferencing/${app}/default`;
+      let pathname =
+        credentialId !== undefined
+          ? `/conferencing/${app}/default/${credentialId}`
+          : `/conferencing/${app}/default`;
 
       if (teamId) {
-        pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/default`;
+        pathname =
+          credentialId !== undefined
+            ? `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/default/${credentialId}`
+            : `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/default`;
       } else if (orgId) {
         pathname = `/organizations/${orgId}/conferencing/${app}/default`;
       }
