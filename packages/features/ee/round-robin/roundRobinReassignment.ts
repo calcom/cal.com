@@ -100,6 +100,10 @@ export const roundRobinReassignment = async ({
         createdAt: new Date(0), // use earliest possible date as fallback
       }));
 
+  if (eventType.hosts.length === 0) {
+    throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
+  }
+
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
 
   const originalOrganizer = booking.user;
@@ -141,10 +145,6 @@ export const roundRobinReassignment = async ({
     },
     roundRobinReassignLogger
   );
-
-  if (availableUsers.length === 0) {
-    throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
-  }
 
   const reassignedRRHost = await getLuckyUser({
     availableUsers,
