@@ -69,19 +69,21 @@ export type CustomClassNames = {
 
 export type Availability = Pick<Schedule, "days" | "startTime" | "endTime">;
 
+export type AvailabilitySettingsScheduleType = {
+  name: string;
+  id: number;
+  availability: TimeRange[][];
+  isLastSchedule: boolean;
+  isDefault: boolean;
+  workingHours: WorkingHours[];
+  dateOverrides: { ranges: TimeRange[] }[];
+  timeZone: string;
+  schedule: Availability[];
+};
+
 type AvailabilitySettingsProps = {
   skeletonLabel?: string;
-  schedule: {
-    name: string;
-    id: number;
-    availability: TimeRange[][];
-    isLastSchedule: boolean;
-    isDefault: boolean;
-    workingHours: WorkingHours[];
-    dateOverrides: { ranges: TimeRange[] }[];
-    timeZone: string;
-    schedule: Availability[];
-  };
+  schedule: AvailabilitySettingsScheduleType;
   travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   handleDelete: () => void;
   allowDelete?: boolean;
