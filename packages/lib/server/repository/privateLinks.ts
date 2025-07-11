@@ -4,13 +4,13 @@ import type { Prisma } from "@calcom/prisma/client";
 export type HashedLinkInputType = {
   link: string;
   expiresAt?: Date | null;
-  maxUsageCount?: number;
+  maxUsageCount?: number | null;
 };
 
 type NormalizedLink = {
   link: string;
   expiresAt: Date | null;
-  maxUsageCount?: number;
+  maxUsageCount?: number | null;
 };
 
 export class PrivateLinksRepository {
@@ -46,7 +46,7 @@ export class PrivateLinksRepository {
       expiresAt: linkData.expiresAt,
     };
 
-    if (typeof linkData.maxUsageCount === "number") {
+    if (typeof linkData.maxUsageCount === "number" && linkData.maxUsageCount !== null) {
       data.maxUsageCount = linkData.maxUsageCount;
     }
 
@@ -60,7 +60,7 @@ export class PrivateLinksRepository {
       expiresAt: linkData.expiresAt,
     };
 
-    if (typeof linkData.maxUsageCount === "number") {
+    if (typeof linkData.maxUsageCount === "number" && linkData.maxUsageCount !== null) {
       updateData.maxUsageCount = linkData.maxUsageCount;
     }
 
