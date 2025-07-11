@@ -29,6 +29,7 @@ export type BookingOptions = {
   crmAppSlug?: string | null;
   orgSlug?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
+  isDryRunProp?: boolean;
 };
 
 export const mapBookingToMutationInput = ({
@@ -50,6 +51,7 @@ export const mapBookingToMutationInput = ({
   crmAppSlug,
   orgSlug,
   routingFormSearchParams,
+  isDryRunProp,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(routingFormSearchParams ?? window.location.search);
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
@@ -57,7 +59,7 @@ export const mapBookingToMutationInput = ({
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
   const reroutingFormResponses = searchParams.get("cal.reroutingFormResponses");
-  const _isDryRun = isBookingDryRun(searchParams);
+  const _isDryRun = isDryRunProp !== undefined ? isDryRunProp : isBookingDryRun(searchParams);
   const _cacheParam = searchParams?.get("cal.cache");
   const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
   const dub_id = searchParams?.get("dub_id");
