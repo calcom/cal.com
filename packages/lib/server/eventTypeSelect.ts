@@ -42,6 +42,7 @@ export const eventTypeSelect = {
   onlyShowFirstAvailableSlot: true,
   allowReschedulingPastBookings: true,
   hideOrganizerEmail: true,
+  showOptimizedSlots: true,
   seatsShowAttendees: true,
   seatsShowAvailabilityCount: true,
   scheduleId: true,
