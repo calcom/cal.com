@@ -206,7 +206,7 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
     method: WorkflowMethods.EMAIL,
     scheduled: false,
     scheduledDate: {
-      gte: dayjs().toISOString(),
+      gte: new Date(),
       lte: dayjs().add(2, "hour").toISOString(),
     },
     retryCount: {
