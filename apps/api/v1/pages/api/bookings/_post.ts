@@ -222,7 +222,7 @@ async function handler(req: NextApiRequest) {
   };
   if (isSystemWideAdmin) userId = req.body.userId || userId;
 
-  if (typeof req.body.eventTypeId !== "number") {
+  if (req.body.eventTypeId !== undefined && typeof req.body.eventTypeId !== "number") {
     throw new HttpError({
       statusCode: 400,
       message: "Bad request, eventTypeId must be a number",
