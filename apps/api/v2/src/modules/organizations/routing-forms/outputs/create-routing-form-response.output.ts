@@ -2,7 +2,12 @@ import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger
 import { Type } from "class-transformer";
 import { IsArray, IsBoolean, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 
-import { ApiResponseWithoutData, SlotsOutput_2024_09_04, RangeSlotsOutput_2024_09_04 } from "@calcom/platform-types";
+import {
+  ApiResponseWithoutData,
+  SlotsOutput_2024_09_04,
+  RangeSlotsOutput_2024_09_04,
+} from "@calcom/platform-types";
+
 class Routing {
   @ApiProperty({
     type: String,
@@ -133,4 +138,4 @@ export class CreateRoutingFormResponseOutput extends ApiResponseWithoutData {
   @ApiProperty({ type: CreateRoutingFormResponseOutputData })
   @Type(() => CreateRoutingFormResponseOutputData)
   data!: CreateRoutingFormResponseOutputData;
-} 
+}

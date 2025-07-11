@@ -124,7 +124,9 @@ export class EventTypesController_2024_04_15 {
       let orgSlug = queryParams.org;
 
       if (clientId && !orgSlug && username.includes(`-${clientId}`)) {
-        const org = await this.organizationsRepository.findTeamIdAndSlugFromClientId(clientId).catch(() => null);
+        const org = await this.organizationsRepository
+          .findTeamIdAndSlugFromClientId(clientId)
+          .catch(() => null);
         if (org) {
           orgSlug = org.slug;
         }
