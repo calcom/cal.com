@@ -262,7 +262,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       });
     }
 
-    const user = await UserRepository.enrichUserWithItsProfile({
+    const user = await new UserRepository(prisma).enrichUserWithItsProfile({
       user: { ...orgOwner, organizationId: organization.id },
     });
 
@@ -308,7 +308,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
 
     if (!organization.id) throw Error("User not created");
-    const user = await UserRepository.enrichUserWithItsProfile({
+    const user = await new UserRepository(prisma).enrichUserWithItsProfile({
       user: { ...orgOwner, organizationId: organization.id },
     });
 
