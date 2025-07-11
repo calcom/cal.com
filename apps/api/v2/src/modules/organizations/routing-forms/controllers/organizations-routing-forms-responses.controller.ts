@@ -4,10 +4,8 @@ import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.de
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { Or } from "@/modules/auth/guards/or-guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { IsUserRoutingForm } from "@/modules/auth/guards/organizations/is-user-routing-form.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { GetRoutingFormResponsesOutput } from "@/modules/organizations/routing-forms/outputs/get-routing-form-responses.output";
 import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizations/routing-forms/services/organizations-routing-forms-responses.service";
@@ -27,6 +25,7 @@ import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GetAvailableSlotsInput_2024_09_04 } from "@calcom/platform-types";
 
 import { CreateRoutingFormResponseInput } from "../inputs/create-routing-form-response.input";
 import { GetRoutingFormResponsesParams } from "../inputs/get-routing-form-responses-params.input";
@@ -38,7 +37,7 @@ import { UpdateRoutingFormResponseOutput } from "../outputs/update-routing-form-
   path: "/v2/organizations/:orgId/routing-forms/:routingFormId/responses",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiTags("Orgs / Routing forms")
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsRoutingFormsResponsesController {
@@ -48,7 +47,6 @@ export class OrganizationsRoutingFormsResponsesController {
 
   @Get("/")
   @ApiOperation({ summary: "Get routing form responses" })
-  @UseGuards(RolesGuard)
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async getRoutingFormResponses(
@@ -75,7 +73,6 @@ export class OrganizationsRoutingFormsResponsesController {
 
   @Post("/")
   @ApiOperation({ summary: "Create routing form response and get available slots" })
-  @UseGuards(Or([RolesGuard, IsUserRoutingForm]))
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async createRoutingFormResponse(
@@ -85,6 +82,7 @@ export class OrganizationsRoutingFormsResponsesController {
     @Req() request: Request
   ): Promise<CreateRoutingFormResponseOutput> {
     const result = await this.organizationsRoutingFormsResponsesService.createRoutingFormResponseWithSlots(
+      orgId,
       routingFormId,
       query,
       request
@@ -98,7 +96,6 @@ export class OrganizationsRoutingFormsResponsesController {
 
   @Patch("/:responseId")
   @ApiOperation({ summary: "Update routing form response" })
-  @UseGuards(RolesGuard)
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async updateRoutingFormResponse(
