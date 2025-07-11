@@ -101,7 +101,7 @@ export const roundRobinReassignment = async ({
       }));
 
   if (eventType.hosts.length === 0) {
-    throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
+    throw new Error(ErrorCode.EventTypeNoHosts);
   }
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
