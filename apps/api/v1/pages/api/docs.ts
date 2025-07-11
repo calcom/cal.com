@@ -93,6 +93,11 @@ const swaggerHandler = withSwagger({
               nullable: true,
               format: "uuid",
             },
+            rescheduledToUid: {
+              type: "string",
+              nullable: true,
+              format: "uuid",
+            },
             attendees: {
               type: "array",
               items: {

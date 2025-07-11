@@ -703,9 +703,9 @@ export class BookingsService_2024_08_13 {
       );
     }
     if (booking.status === "CANCELLED" && booking.rescheduled) {
-      const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
+      const rescheduledToUid = booking.rescheduledToUid;
       throw new BadRequestException(
-        `Can't reschedule booking with uid=${bookingUid} because it has been cancelled and rescheduled already to booking with uid=${rescheduledTo?.uid}. You probably want to reschedule ${rescheduledTo?.uid} instead by passing it within the request URL.`
+        `Can't reschedule booking with uid=${bookingUid} because it has been cancelled and rescheduled already to booking with uid=${rescheduledToUid}. You probably want to reschedule ${rescheduledToUid} instead by passing it within the request URL.`
       );
     }
     return booking;

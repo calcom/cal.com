@@ -136,6 +136,7 @@ export const schemaBookingReadPublic = Booking.extend({
   status: true,
   responses: true,
   fromReschedule: true,
+  rescheduledToUid: true,
   cancelledBy: true,
   rescheduledBy: true,
   createdAt: true,
