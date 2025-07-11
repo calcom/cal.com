@@ -23977,7 +23977,7 @@
         "type": "object",
         "properties": {}
       },
-      "Attendee": {
+      "CreateBookingAttendee": {
         "type": "object",
         "properties": {
           "name": {
@@ -24114,7 +24114,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -24241,7 +24241,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -24374,7 +24374,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -24543,6 +24543,85 @@
           "slug"
         ]
       },
+      "BookingAttendee": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "timeZone",
+          "absent"
+        ]
+      },
       "BookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -24659,7 +24738,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/BookingAttendee"
             }
           },
           "guests": {
@@ -24816,7 +24895,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/BookingAttendee"
             }
           },
           "guests": {
@@ -25927,6 +26006,21 @@
           "data"
         ]
       },
+      "MarkAbsentAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "absent": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "email",
+          "absent"
+        ]
+      },
       "MarkAbsentBookingInput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -25938,7 +26032,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/MarkAbsentAttendee"
             }
           }
         }
