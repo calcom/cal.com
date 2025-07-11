@@ -382,14 +382,15 @@ export const fieldTypesSchemaMap: Partial<
       if (hasExceededMaxLength) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m(`max_characters_allowed`).replace("{{count}}", maxLength.toString()),
+          message: m(`max_characters_allowed`).replace(/\{\{count\}\}/g, maxLength.toString()),
         });
         return;
       }
       if (hasNotReachedMinLength) {
+        const message = m(`min_characters_required`);
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m(`min_characters_required`).replace("{{count}}", minLength.toString()),
+          message: message.replace(/\{\{count\}\}/g, minLength.toString()),
         });
         return;
       }
