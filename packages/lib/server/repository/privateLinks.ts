@@ -1,7 +1,6 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
-
-// import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 export type HashedLinkInputType = {
   link: string;
@@ -46,7 +45,7 @@ export class PrivateLinksRepository {
       expiresAt: linkData.expiresAt,
     };
 
-    if (Number.isFinite(linkData.maxUsageCount)) {
+    if (linkData.maxUsageCount && Number.isFinite(linkData.maxUsageCount)) {
       data.maxUsageCount = linkData.maxUsageCount;
     }
 
@@ -87,7 +86,7 @@ export class PrivateLinksRepository {
       return;
     }
 
-    const normalizedLinks = multiplePrivateLinks.map(this.normalizeLinkInput);
+    const normalizedLinks = multiplePrivateLinks.map((input) => this.normalizeLinkInput(input));
     const currentLinks = normalizedLinks.map((l) => l.link);
 
     const linksToDelete = connectedMultiplePrivateLinks.filter((link) => !currentLinks.includes(link));
