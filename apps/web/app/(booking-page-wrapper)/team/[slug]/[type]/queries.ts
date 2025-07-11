@@ -122,10 +122,11 @@ export async function getEnrichedEventType({
 
   const { subsetOfHosts, hosts } = await getEventTypeHosts({
     hosts: eventType.hosts,
+    prisma,
   });
 
   const enrichedOwner = eventType.owner
-    ? await UserRepository.enrichUserWithItsProfile({
+    ? await new UserRepository(prisma).enrichUserWithItsProfile({
         user: eventType.owner,
       })
     : null;
