@@ -7,6 +7,8 @@
   "private": true,
   "scripts": {
     "build": "yarn dev:build && nest build",
+    "build:serverless": "yarn dev:build && nest build && yarn copy-serverless-handlers",
+    "copy-serverless-handlers": "npx ts-node generate-handlers.ts && cp -r serverless dist/",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev:build:watch": "concurrently --names \"libraries,lru-fix,constants,enums,utils,types\" \"yarn _dev:build:watch:libraries\" \"yarn _dev:build:watch:libraries:lru-fix\" \"yarn _dev:build:watch:constants\" \"yarn _dev:build:watch:enums\" \"yarn _dev:build:watch:utils\" \"yarn _dev:build:watch:types\"",
@@ -59,6 +61,7 @@
     "@sentry/node": "^8.8.0",
     "@sentry/profiling-node": "^8.37.1",
     "@snyk/protect": "latest",
+    "@vercel/node": "^5.3.0",
     "body-parser": "^1.20.2",
     "bull": "^4.12.4",
     "class-transformer": "^0.5.1",
