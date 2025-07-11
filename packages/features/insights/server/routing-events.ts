@@ -12,6 +12,7 @@ import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-
 import dayjs from "@calcom/dayjs";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type {
   RoutingFormResponsesInput,
   RoutingFormStatsInput,
@@ -165,17 +166,41 @@ class RoutingEventsInsights {
     organizationId?: number | undefined;
     routingFormId?: string | undefined;
   }) {
-    const permissionCheckService = new PermissionCheckService();
-    const teamIds = await permissionCheckService.getTeamIdsWithPermission(userId, "insights.read");
-    if (isAll && organizationId) {
-      const forms = await RoutingFormRepository.findAllFormsByTeamIds(teamIds);
-      return forms;
-    } else if (teamId && teamIds.includes(teamId)) {
-      const forms = await RoutingFormRepository.findAllFormsByTeamIds([teamId]);
-      return forms;
+    const featuresRepository = new FeaturesRepository();
+    const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId || -1, "pbac");
+
+    if (pbacFeatureEnabled) {
+      const permissionCheckService = new PermissionCheckService();
+      const teamIds = await permissionCheckService.getTeamIdsWithPermission(userId, "insights.read");
+      if (isAll && organizationId) {
+        const forms = await RoutingFormRepository.findAllFormsByTeamIds(teamIds);
+        return forms;
+      } else if (teamId && teamIds.includes(teamId)) {
+        const forms = await RoutingFormRepository.findAllFormsByTeamIds([teamId]);
+        return forms;
+      } else {
+        const forms = await RoutingFormRepository.findAllPersonalFormsByUserId(userId);
+        return forms;
+      }
     } else {
-      const forms = await RoutingFormRepository.findAllPersonalFormsByUserId(userId);
-      return forms;
+      const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+        userId,
+        teamId,
+        isAll,
+        organizationId,
+      });
+      return await prisma.app_RoutingForms_Form.findMany({
+        where: formsWhereCondition,
+        select: {
+          id: true,
+          name: true,
+          _count: {
+            select: {
+              responses: true,
+            },
+          },
+        },
+      });
     }
   }
 
