@@ -151,7 +151,7 @@ export class Task {
     });
   }
 
-  static async cancelWithReference(referenceUid: string, type: TaskTypes): Promise<Prisma.Task | null> {
+  static async cancelWithReference(referenceUid: string, type: TaskTypes): Promise<{ id: string } | null> {
     // db.task.delete throws an error if the task does not exist, so we catch it and return null
     try {
       return await db.task.delete({
