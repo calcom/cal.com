@@ -226,14 +226,16 @@ export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
 export async function getEventTypeHosts({
   hosts,
   fetchAllUsers = false,
+  prisma,
 }: {
   hosts: Prisma.EventTypeGetPayload<{ select: ReturnType<typeof getPublicEventSelect> }>["hosts"];
   fetchAllUsers?: boolean;
+  prisma: PrismaClient;
 }) {
   const usersAsHosts = hosts.map((host) => host.user);
 
   // Enrich users in a single batch call
-  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(usersAsHosts);
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(usersAsHosts);
 
   // Map enriched users back to the hosts
   const enrichedHosts = hosts.map((host, index) => ({
@@ -578,7 +580,7 @@ const getPublicEventRefactored = async (
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
-    const usersInOrgContext = await UserRepository.findUsersByUsername({
+    const usersInOrgContext = await new UserRepository(prisma).findUsersByUsername({
       usernameList,
       orgSlug: org,
     });
@@ -738,12 +740,13 @@ const getPublicEventRefactored = async (
   const { subsetOfHosts, hosts } = await getEventTypeHosts({
     hosts: event.hosts,
     fetchAllUsers,
+    prisma,
   });
 
   const eventWithUserProfiles = {
     ...event,
     owner: event.owner
-      ? await UserRepository.enrichUserWithItsProfile({
+      ? await new UserRepository(prisma).enrichUserWithItsProfile({
           user: event.owner,
         })
       : null,
