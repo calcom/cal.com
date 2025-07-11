@@ -43,7 +43,9 @@ const rule = createRule({
               parent.callee.property.name
             );
 
-          if (isPassedToCallback) {
+          const isVariableAssignment = parent?.type === "VariableDeclarator" && parent.init === node;
+
+          if (isPassedToCallback || isVariableAssignment) {
             context.report({
               node,
               messageId: "no-this-in-static-method",
