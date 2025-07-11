@@ -44,6 +44,24 @@ describe.skipIf(true)("POST /api/bookings", () => {
       );
     });
 
+    test("String eventTypeId should return 400", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "POST",
+        body: {
+          eventTypeId: "invalid-string",
+        },
+      });
+
+      await handler(req, res);
+
+      expect(res._getStatusCode()).toBe(400);
+      expect(JSON.parse(res._getData())).toEqual(
+        expect.objectContaining({
+          message: "Bad request, eventTypeId must be a number",
+        })
+      );
+    });
+
     test("Invalid eventTypeId", async () => {
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
