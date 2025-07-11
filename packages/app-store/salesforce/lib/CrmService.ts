@@ -3,7 +3,6 @@ import jsforce from "@jsforce/jsforce-node";
 import { RRule } from "rrule";
 import { z } from "zod";
 
-import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
@@ -11,6 +10,7 @@ import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIf
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { AssignmentReasonRepository } from "@calcom/lib/server/repository/assignmentReason";
+import { RoutingFormResponseService } from "@calcom/lib/server/service/routingForm/routingFormResponse.service";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -433,7 +433,12 @@ export default class SalesforceCRMService implements CRM {
             accessToken: this.accessToken,
             instanceUrl: this.instanceUrl,
           });
+          console.log("🚀 ~ client:", client);
 
+          console.log(
+            "🚀 ~ await client.GetAccountRecordsForRRSkip(emailArray[0]);:",
+            await client.GetAccountRecordsForRRSkip(emailArray[0])
+          );
           return await client.GetAccountRecordsForRRSkip(emailArray[0]);
         } catch (error) {
           log.error("Error getting account records for round robin skip", safeStringify({ error }));
@@ -1238,7 +1243,7 @@ export default class SalesforceCRMService implements CRM {
         log.error(`BookingUid not passed. Cannot get form responses without it`);
         return;
       }
-      valueToWrite = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId);
+      valueToWrite = String(await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId));
     } else if (fieldValue.startsWith("{utm:")) {
       if (!bookingUid) {
         log.error(`BookingUid not passed. Cannot get tracking values without it`);
@@ -1283,20 +1288,8 @@ export default class SalesforceCRMService implements CRM {
       prefix: [`[getTextValueFromRoutingFormResponse]: ${recordId} - bookingUid: ${bookingUid}`],
     });
 
-    // Get the form response
-    const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
-      where: {
-        routedToBookingUid: bookingUid,
-      },
-      select: {
-        response: true,
-      },
-    });
-    if (!routingFormResponse) {
-      log.error("Routing form response not found");
-      return fieldValue;
-    }
-    const response = routingFormResponse.response as FormResponse;
+    let value;
+
     const regex = /\{form:(.*?)\}/;
     const regexMatch = fieldValue.match(regex);
     if (!regexMatch) {
@@ -1310,20 +1303,15 @@ export default class SalesforceCRMService implements CRM {
       return fieldValue;
     }
 
-    // Search for fieldValue, only handle raw text return for now
-    for (const fieldId of Object.keys(response)) {
-      const field = response[fieldId];
-      if (field?.identifier === identifierField) {
-        return field.value.toString();
-      }
+    try {
+      const routingFormResponseService = await RoutingFormResponseService.create({ bookingUid });
+      value = await routingFormResponseService.findFieldValueByIdentifier(identifierField);
+    } catch (error) {
+      log.error("Routing form response not found", error);
+      return fieldValue;
     }
-    log.error(
-      `Could not find form response value for identifierField ${identifierField} in response keys ${Object.keys(
-        response
-      )}`
-    );
 
-    return fieldValue;
+    return value;
   }
 
   private async getTextValueFromBookingTracking(fieldValue: string, bookingUid: string) {
