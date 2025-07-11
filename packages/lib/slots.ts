@@ -34,6 +34,7 @@ function getCorrectedSlotStartTime(
     // so that slots are shown respecting the 'Start of the Hour'.
     const minutesRequiredToMoveToNextSlot = interval - (slotStartTime.minute() % interval);
     const minutesRequiredToMoveTo15MinSlot = 15 - (slotStartTime.minute() % 15);
+    const minutesRequiredToMoveTo5MinSlot = 5 - (slotStartTime.minute() % 5);
     const extraMinutesAvailable = range.end.diff(slotStartTime, "minutes") % interval;
 
     if (extraMinutesAvailable >= minutesRequiredToMoveToNextSlot) {
@@ -48,12 +49,9 @@ function getCorrectedSlotStartTime(
       // And still 175-120 = 50mins are available, but it is less 55mins which is required to push to 10:00
       // so slotStartTime is pushed to next 15Min slot 09:15, instead of showing slots like 9:05,10:05 now slots will be 9:15,10:15
       correctedSlotStartTime = slotStartTime.add(minutesRequiredToMoveTo15MinSlot, "minute");
-    } else if (dayjs.utc().startOf("day").isSame(dayjs.utc(slotStartTime).startOf("day"), "day")) {
-      // For current date booking cases and extraMinutesAvailable is not enough to move to next slot,
-      // and if current time is like 11:22, slotStartTime will be updated to 11:30
-      correctedSlotStartTime = slotStartTime
-        .startOf("hour")
-        .add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute");
+    } else if (extraMinutesAvailable >= minutesRequiredToMoveTo5MinSlot) {
+      // so slotStartTime is pushed to next 5Min, instead of showing slots like 11:22,11:37 now slots will be 11:25,11:40
+      correctedSlotStartTime = slotStartTime.add(minutesRequiredToMoveTo5MinSlot, "minute");
     }
   } else {
     correctedSlotStartTime = slotStartTime
@@ -123,6 +121,9 @@ function buildSlotsWithDateRanges({
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
+
+    // For current day bookings, normalizing the seconds to zero to avoid issues with time calculations
+    slotStartTime = slotStartTime.set("second", 0).set("millisecond", 0);
 
     if (slotStartTime.minute() % interval !== 0) {
       slotStartTime = getCorrectedSlotStartTime(showOptimizedSlots, interval, slotStartTime, range);

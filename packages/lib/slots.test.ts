@@ -781,8 +781,8 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     ]);
   });
 
-  it("adjusts slot start time to next 15-minute boundary for current day bookings with non-aligned start time", async () => {
-    // Set system time to 2021-06-20 09:30:00 UTC
+  it("adjusts slot start time to next 5-minute boundary for current day bookings with non-aligned start time", async () => {
+    // Set system time to 2021-06-20 11:20:00 UTC
     vi.setSystemTime(dayjs.utc("2021-06-20T11:20:00.000Z").toDate());
 
     const slots = getSlots({
@@ -800,13 +800,42 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
     });
 
-    expect(slots.length).toStrictEqual(5);
+    expect(slots.length).toStrictEqual(6);
     expect(slots.map((slot) => slot.time.format())).toStrictEqual([
-      "2021-06-20T11:30:00-07:00",
-      "2021-06-20T11:45:00-07:00",
+      "2021-06-20T11:25:00-07:00",
+      "2021-06-20T11:40:00-07:00",
+      "2021-06-20T11:55:00-07:00",
+      "2021-06-20T12:10:00-07:00",
+      "2021-06-20T12:25:00-07:00",
+      "2021-06-20T12:40:00-07:00",
+    ]);
+
+    vi.useRealTimers();
+  });
+
+  it("should respect start of the hour for current day bookings with non-aligned start time", async () => {
+    // Set system time to 2021-06-20 11:20:00 UTC
+    vi.setSystemTime(dayjs.utc("2021-06-20T11:20:00.000Z").toDate());
+
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2021-06-20T00:00:00.000Z", "America/Los_Angeles"),
+      frequency: 60,
+      minimumBookingNotice: 0,
+      eventLength: 60,
+      dateRanges: [
+        {
+          start: dayjs.tz("2021-06-20T11:22:36.234", "America/Los_Angeles"), //with seconds
+          end: dayjs.tz("2021-06-20T14:00:00.000", "America/Los_Angeles"),
+        },
+      ],
+      offsetStart: 0,
+      showOptimizedSlots: true,
+    });
+
+    expect(slots.length).toStrictEqual(2);
+    expect(slots.map((slot) => slot.time.format())).toStrictEqual([
       "2021-06-20T12:00:00-07:00",
-      "2021-06-20T12:15:00-07:00",
-      "2021-06-20T12:30:00-07:00",
+      "2021-06-20T13:00:00-07:00",
     ]);
 
     vi.useRealTimers();
