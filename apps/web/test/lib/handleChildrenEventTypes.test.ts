@@ -24,7 +24,7 @@ vi.mock("@calcom/emails/email-manager", () => {
   };
 });
 
-vi.mock("@calcom/lib/server/i18n", () => {
+vi.mock("@calcom/web/lib/i18n", () => {
   return {
     getTranslation: (key: string) => key,
   };
