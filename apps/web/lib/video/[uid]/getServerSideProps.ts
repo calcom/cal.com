@@ -110,7 +110,8 @@ const checkIfUserIsHost = async ({
     return booking.user?.id === sessionUserId;
   }
 
-  const eventType = await EventTypeRepository.findByIdWithUserAccess({
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdWithUserAccess({
     id: booking.eventTypeId,
     userId: sessionUserId,
   });
@@ -122,7 +123,8 @@ const checkIfUserIsHost = async ({
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
 
-  const booking = await BookingRepository.findBookingForMeetingPage({
+  const bookingRepo = new BookingRepository(prisma);
+  const booking = await bookingRepo.findBookingForMeetingPage({
     bookingUid: context.query.uid as string,
   });
 
@@ -156,9 +158,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       })
     : false;
 
+  const userRepo = new UserRepository(prisma);
   const profile = booking.user
     ? (
-        await UserRepository.enrichUserWithItsProfile({
+        await userRepo.enrichUserWithItsProfile({
           user: booking.user,
         })
       ).profile
