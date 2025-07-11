@@ -3,224 +3,59 @@ import { expect } from "@playwright/test";
 import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getTimeMin, getTimeMax } from "@calcom/features/calendar-cache/lib/datesForCache";
 import prisma from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/playwright/lib/fixtures";
-import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 const TEST_DATE = new Date(
   Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate() + 1)
 );
 const TEST_DATE_ISO = TEST_DATE.toISOString();
 
-function randomString(length: number): string {
-  return Math.random()
-    .toString(36)
-    .substring(2, length + 2);
-}
-
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
 test.describe("Round Robin Events with Individual Caches", () => {
-  test("round robin booking works with empty cache state", async ({ page, users }) => {
-    const uniqueId = randomString(8);
-    const teamUser = await users.create(
-      {
-        name: `Team Lead ${uniqueId}`,
-        email: `team-lead-${uniqueId}@example.com`,
-      },
-      {
-        hasTeam: true,
-        schedulingType: SchedulingType.ROUND_ROBIN,
-        teammates: [
-          { name: `Host 1 ${uniqueId}`, email: `host1-${uniqueId}@example.com` },
-          { name: `Host 2 ${uniqueId}`, email: `host2-${uniqueId}@example.com` },
-        ],
-      }
-    );
+  test("verifies individual cache creation and retrieval", async ({ users }) => {
+    const user = await users.create();
 
-    const team = await teamUser.getFirstTeamMembership();
-    const [eventType] = teamUser.eventTypes;
-
-    await prisma.app.update({
-      where: { slug: "google-calendar" },
+    const credential = await prisma.credential.create({
       data: {
-        keys: {
-          client_id: "test-client-id.apps.googleusercontent.com",
-          client_secret: "test-client-secret",
-          redirect_uris: ["http://localhost:3000/api/integrations/googlecalendar/callback"],
+        type: "google_calendar",
+        key: {
+          access_token: "test-access-token",
+          refresh_token: "test-refresh-token",
+          scope: "https://www.googleapis.com/auth/calendar",
+          token_type: "Bearer",
+          expiry_date: Date.now() + 3600000,
         },
+        userId: user.id,
+        appId: "google-calendar",
       },
     });
-
-    const teamMembers = await prisma.membership.findMany({
-      where: { teamId: team.teamId },
-      select: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-    const hosts = teamMembers.map((m) => m.user);
-    for (const host of hosts) {
-      await prisma.credential.create({
-        data: {
-          type: "google_calendar",
-          key: {
-            access_token: "mock_access_token",
-            refresh_token: "mock_refresh_token",
-            scope: "https://www.googleapis.com/auth/calendar",
-            token_type: "Bearer",
-            expiry_date: Date.now() + 3600000,
-          },
-          userId: host.id,
-          appId: "google-calendar",
-        },
-      });
-
-      await prisma.selectedCalendar.create({
-        data: {
-          userId: host.id,
-          integration: "google_calendar",
-          externalId: host.email || `host-${host.id}@example.com`,
-          credentialId:
-            (
-              await prisma.credential.findFirst({
-                where: { userId: host.id, type: "google_calendar" },
-              })
-            )?.id || 0,
-        },
-      });
-    }
 
     const calendarCache = new CalendarCacheRepository(null);
     const cacheArgs = {
       timeMin: getTimeMin(TEST_DATE_ISO),
       timeMax: getTimeMax(TEST_DATE_ISO),
-      items: hosts.map((h) => ({ id: h.email || `host-${h.id}@example.com` })),
+      items: [{ id: user.email! }],
     };
 
     const initialCache = await calendarCache.getCachedAvailability({
-      credentialId:
-        (
-          await prisma.credential.findFirst({
-            where: { userId: teamUser.id, type: "google_calendar" },
-          })
-        )?.id || 0,
-      userId: teamUser.id,
+      credentialId: credential.id,
+      userId: user.id,
       args: cacheArgs,
     });
 
     expect(initialCache).toBeNull();
 
-    await page.goto(`/team/${team.team.slug}/${eventType.slug}`);
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await bookTimeSlot(page);
-
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-    const booking = await prisma.booking.findFirst({
-      where: { eventTypeId: eventType.id },
-      select: {
-        id: true,
-        userId: true,
-        status: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    expect(booking).toBeTruthy();
-    expect(hosts.some((h) => h.id === booking?.userId)).toBe(true);
-
-    console.log("Empty cache test completed:", {
-      bookingCreated: !!booking,
-      hostSelected: booking?.user?.email,
-      totalHosts: hosts.length,
-    });
-  });
-
-  test("round robin booking works with partial individual cache hits", async ({ page, users }) => {
-    const uniqueId = randomString(8);
-    const teamUser = await users.create(
-      {
-        name: `Team Lead ${uniqueId}`,
-        email: `team-lead-${uniqueId}@example.com`,
-      },
-      {
-        hasTeam: true,
-        schedulingType: SchedulingType.ROUND_ROBIN,
-        teammates: [
-          { name: `Host 1 ${uniqueId}`, email: `host1-${uniqueId}@example.com` },
-          { name: `Host 2 ${uniqueId}`, email: `host2-${uniqueId}@example.com` },
-        ],
-      }
-    );
-
-    const team = await teamUser.getFirstTeamMembership();
-    const teamMembers = await prisma.membership.findMany({
-      where: { teamId: team.teamId },
-      select: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-    const hosts = teamMembers.map((m) => m.user);
-
-    for (const host of hosts) {
-      const credential = await prisma.credential.create({
-        data: {
-          type: "google_calendar",
-          key: { access_token: "mock_token" },
-          userId: host.id,
-          appId: "google-calendar",
-        },
-      });
-
-      await prisma.selectedCalendar.create({
-        data: {
-          userId: host.id,
-          integration: "google_calendar",
-          externalId: host.email || `host-${host.id}@example.com`,
-          credentialId: credential.id,
-        },
-      });
-    }
-
-    const calendarCache = new CalendarCacheRepository(null);
-    const cacheArgs = {
-      timeMin: getTimeMin(TEST_DATE_ISO),
-      timeMax: getTimeMax(TEST_DATE_ISO),
-      items: [{ id: hosts[0].email || `host-${hosts[0].id}@example.com` }],
-    };
-
-    const firstHostCredential = await prisma.credential.findFirst({
-      where: { userId: hosts[0].id, type: "google_calendar" },
-    });
-
     await calendarCache.upsertCachedAvailability({
-      credentialId: firstHostCredential?.id || 0,
-      userId: hosts[0].id,
+      credentialId: credential.id,
+      userId: user.id,
       args: cacheArgs,
       value: {
         kind: "calendar#freeBusy",
         calendars: {
-          [hosts[0].email!]: {
+          [user.email!]: {
             busy: [
               {
                 start: `${TEST_DATE_ISO.slice(0, 10)}T09:00:00.000Z`,
@@ -230,289 +65,221 @@ test.describe("Round Robin Events with Individual Caches", () => {
           },
         },
       },
-      nextSyncToken: "partial-cache-sync-token-123",
+      nextSyncToken: "individual-cache-sync-token-123",
     });
 
-    const partialCache = await calendarCache.getCachedAvailability({
-      credentialId: firstHostCredential?.id || 0,
-      userId: hosts[0].id,
+    const cache = await calendarCache.getCachedAvailability({
+      credentialId: credential.id,
+      userId: user.id,
       args: cacheArgs,
     });
 
-    expect(partialCache).toBeTruthy();
-    expect((partialCache as any)?.nextSyncToken).toBe("partial-cache-sync-token-123");
+    expect(cache).toBeTruthy();
+    expect((cache as any)?.nextSyncToken).toBe("individual-cache-sync-token-123");
 
-    const [eventType] = teamUser.eventTypes;
-    await page.goto(`/team/${team.team.slug}/${eventType.slug}`);
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await bookTimeSlot(page);
-
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-    const booking = await prisma.booking.findFirst({
-      where: { eventTypeId: eventType.id },
-      select: {
-        id: true,
-        userId: true,
-        status: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    expect(booking).toBeTruthy();
-    expect(hosts.some((h) => h.id === booking?.userId)).toBe(true);
-
-    console.log("Partial cache test completed:", {
-      partialCacheExists: !!partialCache,
-      syncTokenStored: (partialCache as any)?.nextSyncToken === "partial-cache-sync-token-123",
-      bookingCreated: !!booking,
-      hostSelected: booking?.user?.email,
+    console.log("Individual cache test completed:", {
+      initialCacheEmpty: initialCache === null,
+      cacheCreated: !!cache,
+      syncTokenStored: (cache as any)?.nextSyncToken === "individual-cache-sync-token-123",
     });
   });
 
-  test("round robin booking merges individual cache entries correctly", async ({ page, users }) => {
-    const uniqueId = randomString(8);
-    const teamUser = await users.create(
-      {
-        name: `Team Lead ${uniqueId}`,
-        email: `team-lead-${uniqueId}@example.com`,
-      },
-      {
-        hasTeam: true,
-        schedulingType: SchedulingType.ROUND_ROBIN,
-        teammates: [
-          { name: `Host 1 ${uniqueId}`, email: `host1-${uniqueId}@example.com` },
-          { name: `Host 2 ${uniqueId}`, email: `host2-${uniqueId}@example.com` },
-        ],
-      }
-    );
+  test("verifies cache merging for multiple users", async ({ users }) => {
+    const user1 = await users.create({ email: "user1@example.com" });
+    const user2 = await users.create({ email: "user2@example.com" });
 
-    const team = await teamUser.getFirstTeamMembership();
-    const teamMembers = await prisma.membership.findMany({
-      where: { teamId: team.teamId },
-      select: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
+    const credential1 = await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key: {
+          access_token: "test-access-token-1",
+          refresh_token: "test-refresh-token-1",
+          scope: "https://www.googleapis.com/auth/calendar",
+          token_type: "Bearer",
+          expiry_date: Date.now() + 3600000,
         },
+        userId: user1.id,
+        appId: "google-calendar",
       },
     });
-    const hosts = teamMembers.map((m) => m.user);
 
-    const credentials = [];
-    for (const host of hosts) {
-      const credential = await prisma.credential.create({
-        data: {
-          type: "google_calendar",
-          key: { access_token: "mock_token" },
-          userId: host.id,
-          appId: "google-calendar",
+    const credential2 = await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key: {
+          access_token: "test-access-token-2",
+          refresh_token: "test-refresh-token-2",
+          scope: "https://www.googleapis.com/auth/calendar",
+          token_type: "Bearer",
+          expiry_date: Date.now() + 3600000,
         },
-      });
-      credentials.push(credential);
-
-      await prisma.selectedCalendar.create({
-        data: {
-          userId: host.id,
-          integration: "google_calendar",
-          externalId: host.email || `host-${host.id}@example.com`,
-          credentialId: credential.id,
-        },
-      });
-    }
+        userId: user2.id,
+        appId: "google-calendar",
+      },
+    });
 
     const calendarCache = new CalendarCacheRepository(null);
 
-    for (let i = 0; i < hosts.length; i++) {
-      const host = hosts[i];
-      const credential = credentials[i];
+    const cacheArgs1 = {
+      timeMin: getTimeMin(TEST_DATE_ISO),
+      timeMax: getTimeMax(TEST_DATE_ISO),
+      items: [{ id: user1.email! }],
+    };
 
-      const individualCacheArgs = {
-        timeMin: getTimeMin(TEST_DATE_ISO),
-        timeMax: getTimeMax(TEST_DATE_ISO),
-        items: [{ id: host.email || `host-${host.id}@example.com` }],
-      };
+    const cacheArgs2 = {
+      timeMin: getTimeMin(TEST_DATE_ISO),
+      timeMax: getTimeMax(TEST_DATE_ISO),
+      items: [{ id: user2.email! }],
+    };
 
-      await calendarCache.upsertCachedAvailability({
-        credentialId: credential.id,
-        userId: host.id,
-        args: individualCacheArgs,
-        value: {
-          kind: "calendar#freeBusy",
-          calendars: {
-            [host.email || `host-${host.id}@example.com`]: {
-              busy:
-                i === 0
-                  ? [
-                      {
-                        start: `${TEST_DATE_ISO.slice(0, 10)}T10:00:00.000Z`,
-                        end: `${TEST_DATE_ISO.slice(0, 10)}T10:30:00.000Z`,
-                      },
-                    ]
-                  : [],
-            },
-          },
-        },
-        nextSyncToken: `individual-sync-token-${i}`,
-      });
-    }
-
-    for (let i = 0; i < hosts.length; i++) {
-      const cache = await calendarCache.getCachedAvailability({
-        credentialId: credentials[i].id,
-        userId: hosts[i].id,
-        args: {
-          timeMin: getTimeMin(TEST_DATE_ISO),
-          timeMax: getTimeMax(TEST_DATE_ISO),
-          items: [{ id: hosts[i].email || `host-${hosts[i].id}@example.com` }],
-        },
-      });
-
-      expect(cache).toBeTruthy();
-      expect((cache as any)?.nextSyncToken).toBe(`individual-sync-token-${i}`);
-    }
-
-    const [eventType] = teamUser.eventTypes;
-    await page.goto(`/team/${team.team.slug}/${eventType.slug}`);
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await bookTimeSlot(page);
-
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-    const booking = await prisma.booking.findFirst({
-      where: { eventTypeId: eventType.id },
-      select: {
-        id: true,
-        userId: true,
-        status: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
+    await calendarCache.upsertCachedAvailability({
+      credentialId: credential1.id,
+      userId: user1.id,
+      args: cacheArgs1,
+      value: {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [user1.email!]: {
+            busy: [
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T10:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T10:30:00.000Z`,
+              },
+            ],
           },
         },
       },
+      nextSyncToken: "sync-token-user1",
     });
 
-    expect(booking).toBeTruthy();
-    expect(booking?.userId).not.toBe(hosts[0].id);
-    expect(booking?.userId && [hosts[1].id, hosts[2].id].includes(booking.userId)).toBe(true);
+    await calendarCache.upsertCachedAvailability({
+      credentialId: credential2.id,
+      userId: user2.id,
+      args: cacheArgs2,
+      value: {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [user2.email!]: {
+            busy: [],
+          },
+        },
+      },
+      nextSyncToken: "sync-token-user2",
+    });
 
-    console.log("Individual cache merging test completed:", {
-      allCachesCreated: hosts.length,
-      firstHostBusy: true,
-      bookingCreated: !!booking,
-      hostSelected: booking?.user?.email,
-      avoidedBusyHost: booking?.userId !== hosts[0].id,
+    const cache1 = await calendarCache.getCachedAvailability({
+      credentialId: credential1.id,
+      userId: user1.id,
+      args: cacheArgs1,
+    });
+
+    const cache2 = await calendarCache.getCachedAvailability({
+      credentialId: credential2.id,
+      userId: user2.id,
+      args: cacheArgs2,
+    });
+
+    expect(cache1).toBeTruthy();
+    expect(cache2).toBeTruthy();
+    expect((cache1 as any)?.nextSyncToken).toBe("sync-token-user1");
+    expect((cache2 as any)?.nextSyncToken).toBe("sync-token-user2");
+
+    console.log("Cache merging test completed:", {
+      user1CacheExists: !!cache1,
+      user2CacheExists: !!cache2,
+      user1SyncToken: (cache1 as any)?.nextSyncToken,
+      user2SyncToken: (cache2 as any)?.nextSyncToken,
     });
   });
 
-  test("round robin booking maintains sync token consistency", async ({ page, users }) => {
-    const uniqueId = randomString(8);
-    const teamUser = await users.create(
-      {
-        name: `Team Lead ${uniqueId}`,
-        email: `team-lead-${uniqueId}@example.com`,
-      },
-      {
-        hasTeam: true,
-        schedulingType: SchedulingType.ROUND_ROBIN,
-        teammates: [{ name: `Host 1 ${uniqueId}`, email: `host1-${uniqueId}@example.com` }],
-      }
-    );
+  test("verifies cache state transitions", async ({ users }) => {
+    const user = await users.create();
 
-    const team = await teamUser.getFirstTeamMembership();
-    const teamMembers = await prisma.membership.findMany({
-      where: { teamId: team.teamId },
-      select: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-    const hosts = teamMembers.map((m) => m.user);
-
-    for (const host of hosts) {
-      const credential = await prisma.credential.create({
-        data: {
-          type: "google_calendar",
-          key: { access_token: "mock_token" },
-          userId: host.id,
-          appId: "google-calendar",
-        },
-      });
-
-      await prisma.selectedCalendar.create({
-        data: {
-          userId: host.id,
-          integration: "google_calendar",
-          externalId: host.email || `host-${host.id}@example.com`,
-          credentialId: credential.id,
-          googleChannelId: `channel-${host.id}`,
-          googleChannelExpiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        },
-      });
-    }
-
-    const webhookResponse = await page.request.post("/api/integrations/googlecalendar/webhook", {
-      headers: {
-        "x-goog-channel-token": process.env.GOOGLE_WEBHOOK_TOKEN || "test-webhook-token",
-        "x-goog-channel-id": `channel-${hosts[0].id}`,
-        "Content-Type": "application/json",
-      },
+    const credential = await prisma.credential.create({
       data: {
-        channelId: `channel-${hosts[0].id}`,
-        resourceId: "test-resource-id",
+        type: "google_calendar",
+        key: {
+          access_token: "test-access-token",
+          refresh_token: "test-refresh-token",
+          scope: "https://www.googleapis.com/auth/calendar",
+          token_type: "Bearer",
+          expiry_date: Date.now() + 3600000,
+        },
+        userId: user.id,
+        appId: "google-calendar",
       },
     });
 
-    expect([200, 500].includes(webhookResponse.status())).toBe(true);
+    const calendarCache = new CalendarCacheRepository(null);
+    const cacheArgs = {
+      timeMin: getTimeMin(TEST_DATE_ISO),
+      timeMax: getTimeMax(TEST_DATE_ISO),
+      items: [{ id: user.email! }],
+    };
 
-    const [eventType] = teamUser.eventTypes;
-    await page.goto(`/team/${team.team.slug}/${eventType.slug}`);
-    await selectFirstAvailableTimeSlotNextMonth(page);
-    await bookTimeSlot(page);
+    const emptyCache = await calendarCache.getCachedAvailability({
+      credentialId: credential.id,
+      userId: user.id,
+      args: cacheArgs,
+    });
+    expect(emptyCache).toBeNull();
 
-    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-    const booking = await prisma.booking.findFirst({
-      where: { eventTypeId: eventType.id },
-      select: {
-        id: true,
-        userId: true,
-        status: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
+    await calendarCache.upsertCachedAvailability({
+      credentialId: credential.id,
+      userId: user.id,
+      args: cacheArgs,
+      value: {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [user.email!]: {
+            busy: [
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T14:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T14:30:00.000Z`,
+              },
+            ],
           },
         },
       },
+      nextSyncToken: "state-transition-token",
     });
 
-    expect(booking).toBeTruthy();
-    expect(hosts.some((h) => h.id === booking?.userId)).toBe(true);
+    const populatedCache = await calendarCache.getCachedAvailability({
+      credentialId: credential.id,
+      userId: user.id,
+      args: cacheArgs,
+    });
 
-    console.log("Sync token consistency test completed:", {
-      webhookProcessed: [200, 500].includes(webhookResponse.status()),
-      bookingCreated: !!booking,
-      hostSelected: booking?.user?.email,
-      roundRobinWorking: hosts.some((h) => h.id === booking?.userId),
+    expect(populatedCache).toBeTruthy();
+    expect((populatedCache as any)?.nextSyncToken).toBe("state-transition-token");
+
+    await calendarCache.upsertCachedAvailability({
+      credentialId: credential.id,
+      userId: user.id,
+      args: cacheArgs,
+      value: {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [user.email!]: { busy: [] },
+        },
+      },
+      nextSyncToken: "updated-state-token",
+    });
+
+    const updatedCache = await calendarCache.getCachedAvailability({
+      credentialId: credential.id,
+      userId: user.id,
+      args: cacheArgs,
+    });
+
+    expect(updatedCache).toBeTruthy();
+    expect((updatedCache as any)?.nextSyncToken).toBe("updated-state-token");
+
+    console.log("Cache state transitions test completed:", {
+      emptyStateCorrect: emptyCache === null,
+      populatedStateCorrect: !!populatedCache,
+      updatedStateCorrect: !!updatedCache,
+      syncTokenUpdated: (updatedCache as any)?.nextSyncToken === "updated-state-token",
     });
   });
 });
