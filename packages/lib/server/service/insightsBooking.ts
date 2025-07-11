@@ -146,7 +146,8 @@ export class InsightsBookingService {
     options: Extract<InsightsBookingServiceOptions, { scope: "org" }>
   ): Promise<Prisma.Sql> {
     // Get all teams from the organization
-    const teamsFromOrg = await TeamRepository.findAllByParentId({
+    const teamRepo = new TeamRepository(this.prisma);
+    const teamsFromOrg = await teamRepo.findAllByParentId({
       parentId: options.orgId,
       select: { id: true },
     });
@@ -176,7 +177,8 @@ export class InsightsBookingService {
   private async buildTeamAuthorizationCondition(
     options: Extract<InsightsBookingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
-    const childTeamOfOrg = await TeamRepository.findByIdAndParentId({
+    const teamRepo = new TeamRepository(this.prisma);
+    const childTeamOfOrg = await teamRepo.findByIdAndParentId({
       id: options.teamId,
       parentId: options.orgId,
       select: { id: true },
