@@ -702,6 +702,8 @@ export default class GoogleCalendarService implements Calendar {
   ): Promise<EventBusyDate[] | null> {
     try {
       const calendarCache = await CalendarCache.init(null);
+
+      // First try to find exact match for multi-calendar query
       const cached = await calendarCache.getCachedAvailability({
         credentialId: this.credential.id,
         userId: this.credential.userId,
@@ -721,6 +723,41 @@ export default class GoogleCalendarService implements Calendar {
         );
         const freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
         return this.convertFreeBusyToEventBusyDates(freeBusyResult);
+      }
+
+      // If multi-calendar cache miss and we have multiple calendars, try individual cache entries
+      if (calendarIds.length > 1) {
+        const individualCacheEntries: EventBusyDate[] = [];
+        let allIndividualCacheHits = true;
+
+        for (const calendarId of calendarIds) {
+          const individualCached = await calendarCache.getCachedAvailability({
+            credentialId: this.credential.id,
+            userId: this.credential.userId,
+            args: {
+              timeMin: getTimeMin(timeMin),
+              timeMax: getTimeMax(timeMax),
+              items: [{ id: calendarId }],
+            },
+          });
+
+          if (individualCached) {
+            const freeBusyResult = individualCached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+            const busyTimes = this.convertFreeBusyToEventBusyDates(freeBusyResult);
+            individualCacheEntries.push(...busyTimes);
+          } else {
+            allIndividualCacheHits = false;
+            break;
+          }
+        }
+
+        if (allIndividualCacheHits) {
+          this.log.debug(
+            "[Cache Hit] Merged individual calendar cache entries for multi-calendar query",
+            safeStringify({ timeMin, timeMax, calendarIds })
+          );
+          return individualCacheEntries;
+        }
       }
 
       return null;

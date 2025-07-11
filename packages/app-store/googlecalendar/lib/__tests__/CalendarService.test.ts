@@ -2243,7 +2243,7 @@ describe("Google Calendar Sync Tokens", () => {
   });
 
   describe("Cache Key Mismatch Issue", () => {
-    test.todo("KNOWN ISSUE: Multi-calendar queries miss cache created by incremental sync", async () => {
+    test("FIXED: Multi-calendar queries now hit cache created by incremental sync", async () => {
       const credential = await createCredentialForCalendarService();
       const calendarService = new CalendarService(credential);
       setFullMockOAuthManagerRequest();
@@ -2264,8 +2264,6 @@ describe("Google Calendar Sync Tokens", () => {
         {
           integration: "google_calendar",
           externalId: "cal1@example.com",
-          credentialId: credential.id,
-          userId: credential.userId || undefined,
         },
       ];
 
@@ -2273,8 +2271,6 @@ describe("Google Calendar Sync Tokens", () => {
         {
           integration: "google_calendar",
           externalId: "cal2@example.com",
-          credentialId: credential.id,
-          userId: credential.userId || undefined,
         },
       ];
 
@@ -2287,10 +2283,10 @@ describe("Google Calendar Sync Tokens", () => {
         { integration: "google_calendar", externalId: "cal2@example.com" },
       ];
 
-      // This should theoretically hit cache but will miss due to key mismatch
+      // This should now hit cache by merging individual calendar cache entries
       const tryGetAvailabilityFromCacheSpy = vi.spyOn(calendarService, "tryGetAvailabilityFromCache" as any);
 
-      // Mock the freebusy query that will be called when cache misses
+      // Mock the freebusy query that should NOT be called since we hit cache
       freebusyQueryMock.mockResolvedValueOnce({
         data: {
           calendars: {
@@ -2307,13 +2303,13 @@ describe("Google Calendar Sync Tokens", () => {
         true
       );
 
-      // Cache should be checked but will miss due to key mismatch
+      // Cache should be checked and should hit by merging individual entries
       expect(tryGetAvailabilityFromCacheSpy).toHaveBeenCalled();
 
-      // API should be called due to cache miss
-      expect(freebusyQueryMock).toHaveBeenCalled();
+      // API should NOT be called since we hit cache
+      expect(freebusyQueryMock).not.toHaveBeenCalled();
 
-      // Result should still be correct
+      // Result should contain merged busy times from both calendars
       expect(result).toEqual([...mockExpectedBusyTimes, ...mockExpectedBusyTimes]);
 
       tryGetAvailabilityFromCacheSpy.mockRestore();
@@ -2359,8 +2355,6 @@ describe("Google Calendar Sync Tokens", () => {
         {
           integration: "google_calendar",
           externalId: "single@example.com",
-          credentialId: credential.id,
-          userId: credential.userId || undefined,
         },
       ];
 
@@ -2419,8 +2413,6 @@ describe("Google Calendar Sync Tokens", () => {
         {
           integration: "google_calendar",
           externalId: "webhook@example.com",
-          credentialId: credential.id,
-          userId: credential.userId,
         },
       ];
 
