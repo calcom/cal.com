@@ -16,6 +16,7 @@ import {
   ById_2024_09_04_type,
   ByUsernameAndEventTypeSlug_2024_09_04_type,
   ByTeamSlugAndEventTypeSlug_2024_09_04_type,
+  GetSlotsInputWithRouting_2024_09_04,
 } from "@calcom/platform-types";
 
 @Injectable()
@@ -30,7 +31,9 @@ export class SlotsInputService_2024_09_04 {
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
 
-  async transformGetSlotsQuery(query: GetSlotsInput_2024_09_04) {
+  async transformGetSlotsQuery<T extends GetSlotsInput_2024_09_04 | GetSlotsInputWithRouting_2024_09_04>(
+    query: T
+  ) {
     const eventType = await this.getEventType(query);
     if (!eventType) {
       throw new NotFoundException(`Event Type not found`);
@@ -46,10 +49,16 @@ export class SlotsInputService_2024_09_04 {
     const timeZone = query.timeZone;
     const orgSlug = "organizationSlug" in query ? query.organizationSlug : null;
     const rescheduleUid = query.bookingUidToReschedule || null;
-    const routedTeamMemberIds = query.routedTeamMemberIds || null;
-    const skipContactOwner = query.skipContactOwner || false;
-    const teamMemberEmail = query.teamMemberEmail || null;
-    const routingFormResponseId = query.routingFormResponseId || null;
+    
+    const routingRelatedData =
+      "withRouting" in query
+        ? {
+            routedTeamMemberIds: query.routedTeamMemberIds || null,
+            skipContactOwner: query.skipContactOwner || false,
+            teamMemberEmail: query.teamMemberEmail || null,
+            routingFormResponseId: query.routingFormResponseId ?? undefined,
+          }
+        : {};
 
     return {
       isTeamEvent,
@@ -62,10 +71,7 @@ export class SlotsInputService_2024_09_04 {
       timeZone,
       orgSlug,
       rescheduleUid,
-      routedTeamMemberIds,
-      skipContactOwner,
-      teamMemberEmail,
-      routingFormResponseId,
+      ...routingRelatedData,
     };
   }
 

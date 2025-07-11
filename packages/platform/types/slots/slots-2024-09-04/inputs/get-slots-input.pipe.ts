@@ -4,6 +4,7 @@ import { plainToClass } from "class-transformer";
 import type { ValidationError } from "class-validator";
 import { validateSync } from "class-validator";
 
+import type { ByIdWithRouting_2024_09_04 } from "./get-slots.input";
 import {
   ById_2024_09_04,
   ByTeamSlugAndEventTypeSlug_2024_09_04,
@@ -16,6 +17,12 @@ export type GetSlotsInput_2024_09_04 =
   | ByUsernameAndEventTypeSlug_2024_09_04
   | ByTeamSlugAndEventTypeSlug_2024_09_04
   | ByUsernames_2024_09_04;
+
+// We only want to support getting slots by eventTypeId only when fetching slots with routing data, because routing data isn't passed by user directly and we completely control the way we want to fetch available slots
+/**
+ * To get slots by eventTypeId and routing data
+ */
+export type GetSlotsInputWithRouting_2024_09_04 = ByIdWithRouting_2024_09_04;
 
 @Injectable()
 export class GetSlotsInputPipe implements PipeTransform {
