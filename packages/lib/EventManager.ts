@@ -42,6 +42,7 @@ import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+const CALDAV_CALENDAR_TYPE = "caldav_calendar";
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };
@@ -176,7 +177,7 @@ export default class EventManager {
 
   private extractServerUrlFromCredential(credential: CredentialForCalendarService): string | null {
     try {
-      if (credential.type !== "caldav_calendar") {
+      if (credential.type !== CALDAV_CALENDAR_TYPE) {
         return null;
       }
 
@@ -199,7 +200,7 @@ export default class EventManager {
 
   private extractServerUrlFromDestination(destination: DestinationCalendar): string | null {
     try {
-      if (destination.integration !== "caldav_calendar" || !destination.externalId) {
+      if (destination.integration !== CALDAV_CALENDAR_TYPE || !destination.externalId) {
         return null;
       }
 
@@ -219,7 +220,7 @@ export default class EventManager {
     credential: CredentialForCalendarService,
     destination: DestinationCalendar
   ): boolean {
-    if (credential.type !== "caldav_calendar" || destination.integration !== "caldav_calendar") {
+    if (credential.type !== CALDAV_CALENDAR_TYPE || destination.integration !== CALDAV_CALENDAR_TYPE) {
       return true;
     }
 
@@ -855,7 +856,7 @@ export default class EventManager {
           const destinationCalendarCredentials = this.calendarCredentials.filter((c) => {
             if (c.type !== destination.integration) return false;
 
-            if (c.type === "caldav_calendar") {
+            if (c.type === CALDAV_CALENDAR_TYPE) {
               return this.credentialMatchesDestination(c, destination);
             }
 
@@ -867,7 +868,7 @@ export default class EventManager {
             | undefined;
 
           if (!firstCalendarCredential) {
-            if (destination.integration === "caldav_calendar") {
+            if (destination.integration === CALDAV_CALENDAR_TYPE) {
               log.warn(
                 "No CalDAV credentials found with matching server URL for destination calendar. This prevents credential leakage.",
                 safeStringify({
