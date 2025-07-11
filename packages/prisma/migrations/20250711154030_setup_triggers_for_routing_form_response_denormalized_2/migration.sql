@@ -339,6 +339,12 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create triggers for AssignmentReason table
+DROP TRIGGER IF EXISTS assignment_reason_insert_trigger_for_routing_form ON "AssignmentReason";
+CREATE TRIGGER assignment_reason_insert_trigger_for_routing_form
+    AFTER INSERT ON "AssignmentReason"
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_assignment_reason();
+
 DROP TRIGGER IF EXISTS assignment_reason_update_trigger_for_routing_form ON "AssignmentReason";
 CREATE TRIGGER assignment_reason_update_trigger_for_routing_form
     AFTER UPDATE OF "reasonString" ON "AssignmentReason"
@@ -386,6 +392,12 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create triggers for Tracking table
+DROP TRIGGER IF EXISTS tracking_insert_trigger_for_routing_form ON "Tracking";
+CREATE TRIGGER tracking_insert_trigger_for_routing_form
+    AFTER INSERT ON "Tracking"
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_refresh_routing_form_response_denormalized_tracking();
+
 DROP TRIGGER IF EXISTS tracking_update_trigger_for_routing_form ON "Tracking";
 CREATE TRIGGER tracking_update_trigger_for_routing_form
     AFTER UPDATE OF utm_source, utm_medium, utm_campaign, utm_term, utm_content ON "Tracking"
