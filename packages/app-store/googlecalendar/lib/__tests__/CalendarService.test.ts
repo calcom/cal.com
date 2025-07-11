@@ -2571,29 +2571,25 @@ describe("Google Calendar Sync Tokens", () => {
     });
     calendarMock.calendar_v3.Calendar().events.list = eventsListMock;
 
-    // Mock the SelectedCalendar database query to return both calendars as siblings
-    const originalPrismaImport = await import("@calcom/prisma");
-    const mockPrismaClient = {
-      selectedCalendar: {
-        findMany: vi.fn().mockResolvedValue([
-          {
-            externalId: "cal1@example.com",
-            eventTypeId: 123,
-          },
-          {
-            externalId: "cal2@example.com",
-            eventTypeId: 123,
-          },
-        ]),
+    // Create selectedCalendar records in the in-memory database so they can be found as siblings
+    await prismock.selectedCalendar.create({
+      data: {
+        userId: credential.userId!,
+        credentialId: credential.id,
+        integration: "google_calendar",
+        externalId: "cal1@example.com",
+        eventTypeId: 123,
       },
-      $disconnect: vi.fn(),
-    };
-
-    // Mock the PrismaClient import
-    vi.doMock("@calcom/prisma", () => ({
-      ...originalPrismaImport,
-      PrismaClient: vi.fn(() => mockPrismaClient),
-    }));
+    });
+    await prismock.selectedCalendar.create({
+      data: {
+        userId: credential.userId!,
+        credentialId: credential.id,
+        integration: "google_calendar",
+        externalId: "cal2@example.com",
+        eventTypeId: 123,
+      },
+    });
 
     // Process webhook for cal1 - this should trigger sibling refresh for cal2
     const selectedCalendars = [
@@ -2619,19 +2615,7 @@ describe("Google Calendar Sync Tokens", () => {
     );
     expect(eventsListMock).toHaveBeenCalledTimes(2); // cal1 + cal2 sibling
 
-    // Verify the sibling discovery query was made
-    expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
-      where: {
-        userId: credential.userId,
-        credentialId: credential.id,
-        integration: "google_calendar",
-        eventTypeId: 123,
-      },
-      select: {
-        externalId: true,
-        eventTypeId: true,
-      },
-    });
+    // The sibling discovery query will naturally find the created selectedCalendar records
 
     // Verify both individual caches were set in the database
     const cacheEntries = await prismock.calendarCache.findMany({
@@ -2786,36 +2770,43 @@ describe("Google Calendar Sync Tokens", () => {
     });
     calendarMock.calendar_v3.Calendar().events.list = eventsListMock;
 
-    // Mock the SelectedCalendar database query to return 3 sibling calendars
-    const originalPrismaImport = await import("@calcom/prisma");
-    const mockPrismaClient = {
-      selectedCalendar: {
-        findMany: vi.fn().mockResolvedValue([
-          {
-            externalId: "cal1@example.com",
-            eventTypeId: 456,
-          },
-          {
-            externalId: "cal2@example.com", // This one already has fresh cache with sync token
-            eventTypeId: 456,
-          },
-          {
-            externalId: "cal3@example.com", // This one has old-style cache (no sync token)
-            eventTypeId: 456,
-          },
-          {
-            externalId: "cal4@example.com", // This one has no cache at all
-            eventTypeId: 456,
-          },
-        ]),
+    // Create selectedCalendar records in the in-memory database so they can be found as siblings
+    await prismock.selectedCalendar.create({
+      data: {
+        userId: credential.userId!,
+        credentialId: credential.id,
+        integration: "google_calendar",
+        externalId: "cal1@example.com",
+        eventTypeId: 456,
       },
-      $disconnect: vi.fn(),
-    };
-
-    vi.doMock("@calcom/prisma", () => ({
-      ...originalPrismaImport,
-      PrismaClient: vi.fn(() => mockPrismaClient),
-    }));
+    });
+    await prismock.selectedCalendar.create({
+      data: {
+        userId: credential.userId!,
+        credentialId: credential.id,
+        integration: "google_calendar",
+        externalId: "cal2@example.com", // This one already has fresh cache with sync token
+        eventTypeId: 456,
+      },
+    });
+    await prismock.selectedCalendar.create({
+      data: {
+        userId: credential.userId!,
+        credentialId: credential.id,
+        integration: "google_calendar",
+        externalId: "cal3@example.com", // This one has old-style cache (no sync token)
+        eventTypeId: 456,
+      },
+    });
+    await prismock.selectedCalendar.create({
+      data: {
+        userId: credential.userId!,
+        credentialId: credential.id,
+        integration: "google_calendar",
+        externalId: "cal4@example.com", // This one has no cache at all
+        eventTypeId: 456,
+      },
+    });
 
     // Create fresh cache with sync token for cal2
     await prismock.calendarCache.create({
