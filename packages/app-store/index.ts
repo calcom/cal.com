@@ -1,4 +1,5 @@
 const appStore = {
+  adyen: createCachedImport(() => import("./adyen")),
   alby: createCachedImport(() => import("./alby")),
   applecalendar: createCachedImport(() => import("./applecalendar")),
   caldavcalendar: createCachedImport(() => import("./caldavcalendar")),
