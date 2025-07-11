@@ -599,8 +599,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (aiSelfServeConfiguration) {
-    console.log("aISelfServeConfiguration", aiSelfServeConfiguration);
-    const res = await ctx.prisma.aiSelfServeConfiguration.update({
+    await ctx.prisma.aISelfServeConfiguration.update({
       where: { eventTypeId: id },
       data: {
         ...(typeof aiSelfServeConfiguration.yourPhoneNumberId === null
@@ -616,8 +615,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           : {}),
       },
     });
-
-    console.log("aISelfServeConfiguration.res", res);
   }
 
   if (calVideoSettings) {
