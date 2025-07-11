@@ -938,11 +938,13 @@ export class AvailableSlotsService {
 
     let routingFormResponse = null;
     if (routingFormResponseId) {
-      routingFormResponse = await RoutingFormResponseRepository.findFormResponseIncludeForm({
+      const formResponseRepo = new RoutingFormResponseRepository(prisma);
+      routingFormResponse = await formResponseRepo.findFormResponseIncludeForm({
         routingFormResponseId,
       });
     } else if (queuedFormResponseId) {
-      routingFormResponse = await RoutingFormResponseRepository.findQueuedFormResponseIncludeForm({
+      const formResponseRepo = new RoutingFormResponseRepository(prisma);
+      routingFormResponse = await formResponseRepo.findQueuedFormResponseIncludeForm({
         queuedFormResponseId,
       });
     }
