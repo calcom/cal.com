@@ -17,6 +17,17 @@ const SCHEDULING_TRIGGER: WebhookTriggerEvents[] = [
   WebhookTriggerEvents.MEETING_STARTED,
 ];
 
+type SLOT_TYPE = {
+  id: number;
+  uid: string;
+  userId: number;
+  eventTypeId: number;
+  slotUtcStartDate: Date;
+  slotUtcEndDate: Date;
+  releaseAt: Date;
+  isSeat: boolean;
+};
+
 const log = logger.getSubLogger({ prefix: ["[node-scheduler]"] });
 
 export async function addSubscription({
@@ -262,6 +273,69 @@ export async function listBookings(
       `Error retrieving list of bookings for ${teamId ? `team ${teamId}` : `user ${userId}`}.`,
       safeStringify(err)
     );
+  }
+}
+
+export async function scheduleReservationExpiredTrigger({
+  slot,
+  subscriberUrl,
+  subscriber,
+  triggerEvent,
+  isDryRun = false,
+}: {
+  slot: SLOT_TYPE;
+  subscriberUrl: string;
+  subscriber: { id: string; appId: string | null };
+  triggerEvent: typeof WebhookTriggerEvents.RESERVATION_EXPIRED;
+  isDryRun?: boolean;
+}) {
+  if (isDryRun) return;
+  try {
+    const payload = JSON.stringify({ triggerEvent, ...slot });
+
+    // Check if a scheduled trigger already exists for this slot and subscriber
+    const existingTrigger = await prisma.webhookScheduledTriggers.findFirst({
+      where: {
+        webhookId: subscriber.id,
+        selectedSlotId: slot.id,
+        subscriberUrl,
+      },
+    });
+
+    if (existingTrigger) {
+      // Update the existing scheduled trigger
+      await prisma.webhookScheduledTriggers.update({
+        where: { id: existingTrigger.id },
+        data: {
+          payload,
+          appId: subscriber.appId,
+          startAfter: slot.releaseAt,
+          subscriberUrl,
+        },
+      });
+    } else {
+      // Create a new scheduled trigger
+      await prisma.webhookScheduledTriggers.create({
+        data: {
+          payload,
+          appId: subscriber.appId,
+          startAfter: slot.releaseAt,
+          subscriberUrl,
+          webhook: {
+            connect: {
+              id: subscriber.id,
+            },
+          },
+          SelectedSlots: {
+            connect: {
+              id: slot.id,
+            },
+          },
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error scheduling webhook trigger (create/update)", error);
   }
 }
 

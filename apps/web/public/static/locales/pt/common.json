@@ -3207,5 +3207,6 @@
   "available_credits": "Créditos disponíveis",
   "members_affected_by_disabling_delegation_credential": "Membros afetados",
   "no_members_affected_by_disabling_delegation_credential": "Nenhum membro afetado pela desativação da credencial de delegação",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Reserva expirada"
 }

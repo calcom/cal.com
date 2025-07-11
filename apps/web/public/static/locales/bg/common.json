@@ -3207,5 +3207,6 @@
   "available_credits": "Налични кредити",
   "members_affected_by_disabling_delegation_credential": "Засегнати членове",
   "no_members_affected_by_disabling_delegation_credential": "Няма членове, засегнати от деактивирането на пълномощията за делегиране",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Резервацията е изтекла"
 }

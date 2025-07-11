@@ -3207,5 +3207,6 @@
   "available_credits": "사용 가능한 크레딧",
   "members_affected_by_disabling_delegation_credential": "영향을 받는 멤버",
   "no_members_affected_by_disabling_delegation_credential": "위임 자격 증명 비활성화로 영향을 받는 멤버 없음",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "예약 만료"
 }

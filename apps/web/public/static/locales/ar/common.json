@@ -3208,5 +3208,6 @@
   "available_credits": "الرصيد المتاح",
   "members_affected_by_disabling_delegation_credential": "الأعضاء المتأثرون",
   "no_members_affected_by_disabling_delegation_credential": "لا يوجد أعضاء متأثرون بتعطيل بيانات اعتماد التفويض",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "انتهت صلاحية الحجز"
 }

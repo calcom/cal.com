@@ -3207,5 +3207,6 @@
   "available_credits": "Elérhető kreditek",
   "members_affected_by_disabling_delegation_credential": "Érintett tagok",
   "no_members_affected_by_disabling_delegation_credential": "Nincsenek tagok, akiket érintene a delegálási hitelesítő adatok letiltása",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "A foglalás lejárt"
 }

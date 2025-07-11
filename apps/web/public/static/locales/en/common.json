@@ -3343,6 +3343,7 @@
   "booking_not_allowed_by_restriction_schedule_error": "Booking outside restriction schedule availability.",
   "restriction_schedule_not_found_error": "Restriction schedule not found",
   "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
+  "reservation_expired": "Reservation Expired",
   "license_key": "License key",
   "license_selection_title": "Choose your license",
   "license_selection_description": "Select how you want to license your Cal.com deployment",
