@@ -1,6 +1,7 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
+
+// import type { Prisma } from "@calcom/prisma/client";
 
 export type HashedLinkInputType = {
   link: string;
@@ -14,23 +15,23 @@ type NormalizedLink = {
   maxUsageCount?: number | null;
 };
 
-function normalizeLinkInput(input: string | HashedLinkInputType): NormalizedLink {
-  return typeof input === "string"
-    ? { link: input, expiresAt: null }
-    : {
-        link: input.link,
-        expiresAt: input.expiresAt ?? null,
-        maxUsageCount: input.maxUsageCount,
-      };
-}
-
 export class PrivateLinksRepository {
-  static async deleteLinks(eventTypeId: number, linksToDelete: string[], tx?: PrismaTransaction) {
+  constructor(private readonly prismaClient: PrismaClient = prisma) {}
+
+  private normalizeLinkInput(input: string | HashedLinkInputType): NormalizedLink {
+    return typeof input === "string"
+      ? { link: input, expiresAt: null }
+      : {
+          link: input.link,
+          expiresAt: input.expiresAt ?? null,
+          maxUsageCount: input.maxUsageCount,
+        };
+  }
+
+  async deleteLinks(eventTypeId: number, linksToDelete: string[], tx?: PrismaTransaction) {
     if (linksToDelete.length === 0) return;
 
-    const prismaClient = tx ?? prisma;
-
-    return await prismaClient.hashedLink.deleteMany({
+    return await this.prismaClient.hashedLink.deleteMany({
       where: {
         eventTypeId,
         link: { in: linksToDelete },
@@ -38,9 +39,7 @@ export class PrivateLinksRepository {
     });
   }
 
-  static async createLink(eventTypeId: number, linkData: NormalizedLink, tx?: PrismaTransaction) {
-    const prismaClient = tx ?? prisma;
-
+  async createLink(eventTypeId: number, linkData: NormalizedLink, tx?: PrismaTransaction) {
     const data: Prisma.HashedLinkCreateManyInput = {
       eventTypeId,
       link: linkData.link,
@@ -51,12 +50,10 @@ export class PrivateLinksRepository {
       data.maxUsageCount = linkData.maxUsageCount;
     }
 
-    return await prismaClient.hashedLink.create({ data });
+    return await this.prismaClient.hashedLink.create({ data });
   }
 
-  static async updateLink(eventTypeId: number, linkData: NormalizedLink, tx?: PrismaTransaction) {
-    const prismaClient = tx ?? prisma;
-
+  async updateLink(eventTypeId: number, linkData: NormalizedLink, tx?: PrismaTransaction) {
     const updateData: Prisma.HashedLinkUpdateManyMutationInput = {
       expiresAt: linkData.expiresAt,
     };
@@ -65,7 +62,7 @@ export class PrivateLinksRepository {
       updateData.maxUsageCount = linkData.maxUsageCount;
     }
 
-    return await prismaClient.hashedLink.updateMany({
+    return await this.prismaClient.hashedLink.updateMany({
       where: {
         eventTypeId,
         link: linkData.link,
@@ -74,7 +71,7 @@ export class PrivateLinksRepository {
     });
   }
 
-  static async handleMultiplePrivateLinks({
+  async handleMultiplePrivateLinks({
     eventTypeId,
     multiplePrivateLinks,
     connectedMultiplePrivateLinks,
@@ -106,10 +103,8 @@ export class PrivateLinksRepository {
     }
   }
 
-  static async findLinksByEventTypeId(eventTypeId: number, tx?: PrismaTransaction) {
-    const prismaClient = tx ?? prisma;
-
-    return await prismaClient.hashedLink.findMany({
+  async findLinksByEventTypeId(eventTypeId: number, tx?: PrismaTransaction) {
+    return await this.prismaClient.hashedLink.findMany({
       where: {
         eventTypeId,
       },
@@ -122,10 +117,8 @@ export class PrivateLinksRepository {
     });
   }
 
-  static async findLinkByEventTypeIdAndLink(eventTypeId: number, link: string, tx?: PrismaTransaction) {
-    const prismaClient = tx ?? prisma;
-
-    return await prismaClient.hashedLink.findFirst({
+  async findLinkByEventTypeIdAndLink(eventTypeId: number, link: string, tx?: PrismaTransaction) {
+    return await this.prismaClient.hashedLink.findFirst({
       where: {
         eventTypeId,
         link,
@@ -133,10 +126,8 @@ export class PrivateLinksRepository {
     });
   }
 
-  static async findLinkWithEventTypeDetails(linkId: string, tx?: PrismaTransaction) {
-    const prismaClient = tx ?? prisma;
-
-    return await prismaClient.hashedLink.findUnique({
+  async findLinkWithEventTypeDetails(linkId: string, tx?: PrismaTransaction) {
+    return await this.prismaClient.hashedLink.findUnique({
       where: {
         link: linkId,
       },
@@ -157,10 +148,8 @@ export class PrivateLinksRepository {
     });
   }
 
-  static async findLinksWithEventTypeDetails(linkIds: string[], tx?: PrismaTransaction) {
-    const prismaClient = tx ?? prisma;
-
-    return await prismaClient.hashedLink.findMany({
+  async findLinksWithEventTypeDetails(linkIds: string[], tx?: PrismaTransaction) {
+    return await this.prismaClient.hashedLink.findMany({
       where: {
         link: {
           in: linkIds,
@@ -183,10 +172,8 @@ export class PrivateLinksRepository {
     });
   }
 
-  static async validateAndIncrementUsage(linkId: string, tx?: PrismaTransaction) {
-    const prismaClient = tx ?? prisma;
-
-    const hashedLink = await prismaClient.hashedLink.findUnique({
+  async validateAndIncrementUsage(linkId: string, tx?: PrismaTransaction) {
+    const hashedLink = await this.prismaClient.hashedLink.findUnique({
       where: {
         link: linkId,
       },
@@ -207,7 +194,7 @@ export class PrivateLinksRepository {
       }
 
       try {
-        await prismaClient.hashedLink.update({
+        await this.prismaClient.hashedLink.update({
           where: {
             id: hashedLink.id,
             usageCount: { lt: hashedLink.maxUsageCount },
@@ -224,17 +211,15 @@ export class PrivateLinksRepository {
     return hashedLink;
   }
 
-  static async checkUserPermissionForLink(
+  async checkUserPermissionForLink(
     link: { eventType: { teamId?: number | null; userId?: number | null } },
     userId: number,
     tx?: PrismaTransaction
   ): Promise<boolean> {
-    const prismaClient = tx ?? prisma;
-
     if (link.eventType.userId && link.eventType.userId !== userId) return false;
     if (!link.eventType.teamId) return true;
 
-    const membership = await prismaClient.membership.findFirst({
+    const membership = await this.prismaClient.membership.findFirst({
       where: {
         teamId: link.eventType.teamId,
         userId,

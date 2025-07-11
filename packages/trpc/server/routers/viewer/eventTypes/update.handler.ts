@@ -493,10 +493,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
   // Handle multiple private links using the repository
-  const connectedLinks = await PrivateLinksRepository.findLinksByEventTypeId(input.id);
+  const privateLinksRepo = new PrivateLinksRepository(ctx.prisma);
+  const connectedLinks = await privateLinksRepo.findLinksByEventTypeId(input.id);
   const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
 
-  await PrivateLinksRepository.handleMultiplePrivateLinks({
+  await privateLinksRepo.handleMultiplePrivateLinks({
     eventTypeId: input.id,
     multiplePrivateLinks,
     connectedMultiplePrivateLinks,

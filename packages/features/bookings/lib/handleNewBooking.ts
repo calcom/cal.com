@@ -2113,8 +2113,9 @@ async function handler(
   }
 
   try {
+    const privateLinksRepo = new PrivateLinksRepository(prisma);
     if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      await PrivateLinksRepository.validateAndIncrementUsage(reqBody.hashedLink as string);
+      await privateLinksRepo.validateAndIncrementUsage(reqBody.hashedLink as string);
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
