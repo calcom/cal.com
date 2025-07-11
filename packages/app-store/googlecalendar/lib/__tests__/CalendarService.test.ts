@@ -2523,4 +2523,365 @@ describe("Google Calendar Sync Tokens", () => {
       ]);
     });
   });
+
+  test("PROACTIVE: Sibling calendars are refreshed when processing webhook", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+
+    const dateRange = getTestDateRange();
+
+    // Mock both calendars to return different events
+    const cal1Events = [
+      {
+        id: "cal1-event-1",
+        summary: "Cal1 Event 1",
+        start: { dateTime: `${dateRange.timeMin.split("T")[0]}T10:00:00Z` },
+        end: { dateTime: `${dateRange.timeMin.split("T")[0]}T11:00:00Z` },
+      },
+    ];
+
+    const cal2Events = [
+      {
+        id: "cal2-event-1",
+        summary: "Cal2 Event 1",
+        start: { dateTime: `${dateRange.timeMin.split("T")[0]}T14:00:00Z` },
+        end: { dateTime: `${dateRange.timeMin.split("T")[0]}T15:00:00Z` },
+      },
+    ];
+
+    // Mock the events.list method to return different events for each calendar
+    const eventsListMock = vi.fn().mockImplementation((params) => {
+      if (params.calendarId === "cal1@example.com") {
+        return Promise.resolve({
+          data: {
+            items: cal1Events,
+            nextSyncToken: "sync_token_cal1",
+          },
+        });
+      } else if (params.calendarId === "cal2@example.com") {
+        return Promise.resolve({
+          data: {
+            items: cal2Events,
+            nextSyncToken: "sync_token_cal2",
+          },
+        });
+      }
+      return Promise.resolve({ data: { items: [] } });
+    });
+    calendarMock.calendar_v3.Calendar().events.list = eventsListMock;
+
+    // Mock the SelectedCalendar database query to return both calendars as siblings
+    const originalPrismaImport = await import("@calcom/prisma");
+    const mockPrismaClient = {
+      selectedCalendar: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            externalId: "cal1@example.com",
+            eventTypeId: 123,
+          },
+          {
+            externalId: "cal2@example.com",
+            eventTypeId: 123,
+          },
+        ]),
+      },
+      $disconnect: vi.fn(),
+    };
+
+    // Mock the PrismaClient import
+    vi.doMock("@calcom/prisma", () => ({
+      ...originalPrismaImport,
+      PrismaClient: vi.fn(() => mockPrismaClient),
+    }));
+
+    // Process webhook for cal1 - this should trigger sibling refresh for cal2
+    const selectedCalendars = [
+      {
+        integration: "google_calendar",
+        externalId: "cal1@example.com",
+        eventTypeId: 123,
+      },
+    ];
+
+    await calendarService.fetchAvailabilityAndSetCacheIncremental(selectedCalendars);
+
+    // Verify both calendars were called (cal1 + cal2 sibling refresh)
+    expect(eventsListMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        calendarId: "cal1@example.com",
+      })
+    );
+    expect(eventsListMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        calendarId: "cal2@example.com",
+      })
+    );
+    expect(eventsListMock).toHaveBeenCalledTimes(2); // cal1 + cal2 sibling
+
+    // Verify the sibling discovery query was made
+    expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
+      where: {
+        userId: credential.userId,
+        credentialId: credential.id,
+        integration: "google_calendar",
+        eventTypeId: 123,
+      },
+      select: {
+        externalId: true,
+        eventTypeId: true,
+      },
+    });
+
+    // Verify both individual caches were set in the database
+    const cacheEntries = await prismock.calendarCache.findMany({
+      where: { credentialId: credential.id },
+    });
+
+    expect(cacheEntries).toHaveLength(2);
+    expect(cacheEntries.map((c) => JSON.parse(c.key))).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          items: [{ id: "cal1@example.com" }],
+        }),
+        expect.objectContaining({
+          items: [{ id: "cal2@example.com" }],
+        }),
+      ])
+    );
+
+    // Verify both caches have sync tokens
+    cacheEntries.forEach((cache) => {
+      expect(cache.nextSyncToken).toBeDefined();
+    });
+
+    // NOW TEST THE OPTIMIZATION: Process another webhook for cal1
+    // This time cal2 should NOT be refreshed because it already has fresh cache
+    eventsListMock.mockClear();
+
+    await calendarService.fetchAvailabilityAndSetCacheIncremental(selectedCalendars);
+
+    // Only cal1 should be refreshed, cal2 should be skipped
+    expect(eventsListMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        calendarId: "cal1@example.com",
+      })
+    );
+    expect(eventsListMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        calendarId: "cal2@example.com",
+      })
+    );
+    expect(eventsListMock).toHaveBeenCalledTimes(1); // Only cal1, cal2 skipped
+
+    // Test multi-calendar query - should still hit both caches
+    const multiCalendarResult = await calendarService.getAvailability(
+      dateRange.timeMin,
+      dateRange.timeMax,
+      [
+        {
+          integration: "google_calendar",
+          externalId: "cal1@example.com",
+          eventTypeId: 123,
+        },
+        {
+          integration: "google_calendar",
+          externalId: "cal2@example.com",
+          eventTypeId: 123,
+        },
+      ],
+      true
+    );
+
+    // Should have busy times from both calendars
+    expect(multiCalendarResult).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          start: expect.stringContaining("10:00:00"),
+          end: expect.stringContaining("11:00:00"),
+        }),
+        expect.objectContaining({
+          start: expect.stringContaining("14:00:00"),
+          end: expect.stringContaining("15:00:00"),
+        }),
+      ])
+    );
+  });
+
+  test("OPTIMIZATION: Only refreshes sibling calendars that need it", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+
+    const dateRange = getTestDateRange();
+
+    // Set up cal3 with old-style cache (no sync token) in the database
+    await prismock.calendarCache.create({
+      data: {
+        key: JSON.stringify({
+          timeMin: dateRange.timeMin,
+          timeMax: dateRange.timeMax,
+          items: [{ id: "cal3@example.com" }],
+        }),
+        value: JSON.stringify({
+          calendars: {
+            "cal3@example.com": {
+              busy: [{ start: "2024-01-15T16:00:00Z", end: "2024-01-15T17:00:00Z" }],
+            },
+          },
+        }),
+        expiresAt: new Date(Date.now() + 1000000), // Not expired
+        credentialId: credential.id,
+        userId: credential.userId!,
+        nextSyncToken: null, // Old-style cache without sync token
+      },
+    });
+
+    // Mock the events.list method
+    const eventsListMock = vi.fn().mockImplementation((params) => {
+      if (params.calendarId === "cal1@example.com") {
+        return Promise.resolve({
+          data: {
+            items: [
+              {
+                id: "cal1-event-1",
+                summary: "Cal1 Event 1",
+                start: { dateTime: `${dateRange.timeMin.split("T")[0]}T10:00:00Z` },
+                end: { dateTime: `${dateRange.timeMin.split("T")[0]}T11:00:00Z` },
+              },
+            ],
+            nextSyncToken: "sync_token_cal1",
+          },
+        });
+      } else if (params.calendarId === "cal3@example.com") {
+        return Promise.resolve({
+          data: {
+            items: [
+              {
+                id: "cal3-event-1",
+                summary: "Cal3 Event 1",
+                start: { dateTime: `${dateRange.timeMin.split("T")[0]}T16:00:00Z` },
+                end: { dateTime: `${dateRange.timeMin.split("T")[0]}T17:00:00Z` },
+              },
+            ],
+            nextSyncToken: "sync_token_cal3",
+          },
+        });
+      } else if (params.calendarId === "cal4@example.com") {
+        return Promise.resolve({
+          data: {
+            items: [
+              {
+                id: "cal4-event-1",
+                summary: "Cal4 Event 1",
+                start: { dateTime: `${dateRange.timeMin.split("T")[0]}T18:00:00Z` },
+                end: { dateTime: `${dateRange.timeMin.split("T")[0]}T19:00:00Z` },
+              },
+            ],
+            nextSyncToken: "sync_token_cal4",
+          },
+        });
+      }
+      return Promise.resolve({ data: { items: [] } });
+    });
+    calendarMock.calendar_v3.Calendar().events.list = eventsListMock;
+
+    // Mock the SelectedCalendar database query to return 3 sibling calendars
+    const originalPrismaImport = await import("@calcom/prisma");
+    const mockPrismaClient = {
+      selectedCalendar: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            externalId: "cal1@example.com",
+            eventTypeId: 456,
+          },
+          {
+            externalId: "cal2@example.com", // This one already has fresh cache with sync token
+            eventTypeId: 456,
+          },
+          {
+            externalId: "cal3@example.com", // This one has old-style cache (no sync token)
+            eventTypeId: 456,
+          },
+          {
+            externalId: "cal4@example.com", // This one has no cache at all
+            eventTypeId: 456,
+          },
+        ]),
+      },
+      $disconnect: vi.fn(),
+    };
+
+    vi.doMock("@calcom/prisma", () => ({
+      ...originalPrismaImport,
+      PrismaClient: vi.fn(() => mockPrismaClient),
+    }));
+
+    // Create fresh cache with sync token for cal2
+    await prismock.calendarCache.create({
+      data: {
+        key: JSON.stringify({
+          timeMin: dateRange.timeMin,
+          timeMax: dateRange.timeMax,
+          items: [{ id: "cal2@example.com" }],
+        }),
+        value: JSON.stringify({
+          calendars: {
+            "cal2@example.com": {
+              busy: [{ start: "2024-01-15T14:00:00Z", end: "2024-01-15T15:00:00Z" }],
+            },
+          },
+        }),
+        expiresAt: new Date(Date.now() + 1000000),
+        credentialId: credential.id,
+        userId: credential.userId!,
+        nextSyncToken: "existing_sync_token_cal2", // Fresh cache with sync token
+      },
+    });
+
+    // Process webhook for cal1
+    const selectedCalendars = [
+      {
+        integration: "google_calendar",
+        externalId: "cal1@example.com",
+        eventTypeId: 456,
+      },
+    ];
+
+    await calendarService.fetchAvailabilityAndSetCacheIncremental(selectedCalendars);
+
+    // Verify selective refresh:
+    // - cal1: always refreshed (main webhook)
+    // - cal2: skipped (has fresh cache with sync token)
+    // - cal3: refreshed (has old-style cache without sync token)
+    // - cal4: refreshed (no cache at all)
+
+    expect(eventsListMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        calendarId: "cal1@example.com",
+      })
+    );
+
+    // cal2 should be skipped (has fresh cache with sync token)
+    expect(eventsListMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        calendarId: "cal2@example.com",
+      })
+    );
+
+    expect(eventsListMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        calendarId: "cal3@example.com",
+      })
+    );
+
+    expect(eventsListMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        calendarId: "cal4@example.com",
+      })
+    );
+
+    // Verify only necessary calendars were refreshed
+    expect(eventsListMock).toHaveBeenCalledTimes(3); // cal1 + cal3 + cal4 (cal2 skipped)
+  });
 });

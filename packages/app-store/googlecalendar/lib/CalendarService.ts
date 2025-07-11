@@ -1208,6 +1208,9 @@ export default class GoogleCalendarService implements Calendar {
           busyTimes,
           nextSyncToken
         );
+
+        // 🚀 PROACTIVE SIBLING CACHE REFRESH
+        await this.refreshSiblingCalendars(selectedCalendar);
       } catch (error) {
         log.error("Error in incremental sync, falling back to full sync", {
           error,
@@ -1215,6 +1218,188 @@ export default class GoogleCalendarService implements Calendar {
         });
         await this.fetchAvailabilityAndSetCache([selectedCalendar]);
       }
+    }
+  }
+
+  /**
+   * Proactively refreshes sibling calendars that are used in combination with the updated calendar
+   * This ensures that multi-calendar queries will have all individual caches available
+   * Only refreshes siblings that don't already have fresh individual cache entries
+   */
+  private async refreshSiblingCalendars(updatedCalendar: IntegrationCalendar) {
+    try {
+      const siblingGroups = await this.findSiblingCalendarGroups(updatedCalendar);
+
+      for (const group of siblingGroups) {
+        // Skip the calendar we just updated
+        const siblingsToRefresh = group.calendars.filter(
+          (cal) => cal.externalId !== updatedCalendar.externalId
+        );
+
+        // Check cache status for each sibling and only refresh those without fresh cache
+        const siblingsNeedingRefresh = await this.filterSiblingsNeedingRefresh(siblingsToRefresh);
+
+        // Refresh only siblings that need it
+        for (const sibling of siblingsNeedingRefresh) {
+          await this.refreshSingleCalendar(sibling);
+        }
+
+        if (siblingsNeedingRefresh.length > 0) {
+          this.log.debug(
+            `Refreshed ${siblingsNeedingRefresh.length} of ${siblingsToRefresh.length} sibling calendars`,
+            {
+              refreshed: siblingsNeedingRefresh.map((s) => s.externalId),
+              skipped: siblingsToRefresh
+                .filter((s) => !siblingsNeedingRefresh.includes(s))
+                .map((s) => s.externalId),
+            }
+          );
+        }
+      }
+    } catch (error) {
+      log.error("Error refreshing sibling calendars", {
+        error,
+        updatedCalendar: updatedCalendar.externalId,
+      });
+      // Don't throw - sibling refresh is a performance optimization, not critical
+    }
+  }
+
+  /**
+   * Filters sibling calendars to only include those that need cache refresh
+   * Checks for existing individual cache entries and their freshness
+   */
+  private async filterSiblingsNeedingRefresh(
+    siblings: { externalId: string; eventTypeId: number | null }[]
+  ): Promise<{ externalId: string; eventTypeId: number | null }[]> {
+    const siblingsNeedingRefresh: { externalId: string; eventTypeId: number | null }[] = [];
+
+    try {
+      const calendarCache = await CalendarCache.init(this);
+
+      for (const sibling of siblings) {
+        try {
+          // Check if sibling already has a fresh individual cache
+          const cached = await calendarCache.getCachedAvailability({
+            credentialId: this.credential.id,
+            userId: this.credential.userId,
+            args: {
+              timeMin: getTimeMin(),
+              timeMax: getTimeMax(),
+              items: [{ id: sibling.externalId }],
+            },
+          });
+
+          // If no cache exists, refresh is needed
+          if (!cached) {
+            siblingsNeedingRefresh.push(sibling);
+            continue;
+          }
+
+          // If cache exists but has no sync token, it's old-style cache - refresh to get sync token
+          if (!(cached as any)?.nextSyncToken) {
+            this.log.debug(`Sibling ${sibling.externalId} has old-style cache, refreshing to add sync token`);
+            siblingsNeedingRefresh.push(sibling);
+            continue;
+          }
+
+          // Cache exists and has sync token - skip refresh
+          this.log.debug(
+            `Sibling ${sibling.externalId} already has fresh cache with sync token, skipping refresh`
+          );
+        } catch (error) {
+          // If error checking cache, err on side of caution and refresh
+          this.log.debug(`Error checking cache for sibling ${sibling.externalId}, will refresh`, { error });
+          siblingsNeedingRefresh.push(sibling);
+        }
+      }
+    } catch (error) {
+      // If error with cache init, refresh all siblings as fallback
+      this.log.debug("Error initializing cache for sibling check, refreshing all siblings", { error });
+      return siblings;
+    }
+
+    return siblingsNeedingRefresh;
+  }
+
+  /**
+   * Finds all calendar groups that contain the given calendar
+   */
+  private async findSiblingCalendarGroups(calendar: IntegrationCalendar) {
+    try {
+      // Find all SelectedCalendar records that share the same userId, credentialId, and eventTypeId
+      const relatedCalendars = await prisma.selectedCalendar.findMany({
+        where: {
+          userId: this.credential.userId!,
+          credentialId: this.credential.id,
+          integration: "google_calendar",
+          eventTypeId: calendar.eventTypeId || null,
+        },
+        select: {
+          externalId: true,
+          eventTypeId: true,
+        },
+      });
+
+      if (relatedCalendars.length <= 1) {
+        // No siblings found
+        return [];
+      }
+
+      // Group calendars by eventTypeId (they're all the same in this case, but keeping consistent structure)
+      const groups = [
+        {
+          eventTypeId: calendar.eventTypeId || null,
+          calendars: relatedCalendars.map((cal) => ({
+            externalId: cal.externalId,
+            eventTypeId: cal.eventTypeId,
+            integration: "google_calendar" as const,
+          })),
+        },
+      ];
+
+      return groups;
+    } catch (error) {
+      this.log.debug("Error in sibling discovery", { error });
+      return [];
+    }
+  }
+
+  /**
+   * Refreshes a single calendar's cache
+   */
+  private async refreshSingleCalendar(calendar: { externalId: string; eventTypeId: number | null }) {
+    try {
+      const calendarCache = await CalendarCache.init(this);
+
+      const cached = await calendarCache.getCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args: {
+          timeMin: getTimeMin(),
+          timeMax: getTimeMax(),
+          items: [{ id: calendar.externalId }],
+        },
+      });
+
+      const existingSyncToken = (cached as any)?.nextSyncToken || undefined;
+
+      const { events, nextSyncToken } = await this.fetchEventsIncremental(
+        calendar.externalId,
+        existingSyncToken
+      );
+
+      const busyTimes = this.convertEventsToBusyTimes(events);
+
+      await this.setAvailabilityInCacheWithSyncToken([{ id: calendar.externalId }], busyTimes, nextSyncToken);
+
+      this.log.debug(`Refreshed sibling calendar: ${calendar.externalId}`);
+    } catch (error) {
+      log.error("Error refreshing single calendar", {
+        error,
+        calendarId: calendar.externalId,
+      });
+      // Don't throw - continue with other siblings
     }
   }
 
