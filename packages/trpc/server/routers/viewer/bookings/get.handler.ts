@@ -460,6 +460,7 @@ export async function getBookings({
           "Booking.paid",
           "Booking.fromReschedule",
           "Booking.rescheduled",
+          "Booking.rescheduledToUid",
           "Booking.isRecorded",
           jsonObjectFrom(
             eb

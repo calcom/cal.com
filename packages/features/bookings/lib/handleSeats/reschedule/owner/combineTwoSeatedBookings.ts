@@ -146,13 +146,14 @@ const combineTwoSeatedBookings = async (
     );
   }
 
-  // Update the old booking with the cancelled status
   await prisma.booking.update({
     where: {
       id: seatedBooking.id,
     },
     data: {
       status: BookingStatus.CANCELLED,
+      rescheduled: true,
+      rescheduledToUid: newTimeSlotBooking.uid, // Set the UID of the booking this was rescheduled to
     },
   });
 

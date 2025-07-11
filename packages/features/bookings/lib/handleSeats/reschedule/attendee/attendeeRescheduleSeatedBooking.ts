@@ -32,7 +32,8 @@ const attendeeRescheduleSeatedBooking = async (
     const deletedReference = await lastAttendeeDeleteBooking(
       originalRescheduledBooking,
       filteredAttendees,
-      originalBookingEvt
+      originalBookingEvt,
+      newTimeSlotBooking?.uid // Pass the new booking UID if available
     );
 
     if (!deletedReference) {
@@ -95,7 +96,12 @@ const attendeeRescheduleSeatedBooking = async (
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });
-  await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
+  await lastAttendeeDeleteBooking(
+    originalRescheduledBooking,
+    filteredAttendees,
+    originalBookingEvt,
+    newTimeSlotBooking.uid
+  );
 
   const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
 

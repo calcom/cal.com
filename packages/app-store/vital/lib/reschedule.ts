@@ -84,6 +84,8 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
         cancellationReason,
         status: BookingStatus.CANCELLED,
         updatedAt: dayjs().toISOString(),
+        // Note: rescheduledToUid will be set when the new booking is created
+        // This is an app-specific reschedule flow where we don't have the new booking yet
       },
     });
     const [mainAttendee] = bookingToReschedule.attendees;

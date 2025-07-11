@@ -308,6 +308,7 @@ function buildNewBookingData(params: CreateBookingParams) {
           rescheduled: true,
           status: BookingStatus.CANCELLED,
           rescheduledBy: rescheduledBy,
+          rescheduledToUid: uid, // Set the new booking's UID on the original booking
         },
       };
     }

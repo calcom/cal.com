@@ -77,10 +77,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let rescheduledToUid: string | null = null;
   if (bookingInfo.rescheduled) {
-    const rescheduledTo = await BookingRepository.findFirstBookingByReschedule({
-      originalBookingUid: bookingInfo.uid,
-    });
-    rescheduledToUid = rescheduledTo?.uid ?? null;
+    rescheduledToUid = bookingInfo.rescheduledToUid ?? null;
   }
 
   let previousBooking: {

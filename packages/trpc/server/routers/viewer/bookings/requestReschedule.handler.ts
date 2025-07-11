@@ -148,6 +148,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       status: BookingStatus.CANCELLED,
       updatedAt: dayjs().toISOString(),
       cancelledBy: user.email,
+      // Note: rescheduledToUid will be set when the new booking is created
+      // This is a "request reschedule" flow where we don't have the new booking yet
     },
   });
 
