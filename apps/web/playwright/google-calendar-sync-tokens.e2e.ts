@@ -76,7 +76,7 @@ test.describe("Google Calendar Sync Token Webhook Flow", () => {
 
     const webhookResponse = await page.request.post("/api/integrations/googlecalendar/webhook", {
       headers: {
-        "x-goog-channel-token": process.env.GOOGLE_WEBHOOK_TOKEN || "test-webhook-token",
+        "x-goog-channel-token": "test-webhook-token-12345",
         "x-goog-channel-id": "test-channel-123",
         "Content-Type": "application/json",
       },
@@ -232,7 +232,7 @@ test.describe("Google Calendar Sync Token Webhook Flow", () => {
 
     const webhookResponse = await page.request.post("/api/integrations/googlecalendar/webhook", {
       headers: {
-        "x-goog-channel-token": process.env.GOOGLE_WEBHOOK_TOKEN || "test-webhook-token",
+        "x-goog-channel-token": "test-webhook-token-12345",
         "x-goog-channel-id": "test-channel-456",
         "Content-Type": "application/json",
       },
