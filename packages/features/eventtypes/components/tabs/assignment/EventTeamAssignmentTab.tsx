@@ -324,6 +324,46 @@ const RoundRobinHosts = ({
     name: "hostGroups",
   });
 
+  const createAddMembersWithSwitch = (groupId: string | null, containerClassName?: string) => {
+    return (
+      <AddMembersWithSwitch
+        placeholder={t("add_a_member")}
+        teamId={teamId}
+        teamMembers={teamMembers}
+        value={value}
+        onChange={onChange}
+        assignAllTeamMembers={assignAllTeamMembers}
+        setAssignAllTeamMembers={setAssignAllTeamMembers}
+        isSegmentApplicable={isSegmentApplicable}
+        automaticAddAllEnabled={true}
+        isRRWeightsEnabled={isRRWeightsEnabled}
+        isFixed={false}
+        groupId={groupId}
+        containerClassName={containerClassName || (assignAllTeamMembers ? "-mt-4" : "")}
+        onActive={() => {
+          const currentHosts = getValues("hosts");
+          setValue(
+            "hosts",
+            teamMembers.map((teamMember) => {
+              const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+              return {
+                isFixed: false,
+                userId: parseInt(teamMember.value, 10),
+                priority: host?.priority ?? 2,
+                weight: host?.weight ?? 100,
+                // if host was already added, retain scheduleId and groupId
+                scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                groupId: host?.groupId || groupId,
+              };
+            }),
+            { shouldDirty: true }
+          );
+        }}
+        customClassNames={customClassNames?.addMembers}
+      />
+    );
+  };
+
   return (
     <div className={classNames("rounded-lg")}>
       <div
@@ -423,47 +463,33 @@ const RoundRobinHosts = ({
             )}
           />
         </>
-        {!hostGroups.length || hostGroups.length === 1 ? (
-          <AddMembersWithSwitch
-            placeholder={t("add_a_member")}
-            teamId={teamId}
-            teamMembers={teamMembers}
-            value={value}
-            onChange={onChange}
-            assignAllTeamMembers={assignAllTeamMembers}
-            setAssignAllTeamMembers={setAssignAllTeamMembers}
-            isSegmentApplicable={isSegmentApplicable}
-            automaticAddAllEnabled={true}
-            isRRWeightsEnabled={isRRWeightsEnabled}
-            isFixed={false}
-            groupId={hostGroups.length === 1 ? hostGroups[0].id : null}
-            containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
-            onActive={() => {
-              const currentHosts = getValues("hosts");
-              setValue(
-                "hosts",
-                teamMembers.map((teamMember) => {
-                  const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                  return {
-                    isFixed: false,
-                    userId: parseInt(teamMember.value, 10),
-                    priority: host?.priority ?? 2,
-                    weight: host?.weight ?? 100,
-                    // if host was already added, retain scheduleId and groupId
-                    scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                    groupId: host?.groupId || (hostGroups.length === 1 ? hostGroups[0].id : null),
-                  };
-                }),
-                { shouldDirty: true }
-              );
-            }}
-            customClassNames={customClassNames?.addMembers}
-          />
+        {!hostGroups.length ? (
+          createAddMembersWithSwitch(hostGroups[0]?.id ?? null)
         ) : (
           <>
+            {/* Show unassigned hosts first */}
+            {(() => {
+              const unassignedHosts = value.filter((host) => !host.isFixed && !host.groupId);
+              if (unassignedHosts.length > 0) {
+                return (
+                  <div className="border-subtle my-4 rounded-md border p-4 pb-0">
+                    <div className="-mb-1 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-default text-sm font-medium">{`Group ${
+                          hostGroups.length + 1
+                        }`}</span>
+                      </div>
+                    </div>
+                    {createAddMembersWithSwitch(null)}
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
+            {/* Show all defined groups */}
             {hostGroups.map((group, index) => {
               const groupNumber = index + 1;
-              const groupName = group.name || `Group ${groupNumber}`;
 
               return (
                 <div key={index} className="border-subtle my-4 rounded-md border p-4 pb-0">
@@ -471,7 +497,7 @@ const RoundRobinHosts = ({
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
-                        value={groupName}
+                        value={group.name ?? ""}
                         onChange={(e) => {
                           const updatedHostGroups =
                             hostGroups?.map((g) =>
@@ -480,7 +506,7 @@ const RoundRobinHosts = ({
                           setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
                         }}
                         className="border-none bg-transparent p-0 text-sm font-medium focus:outline-none focus:ring-0"
-                        placeholder="Group name"
+                        placeholder={`Group ${groupNumber}`}
                       />
                     </div>
                     <button
@@ -499,43 +525,7 @@ const RoundRobinHosts = ({
                       <Icon name="x" className="h-4 w-4" />
                     </button>
                   </div>
-                  <AddMembersWithSwitch
-                    placeholder={t("add_a_member")}
-                    teamId={teamId}
-                    teamMembers={teamMembers}
-                    value={value}
-                    onChange={onChange}
-                    assignAllTeamMembers={assignAllTeamMembers}
-                    setAssignAllTeamMembers={setAssignAllTeamMembers}
-                    isSegmentApplicable={isSegmentApplicable}
-                    automaticAddAllEnabled={true}
-                    isRRWeightsEnabled={isRRWeightsEnabled}
-                    isFixed={false}
-                    groupId={group.id}
-                    containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
-                    onActive={() => {
-                      const currentHosts = getValues("hosts");
-                      setValue(
-                        "hosts",
-                        teamMembers.map((teamMember) => {
-                          const host = currentHosts.find(
-                            (host) => host.userId === parseInt(teamMember.value, 10)
-                          );
-                          return {
-                            isFixed: false,
-                            userId: parseInt(teamMember.value, 10),
-                            priority: host?.priority ?? 2,
-                            weight: host?.weight ?? 100,
-                            // if host was already added, retain scheduleId and groupId
-                            scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                            groupId: host?.groupId || null,
-                          };
-                        }),
-                        { shouldDirty: true }
-                      );
-                    }}
-                    customClassNames={customClassNames?.addMembers}
-                  />
+                  {createAddMembersWithSwitch(group.id)}
                 </div>
               );
             })}
@@ -702,7 +692,7 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  const hosts = [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
+                  const hosts = [...value.filter((host: Host) => host.isFixed), ...changeValue];
                   onChange(hosts);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}

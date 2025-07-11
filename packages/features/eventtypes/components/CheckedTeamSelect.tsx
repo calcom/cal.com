@@ -71,8 +71,11 @@ export const CheckedTeamSelect = ({
   const fitleredValue = groupId ? value.filter((host) => host.groupId === groupId) : value;
 
   const handleSelectChange = (newFilteredValue: readonly CheckedSelectOption[]) => {
-    const otherGroupsHosts = value.filter((host) => host.groupId && host.groupId !== groupId);
-    const newFullValue = [...otherGroupsHosts, ...newFilteredValue];
+    const otherGroupsHosts = value.filter(
+      (host) => (groupId && (!host.groupId || host.groupId !== groupId)) || (!groupId && host.groupId)
+    );
+
+    const newFullValue = [...otherGroupsHosts, ...newFilteredValue.map((host) => ({ ...host, groupId }))];
     props.onChange(newFullValue);
   };
 

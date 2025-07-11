@@ -836,7 +836,7 @@ async function handler(
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
       let index = 0;
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
-        while (luckyUserPool.length > 0 && luckyUsers.length < index + 1 /* TODO: Add variable */) {
+        while (luckyUserPool.length > 0 && luckyUsers.length < index + 1) {
           const freeUsers = luckyUserPool.filter(
             (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
           );
@@ -858,7 +858,7 @@ async function handler(
                 orgId: firstUserOrgId ?? null,
                 hosts: eventTypeWithUsers.hosts,
               })
-            ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
+            ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)), // I think we only want the group hosts here
             eventType,
             routingFormResponse,
             meetingStartTime: new Date(reqBody.start),

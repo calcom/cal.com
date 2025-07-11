@@ -90,7 +90,7 @@ const CheckedHostField = ({
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
-                  groupId,
+                  groupId: option.groupId,
                 }))
               );
           }}
