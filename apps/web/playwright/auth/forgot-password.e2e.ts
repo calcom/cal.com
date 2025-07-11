@@ -6,6 +6,8 @@ import prisma from "@calcom/prisma";
 
 import { test } from "../lib/fixtures";
 
+test.describe.configure({ mode: "parallel" });
+
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Forgot password", async () => {
