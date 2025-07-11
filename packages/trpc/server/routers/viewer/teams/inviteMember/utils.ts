@@ -4,6 +4,11 @@ import type { TFunction } from "i18next";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import {
+  RoleManagementError,
+  RoleManagementErrorCode,
+} from "@calcom/features/pbac/domain/errors/role-management.error";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
@@ -56,6 +61,31 @@ type InvitableExistingUserWithProfile = InvitableExistingUser & {
     username: string;
   } | null;
 };
+
+export async function ensureUserHasPermissions({
+  userId,
+  teamId,
+  isOrg,
+}: {
+  userId: number;
+  teamId: number;
+  isOrg?: boolean;
+}) {
+  const permissionCheckService = new PermissionCheckService();
+
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId,
+    teamId,
+    permission: isOrg ? "organization.invite" : "team.invite",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasPermission)
+    throw new RoleManagementError(
+      "You do not have permission to invite members.",
+      RoleManagementErrorCode.UNAUTHORIZED
+    );
+}
 
 export async function ensureAtleastAdminPermissions({
   userId,
@@ -723,12 +753,6 @@ export const sendExistingUserTeamInviteEmails = async ({
   });
 
   await sendEmails(sendEmailsPromises);
-};
-
-type inviteMemberHandlerInput = {
-  teamId: number;
-  role?: "ADMIN" | "MEMBER" | "OWNER";
-  language: string;
 };
 
 export async function handleExistingUsersInvites({
