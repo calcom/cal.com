@@ -10,6 +10,7 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 
 const testUser = {
   email: "test@test.com",
@@ -38,7 +39,7 @@ describe("deleteCredential", () => {
     test("Delete video credential", async () => {
       const handleDeleteCredential = (await import("./handleDeleteCredential")).default;
 
-      const user = await UserRepository.create({
+      const user = await new UserRepository(prisma).create({
         ...testUser,
       });
 
@@ -74,7 +75,7 @@ describe("deleteCredential", () => {
     test("Delete calendar credential", async () => {
       const handleDeleteCredential = (await import("./handleDeleteCredential")).default;
 
-      const user = await UserRepository.create({
+      const user = await new UserRepository(prisma).create({
         ...testUser,
       });
 

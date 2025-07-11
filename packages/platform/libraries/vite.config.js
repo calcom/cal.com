@@ -25,6 +25,7 @@ export default defineConfig({
         workflows: resolve(__dirname, "./workflows.ts"),
         slots: resolve(__dirname, "./slots.ts"),
         conferencing: resolve(__dirname, "./conferencing.ts"),
+        repositories: resolve(__dirname, "./repositories.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",

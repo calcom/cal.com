@@ -89,7 +89,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   return (
     <div className="h-screen">
       <main className="mx-auto max-w-3xl py-24">
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-50 overflow-y-auto scroll-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
             <div className="inset-0 my-4 transition-opacity sm:my-0" aria-hidden="true">
               <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">

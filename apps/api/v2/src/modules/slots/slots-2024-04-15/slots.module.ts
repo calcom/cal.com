@@ -1,4 +1,7 @@
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
+import { OOORepository as PrismaOOORepository } from "@/lib/repositories/PrismaOOORepository";
+import { ScheduleRepository as PrismaScheduleRepository } from "@/lib/repositories/PrismaScheduleRepository";
+import { AvailableSlotsService } from "@/lib/services/AvailableSlots";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SlotsController_2024_04_15 } from "@/modules/slots/slots-2024-04-15/controllers/slots.controller";
 import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
@@ -14,6 +17,9 @@ import { Module } from "@nestjs/common";
     SlotsService_2024_04_15,
     SlotsOutputService_2024_04_15,
     SlotsWorkerService_2024_04_15,
+    PrismaOOORepository,
+    PrismaScheduleRepository,
+    AvailableSlotsService,
   ],
   controllers: [SlotsController_2024_04_15],
   exports: [SlotsService_2024_04_15],
