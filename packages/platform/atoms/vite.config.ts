@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => {
         "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
         "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
         "@calcom/platform-utils": path.resolve(__dirname, "../constants/index.ts"),
-        "@calcom/web/public/static/locales/en/common.json": path.resolve(
+        "@calcom/lib/server/locales/en/common.json": path.resolve(
           __dirname,
           "../../lib/server/locales/en/common.json"
         ),
