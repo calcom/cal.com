@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 type WhereCondition = {
   slotUtcStartDate?: Date | string;
@@ -23,17 +23,19 @@ export type TimeSlot = {
 };
 
 export class SelectedSlotsRepository {
-  static async findMany({ where, select }: FindManyArgs) {
-    return await prisma.selectedSlots.findMany({ where, select });
+  constructor(private prismaClient: PrismaClient) {}
+
+  async findMany({ where, select }: FindManyArgs) {
+    return await this.prismaClient.selectedSlots.findMany({ where, select });
   }
 
-  static async findFirst({ where }: { where: Prisma.SelectedSlotsWhereInput }) {
-    return await prisma.selectedSlots.findFirst({
+  async findFirst({ where }: { where: Prisma.SelectedSlotsWhereInput }) {
+    return await this.prismaClient.selectedSlots.findFirst({
       where,
     });
   }
 
-  static async findReservedByOthers({
+  async findReservedByOthers({
     slot,
     eventTypeId,
     uid,
@@ -53,7 +55,7 @@ export class SelectedSlotsRepository {
     });
   }
 
-  static async findManyReservedByOthers(slots: TimeSlot[], eventTypeId: number, uid: string) {
+  async findManyReservedByOthers(slots: TimeSlot[], eventTypeId: number, uid: string) {
     return await this.findMany({
       where: {
         OR: slots.map((slot) => ({
@@ -71,14 +73,14 @@ export class SelectedSlotsRepository {
     });
   }
 
-  static async findManyUnexpiredSlots({
+  async findManyUnexpiredSlots({
     userIds,
     currentTimeInUtc,
   }: {
     userIds: number[];
     currentTimeInUtc: string;
   }) {
-    return prisma.selectedSlots.findMany({
+    return this.prismaClient.selectedSlots.findMany({
       where: {
         userId: { in: userIds },
         releaseAt: { gt: currentTimeInUtc },
@@ -95,14 +97,14 @@ export class SelectedSlotsRepository {
     });
   }
 
-  static async deleteManyExpiredSlots({
+  async deleteManyExpiredSlots({
     eventTypeId,
     currentTimeInUtc,
   }: {
     eventTypeId: number;
     currentTimeInUtc: string;
   }) {
-    return prisma.selectedSlots.deleteMany({
+    return this.prismaClient.selectedSlots.deleteMany({
       where: {
         eventTypeId: { equals: eventTypeId },
         releaseAt: { lt: currentTimeInUtc },

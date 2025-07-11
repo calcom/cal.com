@@ -3,8 +3,7 @@ import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
-
+import { RoleManagementError, RoleManagementErrorCode } from "../domain/errors/role-management.error";
 import { DEFAULT_ROLE_IDS } from "../lib/constants";
 import { PermissionCheckService } from "./permission-check.service";
 import { RoleService } from "./role.service";
@@ -38,7 +37,10 @@ class PBACRoleManager implements IRoleManager {
     });
 
     if (!hasPermission) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+      throw new RoleManagementError(
+        "You do not have permission to change roles",
+        RoleManagementErrorCode.UNAUTHORIZED
+      );
     }
   }
 
@@ -55,7 +57,10 @@ class PBACRoleManager implements IRoleManager {
     } else {
       const roleExists = await this.roleService.roleBelongsToTeam(role, organizationId);
       if (!roleExists) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have access to this role" });
+        throw new RoleManagementError(
+          "You do not have access to this role",
+          RoleManagementErrorCode.INVALID_ROLE
+        );
       }
       await this.roleService.assignRoleToMember(role, membershipId);
     }
@@ -73,11 +78,14 @@ class PBACRoleManager implements IRoleManager {
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
   async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
-    const isUpdaterAnOwner = await isOrganisationAdmin(userId, organizationId);
+    const membership = await isOrganisationAdmin(userId, organizationId);
 
-    // Only OWNER can update role to OWNER
-    if (!isUpdaterAnOwner) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+    // Only OWNER/ADMIN can update role
+    if (!membership) {
+      throw new RoleManagementError(
+        "Only owners or admin can update roles",
+        RoleManagementErrorCode.UNAUTHORIZED
+      );
     }
   }
 
