@@ -21,7 +21,8 @@ export const createAProfileForAnExistingUser = async ({
   };
   organizationId: number;
 }) => {
-  const org = await TeamRepository.findById({ id: organizationId });
+  const teamRepo = new TeamRepository(prisma);
+  const org = await teamRepo.findById({ id: organizationId });
   if (!org) {
     throw new Error(`Organization with id ${organizationId} not found`);
   }

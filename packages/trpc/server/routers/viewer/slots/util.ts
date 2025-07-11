@@ -42,7 +42,7 @@ import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
-import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
@@ -108,9 +108,10 @@ export class AvailableSlotsService {
     eventTypeId: number;
   }) {
     const currentTimeInUtc = dayjs.utc().format();
+    const slotsRepo = new SelectedSlotsRepository(prisma);
 
     const unexpiredSelectedSlots =
-      (await SelectedSlotsRepository.findManyUnexpiredSlots({
+      (await slotsRepo.findManyUnexpiredSlots({
         userIds: usersWithCredentials.map((user) => user.id),
         currentTimeInUtc,
       })) || [];
@@ -124,7 +125,7 @@ export class AvailableSlotsService {
     return reservedSlots;
 
     async function _cleanupExpiredSlots({ eventTypeId }: { eventTypeId: number }) {
-      await SelectedSlotsRepository.deleteManyExpiredSlots({ eventTypeId, currentTimeInUtc });
+      await slotsRepo.deleteManyExpiredSlots({ eventTypeId, currentTimeInUtc });
     }
   }
 
@@ -211,7 +212,8 @@ export class AvailableSlotsService {
       return null;
     }
 
-    return await EventTypeRepository.findForSlots({ id: eventTypeId });
+    const eventTypeRepo = new EventTypeRepository(prisma);
+    return await eventTypeRepo.findForSlots({ id: eventTypeId });
   }
 
   private getEventType = withReporting(this._getEventType.bind(this), "getEventType");
@@ -281,7 +283,8 @@ export class AvailableSlotsService {
         organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
       );
     }
-    const eventType = await EventTypeRepository.findFirstEventTypeId({ slug: eventTypeSlug, teamId, userId });
+    const eventTypeRepo = new EventTypeRepository(prisma);
+    const eventType = await eventTypeRepo.findFirstEventTypeId({ slug: eventTypeSlug, teamId, userId });
     if (!eventType) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
@@ -293,7 +296,8 @@ export class AvailableSlotsService {
     organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
   ) {
     const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-    const team = await TeamRepository.findFirstBySlugAndParentSlug({
+    const teamRepo = new TeamRepository(prisma);
+    const team = await teamRepo.findFirstBySlugAndParentSlug({
       slug,
       parentSlug: isValidOrgDomain && currentOrgDomain ? currentOrgDomain : null,
       select: { id: true },
@@ -505,7 +509,8 @@ export class AvailableSlotsService {
       bookingLimits
     );
 
-    const bookings = await BookingRepo.getAllAcceptedTeamBookingsOfUsers({
+    const bookingRepo = new BookingRepository(prisma);
+    const bookings = await bookingRepo.getAllAcceptedTeamBookingsOfUsers({
       users,
       teamId,
       startDate: limitDateFrom.toDate(),
@@ -709,8 +714,9 @@ export class AvailableSlotsService {
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
+    const bookingRepo = new BookingRepository(prisma);
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
-      BookingRepo.findAllExistingBookingsForEventTypeBetween({
+      bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTimeDate,
         endDate: endTimeDate,
         eventTypeId: eventType.id,
