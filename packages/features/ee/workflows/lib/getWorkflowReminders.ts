@@ -246,16 +246,25 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
   return unscheduledReminders;
 }
 
-export function getWorkflowAssigneeEmail(workflowStep: PartialWorkflowStep): string | null {
-  if (!workflowStep?.workflow) return null;
+export function getWorkflowRecipientEmail(reminder: PartialWorkflowReminder): string | null {
+  if (!reminder?.workflowStep?.action) return null;
 
-  if (workflowStep.workflow.userId && workflowStep.workflow.user?.email) {
-    return workflowStep.workflow.user.email;
+  const action = reminder.workflowStep.action;
+
+  switch (action) {
+    case "EMAIL_ADDRESS":
+      return reminder.workflowStep.sendTo || null;
+    case "EMAIL_HOST":
+      return reminder.booking?.user?.email || null;
+    case "EMAIL_ATTENDEE":
+      return reminder.booking?.attendees?.[0]?.email || null;
+    case "SMS_ATTENDEE":
+    case "WHATSAPP_ATTENDEE":
+      return reminder.booking?.attendees?.[0]?.email || null;
+    case "SMS_NUMBER":
+    case "WHATSAPP_NUMBER":
+      return null;
+    default:
+      return null;
   }
-
-  if (workflowStep.workflow.teamId && workflowStep.workflow.team?.members?.[0]?.user?.email) {
-    return workflowStep.workflow.team.members[0].user.email;
-  }
-
-  return null;
 }

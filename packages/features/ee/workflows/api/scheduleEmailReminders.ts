@@ -21,7 +21,7 @@ import {
   getAllRemindersToCancel,
   getAllRemindersToDelete,
   getAllUnscheduledReminders,
-  getWorkflowAssigneeEmail,
+  getWorkflowRecipientEmail,
 } from "../lib/getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "../lib/reminders/providers/emailProvider";
 import {
@@ -201,13 +201,13 @@ export async function handler(req: NextRequest) {
             responses: responses,
             meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
             cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
-              getWorkflowAssigneeEmail(reminder.workflowStep)
-                ? `&cancelledBy=${encodeURIComponent(getWorkflowAssigneeEmail(reminder.workflowStep)!)}`
+              getWorkflowRecipientEmail(reminder)
+                ? `&cancelledBy=${encodeURIComponent(getWorkflowRecipientEmail(reminder)!)}`
                 : ""
             }`,
             rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}${
-              getWorkflowAssigneeEmail(reminder.workflowStep)
-                ? `?rescheduledBy=${encodeURIComponent(getWorkflowAssigneeEmail(reminder.workflowStep)!)}`
+              getWorkflowRecipientEmail(reminder)
+                ? `?rescheduledBy=${encodeURIComponent(getWorkflowRecipientEmail(reminder)!)}`
                 : ""
             }`,
             ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating`,
