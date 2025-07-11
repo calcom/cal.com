@@ -56,7 +56,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
 
   const t = await getTranslate();
   const filters = getTeamsFiltersFromQuery(_searchParams);
-  const [userEventGroupsData] = await Promise.all([getCachedEventGroups(_headers, _cookies, filters)]);
+  const userEventGroupsData = await getCachedEventGroups(_headers, _cookies, filters);
 
   return (
     <ShellMainAppDir
