@@ -427,4 +427,41 @@ describe("getAggregatedAvailability", () => {
     expect(isAvailable(result, timeRangeAvailable)).toBe(true);
     expect(result.length).toBe(1);
   });
+
+  it("handles scenario where one group has no available hosts", () => {
+    // Test scenario where one group has no available hosts
+    // Group 1: Host A (available 11:00-11:30)
+    // Group 2: Host B (not available at all)
+    // Fixed host: available 11:00-13:00
+    const userAvailability = [
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T13:00:00.000Z") },
+        ],
+        user: { isFixed: true },
+      },
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
+        ],
+        user: { isFixed: false, groupId: "group1" },
+      },
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [], // No availability
+        user: { isFixed: false, groupId: "group2" },
+      },
+    ];
+
+    const result = getAggregatedAvailability(userAvailability, "ROUND_ROBIN");
+
+    // Should NOT be available when one group has no hosts available
+    const timeRangeNotAvailable = {
+      start: dayjs("2025-01-23T11:00:00.000Z"),
+      end: dayjs("2025-01-23T11:30:00.000Z"),
+    };
+    expect(isAvailable(result, timeRangeNotAvailable)).toBe(false);
+  });
 });

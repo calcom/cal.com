@@ -61,9 +61,7 @@ export const getAggregatedAvailability = (
         const groupDateRanges = groupHosts.flatMap((s) =>
           !isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges
         );
-        if (groupDateRanges.length > 0) {
-          dateRangesToIntersect.push(groupDateRanges);
-        }
+        dateRangesToIntersect.push(groupDateRanges ?? []);
       }
     });
   }
