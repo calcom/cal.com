@@ -177,7 +177,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     });
   }
 
-  const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId });
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({ id: eventTypeId });
 
   if (!eventType) {
     throw new TRPCError({

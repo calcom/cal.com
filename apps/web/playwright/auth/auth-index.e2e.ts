@@ -3,6 +3,8 @@ import { expect } from "@playwright/test";
 import { test } from "../lib/fixtures";
 import { submitAndWaitForResponse } from "../lib/testUtils";
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("Can signup from a team invite", async () => {
   test.beforeEach(async ({ users }) => {
     const proUser = await users.create();

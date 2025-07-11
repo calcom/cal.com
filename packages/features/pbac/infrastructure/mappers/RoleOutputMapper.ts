@@ -11,7 +11,7 @@ export class RoleOutputMapper {
       description: prismaRole.description || undefined,
       teamId: prismaRole.teamId || undefined,
       type: prismaRole.type,
-      permissions: prismaRole.permissions.map(this.toDomainPermission),
+      permissions: prismaRole.permissions.map(RoleOutputMapper.toDomainPermission),
       createdAt: prismaRole.createdAt,
       updatedAt: prismaRole.updatedAt,
     };
@@ -28,6 +28,6 @@ export class RoleOutputMapper {
   }
 
   static toDomainList(prismaRoles: (PrismaRole & { permissions: PrismaRolePermission[] })[]): Role[] {
-    return prismaRoles.map(this.toDomain);
+    return prismaRoles.map(RoleOutputMapper.toDomain);
   }
 }

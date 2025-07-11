@@ -61,7 +61,8 @@ describe("deleteCredential", () => {
       await setupCredential({ userId: user.id, type: "zoom_video", appId: "zoom" });
 
       await handleDeleteCredential({ userId: user.id, userMetadata: user.metadata, credentialId: 123 });
-      const eventTypeQuery = await EventTypeRepository.findAllByUserId({ userId: user.id });
+      const eventTypeRepo = new EventTypeRepository(prisma);
+      const eventTypeQuery = await eventTypeRepo.findAllByUserId({ userId: user.id });
 
       // Ensure that the event type with the deleted app was converted back to daily
       const changedEventType = eventTypeQuery.find((eventType) => eventType.id === 1)?.locations;

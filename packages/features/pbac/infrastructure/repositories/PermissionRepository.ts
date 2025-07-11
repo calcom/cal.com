@@ -107,6 +107,11 @@ export class PermissionRepository implements IPermissionRepository {
   }
 
   async checkRolePermissions(roleId: string, permissions: PermissionString[]): Promise<boolean> {
+    // Validate that permissions array is not empty to prevent privilege escalation
+    if (permissions.length === 0) {
+      return false;
+    }
+
     const permissionPairs = permissions.map((p) => {
       const [resource, action] = p.split(".");
       return { resource, action };
@@ -172,5 +177,47 @@ export class PermissionRepository implements IPermissionRepository {
       },
     });
     return teamPermissions.map((p) => p.action as CrudAction | CustomAction);
+  }
+
+  async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
+    return this.getTeamIdsWithPermissions(userId, [permission]);
+  }
+
+  async getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]> {
+    // Validate that permissions array is not empty to prevent privilege escalation
+    if (permissions.length === 0) {
+      return [];
+    }
+
+    const permissionPairs = permissions.map((p) => {
+      const [resource, action] = p.split(".");
+      return { resource, action };
+    });
+
+    const teamsWithPermission = await this.client.$queryRaw<{ teamId: number }[]>`
+      SELECT DISTINCT m."teamId"
+      FROM "Membership" m
+      INNER JOIN "Role" r ON m."customRoleId" = r.id
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."customRoleId" IS NOT NULL
+        AND (
+          SELECT COUNT(*)
+          FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm(perm)
+          WHERE EXISTS (
+            SELECT 1
+            FROM "RolePermission" rp
+            WHERE rp."roleId" = r.id
+              AND (
+                (rp."resource" = '*' AND rp."action" = '*') OR
+                (rp."resource" = '*' AND rp."action" = required_perm.perm->>'action') OR
+                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = '*') OR
+                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = required_perm.perm->>'action')
+              )
+          )
+        ) = ${permissions.length}
+    `;
+
+    return teamsWithPermission.map((team) => team.teamId);
   }
 }
