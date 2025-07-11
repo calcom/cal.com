@@ -7,7 +7,7 @@ import { CreationSource } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
 
-vi.mock("@calcom/web/lib/i18n", () => {
+vi.mock("@calcom/lib/server/i18n", () => {
   return {
     getTranslation: (key: string) => {
       return () => key;

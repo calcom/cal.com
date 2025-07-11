@@ -19,7 +19,7 @@ import handler from "../../../pages/api/bookings/_post";
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 vi.mock("@calcom/features/webhooks/lib/sendPayload");
-vi.mock("@calcom/web/lib/i18n", () => {
+vi.mock("@calcom/lib/server/i18n", () => {
   return {
     getTranslation: (key: string) => key,
   };

@@ -5,7 +5,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 import { buildEventForTeamEventType } from "../../handleNewBooking";
 
-vi.mock("@calcom/web/lib/i18n", () => ({
+vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: vi.fn().mockResolvedValue("translated"),
 }));
 
