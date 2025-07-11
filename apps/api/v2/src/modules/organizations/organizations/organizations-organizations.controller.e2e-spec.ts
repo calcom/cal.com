@@ -562,7 +562,40 @@ describe("Organizations Organizations Endpoints", () => {
       });
   });
 
-  it("should delete managed organization ", async () => {
+  it("should delete managed organization", async () => {
+    return request(app.getHttpServer())
+      .delete(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg2.id}`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseManagedOrg = responseBody.data;
+        expect(responseManagedOrg?.id).toBeDefined();
+        expect(responseManagedOrg?.id).toEqual(managedOrg2.id);
+        expect(responseManagedOrg?.name).toEqual(managedOrg2.name);
+
+        const managedOrgInDb =
+          await managedOrganizationsRepositoryFixture.getOrganizationWithManagedOrganizations(managedOrg2.id);
+        expect(managedOrgInDb).toEqual(null);
+
+        const billings = await platformBillingRepositoryFixture.getByCustomerSubscriptionIds(
+          managerOrgBilling.customerId,
+          managerOrgBilling.subscriptionId!
+        );
+        expect(billings).toBeDefined();
+        // note(Lauris): manager billing is left and other managed org
+        expect(billings?.length).toEqual(2);
+
+        const managerOrgInDb =
+          await managedOrganizationsRepositoryFixture.getOrganizationWithManagedOrganizations(managerOrg.id);
+        expect(managerOrgInDb).toBeDefined();
+        expect(managerOrgInDb?.id).toEqual(managerOrg.id);
+        expect(managerOrgInDb?.managedOrganizations?.length).toEqual(1);
+      });
+  });
+
+  it("should delete managed organization", async () => {
     return request(app.getHttpServer())
       .delete(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg.id}`)
       .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
