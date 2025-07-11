@@ -2,6 +2,8 @@ import { expect } from "@playwright/test";
 
 import { test } from "../lib/fixtures";
 
+test.describe.configure({ mode: "parallel" });
+
 test.afterEach(({ users }) => users.deleteAll());
 
 test("Can delete user account", async ({ page, users }) => {
