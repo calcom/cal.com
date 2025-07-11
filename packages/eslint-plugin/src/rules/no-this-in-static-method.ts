@@ -43,8 +43,7 @@ const rule = createRule({
               parent.callee.property.name
             );
 
-          if (isPassedToCallback || true) {
-            // Always report this.method in static context
+          if (isPassedToCallback) {
             context.report({
               node,
               messageId: "no-this-in-static-method",
