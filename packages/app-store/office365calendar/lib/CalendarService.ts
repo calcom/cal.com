@@ -2,6 +2,8 @@ import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microso
 import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
+import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -9,6 +11,7 @@ import {
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
@@ -299,34 +302,57 @@ export default class Office365CalendarService implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean
   ): Promise<EventBusyDate[]> {
-    const dateFromParsed = new Date(dateFrom);
-    const dateToParsed = new Date(dateTo);
-
-    const filter = `?startDateTime=${encodeURIComponent(
-      dateFromParsed.toISOString()
-    )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
-
-    const calendarSelectParams = "$select=showAs,start,end";
-
+    this.log.debug(
+      "Getting availability (with cache)",
+      safeStringify({ dateFrom, dateTo, selectedCalendars })
+    );
+    const selectedCalendarIds = selectedCalendars
+      .filter((e) => e.integration === this.integrationName)
+      .map((e) => e.externalId);
+    if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
+      // Only calendars of other integrations selected
+      return [];
+    }
+    const getCalIds = async () => {
+      if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
+      const cals = await this.listCalendars();
+      if (!cals.length) return [];
+      return cals.map((cal) => cal.externalId);
+    };
     try {
-      const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
-        if (calendar.integration === this.integrationName && calendar.externalId)
-          calendarIds.push(calendar.externalId);
-
-        return calendarIds;
-      }, [] as string[]);
-
-      if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
-        // Only calendars of other integrations selected
-        return Promise.resolve([]);
+      const calsIds = await getCalIds();
+      // Expand range to month for cache hit
+      const args = {
+        timeMin: getTimeMin(dateFrom),
+        timeMax: getTimeMax(dateTo),
+        items: calsIds.map((id) => ({ id })),
+      };
+      const calendarCache = await CalendarCache.init(null);
+      const cached = await calendarCache.getCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args,
+      });
+      if (shouldServeCache !== false && cached) {
+        this.log.debug("[Cache Hit] Returning cached availability", safeStringify({ args }));
+        // Estrutura igual ao Google: { calendars: { [id]: { busy: [{start, end}] } } }
+        return Object.entries((cached.value as any)?.calendars || {}).flatMap(
+          ([id, calendar]: [string, any]) =>
+            (calendar.busy || []).map((busy: any) => ({ start: busy.start, end: busy.end }))
+        );
       }
-
-      const ids = await (selectedCalendarIds.length === 0
-        ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
-        : Promise.resolve(selectedCalendarIds));
-      const requestsPromises = ids.map(async (calendarId, id) => ({
+      this.log.debug("[Cache Miss] Fetching from Microsoft Graph", safeStringify({ args }));
+      // Chama API do Graph
+      const dateFromParsed = new Date(dateFrom);
+      const dateToParsed = new Date(dateTo);
+      const filter = `?startDateTime=${encodeURIComponent(
+        dateFromParsed.toISOString()
+      )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
+      const calendarSelectParams = "$select=showAs,start,end";
+      const requestsPromises = calsIds.map(async (calendarId, id) => ({
         id,
         method: "GET",
         url: `${await this.getUserEndpoint()}/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
@@ -337,23 +363,47 @@ export default class Office365CalendarService implements Calendar {
       let responseBatchApi: IBatchResponse = { responses: [] };
       if (typeof responseBody === "string") {
         responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
+      } else {
+        responseBatchApi = responseBody as IBatchResponse;
       }
       let alreadySuccessResponse = [] as ISettledResponse[];
-
       // Validate if any 429 status Retry-After is present
       const retryAfter =
         !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
-
       if (retryAfter && responseBatchApi.responses) {
         responseBatchApi = await this.fetchRequestWithRetryAfter(requests, responseBatchApi.responses, 2);
       }
-
       // Recursively fetch nextLink responses
       alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
-
-      return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
-    } catch (err) {
-      return Promise.reject([]);
+      // Monta estrutura igual ao Google para salvar no cache
+      const calendars: Record<string, { busy: { start: string; end: string }[] }> = {};
+      alreadySuccessResponse.forEach((subResponse: any, idx: number) => {
+        const calendarId = calsIds[idx];
+        calendars[calendarId] = { busy: [] };
+        if (subResponse.body?.value) {
+          calendars[calendarId].busy = subResponse.body.value
+            .filter((evt: any) => evt.showAs !== "free" && evt.showAs !== "workingElsewhere")
+            .map((evt: any) => ({
+              start: `${evt.start.dateTime}Z`,
+              end: `${evt.end.dateTime}Z`,
+            }));
+        }
+      });
+      // Salva no cache
+      await calendarCache.upsertCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args,
+        value: { calendars },
+      });
+      // Retorna busy times
+      return Object.values(calendars).flatMap((calendar) => calendar.busy);
+    } catch (error) {
+      this.log.error(
+        "There was an error getting availability from office365 calendar: ",
+        safeStringify({ error, selectedCalendars })
+      );
+      throw error;
     }
   }
 

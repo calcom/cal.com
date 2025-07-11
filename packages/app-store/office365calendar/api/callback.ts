@@ -7,12 +7,10 @@ import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import Office365CalendarService from "../lib/CalendarService";
 
 const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite"];
 
@@ -135,16 +133,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           credentialId: credential.id,
         },
       });
-
-      // Transform the Prisma credential to the format expected by the CalendarService
-      const credentialForCalendarService: CredentialForCalendarServiceWithTenantId = {
-        ...credential,
-        user: { email: responseBody.email },
-        delegatedTo: null,
-      };
-
-      const calendarService = new Office365CalendarService(credentialForCalendarService);
-      await calendarService.createAndSubscribeCalendar(defaultCalendar.id);
     } catch (error) {
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
