@@ -6,7 +6,7 @@ import type {
   TCreateAgentResponseSchema,
   TUpdatePhoneNumberResponseSchema,
   TGetPhoneNumberSchema,
-} from "../zod-utils";
+} from "../../zod-utils";
 
 export interface CreateLLMRequest {
   general_prompt: string;

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
-import { deletePhoneNumber } from "@calcom/features/ee/cal-ai-phone/retellAIService";
+import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -144,12 +144,10 @@ export const loggedInViewerRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      // Use the new RetellAI service for better error handling and consistency
-      const { RetellAIServiceFactory } = await import("@calcom/features/ee/cal-ai-phone/retell-ai");
-      const aiService = RetellAIServiceFactory.create();
+      const aiService = createDefaultAIPhoneServiceProvider();
 
       try {
-        const { llmId, agentId } = await aiService.setupAIConfiguration({
+        const { modelId, agentId } = await aiService.setupConfiguration({
           calApiKey,
           timeZone: agentTimeZone,
           eventTypeId,
@@ -161,7 +159,7 @@ export const loggedInViewerRouter = router({
         const config = await AISelfServeConfigurationRepository.create({
           eventTypeId,
           enabled: true,
-          llmId,
+          llmId: modelId,
           agentId,
           agentTimeZone,
         });
@@ -176,9 +174,8 @@ export const loggedInViewerRouter = router({
       }
     }),
   getLlm: authedProcedure.input(z.object({ llmId: z.string() })).query(async ({ input }) => {
-    const { RetellAIServiceFactory } = await import("@calcom/features/ee/cal-ai-phone/retell-ai");
-    const aiService = RetellAIServiceFactory.create();
-    return aiService.getLLMDetails(input.llmId);
+    const aiService = createDefaultAIPhoneServiceProvider();
+    return aiService.getModelDetails(input.llmId);
   }),
   updateLlm: authedProcedure
     .input(
@@ -203,10 +200,9 @@ export const loggedInViewerRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const { RetellAIServiceFactory } = await import("@calcom/features/ee/cal-ai-phone/retell-ai");
-      const aiService = RetellAIServiceFactory.create();
+      const aiService = createDefaultAIPhoneServiceProvider();
 
-      return aiService.updateLLMConfiguration(llmId, updateData);
+      return aiService.updateModelConfiguration(llmId, updateData);
     }),
   makeSelfServePhoneCall: authedProcedure
     .input(z.object({ eventTypeId: z.number(), numberToCall: z.string() }))
@@ -236,9 +232,7 @@ export const loggedInViewerRouter = router({
         });
       }
 
-      const { handleCreateSelfServePhoneCall } = await import(
-        "@calcom/features/ee/cal-ai-phone/handleCreateSelfServePhoneCall"
-      );
+      const { handleCreateSelfServePhoneCall } = await import("@calcom/features/ee/cal-ai-phone");
       const call = await handleCreateSelfServePhoneCall({
         userId: ctx.user.id,
         eventTypeId,
@@ -327,12 +321,16 @@ export const loggedInViewerRouter = router({
         phoneNumberId,
       });
 
-      // Delete the phone number from Retell AI service
+      // Delete the phone number from AI service
       try {
-        await deletePhoneNumber(phoneNumber.phoneNumber);
+        const aiService = createDefaultAIPhoneServiceProvider();
+        await aiService.deletePhoneNumber(phoneNumber.phoneNumber);
       } catch (error) {
         // Log the error but don't fail the cancellation
-        console.error("Failed to delete phone number from Retell AI, but subscription was cancelled:", error);
+        console.error(
+          "Failed to delete phone number from AI service, but subscription was cancelled:",
+          error
+        );
       }
 
       return { success: true, message: "Phone number subscription cancelled successfully." };
@@ -431,14 +429,17 @@ export const loggedInViewerRouter = router({
         });
       }
 
-      const { updatePhoneNumber } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
+      const aiService = createDefaultAIPhoneServiceProvider();
 
       try {
-        await updatePhoneNumber(phoneNumber.phoneNumber, config.agentId);
+        await aiService.updatePhoneNumber(phoneNumber.phoneNumber, {
+          inboundAgentId: config.agentId,
+          outboundAgentId: config.agentId,
+        });
       } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to assign phone number to agent in Retell AI.",
+          message: "Failed to assign phone number to agent in AI service.",
         });
       }
 
@@ -502,14 +503,13 @@ export const loggedInViewerRouter = router({
         });
       }
 
-      // Use the new RetellAI service with fault-tolerant deletion
-      const { RetellAIServiceFactory } = await import("@calcom/features/ee/cal-ai-phone/retell-ai");
-      const aiService = RetellAIServiceFactory.create();
+      // Use the provider-agnostic AI service with fault-tolerant deletion
+      const aiService = createDefaultAIPhoneServiceProvider();
 
       try {
         // Delete external resources with fault tolerance
-        const deletionResult = await aiService.deleteAIConfiguration({
-          llmId: config.llmId || undefined,
+        const deletionResult = await aiService.deleteConfiguration({
+          modelId: config.llmId || undefined,
           agentId: config.agentId || undefined,
         });
 

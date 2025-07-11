@@ -33,16 +33,15 @@ export const handleCreateSelfServePhoneCall = async ({
     });
   }
 
-  // Use the provider-agnostic AI service
   const aiService = createDefaultAIPhoneServiceProvider();
 
   const fromNumber = config.yourPhoneNumber.phoneNumber;
   const call = await aiService.createPhoneCall({
     fromNumber,
     toNumber: numberToCall,
-    dynamicVariables: {
-      // Add any dynamic variables if needed
-    },
+    // dynamicVariables: {
+    //   // Add any dynamic variables if needed
+    // },
   });
 
   return call;

@@ -1,5 +1,5 @@
-import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "../promptTemplates";
-import type { TGetRetellLLMSchema, TCreatePhoneSchema } from "../zod-utils";
+import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "../../promptTemplates";
+import type { TGetRetellLLMSchema, TCreatePhoneSchema } from "../../zod-utils";
 import { RetellAIError } from "./errors";
 import type {
   AIConfigurationSetup,
@@ -119,16 +119,10 @@ export class RetellAIService {
     });
   }
 
-  /**
-   * Get LLM details
-   */
   async getLLMDetails(llmId: string): Promise<TGetRetellLLMSchema> {
     return this.repository.getLLM(llmId);
   }
 
-  /**
-   * Create a phone call with proper error handling
-   */
   async createPhoneCall(data: {
     fromNumber: string;
     toNumber: string;
@@ -143,5 +137,24 @@ export class RetellAIService {
       to_number: data.toNumber,
       retell_llm_dynamic_variables: data.dynamicVariables,
     });
+  }
+
+  async createPhoneNumber(data: { area_code?: number; nickname?: string }) {
+    return this.repository.createPhoneNumber(data);
+  }
+
+  async deletePhoneNumber(phoneNumber: string) {
+    return this.repository.deletePhoneNumber(phoneNumber);
+  }
+
+  async getPhoneNumber(phoneNumber: string) {
+    return this.repository.getPhoneNumber(phoneNumber);
+  }
+
+  async updatePhoneNumber(
+    phoneNumber: string,
+    data: { inbound_agent_id?: string; outbound_agent_id?: string }
+  ) {
+    return this.repository.updatePhoneNumber(phoneNumber, data);
   }
 }

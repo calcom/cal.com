@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import PhoneInput from "@calcom/features/components/phone-input";
 import { getTemplateFieldsSchema } from "@calcom/features/ee/cal-ai-phone/getTemplateFieldsSchema";
-import { TEMPLATES_FIELDS } from "@calcom/features/ee/cal-ai-phone/template-fields-map";
+import { templateFieldsMap } from "@calcom/features/ee/cal-ai-phone/template-fields-map";
 import type { TemplateType } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
@@ -102,7 +102,7 @@ const TemplateFields = () => {
   const { control, watch } = formMethods;
 
   const templateType = watch("aiPhoneCallConfig.templateType");
-  const fields = TEMPLATES_FIELDS[templateType as TemplateType];
+  const fields = templateFieldsMap[templateType as TemplateType];
 
   return (
     <div className="space-y-4">

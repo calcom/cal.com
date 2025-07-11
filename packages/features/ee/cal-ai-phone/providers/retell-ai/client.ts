@@ -10,7 +10,7 @@ import type {
   TCreateAgentResponseSchema,
   TUpdatePhoneNumberResponseSchema,
   TGetPhoneNumberSchema,
-} from "../zod-utils";
+} from "../../zod-utils";
 import {
   ZCreateRetellLLMSchema,
   ZGetRetellLLMSchema,
@@ -19,7 +19,7 @@ import {
   ZCreateAgentResponseSchema,
   ZUpdatePhoneNumberResponseSchema,
   ZGetPhoneNumberSchema,
-} from "../zod-utils";
+} from "../../zod-utils";
 import { RetellAIError } from "./errors";
 import type { CreateLLMRequest, CreateAgentRequest, UpdateLLMRequest, RetellAIRepository } from "./types";
 

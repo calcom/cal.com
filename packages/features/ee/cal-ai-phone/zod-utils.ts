@@ -44,6 +44,7 @@ export type TCreatePhoneCallSchema = z.infer<typeof createPhoneCallSchema>;
 
 export const ZGetPhoneNumberSchema = z
   .object({
+    phone_number: z.string(),
     agent_id: z.string().optional(),
     nickname: z.string(),
     inbound_agent_id: z.string(),
