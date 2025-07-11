@@ -250,7 +250,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
-      const user = await UserRepository.enrichUserWithItsProfile({ user: membership.user });
+      const user = await new UserRepository(prisma).enrichUserWithItsProfile({ user: membership.user });
       let attributes;
 
       if (expand?.includes("attributes")) {
