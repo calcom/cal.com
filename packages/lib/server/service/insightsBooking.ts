@@ -160,9 +160,7 @@ export class InsightsBookingService {
           )
         : [];
 
-    const conditions: Prisma.Sql[] = [];
-
-    conditions.push(Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`);
+    const conditions: Prisma.Sql[] = [Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`];
 
     if (userIdsFromOrg.length > 0) {
       const uniqueUserIds = Array.from(new Set(userIdsFromOrg));
@@ -193,9 +191,9 @@ export class InsightsBookingService {
     });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
-    const conditions: Prisma.Sql[] = [];
-
-    conditions.push(Prisma.sql`("teamId" = ${options.teamId}) AND ("isTeamBooking" = true)`);
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`("teamId" = ${options.teamId}) AND ("isTeamBooking" = true)`,
+    ];
 
     if (userIdsFromTeam.length > 0) {
       conditions.push(Prisma.sql`("userId" = ANY(${userIdsFromTeam})) AND ("isTeamBooking" = false)`);
