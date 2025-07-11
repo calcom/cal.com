@@ -433,12 +433,6 @@ export default class SalesforceCRMService implements CRM {
             accessToken: this.accessToken,
             instanceUrl: this.instanceUrl,
           });
-          console.log("🚀 ~ client:", client);
-
-          console.log(
-            "🚀 ~ await client.GetAccountRecordsForRRSkip(emailArray[0]);:",
-            await client.GetAccountRecordsForRRSkip(emailArray[0])
-          );
           return await client.GetAccountRecordsForRRSkip(emailArray[0]);
         } catch (error) {
           log.error("Error getting account records for round robin skip", safeStringify({ error }));
