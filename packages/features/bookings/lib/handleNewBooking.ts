@@ -506,7 +506,8 @@ async function handler(
     (!isConfirmedByDefault && !userReschedulingIsOwner) ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
-    const existingBooking = await BookingRepository.getValidBookingFromEventTypeForAttendee({
+    const bookingRepo = new BookingRepository(prisma);
+    const existingBooking = await bookingRepo.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
@@ -1502,15 +1503,6 @@ async function handler(
       evt.videoCallData = undefined;
       // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
       evt.iCalUID = undefined;
-    } else {
-      // In case of rescheduling, we need to keep the previous host destination calendar
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withDestinationCalendar(
-          originalRescheduledBooking?.destinationCalendar
-            ? [originalRescheduledBooking?.destinationCalendar]
-            : evt.destinationCalendar
-        )
-        .build();
     }
 
     const updateManager = await eventManager.reschedule(

@@ -8,6 +8,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import prisma from "@calcom/prisma";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import { UserRepository } from "../server/repository/user";
@@ -593,7 +594,7 @@ export async function findUniqueDelegationCalendarCredential({
 }) {
   const [delegationCredential, user] = await Promise.all([
     DelegationCredentialRepository.findByIdIncludeSensitiveServiceAccountKey({ id: delegationCredentialId }),
-    UserRepository.findById({ id: userId }),
+    new UserRepository(prisma).findById({ id: userId }),
   ]);
 
   if (!delegationCredential) {
