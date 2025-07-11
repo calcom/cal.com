@@ -7,6 +7,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
@@ -233,7 +234,8 @@ const _getBusyTimesFromTeamLimits = async (
     bookingLimits
   );
 
-  const bookings = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
+  const bookingRepo = new BookingRepository(prisma);
+  const bookings = await bookingRepo.getAllAcceptedTeamBookingsOfUser({
     user,
     teamId,
     startDate: limitDateFrom.toDate(),

@@ -1924,6 +1924,13 @@ model Task {
   lastError           String?
   lastFailedAttemptAt DateTime?
   referenceUid        String?
+
+  // unique index on referenceUid,type to avoid duplicate tasks
+  @@unique([referenceUid, type])
+  // for finding succeeded tasks
+  @@index([succeededAt])
+  // for finding tasks that are scheduled to be executed
+  @@index([scheduledAt, succeededAt])
 }
 
 enum SMSLockState {
@@ -1999,9 +2006,8 @@ model Attribute {
 
   type AttributeType
 
-  name String
-  slug String @unique
-
+  name    String
+  slug    String
   enabled Boolean @default(true)
 
   usersCanEditRelation Boolean @default(false)
@@ -2012,6 +2018,7 @@ model Attribute {
   isWeightsEnabled Boolean           @default(false)
   isLocked         Boolean           @default(false)
 
+  @@unique([teamId, slug])
   @@index([teamId])
 }
 
