@@ -203,6 +203,7 @@ describe("handleNewBooking", () => {
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
             rescheduledBy: organizer.email,
+            rescheduledToUid: createdBooking.uid,
           });
 
           expect(previousBooking?.status).toBe(BookingStatus.CANCELLED);

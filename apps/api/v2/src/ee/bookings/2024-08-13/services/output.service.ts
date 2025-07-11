@@ -101,9 +101,7 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToUid = databaseBooking.rescheduled
-      ? await this.getRescheduledToUid(databaseBooking.uid)
-      : undefined;
+    const rescheduledToUid = await this.getRescheduledToUid(databaseBooking);
 
     const booking = {
       id: databaseBooking.id,
@@ -151,8 +149,14 @@ export class OutputBookingsService_2024_08_13 {
     return bookingTransformed;
   }
 
-  async getRescheduledToUid(bookingUid: string) {
-    const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
+  async getRescheduledToUid(booking: Booking) {
+    if (!booking.rescheduled) {
+      return undefined;
+    }
+    if (booking.rescheduledToUid) {
+      return booking.rescheduledToUid;
+    }
+    const rescheduledTo = await this.bookingsRepository.getByFromReschedule(booking.uid);
     return rescheduledTo?.uid;
   }
 
@@ -269,9 +273,7 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToUid = databaseBooking.rescheduled
-      ? await this.getRescheduledToUid(databaseBooking.uid)
-      : undefined;
+    const rescheduledToUid = await this.getRescheduledToUid(databaseBooking);
 
     const booking = {
       id: databaseBooking.id,
