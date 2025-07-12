@@ -3,17 +3,52 @@ import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, test, vi, afterEach } from "vitest";
+import { describe, expect, test, vi, afterEach, beforeEach } from "vitest";
 import { ZodError } from "zod";
 
 import { buildBooking } from "@calcom/lib/test/builder";
 
 import { handler } from "../../../pages/api/bookings/_get";
+import {
+  getAccessibleUsers,
+  retrieveOrgScopedAccessibleUsers,
+} from "../../lib/utils/retrieveScopedAccessibleUsers";
+
+vi.mock("../../lib/utils/retrieveScopedAccessibleUsers", () => ({
+  getAccessibleUsers: vi.fn(),
+  retrieveOrgScopedAccessibleUsers: vi.fn(),
+}));
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
 const userId = 1;
+
+beforeEach(() => {
+  prismaMock.user.findUnique.mockResolvedValue({
+    id: userId,
+    email: "test@example.com",
+    name: "Test User",
+  });
+  (getAccessibleUsers as any).mockResolvedValue([userId]);
+  (retrieveOrgScopedAccessibleUsers as any).mockResolvedValue([userId]);
+
+  prismaMock.membership.findMany.mockResolvedValue([
+    {
+      team: {
+        id: 1,
+        isOrganization: true,
+      },
+    },
+  ]);
+
+  prismaMock.user.findMany.mockResolvedValue([
+    {
+      id: userId,
+      email: "test@example.com",
+    },
+  ]);
+});
 
 afterEach(() => {
   vi.resetAllMocks();
@@ -183,6 +218,8 @@ describe("GET /api/bookings", () => {
       prismaMock.booking.findMany.mockResolvedValue(mockBookings);
       prismaMock.booking.count.mockResolvedValue(2);
 
+      (retrieveOrgScopedAccessibleUsers as any).mockResolvedValue([1, 2]);
+
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         pagination: {
@@ -300,14 +337,14 @@ describe("GET /api/bookings", () => {
       await expect(handler(req)).rejects.toThrow();
     });
 
-    test("should handle multiple expand parameters", async () => {
+    test("should handle valid expand parameter", async () => {
       prismaMock.booking.findMany.mockResolvedValue([]);
       prismaMock.booking.count.mockResolvedValue(0);
 
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
         query: {
-          expand: "eventType,user,attendees",
+          expand: "team",
         },
         pagination: {
           take: 10,

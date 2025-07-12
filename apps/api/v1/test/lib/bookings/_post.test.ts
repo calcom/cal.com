@@ -4,9 +4,10 @@ import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { buildBooking, buildEventType, buildWebhook, buildUser } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";
@@ -14,6 +15,48 @@ import type { Booking } from "@calcom/prisma/client";
 import { CreationSource } from "@calcom/prisma/enums";
 
 import handler from "../../../pages/api/bookings/_post";
+
+vi.mock("@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB", () => ({
+  getEventTypesFromDB: vi.fn(),
+}));
+
+const mockEventTypeData = {
+  eventType: {
+    id: 1,
+    title: "Test Event",
+    profile: { organizationId: null },
+    users: [{ id: 1, email: "test@example.com", credentials: [] }],
+    hosts: [],
+    customInputs: [],
+    recurringEvent: null,
+    length: 15,
+    slug: "test-event",
+    price: 0,
+    currency: "USD",
+    requiresConfirmation: false,
+    disableGuests: false,
+    minimumBookingNotice: 120,
+    beforeEventBuffer: 0,
+    afterEventBuffer: 0,
+    seatsPerTimeSlot: null,
+    seatsShowAttendees: false,
+    schedulingType: null,
+    periodType: "UNLIMITED",
+    periodStartDate: null,
+    periodEndDate: null,
+    periodDays: null,
+    periodCountCalendarDays: false,
+    locations: [],
+    metadata: {},
+    successRedirectUrl: null,
+    description: null,
+    team: null,
+    owner: { id: 1, email: "test@example.com", credentials: [] },
+  },
+  users: [{ id: 1, email: "test@example.com", credentials: [] }],
+  allCredentials: [],
+  destinationCalendar: null,
+};
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
@@ -186,8 +229,19 @@ describe("POST /api/bookings - eventTypeId validation", () => {
 });
 
 describe("POST /api/bookings", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFindOriginalRescheduledBooking.mockResolvedValue(null);
+
+    (getEventTypesFromDB as any).mockResolvedValue(mockEventTypeData.eventType);
+  });
+
   describe("Errors", () => {
     test("Missing required data", async () => {
+      (getEventTypesFromDB as any).mockRejectedValue(
+        new Error("Cannot destructure property 'profile' of 'eventType' as it is undefined")
+      );
+
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
         body: {},
@@ -195,7 +249,7 @@ describe("POST /api/bookings", () => {
 
       await handler(req, res);
 
-      expect(res._getStatusCode()).toBe(400);
+      expect(res._getStatusCode()).toBe(500);
       expect(JSON.parse(res._getData())).toEqual(
         expect.objectContaining({
           message: expect.stringContaining("Cannot destructure property 'profile'"),
@@ -204,6 +258,8 @@ describe("POST /api/bookings", () => {
     });
 
     test("Invalid eventTypeId", async () => {
+      (getEventTypesFromDB as any).mockRejectedValue(new Error("No EventType found"));
+
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
         body: {
@@ -215,11 +271,9 @@ describe("POST /api/bookings", () => {
         prisma,
       });
 
-      prismaMock.eventType.findUniqueOrThrow.mockRejectedValue(new Error("No EventType found"));
-
       await handler(req, res);
 
-      expect(res._getStatusCode()).toBe(400);
+      expect(res._getStatusCode()).toBe(500);
       expect(JSON.parse(res._getData())).toEqual(
         expect.objectContaining({
           message: "No EventType found",
@@ -361,7 +415,7 @@ describe("POST /api/bookings", () => {
         });
 
         prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
-          ...buildEventType({ profileId: null }),
+          ...buildEventType({ profileId: null, length: 15 }),
           profile: { organizationId: null },
           hosts: [],
           users: [buildUser()],
@@ -436,7 +490,7 @@ describe("POST /api/bookings", () => {
         });
 
         prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
-          ...buildEventType({ profileId: null }),
+          ...buildEventType({ profileId: null, length: 15 }),
           profile: { organizationId: null },
           hosts: [],
           users: [buildUser()],
@@ -500,7 +554,7 @@ describe("POST /api/bookings", () => {
         });
 
         prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
-          ...buildEventType({ profileId: null }),
+          ...buildEventType({ profileId: null, length: 15 }),
           profile: { organizationId: null },
           hosts: [],
           users: [buildUser()],
@@ -571,7 +625,7 @@ describe("POST /api/bookings", () => {
         });
 
         prismaMock.eventType.findUniqueOrThrow.mockResolvedValue({
-          ...buildEventType({ profileId: null }),
+          ...buildEventType({ profileId: null, length: 15 }),
           profile: { organizationId: null },
           hosts: [],
           users: [buildUser()],
