@@ -10,6 +10,12 @@ import { bookingCancelInput } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function handler(req: NextRequest) {
+  await checkRateLimitWithIPAndThrowError({
+    rateLimitingType: "core",
+    req,
+    identifier: `app.api.cancel`,
+  });
+
   let appDirRequestBody;
   try {
     appDirRequestBody = await req.json();
@@ -17,6 +23,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ success: false, message: "Invalid JSON" }, { status: 400 });
   }
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+
   const bookingData = bookingCancelInput.parse(appDirRequestBody);
   const result = await handleCancelBooking({
     bookingData,
