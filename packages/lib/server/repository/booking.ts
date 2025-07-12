@@ -690,6 +690,19 @@ export class BookingRepository {
         payment: true,
         references: true,
         workflowReminders: true,
+        routedFromRoutingFormReponse: {
+          select: {
+            id: true,
+            response: true,
+            form: {
+              select: {
+                routes: true,
+                fields: true,
+              },
+            },
+            chosenRouteId: true,
+          },
+        },
       },
     });
   }
