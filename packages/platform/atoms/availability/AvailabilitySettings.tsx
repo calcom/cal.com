@@ -313,13 +313,23 @@ export function AvailabilitySettings({
         <Controller
           control={form.control}
           name="name"
-          render={({ field }) => (
+          rules={{
+            required: t("error_required_field"),
+            validate: (value) => {
+              if (!value || value.trim().length === 0) {
+                return t("error_required_field");
+              }
+              return true;
+            },
+          }}
+          render={({ field, fieldState }) => (
             <EditableHeading
               className={cn(customClassNames?.editableHeadingClassName)}
               isReady={!isLoading}
               disabled={disableEditableHeading}
               {...field}
               data-testid="availablity-title"
+              isError={fieldState.invalid}
             />
           )}
         />
