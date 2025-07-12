@@ -9,15 +9,15 @@ import { buildBooking, buildEventType } from "@calcom/lib/test/builder";
 
 import handler from "../../../../pages/api/bookings/[id]/_delete";
 
+vi.mock("@calcom/features/bookings/lib/handleCancelBooking", () => ({
+  handleCancelBooking: vi.fn().mockResolvedValue({ success: true }),
+}));
+
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
 const userId = 1;
 const bookingId = 123;
-
-vi.mock("@calcom/features/bookings/lib/handleCancelBooking", () => ({
-  handleCancelBooking: vi.fn().mockResolvedValue({ success: true }),
-}));
 
 afterEach(() => {
   vi.resetAllMocks();
