@@ -388,15 +388,18 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       const { DeelService } = await import("@calcom/app-store/deel/lib/DeelService");
       const deelService = new DeelService(deelCredential);
 
-      const employeeId = await deelService.getEmployeeId(oooUserEmail);
-      if (employeeId) {
-        await deelService.createTimeOff({
-          employee_id: employeeId,
-          start_date: startTimeUtc.format("YYYY-MM-DD"),
-          end_date: endTimeUtc.format("YYYY-MM-DD"),
-          time_off_type: "vacation",
-          notes: input.notes || `Out of office: ${reason?.reason || ""}`,
-        });
+      const recipientProfileId = await deelService.getRecipientProfileId(oooUserEmail);
+      if (recipientProfileId) {
+        const timeOffTypeId = await deelService.getTimeOffTypeId(recipientProfileId);
+        if (timeOffTypeId) {
+          await deelService.createTimeOff({
+            recipient_profile_id: recipientProfileId,
+            start_date: startTimeUtc.format("YYYY-MM-DD"),
+            end_date: endTimeUtc.format("YYYY-MM-DD"),
+            time_off_type_id: timeOffTypeId,
+            notes: input.notes || `Out of office: ${reason?.reason || ""}`,
+          });
+        }
       }
     }
   } catch (error) {

@@ -5,21 +5,36 @@ import logger from "@calcom/lib/logger";
 import type { DeelToken } from "../api/callback";
 
 export interface DeelTimeOffRequest {
-  employee_id: string;
+  recipient_profile_id: string;
   start_date: string;
   end_date: string;
-  time_off_type: string;
+  time_off_type_id: string;
   notes?: string;
 }
 
 export interface DeelTimeOffResponse {
   id: string;
-  employee_id: string;
+  recipient_profile_id: string;
   start_date: string;
   end_date: string;
-  time_off_type: string;
+  time_off_type_id: string;
   status: string;
   notes?: string;
+}
+
+export interface DeelTimeOffType {
+  id: string;
+  name: string;
+}
+
+export interface DeelPolicy {
+  id: string;
+  name: string;
+  time_off_types: DeelTimeOffType[];
+}
+
+export interface DeelPoliciesResponse {
+  data: DeelPolicy[];
 }
 
 export class DeelService {
@@ -72,7 +87,7 @@ export class DeelService {
     }
   }
 
-  async getEmployeeId(userEmail: string): Promise<string | null> {
+  async getRecipientProfileId(userEmail: string): Promise<string | null> {
     try {
       const accessToken = await this.getAccessToken();
 
@@ -93,7 +108,51 @@ export class DeelService {
       const data = await response.json();
       return data.data?.[0]?.id || null;
     } catch (error) {
-      this.log.error("Error getting Deel employee ID", error);
+      this.log.error("Error getting Deel recipient profile ID", error);
+      return null;
+    }
+  }
+
+  async getTimeOffTypeId(recipientProfileId: string): Promise<string | null> {
+    try {
+      const accessToken = await this.getAccessToken();
+
+      const response = await fetch(
+        `https://api.letsdeel.com/rest/v2/time_offs/profile/${encodeURIComponent(
+          recipientProfileId
+        )}/policies`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        this.log.warn("Could not fetch Deel policies", {
+          profileId: recipientProfileId,
+          status: response.status,
+        });
+        return null;
+      }
+
+      const data: DeelPoliciesResponse = await response.json();
+
+      for (const policy of data.data || []) {
+        for (const timeOffType of policy.time_off_types || []) {
+          if (
+            timeOffType.name?.toLowerCase().includes("vacation") ||
+            timeOffType.name?.toLowerCase().includes("pto") ||
+            timeOffType.name?.toLowerCase().includes("time off")
+          ) {
+            return timeOffType.id;
+          }
+        }
+      }
+
+      return data.data?.[0]?.time_off_types?.[0]?.id || null;
+    } catch (error) {
+      this.log.error("Error getting Deel time-off type ID", error);
       return null;
     }
   }
