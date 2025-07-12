@@ -8,6 +8,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import slugify from "@calcom/lib/slugify";
+import { safeCallbackUrl } from "@calcom/lib/WebAppURL";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
@@ -125,10 +126,12 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   });
 
   if (existingUser) {
+    const callbackUrl = ctx.query.callbackUrl as string;
+    const fullCallbackUrl = safeCallbackUrl(callbackUrl || '');
     return {
       redirect: {
         permanent: false,
-        destination: `/auth/login?callbackUrl=${WEBAPP_URL}/${ctx.query.callbackUrl}`,
+        destination: `/auth/login?callbackUrl=${fullCallbackUrl}`,
       },
     };
   }
