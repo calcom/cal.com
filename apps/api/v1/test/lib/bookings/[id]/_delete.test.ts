@@ -1,0 +1,183 @@
+import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { describe, expect, test, vi, afterEach } from "vitest";
+
+import { buildBooking, buildUser, buildEventType } from "@calcom/lib/test/builder";
+
+import handler from "../../../../pages/api/bookings/[id]/_delete";
+
+type CustomNextApiRequest = NextApiRequest & Request;
+type CustomNextApiResponse = NextApiResponse & Response;
+
+const userId = 1;
+const bookingId = 123;
+
+vi.mock("@calcom/features/bookings/lib/handleCancelBooking", () => ({
+  handleCancelBooking: vi.fn().mockResolvedValue({ success: true }),
+}));
+
+afterEach(() => {
+  vi.resetAllMocks();
+});
+
+describe("DELETE /api/bookings/[id]", () => {
+  describe("Success", () => {
+    test("should cancel booking successfully", async () => {
+      const mockBooking = buildBooking({
+        id: bookingId,
+        userId: userId,
+        eventType: buildEventType(),
+        attendees: [],
+        user: buildUser({ id: userId }),
+      });
+
+      prismaMock.booking.findUnique.mockResolvedValue(mockBooking);
+
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "DELETE",
+        query: {
+          id: bookingId.toString(),
+        },
+        body: {
+          reason: "User requested cancellation",
+        },
+      });
+
+      req.userId = userId;
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      const responseData = JSON.parse(res._getData());
+      expect(responseData.message).toBe("Booking cancelled successfully");
+    });
+
+    test("should allow system-wide admin to cancel any booking", async () => {
+      const adminUserId = 999;
+      const mockBooking = buildBooking({
+        id: bookingId,
+        userId: userId,
+        eventType: buildEventType(),
+        attendees: [],
+        user: buildUser({ id: userId }),
+      });
+
+      prismaMock.booking.findUnique.mockResolvedValue(mockBooking);
+
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "DELETE",
+        query: {
+          id: bookingId.toString(),
+        },
+        body: {
+          reason: "Admin cancellation",
+        },
+      });
+
+      req.userId = adminUserId;
+      req.isSystemWideAdmin = true;
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+    });
+  });
+
+  describe("Errors", () => {
+    test("should return 404 when booking not found", async () => {
+      prismaMock.booking.findUnique.mockResolvedValue(null);
+
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "DELETE",
+        query: {
+          id: "999",
+        },
+        body: {
+          reason: "Test cancellation",
+        },
+      });
+
+      req.userId = userId;
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    test("should return 400 for invalid booking ID", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "DELETE",
+        query: {
+          id: "invalid",
+        },
+        body: {
+          reason: "Test cancellation",
+        },
+      });
+
+      req.userId = userId;
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    test("should return 403 when user doesn't have permission to cancel booking", async () => {
+      const otherUserId = 999;
+      const mockBooking = buildBooking({
+        id: bookingId,
+        userId: otherUserId,
+        eventType: buildEventType(),
+        attendees: [],
+        user: buildUser({ id: otherUserId }),
+      });
+
+      prismaMock.booking.findUnique.mockResolvedValue(mockBooking);
+
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "DELETE",
+        query: {
+          id: bookingId.toString(),
+        },
+        body: {
+          reason: "Unauthorized cancellation",
+        },
+      });
+
+      req.userId = userId;
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    test("should return 400 when required cancellation reason is missing", async () => {
+      const mockBooking = buildBooking({
+        id: bookingId,
+        userId: userId,
+        eventType: buildEventType(),
+        attendees: [],
+        user: buildUser({ id: userId }),
+      });
+
+      prismaMock.booking.findUnique.mockResolvedValue(mockBooking);
+
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "DELETE",
+        query: {
+          id: bookingId.toString(),
+        },
+        body: {},
+      });
+
+      req.userId = userId;
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+    });
+  });
+});

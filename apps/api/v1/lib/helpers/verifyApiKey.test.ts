@@ -26,8 +26,7 @@ const mockDeploymentRepository: IDeploymentRepository = {
   getSignatureToken: vi.fn().mockResolvedValue("mockSignatureToken"),
 };
 
-// TODO: Fix the skip condition for this test suite
-describe.skip("Verify API key", () => {
+describe("Verify API key", () => {
   let service: ILicenseKeyService;
 
   beforeEach(async () => {
