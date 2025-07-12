@@ -309,6 +309,31 @@ class BaseCreateEventTypeInput {
   offsetStart?: number;
 
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  @DocsPropertyOptional({
+    description: "Position of the event type in the list. Lower numbers appear first.",
+    example: 0,
+  })
+  position?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Whether the event type should be hidden from public view",
+    example: false,
+  })
+  hidden?: boolean;
+
+  @IsOptional()
+  @Type(() => Object)
+  @DocsPropertyOptional({
+    description: "Custom metadata for the event type. Can include pricing information, custom settings, etc.",
+    example: { apps: { stripe: { price: 1000, currency: "usd" } } },
+  })
+  metadata?: Record<string, unknown>;
+
+  @IsOptional()
   @DocsPropertyOptional({
     description:
       "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
