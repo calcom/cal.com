@@ -37,7 +37,6 @@ type BookEventFormProps = {
   isPlatform?: boolean;
   isVerificationCodeSending: boolean;
   isTimeslotUnavailable: boolean;
-  shouldRenderCaptcha?: boolean;
   confirmButtonDisabled?: boolean;
   classNames?: {
     confirmButton?: string;
@@ -59,7 +58,6 @@ export const BookEventForm = ({
   isVerificationCodeSending,
   isPlatform = false,
   isTimeslotUnavailable,
-  shouldRenderCaptcha,
   confirmButtonDisabled,
   classNames,
 }: Omit<BookEventFormProps, "event"> & {
@@ -105,8 +103,6 @@ export const BookEventForm = ({
     console.warn("No event type found for event", extraOptions);
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
-
-  const watchedCfToken = bookingForm.watch("cfToken");
 
   return (
     <div className="flex h-full flex-col">
@@ -238,9 +234,7 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                disabled={
-                  (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
-                }
+                disabled={isTimeslotUnavailable || confirmButtonDisabled}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||

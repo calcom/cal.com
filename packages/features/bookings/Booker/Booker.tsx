@@ -9,12 +9,10 @@ import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBooke
 import dayjs from "@calcom/dayjs";
 import PoweredBy from "@calcom/ee/components/PoweredBy";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
-import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
-import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
@@ -135,8 +133,6 @@ const BookerComponent = ({
 
   const { handleBookEvent, errors, loadingStates, expiryTime, instantVideoMeetingUrl } = bookings;
 
-  const watchedCfToken = bookingForm.watch("cfToken");
-
   const {
     isEmailVerificationModalVisible,
     setEmailVerificationModalVisible,
@@ -172,13 +168,6 @@ const BookerComponent = ({
   );
 
   // Cloudflare Turnstile Captcha
-  const shouldRenderCaptcha = !!(
-    !process.env.NEXT_PUBLIC_IS_E2E &&
-    renderCaptcha &&
-    CLOUDFLARE_SITE_ID &&
-    CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
-    (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
-  );
 
   updateEmbedBookerState({ bookerState, slotsQuery: schedule });
 
@@ -216,7 +205,6 @@ const BookerComponent = ({
     return bookerState === "booking" ? (
       <BookEventForm
         key={key}
-        shouldRenderCaptcha={shouldRenderCaptcha}
         onCancel={() => {
           setSelectedTimeslot(null);
           // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
@@ -281,7 +269,6 @@ const BookerComponent = ({
     setSeatedEventData,
     setSelectedTimeslot,
     isPlatform,
-    shouldRenderCaptcha,
     isVerificationCodeSending,
     unavailableTimeSlots,
   ]);
@@ -487,8 +474,6 @@ const BookerComponent = ({
                 isVerificationCodeSending={isVerificationCodeSending}
                 onSubmit={onSubmit}
                 skipConfirmStep={skipConfirmStep}
-                shouldRenderCaptcha={shouldRenderCaptcha}
-                watchedCfToken={watchedCfToken}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={customClassNames?.confirmStep}
               />
@@ -522,18 +507,7 @@ const BookerComponent = ({
             </div>
           )}
 
-        {shouldRenderCaptcha && (
-          <div className="mb-6 mt-auto pt-6">
-            <TurnstileCaptcha
-              appearance="interaction-only"
-              onVerify={(token) => {
-                bookingForm.setValue("cfToken", token);
-              }}
-            />
-          </div>
-        )}
-
-        {!hideBranding && (!isPlatform || isPlatformBookerEmbed) && !shouldRenderCaptcha && (
+        {!hideBranding && (!isPlatform || isPlatformBookerEmbed) && (
           <m.span
             key="logo"
             className={classNames(
