@@ -34,7 +34,7 @@ export interface DeelPolicy {
 }
 
 export interface DeelPoliciesResponse {
-  data: DeelPolicy[];
+  policies: DeelPolicy[];
 }
 
 export class DeelService {
@@ -92,7 +92,7 @@ export class DeelService {
       const accessToken = await this.getAccessToken();
 
       const response = await fetch(
-        `https://api.letsdeel.com/rest/v2/people?email=${encodeURIComponent(userEmail)}`,
+        `https://api.letsdeel.com/rest/v2/people?search=${encodeURIComponent(userEmail)}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -101,12 +101,13 @@ export class DeelService {
       );
 
       if (!response.ok) {
-        this.log.warn("Could not find Deel employee", { email: userEmail, status: response.status });
+        this.log.warn("Could not find Deel person", { email: userEmail, status: response.status });
         return null;
       }
 
       const data = await response.json();
-      return data.data?.[0]?.id || null;
+      const person = data.data?.find((person: any) => person.email === userEmail);
+      return person?.id || null;
     } catch (error) {
       this.log.error("Error getting Deel recipient profile ID", error);
       return null;
@@ -138,7 +139,7 @@ export class DeelService {
 
       const data: DeelPoliciesResponse = await response.json();
 
-      for (const policy of data.data || []) {
+      for (const policy of data.policies || []) {
         for (const timeOffType of policy.time_off_types || []) {
           if (
             timeOffType.name?.toLowerCase().includes("vacation") ||
@@ -150,7 +151,7 @@ export class DeelService {
         }
       }
 
-      return data.data?.[0]?.time_off_types?.[0]?.id || null;
+      return data.policies?.[0]?.time_off_types?.[0]?.id || null;
     } catch (error) {
       this.log.error("Error getting Deel time-off type ID", error);
       return null;
