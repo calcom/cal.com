@@ -19,7 +19,7 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-describe.skip("GET /api/bookings/[id]", () => {
+describe("GET /api/bookings/[id]", () => {
   describe("Success", () => {
     test("should return booking when user has access", async () => {
       const mockBooking = buildBooking({

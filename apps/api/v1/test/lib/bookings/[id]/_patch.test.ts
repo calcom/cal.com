@@ -19,7 +19,7 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-describe.skip("PATCH /api/bookings/[id]", () => {
+describe("PATCH /api/bookings/[id]", () => {
   describe("Success", () => {
     test("should update booking successfully", async () => {
       const mockBooking = buildBooking({

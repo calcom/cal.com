@@ -19,7 +19,7 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-describe.skip("GET /api/bookings", () => {
+describe("GET /api/bookings", () => {
   describe("Query parameter validation", () => {
     test("should validate status parameter correctly", async () => {
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({

@@ -23,7 +23,7 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-describe.skip("DELETE /api/bookings/[id]", () => {
+describe("DELETE /api/bookings/[id]", () => {
   describe("Success", () => {
     test("should cancel booking successfully", async () => {
       const mockBooking = buildBooking({
