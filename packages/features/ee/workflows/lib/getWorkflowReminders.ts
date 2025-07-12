@@ -4,7 +4,14 @@ import type { EventType, User, WorkflowReminder, WorkflowStep, Prisma } from "@c
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 type PartialWorkflowStep =
-  | (Partial<WorkflowStep> & { workflow: { userId?: number; teamId?: number } })
+  | (Partial<WorkflowStep> & {
+      workflow: {
+        userId?: number;
+        teamId?: number;
+        user?: { email: string } | null;
+        team?: { members: { user: { email: string }; role: string }[] } | null;
+      };
+    })
   | null;
 
 type Booking = Prisma.BookingGetPayload<{
@@ -140,6 +147,29 @@ export const select = {
         select: {
           userId: true,
           teamId: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
+          team: {
+            select: {
+              members: {
+                select: {
+                  user: {
+                    select: {
+                      email: true,
+                    },
+                  },
+                  role: true,
+                },
+                where: {
+                  role: "OWNER",
+                },
+                take: 1,
+              },
+            },
+          },
         },
       },
     },
@@ -214,4 +244,27 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
   const unscheduledReminders = (await getWorkflowReminders(whereFilter, select)) as PartialWorkflowReminder[];
 
   return unscheduledReminders;
+}
+
+export function getWorkflowRecipientEmail(reminder: PartialWorkflowReminder): string | null {
+  if (!reminder?.workflowStep?.action) return null;
+
+  const action = reminder.workflowStep.action;
+
+  switch (action) {
+    case "EMAIL_ADDRESS":
+      return reminder.workflowStep.sendTo || null;
+    case "EMAIL_HOST":
+      return reminder.booking?.user?.email || null;
+    case "EMAIL_ATTENDEE":
+      return reminder.booking?.attendees?.[0]?.email || null;
+    case "SMS_ATTENDEE":
+    case "WHATSAPP_ATTENDEE":
+      return reminder.booking?.attendees?.[0]?.email || null;
+    case "SMS_NUMBER":
+    case "WHATSAPP_NUMBER":
+      return null;
+    default:
+      return null;
+  }
 }
