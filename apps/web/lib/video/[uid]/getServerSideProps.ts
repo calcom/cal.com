@@ -94,7 +94,8 @@ const checkIfUserIsHost = async ({
     return booking.user?.id === sessionUserId;
   }
 
-  const eventType = await EventTypeRepository.findByIdWithUserAccess({
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdWithUserAccess({
     id: booking.eventTypeId,
     userId: sessionUserId,
   });
