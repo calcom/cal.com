@@ -67,42 +67,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     where: {
       link,
     },
-    select: {
-      id: true,
-      link: true,
-      eventTypeId: true,
-      expiresAt: true,
-      maxUsageCount: true,
-      usageCount: true,
-      eventType: {
-        select: {
-          users: {
-            select: {
-              username: true,
-              profiles: {
-                select: {
-                  id: true,
-                  organizationId: true,
-                  username: true,
-                },
-              },
-            },
-          },
-          team: {
-            select: {
-              id: true,
-              slug: true,
-              hideBranding: true,
-              parent: {
-                select: {
-                  hideBranding: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+    select: hashedLinkSelect,
   });
 
   let name: string;
