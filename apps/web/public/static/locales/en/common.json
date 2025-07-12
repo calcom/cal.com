@@ -479,6 +479,7 @@
   "unconfirmed_bookings": "Your unconfirmed bookings will show up here.",
   "unconfirmed_bookings_tooltip": "Unconfirmed bookings",
   "on": "on",
+  "between": "between",
   "and": "and",
   "calendar_shows_busy_between": "Your calendar shows you as busy between",
   "troubleshoot": "Troubleshoot",
