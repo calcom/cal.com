@@ -14,7 +14,7 @@ async function cleanupExpiredQueuedFormResponses(olderThanHours = 1) {
         },
         {
           createdAt: {
-            gte: cutoffTime,
+            lt: cutoffTime,
           },
         },
       ],
