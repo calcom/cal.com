@@ -873,6 +873,9 @@ export class AvailableSlotsService {
   getAvailableSlots = withReporting(this._getAvailableSlots.bind(this), "getAvailableSlots");
 
   async _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
+    const perfStartTime = performance.now();
+    console.log(`[PERF] _getAvailableSlots started at ${perfStartTime}ms`);
+
     const {
       _enableTroubleshooter: enableTroubleshooter = false,
       _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
@@ -891,7 +894,10 @@ export class AvailableSlotsService {
       logger.settings.minLevel = 2;
     }
 
+    const eventTypeStart = performance.now();
     const eventType = await this.getRegularOrDynamicEventType(input, orgDetails);
+    const eventTypeEnd = performance.now();
+    console.log(`[PERF] getRegularOrDynamicEventType took ${eventTypeEnd - eventTypeStart}ms`);
 
     if (!eventType) {
       throw new TRPCError({ code: "NOT_FOUND" });
@@ -958,6 +964,7 @@ export class AvailableSlotsService {
     }
 
     // TODO: DI findQualifiedHostsWithDelegationCredentials
+    const hostsStart = performance.now();
     const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
       await findQualifiedHostsWithDelegationCredentials({
         eventType,
@@ -966,6 +973,8 @@ export class AvailableSlotsService {
         contactOwnerEmail,
         routingFormResponse,
       });
+    const hostsEnd = performance.now();
+    console.log(`[PERF] findQualifiedHostsWithDelegationCredentials took ${hostsEnd - hostsStart}ms`);
 
     const allHosts = [...qualifiedRRHosts, ...fixedHosts];
 
@@ -973,6 +982,7 @@ export class AvailableSlotsService {
 
     const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
 
+    const availabilityStart = performance.now();
     let { allUsersAvailability, usersWithCredentials, currentSeats } =
       await this.calculateHostsAndAvailabilities({
         input,
@@ -992,6 +1002,8 @@ export class AvailableSlotsService {
         bypassBusyCalendarTimes,
         shouldServeCache,
       });
+    const availabilityEnd = performance.now();
+    console.log(`[PERF] calculateHostsAndAvailabilities took ${availabilityEnd - availabilityStart}ms`);
 
     let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
 
