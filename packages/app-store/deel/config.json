@@ -9,9 +9,9 @@
   "categories": ["other"],
   "publisher": "Deel.com",
   "email": "support@deel.com",
-  "description": "Integrate Deel with your Calendar and get automatic updates on key employee dates like PTO, start days, public holidays, and birthdays. No manual entry. No errors. Just a calendar that's always in sync with your team.",
+  "description": "Integrate Deel with your Calendar and automatically create time-off requests when you're out of office. No manual entry. No errors. Just seamless time-off management.",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "link-as-an-app",
+  "__template": "oauth",
   "dirName": "deel"
 }

@@ -375,5 +375,33 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     })
   );
 
+  try {
+    const deelCredential = await prisma.credential.findFirst({
+      where: {
+        userId: oooUserId,
+        type: "deel_other",
+        appId: "deel",
+      },
+    });
+
+    if (deelCredential) {
+      const { DeelService } = await import("@calcom/app-store/deel/lib/DeelService");
+      const deelService = new DeelService(deelCredential);
+
+      const employeeId = await deelService.getEmployeeId(oooUserEmail);
+      if (employeeId) {
+        await deelService.createTimeOff({
+          employee_id: employeeId,
+          start_date: startTimeUtc.format("YYYY-MM-DD"),
+          end_date: endTimeUtc.format("YYYY-MM-DD"),
+          time_off_type: "vacation",
+          notes: input.notes || `Out of office: ${reason?.reason || ""}`,
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Failed to create Deel time-off request:", error);
+  }
+
   return {};
 };
