@@ -52,7 +52,8 @@ export const getEventTypeById = async ({
     isPlatformManaged: true,
   } satisfies Prisma.UserSelect;
 
-  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const rawEventType = await eventTypeRepo.findById({ id: eventTypeId, userId });
 
   if (!rawEventType) {
     if (isTrpcCall) {
@@ -66,11 +67,12 @@ export const getEventTypeById = async ({
   const newMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
+  const userRepo = new UserRepository(prisma);
   const eventTeamMembershipsWithUserProfile = [];
   for (const eventTeamMembership of rawEventType.team?.members || []) {
     eventTeamMembershipsWithUserProfile.push({
       ...eventTeamMembership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await userRepo.enrichUserWithItsProfile({
         user: eventTeamMembership.user,
       }),
     });
@@ -81,7 +83,7 @@ export const getEventTypeById = async ({
     childrenWithUserProfile.push({
       ...child,
       owner: child.owner
-        ? await UserRepository.enrichUserWithItsProfile({
+        ? await userRepo.enrichUserWithItsProfile({
             user: child.owner,
           })
         : null,
@@ -91,7 +93,7 @@ export const getEventTypeById = async ({
   const eventTypeUsersWithUserProfile = [];
   for (const eventTypeUser of rawEventType.users) {
     eventTypeUsersWithUserProfile.push(
-      await UserRepository.enrichUserWithItsProfile({
+      await userRepo.enrichUserWithItsProfile({
         user: eventTypeUser,
       })
     );
