@@ -40,6 +40,7 @@ export type IsFixedAwareUser = User & {
   weight?: number;
   userLevelSelectedCalendars: SelectedCalendar[];
   allSelectedCalendars: SelectedCalendar[];
+  groupId?: string;
 };
 
 export type { PaymentAppData };
