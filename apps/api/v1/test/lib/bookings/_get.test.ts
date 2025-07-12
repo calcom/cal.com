@@ -8,13 +8,14 @@ import { ZodError } from "zod";
 
 import { buildBooking } from "@calcom/lib/test/builder";
 
-import { handler } from "../../../pages/api/bookings/_get";
 import {
   getAccessibleUsers,
   retrieveOrgScopedAccessibleUsers,
-} from "../../lib/utils/retrieveScopedAccessibleUsers";
+} from "~/lib/utils/retrieveScopedAccessibleUsers";
 
-vi.mock("../../lib/utils/retrieveScopedAccessibleUsers", () => ({
+import { handler } from "../../../pages/api/bookings/_get";
+
+vi.mock("~/lib/utils/retrieveScopedAccessibleUsers", () => ({
   getAccessibleUsers: vi.fn(),
   retrieveOrgScopedAccessibleUsers: vi.fn(),
 }));
