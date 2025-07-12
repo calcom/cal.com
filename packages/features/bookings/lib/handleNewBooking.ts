@@ -210,6 +210,7 @@ export const buildDryRunBooking = ({
     dynamicEventSlugRef: null,
     dynamicGroupSlugRef: null,
     fromReschedule: null,
+    rescheduledToUid: null,
     recurringEventId: null,
     scheduledJobs: [],
     rescheduledBy: null,
