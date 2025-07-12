@@ -1,3 +1,4 @@
+import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
@@ -5,9 +6,13 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class TeamsMembershipsService {
-  constructor(private readonly teamsMembershipsRepository: TeamsMembershipsRepository) {}
+  constructor(
+    private readonly teamsMembershipsRepository: TeamsMembershipsRepository,
+    private readonly membershipsService: MembershipsService
+  ) {}
 
   async createTeamMembership(teamId: number, data: CreateTeamMembershipInput) {
+    await this.membershipsService.canUserBeAddedToTeam(data.userId, teamId);
     const teamMembership = await this.teamsMembershipsRepository.createTeamMembership(teamId, data);
     return teamMembership;
   }
