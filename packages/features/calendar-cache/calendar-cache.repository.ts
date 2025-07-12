@@ -12,8 +12,8 @@ import type { ICalendarCacheRepository } from "./calendar-cache.repository.inter
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepository"] });
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
-const CACHING_TIME = ONE_MONTH_IN_MS;
+const THREE_MONTHS_IN_MS = 90 * MS_PER_DAY;
+const CACHING_TIME = THREE_MONTHS_IN_MS;
 
 function parseKeyForCache(args: FreeBusyArgs): string {
   // Ensure that calendarIds are unique
@@ -139,11 +139,13 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     userId,
     args,
     value,
+    nextSyncToken,
   }: {
     credentialId: number;
     userId: number | null;
     args: FreeBusyArgs;
     value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
+    nextSyncToken?: string | null;
   }) {
     assertCalendarHasDbCredential(this.calendar);
     const key = parseKeyForCache(args);
@@ -158,6 +160,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         // Ensure that on update userId is also set(It handles the case where userId is not set for legacy records)
         userId,
         value,
+        nextSyncToken,
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
       create: {
@@ -165,6 +168,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         credentialId,
         userId,
         key,
+        nextSyncToken,
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
     });

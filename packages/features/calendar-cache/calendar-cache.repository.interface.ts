@@ -12,11 +12,13 @@ export interface ICalendarCacheRepository {
     userId,
     args,
     value,
+    nextSyncToken,
   }: {
     credentialId: number;
     userId: number | null;
     args: FreeBusyArgs;
     value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
+    nextSyncToken?: string | null;
   }): Promise<void>;
   getCachedAvailability({
     credentialId,
