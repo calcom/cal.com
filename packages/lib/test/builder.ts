@@ -63,6 +63,7 @@ export const buildBooking = (
     dynamicGroupSlugRef: null,
     rescheduled: null,
     fromReschedule: null,
+    rescheduledToUid: null,
     recurringEventId: null,
     smsReminderNumber: null,
     reassignById: null,
