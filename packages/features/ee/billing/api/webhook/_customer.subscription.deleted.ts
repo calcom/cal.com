@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma";
+
 import type { LazyModule, SWHMap } from "./__handler";
 
 type Data = SWHMap["customer.subscription.deleted"]["data"];
@@ -8,6 +10,19 @@ const STRIPE_TEAM_PRODUCT_ID = process.env.STRIPE_TEAM_PRODUCT_ID || "";
 
 const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) => {
   const subscription = data.object;
+
+  // Check if this is a phone number subscription first
+  const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
+    where: {
+      stripeSubscriptionId: subscription.id,
+    },
+  });
+
+  if (phoneNumber) {
+    return await handlePhoneNumberSubscriptionDeleted(subscription, phoneNumber);
+  }
+
+  // Fall back to product-based handling for other subscriptions
   let productId: string | null = null;
   // @ts-expect-error - support legacy just in case.
   if (subscription.plan) {
@@ -45,6 +60,34 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   }
   return await handler(data);
 };
+
+async function handlePhoneNumberSubscriptionDeleted(subscription: any, phoneNumber: any) {
+  if (!subscription.id) {
+    throw new HttpCode(400, "Subscription ID not found");
+  }
+
+  // Mark subscription as cancelled and remove from AI config if linked
+  await prisma.calAiPhoneNumber.update({
+    where: {
+      id: phoneNumber.id,
+    },
+    data: {
+      subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+    },
+  });
+
+  // Remove phone number from AI configurations
+  await prisma.aISelfServeConfiguration.updateMany({
+    where: {
+      yourPhoneNumberId: phoneNumber.id,
+    },
+    data: {
+      yourPhoneNumberId: null,
+    },
+  });
+
+  return { success: true, subscriptionId: subscription.id };
+}
 
 export default stripeWebhookProductHandler({
   [STRIPE_TEAM_PRODUCT_ID]: () => import("./_customer.subscription.deleted.team-plan"),

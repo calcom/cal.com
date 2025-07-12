@@ -25,6 +25,20 @@ const aiPhoneCallConfig = z
   })
   .optional();
 
+const aiSelfServeConfiguration = z
+  .object({
+    numberToCall: z.string().optional(),
+    yourPhoneNumber: z.string().optional(),
+    yourPhoneNumberId: z.number().optional(),
+    generalPrompt: z.string().optional(),
+    beginMessage: z.string().optional(),
+    agentId: z.string().optional(),
+    llmId: z.string().optional(),
+    agentTimeZone: z.string().optional(),
+  })
+  .optional()
+  .nullable();
+
 const calVideoSettingsSchema = z
   .object({
     disableRecordingForGuests: z.boolean().optional().nullable(),
@@ -63,6 +77,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     instantMeetingParameters: z.array(z.string()),
     instantMeetingExpiryTimeOffsetInSeconds: z.number(),
     aiPhoneCallConfig,
+    aiSelfServeConfiguration,
     calVideoSettings: calVideoSettingsSchema,
     calAiPhoneScript: z.string(),
     customInputs: z.array(customInputSchema),
@@ -99,6 +114,20 @@ export const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
       data.guestName = data.guestName ?? undefined;
       data.guestEmail = data.guestEmail ?? null;
       data.guestCompany = data.guestCompany ?? null;
+      return true;
+    },
+    {
+      message: "Applying default values and transformations",
+    }
+  ),
+  aiSelfServeConfiguration: aiSelfServeConfiguration.refine(
+    (data) => {
+      if (!data) return true;
+      data.yourPhoneNumber = data.yourPhoneNumber || undefined;
+      data.numberToCall = data.numberToCall || undefined;
+      data.agentId = data.agentId || undefined;
+      data.llmId = data.llmId || undefined;
+      data.agentTimeZone = data.agentTimeZone || undefined;
       return true;
     },
     {
