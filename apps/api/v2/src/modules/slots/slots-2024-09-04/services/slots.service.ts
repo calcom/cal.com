@@ -44,7 +44,12 @@ export class SlotsService_2024_09_04 {
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
     try {
+      const perfStartTime = performance.now();
+      console.log(`[PERF] API v2 getAvailableSlots started at ${perfStartTime}ms`);
+
       const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
+
+      const availableSlotsStart = performance.now();
       const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
         input: {
           ...queryTransformed,
@@ -52,6 +57,12 @@ export class SlotsService_2024_09_04 {
         },
         ctx: {},
       });
+      const availableSlotsEnd = performance.now();
+      console.log(
+        `[PERF] availableSlotsService.getAvailableSlots took ${availableSlotsEnd - availableSlotsStart}ms`
+      );
+
+      const formattingStart = performance.now();
       const formatted = await this.slotsOutputService.getAvailableSlots(
         availableSlots,
         queryTransformed.eventTypeId,
@@ -59,6 +70,11 @@ export class SlotsService_2024_09_04 {
         query.format,
         queryTransformed.timeZone
       );
+      const formattingEnd = performance.now();
+      console.log(`[PERF] slotsOutputService.getAvailableSlots took ${formattingEnd - formattingStart}ms`);
+
+      const perfEndTime = performance.now();
+      console.log(`[PERF] API v2 getAvailableSlots total time: ${perfEndTime - perfStartTime}ms`);
 
       return formatted;
     } catch (error) {
