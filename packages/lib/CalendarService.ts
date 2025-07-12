@@ -101,6 +101,99 @@ const getDuration = (start: string, end: string): DurationObject => ({
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
+/**
+ * Adds SCHEDULE-AGENT=CLIENT to all ATTENDEE lines in an iCalendar string.
+ * This prevents CalDAV servers from sending their own invitations.
+ * @param iCalString - The iCalendar string to modify
+ * @returns The modified iCalendar string
+ */
+export const addScheduleAgentClient = (iCalString: string): string => {
+  // First, unfold any folded lines (RFC 5545 section 3.1)
+  const unfoldedString = iCalString.replace(/\r?\n[ \t]/g, "");
+
+  // Split the string into lines for processing
+  const lines = unfoldedString.split(/\r?\n/);
+
+  // Process each line
+  const modifiedLines = lines.map((line) => {
+    // Check if this is an ATTENDEE line (case-insensitive)
+    if (line.match(/^ATTENDEE/i)) {
+      // Check if SCHEDULE-AGENT is already present (defensive coding)
+      // Case-insensitive check as per RFC 5545
+      if (line.match(/SCHEDULE-AGENT=/i)) {
+        return line;
+      }
+
+      // Find where to insert the SCHEDULE-AGENT parameter
+      // ATTENDEE lines can have parameters before the colon
+      const colonIndex = line.indexOf(":");
+      if (colonIndex === -1) {
+        // Malformed line, return as-is
+        return line;
+      }
+
+      // Insert SCHEDULE-AGENT=CLIENT before the colon
+      return `${line.substring(0, colonIndex)};SCHEDULE-AGENT=CLIENT${line.substring(colonIndex)}`;
+    }
+
+    return line;
+  });
+
+  // Re-fold long lines according to RFC 5545 (75 octet limit)
+  const refoldedLines: string[] = [];
+  modifiedLines.forEach((line) => {
+    // RFC 5545 specifies a 75 octet limit - we need to count bytes, not characters
+    const lineBytes = Buffer.from(line, "utf8");
+
+    if (lineBytes.length <= 75) {
+      refoldedLines.push(line);
+    } else {
+      // Fold long lines by bytes, not characters
+      let remainingBytes = lineBytes;
+      const offset = 0;
+
+      // First line - up to 75 bytes
+      let chunkSize = 75;
+      while (chunkSize > 0 && offset + chunkSize > 0) {
+        // Ensure we don't split in the middle of a UTF-8 character
+        const testChunk = remainingBytes.subarray(0, chunkSize);
+        const testString = testChunk.toString("utf8");
+        const testBytes = Buffer.from(testString, "utf8");
+
+        if (testBytes.length === testChunk.length) {
+          // Valid UTF-8 boundary
+          refoldedLines.push(testString);
+          remainingBytes = remainingBytes.subarray(chunkSize);
+          break;
+        }
+        // Try a smaller chunk to avoid splitting UTF-8 characters
+        chunkSize--;
+      }
+
+      // Continuation lines - up to 74 bytes (accounting for leading space)
+      while (remainingBytes.length > 0) {
+        chunkSize = 74;
+        while (chunkSize > 0) {
+          const testChunk = remainingBytes.subarray(0, chunkSize);
+          const testString = testChunk.toString("utf8");
+          const testBytes = Buffer.from(testString, "utf8");
+
+          if (testBytes.length === testChunk.length) {
+            // Valid UTF-8 boundary
+            refoldedLines.push(` ${testString}`);
+            remainingBytes = remainingBytes.subarray(chunkSize);
+            break;
+          }
+          chunkSize--;
+        }
+      }
+    }
+  });
+
+  // Join the lines back together
+  return refoldedLines.join("\r\n");
+};
+
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
   private credentials: Record<string, string> = {};
@@ -188,7 +281,7 @@ export default abstract class BaseCalendarService implements Calendar {
               },
               filename: `${uid}.ics`,
               // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              iCalString: addScheduleAgentClient(iCalString.replace(/METHOD:[^\r\n]+\r?\n/gi, "")),
               headers: this.headers,
             })
           )
@@ -256,7 +349,7 @@ export default abstract class BaseCalendarService implements Calendar {
             calendarObject: {
               url: calendarEvent.url,
               // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
-              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              data: addScheduleAgentClient(iCalString?.replace(/METHOD:[^\r\n]+\r?\n/gi, "") || ""),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
