@@ -73,7 +73,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                     ...response,
                     [field.id]: {
                       label: field.label,
-                      identifier: field?.identifier,
+                      identifier: field?.identifier || null,
                       value: getFieldResponseForJsonLogic({ field, value }),
                     },
                   };

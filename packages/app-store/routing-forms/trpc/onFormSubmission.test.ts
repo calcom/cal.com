@@ -50,8 +50,8 @@ describe("_onFormSubmission", () => {
   };
 
   const mockResponse = {
-    "field-1": { label: "Email", value: "test@response.com" },
-    "field-2": { label: "Name", value: "Test Name" },
+    "field-1": { label: "Email", value: "test@response.com", identifier: "email" },
+    "field-2": { label: "Name", value: "Test Name", identifier: "name" },
   };
 
   const responseId = 123;
