@@ -5,7 +5,7 @@ import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
-const scopes = ["time-off:write"];
+const scopes = ["time-off:write", "time-off:read", "people:read"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
