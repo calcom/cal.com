@@ -44,7 +44,7 @@ test.describe("Collective Event Types", () => {
     expect(page.url()).toContain("?tabName=team");
   });
 
-  test("first added team member gets organizer label", async ({ page, users }) => {
+  test("first added team member is organizer of the event", async ({ page, users }) => {
     // Create admin user with team + 3 teammates (4 total members)
     const adminUser = await users.create(
       {
