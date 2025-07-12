@@ -480,21 +480,6 @@ async function handler(
     });
   }
 
-  if (eventType.recurringEvent) {
-    if (recurringCount === undefined || recurringCount === null) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "recurringCount is required for recurring events",
-      });
-    }
-    if (recurringCount > eventType.recurringEvent.count) {
-      throw new HttpError({
-        statusCode: 400,
-        message: `recurringCount cannot exceed the maximum count of ${eventType.recurringEvent.count}`,
-      });
-    }
-  }
-
   const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
   const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
 
