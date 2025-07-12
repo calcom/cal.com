@@ -5,6 +5,7 @@ import React, { forwardRef, useId, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { Icon } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
@@ -74,23 +75,34 @@ type AddonProps = {
   position?: "start" | "end";
 };
 
-const Addon = ({ children, className, error, onClickAddon, size = "md", position = "start" }: AddonProps) => (
-  <div
-    onClick={onClickAddon && onClickAddon}
-    className={classNames(
-      "flex flex-shrink-0 items-center justify-center whitespace-nowrap",
-      onClickAddon && "pointer-events-auto cursor-pointer disabled:hover:cursor-not-allowed",
-      className
-    )}>
+const Addon = ({ children, className, error, onClickAddon, size = "md", position = "start" }: AddonProps) => {
+  const tooltipText =
+    typeof children === "string"
+      ? children
+      : React.isValidElement(children) && typeof children.props.children === "string"
+      ? children.props.children
+      : "";
+
+  return (
     <div
+      onClick={onClickAddon && onClickAddon}
       className={classNames(
-        "text-sm font-medium leading-none",
-        error ? "text-error" : "text-muted peer-disabled:opacity-50"
+        "flex flex-shrink-0 items-center justify-center whitespace-nowrap",
+        onClickAddon && "pointer-events-auto cursor-pointer disabled:hover:cursor-not-allowed",
+        className
       )}>
-      {children}
+      <Tooltip content={tooltipText}>
+        <span
+          className={classNames(
+            "inline-block max-w-[150px] overflow-hidden text-ellipsis text-sm font-medium leading-none",
+            error ? "text-error" : "text-muted peer-disabled:opacity-50"
+          )}>
+          {children}
+        </span>
+      </Tooltip>
     </div>
-  </div>
-);
+  );
+};
 
 export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();

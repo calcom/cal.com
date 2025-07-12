@@ -397,21 +397,12 @@ export default function Signup({
                       data-testid="signup-usernamefield"
                       setPremium={(value) => setPremiumUsername(value)}
                       addOnLeading={
-                        <div className="relative max-w-[120px]">
-                          <div
-                            className="scrollbar-hide overflow-x-auto whitespace-nowrap"
-                            style={{
-                              WebkitOverflowScrolling: "touch",
-                            }}>
-                            {orgSlug
-                              ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
-                                  URL_PROTOCOL_REGEX,
-                                  ""
-                                )}/`
-                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`}
-                          </div>
-                          <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-gray-100 to-transparent dark:from-black" />
-                        </div>
+                        orgSlug
+                          ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
+                              URL_PROTOCOL_REGEX,
+                              ""
+                            )}/`
+                          : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
                       }
                     />
                   ) : null}
