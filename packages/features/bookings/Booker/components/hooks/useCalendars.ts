@@ -54,10 +54,11 @@ export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
 
   useEffect(
     function refactorMeWithoutEffect() {
-      if (!isError) return;
-      clearSet();
+      if (isError) {
+        clearSet();
+      }
     },
-    [isError]
+    [isError, clearSet]
   );
 
   const { data, isPending } = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
