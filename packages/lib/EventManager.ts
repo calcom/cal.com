@@ -140,7 +140,11 @@ export default class EventManager {
    *
    * @param user
    */
-  constructor(user: EventManagerUser, eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>) {
+  constructor(
+    user: EventManagerUser,
+    eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>,
+    options?: { googleApiCacheManager?: import("@calcom/app-store/_utils/googleapis").CachedFetchManager }
+  ) {
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
