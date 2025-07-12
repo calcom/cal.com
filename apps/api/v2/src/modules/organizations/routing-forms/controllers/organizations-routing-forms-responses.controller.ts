@@ -1,11 +1,14 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { VERSION_2025_07_11 } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
+import { Or } from "@/modules/auth/guards/or-guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { IsUserRoutingForm } from "@/modules/auth/guards/organizations/is-user-routing-form.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { GetRoutingFormResponsesOutput } from "@/modules/organizations/routing-forms/outputs/get-routing-form-responses.output";
 import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizations/routing-forms/services/organizations-routing-forms-responses.service";
@@ -20,12 +23,12 @@ import {
   UseGuards,
   ParseIntPipe,
   Req,
+  Version,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetAvailableSlotsInput_2024_09_04 } from "@calcom/platform-types";
 
 import { CreateRoutingFormResponseInput } from "../inputs/create-routing-form-response.input";
 import { GetRoutingFormResponsesParams } from "../inputs/get-routing-form-responses-params.input";
@@ -33,11 +36,14 @@ import { UpdateRoutingFormResponseInput } from "../inputs/update-routing-form-re
 import { CreateRoutingFormResponseOutput } from "../outputs/create-routing-form-response.output";
 import { UpdateRoutingFormResponseOutput } from "../outputs/update-routing-form-response.output";
 
+// We allow all but 2025-07-11 version in here because users might be using with any cal-api-version header, and we don't want to break it for them
+const UNVERSIONED = API_VERSIONS_VALUES.filter((v) => v !== VERSION_2025_07_11);
+
 @Controller({
   path: "/v2/organizations/:orgId/routing-forms/:routingFormId/responses",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiTags("Orgs / Routing forms")
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsRoutingFormsResponsesController {
@@ -48,6 +54,7 @@ export class OrganizationsRoutingFormsResponsesController {
   @Get("/")
   @ApiOperation({ summary: "Get routing form responses" })
   @Roles("ORG_ADMIN")
+  @UseGuards(RolesGuard)
   @PlatformPlan("ESSENTIALS")
   async getRoutingFormResponses(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -72,8 +79,10 @@ export class OrganizationsRoutingFormsResponsesController {
   }
 
   @Post("/")
+  @Version(UNVERSIONED)
   @ApiOperation({ summary: "Create routing form response and get available slots" })
   @Roles("ORG_ADMIN")
+  @UseGuards(RolesGuard)
   @PlatformPlan("ESSENTIALS")
   async createRoutingFormResponse(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -82,7 +91,30 @@ export class OrganizationsRoutingFormsResponsesController {
     @Req() request: Request
   ): Promise<CreateRoutingFormResponseOutput> {
     const result = await this.organizationsRoutingFormsResponsesService.createRoutingFormResponseWithSlots(
-      orgId,
+      routingFormId,
+      query,
+      request
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: result,
+    };
+  }
+
+  @Post("/")
+  @Version(VERSION_2025_07_11)
+  @ApiOperation({ summary: "Create routing form response and get available slots" })
+  @Roles("ORG_ADMIN")
+  @UseGuards(Or([RolesGuard, IsUserRoutingForm]))
+  @PlatformPlan("ESSENTIALS")
+  async createRoutingFormResponseV2025_07_11(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("routingFormId") routingFormId: string,
+    @Query() query: CreateRoutingFormResponseInput,
+    @Req() request: Request
+  ): Promise<CreateRoutingFormResponseOutput> {
+    const result = await this.organizationsRoutingFormsResponsesService.createRoutingFormResponseWithSlots(
       routingFormId,
       query,
       request
@@ -97,6 +129,7 @@ export class OrganizationsRoutingFormsResponsesController {
   @Patch("/:responseId")
   @ApiOperation({ summary: "Update routing form response" })
   @Roles("ORG_ADMIN")
+  @UseGuards(RolesGuard)
   @PlatformPlan("ESSENTIALS")
   async updateRoutingFormResponse(
     @Param("orgId", ParseIntPipe) orgId: number,
