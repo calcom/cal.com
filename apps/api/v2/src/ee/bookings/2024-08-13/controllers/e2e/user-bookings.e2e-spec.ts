@@ -1408,6 +1408,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
             expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
 
+            const oldBookingDb = await bookingsRepositoryFixture.getByUid(createdBooking.uid);
+            expect(oldBookingDb?.status).toEqual("cancelled");
+            expect(oldBookingDb?.rescheduledToUid).toEqual(data.uid);
+            const newBookingDb = await bookingsRepositoryFixture.getByUid(data.uid);
+            expect(newBookingDb?.status).toEqual("accepted");
+            expect(newBookingDb?.fromReschedule).toEqual(oldBookingDb?.uid);
+
             rescheduledBooking = data;
           });
       });
