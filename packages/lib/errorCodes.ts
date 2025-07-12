@@ -23,4 +23,5 @@ export enum ErrorCode {
   BookerLimitExceededReschedule = "booker_limit_exceeded_error_reschedule",
   BookingNotAllowedByRestrictionSchedule = "booking_not_allowed_by_restriction_schedule_error",
   RestrictionScheduleNotFound = "restriction_schedule_not_found_error",
+  EventTypeNoHosts = "event_type_no_hosts",
 }
