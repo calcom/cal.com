@@ -376,6 +376,21 @@ const Locations: React.FC<LocationsProps> = ({
                       />
 
                       <Controller
+                        name="calVideoSettings.disableRecordingDownloadEmailForGuests"
+                        defaultValue={!!eventType.calVideoSettings?.disableRecordingDownloadEmailForGuests}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("disable_recording_download_email_for_guests")}
+                              labelClassName="text-sm"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+
+                      <Controller
                         name="calVideoSettings.enableAutomaticTranscription"
                         defaultValue={!!eventType.calVideoSettings?.enableAutomaticTranscription}
                         render={({ field: { onChange, value } }) => {
