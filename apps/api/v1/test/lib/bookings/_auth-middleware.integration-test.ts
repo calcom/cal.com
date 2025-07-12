@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -24,7 +24,7 @@ describe("Booking ownership and access in Middleware", () => {
   // mock user data
   function buildMockData() {
     //Create Users
-    prismaMock.user.create({
+    prismock.user.create({
       data: {
         id: adminUserId,
         username: "admin",
@@ -32,7 +32,7 @@ describe("Booking ownership and access in Middleware", () => {
         email: adminUserEmail,
       },
     });
-    prismaMock.user.create({
+    prismock.user.create({
       data: {
         id: ownerUserId,
         username: "owner",
@@ -40,7 +40,7 @@ describe("Booking ownership and access in Middleware", () => {
         email: ownerUserEmail,
       },
     });
-    prismaMock.user.create({
+    prismock.user.create({
       data: {
         id: orgOwnerUserId,
         username: "org-owner",
@@ -48,7 +48,7 @@ describe("Booking ownership and access in Middleware", () => {
         email: orgOwnerUserEmail,
       },
     });
-    prismaMock.user.create({
+    prismock.user.create({
       data: {
         id: memberUserId,
         username: "member",
@@ -74,7 +74,7 @@ describe("Booking ownership and access in Middleware", () => {
       },
     });
     //create team
-    prismaMock.team.create({
+    prismock.team.create({
       data: {
         id: 1,
         name: "Team 1",
@@ -103,7 +103,7 @@ describe("Booking ownership and access in Middleware", () => {
       },
     });
     //create Org
-    prismaMock.team.create({
+    prismock.team.create({
       data: {
         id: 2,
         name: "Org",
@@ -143,7 +143,7 @@ describe("Booking ownership and access in Middleware", () => {
       },
     });
     //create eventTypes
-    prismaMock.eventType.create({
+    prismock.eventType.create({
       data: {
         id: 1,
         title: "Event 1",
@@ -156,7 +156,7 @@ describe("Booking ownership and access in Middleware", () => {
         },
       },
     });
-    prismaMock.eventType.create({
+    prismock.eventType.create({
       data: {
         id: 2,
         title: "Event 2",
@@ -171,7 +171,7 @@ describe("Booking ownership and access in Middleware", () => {
       },
     });
     //link eventType to teams
-    prismaMock.eventType.update({
+    prismock.eventType.update({
       where: {
         id: 1,
       },
@@ -183,7 +183,7 @@ describe("Booking ownership and access in Middleware", () => {
         },
       },
     });
-    prismaMock.eventType.update({
+    prismock.eventType.update({
       where: {
         id: 2,
       },
@@ -196,7 +196,7 @@ describe("Booking ownership and access in Middleware", () => {
       },
     });
     //link team to org
-    prismaMock.team.update({
+    prismock.team.update({
       where: {
         id: 1,
       },
@@ -205,7 +205,7 @@ describe("Booking ownership and access in Middleware", () => {
       },
     });
     // Call Prisma to create booking with attendees
-    prismaMock.booking.create({
+    prismock.booking.create({
       data: {
         id: 1,
         uid: "1",
@@ -231,7 +231,7 @@ describe("Booking ownership and access in Middleware", () => {
       query: {
         id: 2,
       },
-      prisma: prismaMock,
+      prisma: prismock,
     });
     buildMockData();
     req.userId = memberUserId;
@@ -244,7 +244,7 @@ describe("Booking ownership and access in Middleware", () => {
       query: {
         id: 1,
       },
-      prisma: prismaMock,
+      prisma: prismock,
     });
     buildMockData();
     req.userId = memberUserId;
@@ -258,7 +258,7 @@ describe("Booking ownership and access in Middleware", () => {
       query: {
         id: 2,
       },
-      prisma: prismaMock,
+      prisma: prismock,
     });
     buildMockData();
     req.userId = ownerUserId;
@@ -271,14 +271,14 @@ describe("Booking ownership and access in Middleware", () => {
       query: {
         id: 1,
       },
-      prisma: prismaMock,
+      prisma: prismock,
     });
     const { req: req2 } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       query: {
         id: 1,
       },
-      prisma: prismaMock,
+      prisma: prismock,
     });
     buildMockData();
 
@@ -294,7 +294,7 @@ describe("Booking ownership and access in Middleware", () => {
       query: {
         id: 1,
       },
-      prisma: prismaMock,
+      prisma: prismock,
     });
     buildMockData();
 
@@ -308,7 +308,7 @@ describe("Booking ownership and access in Middleware", () => {
       query: {
         id: 2,
       },
-      prisma: prismaMock,
+      prisma: prismock,
     });
     buildMockData();
     req.userId = adminUserId;
@@ -323,7 +323,7 @@ describe("Booking ownership and access in Middleware", () => {
       query: {
         id: 1,
       },
-      prisma: prismaMock,
+      prisma: prismock,
     });
     buildMockData();
     req.userId = orgOwnerUserId;
