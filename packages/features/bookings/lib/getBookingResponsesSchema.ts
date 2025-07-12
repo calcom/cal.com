@@ -38,9 +38,20 @@ export default function getBookingResponsesSchema({ bookingFields, view, transla
 }
 
 // Should be used when we want to check if the optional fields are entered and valid as well
-export function getBookingResponsesSchemaWithOptionalChecks({ bookingFields, view, translateFn }: CommonParams) {
+export function getBookingResponsesSchemaWithOptionalChecks({
+  bookingFields,
+  view,
+  translateFn,
+}: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view, checkOptional: true, translateFn });
+  return preprocess({
+    schema,
+    bookingFields,
+    isPartialSchema: false,
+    view,
+    checkOptional: true,
+    translateFn,
+  });
 }
 
 // TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
@@ -151,8 +162,8 @@ function preprocess<T extends z.ZodType>({
               return isValidPhoneNumber(val);
             });
         // Tag the message with the input name so that the message can be shown at appropriate place
-        const m = (message: string) => {
-          const translatedMessage = translateFn ? translateFn(message) : message;
+        const m = (message: string, options?: any) => {
+          const translatedMessage = translateFn ? translateFn(message, options) : message;
           return `{${bookingField.name}}${translatedMessage}`;
         };
         const views = bookingField.views;
