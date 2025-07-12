@@ -7,6 +7,7 @@ import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-booking-location.output";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
@@ -28,6 +29,7 @@ import {
   UseGuards,
   Req,
   Get,
+  Patch,
   Param,
   Query,
   HttpCode,
@@ -69,6 +71,7 @@ import {
   CreateRecurringBookingInput_2024_08_13,
   DeclineBookingInput_2024_08_13,
 } from "@calcom/platform-types";
+import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/update-booking-location.input";
 
 @Controller({
   path: "/v2/bookings",
@@ -460,6 +463,29 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookingReferences,
+    };
+  }
+  @Patch("/:bookingUid")
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @Permissions([BOOKING_WRITE])
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Update the location of a booking",
+    description:
+      "Allows updating the location of an existing booking using one of the supported location types.",
+  })
+  @HttpCode(HttpStatus.OK)
+  async updateBookingLocation(
+    @Body() body: UpdateBookingLocationInput_2024_08_13,
+    @Param("bookingUid") bookingUid: string
+  ): Promise<UpdateBookingLocationOutput_2024_08_13> {
+    const booking = await this.bookingsService.updateBookingLocation(bookingUid, body);
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        bookingUid: booking.uid,
+        location: booking.location!,
+      },
     };
   }
 }
