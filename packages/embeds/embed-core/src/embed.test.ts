@@ -258,6 +258,32 @@ describe("Cal", () => {
         expect(iframe.src).toContain("email=test%40example.com");
       });
 
+      it("should set allow='payment' attribute by default for Apple Pay support", () => {
+        const iframe = calInstance.createIframe({
+          calLink: "john-doe/meeting",
+          config: {},
+          calOrigin: null,
+        });
+
+        expect(iframe.getAttribute("allow")).toBe("payment");
+      });
+
+      it("should allow overriding iframe attributes including allow attribute", () => {
+        const iframe = calInstance.createIframe({
+          calLink: "john-doe/meeting",
+          config: {
+            iframeAttrs: {
+              allow: "payment; microphone; camera",
+              title: "Custom booking title",
+            },
+          },
+          calOrigin: null,
+        });
+
+        expect(iframe.getAttribute("allow")).toBe("payment; microphone; camera");
+        expect(iframe.getAttribute("title")).toBe("Custom booking title");
+      });
+
       it("should respect forwardQueryParams setting to disable sending page query params but still send the ones in the config", () => {
         mockSearchParams("?param1=value");
 
