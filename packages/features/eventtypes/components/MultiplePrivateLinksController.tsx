@@ -54,11 +54,10 @@ export const MultiplePrivateLinksController = ({
     );
 
     if (type === "time") {
-      // Convert the selected date to end of day in UTC for storage
       const selectedDate = date || expiryDate;
 
-      // Store end of day in UTC - timezone handling is done during validation
-      const endOfDayInUTC = dayjs(selectedDate).utc().endOf("day").toDate();
+      const dateString = dayjs(selectedDate).format("YYYY-MM-DD");
+      const endOfDayInUTC = dayjs.utc(dateString).endOf("day").toDate();
 
       convertedValue[index] = {
         ...convertedValue[index],
@@ -84,10 +83,10 @@ export const MultiplePrivateLinksController = ({
 
   const openSettingsDialog = (index: number, currentLink: PrivateLinkWithOptions) => {
     setCurrentLinkIndex(index);
-    // Set initial values based on current link
     if (currentLink.expiresAt) {
       setSelectedType("time");
-      setExpiryDate(new Date(currentLink.expiresAt));
+      const utcDateString = dayjs.utc(currentLink.expiresAt).format("YYYY-MM-DD");
+      setExpiryDate(new Date(utcDateString));
     } else {
       setSelectedType("usage");
       setMaxUsageCount(currentLink.maxUsageCount ?? 1);
@@ -208,8 +207,6 @@ export const MultiplePrivateLinksController = ({
                 const isExpired = isLinkExpired(val);
 
                 if (val.expiresAt) {
-                  // Since we store end-of-day UTC to represent the full day globally,
-                  // display the original date without timezone conversion
                   const expiryDate = dayjs.utc(val.expiresAt).format("MMM DD, YYYY");
 
                   linkDescription = isExpired
@@ -315,10 +312,17 @@ export const MultiplePrivateLinksController = ({
               data-testid="private-link-radio-group"
               onValueChange={(value: "time" | "usage") => {
                 setSelectedType(value);
-                updateLinkSettings(currentLinkIndex, value);
               }}>
               <RadioArea.Item value="usage" data-testid="private-link-usage" className="w-full text-sm">
-                <div className="mb-0 text-sm font-medium">{t("usage_based_expiration")}</div>
+                <strong className="mb-1 block">{t("usage_based_expiration")}</strong>
+                <p>
+                  {t(
+                    maxUsageCount === 1
+                      ? "usage_based_expiration_description"
+                      : "usage_based_expiration_description_plural",
+                    { count: maxUsageCount }
+                  )}
+                </p>
                 {selectedType === "usage" && (
                   <div className="mt-2 w-[180px]">
                     <NumberInput
@@ -333,7 +337,6 @@ export const MultiplePrivateLinksController = ({
                           setMaxUsageCount(null);
                         } else if (!isNaN(Number(value)) && Number(value) > 0) {
                           setMaxUsageCount(value);
-                          updateLinkSettings(currentLinkIndex, "usage", undefined, value);
                         }
                       }}
                     />
@@ -341,7 +344,10 @@ export const MultiplePrivateLinksController = ({
                 )}
               </RadioArea.Item>
               <RadioArea.Item data-testid="private-link-time" value="time" className="w-full text-sm">
-                <div className="mb-0 text-sm font-medium">{t("time_based_expiration")}</div>
+                <strong className="mb-1 block">{t("time_based_expiration")}</strong>
+                <p>
+                  {t("time_based_expiration_description", { date: dayjs(expiryDate).format("MMM DD, YYYY") })}
+                </p>
                 {selectedType === "time" && (
                   <div className="mt-2 w-[180px]">
                     <DatePicker
@@ -349,7 +355,6 @@ export const MultiplePrivateLinksController = ({
                       date={expiryDate}
                       onDatesChange={(newDate: Date) => {
                         setExpiryDate(newDate);
-                        updateLinkSettings(currentLinkIndex, "time", newDate);
                       }}
                     />
                   </div>
@@ -363,7 +368,15 @@ export const MultiplePrivateLinksController = ({
               type="button"
               color="primary"
               data-testid="private-link-expiration-settings-save"
-              onClick={() => setIsDialogOpen(false)}>
+              onClick={() => {
+                // Save the changes when Save button is clicked
+                if (selectedType === "time") {
+                  updateLinkSettings(currentLinkIndex, "time", expiryDate);
+                } else {
+                  updateLinkSettings(currentLinkIndex, "usage", undefined, maxUsageCount);
+                }
+                setIsDialogOpen(false);
+              }}>
               {t("save")}
             </Button>
           </div>

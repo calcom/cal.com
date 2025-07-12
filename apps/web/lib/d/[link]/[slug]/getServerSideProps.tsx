@@ -6,6 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -192,8 +193,20 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return notFound;
   }
 
+  // Check if team has API v2 feature flag enabled (same logic as team pages)
+  let useApiV2 = false;
+  if (isTeamEvent && hashedLink.eventType.team?.id) {
+    const featureRepo = new FeaturesRepository();
+    const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(
+      hashedLink.eventType.team.id,
+      "use-api-v2-for-team-slots"
+    );
+    useApiV2 = teamHasApiV2Route;
+  }
+
   return {
     props: {
+      useApiV2,
       eventData,
       entity: eventData.entity,
       duration: getMultipleDurationValue(
@@ -210,7 +223,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       // is reused for both team and user events.
       isTeamEvent,
       hashedLink: hashedLink?.link,
-      useApiV2: false,
     },
   };
 }

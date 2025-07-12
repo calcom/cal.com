@@ -8,7 +8,6 @@ export function isLinkExpired(link: {
   // Check if time-based expiration has passed
   if (link.expiresAt) {
     const expirationDate = new Date(link.expiresAt);
-
     if (expirationDate < now) {
       return true;
     }
