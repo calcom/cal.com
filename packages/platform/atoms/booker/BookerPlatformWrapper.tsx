@@ -57,6 +57,7 @@ export const BookerPlatformWrapper = (
     isBookingDryRun,
     handleSlotReservation,
     onTimeslotsLoaded,
+    startDate,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -411,6 +412,17 @@ export const BookerPlatformWrapper = (
     () => dayjs(props.selectedDate).format("YYYY-MM-DD"),
     [props.selectedDate]
   );
+
+  useEffect(() => {
+    if (!startDate) return;
+
+    const startDateString = dayjs(startDate).isValid() ? dayjs(startDate).format("YYYY-MM-DD") : null;
+
+    if (startDateString && startDateString !== selectedDate) {
+      setSelectedDate(startDateString);
+    }
+  }, [startDate, selectedDate, setSelectedDate]);
+
   useEffect(() => {
     setSelectedDate(selectedDateProp, true);
   }, [selectedDateProp]);
