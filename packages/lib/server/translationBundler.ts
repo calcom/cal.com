@@ -13,7 +13,10 @@ function findMonorepoRoot(): string {
       if (packageJson.workspaces && packageJson.name === "calcom-monorepo") {
         return currentDir;
       }
-    } catch (error) {}
+    } catch (error) {
+      // package.json doesn't exist in this directory
+      // Just continue to the next directory
+    }
     currentDir = path.dirname(currentDir);
   }
 
