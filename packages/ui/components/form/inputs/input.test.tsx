@@ -30,14 +30,22 @@ describe("Tests for InputField Component", () => {
   });
 
   it("should render with addOnLeading prop", () => {
-    const { getByText } = render(<InputField addOnLeading={<span>Leading</span>} />);
+    const { getByText } = render(
+      <TooltipProvider>
+        <InputField addOnLeading={<span>Leading</span>} />
+      </TooltipProvider>
+    );
 
     const addOnLeadingElement = getByText("Leading");
     expect(addOnLeadingElement).toBeInTheDocument();
   });
 
   it("should render with addOnSuffix prop", () => {
-    const { getByText } = render(<InputField addOnSuffix={<span>Suffix</span>} />);
+    const { getByText } = render(
+      <TooltipProvider>
+        <InputField addOnSuffix={<span>Suffix</span>} />
+      </TooltipProvider>
+    );
 
     const addOnSuffixElement = getByText("Suffix");
     expect(addOnSuffixElement).toBeInTheDocument();
@@ -45,7 +53,9 @@ describe("Tests for InputField Component", () => {
 
   it("should display both addOnLeading and addOnSuffix", () => {
     const { getByText } = render(
-      <InputField addOnLeading={<span>Leading</span>} addOnSuffix={<span>Suffix</span>} />
+      <TooltipProvider>
+        <InputField addOnLeading={<span>Leading</span>} addOnSuffix={<span>Suffix</span>} />
+      </TooltipProvider>
     );
 
     const addOnLeadingElement = getByText("Leading");
@@ -132,7 +142,11 @@ describe("Tests for InputFieldWithSelect Component", () => {
       ],
     } as unknown as typeof UnstyledSelect;
 
-    const { getByText } = render(<InputFieldWithSelect selectProps={selectProps} label="testSelect" />);
+    const { getByText } = render(
+      <TooltipProvider>
+        <InputFieldWithSelect selectProps={selectProps} label="testSelect" />
+      </TooltipProvider>
+    );
 
     const inputElement = getByText("Select...");
     fireEvent.mouseDown(inputElement);
@@ -163,7 +177,11 @@ describe("Tests for NumberInput Component", () => {
 
 describe("Tests for FilterSearchField Component", () => {
   test("Should render correctly with Search icon and input", async () => {
-    const { getByRole, findByTestId } = render(<FilterSearchField name="searchField" />);
+    const { getByRole, findByTestId } = render(
+      <TooltipProvider>
+        <FilterSearchField name="searchField" />
+      </TooltipProvider>
+    );
     const searchInput = getByRole("textbox");
     const searchIcon = await findByTestId("search-icon");
 
@@ -172,7 +190,11 @@ describe("Tests for FilterSearchField Component", () => {
   });
 
   test("Should handle input correctly", () => {
-    const { getByRole } = render(<FilterSearchField name="searchField" onChange={onChangeMock} />);
+    const { getByRole } = render(
+      <TooltipProvider>
+        <FilterSearchField name="searchField" onChange={onChangeMock} />
+      </TooltipProvider>
+    );
     const searchInput = getByRole("textbox") as HTMLInputElement;
 
     fireEvent.change(searchInput, { target: { value: "Test search" } });

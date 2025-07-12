@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../../icon";
+import { Tooltip } from "../../tooltip";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 import type { InputFieldProps, InputProps } from "./types";
@@ -78,17 +79,20 @@ const Addon = ({ children, className, error, onClickAddon, size = "md", position
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
-      "flex flex-shrink-0 items-center justify-center whitespace-nowrap",
+      "max-w-32 flex flex-shrink-0 items-center justify-center",
       onClickAddon && "pointer-events-auto cursor-pointer disabled:hover:cursor-not-allowed",
       className
     )}>
-    <span
-      className={classNames(
-        "text-sm font-medium leading-none",
-        error ? "text-error" : "text-muted peer-disabled:opacity-50"
-      )}>
-      {children}
-    </span>
+    {/* Tooltip always rendered; tests must wrap with TooltipProvider if needed. */}
+    <Tooltip content={typeof children === "string" ? children : undefined} delayDuration={1000}>
+      <span
+        className={classNames(
+          "truncate text-sm font-medium leading-none",
+          error ? "text-error" : "text-muted peer-disabled:opacity-50"
+        )}>
+        {children}
+      </span>
+    </Tooltip>
   </div>
 );
 

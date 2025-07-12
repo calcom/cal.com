@@ -20,6 +20,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Label, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -199,13 +200,17 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <Label htmlFor="username">{t("username")}</Label>
       </div>
       <div className="flex rounded-md">
-        <span
-          className={classNames(
-            isInputUsernamePremium ? "border border-orange-400 " : "",
-            "border-default bg-muted text-subtle hidden h-8 items-center rounded-l-md border border-r-0 px-3 text-sm md:inline-flex"
-          )}>
-          {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
-        </span>
+        <Tooltip
+          content={process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}
+          delayDuration={1000}>
+          <span
+            className={classNames(
+              isInputUsernamePremium ? "border border-orange-400 " : "",
+              "border-default bg-muted text-subtle max-w-32 hidden h-8 items-center truncate rounded-l-md border border-r-0 px-3 text-sm md:inline-flex"
+            )}>
+            {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
+          </span>
+        </Tooltip>
 
         <div className="relative w-full">
           <Input
