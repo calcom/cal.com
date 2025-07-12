@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, PrivateLinkWithOptions } from "@calcom/features/eventtypes/lib/types";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isLinkExpired as utilsIsLinkExpired } from "@calcom/lib/privateLinksUtils";
 import { trpc } from "@calcom/trpc/react";
@@ -17,7 +18,6 @@ import { TextField } from "@calcom/ui/components/form";
 import { DatePicker } from "@calcom/ui/components/form";
 import { NumberInput } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
-import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export const MultiplePrivateLinksController = ({
@@ -31,6 +31,7 @@ export const MultiplePrivateLinksController = ({
 }): JSX.Element => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
+  const { copyToClipboard, isCopied } = useCopy();
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentLinkIndex, setCurrentLinkIndex] = useState<number | null>(null);
@@ -271,12 +272,12 @@ export const MultiplePrivateLinksController = ({
                                 type="button"
                                 color="minimal"
                                 size="sm"
-                                StartIcon="copy"
+                                StartIcon={isCopied ? "clipboard-check" : "clipboard"}
                                 onClick={() => {
-                                  navigator.clipboard.writeText(singleUseURL);
-                                  showToast(t("link_copied"), "success");
-                                }}
-                              />
+                                  copyToClipboard(singleUseURL);
+                                }}>
+                                {!isCopied ? t("copy") : t("copied")}
+                              </Button>
                             </Tooltip>
                           ) : (
                             <Badge data-testid="private-link-expired" variant="red">
