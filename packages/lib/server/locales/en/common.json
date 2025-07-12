@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Unable to delete Calendar event.",
   "already_signed_up_for_this_booking_error": "You are already signed up for this booking.",
   "hosts_unavailable_for_booking": "Some of the hosts are unavailable for booking.",
+  "fixed_hosts_unavailable_for_booking": "Some of the fixed hosts are unavailable for booking.",
+  "round_robin_hosts_unavailable_for_booking": "No Round Robin hosts is available for booking.",
   "help": "Help",
   "price": "Price",
   "paid": "Paid",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Failed to validate license key",
   "license_key_saved": "License key saved successfully",
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
+  "event_type_no_hosts": "No hosts are assigned to event type",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
