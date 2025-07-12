@@ -93,7 +93,7 @@ export class OrganizationTeamWorkflowsController {
 
   @Patch("/:workflowId")
   @UseGuards(IsWorkflowInTeam)
-  @ApiOperation({ summary: "Update workflow" })
+  @ApiOperation({ summary: "Update organization team workflow" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async updateWorkflow(
