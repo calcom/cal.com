@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "无法删除日历项目",
   "already_signed_up_for_this_booking_error": "您已经注册了此预订。",
   "hosts_unavailable_for_booking": "有些主持人无法预订。",
+  "fixed_hosts_unavailable_for_booking": "部分固定主持人无法进行预订。",
+  "round_robin_hosts_unavailable_for_booking": "没有可供预订的轮询主持人。",
   "help": "帮助",
   "price": "价格",
   "paid": "已付款",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "验证许可证密钥失败",
   "license_key_saved": "许可证密钥已成功保存",
   "timezone_mismatch_tooltip": "您正在根据您的个人资料时区（{{userTimezone}}）查看报告，而您的浏览器设置为时区（{{browserTimezone}}）",
+  "event_type_no_hosts": "此活动类型未分配任何主持人。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

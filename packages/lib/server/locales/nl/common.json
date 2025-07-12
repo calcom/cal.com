@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Kan de agenda-afspraak niet verwijderen.",
   "already_signed_up_for_this_booking_error": "Je bent al ingeschreven voor deze boeking.",
   "hosts_unavailable_for_booking": "Sommige hosts zijn niet beschikbaar voor boeking.",
+  "fixed_hosts_unavailable_for_booking": "Sommige vaste hosts zijn niet beschikbaar voor boekingen.",
+  "round_robin_hosts_unavailable_for_booking": "Geen enkele Round Robin host is beschikbaar voor boekingen.",
   "help": "Help",
   "price": "Prijs",
   "paid": "Betaald",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Validatie van licentiesleutel mislukt",
   "license_key_saved": "Licentiesleutel succesvol opgeslagen",
   "timezone_mismatch_tooltip": "Je bekijkt het rapport op basis van je profieltijdzone ({{userTimezone}}), terwijl je browser is ingesteld op tijdzone ({{browserTimezone}})",
+  "event_type_no_hosts": "Er zijn geen hosts toegewezen aan het afspraaktype",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

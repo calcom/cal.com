@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Không thể xóa sự kiện Lịch.",
   "already_signed_up_for_this_booking_error": "Bạn đã đăng ký cho lần đặt chỗ này.",
   "hosts_unavailable_for_booking": "Một số người tổ chức không khả dụng để đặt chỗ.",
+  "fixed_hosts_unavailable_for_booking": "Một số người chủ trì cố định không khả dụng để đặt lịch.",
+  "round_robin_hosts_unavailable_for_booking": "Không có người chủ trì Luân phiên nào khả dụng để đặt lịch.",
   "help": "Trợ giúp",
   "price": "Giá",
   "paid": "Đã thanh toán",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Không thể xác thực khóa giấy phép",
   "license_key_saved": "Đã lưu khóa giấy phép thành công",
   "timezone_mismatch_tooltip": "Bạn đang xem báo cáo dựa trên múi giờ hồ sơ của bạn ({{userTimezone}}), trong khi trình duyệt của bạn được đặt theo múi giờ ({{browserTimezone}})",
+  "event_type_no_hosts": "Không có người chủ trì nào được chỉ định cho loại sự kiện",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Nie można usunąć wydarzenia w kalendarzu.",
   "already_signed_up_for_this_booking_error": "Jesteś już zapisany na tę rezerwację.",
   "hosts_unavailable_for_booking": "Niektórzy gospodarze są niedostępni do rezerwacji.",
+  "fixed_hosts_unavailable_for_booking": "Niektórzy z przypisanych gospodarzy są niedostępni do rezerwacji.",
+  "round_robin_hosts_unavailable_for_booking": "Żaden z gospodarzy Round Robin nie jest dostępny do rezerwacji.",
   "help": "Pomoc",
   "price": "Cena",
   "paid": "Zapłacono",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Nie udało się zweryfikować klucza licencyjnego",
   "license_key_saved": "Klucz licencyjny został pomyślnie zapisany",
   "timezone_mismatch_tooltip": "Przeglądasz raport na podstawie strefy czasowej swojego profilu ({{userTimezone}}), podczas gdy Twoja przeglądarka jest ustawiona na strefę czasową ({{browserTimezone}})",
+  "event_type_no_hosts": "Do tego typu wydarzenia nie przypisano żadnych gospodarzy.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

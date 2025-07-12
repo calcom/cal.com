@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Təqvim hadisəsini silmək mümkün deyil.",
   "already_signed_up_for_this_booking_error": "Siz artıq bu rezervasiya üçün qeydiyyatdan keçmisiniz.",
   "hosts_unavailable_for_booking": "Bəzi ev sahibləri rezervasiya üçün mövcud deyil.",
+  "fixed_hosts_unavailable_for_booking": "Bəzi təyin edilmiş ev sahibləri rezervasiya üçün əlçatan deyil.",
+  "round_robin_hosts_unavailable_for_booking": "Rezervasiya üçün heç bir növbəli ev sahibi əlçatan deyil.",
   "help": "Kömək",
   "price": "Qiymət",
   "paid": "Ödənilib",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Lisenziya açarının təsdiqlənməsi uğursuz oldu",
   "license_key_saved": "Lisenziya açarı uğurla saxlanıldı",
   "timezone_mismatch_tooltip": "Siz hesabatı profil saat qurşağınıza ({{userTimezone}}) əsasən görürsünüz, brauzeriniz isə başqa saat qurşağına ({{browserTimezone}}) təyin edilib",
+  "event_type_no_hosts": "Tədbir növünə heç bir ev sahibi təyin edilməyib",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

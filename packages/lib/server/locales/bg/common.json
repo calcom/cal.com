@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Не може да се изтрие събитието от календара",
   "already_signed_up_for_this_booking_error": "Вече сте записани за тази резервация.",
   "hosts_unavailable_for_booking": "Някои от домакините не са налични за резервация.",
+  "fixed_hosts_unavailable_for_booking": "Някои от фиксираните домакини не са налични за резервация.",
+  "round_robin_hosts_unavailable_for_booking": "Няма налични домакини на ротационен принцип за резервация.",
   "help": "Помощ",
   "price": "Цена",
   "paid": "Платено",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Неуспешна валидация на лицензионния ключ",
   "license_key_saved": "Лицензионният ключ е успешно записан",
   "timezone_mismatch_tooltip": "Преглеждате отчета според часовата зона на вашия профил ({{userTimezone}}), докато браузърът ви е настроен на часова зона ({{browserTimezone}})",
+  "event_type_no_hosts": "Няма назначени домакини за този тип събитие",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

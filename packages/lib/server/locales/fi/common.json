@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Kalenteritapahtuman poisto epäonnistui.",
   "already_signed_up_for_this_booking_error": "Olet jo ilmoittautunut tähän varaukseen.",
   "hosts_unavailable_for_booking": "Osa järjestäjistä ei ole käytettävissä varausta varten.",
+  "fixed_hosts_unavailable_for_booking": "Jotkin kiinteistä isännistä eivät ole varattavissa.",
+  "round_robin_hosts_unavailable_for_booking": "Yksikään Round Robin -isäntä ei ole varattavissa.",
   "help": "Ohje",
   "price": "Hinta",
   "paid": "Maksettu",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Lisenssiavaimen vahvistaminen epäonnistui",
   "license_key_saved": "Lisenssiavain tallennettu onnistuneesti",
   "timezone_mismatch_tooltip": "Tarkastelet raporttia profiilisi aikavyöhykkeen ({{userTimezone}}) mukaan, kun taas selaimesi on asetettu aikavyöhykkeelle ({{browserTimezone}})",
+  "event_type_no_hosts": "Tapahtumatyyppiin ei ole määritetty isäntiä",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

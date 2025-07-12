@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "No s'ha pogut eliminar l'esdeveniment del calendari",
   "already_signed_up_for_this_booking_error": "Ja t'has registrat per a aquesta reserva",
   "hosts_unavailable_for_booking": "Alguns dels amfitrions no estan disponibles per a la reserva",
+  "fixed_hosts_unavailable_for_booking": "Alguns dels amfitrions fixos no estan disponibles per a la reserva.",
+  "round_robin_hosts_unavailable_for_booking": "Cap amfitrió de Round Robin està disponible per a la reserva.",
   "help": "Ajuda",
   "price": "Preu",
   "paid": "Pagat",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "No s'ha pogut validar la clau de llicència",
   "license_key_saved": "Clau de llicència desada correctament",
   "timezone_mismatch_tooltip": "Esteu veient l'informe basat en la zona horària del vostre perfil ({{userTimezone}}), mentre que el vostre navegador està configurat a la zona horària ({{browserTimezone}})",
+  "event_type_no_hosts": "No hi ha amfitrions assignats al tipus d'esdeveniment",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

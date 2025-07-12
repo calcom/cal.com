@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Nije moguće obrisati događaj u kalendaru.",
   "already_signed_up_for_this_booking_error": "Već ste se prijavili za ovu rezervaciju.",
   "hosts_unavailable_for_booking": "Neki od domaćina nisu dostupni za rezervaciju.",
+  "fixed_hosts_unavailable_for_booking": "Neki od fiksnih domaćina nisu dostupni za zakazivanje.",
+  "round_robin_hosts_unavailable_for_booking": "Nijedan domaćin za kružno raspoređivanje nije dostupan za zakazivanje.",
   "help": "Pomoć",
   "price": "Cena",
   "paid": "Plaćeno",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Neuspešna validacija licencnog ključa",
   "license_key_saved": "Licencni ključ je uspešno sačuvan",
   "timezone_mismatch_tooltip": "Gledate izveštaj na osnovu vremenske zone vašeg profila ({{userTimezone}}), dok je vaš pretraživač podešen na vremensku zonu ({{browserTimezone}})",
+  "event_type_no_hosts": "Nijedan domaćin nije dodeljen tipu događaja",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "캘린더 이벤트를 삭제할 수 없습니다.",
   "already_signed_up_for_this_booking_error": "이미 이 예약에 등록되어 있습니다.",
   "hosts_unavailable_for_booking": "일부 호스트는 예약이 불가능합니다.",
+  "fixed_hosts_unavailable_for_booking": "일부 고정 호스트는 예약할 수 없습니다.",
+  "round_robin_hosts_unavailable_for_booking": "예약 가능한 라운드 로빈 호스트가 없습니다.",
   "help": "Help",
   "price": "가격",
   "paid": "결제완료",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "라이선스 키 검증에 실패했습니다",
   "license_key_saved": "라이선스 키가 성공적으로 저장되었습니다",
   "timezone_mismatch_tooltip": "프로필 시간대({{userTimezone}})를 기준으로 보고서를 보고 계시지만, 브라우저는 다른 시간대({{browserTimezone}})로 설정되어 있습니다",
+  "event_type_no_hosts": "이벤트 유형에 할당된 호스트가 없습니다",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
