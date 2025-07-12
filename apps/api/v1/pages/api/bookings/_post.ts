@@ -239,48 +239,6 @@ async function handler(req: NextApiRequest) {
   }
 
   try {
-    if (
-      req.body.allRecurringDates &&
-      Array.isArray(req.body.allRecurringDates) &&
-      req.body.allRecurringDates.length > 1
-    ) {
-      const createdBookings = [];
-      const allRecurringDates = req.body.allRecurringDates.map((dateSlot: any) => ({
-        start: dateSlot.start,
-        end: dateSlot.end,
-      }));
-
-      for (let index = 0; index < req.body.allRecurringDates.length; index++) {
-        const dateSlot = req.body.allRecurringDates[index];
-        const bookingData = {
-          ...req.body,
-          start: dateSlot.start,
-          end: dateSlot.end,
-          allRecurringDates,
-          isFirstRecurringSlot: index === 0,
-          currentRecurringIndex: index,
-          noEmail: index !== 0,
-        };
-
-        const booking = await handleNewBooking(
-          {
-            bookingData,
-            userId,
-            hostname: req.headers.host || "",
-            forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
-          },
-          getBookingDataSchemaForApi
-        );
-
-        createdBookings.push(booking);
-      }
-
-      return {
-        message: "Bookings created successfully.",
-        bookings: createdBookings,
-      };
-    }
-
     return await handleNewBooking(
       {
         bookingData: req.body,
