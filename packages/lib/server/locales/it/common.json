@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Impossibile eliminare l'evento dal calendario.",
   "already_signed_up_for_this_booking_error": "Ti sei già registrato per questa prenotazione.",
   "hosts_unavailable_for_booking": "Alcuni degli organizzatori non sono disponibili per la prenotazione.",
+  "fixed_hosts_unavailable_for_booking": "Alcuni degli host fissi non sono disponibili per la prenotazione.",
+  "round_robin_hosts_unavailable_for_booking": "Nessun host Round Robin è disponibile per la prenotazione.",
   "help": "Guida",
   "price": "Prezzo",
   "paid": "Pagato",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Impossibile convalidare la chiave di licenza",
   "license_key_saved": "Chiave di licenza salvata con successo",
   "timezone_mismatch_tooltip": "Stai visualizzando il report in base al fuso orario del tuo profilo ({{userTimezone}}), mentre il tuo browser è impostato sul fuso orario ({{browserTimezone}})",
+  "event_type_no_hosts": "Nessun host è assegnato al tipo di evento",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

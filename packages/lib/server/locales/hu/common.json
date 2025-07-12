@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Nem sikerült törölni a naptári eseményt.",
   "already_signed_up_for_this_booking_error": "Már jelentkeztél erre a foglalásra.",
   "hosts_unavailable_for_booking": "Valaki a szervezők közül nem elérhető foglalásra.",
+  "fixed_hosts_unavailable_for_booking": "Néhány rögzített házigazda nem elérhető foglalásra.",
+  "round_robin_hosts_unavailable_for_booking": "Nincs elérhető körforgó házigazda a foglaláshoz.",
   "help": "Segítség",
   "price": "Ár",
   "paid": "Fizetett",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Nem sikerült érvényesíteni a licenckulcsot",
   "license_key_saved": "A licenckulcs sikeresen mentve",
   "timezone_mismatch_tooltip": "A jelentést az Ön profiljában beállított időzóna ({{userTimezone}}) alapján tekinti meg, míg a böngészője a következő időzónára van állítva: {{browserTimezone}}",
+  "event_type_no_hosts": "Nincs házigazda hozzárendelve az eseménytípushoz",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

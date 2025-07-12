@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "تعذر حذف الموعد.",
   "already_signed_up_for_this_booking_error": "أنت مسجل فعلًا في هذا الحجز.",
   "hosts_unavailable_for_booking": "بعض المستضيفين غير متاحين للحجز.",
+  "fixed_hosts_unavailable_for_booking": "بعض المضيفين الثابتين غير متاحين للحجز.",
+  "round_robin_hosts_unavailable_for_booking": "لا يوجد مضيفون بنظام التناوب متاحون للحجز.",
   "help": "المساعدة",
   "price": "السعر",
   "paid": "مدفوعة",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "فشل التحقق من صحة مفتاح الترخيص",
   "license_key_saved": "تم حفظ مفتاح الترخيص بنجاح",
   "timezone_mismatch_tooltip": "أنت تشاهد التقرير بناءً على المنطقة الزمنية لملفك الشخصي ({{userTimezone}})، بينما متصفحك مضبوط على المنطقة الزمنية ({{browserTimezone}})",
+  "event_type_no_hosts": "لا يوجد مضيفون معينون لنوع الفعالية",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Ezin izan da egutegiko gertaera ezabatu",
   "already_signed_up_for_this_booking_error": "Dagoeneko izena emanda zaude erreserba honetarako",
   "hosts_unavailable_for_booking": "Ostalari batzuk ez daude eskuragarri erreserbatzeko",
+  "fixed_hosts_unavailable_for_booking": "Finkatutako ostalari batzuk ez daude erreserbatzeko eskuragarri.",
+  "round_robin_hosts_unavailable_for_booking": "Ez dago Round Robin ostalarik erreserbatzeko eskuragarri.",
   "help": "Laguntza",
   "price": "Prezioa",
   "paid": "Ordainduta",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Ezin izan da lizentzia gakoa balioztatu",
   "license_key_saved": "Lizentzia gakoa ondo gorde da",
   "timezone_mismatch_tooltip": "Txostena zure profileko ordu-zonaren arabera ikusten ari zara ({{userTimezone}}), zure nabigatzailea ordu-zona honetan ezarrita dagoen bitartean ({{browserTimezone}})",
+  "event_type_no_hosts": "Ez dago ostalarik esleituta gertaera mota honetarako",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

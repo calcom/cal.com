@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Não foi possível deletar o evento.",
   "already_signed_up_for_this_booking_error": "Você já está inscrito para esta reserva.",
   "hosts_unavailable_for_booking": "Algum dos anfitriões não está disponível para reserva.",
+  "fixed_hosts_unavailable_for_booking": "Alguns dos anfitriões fixos não estão disponíveis para agendamento.",
+  "round_robin_hosts_unavailable_for_booking": "Nenhum anfitrião do Round Robin está disponível para agendamento.",
   "help": "Ajuda",
   "price": "Preço",
   "paid": "Pago",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Falha ao validar a chave de licença",
   "license_key_saved": "Chave de licença salva com sucesso",
   "timezone_mismatch_tooltip": "Você está visualizando o relatório com base no fuso horário do seu perfil ({{userTimezone}}), enquanto seu navegador está configurado para o fuso horário ({{browserTimezone}})",
+  "event_type_no_hosts": "Nenhum anfitrião está atribuído ao tipo de evento",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

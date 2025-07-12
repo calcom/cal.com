@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "មិនអាចលុបព្រឹត្តិការណ៍ប្រតិទិនបានទេ។",
   "already_signed_up_for_this_booking_error": "អ្នកបានចុះឈ្មោះសម្រាប់ការកក់នេះរួចហើយ។",
   "hosts_unavailable_for_booking": "មេផ្ទះខ្លះមិនអាចកក់បានទេ។",
+  "fixed_hosts_unavailable_for_booking": "ម្ចាស់ផ្ទះដែលបានកំណត់មួយចំនួនមិនអាចកក់បានទេ។",
+  "round_robin_hosts_unavailable_for_booking": "មិនមានម្ចាស់ផ្ទះ Round Robin ដែលអាចកក់បានទេ។",
   "help": "ជំនួយ",
   "price": "តម្លៃ",
   "paid": "បង់ប្រាក់",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "បរាជ័យក្នុងការផ្ទៀងផ្ទាត់សោអាជ្ញាប័ណ្ណ",
   "license_key_saved": "សោអាជ្ញាប័ណ្ណត្រូវបានរក្សាទុកដោយជោគជ័យ",
   "timezone_mismatch_tooltip": "អ្នកកំពុងមើលរបាយការណ៍ដោយផ្អែកលើតំបន់ពេលវេលាប្រវត្តិរូបរបស់អ្នក ({{userTimezone}}) ខណៈពេលដែលកម្មវិធីរុករករបស់អ្នកត្រូវបានកំណត់ទៅតំបន់ពេលវេលា ({{browserTimezone}})",
+  "event_type_no_hosts": "មិនមានម្ចាស់ផ្ទះត្រូវបានកំណត់ទៅប្រភេទព្រឹត្តិការណ៍ទេ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

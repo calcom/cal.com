@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Nu s-a putut șterge evenimentul din Calendar.",
   "already_signed_up_for_this_booking_error": "Ești deja înscris pentru această rezervare.",
   "hosts_unavailable_for_booking": "Unii dintre gazde nu sunt disponibile pentru rezervare.",
+  "fixed_hosts_unavailable_for_booking": "Unii dintre gazdele fixe nu sunt disponibile pentru rezervare.",
+  "round_robin_hosts_unavailable_for_booking": "Nicio gazdă Round Robin nu este disponibilă pentru rezervare.",
   "help": "Ajutor",
   "price": "Prețul",
   "paid": "Plătit",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Validarea cheii de licență a eșuat",
   "license_key_saved": "Cheia de licență a fost salvată cu succes",
   "timezone_mismatch_tooltip": "Vizualizați raportul pe baza fusului orar al profilului dvs. ({{userTimezone}}), în timp ce browserul dvs. este setat pe fusul orar ({{browserTimezone}})",
+  "event_type_no_hosts": "Nicio gazdă nu este atribuită acestui tip de eveniment.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

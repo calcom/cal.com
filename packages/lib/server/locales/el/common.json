@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Δεν είναι δυνατή η διαγραφή του συμβάντος από το ημερολόγιο",
   "already_signed_up_for_this_booking_error": "Έχετε ήδη εγγραφεί για αυτή την κράτηση",
   "hosts_unavailable_for_booking": "Ορισμένοι από τους οικοδεσπότες δεν είναι διαθέσιμοι για κράτηση",
+  "fixed_hosts_unavailable_for_booking": "Ορισμένοι από τους σταθερούς οικοδεσπότες δεν είναι διαθέσιμοι για κράτηση.",
+  "round_robin_hosts_unavailable_for_booking": "Κανένας οικοδεσπότης Round Robin δεν είναι διαθέσιμος για κράτηση.",
   "help": "Βοήθεια",
   "price": "Τιμή",
   "paid": "Πληρώθηκε",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Αποτυχία επικύρωσης κλειδιού άδειας",
   "license_key_saved": "Το κλειδί άδειας αποθηκεύτηκε με επιτυχία",
   "timezone_mismatch_tooltip": "Βλέπετε την αναφορά με βάση τη ζώνη ώρας του προφίλ σας ({{userTimezone}}), ενώ ο περιηγητής σας είναι ρυθμισμένος στη ζώνη ώρας ({{browserTimezone}})",
+  "event_type_no_hosts": "Δεν έχουν ανατεθεί οικοδεσπότες στον τύπο εκδήλωσης",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

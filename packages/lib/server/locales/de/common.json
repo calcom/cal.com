@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Kalenderereignis konnte nicht gelöscht werden.",
   "already_signed_up_for_this_booking_error": "Sie sind bereits für diese Buchung registriert.",
   "hosts_unavailable_for_booking": "Einige der Veranstalter sind nicht für die Buchung verfügbar.",
+  "fixed_hosts_unavailable_for_booking": "Einige der festgelegten Gastgeber sind nicht für Buchungen verfügbar.",
+  "round_robin_hosts_unavailable_for_booking": "Kein Round-Robin-Gastgeber ist für Buchungen verfügbar.",
   "help": "Hilfe",
   "price": "Preis",
   "paid": "Bezahlt",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Validierung des Lizenzschlüssels fehlgeschlagen",
   "license_key_saved": "Lizenzschlüssel erfolgreich gespeichert",
   "timezone_mismatch_tooltip": "Sie sehen den Bericht basierend auf Ihrer Profil-Zeitzone ({{userTimezone}}), während Ihr Browser auf die Zeitzone ({{browserTimezone}}) eingestellt ist",
+  "event_type_no_hosts": "Dem Ereignistyp sind keine Gastgeber zugewiesen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

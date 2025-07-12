@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Kalendri üritust ei olnud võimalik kustutada.",
   "already_signed_up_for_this_booking_error": "Olete selle broneeringu jaoks juba registreerunud.",
   "hosts_unavailable_for_booking": "Mõned võõrustajad pole broneerimiseks saadaval.",
+  "fixed_hosts_unavailable_for_booking": "Mõned fikseeritud võõrustajad ei ole broneerimiseks saadaval.",
+  "round_robin_hosts_unavailable_for_booking": "Ükski Round Robin võõrustaja ei ole broneerimiseks saadaval.",
   "help": "Abi",
   "price": "Hind",
   "paid": "Tasuline",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Litsentsivõtme valideerimine ebaõnnestus",
   "license_key_saved": "Litsentsivõti salvestati edukalt",
   "timezone_mismatch_tooltip": "Te vaatate aruannet oma profiili ajavööndi ({{userTimezone}}) alusel, samal ajal kui teie brauser on seadistatud ajavööndisse ({{browserTimezone}})",
+  "event_type_no_hosts": "Sellele sündmuse tüübile ei ole määratud ühtegi võõrustajat.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

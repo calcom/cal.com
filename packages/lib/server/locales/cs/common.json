@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Nelze smazat událost v kalendáři.",
   "already_signed_up_for_this_booking_error": "Již jste se zaregistrovali na tuto rezervaci.",
   "hosts_unavailable_for_booking": "Někteří hostitelé nejsou k dispozici pro rezervaci.",
+  "fixed_hosts_unavailable_for_booking": "Někteří z pevně přiřazených hostitelů nejsou k dispozici pro rezervaci.",
+  "round_robin_hosts_unavailable_for_booking": "Žádný z hostitelů Round Robin není k dispozici pro rezervaci.",
   "help": "Nápověda",
   "price": "Cena",
   "paid": "Zaplaceno",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Ověření licenčního klíče selhalo",
   "license_key_saved": "Licenční klíč byl úspěšně uložen",
   "timezone_mismatch_tooltip": "Prohlížíte si report na základě časového pásma vašeho profilu ({{userTimezone}}), zatímco váš prohlížeč je nastaven na časové pásmo ({{browserTimezone}})",
+  "event_type_no_hosts": "K typu události nejsou přiřazeni žádní hostitelé",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

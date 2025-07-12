@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Kan ikke slette kalenderhendelse.",
   "already_signed_up_for_this_booking_error": "Du er allerede registrert for denne bestillingen.",
   "hosts_unavailable_for_booking": "Noen av vertene er ikke tilgjengelige for bestilling.",
+  "fixed_hosts_unavailable_for_booking": "Noen av de faste vertene er ikke tilgjengelige for booking.",
+  "round_robin_hosts_unavailable_for_booking": "Ingen Round Robin-verter er tilgjengelige for booking.",
   "help": "Hjelp",
   "price": "Pris",
   "paid": "Betalt",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Kunne ikke validere lisenssnøkkelen",
   "license_key_saved": "Lisenssnøkkel lagret",
   "timezone_mismatch_tooltip": "Du ser rapporten basert på tidssonen i profilen din ({{userTimezone}}), mens nettleseren din er satt til tidssonen ({{browserTimezone}})",
+  "event_type_no_hosts": "Ingen verter er tilordnet arrangementstypen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

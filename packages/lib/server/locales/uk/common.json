@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "Неможливо оновити подію Календаря.",
   "already_signed_up_for_this_booking_error": "Ви вже зареєстровані в цьому бронювання.",
   "hosts_unavailable_for_booking": "Деякі хости недоступні для бронювання.",
+  "fixed_hosts_unavailable_for_booking": "Деякі з фіксованих організаторів недоступні для бронювання.",
+  "round_robin_hosts_unavailable_for_booking": "Жоден організатор Round Robin не доступний для бронювання.",
   "help": "Довідка",
   "price": "Ціна",
   "paid": "Сплачено",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "Не вдалося перевірити ліцензійний ключ",
   "license_key_saved": "Ліцензійний ключ успішно збережено",
   "timezone_mismatch_tooltip": "Ви переглядаєте звіт на основі часового поясу вашого профілю ({{userTimezone}}), тоді як у вашому браузері встановлено часовий пояс ({{browserTimezone}})",
+  "event_type_no_hosts": "До типу події не призначено жодного організатора",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "無法刪除日曆事件。",
   "already_signed_up_for_this_booking_error": "您已經註冊了此預訂。",
   "hosts_unavailable_for_booking": "部分主持人無法預訂。",
+  "fixed_hosts_unavailable_for_booking": "部分固定主持人無法進行預訂。",
+  "round_robin_hosts_unavailable_for_booking": "沒有可用的輪流主持人可供預訂。",
   "help": "幫助",
   "price": "價格",
   "paid": "已付款",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "授權金鑰驗證失敗",
   "license_key_saved": "授權金鑰已成功儲存",
   "timezone_mismatch_tooltip": "您正在根據您的個人資料時區（{{userTimezone}}）查看報告，而您的瀏覽器設置為時區（{{browserTimezone}}）",
+  "event_type_no_hosts": "此活動類型未分配任何主持人。",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

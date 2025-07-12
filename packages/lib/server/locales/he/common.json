@@ -116,6 +116,8 @@
   "delete_calendar_event_error": "לא ניתן למחוק אירוע לוח שנה.",
   "already_signed_up_for_this_booking_error": "כבר נרשמת להזמנה הזאת.",
   "hosts_unavailable_for_booking": "חלק מהמארחים לא פנויים להזמנות.",
+  "fixed_hosts_unavailable_for_booking": "חלק מהמארחים הקבועים אינם זמינים להזמנה.",
+  "round_robin_hosts_unavailable_for_booking": "אין מארחים בשיטת הסבב זמינים להזמנה.",
   "help": "עזרה",
   "price": "מחיר",
   "paid": "שולם",
@@ -3359,5 +3361,6 @@
   "license_validation_failed": "האימות של מפתח הרישיון נכשל",
   "license_key_saved": "מפתח הרישיון נשמר בהצלחה",
   "timezone_mismatch_tooltip": "אתה צופה בדוח על בסיס אזור הזמן של הפרופיל שלך ({{userTimezone}}), בעוד שהדפדפן שלך מוגדר לאזור זמן ({{browserTimezone}})",
+  "event_type_no_hosts": "לא הוקצו מארחים לסוג האירוע",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
