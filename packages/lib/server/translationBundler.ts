@@ -17,19 +17,7 @@ function findMonorepoRoot(): string {
     currentDir = path.dirname(currentDir);
   }
 
-  let fallbackDir = process.cwd();
-  while (fallbackDir !== path.dirname(fallbackDir)) {
-    try {
-      const packageJsonPath = path.join(fallbackDir, "package.json");
-      const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-      if (packageJson.workspaces && packageJson.name === "calcom-monorepo") {
-        return fallbackDir;
-      }
-    } catch (error) {}
-    fallbackDir = path.dirname(fallbackDir);
-  }
-
-  return process.cwd();
+  throw new Error("Could not find monorepo root - repository structure may be corrupted");
 }
 
 const LOCALES_PATH = path.join(findMonorepoRoot(), "packages/lib/server/locales");
