@@ -1,20 +1,14 @@
-import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { localize } from "./lib/localize";
 
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
-/** Short hand to get elements by translation key */
-const getByKey = async (page: Page, key: string) => page.getByText((await localize("en"))(key));
-
 test.describe("Collective Event Types", () => {
-  /** We don't use setupManagedEvent here to test the actual creation flow */
   test("Can create collective event type", async ({ page, users }) => {
     // Creating the owner user of the team
     const adminUser = await users.create(
@@ -24,6 +18,7 @@ test.describe("Collective Event Types", () => {
         teammates: [{ name: "teammate-1" }],
       }
     );
+
     // Creating the member user of the team
     // First we work with owner user, logging in
     await adminUser.apiLogin();
