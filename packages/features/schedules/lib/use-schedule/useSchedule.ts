@@ -1,5 +1,7 @@
 import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
+import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
@@ -143,6 +145,28 @@ export const useSchedule = ({
         enabled: options.enabled && !isCallingApiV2Slots,
       })
     : trpc.viewer.slots.getSchedule.useQuery(input, options);
+
+  useEffect(() => {
+    const currentSchedule = isCallingApiV2Slots ? teamScheduleV2 : schedule;
+
+    if (currentSchedule.isSuccess && currentSchedule.data?.slots) {
+      sdkActionManager?.fire("availabilityLoaded", {
+        slots: currentSchedule.data.slots,
+        eventTypeId: eventId,
+        startDate: startTime,
+        endDate: endTime,
+        timezone: timezone || "UTC",
+      });
+    }
+  }, [
+    isCallingApiV2Slots ? teamScheduleV2.isSuccess : schedule.isSuccess,
+    isCallingApiV2Slots ? teamScheduleV2.data : schedule.data,
+    eventId,
+    startTime,
+    endTime,
+    timezone,
+    isCallingApiV2Slots,
+  ]);
 
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({

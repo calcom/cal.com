@@ -99,6 +99,13 @@ export type EventDataMap = {
     actionValue: string;
   };
   navigatedToBooker: Record<string, never>;
+  availabilityLoaded: {
+    slots: Record<string, { time: string }[]>;
+    eventTypeId: number | null | undefined;
+    startDate: string;
+    endDate: string;
+    timezone: string;
+  };
   "*": Record<string, unknown>;
   __routeChanged: Record<string, never>;
   __windowLoadComplete: Record<string, never>;
