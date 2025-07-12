@@ -170,8 +170,10 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     }
 
     if (hashedLink.length > 0) {
-      const newHashedLinksData = hashedLink.map((originalLink) => ({
-        link: generateHashedLink(users[0]?.id ?? newEventType.teamId ?? originalLink.eventTypeId),
+      const newHashedLinksData = hashedLink.map((originalLink, index) => ({
+        link: generateHashedLink(
+          `${users[0]?.id ?? newEventType.teamId ?? originalLink.eventTypeId}-${index}`
+        ),
         eventTypeId: newEventType.id,
         expiresAt: originalLink.expiresAt,
         maxUsageCount: originalLink.maxUsageCount,
