@@ -23,6 +23,7 @@ type CalVideoSettings = {
   disableRecordingForGuests: boolean;
   disableRecordingForOrganizer: boolean;
   enableAutomaticTranscription: boolean;
+  enableAutomaticRecordingForOrganizer: boolean;
   disableTranscriptionForGuests: boolean;
   disableTranscriptionForOrganizer: boolean;
 };
@@ -57,6 +58,21 @@ const shouldEnableAutomaticTranscription = ({
   if (!calVideoSettings) return false;
 
   return !!calVideoSettings.enableAutomaticTranscription;
+};
+
+const shouldEnableAutomaticRecording = ({
+  hasTeamPlan,
+  calVideoSettings,
+  isOrganizer,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+  isOrganizer: boolean;
+}) => {
+  if (!hasTeamPlan || !isOrganizer) return false;
+  if (!calVideoSettings) return false;
+
+  return !!calVideoSettings.enableAutomaticRecordingForOrganizer;
 };
 
 const shouldEnableTranscriptionButton = ({
@@ -239,17 +255,24 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const showRecordingButton = shouldEnableRecordButton({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
-    isOrganizer: sessionUserId === bookingObj.user?.id,
+    isOrganizer,
   });
 
   const enableAutomaticTranscription = shouldEnableAutomaticTranscription({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
   });
+
+  const enableAutomaticRecordingForOrganizer = shouldEnableAutomaticRecording({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+    isOrganizer,
+  });
+
   const showTranscriptionButton = shouldEnableTranscriptionButton({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
-    isOrganizer: sessionUserId === bookingObj.user?.id,
+    isOrganizer,
   });
 
   return {
@@ -274,6 +297,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
       showRecordingButton,
       enableAutomaticTranscription,
+      enableAutomaticRecordingForOrganizer,
       showTranscriptionButton,
       rediectAttendeeToOnExit: isOrganizer
         ? undefined

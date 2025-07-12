@@ -106,7 +106,7 @@ export function SettingsToggle({
               <div>
                 <Label
                   className={classNames("text-emphasis text-sm font-semibold leading-none", labelClassName)}>
-                  {title}
+                  {title} {Badge ? Badge : null}
                   {LockedIcon}
                 </Label>
                 {description && <p className="text-default -mt-1.5 text-sm leading-normal">{description}</p>}

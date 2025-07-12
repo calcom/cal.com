@@ -709,6 +709,7 @@ export class EventTypeRepository {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
           enableAutomaticTranscription: true,
+          enableAutomaticRecordingForOrganizer: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
