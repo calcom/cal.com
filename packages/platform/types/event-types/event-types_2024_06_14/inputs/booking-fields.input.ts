@@ -279,7 +279,7 @@ export class GuestsDefaultFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&guests=bob@cal.com`,\
-      the guests field will be prefilled with this value and disabled. In case of Booker atom need to pass 'guests' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{guests: 'bob@gmail.com', guests: 'alice@gmail.com'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
+      the guests field will be prefilled with this value and disabled. In case of Booker atom need to pass 'guests' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{guests: ['bob@gmail.com', 'alice@gmail.com']}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 }
