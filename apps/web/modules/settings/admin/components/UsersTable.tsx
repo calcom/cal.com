@@ -34,7 +34,7 @@ function UsersTable({ setSMSLockState }: Props) {
   const { data: usersAndTeams } = trpc.viewer.admin.getSMSLockStateTeamsUsers.useQuery();
 
   if (!usersAndTeams) {
-    return <></>;
+    return null;
   }
 
   const users = usersAndTeams.users.locked.concat(usersAndTeams.users.reviewNeeded);
